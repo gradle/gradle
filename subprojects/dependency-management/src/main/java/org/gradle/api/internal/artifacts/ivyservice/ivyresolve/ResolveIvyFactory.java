@@ -67,7 +67,7 @@ public class ResolveIvyFactory {
         this.latestStrategy = latestStrategy;
     }
 
-    public RepositoryChain create(ConfigurationInternal configuration,
+    public UserResolverChain create(ConfigurationInternal configuration,
                                   Iterable<? extends ResolutionAwareRepository> repositories,
                                   ModuleMetadataProcessor metadataProcessor) {
         ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();

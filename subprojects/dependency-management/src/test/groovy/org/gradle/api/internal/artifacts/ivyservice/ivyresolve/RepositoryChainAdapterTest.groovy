@@ -20,16 +20,15 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 class RepositoryChainAdapterTest extends Specification {
-    def target = Mock(DependencyToComponentResolver)
+    def metaDataResolver = Mock(DependencyToComponentResolver)
+    def dynamicVersionResolver = Mock(DependencyToComponentIdResolver)
     def idResult = Mock(BuildableComponentIdResolveResult)
     def versionMatcher = Stub(VersionMatcher)
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
@@ -38,7 +37,7 @@ class RepositoryChainAdapterTest extends Specification {
     def dependency = Stub(DependencyMetaData) {
         getRequested() >> requested
     }
-    def resolver = new RepositoryChainAdapter(target, versionMatcher)
+    def resolver = new RepositoryChainAdapter(dynamicVersionResolver, metaDataResolver, versionMatcher)
 
     def "short-circuits static version resolution"() {
         given:
@@ -52,8 +51,6 @@ class RepositoryChainAdapterTest extends Specification {
     }
 
     def "resolves dynamic version"() {
-        def metaData = Stub(ComponentResolveMetaData)
-
         given:
         versionMatcher.isDynamic("version") >> true
 
@@ -61,27 +58,6 @@ class RepositoryChainAdapterTest extends Specification {
         resolver.resolve(dependency, idResult)
 
         then:
-        1 * target.resolve(dependency, !null) >> { DependencyMetaData dep, BuildableComponentResolveResult metaDataResult ->
-            metaDataResult.resolved(metaData)
-        }
-        1 * idResult.resolved(metaData)
-    }
-
-    def "propagates details of failed id resolve"() {
-        def failure = new ModuleVersionResolveException(requested, "broken")
-
-        given:
-        versionMatcher.isDynamic("version") >> true
-
-        when:
-        resolver.resolve(dependency, idResult)
-
-        then:
-        1 * target.resolve(dependency, !null) >> { DependencyMetaData dep, BuildableComponentResolveResult metaDataResult ->
-            metaDataResult.attempted("resource")
-            metaDataResult.failed(failure)
-        }
-        1 * idResult.attempted("resource")
-        1 * idResult.failed(failure)
+        1 * dynamicVersionResolver.resolve(dependency, idResult)
     }
 }

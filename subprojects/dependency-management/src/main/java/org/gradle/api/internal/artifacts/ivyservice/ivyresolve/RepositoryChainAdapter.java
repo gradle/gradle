@@ -29,7 +29,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 /**
  * Takes a dependency->meta-data resolver and presents it as separate dependency->id and id->meta-data resolvers.
@@ -37,20 +36,20 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
  * Short-circuits the dependency->id resolution for static versions.
  */
 public class RepositoryChainAdapter implements DependencyToComponentIdResolver, ComponentMetaDataResolver {
-    private final DependencyToComponentResolver resolver;
+    private final DependencyToComponentIdResolver dynamicRevisionResolver;
+    private final DependencyToComponentResolver metaDataResolver;
     private final VersionMatcher versionMatcher;
 
-    public RepositoryChainAdapter(DependencyToComponentResolver resolver, VersionMatcher versionMatcher) {
-        this.resolver = resolver;
+    public RepositoryChainAdapter(DependencyToComponentIdResolver dynamicRevisionResolver, DependencyToComponentResolver metaDataResolver, VersionMatcher versionMatcher) {
+        this.dynamicRevisionResolver = dynamicRevisionResolver;
+        this.metaDataResolver = metaDataResolver;
         this.versionMatcher = versionMatcher;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         if (versionMatcher.isDynamic(requested.getVersion())) {
-            DefaultBuildableComponentResolveResult metaDataResult = new DefaultBuildableComponentResolveResult();
-            resolver.resolve(dependency, metaDataResult);
-            metaDataResult.applyTo(result);
+            dynamicRevisionResolver.resolve(dependency, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
             DefaultModuleVersionIdentifier mvId = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
@@ -60,13 +59,13 @@ public class RepositoryChainAdapter implements DependencyToComponentIdResolver, 
 
     public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
         if (!(identifier instanceof ModuleComponentIdentifier)) {
-            throw new UnsupportedOperationException("Can only resolve module components");
+            throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
         // Force the requested version
         ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) identifier;
         dependency = dependency.withRequestedVersion(new DefaultModuleVersionSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
 
-        resolver.resolve(dependency, result);
+        metaDataResolver.resolve(dependency, result);
     }
 }

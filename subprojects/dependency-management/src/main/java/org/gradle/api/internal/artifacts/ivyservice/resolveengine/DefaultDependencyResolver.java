@@ -26,10 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainAdapter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
@@ -53,7 +50,6 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,10 +88,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", configuration);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
+                UserResolverChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
 
-                DependencyToComponentResolver dependencyResolver = repositoryChain.getDependencyResolver();
-                RepositoryChainAdapter adapter = new RepositoryChainAdapter(dependencyResolver, versionMatcher);
+                RepositoryChainAdapter adapter = new RepositoryChainAdapter(repositoryChain.getDynamicVersionResolver(), repositoryChain.getDependencyResolver(), versionMatcher);
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(adapter, dependencyDescriptorFactory);
 
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, adapter);

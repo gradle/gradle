@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.resolve.result.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,15 +32,15 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RepositoryChainDependencyResolver implements DependencyToComponentResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainDependencyResolver.class);
+public class DynamicVersionResolver implements DependencyToComponentIdResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicVersionResolver.class);
 
     private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
     private final List<String> repositoryNames = new ArrayList<String>();
     private final ComponentChooser componentChooser;
     private final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory;
 
-    public RepositoryChainDependencyResolver(ComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
+    public DynamicVersionResolver(ComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
         this.componentChooser = componentChooser;
         this.metaDataFactory = metaDataFactory;
     }
@@ -56,12 +50,9 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
+    public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, repositoryNames);
-        ModuleComponentIdentifier moduleComponentIdentifier = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
@@ -69,7 +60,7 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
             resolveStates.add(new RepositoryResolveState(repository));
         }
 
-        final RepositoryChainModuleResolution latestResolved = findLatestModule(dependency, moduleComponentIdentifier, resolveStates, errors);
+        final RepositoryChainModuleResolution latestResolved = findLatestModule(dependency, resolveStates, errors);
         if (latestResolved != null) {
             LOGGER.debug("Using module '{}' from repository '{}'", latestResolved.module.getId(), latestResolved.repository.getName());
             for (Throwable error : errors) {
@@ -80,23 +71,23 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
             return;
         }
         if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, errors));
+            result.failed(new ModuleVersionResolveException(requested, errors));
         } else {
             for (RepositoryResolveState resolveState : resolveStates) {
                 resolveState.applyTo(result);
             }
-            result.notFound(moduleVersionIdentifier);
+            result.notFound(requested);
         }
     }
 
-    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
+    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
         queue.addAll(resolveStates);
 
         LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
 
         // A first pass to do local resolves only
-        RepositoryChainModuleResolution best = findLatestModule(dependency, componentIdentifier, queue, failures, missing);
+        RepositoryChainModuleResolution best = findLatestModule(dependency, queue, failures, missing);
         if (best != null) {
             return best;
         }
@@ -104,15 +95,15 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         // Nothing found - do a second pass
         queue.addAll(missing);
         missing.clear();
-        return findLatestModule(dependency, componentIdentifier, queue, failures, missing);
+        return findLatestModule(dependency, queue, failures, missing);
     }
 
-    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
             try {
-                request.resolve(dependency, componentIdentifier);
+                request.resolve(dependency);
             } catch (Throwable t) {
                 failures.add(t);
                 continue;
@@ -132,9 +123,6 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
                     break;
                 case Resolved:
                     RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, request.resolveResult.getMetaData());
-                    if (!moduleResolution.isGeneratedModuleDescriptor()) {
-                        return moduleResolution;
-                    }
                     best = chooseBest(best, moduleResolution);
                     break;
                 default:
@@ -154,6 +142,7 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
 
     public class RepositoryResolveState {
         private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
+        final DefaultBuildableModuleComponentVersionSelectionResolveResult selectionResult = new DefaultBuildableModuleComponentVersionSelectionResolveResult();
         final ModuleComponentRepository repository;
 
         private boolean searchedLocally;
@@ -163,30 +152,47 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
             this.repository = repository;
         }
 
-        void resolve(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier) {
+        void resolve(DependencyMetaData dependency) {
             if (!searchedLocally) {
                 searchedLocally = true;
-                process(dependency, componentIdentifier, repository.getLocalAccess(), resolveResult);
+                process(dependency, repository.getLocalAccess(), resolveResult);
             } else {
                 searchedRemotely = true;
-                process(dependency, componentIdentifier, repository.getRemoteAccess(), resolveResult);
+                process(dependency, repository.getRemoteAccess(), resolveResult);
             }
             if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Failed) {
                 throw resolveResult.getFailure();
             }
         }
 
-        protected void process(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
-            moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
-            if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                if (componentChooser.isRejectedByRules(componentIdentifier, dependency, moduleAccess)) {
-                    resolveResult.missing();
-                }
+        protected void process(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
+            moduleAccess.listModuleVersions(dependency, selectionResult);
+            switch (selectionResult.getState()) {
+                case Failed:
+                    resolveResult.failed(selectionResult.getFailure());
+                    break;
+                case Listed:
+                    if (!resolveDependency(dependency, moduleAccess, resolveResult)) {
+                        resolveResult.missing();
+                        resolveResult.setAuthoritative(selectionResult.isAuthoritative());
+                    }
+                    break;
             }
+        }
+
+        private boolean resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
+            ModuleComponentIdentifier componentIdentifier = componentChooser.choose(selectionResult.getVersions(), dependency, moduleAccess);
+            if (componentIdentifier == null) {
+                return false;
+            }
+            dependency = dependency.withRequestedVersion(componentIdentifier.getVersion());
+            moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
+            return true;
         }
 
         protected void applyTo(ResourceAwareResolveResult result) {
             resolveResult.applyTo(result);
+            selectionResult.applyTo(result);
         }
 
         public boolean canMakeFurtherAttempts() {

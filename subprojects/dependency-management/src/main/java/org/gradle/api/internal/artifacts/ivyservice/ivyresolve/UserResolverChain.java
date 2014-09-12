@@ -26,10 +26,18 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 
 public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainDependencyResolver dependencyResolver;
+    private final DynamicVersionResolver dynamicVersionResolver;
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
 
     public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy, ComponentSelectionRulesInternal versionSelectionRules) {
-        this.dependencyResolver = new RepositoryChainDependencyResolver(new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules), new ModuleTransformer());
+        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules);
+        ModuleTransformer metaDataFactory = new ModuleTransformer();
+        this.dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
+        this.dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+    }
+
+    public DynamicVersionResolver getDynamicVersionResolver() {
+        return dynamicVersionResolver;
     }
 
     public DependencyToComponentResolver getDependencyResolver() {
@@ -42,6 +50,7 @@ public class UserResolverChain implements RepositoryChain {
 
     public void add(ModuleComponentRepository repository) {
         dependencyResolver.add(repository);
+        dynamicVersionResolver.add(repository);
         artifactResolver.add(repository);
     }
 

@@ -48,6 +48,10 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         this(DefaultModuleVersionSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), messageFormat);
     }
 
+    public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
+        this(DefaultModuleVersionSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), causes);
+    }
+
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
         this(selector, "Could not resolve %s.");
         initCause(cause);

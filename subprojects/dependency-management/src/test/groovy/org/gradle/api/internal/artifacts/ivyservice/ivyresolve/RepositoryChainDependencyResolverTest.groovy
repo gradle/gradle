@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
@@ -29,8 +28,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetaDa
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
-import org.gradle.internal.resolve.result.DefaultModuleVersionListing
-import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
 class RepositoryChainDependencyResolverTest extends Specification {
@@ -93,91 +90,6 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
             assert it.module == metaData
             assert it.repository == repo
-            metaData
-        }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
-            assert metaData == this.metaData
-        }
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * result._
-    }
-
-    def "chooses best component from single repository for dynamic dependency"() {
-        given:
-        def repo = addRepo1()
-
-        and:
-        def dynamicDependency = Mock(DependencyMetaData)
-        def dynamicSelector = Mock(ModuleVersionSelector)
-        final versionListing = new DefaultModuleVersionListing("1.1")
-        final selectedId = DefaultModuleComponentIdentifier.newId("group", "name", "1.1")
-
-        when:
-        resolver.resolve(dynamicDependency, result)
-
-        then:
-        _ * dynamicDependency.getRequested() >> dynamicSelector
-        1 * componentSelectionStrategy.canSelectMultipleComponents(dynamicSelector) >> true
-        1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
-            result.listed(versionListing)
-        }
-        _ * componentSelectionStrategy.choose(versionListing, dynamicDependency, localAccess) >> selectedId
-        1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
-        1 * localAccess.resolveComponentMetaData(dependency, selectedId, _) >> { dep, id, result ->
-            result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo
-            metaData
-        }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
-            assert metaData == this.metaData
-        }
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * result._
-    }
-
-    def "chooses best component from multiple repositories for dynamic dependency"() {
-        given:
-        def repo1 = addRepo1()
-        def repo2 = addRepo2()
-
-        and:
-        def dynamicDependency = Mock(DependencyMetaData)
-        def dynamicSelector = Mock(ModuleVersionSelector)
-        final versionListing1 = Mock(ModuleVersionListing)
-        final versionListing2 = new DefaultModuleVersionListing("1.1")
-        final selectedId = DefaultModuleComponentIdentifier.newId("group", "name", "1.1")
-
-        when:
-        resolver.resolve(dynamicDependency, result)
-
-        then:
-        _ * dynamicDependency.getRequested() >> dynamicSelector
-        1 * componentSelectionStrategy.canSelectMultipleComponents(dynamicSelector) >> true
-        1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
-            result.listed(versionListing1)
-        }
-        1 * componentSelectionStrategy.choose(versionListing1, dynamicDependency, localAccess) >> null
-
-        1 * localAccess2.listModuleVersions(dynamicDependency, _) >> { dep, result ->
-            result.listed(versionListing2)
-        }
-        1 * componentSelectionStrategy.choose(versionListing2, dynamicDependency, localAccess2) >> selectedId
-        1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
-        1 * localAccess2.resolveComponentMetaData(dependency, selectedId, _) >> { dep, id, result ->
-            result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
             metaData
         }
         1 * result.resolved(_) >> { ModuleComponentResolveMetaData metaData ->
@@ -260,26 +172,6 @@ class RepositoryChainDependencyResolverTest extends Specification {
         }
         1 * result.attempted("scheme:thing")
         1 * result.notFound(moduleVersionId)
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * result._
-    }
-
-    def "fails with not found when local dynamic dependency is marked as missing"() {
-        given:
-        def repo = addRepo1()
-
-        when:
-        resolver.resolve(dependency, result)
-
-        then:
-        1 * componentSelectionStrategy.canSelectMultipleComponents(selector) >> true
-        1 * localAccess.listModuleVersions(dependency, _) >> { dep, result ->
-            result.listed(new DefaultModuleVersionListing())
-        }
-        1 * result.notFound(selector)
 
         and:
         0 * localAccess._
