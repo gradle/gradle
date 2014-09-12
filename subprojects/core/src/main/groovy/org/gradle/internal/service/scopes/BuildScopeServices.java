@@ -269,8 +269,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new LongIdGenerator());
     }
 
-    protected BuildConfigurer createBuildConfigurer() {
-        return new DefaultBuildConfigurer();
+    protected BuildConfigurer createBuildConfigurer(BuildCancellationToken cancellationToken) {
+        return new DefaultBuildConfigurer(cancellationToken);
     }
 
     protected ProjectAccessListener createProjectAccessListener() {

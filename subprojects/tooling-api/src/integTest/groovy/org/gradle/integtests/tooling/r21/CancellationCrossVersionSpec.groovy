@@ -37,6 +37,59 @@ rootProject.name = 'cancelling'
 '''
     }
 
+    @TargetGradleVersion(">=2.2")
+    def "can cancel build during configuration phase"() {
+        def marker = file("marker.txt")
+        settingsFile << '''
+include 'sub'
+rootProject.name = 'cancelling'
+'''
+        buildFile << """
+println "__waiting__ (configuring root project)"
+def marker = file('${marker.toURI()}')
+long timeout = System.currentTimeMillis() + 10000
+while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
+if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+
+task first << {
+    println "__should_not_run__"
+}
+"""
+        projectDir.file('sub/build.gradle') << """
+println '__should_not_run__ (configuring :sub)'
+task second << {
+    println "__should_not_run__"
+}
+"""
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+        def error = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks(':first', ':sub:second')
+                    .withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
+                    .setStandardError(error)
+            build.run(resultHandler)
+            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            marker.text = 'go!'
+            cancel.cancel()
+            resultHandler.finished()
+        }
+        resultHandler.failure.printStackTrace()
+
+        then:
+        output.toString().contains("__waiting__")
+        !output.toString().contains("__should_not_run__")
+        new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted()
+
+        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure.cause.message.contains('Build cancelled.')
+    }
+
     @TargetGradleVersion(">=2.1")
     def "can cancel build and skip some tasks"() {
         def marker = file("marker.txt")

@@ -83,6 +83,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(DocumentationRegistry) >> new DocumentationRegistry()
         parent.get(FileLookup) >> Stub(FileLookup)
         parent.get(PluginRequestApplicator) >> Mock(PluginRequestApplicator)
+        parent.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
     }
 
     def delegatesToParentForUnknownService() {
