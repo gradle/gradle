@@ -15,8 +15,10 @@
  */
 package org.gradle.util;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
@@ -564,6 +566,12 @@ public abstract class CollectionUtils {
                 };
             }
         };
+    }
+
+    @Nullable
+    public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
+        ImmutableList<T> list = ImmutableList.copyOf(iterable);
+        return list.isEmpty() ? null : list;
     }
 
 }

@@ -348,6 +348,12 @@ class CollectionUtilsTest extends Specification {
         unpack([]).toList().isEmpty()
     }
 
+    def nonEmptyOrNull() {
+        expect:
+        nonEmptyOrNull([1, 2, 3]) == [1, 2, 3]
+        nonEmptyOrNull([]) == null
+        }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }

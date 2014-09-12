@@ -70,7 +70,7 @@ public class SonarRunnerExtension {
         propertiesActions.add(action);
     }
 
-    void evaluateSonarPropertiesBlocks(Map<String, Object> properties) {
+    public void evaluateSonarPropertiesBlocks(Map<String, Object> properties) {
         SonarProperties sonarProperties = new SonarProperties();
         sonarProperties.setProperties(properties);
         propertiesActions.execute(sonarProperties);
