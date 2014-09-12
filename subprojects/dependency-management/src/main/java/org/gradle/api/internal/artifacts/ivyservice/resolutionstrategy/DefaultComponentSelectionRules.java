@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
@@ -46,6 +45,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
     private static final String UNSUPPORTED_SPEC_ERROR = "Unsupported format for module constraint: '%s'.  This should be in the format of 'group:module'.";
+    private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
 
     public Collection<RuleAction<? super ComponentSelection>> getRules() {
         return rules;
@@ -88,15 +88,15 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
         try {
             return validateInputTypes(new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection.class, closure));
-        } catch (RuntimeException e) {
-            throw new InvalidActionClosureException(String.format("The closure provided is not valid as a rule action for '%s'.", ComponentSelectionRules.class.getSimpleName()), closure, e);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidActionClosureException(String.format(INVALID_CLOSURE_ERROR, ComponentSelectionRules.class.getSimpleName()), closure, e);
         }
     }
 
     private RuleAction<? super ComponentSelection> validateInputTypes(RuleAction<? super ComponentSelection> ruleAction) {
         for (Class<?> inputType : ruleAction.getInputTypes()) {
             if (!VALID_INPUT_TYPES.contains(inputType)) {
-                throw new InvalidUserCodeException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
+                throw new IllegalArgumentException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
             }
         }
         return ruleAction;

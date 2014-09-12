@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.InvalidActionClosureException
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.RuleAction
 import org.gradle.api.artifacts.ComponentMetadata
@@ -161,7 +160,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.all ruleAction
 
         then:
-        def e = thrown(InvalidUserCodeException)
+        def e = thrown(IllegalArgumentException)
         e.message == message
 
         where:
@@ -181,7 +180,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module("group:module", ruleAction)
 
         then:
-        def e = thrown(InvalidUserCodeException)
+        def e = thrown(IllegalArgumentException)
         e.message == message
 
         where:
