@@ -737,6 +737,7 @@ Searched in the following locations:
 """)
 
         when: "no version > 2"
+        server.resetExpectations()
         directoryList.expectGet()
 
         then:
@@ -779,6 +780,7 @@ Searched in the following locations:
 """)
 
         when: "no versions"
+        server.resetExpectations()
         directoryList.expectGetMissing()
 
         then:
