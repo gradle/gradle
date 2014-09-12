@@ -138,6 +138,14 @@ This applies to unmanaged machines running Linux and one Windows box.
 
 Upgrade existing Saucy machines and probably also Precise.
 
+## Ensure that packages have consistent versions across all build machines
+
+Currently we are using apt-get to install packages on ubuntu build machines. 
+The problem with this is that as new versions arrive in the repository the old ones are removed and always the latest currently available version is used.
+This means that the package version used by a machine depends on when that machine was provisioned.
+
+Do something so that package versions used are consistent and don't depend on when the machine was provisioned.  
+
 # Build against Early Access builds of the JDK
 
 This would include new releases of 6, 7, 8 and 9.
