@@ -811,6 +811,7 @@ Add a sample to show a JVM library built for multiple Java versions.
     - `org.gradle.nativeplatform.toolchain.NativeToolChain`
     - `org.gradle.platform.base.toolchain.ToolChain`
 - Change `JavaToolChain` to extend `ToolChain`.
+- Add metadata-information about each `ToolChain` (`NativeToolChain`, `JavaToolChain`) so that a platform can know what capabilities it has.
 - Change `JvmPlatform` to extend `Platform`.
 - The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by the current JVM.
 - Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task
