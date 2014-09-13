@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildAction;
@@ -24,6 +25,7 @@ import org.gradle.initialization.BuildController;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 
 import java.io.Serializable;
@@ -53,6 +55,8 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
         Throwable failure = null;
         try {
             model = action.execute(internalBuildController);
+        } catch (BuildCancelledException e) {
+            throw new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             failure = new InternalBuildActionFailureException(e);
         }

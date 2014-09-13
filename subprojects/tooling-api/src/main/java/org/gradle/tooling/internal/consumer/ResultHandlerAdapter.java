@@ -51,8 +51,8 @@ abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
                     + "\n" + failure.getMessage(), failure.getCause()));
         } else if (failure instanceof GradleConnectionException) {
             handler.onFailure((GradleConnectionException) failure);
-        } else if (failure.getCause() instanceof InternalBuildCancelledException) {
-            handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause().getCause()));
+        } else if (failure instanceof InternalBuildCancelledException) {
+            handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
         } else if (isR21CancellingException(failure)) {
             handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof BuildExceptionVersion1) {

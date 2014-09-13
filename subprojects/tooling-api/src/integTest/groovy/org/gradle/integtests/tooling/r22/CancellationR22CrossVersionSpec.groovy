@@ -263,7 +263,7 @@ task hang << {
         resultHandler.failure instanceof BuildCancelledException
     }
 
-    @TargetGradleVersion(">=2.1")
+    @TargetGradleVersion(">=2.2")
     def "can cancel action"() {
         def marker = file("marker.txt")
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -272,21 +272,21 @@ task hang << {
 
         when:
         withConnection { ProjectConnection connection ->
-            def build = connection.action(new HangingBuildAction(marker.toURI()))
+            def build = connection.action(new CancelledInControllerBuildAction(marker.toURI()))
             build.withCancellationToken(cancel.token())
                     .setStandardOutput(output)
             build.run(resultHandler)
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
-            cancel.cancel()
             marker.text = 'go!'
+            cancel.cancel()
             resultHandler.finished()
         }
 
         then:
         output.toString().contains("waiting")
-        // TODO add when print 'finished' is preceeded with call to BuildController and we're able to cancel it
-        // !output.toString().contains("finished")
-        resultHandler.failure instanceof BuildCancelledException // ||
+        !output.toString().contains("finished")
+        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.failure.cause.message == 'Could not build \'org.gradle.tooling.model.gradle.GradleBuild\' model. Build cancelled.'
     }
 
     @TargetGradleVersion(">=2.1")

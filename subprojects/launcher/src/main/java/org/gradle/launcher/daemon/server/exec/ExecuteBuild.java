@@ -46,13 +46,10 @@ public class ExecuteBuild extends BuildCommandOnly {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().updateCancellationToken(build.getIdentifier());
             Object result = actionExecuter.execute(build.getAction(), cancellationToken, build.getParameters());
             if (cancellationToken.isCancellationRequested()) {
-                if (!(execution.getException() instanceof BuildCancelledException)) {
-                    BuildCancelledException cancelledException = new BuildCancelledException("Build cancelled.");
-                    if (execution.getException() != null) {
-                        cancelledException.initCause(execution.getException());
-                    }
-                    execution.setException(cancelledException);
-                }
+                BuildCancelledException cancelledException = execution.getException() instanceof BuildCancelledException
+                        ? (BuildCancelledException) execution.getException()
+                        : new BuildCancelledException("Build cancelled.", execution.getException());
+                execution.setException(cancelledException);
             } else {
                 execution.setResult(result);
             }

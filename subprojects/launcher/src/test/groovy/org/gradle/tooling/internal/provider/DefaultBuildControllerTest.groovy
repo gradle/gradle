@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
@@ -29,7 +31,12 @@ import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
 class DefaultBuildControllerTest extends Specification {
-    def gradle = Stub(GradleInternal)
+    def cancellationToken = Stub(BuildCancellationToken)
+    def gradle = Stub(GradleInternal) {
+        getServices() >> Stub(ServiceRegistry) {
+            get(BuildCancellationToken) >> cancellationToken
+        }
+    }
     def registry = Stub(ToolingModelBuilderRegistry)
     def project = Stub(ProjectInternal) {
         getServices() >> Stub(ServiceRegistry) {
@@ -125,5 +132,17 @@ class DefaultBuildControllerTest extends Specification {
 
         then:
         result.getModel() == model
+    }
+
+    def "throws an exception when cancel was requested"() {
+        given:
+        _ * cancellationToken.cancellationRequested >> true
+        def target = Stub(GradleProjectIdentity)
+
+        when:
+        def result = controller.getModel(target, modelId)
+
+        then:
+        thrown(BuildCancelledException)
     }
 }
