@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -23,11 +21,11 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r21.HangingBuildAction
+import org.gradle.integtests.tooling.r21.TestResultHandler
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.*
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 
 @ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=1.0-milestone-8")
@@ -43,6 +41,7 @@ rootProject.name = 'cancelling'
     @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
         def marker = file("marker.txt")
+        def marker2 = file("marker2.txt")
         settingsFile << '''
 include 'sub'
 rootProject.name = 'cancelling'
@@ -50,9 +49,14 @@ rootProject.name = 'cancelling'
         buildFile << """
 println "__waiting__ (configuring root project)"
 def marker = file('${marker.toURI()}')
+def marker2 = file('${marker2.toURI()}')
 long timeout = System.currentTimeMillis() + 10000
 while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
 if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+
+timeout = System.currentTimeMillis() + 10000
+while (!marker2.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
+if (!marker2.file) { throw new RuntimeException("Timeout waiting for marker file") }
 
 task first << {
     println "__should_not_run__"
@@ -80,6 +84,7 @@ task second << {
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             marker.text = 'go!'
             cancel.cancel()
+            marker2.text = 'go!'
             resultHandler.finished()
         }
         resultHandler.failure.printStackTrace()
@@ -209,8 +214,8 @@ task hang << {
             build.run(resultHandler)
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             cancel.cancel()
+            resultHandler.finished(20)
             marker.text = 'go!'
-            resultHandler.finished()
         }
 
         then:
@@ -304,34 +309,6 @@ task hang << {
         }
         then:
         resultHandler.failure instanceof BuildCancelledException
-    }
-
-    class TestResultHandler implements ResultHandler<Object> {
-        final latch = new CountDownLatch(1)
-        final boolean expectFailure
-        def failure
-
-        TestResultHandler() {
-            this(true)
-        }
-
-        TestResultHandler(boolean expectFailure) {
-            this.expectFailure = expectFailure
-        }
-
-        void onComplete(Object result) {
-            latch.countDown()
-        }
-
-        void onFailure(GradleConnectionException failure) {
-            this.failure = failure
-            latch.countDown()
-        }
-
-        def finished() {
-            latch.await(10, TimeUnit.SECONDS)
-            assert (failure != null) == expectFailure
-        }
     }
 
     class TestOutputStream extends OutputStream {

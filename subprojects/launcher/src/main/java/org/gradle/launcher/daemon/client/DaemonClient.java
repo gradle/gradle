@@ -24,6 +24,8 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonUidCompatibilitySpec;
@@ -198,6 +200,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             } finally {
                 connection.stop();
                 cancellationToken.removeCallback(cancelCallback);
+                cancelCallback.stop();
             }
         }
         //TODO it would be nice if below includes the errors that were accumulated above.
@@ -206,31 +209,48 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     // TODO handle connectivity problems
-    private class CancelCallback implements Runnable {
+    private class CancelCallback implements Runnable, Stoppable {
         private final ExplainingSpec<DaemonContext> executingCompatibilitySpec;
         private final Object buildId;
-        private volatile boolean wasCancelled;
+        private volatile StoppableExecutor executor;
 
         public CancelCallback(String connectionUid, Object buildId) {
             executingCompatibilitySpec = DaemonUidCompatibilitySpec.createSpecRequiringUid(compatibilitySpec, connectionUid);
             this.buildId = buildId;
         }
 
+        private void requestCancel() {
+            StoppableExecutor executor = executorFactory.create("Build cancellation executor.");
+            LOGGER.debug("Scheduling daemon cancel request to handle build cancellation...");
+            executor.execute(new Runnable() {
+                public void run() {
+                    LOGGER.info("Request daemon to cancel build...");
+                    DaemonClientConnection connection = connector.maybeConnect(executingCompatibilitySpec);
+                    if (connection == null) {
+                        LOGGER.error("Cannot connect to daemon process to cancel the build.");
+                        return;
+                    }
+                    new CancelDispatcher(idGenerator).dispatch(connection, buildId);
+                    LOGGER.lifecycle("Gradle build cancelled.");
+                    connection.stop();
+                }
+            });
+            this.executor = executor;
+        }
+
         public void run() {
-            LOGGER.info("Request daemon stop to handle build cancellation...");
-            wasCancelled = true;
-            DaemonClientConnection connection = connector.maybeConnect(executingCompatibilitySpec);
-            if (connection == null) {
-                LOGGER.error("Cannot connect to daemon process to cancel the build.");
-                return;
-            }
-            new CancelDispatcher(idGenerator).dispatch(connection, buildId);
-            LOGGER.lifecycle("Gradle build stopped.");
-            connection.stop();
+            requestCancel();
         }
 
         public boolean wasCancelled() {
-            return wasCancelled;
+            return executor != null;
+        }
+
+        public void stop() {
+            StoppableExecutor executor = this.executor;
+            if (executor != null) {
+                executor.stop();
+            }
         }
     }
 

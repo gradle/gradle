@@ -21,10 +21,10 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.*
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 
 @ToolingApiVersion("=2.1")
 @TargetGradleVersion(">=1.0-milestone-8")
@@ -208,13 +208,12 @@ task hang << {
             build.run(resultHandler)
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             cancel.cancel()
+            resultHandler.finished(20)
             marker.text = 'go!'
-            resultHandler.finished()
         }
         then:
         output.toString().contains("__waiting__")
         !output.toString().contains("__finished__")
-        // TODO until we implement proper cancelling this depends on timing
         resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure instanceof GradleConnectionException
     }
@@ -280,7 +279,7 @@ task hang << {
 
         then:
         output.toString().contains("waiting")
-        // TODO add when print 'finished' is preceeded with call to BuildController and we're able to cancel it
+        // 2.2 can cancel during action execution, 2.1 cannot and action will finish
         // !output.toString().contains("finished")
         resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure instanceof GradleConnectionException
@@ -301,34 +300,6 @@ task hang << {
         }
         then:
         resultHandler.failure instanceof BuildCancelledException
-    }
-
-    class TestResultHandler implements ResultHandler<Object> {
-        final latch = new CountDownLatch(1)
-        final boolean expectFailure
-        def failure
-
-        TestResultHandler() {
-            this(true)
-        }
-
-        TestResultHandler(boolean expectFailure) {
-            this.expectFailure = expectFailure
-        }
-
-        void onComplete(Object result) {
-            latch.countDown()
-        }
-
-        void onFailure(GradleConnectionException failure) {
-            this.failure = failure
-            latch.countDown()
-        }
-
-        def finished() {
-            latch.await(10, TimeUnit.SECONDS)
-            assert (failure != null) == expectFailure
-        }
     }
 
     class TestOutputStream extends OutputStream {
