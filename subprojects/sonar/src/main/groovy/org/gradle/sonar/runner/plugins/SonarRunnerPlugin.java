@@ -226,8 +226,10 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                 properties.put("sonar.libraries", getLibraries(main));
 
                 final Test testTask = (Test) project.getTasks().getByName(JavaPlugin.TEST_TASK_NAME);
-                File testResultsDir = testTask.getReports().getJunitXml().getDestination();
-                File testResultsValue = testResultsDir.exists() ? testResultsDir : null;
+                File testResultsValue = testTask.getReports().getJunitXml().getDestination();
+                // create the test results folder to prevent SonarQube from emitting
+                // a warning if a project does not contain any tests
+                testResultsValue.mkdirs();
 
                 properties.put("sonar.surefire.reportsPath", testResultsValue);
                 // added due to https://issues.gradle.org/browse/GRADLE-3005
