@@ -58,7 +58,7 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
 
     public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, repositoryNames);
+        LOGGER.debug("Attempting to resolve {} using repositories {}", requested, repositoryNames);
         ModuleComponentIdentifier moduleComponentIdentifier = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
         ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
 
@@ -69,9 +69,9 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
             resolveStates.add(new RepositoryResolveState(repository));
         }
 
-        final RepositoryChainModuleResolution latestResolved = findLatestModule(dependency, moduleComponentIdentifier, resolveStates, errors);
+        final RepositoryChainModuleResolution latestResolved = findBestMatch(dependency, moduleComponentIdentifier, resolveStates, errors);
         if (latestResolved != null) {
-            LOGGER.debug("Using module '{}' from repository '{}'", latestResolved.module.getId(), latestResolved.repository.getName());
+            LOGGER.debug("Using {} from {}", latestResolved.module.getId(), latestResolved.repository);
             for (Throwable error : errors) {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
@@ -89,14 +89,14 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         }
     }
 
-    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
+    private RepositoryChainModuleResolution findBestMatch(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
         queue.addAll(resolveStates);
 
         LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
 
         // A first pass to do local resolves only
-        RepositoryChainModuleResolution best = findLatestModule(dependency, componentIdentifier, queue, failures, missing);
+        RepositoryChainModuleResolution best = findBestMatch(dependency, componentIdentifier, queue, failures, missing);
         if (best != null) {
             return best;
         }
@@ -104,10 +104,10 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         // Nothing found - do a second pass
         queue.addAll(missing);
         missing.clear();
-        return findLatestModule(dependency, componentIdentifier, queue, failures, missing);
+        return findBestMatch(dependency, componentIdentifier, queue, failures, missing);
     }
 
-    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+    private RepositoryChainModuleResolution findBestMatch(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();

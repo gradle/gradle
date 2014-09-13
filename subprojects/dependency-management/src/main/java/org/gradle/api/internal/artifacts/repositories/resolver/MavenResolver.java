@@ -61,6 +61,11 @@ public class MavenResolver extends ExternalResourceResolver {
         updatePatterns();
     }
 
+    @Override
+    public String toString() {
+        return String.format("Maven repository '%s'", getName());
+    }
+
     public URI getRoot() {
         return root;
     }

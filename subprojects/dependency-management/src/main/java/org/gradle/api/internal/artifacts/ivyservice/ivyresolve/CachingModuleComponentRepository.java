@@ -89,7 +89,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     @Override
     public String toString() {
-        return "Caching " + delegate.toString();
+        return delegate.toString();
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {

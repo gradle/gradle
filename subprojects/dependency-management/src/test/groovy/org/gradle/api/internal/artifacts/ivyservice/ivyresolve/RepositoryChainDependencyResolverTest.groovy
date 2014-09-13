@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
@@ -27,6 +28,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
@@ -276,7 +278,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData)
@@ -307,7 +310,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            result.probablyMissing()
+            result.missing()
+            result.authoritative = false
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
@@ -451,7 +455,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            throw new RuntimeException("broken")
+            result.failed(new ModuleVersionResolveException(id, "broken"))
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData)
@@ -484,7 +488,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            throw new RuntimeException("broken")
+            result.failed(new ModuleVersionResolveException(id, "broken"))
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
@@ -509,7 +513,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
     def "rethrows failure to resolve local dependency when not available in any repository"() {
         given:
-        def failure = new RuntimeException("broken")
+        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
         def repo1 = addRepo1()
         def repo2 = addRepo2()
 
@@ -518,7 +522,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            throw failure
+            result.failed(failure)
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
@@ -536,7 +540,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
     def "rethrows failure to resolve remote dependency when not available in any repository"() {
         given:
-        def failure = new RuntimeException("broken")
+        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
         def repo1 = addRepo1()
         def repo2 = addRepo2()
 
@@ -546,7 +550,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
-            throw failure
+            result.failed(failure)
         }
         1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
         1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->

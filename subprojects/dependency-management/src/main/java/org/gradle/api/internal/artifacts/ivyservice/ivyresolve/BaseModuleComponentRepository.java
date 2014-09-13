@@ -32,6 +32,11 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
         this.remoteAccess = delegate.getRemoteAccess();
     }
 
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
     public String getId() {
         return delegate.getId();
     }

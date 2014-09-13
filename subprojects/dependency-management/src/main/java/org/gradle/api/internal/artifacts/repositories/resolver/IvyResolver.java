@@ -52,6 +52,11 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     @Override
+    public String toString() {
+        return String.format("Ivy repository '%s'", getName());
+    }
+
+    @Override
     public boolean isDynamicResolveMode() {
         return dynamicResolve;
     }

@@ -25,9 +25,10 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.internal.resolve.result.*;
-import org.gradle.internal.component.model.ComponentUsage;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.component.ArtifactType;
@@ -35,6 +36,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.component.external.model.*;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactResolveException;
+import org.gradle.internal.resolve.result.*;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -95,10 +97,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public boolean isDynamicResolveMode() {
         return false;
-    }
-
-    public String toString() {
-        return String.format("Repository '%s'", getName());
     }
 
     public void setRepositoryChain(RepositoryChain resolver) {
