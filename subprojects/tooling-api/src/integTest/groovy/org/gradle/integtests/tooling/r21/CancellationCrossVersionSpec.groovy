@@ -40,6 +40,7 @@ rootProject.name = 'cancelling'
     @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
         def marker = file("marker.txt")
+        def marker2 = file("marker2.txt")
         settingsFile << '''
 include 'sub'
 rootProject.name = 'cancelling'
@@ -47,9 +48,14 @@ rootProject.name = 'cancelling'
         buildFile << """
 println "__waiting__ (configuring root project)"
 def marker = file('${marker.toURI()}')
+def marker2 = file('${marker2.toURI()}')
 long timeout = System.currentTimeMillis() + 10000
 while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
 if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+
+timeout = System.currentTimeMillis() + 10000
+while (!marker2.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
+if (!marker2.file) { throw new RuntimeException("Timeout waiting for marker file") }
 
 task first << {
     println "__should_not_run__"
@@ -77,6 +83,7 @@ task second << {
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             marker.text = 'go!'
             cancel.cancel()
+            marker2.text = 'go!'
             resultHandler.finished()
         }
         resultHandler.failure.printStackTrace()
