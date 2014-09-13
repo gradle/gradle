@@ -206,7 +206,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     // TODO handle connectivity problems
-    // TODO disable this callback when the build is finished
     private class CancelCallback implements Runnable {
         private final ExplainingSpec<DaemonContext> executingCompatibilitySpec;
         private final Object buildId;
