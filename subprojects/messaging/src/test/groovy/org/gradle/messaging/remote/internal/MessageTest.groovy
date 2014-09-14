@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal
 
-import org.gradle.internal.exceptions.AbstractMultiCauseException
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -26,7 +26,7 @@ class MessageTest extends Specification {
     def "can transport graph of exceptions"() {
         def cause1 = new ExceptionWithState("nested-1", ["a", 1])
         def cause2 = new IOException("nested-2")
-        def cause = new AbstractMultiCauseException("nested", cause1, cause2)
+        def cause = new DefaultMultiCauseException("nested", cause1, cause2)
         def original = new ExceptionWithExceptionField("message", cause)
 
         when:
@@ -37,7 +37,7 @@ class MessageTest extends Specification {
         transported.payload.message == "message"
 
         and:
-        transported.payload.throwable.class == AbstractMultiCauseException
+        transported.payload.throwable.class == DefaultMultiCauseException
         transported.payload.throwable.message == "nested"
 
         and:

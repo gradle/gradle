@@ -19,7 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
-import org.gradle.internal.exceptions.AbstractMultiCauseException
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
@@ -332,7 +332,7 @@ org.gradle.api.GradleException: <message>
     }
 }
 
-class TestException extends AbstractMultiCauseException {
+class TestException extends DefaultMultiCauseException {
     TestException(String message, Throwable... causes) {
         super(message, causes)
     }

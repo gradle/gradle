@@ -15,14 +15,14 @@
  */
 package org.gradle.listener;
 
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
  * A {@code ListenerNotificationException} is thrown when a listener cannot be notified of an event.
  */
 @Contextual
-public class ListenerNotificationException extends AbstractMultiCauseException {
+public class ListenerNotificationException extends DefaultMultiCauseException {
     public ListenerNotificationException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
     }

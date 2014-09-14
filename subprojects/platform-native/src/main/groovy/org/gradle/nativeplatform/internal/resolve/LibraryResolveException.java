@@ -16,11 +16,11 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
-class LibraryResolveException extends AbstractMultiCauseException {
+class LibraryResolveException extends DefaultMultiCauseException {
 
     public LibraryResolveException(String message) {
         super(message);

@@ -120,7 +120,7 @@ class LocationAwareExceptionTest extends Specification {
         TreeVisitor visitor = Mock()
         def childCause1 = new RuntimeException()
         def childCause2 = new RuntimeException()
-        def cause = new AbstractMultiCauseException("broken", childCause1, childCause2)
+        def cause = new DefaultMultiCauseException("broken", childCause1, childCause2)
         def e = new LocationAwareException(cause, null, 100)
 
         when:
@@ -153,7 +153,7 @@ class LocationAwareExceptionTest extends Specification {
         def childCause2 = new RuntimeException()
         def childCause3 = new TestContextualException(childCause2)
         def childCause4 = new TestContextualException(childCause3)
-        def cause = new AbstractMultiCauseException("broken", childCause1, childCause4)
+        def cause = new DefaultMultiCauseException("broken", childCause1, childCause4)
         def e = new LocationAwareException(cause, null, 100)
 
         when:

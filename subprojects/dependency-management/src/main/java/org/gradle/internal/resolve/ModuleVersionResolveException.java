@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.Formatter;
 import java.util.List;
 
 @Contextual
-public class ModuleVersionResolveException extends AbstractMultiCauseException {
+public class ModuleVersionResolveException extends DefaultMultiCauseException {
     private final List<List<ModuleVersionIdentifier>> paths = new ArrayList<List<ModuleVersionIdentifier>>();
     private final String messageFormat;
     private final ModuleVersionSelector selector;

@@ -24,20 +24,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class AbstractMultiCauseException extends GradleException implements MultiCauseException {
+public class DefaultMultiCauseException extends GradleException implements MultiCauseException {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
 
-    public AbstractMultiCauseException(String message) {
+    public DefaultMultiCauseException(String message) {
         super(message);
     }
 
-    public AbstractMultiCauseException(String message, Throwable... causes) {
+    public DefaultMultiCauseException(String message, Throwable... causes) {
         super(message);
         this.causes.addAll(Arrays.asList(causes));
     }
 
-    public AbstractMultiCauseException(String message, Iterable<? extends Throwable> causes) {
+    public DefaultMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message);
         initCauses(causes);
     }

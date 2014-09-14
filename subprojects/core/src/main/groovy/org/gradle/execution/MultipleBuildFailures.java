@@ -16,11 +16,11 @@
 
 package org.gradle.execution;
 
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import java.util.List;
 
-public class MultipleBuildFailures extends AbstractMultiCauseException {
+public class MultipleBuildFailures extends DefaultMultiCauseException {
     public MultipleBuildFailures(Iterable<? extends Throwable> causes) {
         super("Multiple build failures", causes);
     }

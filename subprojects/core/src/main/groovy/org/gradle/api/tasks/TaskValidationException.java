@@ -16,7 +16,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
  * A {@code TaskValidationException} is thrown when there is some validation problem with a task.
  */
 @Contextual
-public class TaskValidationException extends AbstractMultiCauseException {
+public class TaskValidationException extends DefaultMultiCauseException {
     public TaskValidationException(String message, List<InvalidUserDataException> causes) {
         super(message, causes);
     }

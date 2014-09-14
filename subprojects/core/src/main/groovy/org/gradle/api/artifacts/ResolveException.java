@@ -16,14 +16,14 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
  * <p>A <code>ResolveException</code> is thrown when a dependency configuration cannot be resolved for some reason.</p>
  */
 @Contextual
-public class ResolveException extends AbstractMultiCauseException {
+public class ResolveException extends DefaultMultiCauseException {
     public ResolveException(Configuration configuration, Throwable cause) {
         super(buildMessage(configuration), cause);
     }

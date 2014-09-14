@@ -20,7 +20,7 @@ import org.gradle.util.GUtil
 import spock.lang.Specification
 
 
-class AbstractMultiCauseExceptionTest extends Specification {
+class DefaultMultiCauseExceptionTest extends Specification {
     def getCauseReturnsTheFirstCause() {
         def cause1 = new RuntimeException()
         def cause2 = new RuntimeException()
@@ -118,7 +118,7 @@ class AbstractMultiCauseExceptionTest extends Specification {
     }
 }
 
-class TestMultiCauseException extends AbstractMultiCauseException {
+class TestMultiCauseException extends DefaultMultiCauseException {
     TestMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes)
     }
