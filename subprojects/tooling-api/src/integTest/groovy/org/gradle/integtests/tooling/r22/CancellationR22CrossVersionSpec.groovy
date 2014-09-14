@@ -41,25 +41,49 @@ rootProject.name = 'cancelling'
     @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
         def marker = file("marker.txt")
-        def marker2 = file("marker2.txt")
         settingsFile << '''
 include 'sub'
 rootProject.name = 'cancelling'
 '''
         buildFile << """
+import org.gradle.initialization.BuildCancellationToken;
+import java.util.concurrent.CountDownLatch;
+
+ext {
+  latch = new CountDownLatch(1);
+}
+
 println "__waiting__ (configuring root project)"
 def marker = file('${marker.toURI()}')
-def marker2 = file('${marker2.toURI()}')
 long timeout = System.currentTimeMillis() + 10000
 while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
 if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
 
-timeout = System.currentTimeMillis() + 10000
-while (!marker2.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-if (!marker2.file) { throw new RuntimeException("Timeout waiting for marker file") }
+task first(type: CancellingTask) {
 
-task first << {
-    println "__should_not_run__"
+    cancellationToken.addCallback(new Runnable() {
+        public void run() {
+            project.rootProject.latch.countDown();
+        }
+    });
+    // this will block root project configuration until cancel request is delivered
+    project.rootProject.latch.await();
+
+    doFirst {
+        println "__should_not_run__"
+    }
+}
+
+class CancellingTask extends DefaultTask {
+    public final BuildCancellationToken cancellationToken;
+
+    public CancellingTask() {
+        this.cancellationToken = getServices().get(BuildCancellationToken.class);
+    }
+
+    @TaskAction
+    def noop() {
+    }
 }
 """
         projectDir.file('sub/build.gradle') << """
@@ -84,10 +108,8 @@ task second << {
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
             marker.text = 'go!'
             cancel.cancel()
-            marker2.text = 'go!'
-            resultHandler.finished()
+            resultHandler.finished(20)
         }
-        resultHandler.failure.printStackTrace()
 
         then:
         output.toString().contains("__waiting__")
