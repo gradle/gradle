@@ -17,25 +17,14 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.model.DependencyMetaData;
 
 public class DefaultComponentSelection implements ComponentSelectionInternal {
-    private DependencyMetaData metadata;
-    private ModuleComponentSelector requested;
     private ModuleComponentIdentifier candidate;
     private boolean rejected;
     private String rejectionReason;
 
-    public DefaultComponentSelection(DependencyMetaData metadata, ModuleComponentIdentifier candidate) {
-        this.metadata = metadata;
+    public DefaultComponentSelection(ModuleComponentIdentifier candidate) {
         this.candidate = candidate;
-        this.requested = DefaultModuleComponentSelector.newSelector(metadata.getRequested());
-    }
-
-    public ModuleComponentSelector getRequested() {
-        return requested;
     }
 
     public ModuleComponentIdentifier getCandidate() {
@@ -53,9 +42,5 @@ public class DefaultComponentSelection implements ComponentSelectionInternal {
 
     public String getRejectionReason() {
         return rejectionReason;
-    }
-
-    public DependencyMetaData getDependencyMetaData() {
-        return metadata;
     }
 }

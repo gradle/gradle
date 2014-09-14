@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
@@ -25,5 +27,5 @@ public interface ComponentChooser {
     boolean canSelectMultipleComponents(ModuleVersionSelector selector);
     ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two);
     ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess);
-    boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess);
+    boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier);
 }

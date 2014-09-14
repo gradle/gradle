@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidActionClosureException
 import org.gradle.api.InvalidUserDataException
@@ -28,10 +29,9 @@ import org.gradle.api.internal.NoInputsRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentSelectionRulesProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
-import org.gradle.internal.component.model.DefaultDependencyMetaData
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
@@ -40,8 +40,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def setup() {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def dependencyMetaData = new DefaultDependencyMetaData(componentIdentifier)
-        componentSelection = new DefaultComponentSelection(dependencyMetaData, componentIdentifier)
+        componentSelection = new DefaultComponentSelection(componentIdentifier)
     }
 
     def "converts closure input to rule actions"() {

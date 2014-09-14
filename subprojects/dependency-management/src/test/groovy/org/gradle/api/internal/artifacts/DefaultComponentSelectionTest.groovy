@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
 class DefaultComponentSelectionTest extends Specification {
     DefaultComponentSelection selection
 
     def setup() {
-        selection = new DefaultComponentSelection(Stub(DependencyMetaData), Stub(ModuleComponentIdentifier))
+        selection = new DefaultComponentSelection(Stub(ModuleComponentIdentifier))
     }
 
     def "accepted by default"() {

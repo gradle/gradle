@@ -186,6 +186,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                 return false;
             }
             dependency = dependency.withRequestedVersion(componentIdentifier.getVersion());
+            // TODO - reuse meta data if it was fetched to select candidate
             moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
             return true;
         }

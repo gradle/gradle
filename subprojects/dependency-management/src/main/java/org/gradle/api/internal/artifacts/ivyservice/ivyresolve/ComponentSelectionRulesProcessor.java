@@ -25,13 +25,11 @@ import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +40,8 @@ public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
     private static final String USER_CODE_ERROR = "Could not apply component selection rule with all().";
 
-    public void apply(ComponentSelection selection, Collection<RuleAction<? super ComponentSelection>> rules, ModuleComponentRepositoryAccess moduleAccess) {
-        MetadataProvider metadataProvider = new MetadataProvider(selection, moduleAccess);
+    public void apply(ComponentSelection selection, Collection<RuleAction<? super ComponentSelection>> rules, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
+        MetadataProvider metadataProvider = new MetadataProvider(metaDataSupplier);
 
         List<RuleAction<? super ComponentSelection>> noInputRules = Lists.newArrayList();
         List<RuleAction<? super ComponentSelection>> inputRules = Lists.newArrayList();
@@ -109,13 +107,11 @@ public class ComponentSelectionRulesProcessor {
     }
 
     private static class MetadataProvider {
-        private final ComponentSelection componentSelection;
-        private final ModuleComponentRepositoryAccess moduleAccess;
+        private final Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier;
         private MutableModuleComponentResolveMetaData cachedMetaData;
 
-        private MetadataProvider(ComponentSelection componentSelection, ModuleComponentRepositoryAccess moduleAccess) {
-            this.componentSelection = componentSelection;
-            this.moduleAccess = moduleAccess;
+        private MetadataProvider(Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
+            this.metaDataSupplier = metaDataSupplier;
         }
 
         public ComponentMetadata getComponentMetadata() {
@@ -133,17 +129,9 @@ public class ComponentSelectionRulesProcessor {
 
         public MutableModuleComponentResolveMetaData getMetaData() {
             if (cachedMetaData == null) {
-                cachedMetaData = initMetaData(componentSelection, moduleAccess);
+                cachedMetaData = metaDataSupplier.create();
             }
             return cachedMetaData;
         }
-
-        private MutableModuleComponentResolveMetaData initMetaData(ComponentSelection selection, ModuleComponentRepositoryAccess moduleAccess) {
-            BuildableModuleComponentMetaDataResolveResult descriptorResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-            DependencyMetaData dependency = ((ComponentSelectionInternal) selection).getDependencyMetaData().withRequestedVersion(selection.getCandidate().getVersion());
-            moduleAccess.resolveComponentMetaData(dependency, selection.getCandidate(), descriptorResult);
-            return descriptorResult.getMetaData();
-        }
-
     }
 }

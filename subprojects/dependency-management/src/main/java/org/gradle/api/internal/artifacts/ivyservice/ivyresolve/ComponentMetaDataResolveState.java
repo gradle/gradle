@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.Factories;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
@@ -55,11 +56,14 @@ class ComponentMetaDataResolveState {
             }
             // If unknown, try a remote search
         }
+
         if (!searchedRemotely) {
             searchedRemotely = true;
             process(dependency, componentIdentifier, repository.getRemoteAccess(), resolveResult);
+            return resolveResult;
         }
-        return resolveResult;
+
+        throw new IllegalStateException();
     }
 
     protected void process(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
@@ -68,7 +72,7 @@ class ComponentMetaDataResolveState {
             throw resolveResult.getFailure();
         }
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            if (componentChooser.isRejectedByRules(componentIdentifier, dependency, moduleAccess)) {
+            if (componentChooser.isRejectedByRules(componentIdentifier, Factories.constant(resolveResult.getMetaData()))) {
                 resolveResult.missing();
             }
         }
