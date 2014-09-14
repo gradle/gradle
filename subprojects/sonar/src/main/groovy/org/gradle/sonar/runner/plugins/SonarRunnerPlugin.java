@@ -47,6 +47,7 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -226,6 +227,8 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         if (enabledChildProjects.isEmpty()) {
             return;
         }
+
+        Collections.sort(enabledChildProjects);
 
         String modules = COMMA_JOINER.join(Iterables.transform(enabledChildProjects, new Function<Project, String>() {
             public String apply(Project input) {
