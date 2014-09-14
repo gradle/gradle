@@ -34,9 +34,14 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, getVersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer consumerConnectionBackedModelProducer = realModelProducer(delegate, modelMapping, adapter);
-        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
+        ModelProducer modelProducer = realModelProducer(delegate, modelMapping, adapter);
+        if (!getVersionDetails().maySupportModel(GradleBuild.class)) {
+            modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
+        }
+        if (!getVersionDetails().maySupportModel(BuildInvocations.class)) {
+            modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
+        }
+        this.modelProducer = modelProducer;
     }
 
     protected ModelProducer realModelProducer(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
@@ -62,7 +67,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         return modelProducer.produceModel(type, operationParameters);
     }
 
-    private static class R16VersionDetails extends VersionDetails {
+    static class R16VersionDetails extends VersionDetails {
         public R16VersionDetails(String version) {
             super(version);
         }
@@ -79,7 +84,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
     }
 
-    private static class R18VersionDetails extends R16VersionDetails {
+    static class R18VersionDetails extends R16VersionDetails {
         private R18VersionDetails(String version) {
             super(version);
         }
@@ -93,7 +98,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
     }
 
-    private static class R112VersionDetails extends R18VersionDetails {
+    static class R112VersionDetails extends R18VersionDetails {
         private R112VersionDetails(String version) {
             super(version);
         }
@@ -112,7 +117,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
     }
 
-    private static class R21VersionDetails extends R112VersionDetails {
+    static class R21VersionDetails extends R112VersionDetails {
         private R21VersionDetails(String version) {
             super(version);
         }
