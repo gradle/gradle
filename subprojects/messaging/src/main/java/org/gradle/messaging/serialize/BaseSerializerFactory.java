@@ -30,9 +30,7 @@ public class BaseSerializerFactory {
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
-            @SuppressWarnings("unchecked")
-            Serializer<T> stringSerializer = (Serializer<T>) STRING_SERIALIZER;
-            return stringSerializer;
+            return (Serializer<T>) STRING_SERIALIZER;
         }
         if (type.equals(Long.class)) {
             return (Serializer) LONG_SERIALIZER;
