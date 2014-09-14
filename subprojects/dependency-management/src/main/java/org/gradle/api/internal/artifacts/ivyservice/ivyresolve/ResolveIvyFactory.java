@@ -20,24 +20,28 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
-import org.gradle.internal.component.model.*;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.util.BuildCommencedTimeProvider;
+
+import java.util.Collection;
 
 public class ResolveIvyFactory {
     private final ModuleVersionsCache moduleVersionsCache;
@@ -67,10 +71,14 @@ public class ResolveIvyFactory {
         this.latestStrategy = latestStrategy;
     }
 
-    public UserResolverChain create(ConfigurationInternal configuration,
-                                  Iterable<? extends ResolutionAwareRepository> repositories,
+    public RepositoryChain create(ConfigurationInternal configuration,
+                                  Collection<? extends ResolutionAwareRepository> repositories,
                                   ModuleMetadataProcessor metadataProcessor) {
-        ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal)configuration.getResolutionStrategy();
+        if (repositories.isEmpty()) {
+            return new NoRepositoriesResolver();
+        }
+
+        ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) configuration.getResolutionStrategy();
         ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
 
@@ -121,6 +129,14 @@ public class ResolveIvyFactory {
             this.dependencyResolver = repositoryChain.getDependencyResolver();
             this.artifactResolver = repositoryChain.getArtifactResolver();
             this.cacheLockingManager = cacheLockingManager;
+        }
+
+        public ComponentMetaDataResolver getComponentMetaDataResolver() {
+            throw new UnsupportedOperationException();
+        }
+
+        public DependencyToComponentIdResolver getComponentIdResolver() {
+            throw new UnsupportedOperationException();
         }
 
         public ArtifactResolver getArtifactResolver() {

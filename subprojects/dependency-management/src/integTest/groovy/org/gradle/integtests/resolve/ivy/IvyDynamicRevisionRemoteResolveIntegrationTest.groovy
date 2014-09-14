@@ -801,6 +801,28 @@ Searched in the following locations:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    def "reports and recovers from missing dynamic version when no repositories defined"() {
+        given:
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "2.+"
+}
+"""
+
+        expect:
+        fails "checkDeps"
+        failure.assertHasCause("Cannot resolve external dependency group:projectA:2.+ because no repositories are defined.")
+
+        when:
+        useRepository ivyHttpRepo
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
+        expectGetDynamicRevision(projectA2)
+
+        then:
+        checkResolve "group:projectA:2.+": "group:projectA:2.2"
+    }
+
     def "reports and recovers from broken directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo

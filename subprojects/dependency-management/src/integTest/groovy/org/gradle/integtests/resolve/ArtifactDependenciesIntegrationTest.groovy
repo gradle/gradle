@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
@@ -94,7 +93,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
+        result.assertHasCause('Cannot resolve external dependency org.gradle.test:external1:1.0 because no repositories are defined.')
     }
 
     @Test
@@ -642,20 +641,6 @@ task test << {
 }
 """
         inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    public void reportsUnknownDependencyError() {
-        File buildFile = testFile("projectWithUnknownDependency.gradle");
-        ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
-
-        failure
-                .assertHasFileName("Build file '" + buildFile.getPath() + "'")
-                .assertHasDescription("Execution failed for task ':listJars'.");
-
-        failure.assertResolutionFailure(':compile')
-                .assertHasCause("Could not find test:unknownProjectA:1.2.")
-                .assertHasCause("Could not find test:unknownProjectB:2.1.5.")
     }
 
     @Test

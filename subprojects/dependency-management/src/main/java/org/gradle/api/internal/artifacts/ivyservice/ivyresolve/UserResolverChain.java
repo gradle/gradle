@@ -22,22 +22,30 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestSt
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 
 public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainDependencyResolver dependencyResolver;
-    private final DynamicVersionResolver dynamicVersionResolver;
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
+    private final RepositoryChainAdapter adapter;
+    private final DynamicVersionResolver dynamicVersionResolver;
 
     public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy, ComponentSelectionRulesInternal versionSelectionRules) {
         NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
-        this.dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
-        this.dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+        dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
+        dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+        adapter = new RepositoryChainAdapter(dynamicVersionResolver, dependencyResolver, versionMatcher);
     }
 
-    public DynamicVersionResolver getDynamicVersionResolver() {
-        return dynamicVersionResolver;
+    public DependencyToComponentIdResolver getComponentIdResolver() {
+        return adapter;
+    }
+
+    public ComponentMetaDataResolver getComponentMetaDataResolver() {
+        return adapter;
     }
 
     public DependencyToComponentResolver getDependencyResolver() {

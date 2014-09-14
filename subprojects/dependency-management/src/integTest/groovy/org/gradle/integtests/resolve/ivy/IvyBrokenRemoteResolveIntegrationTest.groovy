@@ -72,6 +72,56 @@ Searched in the following locations:
         succeeds('showMissing')
     }
 
+    public void "reports and recovers from multiple missing modules"() {
+        given:
+        def repo = ivyHttpRepo("repo1")
+        def moduleA = repo.module("group", "projectA", "1.2").publish()
+        def moduleB = repo.module("group", "projectB", "1.0-milestone-9").publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${repo.uri}"}
+}
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2'
+    missing 'group:projectB:1.0-milestone-9'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        moduleA.ivy.expectGetMissing()
+        moduleA.jar.expectHeadMissing()
+        moduleB.ivy.expectGetMissing()
+        moduleB.jar.expectHeadMissing()
+
+        then:
+        fails("showMissing")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertResolutionFailure(':missing')
+                .assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${moduleA.ivy.uri}
+    ${moduleA.jar.uri}
+""")
+                .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
+Searched in the following locations:
+    ${moduleB.ivy.uri}
+    ${moduleB.jar.uri}
+""")
+
+        when:
+        server.resetExpectations()
+        moduleA.ivy.expectGet()
+        moduleA.jar.expectGet()
+        moduleB.ivy.expectGet()
+        moduleB.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+    }
+
     public void "reports and recovers from missing module when dependency declaration references an artifact"() {
         given:
         def repo = ivyHttpRepo("repo1")
@@ -158,6 +208,35 @@ Searched in the following locations:
         succeeds('showMissing')
     }
 
+    public void "reports and recovers from missing module when no repositories defined"() {
+        given:
+        buildFile << """
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        expect:
+        fails("showMissing")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+                .assertResolutionFailure(':missing')
+                .assertHasCause("Cannot resolve external dependency group:projectA:1.2 because no repositories are defined.")
+
+        when:
+        def module = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+
+        and:
+        buildFile << "repositories { ivy { url '${ivyHttpRepo.uri}' } }"
+
+        module.ivy.expectGet()
+        module.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+    }
+
     public void "reports and recovers from failed Ivy descriptor download"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
@@ -181,10 +260,10 @@ task showBroken << { println configurations.broken.files }
 
         then:
         failure
-            .assertHasDescription('Execution failed for task \':showBroken\'.')
-            .assertResolutionFailure(':broken')
-            .assertHasCause('Could not resolve group:projectA:1.3.')
-            .assertHasCause("Could not GET '${module.ivy.uri}'. Received status code 500 from server: broken")
+                .assertHasDescription('Execution failed for task \':showBroken\'.')
+                .assertResolutionFailure(':broken')
+                .assertHasCause('Could not resolve group:projectA:1.3.')
+                .assertHasCause("Could not GET '${module.ivy.uri}'. Received status code 500 from server: broken")
 
         when:
         server.resetExpectations()
