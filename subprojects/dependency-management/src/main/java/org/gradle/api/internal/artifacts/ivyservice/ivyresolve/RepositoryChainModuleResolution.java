@@ -26,10 +26,6 @@ class RepositoryChainModuleResolution implements Versioned {
         this.module = module;
     }
 
-    public boolean isGeneratedModuleDescriptor() {
-        return module.isGenerated();
-    }
-
     public String getVersion() {
         return module.getId().getVersion();
     }

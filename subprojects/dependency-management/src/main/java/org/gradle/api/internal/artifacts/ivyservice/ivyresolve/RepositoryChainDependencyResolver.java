@@ -28,8 +28,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,9 +62,9 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
 
         List<Throwable> errors = new ArrayList<Throwable>();
 
-        List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
+        List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(dependency, moduleComponentIdentifier, repository, componentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(dependency, moduleComponentIdentifier, repository, componentChooser));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
@@ -82,18 +80,18 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, errors));
         } else {
-            for (RepositoryResolveState resolveState : resolveStates) {
+            for (ComponentMetaDataResolveState resolveState : resolveStates) {
                 resolveState.applyTo(result);
             }
             result.notFound(moduleVersionIdentifier);
         }
     }
 
-    private RepositoryChainModuleResolution findBestMatch(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
-        LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
+    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
+        LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<ComponentMetaDataResolveState>();
         queue.addAll(resolveStates);
 
-        LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
+        LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<ComponentMetaDataResolveState>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
@@ -107,17 +105,18 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         return findBestMatch(queue, failures, missing);
     }
 
-    private RepositoryChainModuleResolution findBestMatch(LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<Throwable> failures, Collection<ComponentMetaDataResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
-            RepositoryResolveState request = queue.removeFirst();
+            ComponentMetaDataResolveState request = queue.removeFirst();
+            BuildableModuleComponentMetaDataResolveResult metaDataResolveResult;
             try {
-                request.resolve();
+                metaDataResolveResult = request.resolve();
             } catch (Throwable t) {
                 failures.add(t);
                 continue;
             }
-            switch (request.resolveResult.getState()) {
+            switch (metaDataResolveResult.getState()) {
                 case Missing:
                     // Queue this up for checking again later
                     if (request.canMakeFurtherAttempts()) {
@@ -125,81 +124,17 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
                     }
                     break;
                 case Resolved:
-                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, request.resolveResult.getMetaData());
-                    if (!moduleResolution.isGeneratedModuleDescriptor()) {
+                    RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, metaDataResolveResult.getMetaData());
+                    if (!metaDataResolveResult.getMetaData().isGenerated()) {
                         return moduleResolution;
                     }
-                    best = chooseBest(best, moduleResolution);
+                    best = best != null ? best : moduleResolution;
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected state for resolution: " + request.resolveResult.getState());
+                    throw new IllegalStateException("Unexpected state for resolution: " + metaDataResolveResult.getState());
             }
         }
 
         return best;
-    }
-
-    private RepositoryChainModuleResolution chooseBest(RepositoryChainModuleResolution one, RepositoryChainModuleResolution two) {
-        if (one == null || two == null) {
-            return two == null ? one : two;
-        }
-        return componentChooser.choose(one.module, two.module) == one.module ? one : two;
-    }
-
-    private static class RepositoryResolveState {
-        private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-        private final ComponentChooser componentChooser;
-        private final DependencyMetaData dependency;
-        private final ModuleComponentIdentifier componentIdentifier;
-        final ModuleComponentRepository repository;
-
-        private boolean searchedLocally;
-        boolean searchedRemotely;
-
-        public RepositoryResolveState(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepository repository, ComponentChooser componentChooser) {
-            this.dependency = dependency;
-            this.componentIdentifier = componentIdentifier;
-            this.repository = repository;
-            this.componentChooser = componentChooser;
-        }
-
-        void resolve() {
-            if (!searchedLocally) {
-                searchedLocally = true;
-                process(dependency, componentIdentifier, repository.getLocalAccess(), resolveResult);
-                if (resolveResult.getState() != BuildableModuleComponentMetaDataResolveResult.State.Unknown) {
-                    if (resolveResult.isAuthoritative()) {
-                        // Don't bother searching remotely
-                        searchedRemotely = true;
-                    }
-                    return;
-                }
-                // If unknown, try a remote search
-            }
-            if (!searchedRemotely) {
-                searchedRemotely = true;
-                process(dependency, componentIdentifier, repository.getRemoteAccess(), resolveResult);
-            }
-        }
-
-        protected void process(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
-            moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
-            if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Failed) {
-                throw resolveResult.getFailure();
-            }
-            if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                if (componentChooser.isRejectedByRules(componentIdentifier, dependency, moduleAccess)) {
-                    resolveResult.missing();
-                }
-            }
-        }
-
-        protected void applyTo(ResourceAwareResolveResult result) {
-            resolveResult.applyTo(result);
-        }
-
-        public boolean canMakeFurtherAttempts() {
-            return !searchedRemotely;
-        }
     }
 }
