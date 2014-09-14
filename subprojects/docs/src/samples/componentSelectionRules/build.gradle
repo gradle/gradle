@@ -27,10 +27,8 @@ configurations {
             componentSelection {
                 // Accept the highest version matching the requested version that isn't '1.1'
                 all { ComponentSelection selection ->
-                    if (selection.requested.group == 'org.sample' && selection.requested.module == 'api') {
-                        if (selection.candidate.version == '1.1') {
-                            selection.reject("version 1.1 is broken for 'org.sample:api'")
-                        }
+                    if (selection.candidate.group == 'org.sample' && selection.candidate.module == 'api' && selection.candidate.version == '1.1') {
+                        selection.reject("version 1.1 is broken for 'org.sample:api'")
                     }
                 }
             }
@@ -46,7 +44,7 @@ configurations {
             componentSelection {
                 // Reject any versions with a status of 'experimental'
                 all { ComponentSelection selection, ComponentMetadata metadata ->
-                    if (selection.requested.group == 'org.sample' && selection.requested.module == 'api') {
+                    if (selection.candidate.group == 'org.sample' && selection.candidate.module == 'api') {
                         if (metadata.status == 'experimental') {
                             selection.reject("don't use experimental candidates of 'org.sample:api'")
                         }
@@ -54,7 +52,7 @@ configurations {
                 }
                 // Accept the highest version with a branch of 'testing' or a status of 'milestone'
                 all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                    if (selection.requested.group == 'org.sample' && selection.requested.name == 'api') {
+                    if (selection.candidate.group == 'org.sample' && selection.candidate.module == 'api') {
                         if (descriptor.branch != 'testing' && metadata.status != 'milestone') {
                             selection.reject("'org.sample:api' must have testing branch or milestone status")
                         }
@@ -86,18 +84,13 @@ configurations {
     sampleConfig {
         resolutionStrategy {
             componentSelection {
-                all { ComponentSelection selection ->
-                    // Force selector like 1.1+ to be interpreted as any
-                    // version that starts with "1.1.", so 1.1, 1.1.0 or
-                    // 1.1.20.1 would match, but not 1.2, 1.10 or 1.18.
-                    if (selection.requested.version.endsWith('+')) {
-                        def prefix = selection.requested.version - '+'
-                        if (selection.candidate.version == prefix || selection.candidate.version.startsWith("${prefix}.")) {
-                            logger.lifecycle("** Accepted version: ${selection.candidate.version} **")
-                        } else {
-                            logger.lifecycle("Rejected version: ${selection.candidate.version}")
-                            selection.reject("Rejecting '${selection.candidate}' for '${selection.requested}'")
-                        }
+                module("com.google.guava:guava") { ComponentSelection selection ->
+                    // Veto everything except patch releases
+                    if (selection.candidate.version.matches('\\d+.\\d+\\.\\d+')) {
+                        logger.lifecycle("** Accepted version: ${selection.candidate.version} **")
+                    } else {
+                        logger.lifecycle("Rejected version: ${selection.candidate.version}")
+                        selection.reject("Version is broken")
                     }
                 }
             }
@@ -106,7 +99,7 @@ configurations {
 }
 
 dependencies {
-    sampleConfig(group: 'com.sun.jersey.glassfish.v3', name: 'jersey-gfv3-docs-and-samples', version: '1.1+', ext: 'zip', classifier: 'project') { transitive = false }
+    sampleConfig group: 'com.google.guava', name: 'guava', version: '1+'
 }
 
 task resolveConfiguration {
@@ -114,4 +107,3 @@ task resolveConfiguration {
         configurations.sampleConfig.files.each { println it }
     }
 }
-

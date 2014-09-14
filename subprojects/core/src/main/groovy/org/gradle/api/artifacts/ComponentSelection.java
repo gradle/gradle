@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /***
@@ -28,13 +27,6 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 @Incubating
 public interface ComponentSelection {
-    /**
-     * Gets the requested version of the module.
-     *
-     * @return the requested version of the module
-     */
-    ModuleComponentSelector getRequested();
-
     /**
      * Gets the candidate version of the module.
      *

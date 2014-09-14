@@ -14,8 +14,8 @@ strategy.  This allows Gradle to customize component selection without knowing w
                     // Accept the newest version that matches the dynamic selector
                     // but does not end with "-experimental".
                     all { ComponentSelection selection ->
-                        if (selection.requested.group == 'org.sample'
-                                && selection.requested.name == 'api'
+                        if (selection.candidate.group == 'org.sample'
+                                && selection.candidate.name == 'api'
                                 && selection.candidate.version.endsWith('-experimental')) {
                             selection.reject("rejecting experimental")
                         }
@@ -24,8 +24,8 @@ strategy.  This allows Gradle to customize component selection without knowing w
                     // Rules can consider component metadata as well
                     // Accept the highest version with a branch of 'testing' or a status of 'milestone'
                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                        if (selection.requested.group == 'org.sample'
-                                && selection.requested.name == 'api'
+                        if (selection.candidate.group == 'org.sample'
+                                && selection.candidate.name == 'api'
                                 && (descriptor.branch != 'testing' && metadata.status != 'milestone')) {
                             selection.reject("does not match branch or status")
                         }

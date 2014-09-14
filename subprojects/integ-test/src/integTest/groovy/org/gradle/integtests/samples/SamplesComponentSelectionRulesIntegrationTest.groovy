@@ -33,7 +33,8 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         run "resolveConfiguration"
 
         then:
-        output.contains "Rejected version:"
+        output.contains "Rejected version: 18.0"
+        output.contains "Rejected version: 18.0-rc1"
         output.contains "** Accepted version:"
     }
 }
