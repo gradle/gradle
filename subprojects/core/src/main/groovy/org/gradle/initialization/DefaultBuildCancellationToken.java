@@ -16,15 +16,16 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 public class DefaultBuildCancellationToken implements BuildCancellationToken {
     private final Object lock = new Object();
     private boolean cancelled;
-    private Queue<Runnable> callbacks = new LinkedList<Runnable>();
+    private List<Runnable> callbacks = new LinkedList<Runnable>();
 
     public boolean isCancellationRequested() {
         synchronized (lock) {
@@ -59,30 +60,20 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
                 return;
             }
             cancelled = true;
-
-            Runnable runnable = callbacks.poll();
-            while (runnable != null) {
-                toCall.add(runnable);
-                runnable = callbacks.poll();
-            }
+            toCall.addAll(callbacks);
+            callbacks.clear();
         }
-        Exception failure = null;
+
+        List<Throwable> failures = new ArrayList<Throwable>();
         for (Runnable callback : toCall) {
             try {
                 callback.run();
-            } catch (Exception ex) {
-                if (failure != null) {
-                    Throwable lastEx = ex;
-                    while (lastEx.getCause() != null) {
-                        lastEx = lastEx.getCause();
-                    }
-                    lastEx.initCause(failure);
-                }
-                failure = ex;
+            } catch (Throwable ex) {
+                failures.add(ex);
             }
         }
-        if (failure != null) {
-            throw new RuntimeException(failure);
+        if (!failures.isEmpty()) {
+            throw new DefaultMultiCauseException("Failed to run cancellation actions.", failures);
         }
     }
 }

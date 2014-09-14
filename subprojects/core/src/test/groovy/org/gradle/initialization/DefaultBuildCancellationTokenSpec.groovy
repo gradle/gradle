@@ -16,6 +16,7 @@
 
 package org.gradle.initialization
 
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import spock.lang.Specification
 
 class DefaultBuildCancellationTokenSpec extends Specification {
@@ -101,28 +102,6 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         1 * callback2.run()
     }
 
-    def 'cancel notification stop when error is encountered'() {
-        def token = new DefaultBuildCancellationToken()
-        def ex = new Error('testing')
-
-        def callback1 = Mock(Runnable)
-        def callback2 = Mock(Runnable)
-        token.addCallback(callback1)
-        token.addCallback(callback2)
-
-        when:
-        token.doCancel()
-
-        then:
-        Error e = thrown()
-        e == ex
-        token.cancellationRequested
-
-        and:
-        1 * callback1.run() >> { throw ex }
-        0 * callback2.run()
-    }
-
     def 'cancel notifies callbacks and preserves exceptions'() {
         def token = new DefaultBuildCancellationToken()
         def ex1 = new IllegalStateException('testing', new IOException('something happened'))
@@ -139,10 +118,8 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.doCancel()
 
         then:
-        // TODO use MultiCauseException
-        RuntimeException e = thrown()
-        containsExceptionAsCause(e, ex1)
-        containsExceptionAsCause(e, ex2)
+        DefaultMultiCauseException e = thrown()
+        e.causes == [ex1, ex2]
         token.cancellationRequested
 
         and:
