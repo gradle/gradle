@@ -24,12 +24,12 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.listener.ActionBroadcast;
 
 import java.util.Arrays;
@@ -100,7 +100,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         closure.call(args.toArray());
     }
 
-    public ComponentModuleDetails module(final String sourceModule) {
+    public ComponentModuleMetadataDetails module(final String sourceModule) {
         return moduleReplacements.module(sourceModule);
     }
 

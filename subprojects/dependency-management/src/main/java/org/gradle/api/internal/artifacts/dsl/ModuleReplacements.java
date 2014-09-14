@@ -34,8 +34,8 @@ public class ModuleReplacements implements ModuleReplacementsData {
 
     private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
 
-    public ComponentModuleDetails module(final Object sourceModule) {
-        return new ComponentModuleDetails() {
+    public ComponentModuleMetadataDetails module(final Object sourceModule) {
+        return new ComponentModuleMetadataDetails() {
             public void replacedBy(final Object targetModule) {
                 NotationParser<Object, ModuleIdentifier> parser = parser();
                 ModuleIdentifier source = parser.parseNotation(sourceModule);
