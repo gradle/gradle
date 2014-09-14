@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -35,5 +36,33 @@ class ModuleReplacementsTest extends Specification {
 
         !replacements.getReplacementFor(newId("com.google.guava", "guava"))
         !replacements.getReplacementFor(newId("bar", "foo"))
+    }
+
+    def "does not allow replacing with the same module"() {
+        when: replacements.module("o:o").replacedBy("o:o")
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Cannot declare module replacement that replaces self: o:o->o:o"
+    }
+
+    def "detects cycles early"() {
+        replacements.module("o:a").replacedBy("o:b")
+        when: replacements.module("o:b").replacedBy("o:a")
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Cannot declare module replacement o:b->o:a because it introduces a cycle: o:b->o:a->o:b"
+    }
+
+    def "detects transitive cycles early"() {
+        replacements.module("o:o").replacedBy("o:x")
+        //a->b->c->a
+        replacements.module("o:a").replacedBy("o:b")
+        replacements.module("o:b").replacedBy("o:c")
+        when: replacements.module("o:c").replacedBy("o:a")
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Cannot declare module replacement o:c->o:a because it introduces a cycle: o:c->o:a->o:b->o:c"
     }
 }

@@ -168,6 +168,14 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect: resolvedModules 'c'
     }
 
+    def "reports replacement cycles early"() {
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->b', 'b->c', 'c->a'
+        expect:
+        def failure = fails()
+        failure.assertHasCause("Cannot declare module replacement org:c->org:a because it introduces a cycle: org:c->org:a->org:b->org:c")
+    }
+
     //TODO SF when forced
     //when resolve target is unresolved, check exception
 }
