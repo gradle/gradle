@@ -128,17 +128,6 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         1 * callback3.run()
     }
 
-    def containsExceptionAsCause(def thrown, def cause) {
-        def e = thrown
-        while (e != null) {
-            if (e == cause) {
-                return true
-            }
-            e = e.cause
-        }
-        false
-    }
-
     def 'removed callback is not notified'() {
         def token = new DefaultBuildCancellationToken()
 
