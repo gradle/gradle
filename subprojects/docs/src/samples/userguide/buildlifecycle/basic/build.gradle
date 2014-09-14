@@ -8,7 +8,7 @@ task test << {
     println 'This is executed during the execution phase.'
 }
 
-task testBoth() {
+task testBoth {
 	doFirst {
 	  println 'This is executed first during the execution phase.'
 	}
