@@ -19,22 +19,21 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-public class GradleBuildAdapterProducer extends AbstractModelProducer {
+public class GradleBuildAdapterProducer implements ModelProducer {
+    private final ProtocolToModelAdapter adapter;
     private final ModelProducer delegate;
 
-    public GradleBuildAdapterProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelProducer delegate) {
-        super(adapter, versionDetails, modelMapping);
+    public GradleBuildAdapterProducer(ProtocolToModelAdapter adapter, ModelProducer delegate) {
+        this.adapter = adapter;
         this.delegate = delegate;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (type.getName().equals(GradleBuild.class.getName()) && !versionDetails.maySupportModel(type)) {
+        if (type.equals(GradleBuild.class)) {
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
             final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject);
             return adapter.adapt(type, convert);

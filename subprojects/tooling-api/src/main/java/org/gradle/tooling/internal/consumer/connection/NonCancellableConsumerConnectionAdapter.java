@@ -36,7 +36,7 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
     }
 
     public String getDisplayName() {
-        return delegate.getDisplayName() + " (non-cancellable)";
+        return delegate.getDisplayName();
     }
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {

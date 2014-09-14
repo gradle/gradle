@@ -44,8 +44,8 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()));
         ModelProducer consumerConnectionBackedModelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
-        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
+        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
     }
 
     @Override
@@ -96,12 +96,17 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         }
     }
 
-    private class InternalConnectionBackedModelProducer extends AbstractModelProducer {
+    private class InternalConnectionBackedModelProducer implements ModelProducer {
+        private final ProtocolToModelAdapter adapter;
+        private final VersionDetails versionDetails;
+        private final ModelMapping modelMapping;
         private final InternalConnection delegate;
         private final Action<SourceObjectMapping> mapper;
 
         public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate) {
-            super(adapter, versionDetails, modelMapping);
+            this.adapter = adapter;
+            this.versionDetails = versionDetails;
+            this.modelMapping = modelMapping;
             this.delegate = delegate;
             this.mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         }

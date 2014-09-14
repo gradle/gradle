@@ -30,12 +30,17 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class CancellableModelBuilderBackedModelProducer extends AbstractModelProducer {
+public class CancellableModelBuilderBackedModelProducer implements ModelProducer {
+    private final ProtocolToModelAdapter adapter;
+    private final VersionDetails versionDetails;
+    private final ModelMapping modelMapping;
     private final InternalCancellableConnection builder;
     private final Action<SourceObjectMapping> mapper;
 
     public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder) {
-        super(adapter, versionDetails, modelMapping);
+        this.adapter = adapter;
+        this.versionDetails = versionDetails;
+        this.modelMapping = modelMapping;
         this.builder = builder;
         mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
     }

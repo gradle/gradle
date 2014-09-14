@@ -19,22 +19,24 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
+public class BuildInvocationsAdapterProducer implements ModelProducer {
+    private final ProtocolToModelAdapter adapter;
+    private final VersionDetails versionDetails;
     private final ModelProducer delegate;
 
-    public BuildInvocationsAdapterProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelProducer delegate) {
-        super(adapter, versionDetails, modelMapping);
+    public BuildInvocationsAdapterProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelProducer delegate) {
+        this.adapter = adapter;
+        this.versionDetails = versionDetails;
         this.delegate = delegate;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (type.getName().equals(BuildInvocations.class.getName()) && !versionDetails.maySupportModel(type)) {
+        if (type.equals(BuildInvocations.class)) {
             if (!versionDetails.maySupportModel(GradleProject.class)) {
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }

@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
@@ -28,28 +27,14 @@ import spock.lang.Specification
 
 class GradleBuildAdapterProducerTest extends Specification {
     ProtocolToModelAdapter adapter = Mock(ProtocolToModelAdapter);
-    VersionDetails versionDetails = Mock(VersionDetails);
     ModelMapping mapping = Mock(ModelMapping);
     ModelBuilder builder = Mock(ModelBuilder);
     ModelProducer delegate = Mock(ModelProducer)
 
-    GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, versionDetails, mapping, delegate);
-
-    def "passes request to delegate when supported GradleBuild is requested"() {
-        setup:
-        1 * versionDetails.maySupportModel(GradleBuild.class) >> true
-        GradleBuild gradleBuild = Mock(GradleBuild)
-        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
-        when:
-        def model = modelProducer.produceModel(GradleBuild.class, operationParameters)
-        then:
-        1 * delegate.produceModel(GradleBuild, operationParameters) >> gradleBuild
-        model == gradleBuild
-    }
+    GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, delegate);
 
     def "requests GradleProject on delegate when unsupported GradleBuild requested"() {
         setup:
-        1 * versionDetails.maySupportModel(GradleBuild) >> false
         GradleProject gradleProject = gradleProject()
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         adapter.adapt(GradleProject, gradleProject) >> gradleProject
@@ -70,7 +55,6 @@ class GradleBuildAdapterProducerTest extends Specification {
         then:
         1 * delegate.produceModel(SomeModel, operationParameters) >> someModel
         returnValue == someModel
-        0 * versionDetails.maySupportModel(_)
         0 * adapter.adapt(_, _)
     }
 

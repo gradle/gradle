@@ -48,7 +48,6 @@ public class CancellableConsumerConnection extends ModelBuilderBackedConsumerCon
             throws UnsupportedOperationException, IllegalStateException {
         BuildResult<T> result;
         try {
-            // TODO use adapt instead of casting?
             result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
         } catch (InternalBuildActionFailureException e) {
             throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());

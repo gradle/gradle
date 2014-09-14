@@ -29,12 +29,17 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderBackedModelProducer extends AbstractModelProducer {
+public class ModelBuilderBackedModelProducer implements ModelProducer {
+    private final ProtocolToModelAdapter adapter;
+    private final VersionDetails versionDetails;
+    private final ModelMapping modelMapping;
     private final ModelBuilder builder;
     private final Action<SourceObjectMapping> mapper;
 
     public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
-        super(adapter, versionDetails, modelMapping);
+        this.adapter = adapter;
+        this.versionDetails = versionDetails;
+        this.modelMapping = modelMapping;
         this.builder = builder;
         mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
     }

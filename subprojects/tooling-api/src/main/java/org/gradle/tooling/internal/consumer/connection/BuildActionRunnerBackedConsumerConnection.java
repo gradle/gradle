@@ -43,8 +43,8 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
     public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R12VersionDetails(delegate.getMetaData().getVersion()));
         ModelProducer consumerConnectionBackedModelProducer = new BuildActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping,  (BuildActionRunner) delegate);
-        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
+        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
@@ -74,12 +74,17 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
     }
 
-    private class BuildActionRunnerBackedModelProducer extends AbstractModelProducer {
+    private class BuildActionRunnerBackedModelProducer implements ModelProducer {
+        private final ProtocolToModelAdapter adapter;
+        private final VersionDetails versionDetails;
+        private final ModelMapping modelMapping;
         private final BuildActionRunner buildActionRunner;
         private final Action<SourceObjectMapping> mapper;
 
         public BuildActionRunnerBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, BuildActionRunner buildActionRunner) {
-            super(adapter, versionDetails, modelMapping);
+            this.adapter = adapter;
+            this.versionDetails = versionDetails;
+            this.modelMapping = modelMapping;
             this.buildActionRunner = buildActionRunner;
             mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         }
