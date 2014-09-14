@@ -118,9 +118,11 @@ The primary changes are:
     - ~~Custom rule can select one of the candidates using the component metadata~~
     - ~~Custom rule can select one of the candidates using the ivy module descriptor~~
     - ~~Custom rule can reject all candidates from one repository, and accept a candidate from a subsequent repository.~~
+        - No network requests are made when this build is run a second time.
 - For a static version selector "1.0":
     - ~~Custom rule can reject candidate: user gets general 'not found' error message.~~
     - ~~Custom rule can reject candidate from one repository, and accept a matching candidate from a subsequent repository.~~
+        - No network requests are made when this build is run a second time.
 - With multiple custom rules:
     - ~~If any rule rejects a candidate, the candidate is not selected.~~
     - ~~Once a rule rejects a candidate, no other rules are evaluated for the candidate.~~
@@ -167,11 +169,21 @@ A few options:
 
 Option 1 can turn into option 2 later.
 
+### Implementation
+
+- Move `RuleAction` into internal package.
+
 ## Story: Add Java API for component metadata rules
 
 The approach from the previous story and apply it to `ComponentMetadataHandler` and component metadata rules.
 
 Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
+
+### Open issues:
+
+- `ComponentChooser.isRejectedByRules` takes a mutable meta-data. It should be immutable.
+- `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
+- `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
 
 ## Story: Build script targets component selection rule to particular module
 
@@ -212,9 +224,13 @@ that matched the specified version selector, together with the reason each was r
 ### Test cases
 
 - For a dynamic version selector "1.+":
-    - Custom rule can reject all candidates: user gets error message listing each candidate that matched and the rejection reason
+    - Custom rule rejects all candidates: user gets error message listing each candidate that matched and the rejection reason
+    - No versions "1.+" found and other versions are available: error message lists some similar versions that were found.
+    - No versions "1.+" found and no versions found: error message informs user that no versions were found.
 - For a static version selector "1.0":
-    - Custom rule can reject candidate: user gets useful error message including the rejection reason.
+    - Custom rule rejects candidate: user gets useful error message including the rejection reason.
+    - Version 1.0 not found and other versions are available: error message lists some similar versions that were found.
+    - Version 1.0 not found and no versions found: error message informs user that no versions were found.
 - A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
     - Reason is reported as "not an Ivy Module" (or similar)
 
