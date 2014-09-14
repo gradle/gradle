@@ -18,5 +18,5 @@ package org.gradle.api.internal.artifacts.dsl;
 
 //TODO SF elevate, rework the API
 public interface ComponentModuleDetails {
-    void replacedBy(String moduleId);
+    void replacedBy(Object moduleNotation);
 }

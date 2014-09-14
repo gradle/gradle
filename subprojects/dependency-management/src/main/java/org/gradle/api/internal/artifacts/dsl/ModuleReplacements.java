@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Map;
 
@@ -27,18 +29,20 @@ public class ModuleReplacements implements ModuleReplacementsData {
 
     private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
 
-    public ComponentModuleDetails module(final String sourceModule) {
+    public ComponentModuleDetails module(final Object sourceModule) {
         return new ComponentModuleDetails() {
-            public void replacedBy(final String targetModule) {
-                replacements.put(toModuleId(sourceModule), toModuleId(targetModule));
+            public void replacedBy(final Object targetModule) {
+                NotationParser<Object, ModuleIdentifier> parser = parser();
+                replacements.put(parser.parseNotation(sourceModule), parser.parseNotation(targetModule));
             }
         };
     }
 
-    //TODO SF, use notation parser
-    private static ModuleIdentifier toModuleId(String moduleId) {
-        String[] split = moduleId.split(":");
-        return new DefaultModuleIdentifier(split[0], split[1]);
+    private static NotationParser<Object, ModuleIdentifier> parser() {
+        return NotationParserBuilder
+                    .toType(ModuleIdentifier.class)
+                    .parser(new ModuleIdentiferNotationParser())
+                    .toComposite();
     }
 
     public ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule) {
