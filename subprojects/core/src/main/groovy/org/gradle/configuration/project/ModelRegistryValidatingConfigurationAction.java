@@ -16,9 +16,10 @@
 
 package org.gradle.configuration.project;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 
-public class ModelRegistryValidatingConfigurationAction implements ProjectConfigureAction {
+public class ModelRegistryValidatingConfigurationAction implements Action<ProjectInternal> {
 
     public void execute(ProjectInternal projectInternal) {
         projectInternal.getModelRegistry().validate();
