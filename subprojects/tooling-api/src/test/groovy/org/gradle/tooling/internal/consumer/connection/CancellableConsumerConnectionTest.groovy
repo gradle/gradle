@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.api.Action
+import org.gradle.api.BuildCancelledException
+import org.gradle.api.GradleException
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
@@ -105,9 +107,25 @@ class CancellableConsumerConnectionTest extends Specification {
         1 * target.run(_, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
     }
 
+    def "adapts implementation-specific cancellation failure when running build action"() {
+        def action = Mock(BuildAction)
+        def parameters = Stub(ConsumerOperationParameters)
+        def failure = new GradleException("broken", new BuildCancelledException("cancelled."))
+
+        when:
+        connection.run(action, parameters)
+
+        then:
+        InternalBuildCancelledException e = thrown()
+        e.cause == failure
+
+        and:
+        1 * target.run(_, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
+    }
+
     def "runs build using connection's getModel() method"() {
         def parameters = Stub(ConsumerOperationParameters)
-        ModelIdentifier modelIdentifier = Mock()
+        def modelIdentifier = Stub(ModelIdentifier)
 
         when:
         def result = connection.run(Void.class, parameters)
@@ -125,6 +143,21 @@ class CancellableConsumerConnectionTest extends Specification {
         1 * adapter.adapt(Void, 'result', _) >> { Class type, Object source, Action<? super SourceObjectMapping> mapper ->
             return source
         }
+    }
+
+    def "adapts implementation-specific cancellation failure when fetching model"() {
+        def parameters = Stub(ConsumerOperationParameters)
+        def failure = new GradleException("broken", new BuildCancelledException("cancelled."))
+
+        when:
+        connection.run(Void.class, parameters)
+
+        then:
+        InternalBuildCancelledException e = thrown()
+        e.cause == failure
+
+        and:
+        1 * target.getModel(_, _, _) >> { throw new BuildExceptionVersion1(failure) }
     }
 
     interface TestModelBuilder extends ConnectionVersion4, ConfigurableConnection, InternalCancellableConnection {

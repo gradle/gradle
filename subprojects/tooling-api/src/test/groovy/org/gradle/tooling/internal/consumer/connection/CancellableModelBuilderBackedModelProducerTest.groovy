@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.internal.Transformers
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -28,16 +29,16 @@ import spock.lang.Specification
 
 class CancellableModelBuilderBackedModelProducerTest extends Specification {
 
-    ProtocolToModelAdapter adapter = Mock(ProtocolToModelAdapter);
-    VersionDetails versionDetails = Mock(VersionDetails);
-    ModelMapping mapping = Mock(ModelMapping);
-    InternalCancellableConnection builder = Mock(InternalCancellableConnection);
+    def adapter = Mock(ProtocolToModelAdapter);
+    def versionDetails = Mock(VersionDetails);
+    def mapping = Mock(ModelMapping);
+    def transformer = Transformers.noOpTransformer()
+    def builder = Mock(InternalCancellableConnection)
 
-    CancellableModelBuilderBackedModelProducer modelProducer = new CancellableModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder);
+    def modelProducer = new CancellableModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder, transformer)
 
     def setup() {
         _ * versionDetails.getVersion() >> "X.Y"
-
     }
 
     def "builder not triggered for unsupported Models"() {

@@ -42,6 +42,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
+     * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 2.1-rc-1
      */
@@ -50,6 +51,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
             BuildExceptionVersion1,
             InternalUnsupportedModelException,
             InternalUnsupportedBuildArgumentException,
+            InternalBuildCancelledException,
             IllegalStateException;
 
     /**
@@ -61,6 +63,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1 On build failure.
      * @throws org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws org.gradle.tooling.internal.protocol.InternalBuildActionFailureException When the action fails with an exception.
+     * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 2.1-rc-1
      */
@@ -70,5 +73,6 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
             BuildExceptionVersion1,
             InternalUnsupportedBuildArgumentException,
             InternalBuildActionFailureException,
+            InternalBuildCancelledException,
             IllegalStateException;
 }

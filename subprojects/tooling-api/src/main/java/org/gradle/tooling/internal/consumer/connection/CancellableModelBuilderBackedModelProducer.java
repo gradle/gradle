@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
@@ -35,13 +36,15 @@ public class CancellableModelBuilderBackedModelProducer implements ModelProducer
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
     private final InternalCancellableConnection builder;
+    private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
     private final Action<SourceObjectMapping> mapper;
 
-    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder) {
+    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.builder = builder;
+        this.exceptionTransformer = exceptionTransformer;
         mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
     }
 
@@ -55,6 +58,8 @@ public class CancellableModelBuilderBackedModelProducer implements ModelProducer
             result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
+        } catch (RuntimeException e) {
+            throw exceptionTransformer.transform(e);
         }
         return adapter.adapt(type, result.getModel(), mapper);
     }
