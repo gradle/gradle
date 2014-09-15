@@ -686,28 +686,28 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         buildFile << """
             $baseBuildFile
 
-            dependencies {
-                conf "org.utils:api:1.2"
+            configurations {
+                notCopy 
             }
 
-            def closuresCalled = []
+            dependencies {
+                conf "org.utils:api:1.+"
+                notCopy "org.utils:api:1.+"
+            }
+
             configurations.conf {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection cs -> closuresCalled << 0 }
-                        all { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 1 }
-                        all { ComponentSelection cs, ComponentMetadata metadata,  IvyModuleDescriptor imd -> closuresCalled << 2 }
-                        module("org.utils:api") { ComponentSelection cs -> closuresCalled << 3 }
-                        module("org.utils:api") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 4 }
-                        module("org.utils:api") { ComponentSelection cs, ComponentMetadata metadata,  IvyModuleDescriptor imd -> closuresCalled << 5 }
+                        all ${rules['select 1.1']}
                     }
                 }
             }
             configurations.add(configurations.conf.copy())
 
             task('checkConf') << {
-                configurations.confCopy.files
-                assert closuresCalled == [ 0, 3, 1, 2, 4, 5 ]
+                assert configurations.conf.files*.name == ['api-1.1.jar']
+                assert configurations.confCopy.files*.name == ['api-1.1.jar']
+                assert configurations.notCopy.files*.name == ['api-1.2.jar']
             }
         """
 
