@@ -354,9 +354,17 @@ This story adds coverage to ensure that model rules are fired **AFTER** afterEva
 1. Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()
 1. Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_
  
-## Story: Make public the Model DSL
+## Story: Make the Model DSL public
 
-- Document how to use the DSL, include samples.
+- New chapter in userguide
+  - Give context/background for “new approach”
+  - Give conceptual foundations of model rules
+  - Describe constraints (intended) and current limitations
+  - Document that the plugin analog is not yet public
+  - Samples
+  - Review error messages, link back to user guide where appropriate
+- Suitable javadoc/DSL ref for classes in `org.gradle.model.dsl`
+- Forum post giving more contextual introduction
  
 # Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
