@@ -27,24 +27,36 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
-    private final InternalBuildActionExecutor executor;
-    private final ProtocolToModelAdapter adapter;
+    private final ActionRunner actionRunner;
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
-        this.adapter = adapter;
-        executor = (InternalBuildActionExecutor) delegate;
+        this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate, adapter);
     }
 
     @Override
-    public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
-            throws UnsupportedOperationException, IllegalStateException {
-        BuildResult<T> result;
-        try {
-            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), operationParameters);
-        } catch (InternalBuildActionFailureException e) {
-            throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
+    protected ActionRunner getActionRunner() {
+        return actionRunner;
+    }
+
+    private static class InternalBuildActionExecutorBackedActionRunner implements ActionRunner {
+        private final InternalBuildActionExecutor executor;
+        private final ProtocolToModelAdapter adapter;
+
+        private InternalBuildActionExecutorBackedActionRunner(InternalBuildActionExecutor executor, ProtocolToModelAdapter adapter) {
+            this.executor = executor;
+            this.adapter = adapter;
         }
-        return result.getModel();
+
+        public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
+                throws UnsupportedOperationException, IllegalStateException {
+            BuildResult<T> result;
+            try {
+                result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), operationParameters);
+            } catch (InternalBuildActionFailureException e) {
+                throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
+            }
+            return result.getModel();
+        }
     }
 }

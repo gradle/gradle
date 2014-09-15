@@ -28,13 +28,17 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 
 public class CancellableConsumerConnection extends ModelBuilderBackedConsumerConnection {
-    private final InternalCancellableConnection executor;
-    private final ProtocolToModelAdapter adapter;
+    private final CancellableActionRunner actionRunner;
 
     public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
-        this.adapter = adapter;
-        executor = (InternalCancellableConnection) delegate;
+        InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
+        this.actionRunner = new CancellableActionRunner(connection, adapter);
+    }
+
+    @Override
+    protected ActionRunner getActionRunner() {
+        return actionRunner;
     }
 
     @Override
@@ -43,15 +47,25 @@ public class CancellableConsumerConnection extends ModelBuilderBackedConsumerCon
         return new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
     }
 
-    @Override
-    public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
-            throws UnsupportedOperationException, IllegalStateException {
-        BuildResult<T> result;
-        try {
-            result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
-        } catch (InternalBuildActionFailureException e) {
-            throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
+
+    private static class CancellableActionRunner implements ActionRunner {
+        private final InternalCancellableConnection executor;
+        private final ProtocolToModelAdapter adapter;
+
+        private CancellableActionRunner(InternalCancellableConnection executor, ProtocolToModelAdapter adapter) {
+            this.executor = executor;
+            this.adapter = adapter;
         }
-        return result.getModel();
+
+        public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
+                throws UnsupportedOperationException, IllegalStateException {
+            BuildResult<T> result;
+            try {
+                result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+            } catch (InternalBuildActionFailureException e) {
+                throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
+            }
+            return result.getModel();
+        }
     }
 }

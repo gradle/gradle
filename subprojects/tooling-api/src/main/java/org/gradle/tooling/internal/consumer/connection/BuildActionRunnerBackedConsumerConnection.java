@@ -39,16 +39,24 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
  */
 public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelProducer modelProducer;
+    private final UnsupportedActionRunner actionRunner;
 
     public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R12VersionDetails(delegate.getMetaData().getVersion()));
         ModelProducer consumerConnectionBackedModelProducer = new BuildActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping,  (BuildActionRunner) delegate);
         ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
+        actionRunner = new UnsupportedActionRunner(getVersionDetails());
     }
 
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return modelProducer.produceModel(type, operationParameters);
+    @Override
+    protected ActionRunner getActionRunner() {
+        return actionRunner;
+    }
+
+    @Override
+    protected ModelProducer getModelProducer() {
+        return modelProducer;
     }
 
     private static class R12VersionDetails extends VersionDetails {
@@ -74,7 +82,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
     }
 
-    private class BuildActionRunnerBackedModelProducer implements ModelProducer {
+    private static class BuildActionRunnerBackedModelProducer implements ModelProducer {
         private final ProtocolToModelAdapter adapter;
         private final VersionDetails versionDetails;
         private final ModelMapping modelMapping;

@@ -56,6 +56,10 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
+        !details.supportsTaskDisplayName()
+        !details.supportsCancellation()
+
+        and:
         details.maySupportModel(HierarchicalEclipseProject)
         details.maySupportModel(EclipseProject)
         details.maySupportModel(IdeaProject)
@@ -68,6 +72,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
 
         and:
         !details.maySupportModel(GradleBuild)
+        !details.maySupportModel(BuildInvocations)
     }
 
     def "describes capabilities of a post 1.8-rc-1 provider"() {
@@ -80,6 +85,10 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
+        !details.supportsTaskDisplayName()
+        !details.supportsCancellation()
+
+        and:
         details.maySupportModel(HierarchicalEclipseProject)
         details.maySupportModel(EclipseProject)
         details.maySupportModel(IdeaProject)
@@ -90,6 +99,9 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         details.maySupportModel(Void)
         details.maySupportModel(CustomModel)
         details.maySupportModel(GradleBuild)
+
+        and:
+        !details.maySupportModel(BuildInvocations)
     }
 
     def "maps model type to model identifier"() {

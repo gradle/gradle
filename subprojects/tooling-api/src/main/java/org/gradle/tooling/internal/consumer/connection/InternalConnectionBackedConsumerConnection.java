@@ -40,38 +40,30 @@ import org.gradle.tooling.model.internal.Exceptions;
  */
 public class InternalConnectionBackedConsumerConnection extends AbstractConsumerConnection {
     private final ModelProducer modelProducer;
+    private final UnsupportedActionRunner actionRunner;
 
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer consumerConnectionBackedModelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
-        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
+        ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
+        modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
+        this.modelProducer = new BuildExecutingModelProducer(modelProducer);
+        this.actionRunner = new UnsupportedActionRunner(getVersionDetails());
+    }
+
+    @Override
+    protected ActionRunner getActionRunner() {
+        return actionRunner;
+    }
+
+    @Override
+    protected ModelProducer getModelProducer() {
+        return modelProducer;
     }
 
     @Override
     public void configure(ConnectionParameters connectionParameters) {
         new CompatibleIntrospector(getDelegate()).callSafely("configureLogging", connectionParameters.getVerboseLogging());
-    }
-
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
-            throws UnsupportedOperationException, IllegalStateException {
-        if (type.equals(Void.class)) {
-            doRunBuild(operationParameters);
-            return null;
-        } else {
-            if (operationParameters.getTasks() != null) {
-                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
-            }
-            return doGetModel(type, operationParameters);
-        }
-    }
-
-    private void doRunBuild(final ConsumerOperationParameters operationParameters) {
-        getDelegate().executeBuild(operationParameters, operationParameters);
-    }
-
-    private <T> T doGetModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-        return modelProducer.produceModel(modelType, operationParameters);
     }
 
     private static class R10M8VersionDetails extends VersionDetails {
@@ -96,7 +88,27 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         }
     }
 
-    private class InternalConnectionBackedModelProducer implements ModelProducer {
+    private class BuildExecutingModelProducer implements ModelProducer {
+        private final ModelProducer delegate;
+
+        private BuildExecutingModelProducer(ModelProducer delegate) {
+            this.delegate = delegate;
+        }
+
+        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+            if (type.equals(Void.class)) {
+                getDelegate().executeBuild(operationParameters, operationParameters);
+                return null;
+            } else {
+                if (operationParameters.getTasks() != null) {
+                    throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
+                }
+                return delegate.produceModel(type, operationParameters);
+            }
+        }
+    }
+
+    private static class InternalConnectionBackedModelProducer implements ModelProducer {
         private final ProtocolToModelAdapter adapter;
         private final VersionDetails versionDetails;
         private final ModelMapping modelMapping;

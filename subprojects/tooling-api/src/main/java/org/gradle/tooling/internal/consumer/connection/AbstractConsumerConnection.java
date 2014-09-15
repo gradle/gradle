@@ -50,7 +50,27 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
 
     public abstract void configure(ConnectionParameters connectionParameters);
 
-    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", getVersionDetails().getVersion(), "1.8");
+    protected abstract ModelProducer getModelProducer();
+
+    protected abstract ActionRunner getActionRunner();
+
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) {
+        return getModelProducer().produceModel(type, operationParameters);
+    }
+
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
+        return getActionRunner().run(action, operationParameters);
+    }
+
+    static class UnsupportedActionRunner implements ActionRunner {
+        private final VersionDetails versionDetails;
+
+        UnsupportedActionRunner(VersionDetails versionDetails) {
+            this.versionDetails = versionDetails;
+        }
+
+        public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
+            throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", versionDetails.getVersion(), "1.8");
+        }
     }
 }

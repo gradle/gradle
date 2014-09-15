@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -31,6 +30,7 @@ import org.gradle.util.GradleVersion;
  */
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelProducer modelProducer;
+    private final ActionRunner actionRunner;
 
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, getVersionDetails(delegate.getMetaData().getVersion()));
@@ -42,6 +42,17 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
             modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         }
         this.modelProducer = modelProducer;
+        this.actionRunner = new UnsupportedActionRunner(getVersionDetails());
+    }
+
+    @Override
+    protected ActionRunner getActionRunner() {
+        return actionRunner;
+    }
+
+    @Override
+    protected ModelProducer getModelProducer() {
+        return modelProducer;
     }
 
     protected ModelProducer realModelProducer(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
@@ -61,10 +72,6 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
             return new R18VersionDetails(version.getVersion());
         }
         return new R16VersionDetails(version.getVersion());
-    }
-
-    public <T> T run(Class<T> type, final ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return modelProducer.produceModel(type, operationParameters);
     }
 
     static class R16VersionDetails extends VersionDetails {

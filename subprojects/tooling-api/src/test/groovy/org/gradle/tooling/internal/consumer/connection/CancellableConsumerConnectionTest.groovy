@@ -24,6 +24,15 @@ import org.gradle.tooling.internal.adapter.SourceObjectMapping
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.idea.BasicIdeaProject
+import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class CancellableConsumerConnectionTest extends Specification {
@@ -35,6 +44,32 @@ class CancellableConsumerConnectionTest extends Specification {
     final adapter = Mock(ProtocolToModelAdapter)
     final modelMapping = Mock(ModelMapping)
     final connection = new CancellableConsumerConnection(target, modelMapping, adapter)
+
+    def "describes capabilities of provider"() {
+        given:
+        def details = connection.versionDetails
+
+        expect:
+        details.supportsGradleProjectModel()
+
+        and:
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(ProjectOutcomes)
+        details.maySupportModel(Void)
+        details.maySupportModel(GradleBuild)
+        details.maySupportModel(BuildInvocations)
+        details.maySupportModel(CustomModel)
+
+        and:
+        details.supportsGradleProjectModel()
+        details.supportsTaskDisplayName()
+        details.supportsCancellation()
+    }
 
     def "delegates to connection to run build action"() {
         def action = Mock(BuildAction)
@@ -97,5 +132,8 @@ class CancellableConsumerConnectionTest extends Specification {
     }
 
     interface TestModelBuilder extends ConnectionVersion4, ConfigurableConnection, InternalCancellableConnection {
+    }
+
+    interface CustomModel {
     }
 }
