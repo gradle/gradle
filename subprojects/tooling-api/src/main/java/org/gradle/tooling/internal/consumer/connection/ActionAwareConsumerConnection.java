@@ -21,22 +21,74 @@ import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.model.gradle.BuildInvocations;
+import org.gradle.util.GradleVersion;
 
-public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
+/**
+ * An adapter for {@link InternalBuildActionExecutor}.
+ *
+ * <p>Used for providers >= 1.8 and <= 2.0</p>
+ */
+public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ActionRunner actionRunner;
+    private final ModelProducer modelProducer;
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, modelMapping, adapter, getVersionDetails(delegate.getMetaData().getVersion()));
+        super(delegate, getVersionDetails(delegate.getMetaData().getVersion()));
+        ModelProducer modelProducer =  new ModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, (ModelBuilder) delegate);
+        if (!getVersionDetails().maySupportModel(BuildInvocations.class)) {
+            modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
+
+        }
+        this.modelProducer = modelProducer;
         this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate, adapter);
+    }
+
+    @Override
+    protected ModelProducer getModelProducer() {
+        return modelProducer;
     }
 
     @Override
     protected ActionRunner getActionRunner() {
         return actionRunner;
+    }
+
+    protected static VersionDetails getVersionDetails(String versionString) {
+        GradleVersion version = GradleVersion.version(versionString);
+        if (version.compareTo(GradleVersion.version("1.11")) > 0) {
+            return new R112VersionDetails(version.getVersion());
+        }
+        return new R18VersionDetails(version.getVersion());
+    }
+
+    static class R18VersionDetails extends VersionDetails {
+        private R18VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean maySupportModel(Class<?> modelType) {
+            return modelType != BuildInvocations.class;
+        }
+    }
+
+    static class R112VersionDetails extends VersionDetails {
+        private R112VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean maySupportModel(Class<?> modelType) {
+            return true;
+        }
+
+        @Override
+        public boolean supportsTaskDisplayName() {
+            return true;
+        }
     }
 
     private static class InternalBuildActionExecutorBackedActionRunner implements ActionRunner {

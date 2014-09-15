@@ -34,17 +34,17 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class ActionAwareConsumerConnectionTest extends Specification {
+    final metaData = Stub(ConnectionMetaDataVersion1)
     final target = Mock(TestModelBuilder) {
-        getMetaData() >> Stub(ConnectionMetaDataVersion1) {
-            getVersion() >> "1.8"
-        }
+        getMetaData() >> metaData
     }
     final adapter = Mock(ProtocolToModelAdapter)
     final modelMapping = Stub(ModelMapping)
-    final connection = new ActionAwareConsumerConnection(target, modelMapping, adapter)
 
     def "describes capabilities of 1.8 provider"() {
         given:
+        metaData.version >> "1.8"
+        def connection = new ActionAwareConsumerConnection(target, modelMapping, adapter)
         def details = connection.versionDetails
 
         expect:
@@ -67,12 +67,40 @@ class ActionAwareConsumerConnectionTest extends Specification {
         !details.maySupportModel(BuildInvocations)
     }
 
+    def "describes capabilities of a post 1.12 provider"() {
+        given:
+        metaData.version >> "1.12"
+        def connection = new ActionAwareConsumerConnection(target, modelMapping, adapter)
+        def details = connection.versionDetails
+
+        expect:
+        details.supportsTaskDisplayName()
+
+        and:
+        !details.supportsCancellation()
+
+        and:
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(ProjectOutcomes)
+        details.maySupportModel(Void)
+        details.maySupportModel(CustomModel)
+        details.maySupportModel(GradleBuild)
+        details.maySupportModel(BuildInvocations)
+    }
+
     def "delegates to connection to run build action"() {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
         def buildController = Mock(InternalBuildController)
 
         when:
+        metaData.version >> "1.8"
+        def connection = new ActionAwareConsumerConnection(target, modelMapping, adapter)
         def result = connection.run(action, parameters)
 
         then:
@@ -94,6 +122,8 @@ class ActionAwareConsumerConnectionTest extends Specification {
         def failure = new RuntimeException()
 
         when:
+        metaData.version >> "1.8"
+        def connection = new ActionAwareConsumerConnection(target, modelMapping, adapter)
         connection.run(action, parameters)
 
         then:

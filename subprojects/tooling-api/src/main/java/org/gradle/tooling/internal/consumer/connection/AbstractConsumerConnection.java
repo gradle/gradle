@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.model.internal.Exceptions;
 
 public abstract class AbstractConsumerConnection implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
@@ -60,17 +59,5 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
         return getActionRunner().run(action, operationParameters);
-    }
-
-    static class UnsupportedActionRunner implements ActionRunner {
-        private final VersionDetails versionDetails;
-
-        UnsupportedActionRunner(VersionDetails versionDetails) {
-            this.versionDetails = versionDetails;
-        }
-
-        public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
-            throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", versionDetails.getVersion(), "1.8");
-        }
     }
 }
