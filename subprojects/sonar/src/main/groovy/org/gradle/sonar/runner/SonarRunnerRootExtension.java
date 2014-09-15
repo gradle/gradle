@@ -21,12 +21,13 @@ import org.gradle.listener.ActionBroadcast;
 import org.gradle.process.JavaForkOptions;
 
 /**
- * An extension for configuring the analysis process options.
+ * Specialization of {@link SonarRunnerExtension} that is used for the root of the project tree being analyzed.
  * <p>
- * The extension is added to the plugin's target project.
+ * This extension provides extra configuration options that are only applicable to the analysis as a whole,
+ * and therefore is used for the project (typically the root) that the plugin is applied too.
  * <p>
  * Example usage:
- * <pre>
+ * <pre autoTested=''>
  * sonarRunner {
  *   toolVersion = '2.3' // default
  *
@@ -40,9 +41,11 @@ import org.gradle.process.JavaForkOptions;
 public class SonarRunnerRootExtension extends SonarRunnerExtension {
 
     /**
-     * {@value}
+     * The version of Sonar Runner used if another version was not specified with {@link #setToolVersion(String)}.
+     * <p>
+     * Value: {@value}
      */
-    public static final String DEFAULT_SONAR_RUNNER_VERSION = "2.3";
+    public static final String DEFAULT_SONAR_RUNNER_VERSION = "2.3"; // IMPORTANT: if updating this, update the DSL doc.
 
     private String toolVersion = DEFAULT_SONAR_RUNNER_VERSION;
     private JavaForkOptions forkOptions;
@@ -63,8 +66,9 @@ public class SonarRunnerRootExtension extends SonarRunnerExtension {
     /**
      * Version of Sonar Runner JARs to use.
      * <p>
-     * Defaults to {@link #DEFAULT_SONAR_RUNNER_VERSION}.
+     * Defaults to {@code 2.3}.
      */
+    // IMPORTANT: update above if DEFAULT_SONAR_RUNNER_VERSION changes
     public String getToolVersion() {
         return toolVersion;
     }

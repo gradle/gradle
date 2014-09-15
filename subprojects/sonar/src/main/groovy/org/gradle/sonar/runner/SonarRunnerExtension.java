@@ -21,9 +21,11 @@ import org.gradle.api.Incubating;
 import org.gradle.listener.ActionBroadcast;
 
 /**
- * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner"> Sonar Runner</a>.
+ * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner">Sonar Runner</a> integration.
  * <p>
- * The extension is added to all projects that have the {@code sonar-runner} plugin applied, and all of their subprojects.
+ * The extension is added to all projects that have the {@code "sonar-runner"} plugin applied, and all of their subprojects.
+ * The extension of the project that actually applies the {@code "sonar-runner"} plugin is a subclass of this type, {@link SonarRunnerRootExtension},
+ * which also allows configuration of the Sonar Runner process.
  * <p>
  * Example usage:
  * <pre autoTested=''>
@@ -36,6 +38,16 @@ import org.gradle.listener.ActionBroadcast;
  *   }
  * }
  * </pre>
+ * <h3>Sonar Properties</h3>
+ * <p>
+ * The Sonar configuration is provided by using the {@link #sonarProperties(org.gradle.api.Action)} method and specifying properties.
+ * Certain properties are required, such as {@code "sonar.host.url"} which provides the address of the Sonar server.
+ * For details on what properties are available, see <a href="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Analysis Parameters</a> in the Sonar documentation.
+ * <p>
+ * The {@code "sonar-runner"} plugin adds default values for several plugins dependening on the nature of the project.
+ * Please see the “Sonar Runner Plugin” chapter of the Gradle User Guide for details on which properties are set and their values.
+ * <p>
+ * Please see the {@link SonarProperties} class for more information on the mechanics of setting Sonar properties, including laziness and property types.
  */
 @Incubating
 public class SonarRunnerExtension {
@@ -73,7 +85,7 @@ public class SonarRunnerExtension {
     }
 
     /**
-     * If the project will be excluded from analysis.
+     * If the project should be excluded from analysis.
      * <p>
      * Defaults to {@code false}.
      */

@@ -55,68 +55,11 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.CollectionUtils.nonEmptyOrNull;
 
 /**
- * A plugin for analyzing projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
+ * A plugin for analyzing projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner">Sonar Runner</a>.
  * <p>
- * When applied to a project, both the project itself and its subprojects will be analyzed (in a single run). Therefore, it's common to apply the plugin only to the root project.
- * To exclude selected subprojects from being analyzed, set {@code sonarRunner.skipProject = true}.
+ * When applied to a project, both the project itself and its subprojects will be analyzed (in a single run).
  * <p>
- * The plugin is configured via {@link SonarRunnerExtension}.
- * Here is a small example:
- * <pre autoTested=''>
- * sonarRunner {
- *   skipProject = false // this is the default
- *
- *   sonarProperties {
- *     property "sonar.host.url", "http://my.sonar.server" // adding a single property
- *     properties mapOfProperties // adding multiple properties at once
- *     properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
- *   }
- * }
- * </pre>
- * <p>
- * The Sonar Runner already comes with defaults for some of the most important Sonar properties (server URL, database settings, etc.).
- * For details see <a href="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Analysis Parameters</a> in the Sonar documentation.
- * The {@code sonar-runner} plugin provides the following additional defaults:
- * <dl>
- *     <dt>sonar.projectKey
- *     <dd>"$project.group:$project.name"
- *     <dt>sonar.projectName
- *     <dd>project.name
- *     <dt>sonar.projectDescription
- *     <dd>project.description
- *     <dt>sonar.projectVersion
- *     <dd>sonar.version
- *     <dt>sonar.projectBaseDir
- *     <dd>project.projectDir
- *     <dt>sonar.working.directory
- *     <dd>"$project.buildDir/sonar"
- *     <dt>sonar.dynamicAnalysis
- *     <dd>"reuseReports"
- * </dl>
- * <p>
- * For project that have the {@code java-base} plugin applied, additionally the following defaults are provided:
- * <dl>
- *     <dt>sonar.java.source
- *     <dd>project.sourceCompatibility
- *     <dt>sonar.java.target
- *     <dd>project.targetCompatibility
- * </dl>
- * <p>
- * For project that have the {@code java} plugin applied, additionally the following defaults are provided:
- * <dl>
- *     <dt>sonar.sources
- *     <dd>sourceSets.main.allSource.srcDirs (filtered to only include existing directories)
- *     <dt>sonar.tests
- *     <dd>sourceSets.test.allSource.srcDirs (filtered to only include existing directories)
- *     <dt>sonar.binaries
- *     <dd>sourceSets.main.runtimeClasspath (filtered to only include directories)
- *     <dt>sonar.libraries
- *     <dd>sourceSets.main.runtimeClasspath (filtering to only include files; {@code rt.jar} added if necessary)
- *     <dt>sonar.surefire.reportsPath
- *     <dd>test.testResultsDir (if the directory exists)
- *     <dt>sonar.junit.reportsPath
- *     <dd>test.testResultsDir (if the directory exists)
- * </dl>
+ * Please see the “Sonar Runner Plugin” chapter of the Gradle User Guide for more information.
  */
 @Incubating
 public class SonarRunnerPlugin implements Plugin<Project> {
@@ -137,6 +80,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         }
     };
     private static final Joiner COMMA_JOINER = Joiner.on(",");
+
     private Project targetProject;
 
     public void apply(Project project) {
@@ -243,6 +187,9 @@ public class SonarRunnerPlugin implements Plugin<Project> {
     }
 
     private void addGradleDefaults(final Project project, final Map<String, Object> properties) {
+
+        // IMPORTANT: Whenever changing the properties/values here, ensure that the Gradle User Guide chapter on this is still in sync.
+
         properties.put("sonar.projectName", project.getName());
         properties.put("sonar.projectDescription", project.getDescription());
         properties.put("sonar.projectVersion", project.getVersion());
