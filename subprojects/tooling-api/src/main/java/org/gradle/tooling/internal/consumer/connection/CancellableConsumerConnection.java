@@ -28,6 +28,11 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 
+/**
+ * An adapter for {@link InternalCancellableConnection}.
+ *
+ * <p>Used for providers >= 2.1.</p>
+ */
 public class CancellableConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ActionRunner actionRunner;
     private final ModelProducer modelProducer;

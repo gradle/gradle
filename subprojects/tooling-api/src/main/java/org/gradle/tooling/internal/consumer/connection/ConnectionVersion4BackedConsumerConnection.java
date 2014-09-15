@@ -27,6 +27,8 @@ import org.gradle.tooling.model.build.BuildEnvironment;
 
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
+ *
+ * <p>Used for providers >= 1.0-milestone-3 and <= 1.0-milestone-7.</p>
  */
 public class ConnectionVersion4BackedConsumerConnection implements ConsumerConnection {
     private final Distribution distribution;

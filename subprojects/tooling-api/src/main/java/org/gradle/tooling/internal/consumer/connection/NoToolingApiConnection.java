@@ -21,6 +21,11 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
+/**
+ * A {@code ConsumerConnection} implementation for a Gradle version that does not support the tooling API.
+ *
+ * <p>Used for versions < 1.0-milestone-3.</p>
+ */
 public class NoToolingApiConnection implements ConsumerConnection {
     private final Distribution distribution;
 

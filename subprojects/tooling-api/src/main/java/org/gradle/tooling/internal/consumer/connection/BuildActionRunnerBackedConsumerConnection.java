@@ -36,6 +36,8 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 /**
  * An adapter for a {@link BuildActionRunner} based provider.
+ *
+ * <p>Used for providers >= 1.2 and <= 1.6.</p>
  */
 public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelProducer modelProducer;

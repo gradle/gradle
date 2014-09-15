@@ -37,6 +37,8 @@ import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * An adapter for a {@link InternalConnection} based provider.
+ *
+ * <p>Used for providers >= 1.0-milestone-8 and <= 1.1.</p>
  */
 public class InternalConnectionBackedConsumerConnection extends AbstractConsumerConnection {
     private final ModelProducer modelProducer;
