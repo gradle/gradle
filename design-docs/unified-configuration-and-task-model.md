@@ -354,6 +354,10 @@ This story adds coverage to ensure that model rules are fired **AFTER** afterEva
 1. Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()
 1. Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_
  
+## Story: Make public the Model DSL
+
+- Document how to use the DSL, include samples.
+ 
 # Milestone 2 - Build author uses public rule DSL to configure model and tasks
 
 ## Story: Model DSL rule uses a typed model element as input via name
@@ -533,10 +537,6 @@ For example, an extension or some ad hoc model object.
 
 ## Story: Only declared inputs are visible to DSL model rule
 
-
-## Story: Make public the Model DSL
-
-- Document how to use the DSL, include samples.
 
 ## Story: Make public the plugin rules mechanism
 
