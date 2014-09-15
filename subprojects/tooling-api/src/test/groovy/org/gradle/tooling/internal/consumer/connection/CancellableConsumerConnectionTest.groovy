@@ -50,9 +50,6 @@ class CancellableConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
-        details.supportsGradleProjectModel()
-
-        and:
         details.maySupportModel(HierarchicalEclipseProject)
         details.maySupportModel(EclipseProject)
         details.maySupportModel(IdeaProject)
@@ -66,7 +63,6 @@ class CancellableConsumerConnectionTest extends Specification {
         details.maySupportModel(CustomModel)
 
         and:
-        details.supportsGradleProjectModel()
         details.supportsTaskDisplayName()
         details.supportsCancellation()
     }

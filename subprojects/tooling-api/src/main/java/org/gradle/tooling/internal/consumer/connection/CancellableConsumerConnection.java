@@ -22,18 +22,21 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 
-public class CancellableConsumerConnection extends ModelBuilderBackedConsumerConnection {
-    private final CancellableActionRunner actionRunner;
+public class CancellableConsumerConnection extends AbstractPost12ConsumerConnection {
+    private final ActionRunner actionRunner;
+    private final ModelProducer modelProducer;
 
     public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, modelMapping, adapter);
+        super(delegate, new R21VersionDetails(delegate.getMetaData().getVersion()));
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
-        this.actionRunner = new CancellableActionRunner(connection, adapter);
+        modelProducer = new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection);
+        actionRunner = new CancellableActionRunner(connection, adapter);
     }
 
     @Override
@@ -42,11 +45,30 @@ public class CancellableConsumerConnection extends ModelBuilderBackedConsumerCon
     }
 
     @Override
-    protected ModelProducer realModelProducer(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        InternalCancellableConnection builder = (InternalCancellableConnection) delegate;
-        return new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
+    protected ModelProducer getModelProducer() {
+        return modelProducer;
     }
 
+    private static class R21VersionDetails extends VersionDetails {
+        private R21VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsTaskDisplayName() {
+            return true;
+        }
+
+        @Override
+        public boolean maySupportModel(Class<?> modelType) {
+            return true;
+        }
+
+        @Override
+        public boolean supportsCancellation() {
+            return true;
+        }
+    }
 
     private static class CancellableActionRunner implements ActionRunner {
         private final InternalCancellableConnection executor;

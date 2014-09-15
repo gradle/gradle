@@ -72,11 +72,6 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         }
 
         @Override
-        public boolean supportsGradleProjectModel() {
-            return true;
-        }
-
-        @Override
         public boolean maySupportModel(Class<?> modelType) {
             return modelType.equals(Void.class)
                     || modelType.equals(HierarchicalEclipseProject.class)

@@ -30,7 +30,7 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
     private final ActionRunner actionRunner;
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, modelMapping, adapter);
+        super(delegate, modelMapping, adapter, getVersionDetails(delegate.getMetaData().getVersion()));
         this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate, adapter);
     }
 

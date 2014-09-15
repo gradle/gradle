@@ -65,11 +65,6 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
 
         @Override
-        public boolean supportsGradleProjectModel() {
-            return true;
-        }
-
-        @Override
         public boolean maySupportModel(Class<?> modelType) {
             return modelType.equals(ProjectOutcomes.class)
                     || modelType.equals(HierarchicalEclipseProject.class)

@@ -53,9 +53,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
-        details.supportsGradleProjectModel()
-
-        and:
         !details.supportsTaskDisplayName()
         !details.supportsCancellation()
 
@@ -82,9 +79,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
-        details.supportsGradleProjectModel()
-
-        and:
         !details.supportsTaskDisplayName()
         !details.supportsCancellation()
 
@@ -185,7 +179,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         then:
         version.maySupportModel(GradleBuild) == gradleVersion.compareTo(GradleVersion.version("1.8")) >= 0
         version.maySupportModel(BuildInvocations) == gradleVersion.compareTo(GradleVersion.version("1.11")) > 0
-        version.supportsGradleProjectModel() == gradleVersion.compareTo(GradleVersion.version("1.6")) >= 0
         version.maySupportModel(ModelBuilderBackedConsumerConnectionTest.CustomModel)
 
         where:
