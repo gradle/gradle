@@ -38,7 +38,7 @@ import org.gradle.platform.base.Platform;
  */
 @Incubating
 @HasInternalProtocol
-public interface NativePlatform extends Platform {
+public interface NativePlatform extends Platform, Named {
     /**
      * Returns a human-consumable display name for this platform.
      */
