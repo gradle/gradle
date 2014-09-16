@@ -18,11 +18,11 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.api.AntBuilder
 import org.gradle.api.RecordingAntBuildListener
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.*
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.*
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -55,7 +55,7 @@ import spock.lang.Specification
 
 class ProjectScopeServicesTest extends Specification {
     ProjectInternal project = Mock()
-    ConfigurationContainerInternal configurationContainer = Mock()
+    ConfigurationContainer configurationContainer = Mock()
     GradleInternal gradle = Mock()
     DependencyManagementServices dependencyManagementServices = Mock()
     ITaskFactory taskFactory = Mock()
@@ -214,6 +214,6 @@ class ProjectScopeServicesTest extends Specification {
     private void expectScriptClassLoaderProviderCreated() {
         1 * dependencyManagementServices.create(!null, !null, !null, !null) >> dependencyResolutionServices
         // return mock rather than stub; workaround for fact that Spock doesn't substitute generic method return type as it should
-        dependencyResolutionServices.configurationContainer >> Mock(ConfigurationContainerInternal)
+        dependencyResolutionServices.configurationContainer >> Mock(ConfigurationContainer)
     }
 }

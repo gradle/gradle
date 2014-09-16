@@ -15,11 +15,10 @@
  */
 
 package org.gradle.api.internal.project
-
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -57,7 +56,7 @@ class NewDefaultProjectTest extends Specification {
 
     void "delegates to configuration container"() {
         Closure cl = {}
-        def container = Mock(ConfigurationContainerInternal)
+        def container = Mock(ConfigurationContainer)
         root.configurationContainer = container
 
         when:

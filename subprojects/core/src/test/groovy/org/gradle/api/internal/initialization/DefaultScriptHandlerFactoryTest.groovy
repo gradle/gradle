@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.initialization
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.ScriptSource
@@ -31,7 +31,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
         getLocalClassLoader() >> Stub(ClassLoader)
     }
     private final RepositoryHandler repositoryHandler = Mock()
-    private final ConfigurationContainerInternal configurationContainer = Mock()
+    private final ConfigurationContainer configurationContainer = Mock()
     private final FileResolver fileResolver = Mock()
     private final DependencyManagementServices dependencyManagementServices = Mock()
     private final DefaultScriptHandlerFactory scriptHandlerFactory = new DefaultScriptHandlerFactory(dependencyManagementServices, fileResolver, metaDataProvider)
@@ -82,7 +82,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
         _ * dependencyManagementServices.create(fileResolver, metaDataProvider, _, _) >> dependencyResolutionServices
         _ * dependencyResolutionServices.resolveRepositoryHandler >> repositoryHandler
         _ * dependencyResolutionServices.configurationContainer >> configurationContainer
-        _ * configurationContainer.create(_) >> Stub(ConfigurationInternal)
+        _ * configurationContainer.create(_) >> Stub(Configuration)
     }
 
     private def scriptSource(String className = 'script') {

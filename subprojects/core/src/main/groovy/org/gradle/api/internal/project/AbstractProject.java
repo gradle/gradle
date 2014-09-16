@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -31,7 +32,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -131,7 +131,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private DependencyHandler dependencyHandler;
 
-    private ConfigurationContainerInternal configurationContainer;
+    private ConfigurationContainer configurationContainer;
 
     private ArtifactHandler artifactHandler;
 
@@ -418,14 +418,14 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-    public ConfigurationContainerInternal getConfigurations() {
+    public ConfigurationContainer getConfigurations() {
         if (configurationContainer == null) {
-            configurationContainer = services.get(ConfigurationContainerInternal.class);
+            configurationContainer = services.get(ConfigurationContainer.class);
         }
         return configurationContainer;
     }
 
-    public void setConfigurationContainer(ConfigurationContainerInternal configurationContainer) {
+    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
         this.configurationContainer = configurationContainer;
     }
 

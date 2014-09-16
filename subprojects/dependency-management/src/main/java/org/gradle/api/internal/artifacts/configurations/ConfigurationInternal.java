@@ -21,5 +21,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
     DependencyResolutionListener getDependencyResolutionBroadcast();
 
+    ResolutionStrategyInternal getResolutionStrategy();
+
     String getPath();
 }
