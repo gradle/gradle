@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentSelectionRulesProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
@@ -191,49 +192,79 @@ class DefaultComponentSelectionRulesTest extends Specification {
         [ComponentMetadataDetails]                       | "Unsupported parameter type for component selection rule: ${ComponentMetadataDetails.name}"
     }
 
-    def "produces sensible error when bad target module id is provided" () {
+    def "produces sensible error when null module id is provided" () {
         when:
         rules.module(id, closureOrActionOrRule)
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "Unsupported format for module constraint: '${id}'.  This should be in the format of 'group:module'."
+        def e = thrown(UnsupportedNotationException)
+        e.message == """Cannot convert a null value to an object of type ModuleIdentifier.
+The following types/formats are supported:
+  - Instances of ModuleIdentifier.
+  - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
 
         where:
         id                     | closureOrActionOrRule
         null                   | new TestRuleAction()
+        null                   | { ComponentSelection cs -> }
+        null                   | new TestComponentSelectionAction()
+    }
+
+    def "produces sensible error when un-parsable module id is provided" () {
+        when:
+        rules.module(id, closureOrActionOrRule)
+
+        then:
+        def e = thrown(UnsupportedNotationException)
+        e.message == """Cannot convert the provided notation to an object of type ModuleIdentifier: ${id}.
+The following types/formats are supported:
+  - Instances of ModuleIdentifier.
+  - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
+
+        where:
+        id                     | closureOrActionOrRule
         ""                     | new TestRuleAction()
         "module"               | new TestRuleAction()
         "group:module:version" | new TestRuleAction()
-        "group:module+"        | new TestRuleAction()
-        "group:module*"        | new TestRuleAction()
-        "group:module["        | new TestRuleAction()
-        "group:module]"        | new TestRuleAction()
-        "group:module("        | new TestRuleAction()
-        "group:module)"        | new TestRuleAction()
-        "group:module,"        | new TestRuleAction()
-        null                   | { ComponentSelection cs -> }
         ""                     | { ComponentSelection cs -> }
         "module"               | { ComponentSelection cs -> }
         "group:module:version" | { ComponentSelection cs -> }
-        "group:module+"        | { ComponentSelection cs -> }
-        "group:module*"        | { ComponentSelection cs -> }
-        "group:module["        | { ComponentSelection cs -> }
-        "group:module]"        | { ComponentSelection cs -> }
-        "group:module("        | { ComponentSelection cs -> }
-        "group:module)"        | { ComponentSelection cs -> }
-        "group:module,"        | { ComponentSelection cs -> }
-        null                   | new TestComponentSelectionAction()
         ""                     | new TestComponentSelectionAction()
         "module"               | new TestComponentSelectionAction()
         "group:module:version" | new TestComponentSelectionAction()
-        "group:module+"        | new TestComponentSelectionAction()
-        "group:module*"        | new TestComponentSelectionAction()
-        "group:module["        | new TestComponentSelectionAction()
-        "group:module]"        | new TestComponentSelectionAction()
-        "group:module("        | new TestComponentSelectionAction()
-        "group:module)"        | new TestComponentSelectionAction()
-        "group:module,"        | new TestComponentSelectionAction()
+    }
+
+    def "produces sensible error when illegal characters are provided in target module id" () {
+        when:
+        rules.module("group:module${character}", closureOrActionOrRule)
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Illegal character '${character}' found in module constraint."
+
+        where:
+        character  | closureOrActionOrRule
+        "+"        | new TestRuleAction()
+        "*"        | new TestRuleAction()
+        "["        | new TestRuleAction()
+        "]"        | new TestRuleAction()
+        "("        | new TestRuleAction()
+        ")"        | new TestRuleAction()
+        ","        | new TestRuleAction()
+        "+"        | { ComponentSelection cs -> }
+        "*"        | { ComponentSelection cs -> }
+        "["        | { ComponentSelection cs -> }
+        "]"        | { ComponentSelection cs -> }
+        "("        | { ComponentSelection cs -> }
+        ")"        | { ComponentSelection cs -> }
+        ","        | { ComponentSelection cs -> }
+        "+"        | new TestComponentSelectionAction()
+        "*"        | new TestComponentSelectionAction()
+        "["        | new TestComponentSelectionAction()
+        "]"        | new TestComponentSelectionAction()
+        "("        | new TestComponentSelectionAction()
+        ")"        | new TestComponentSelectionAction()
+        ","        | new TestComponentSelectionAction()
     }
 
     def "ComponentSelectionSpec matches on group and name" () {

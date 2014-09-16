@@ -26,12 +26,16 @@ import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.ClosureBackedRuleAction;
 import org.gradle.api.internal.DelegatingTargetedRuleAction;
 import org.gradle.api.internal.NoInputsRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,7 +48,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
 
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
-    private static final String UNSUPPORTED_SPEC_ERROR = "Unsupported format for module constraint: '%s'.  This should be in the format of 'group:module'.";
+    private static final String ILLEGAL_CHAR_SPEC_ERROR = "Illegal character '%s' found in module constraint.";
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
 
     public Collection<RuleAction<? super ComponentSelection>> getRules() {
@@ -102,23 +106,20 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return ruleAction;
     }
 
-    private RuleAction<? super ComponentSelection> createTargetedRuleActionFromId(String id, RuleAction<? super ComponentSelection> ruleAction) {
-        if (id == null) {
-            throw new InvalidUserDataException(String.format(UNSUPPORTED_SPEC_ERROR, id));
-        }
-
-        int colon = id.indexOf(':');
-        if (colon == -1 || colon != id.lastIndexOf(':')) {
-            throw new InvalidUserDataException(String.format(UNSUPPORTED_SPEC_ERROR, id));
-        }
+    private RuleAction<? super ComponentSelection> createTargetedRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
+        final NotationParser<Object, ModuleIdentifier> parser = NotationParserBuilder
+                .toType(ModuleIdentifier.class)
+                .parser(new ModuleIdentiferNotationParser())
+                .toComposite();
+        final ModuleIdentifier moduleIdentifier = parser.parseNotation(id);
 
         for (char c : INVALID_SPEC_CHARS) {
-            if (id.indexOf(c) != -1) {
-                throw new InvalidUserDataException(String.format(UNSUPPORTED_SPEC_ERROR, id));
+            if (moduleIdentifier.getGroup().indexOf(c) != -1 || moduleIdentifier.getName().indexOf(c) != -1) {
+                throw new InvalidUserDataException(String.format(ILLEGAL_CHAR_SPEC_ERROR, c));
             }
         }
 
-        Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(id.substring(0, colon), id.substring(colon+1));
+        Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(moduleIdentifier.getGroup(), moduleIdentifier.getName());
         return new DelegatingTargetedRuleAction<ComponentSelection>(spec, ruleAction);
     }
 

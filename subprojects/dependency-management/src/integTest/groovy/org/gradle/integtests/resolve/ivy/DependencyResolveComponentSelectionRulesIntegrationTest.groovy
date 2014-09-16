@@ -672,14 +672,14 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failureHasCause("Unsupported format for module constraint: '${id}'.  This should be in the format of 'group:module'")
+        failureHasCause(message)
 
         where:
-        id                  | _
-        ""                  | _
-        "org.utils"         | _
-        "org.utils:api:1.2" | _
-        "org.utils:api*"    | _
+        id                  | message
+        ""                  | "Cannot convert the provided notation to an object of type ModuleIdentifier:"
+        "org.utils"         | "Cannot convert the provided notation to an object of type ModuleIdentifier:"
+        "org.utils:api:1.2" | "Cannot convert the provided notation to an object of type ModuleIdentifier:"
+        "org.utils:api*"    | "Illegal character '*' found in module constraint."
     }
 
     def "copies selection rules when configuration is copied" () {
