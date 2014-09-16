@@ -60,6 +60,8 @@ two things:
     - A replaces B, B replaces A (cycle) - reasonable error is emitted
     - A replaces A - reasonable error
     - incorrect inputs: nulls, malformed notation, unsupported types
+    - the replacement target is unresolved
+    - the replacement source is unresolved
 
 ## Story: component replacement coexists with exclude rules
 
