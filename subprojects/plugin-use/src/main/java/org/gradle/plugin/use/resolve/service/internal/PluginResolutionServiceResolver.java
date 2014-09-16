@@ -128,7 +128,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
 
         Dependency dependency = resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
 
-        ConfigurationContainerInternal configurations = resolution.getConfigurationContainer();
+        ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) resolution.getConfigurationContainer();
         ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
 
         try {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -27,7 +28,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.*
 import org.gradle.api.internal.artifacts.ModuleInternal
 import org.gradle.api.internal.artifacts.ProjectBackedModule
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
@@ -90,7 +90,7 @@ class DefaultProjectTest {
     Factory<AntBuilder> antBuilderFactoryMock = context.mock(Factory.class)
     AntBuilder testAntBuilder
 
-    ConfigurationContainerInternal configurationContainerMock = context.mock(ConfigurationContainerInternal.class)
+    ConfigurationContainer configurationContainerMock = context.mock(ConfigurationContainer.class)
     RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class)
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     ComponentMetadataHandler moduleHandlerMock = context.mock(ComponentMetadataHandler)
@@ -136,7 +136,7 @@ class DefaultProjectTest {
             allowing(taskContainerMock).all(withParam(notNullValue()))
             allowing(taskContainerMock).whenObjectRemoved(withParam(notNullValue()))
             allowing(serviceRegistryMock).get((Type) RepositoryHandler); will(returnValue(repositoryHandlerMock))
-            allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
+            allowing(serviceRegistryMock).get(ConfigurationContainer); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get((Type) ComponentMetadataHandler); will(returnValue(moduleHandlerMock))

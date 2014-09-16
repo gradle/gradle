@@ -78,7 +78,7 @@ public class ResolveIvyFactory {
             return new NoRepositoriesResolver();
         }
 
-        ResolutionStrategyInternal resolutionStrategy = (ResolutionStrategyInternal) configuration.getResolutionStrategy();
+        ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionRules resolutionRules = resolutionStrategy.getResolutionRules();
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
 
