@@ -23,6 +23,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>manifest</td>
+            </tr>
+            <tr>
                 <td>metaInf</td>
             </tr>
         </table>
