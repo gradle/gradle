@@ -15,33 +15,14 @@
  */
 package org.gradle.integtests.tooling.r21;
 
+import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import java.io.File;
-import java.net.URI;
-
 public class HangingBuildAction implements BuildAction<Void> {
-    private final URI markerURI;
-
-    public HangingBuildAction(URI markerURI) {
-        this.markerURI = markerURI;
-    }
-
     public Void execute(BuildController controller) {
         System.out.println("waiting");
-        File marker = new File(markerURI);
-        long timeout = System.currentTimeMillis() + 10000L;
-        while (!marker.exists() && System.currentTimeMillis() < timeout) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Interrupted while waiting for marker file", e);
-            }
-        }
-        if (!marker.exists()) {
-            throw new RuntimeException("Timeout waiting for marker file");
-        }
+        controller.getModel(CustomModel.class);
         System.out.println("finished");
         return null;
     }

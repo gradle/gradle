@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r21.HangingBuildAction
 import org.gradle.integtests.tooling.r21.TestResultHandler
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -292,19 +293,68 @@ task hang << {
 
     @TargetGradleVersion(">=2.2")
     def "can cancel action"() {
-        def marker = file("marker.txt")
+        buildFile << """
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.initialization.BuildCancellationToken;
+import java.util.concurrent.CountDownLatch;
+
+import javax.inject.Inject
+
+apply plugin: CustomPlugin
+
+ext {
+  latch = new CountDownLatch(1);
+}
+
+class CustomModel implements Serializable {
+    String getValue() { 'greetings' }
+    Set<CustomThing> getThings() { return [new CustomThing()] }
+    Map<String, CustomThing> getThingsByName() { return [thing: new CustomThing()] }
+}
+class CustomThing implements Serializable {
+}
+class CustomBuilder implements ToolingModelBuilder {
+    private final BuildCancellationToken cancellationToken;
+
+    CustomBuilder(BuildCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
+    }
+    boolean canBuild(String modelName) {
+        return modelName == '${CustomModel.name}'
+    }
+    Object buildAll(String modelName, Project project) {
+        cancellationToken.addCallback(new Runnable() {
+            public void run() {
+                project.ext.latch.countDown();
+            }
+        });
+        // this will block root project configuration until cancel request is delivered
+        project.ext.latch.await();
+        return new CustomModel()
+    }
+}
+class CustomPlugin implements Plugin<Project> {
+    @Inject
+    CustomPlugin(ToolingModelBuilderRegistry registry, BuildCancellationToken cancellationToken) {
+        registry.register(new CustomBuilder(cancellationToken))
+    }
+
+    public void apply(Project project) {
+    }
+}
+"""
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
 
         when:
         withConnection { ProjectConnection connection ->
-            def build = connection.action(new CancelledInControllerBuildAction(marker.toURI()))
+            def build = connection.action(new CancelledInControllerBuildAction())
             build.withCancellationToken(cancel.token())
                     .setStandardOutput(output)
             build.run(resultHandler)
             ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
-            marker.text = 'go!'
             cancel.cancel()
             resultHandler.finished()
         }
@@ -324,7 +374,7 @@ task hang << {
         when:
         cancel.cancel()
         withConnection { ProjectConnection connection ->
-            def build = connection.action(new HangingBuildAction(null))
+            def build = connection.action(new HangingBuildAction())
             build.withCancellationToken(cancel.token())
             build.run(resultHandler)
             resultHandler.finished()

@@ -17,33 +17,14 @@
 package org.gradle.integtests.tooling.r22;
 
 import org.gradle.api.GradleException;
+import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import java.io.File;
-import java.net.URI;
-
 public class CancelledInControllerBuildAction implements BuildAction<Void> {
-    private final URI markerURI;
-
-    public CancelledInControllerBuildAction(URI markerURI) {
-        this.markerURI = markerURI;
-    }
-
     public Void execute(BuildController controller) {
         System.out.println("waiting");
-        File marker = new File(markerURI);
-        long timeout = System.currentTimeMillis() + 10000L;
-        while (!marker.exists() && System.currentTimeMillis() < timeout) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Interrupted while waiting for marker file", e);
-            }
-        }
-        if (!marker.exists()) {
-            throw new RuntimeException("Timeout waiting for marker file " + markerURI);
-        }
+        controller.getModel(CustomModel.class);
         controller.getBuildModel();
         System.out.println("finished");
         throw new GradleException("Should be cancelled before the end of action.");
