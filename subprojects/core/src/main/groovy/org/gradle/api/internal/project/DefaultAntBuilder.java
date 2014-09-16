@@ -87,7 +87,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
     }
 
     public void importBuild(Object antBuildFile) {
-        importBuild(antBuildFile, Transformers.<String>passthru());
+        importBuild(antBuildFile, Transformers.<String>noOpTransformer());
     }
 
     public void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer) {
