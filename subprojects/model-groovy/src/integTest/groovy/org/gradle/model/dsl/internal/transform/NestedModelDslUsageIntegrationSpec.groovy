@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
 import spock.lang.Unroll
 
+import static org.hamcrest.Matchers.containsString
+
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
     @Unroll
@@ -130,6 +132,29 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         args("-I", file("init.gradle").absolutePath)
         fails "printStrings"
         failure.assertHasCause(NonTransformedModelDslBacking.ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE)
+    }
+
+    def "model block must received transformed closure"() {
+        when:
+        buildScript """
+            ${testPluginImpl()}
+            apply plugin: TestPlugin
+
+
+            def c = {
+                strings {
+                    add \$("foo")
+                }
+            }
+
+            model(c)
+        """
+
+        then:
+        fails "tasks"
+        failure.assertHasLineNumber 24
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(ModelBlockTransformer.NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE))
     }
 
     String testPluginImpl() {

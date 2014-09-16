@@ -95,7 +95,7 @@ public abstract class AstUtils {
     }
 
     @Nullable
-    public static ScriptBlock detectScriptBlock(Statement statement) {
+    public static MethodCallExpression extractBareMethodCall(Statement statement) {
         if (!(statement instanceof ExpressionStatement)) {
             return null;
         }
@@ -110,11 +110,29 @@ public abstract class AstUtils {
             return null;
         }
 
+        return methodCall;
+    }
+
+    @Nullable
+    public static String extractConstantMethodName(MethodCallExpression methodCall) {
         if (!(methodCall.getMethod() instanceof ConstantExpression)) {
             return null;
         }
 
-        String methodName = methodCall.getMethod().getText();
+        return methodCall.getMethod().getText();
+    }
+
+    @Nullable
+    public static ScriptBlock detectScriptBlock(Statement statement) {
+        MethodCallExpression methodCall = extractBareMethodCall(statement);
+        if (methodCall == null) {
+            return null;
+        }
+
+        String methodName = extractConstantMethodName(methodCall);
+        if (methodName == null) {
+            return null;
+        }
 
         ClosureExpression closureExpression = getSingleClosureArg(methodCall);
         return closureExpression == null ? null : new ScriptBlock(methodName, closureExpression);

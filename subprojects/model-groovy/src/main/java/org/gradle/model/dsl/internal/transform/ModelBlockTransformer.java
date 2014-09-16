@@ -16,10 +16,12 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
@@ -35,10 +37,13 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
     }
 
     public String getId() {
-        return "model";
+        return MODEL;
     }
 
-    private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList("model");
+    private static final String MODEL = "model";
+    private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList(MODEL);
+
+    public static final String NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE = "The top level model() method can only be called with a literal closure argument";
 
     /*
         TODO change this so that we extract all the information at compile time.
@@ -61,7 +66,25 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
         List<Statement> statements = source.getAST().getStatementBlock().getStatements();
         for (Statement statement : statements) {
             ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, SCRIPT_BLOCK_NAMES);
-            if (scriptBlock != null) {
+            if (scriptBlock == null) {
+                // Look for model(«») (i.e. call to model with anything other than non literal closure)
+                MethodCallExpression methodCall = AstUtils.extractBareMethodCall(statement);
+                if (methodCall == null) {
+                    continue;
+                }
+
+                String methodName = AstUtils.extractConstantMethodName(methodCall);
+                if (methodName == null) {
+                    continue;
+                }
+
+                if (methodName.equals(MODEL)) {
+                    source.getErrorCollector().addError(
+                            new SyntaxException(NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE, statement.getLineNumber(), statement.getColumnNumber()),
+                            source
+                    );
+                }
+            } else {
                 RuleVisitor ruleVisitor = new RuleVisitor(source);
                 RulesVisitor rulesVisitor = new RulesVisitor(source, ruleVisitor);
                 scriptBlock.getClosureExpression().getCode().visit(rulesVisitor);
