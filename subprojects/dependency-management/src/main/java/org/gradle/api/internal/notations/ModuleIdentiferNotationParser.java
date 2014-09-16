@@ -49,6 +49,6 @@ public class ModuleIdentiferNotationParser extends TypedNotationParser<String, M
     }
 
     public void describe(Collection candidateFormats) {
-        candidateFormats.add("String describing the module in exactly 'group:name' format, for example: 'org.gradle:gradle-core'.");
+        candidateFormats.add("String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'.");
     }
 }

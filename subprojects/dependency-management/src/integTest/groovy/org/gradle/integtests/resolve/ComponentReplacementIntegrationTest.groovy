@@ -27,11 +27,13 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
-            task resolvedFiles(type: Copy) {
-                from configurations.conf
-                into 'resolved-files'
+            task resolvedFiles {
                 dependsOn 'dependencies'
                 doLast {
+                    copy {
+                        from configurations.conf
+                        into 'resolved-files'
+                    }
                     println "All files:"
                     configurations.conf.each { println it.name }
                 }
@@ -192,6 +194,24 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("resolvedFiles").assertResolutionFailure(":conf")
+    }
+
+    def "human error in declaring replacements is neatly reported"() {
+        buildFile << """
+            dependencies.components.module('org:foo').replacedBy('org:bar:2.0')
+        """
+
+        expect:
+        fails().assertHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org:bar:2.0")
+    }
+
+    def "human error in referring to component module metadata is neatly reported"() {
+        buildFile << """
+            dependencies.components.module('org:foo:1.0')
+        """
+
+        expect:
+        fails().assertHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org:foo:1.0")
     }
 
     //TODO catch user error when declaring wrong input

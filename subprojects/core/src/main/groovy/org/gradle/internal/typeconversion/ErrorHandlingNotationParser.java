@@ -39,6 +39,7 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
 
     public T parseNotation(N notation) {
         String failure;
+        //TODO SF add quotes to both formats (there will be *lots* of tests failing so I'm not sure if it is worth it).
         if (notation == null && !allowNullInput) {
             failure = String.format("Cannot convert a null value to %s.", targetTypeDisplayName);
         } else {
