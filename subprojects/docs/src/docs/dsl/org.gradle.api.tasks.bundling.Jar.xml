@@ -8,6 +8,10 @@
                     <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
+                <tr>
+                    <td>manifest</td>
+                    <td/>
+                </tr>
         </table>
     </section>
     <section>
@@ -18,6 +22,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>metaInf</td>
+            </tr>
         </table>
     </section>
 </section>
