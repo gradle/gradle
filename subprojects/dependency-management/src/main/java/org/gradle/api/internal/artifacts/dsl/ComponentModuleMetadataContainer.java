@@ -30,7 +30,7 @@ import java.util.Set;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.lang.String.format;
 
-public class ModuleReplacements implements ModuleReplacementsData {
+public class ComponentModuleMetadataContainer implements ModuleReplacementsData {
 
     private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
 

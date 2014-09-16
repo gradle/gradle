@@ -22,9 +22,9 @@ import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
-class ModuleReplacementsTest extends Specification {
+class ComponentModuleMetadataContainerTest extends Specification {
 
-    @Subject replacements = new ModuleReplacements()
+    @Subject replacements = new ComponentModuleMetadataContainer()
 
     def "keeps track of replacements"() {
         replacements.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");

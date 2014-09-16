@@ -40,8 +40,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private final ActionBroadcast<ComponentMetadataDetails> ruleActions = new ActionBroadcast<ComponentMetadataDetails>();
     private final List<Closure<?>> ruleClosures = Lists.newArrayList();
 
-    //TODO SF merge with ComponentMetadataDetails / ruleActions ?
-    private final ModuleReplacements moduleReplacements = new ModuleReplacements();
+    private final ComponentModuleMetadataContainer moduleMetadataContainer = new ComponentModuleMetadataContainer();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -101,10 +100,10 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     public ComponentModuleMetadataDetails module(final String sourceModule) {
-        return moduleReplacements.module(sourceModule);
+        return moduleMetadataContainer.module(sourceModule);
     }
 
     public ModuleReplacementsData getModuleReplacements() {
-        return moduleReplacements;
+        return moduleMetadataContainer;
     }
 }
