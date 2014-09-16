@@ -218,6 +218,20 @@ If you require the previous default of 2.0, you can specify this version via the
       toolVersion = '2.0'
     }
 
+### Publishing plugins and Native Language Support plugins changes
+
+In previous Gradle versions it was possible to use `afterEvaluate {}` blocks to configure tasks added to the project 
+by `"maven-publish"`, `"ivy-publish"` and Native Language Support plugins.
+These tasks are now created after execution of `afterEvaluate {}` blocks. 
+This change was necessary to continue improving the new model configuration. 
+Please use `model {}` blocks instead for that purpose, e.g.:
+
+    model { 
+        tasks.generatePomFileForMavenJavaPublication { 
+            dependsOn 'someOtherTask' 
+        } 
+    }
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
