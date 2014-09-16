@@ -33,7 +33,7 @@ public class ParsedModuleStringNotation {
     private void assignValuesFromModuleNotation(String moduleNotation) {
         String[] moduleNotationParts = moduleNotation.split(":");
         if (moduleNotationParts.length < 2 || moduleNotationParts.length > 4) {
-            throw new IllegalDependencyNotation("The description " + moduleNotation + " is invalid");
+            throw new IllegalDependencyNotation("Supplied String module notation '" + moduleNotation + "' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.");
         }
         group = GUtil.elvis(moduleNotationParts[0], null);
         name = moduleNotationParts[1];
