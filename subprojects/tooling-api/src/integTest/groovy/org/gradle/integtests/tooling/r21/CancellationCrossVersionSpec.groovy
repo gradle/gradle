@@ -206,8 +206,8 @@ task hang << {
         new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
 
         resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
+        resultHandler.failure.cause.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
+        resultHandler.failure.cause.cause.cause.message.contains('Build cancelled.')
     }
 
     @TargetGradleVersion(">=2.1")
@@ -342,7 +342,7 @@ class CustomPlugin implements Plugin<Project> {
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()
-        def resultHandler = new TestResultHandler()
+        def resultHandler = new TestResultHandler(false)
         def output = new TestOutputStream()
 
         when:
@@ -358,10 +358,7 @@ class CustomPlugin implements Plugin<Project> {
 
         then:
         output.toString().contains("waiting")
-        // 2.2 can cancel during action execution, 2.1 cannot and action will finish
-        // !output.toString().contains("finished")
-        resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure instanceof GradleConnectionException
+        output.toString().contains("finished")
     }
 
     @TargetGradleVersion(">=2.1")
