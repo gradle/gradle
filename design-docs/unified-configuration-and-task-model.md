@@ -351,8 +351,8 @@ This story adds coverage to ensure that model rules are fired **AFTER** afterEva
 
 ### Test Coverage
 
-1. Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()
-1. Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_
+1. ~~Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()~~
+1. ~~Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_~~
  
 ## Story: Make the Model DSL public
 
