@@ -44,7 +44,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             Throwable t = e.getCause();
             while (t != null) {
                 if (t instanceof BuildCancelledException) {
-                    throw new InternalBuildCancelledException(t);
+                    throw new InternalBuildCancelledException(e.getCause());
                 }
                 t = t.getCause();
             }
