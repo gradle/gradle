@@ -58,14 +58,10 @@ subsequent story.
     - Successful operation
     - Failed operation
 - Client cancels operation from `ResultHandler`
-- Client can cancel operation before its start and it won't be executed:
+- Client can cancel operation before started and it won't be executed:
     - Building model
     - Running tasks
     - Running build action
-
-#### Open issues
-
-- Behaviour when cancellation is not supported.
 
 ### Story: Daemon exits when operation is cancelled
 
@@ -82,6 +78,11 @@ process simply exits. This behaviour will be improved later.
 
 - Client cancels a long build
     - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is no longer running.
+
+#### Open issues
+
+- Daemon client should send cancel message on same connection as it used to start the build.
+- User should not receive 'daemon disappeared' error message and log file contents on forceful stop.
 
 ### Story: Daemon waits short period of time for cancelled operation to complete
 
@@ -127,27 +128,41 @@ In this story, the Gradle distribution download is stopped when operation is can
 In this story, no further projects should be configured after the operation is cancelled. Any project configuration
 action that is currently executing should continue, similar to the task graph exececution.
 
-Implementation-wise, change `DefaultBuildConfigurer` to stop configuring projects one the cancellation
+Implementation-wise, change `DefaultBuildConfigurer` to stop configuring projects once the cancellation
 token has been activated.
 
 ### Story: Tooling API client receives BuildCancelledException as the result of a cancelled operation
 
 This story ensures that consistent behaviour is seen by the client as the result of a cancelled operation.
 
+#### Open issues
+
+- Need consistent handling of cancellation exception in `BuildModelAction` and `ClientProvidedBuildAction`. Should push this closer to the provider entry point.
+- `DaemonBuildActionExecuter` converts exception to pass across to tooling api consumer. Should be done in a wrapper that is also used when embedded.
+- Enable int tests in embedded mode, except for the forceful stop int test.
+- Verify exception message in int tests is consistent for all cases.
+
+### Story: Build user is informed that build was cancelled
+
+The logging output of the build should inform the build user that the build was cancelled (rather than failed because of an exception).
+
+- 'This build was cancelled' message instead of 'build failed with an exception' message when no failures have occurred.
+- 'build failed with an exception' when some tasks have failed prior to build cancellation (eg when running with `--continue`).
+
 ### Story: Build action receives exception when operation is cancelled
 
 In this story, a `BuildAction` receives an exception when it is using or uses a method on `BuildController` when operation is cancelled.
 
-### Story: Make cancellation API public
+#### Open issues
 
-Add to public API and document.
+- `DefaultBuildController` throws this exception only on entry to the method, not when cancelled later
 
 ## Later stories
 
 ### Story: Tooling API client receives feedback after cancellation is requested
 
-Add some mechanism to inform the client when cancellation is or is not available, and also to inform 
-the client about the state of a cancellation request.
+- Add some mechanism to inform the client when cancellation is or is not available
+- Add some mechanism to inform the client about the state of a cancellation request.
 
 ### Story: Task graph assembly is aborted when operation is cancelled
 
