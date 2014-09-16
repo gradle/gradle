@@ -26,26 +26,8 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
-import org.gradle.tooling.internal.protocol.BuildParameters;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.ConfigurableConnection;
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionParameters;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
-import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.InternalCancellationToken;
-import org.gradle.tooling.internal.protocol.InternalConnection;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
-import org.gradle.tooling.internal.provider.connection.AdaptedOperationParameters;
 import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
@@ -128,11 +110,6 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         throw unsupportedConnectionException();
-    }
-
-    private <T> T run(Class<T> type, BuildOperationParametersVersion1 parameters) {
-        String modelName = new ModelMapping().getModelNameFromProtocolType(type);
-        return (T) connection.run(modelName, new FixedBuildCancellationToken(), new AdaptedOperationParameters(parameters));
     }
 
     /**
