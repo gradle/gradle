@@ -114,7 +114,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         expect:
         succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
         executer.withArgument("-i")
-        succeeds(":checkstyleMain") && ":checkstyleMain" in skippedTasks
+        succeeds("checkstyleMain") && ":checkstyleMain" in skippedTasks
 
         when:
         file("build/reports/checkstyle/main.xml").delete()
@@ -140,8 +140,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
-        file('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class1 { }'
-        file('src/test/groovy/org/gradle/TestClass2.java') << 'package org.gradle; class TestClass1 { }'
+        file('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class2 { }'
+        file('src/test/groovy/org/gradle/TestClass2.java') << 'package org.gradle; class TestClass2 { }'
     }
 
     private badCode() {
