@@ -35,13 +35,21 @@ public class ModuleReplacements implements ModuleReplacementsData {
     private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
 
     public ComponentModuleMetadataDetails module(final Object sourceModule) {
+        final NotationParser<Object, ModuleIdentifier> parser = parser();
+        final ModuleIdentifier source = parser.parseNotation(sourceModule);
         return new ComponentModuleMetadataDetails() {
             public void replacedBy(final Object targetModule) {
-                NotationParser<Object, ModuleIdentifier> parser = parser();
-                ModuleIdentifier source = parser.parseNotation(sourceModule);
                 ModuleIdentifier target = parser.parseNotation(targetModule);
                 detectCycles(replacements, source, target);
                 replacements.put(source, target);
+            }
+
+            public ModuleIdentifier getId() {
+                return source;
+            }
+
+            public ModuleIdentifier getReplacedBy() {
+                return replacements.get(source);
             }
         };
     }

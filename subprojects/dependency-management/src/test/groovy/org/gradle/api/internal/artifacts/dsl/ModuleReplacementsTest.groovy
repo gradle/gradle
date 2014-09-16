@@ -65,4 +65,15 @@ class ModuleReplacementsTest extends Specification {
         def ex = thrown(InvalidUserDataException)
         ex.message == "Cannot declare module replacement o:c->o:a because it introduces a cycle: o:c->o:a->o:b->o:c"
     }
+
+    def "provides module metadata information"() {
+        def module = replacements.module("com.google.collections:google-collections")
+
+        expect:
+        module.id == newId("com.google.collections", "google-collections")
+        module.replacedBy == null
+
+        when: module.replacedBy("a:b")
+        then: module.replacedBy == newId("a", "b")
+    }
 }

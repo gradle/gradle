@@ -16,17 +16,22 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-//TODO SF elevate, add samples to javadoc
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleIdentifier;
+
 /**
- * Contains and allows configuring component module metadata information.
+ * Contains immutable component module metadata information.
  */
-public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata {
+public interface ComponentModuleMetadata {
 
     /**
-     * Configures a replacement module for this module.
-     * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
-     *
-     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
+     * The identifier of the module.
      */
-    void replacedBy(Object moduleNotation);
+    ModuleIdentifier getId();
+
+    /**
+     * The identifier of module that replaces this module.
+     * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
+     */
+    @Nullable ModuleIdentifier getReplacedBy();
 }
