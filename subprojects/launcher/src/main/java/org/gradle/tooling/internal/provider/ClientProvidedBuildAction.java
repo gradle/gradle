@@ -56,7 +56,7 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
         try {
             model = action.execute(internalBuildController);
         } catch (BuildCancelledException e) {
-            throw new InternalBuildCancelledException(e);
+            failure = new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
             failure = new InternalBuildActionFailureException(e);
         }

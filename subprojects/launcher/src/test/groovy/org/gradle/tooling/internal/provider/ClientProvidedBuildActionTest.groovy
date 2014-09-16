@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import spock.lang.Specification
 
@@ -66,7 +67,11 @@ class ClientProvidedBuildActionTest extends Specification {
 
         then:
         1 * internalAction.execute(_) >> { throw failure }
-        1 * payloadSerializer.serialize(_) >> output
+        1 * payloadSerializer.serialize(_) >> { Throwable t ->
+            assert t instanceof InternalBuildActionFailureException
+            assert t.cause == failure
+            return output
+        }
         result != null
         result.failure == output
         result.result == null
@@ -80,12 +85,17 @@ class ClientProvidedBuildActionTest extends Specification {
         1 * payloadSerializer.deserialize(action) >> internalAction
 
         when:
-        clientProvidedBuildAction.run(buildController)
+        def result = clientProvidedBuildAction.run(buildController)
 
         then:
-        def propagated = thrown(InternalBuildCancelledException)
-        propagated.cause == cancellation
         1 * internalAction.execute(_) >> { throw cancellation }
-        0 * payloadSerializer.serialize(_) >> output
+        1 * payloadSerializer.serialize(_) >> { Throwable t ->
+            assert t instanceof InternalBuildCancelledException
+            assert t.cause == cancellation
+            return output
+        }
+        result != null
+        result.failure == output
+        result.result == null
     }
 }
