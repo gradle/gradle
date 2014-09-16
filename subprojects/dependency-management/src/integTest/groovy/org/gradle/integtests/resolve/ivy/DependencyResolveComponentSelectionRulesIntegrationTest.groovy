@@ -663,7 +663,7 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        module("${id}") { ComponentSelection cs -> }
+                        module("org.utils") { ComponentSelection cs -> }
                     }
                 }
             }
@@ -672,14 +672,7 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failureHasCause(message)
-
-        where:
-        id                  | message
-        ""                  | "Cannot convert the provided notation to an object of type ModuleIdentifier:"
-        "org.utils"         | "Cannot convert the provided notation to an object of type ModuleIdentifier:"
-        "org.utils:api:1.2" | "Cannot convert the provided notation to an object of type ModuleIdentifier:"
-        "org.utils:api*"    | "Illegal character '*' found in module constraint."
+        failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
     def "copies selection rules when configuration is copied" () {

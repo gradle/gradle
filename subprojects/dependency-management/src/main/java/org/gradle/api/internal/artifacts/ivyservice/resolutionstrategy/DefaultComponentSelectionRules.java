@@ -19,10 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidActionClosureException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.RuleAction;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
@@ -93,7 +90,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         try {
             return validateInputTypes(new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection.class, closure));
         } catch (IllegalArgumentException e) {
-            throw new InvalidActionClosureException(String.format(INVALID_CLOSURE_ERROR, ComponentSelectionRules.class.getSimpleName()), closure, e);
+            throw new InvalidUserCodeException(String.format(INVALID_CLOSURE_ERROR, ComponentSelectionRules.class.getSimpleName()), e);
         }
     }
 

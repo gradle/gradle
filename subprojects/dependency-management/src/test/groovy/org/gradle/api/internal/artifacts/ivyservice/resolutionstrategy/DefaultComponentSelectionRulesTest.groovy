@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
-import org.gradle.api.Action
-import org.gradle.api.InvalidActionClosureException
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.RuleAction
+import org.gradle.api.*
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ComponentSelection
@@ -107,7 +104,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.all { }
 
         then:
-        def e = thrown(InvalidActionClosureException)
+        def e = thrown(InvalidUserCodeException)
         e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
         e.cause.message == "First parameter of rule action closure must be of type 'ComponentSelection'."
     }
@@ -117,7 +114,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.all closure
 
         then:
-        def e = thrown(InvalidActionClosureException)
+        def e = thrown(InvalidUserCodeException)
         e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
         e.cause.message == message
 
@@ -137,7 +134,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module("group:module", closure)
 
         then:
-        def e = thrown(InvalidActionClosureException)
+        def e = thrown(InvalidUserCodeException)
         e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
         e.cause.message == message
 
