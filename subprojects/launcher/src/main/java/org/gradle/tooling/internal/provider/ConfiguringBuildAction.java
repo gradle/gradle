@@ -15,11 +15,8 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
@@ -30,78 +27,66 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This is the action serialized from the tooling API provider across to the daemon. It takes care of setting up the start parameters on the daemon
+ * side and then delegating to some other action to do the real work.
+ *
+ * @param <T> The result type.
+ */
 class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
-    private LogLevel buildLogLevel;
-    private List<String> arguments;
-    private List<String> tasks;
-    private List<InternalLaunchable> launchables;
-    private BuildAction<? extends T> action;
-    private File projectDirectory;
-    private File gradleUserHomeDir;
-    private Boolean searchUpwards;
-    private Map<String, String> properties = new HashMap<String, String>();
+    private final BuildAction<? extends T> action;
 
-    // Important that this is constructed on the client so that it has the right gradleHomeDir internally
-    private final StartParameter startParameterTemplate = new StartParameter();
-
-    public ConfiguringBuildAction() {}
+    final StartParameter startParameter;
 
     public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<? extends T> action, Map<String, String> properties) {
-        this.properties.putAll(properties);
-        this.gradleUserHomeDir = parameters.getGradleUserHomeDir();
-        this.projectDirectory = parameters.getProjectDir();
-        this.searchUpwards = parameters.isSearchUpwards();
-        this.buildLogLevel = parameters.getBuildLogLevel();
-        this.arguments = parameters.getArguments(Collections.<String>emptyList());
-        this.tasks = parameters.getTasks();
-        this.launchables = parameters.getLaunchables(null);
         this.action = action;
+        startParameter = configureStartParameter(parameters, properties);
     }
 
-    StartParameter configureStartParameter() {
-        return configureStartParameter(new PropertiesToStartParameterConverter());
+    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
+        // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
+        // the launchable may hold onto. For example, GradleTask implementations hold onto every task for every project in the build
+        List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
+        for (InternalLaunchable launchable : launchables) {
+            if (launchable instanceof TaskExecutionRequest) {
+                TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
+                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
+                requests.add(launchableImpl);
+            } else {
+                throw new InternalUnsupportedBuildArgumentException(
+                        "Problem with provided launchable arguments: " + launchables + ". "
+                                + "\nOnly objects from this provider can be built."
+                );
+            }
+        }
+        return requests;
     }
 
-    StartParameter configureStartParameter(PropertiesToStartParameterConverter propertiesToStartParameterConverter) {
-        StartParameter startParameter = startParameterTemplate.newInstance();
+    private StartParameter configureStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
+        // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
+        StartParameter startParameter = new StartParameter();
 
-        startParameter.setProjectDir(projectDirectory);
-        if (gradleUserHomeDir != null) {
-            startParameter.setGradleUserHomeDir(gradleUserHomeDir);
+        startParameter.setProjectDir(parameters.getProjectDir());
+        if (parameters.getGradleUserHomeDir() != null) {
+            startParameter.setGradleUserHomeDir(parameters.getGradleUserHomeDir());
         }
 
+        List<InternalLaunchable> launchables = parameters.getLaunchables(null);
         if (launchables != null) {
-            startParameter.setTaskRequests(Iterables.transform(
-                    launchables,
-                    new Function<InternalLaunchable, TaskExecutionRequest>() {
-                        public TaskExecutionRequest apply(InternalLaunchable launchable) {
-                            if (launchable instanceof TaskExecutionRequest) {
-                                // make sure we don't send object graph with whole project structure back
-                                TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
-                                TaskExecutionRequest launchableImpl = new DefaultTaskExecutionRequest(
-                                        originalLaunchable.getArgs(), originalLaunchable.getProjectPath());
-                                return launchableImpl;
-                            }
-                            throw new InternalUnsupportedBuildArgumentException(
-                                    "Problem with provided launchable arguments: " + launchables + ". "
-                                            + "\nOnly objects from this provider can be built."
-                            );
-                        }
-                    }
-            ));
-        } else if (tasks != null) {
-            startParameter.setTaskNames(tasks);
+            startParameter.setTaskRequests(unpack(launchables));
+        } else if (parameters.getTasks() != null) {
+            startParameter.setTaskNames(parameters.getTasks());
         }
 
-        propertiesToStartParameterConverter.convert(properties, startParameter);
+        new PropertiesToStartParameterConverter().convert(properties, startParameter);
 
+        List<String> arguments = parameters.getArguments(Collections.<String>emptyList());
         if (arguments != null) {
             DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
             try {
@@ -118,19 +103,19 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
             }
         }
 
-        if (searchUpwards != null) {
-            startParameter.setSearchUpwards(searchUpwards);
+        if (parameters.isSearchUpwards() != null) {
+            startParameter.setSearchUpwards(parameters.isSearchUpwards());
         }
 
-        if (buildLogLevel != null) {
-            startParameter.setLogLevel(buildLogLevel);
+        if (parameters.getBuildLogLevel() != null) {
+            startParameter.setLogLevel(parameters.getBuildLogLevel());
         }
 
         return startParameter;
     }
 
     public T run(BuildController buildController) {
-        buildController.setStartParameter(configureStartParameter());
+        buildController.setStartParameter(startParameter);
         return action.run(buildController);
     }
 }

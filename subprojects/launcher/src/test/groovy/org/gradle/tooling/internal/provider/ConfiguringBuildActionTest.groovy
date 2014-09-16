@@ -19,7 +19,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
+import org.gradle.initialization.BuildAction
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -31,11 +31,15 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 class ConfiguringBuildActionTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
+    def action = Stub(BuildAction)
+    def params = Stub(ProviderOperationParameters)
 
     def "allows configuring the start parameter with build arguments"() {
+        params.getArguments(_) >> ['-PextraProperty=foo', '-m']
+
         when:
-        def action = new ConfiguringBuildAction(arguments: ['-PextraProperty=foo', '-m'])
-        def start = action.configureStartParameter()
+        def action = new ConfiguringBuildAction(params, action, [:])
+        def start = action.startParameter
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -45,10 +49,12 @@ class ConfiguringBuildActionTest extends Specification {
     def "can overwrite project dir via build arguments"() {
         given:
         def projectDir = temp.createDir('projectDir')
+        params.getProjectDir() >> projectDir
+        params.getArguments(_) >> ['-p', 'otherDir']
 
         when:
-        def action = new ConfiguringBuildAction(projectDirectory: projectDir, arguments: ['-p', 'otherDir'])
-        def start = action.configureStartParameter()
+        def action = new ConfiguringBuildAction(params, action, [:])
+        def start = action.startParameter
 
         then:
         start.projectDir == new File(projectDir, "otherDir")
@@ -58,44 +64,50 @@ class ConfiguringBuildActionTest extends Specification {
         given:
         def dotGradle = temp.createDir('.gradle')
         def projectDir = temp.createDir('projectDir')
+        params.getGradleUserHomeDir() >> dotGradle
+        params.getProjectDir() >> projectDir
+        params.getArguments(_) >> ['-g', 'otherDir']
 
         when:
-        def action = new ConfiguringBuildAction(gradleUserHomeDir: dotGradle, projectDirectory: projectDir, 
-                arguments: ['-g', 'otherDir'])
-        def start = action.configureStartParameter()
+        def action = new ConfiguringBuildAction(params, action, [:])
+        def start = action.startParameter
 
         then:
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
     }
 
     def "can overwrite searchUpwards via build arguments"() {
+        given:
+        params.getArguments(_) >> ['-u']
+
         when:
-        def action = new ConfiguringBuildAction(arguments: ['-u'])
-        def start = action.configureStartParameter()
+        def action = new ConfiguringBuildAction(params, action, [:])
+        def start = action.startParameter
 
         then:
         !start.searchUpwards
     }
 
     def "searchUpwards configured directly on the action wins over the command line setting"() {
+        given:
+        params.getArguments(_) >> ['-u']
+        params.isSearchUpwards() >> true
+
         when:
-        def action = new ConfiguringBuildAction(arguments: ['-u'], searchUpwards: true)
-        def start = action.configureStartParameter()
+        def action = new ConfiguringBuildAction(params, action, [:])
+        def start = action.startParameter
 
         then:
         start.searchUpwards
     }
 
     def "the start parameter is configured from properties"() {
-        given:
-        def converter = Mock(PropertiesToStartParameterConverter)
-        def action = new ConfiguringBuildAction(properties: [foo: 'bar'])
-
         when:
-        action.configureStartParameter(converter)
+        def action = new ConfiguringBuildAction(params, action, ['org.gradle.configureondemand': true])
+        def start = action.startParameter
 
         then:
-        1 * converter.convert([foo: 'bar'], _)
+        start.configureOnDemand
     }
 
     def "is serializable"() {
@@ -111,15 +123,15 @@ class ConfiguringBuildActionTest extends Specification {
         _ * selector.args >> ['myTask']
         _ * selector.projectPath >> ':child'
 
-        ProviderOperationParameters providerParameters = Mock(ProviderOperationParameters)
-        _ * providerParameters.launchables >> [selector]
-        _ * providerParameters.tasks >> []
-        def action = new ConfiguringBuildAction(providerParameters, null, [:])
+        params.getLaunchables(_) >> [selector]
 
         when:
-        def start = action.configureStartParameter()
+        def action = new ConfiguringBuildAction(params, action, [:])
+        def start = action.startParameter
 
         then:
         start.taskRequests.size() == 1
+        start.taskRequests[0].projectPath == ':child'
+        start.taskRequests[0].args == ['myTask']
     }
 }
