@@ -176,6 +176,25 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot declare module replacement org:c->org:a because it introduces a cycle: org:c->org:a->org:b->org:c")
     }
 
+    def "replacement target unresolved"() {
+        publishedMavenModules('a')
+        buildFile << "dependencies { conf 'org:a:1', 'org:b:1' }\n"
+        declaredReplacements 'a->b'
+
+        expect:
+        fails("resolvedFiles").assertResolutionFailure(":conf")
+    }
+
+    def "replacement source unresolved"() {
+        publishedMavenModules('a')
+        buildFile << "dependencies { conf 'org:a:1', 'org:b:1' }\n"
+        declaredReplacements 'a->b'
+
+        expect:
+        fails("resolvedFiles").assertResolutionFailure(":conf")
+    }
+
+    //TODO catch user error when declaring wrong input
     //TODO SF when forced
     //when resolve target is unresolved, check exception
 }

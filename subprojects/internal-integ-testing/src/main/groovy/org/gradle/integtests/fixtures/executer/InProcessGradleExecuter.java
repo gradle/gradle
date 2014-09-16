@@ -456,8 +456,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
-        public DependencyResolutionFailure assertResolutionFailure(String configuration) {
-            return new DependencyResolutionFailure(this, configuration);
+        public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
+            return new DependencyResolutionFailure(this, configurationPath);
         }
     }
 }

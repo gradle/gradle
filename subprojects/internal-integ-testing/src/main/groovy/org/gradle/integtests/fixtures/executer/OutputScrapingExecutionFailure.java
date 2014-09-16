@@ -165,8 +165,8 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
-    public DependencyResolutionFailure assertResolutionFailure(String configuration) {
-        return new DependencyResolutionFailure(this, configuration);
+    public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
+        return new DependencyResolutionFailure(this, configurationPath);
     }
 
     private static class Problem {

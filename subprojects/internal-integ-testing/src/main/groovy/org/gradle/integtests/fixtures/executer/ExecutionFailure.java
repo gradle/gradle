@@ -51,5 +51,8 @@ public interface ExecutionFailure extends ExecutionResult {
 
     ExecutionFailure assertTestsFailed();
 
-    DependencyResolutionFailure assertResolutionFailure(String configuration);
+    /**
+     * @param configurationPath, for example ':compile'
+     */
+    DependencyResolutionFailure assertResolutionFailure(String configurationPath);
 }
