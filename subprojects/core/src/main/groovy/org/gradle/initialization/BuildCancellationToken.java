@@ -23,8 +23,6 @@ public interface BuildCancellationToken {
     boolean isCancellationRequested();
 
     /**
-     *
-     * @param cancellationHandler
      * @return current state of cancellation request before callback was added.
      */
     boolean addCallback(Runnable cancellationHandler);

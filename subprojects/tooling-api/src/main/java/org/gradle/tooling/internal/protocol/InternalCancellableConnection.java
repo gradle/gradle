@@ -60,9 +60,9 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * <p>Consumer compatibility: This method is used by all consumer versions from 2.1-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 2.1-rc-1.</p>
      *
-     * @throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1 On build failure.
-     * @throws org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
-     * @throws org.gradle.tooling.internal.protocol.InternalBuildActionFailureException When the action fails with an exception.
+     * @throws BuildExceptionVersion1 On build failure.
+     * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
+     * @throws InternalBuildActionFailureException When the action fails with an exception.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 2.1-rc-1
