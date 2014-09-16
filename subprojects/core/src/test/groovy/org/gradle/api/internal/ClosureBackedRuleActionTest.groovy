@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.RuleAction
+import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class ClosureBackedRuleActionTest extends Specification {
@@ -100,6 +101,7 @@ class ClosureBackedRuleActionTest extends Specification {
         def a1 = action(c)
 
         expect:
+        Matchers.strictlyEquals(a1, action(c))
         a1 == action(c)
         a1 != action({String bar -> })
         a1 != new ClosureBackedRuleAction(Integer.class, { Integer val -> })
