@@ -506,7 +506,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void rethrowFailures() {
         if (cancellationToken.isCancellationRequested()) {
-            failures.add(new BuildCancelledException("Build cancelled."));
+            failures.add(new BuildCancelledException());
         }
         if (failures.isEmpty()) {
             return;

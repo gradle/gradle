@@ -22,8 +22,9 @@ package org.gradle.api;
  * @since 2.1
  */
 @Incubating
-public class BuildCancelledException extends RuntimeException {
+public class BuildCancelledException extends GradleException {
     public BuildCancelledException() {
+        this("Build cancelled.");
     }
 
     public BuildCancelledException(String message) {

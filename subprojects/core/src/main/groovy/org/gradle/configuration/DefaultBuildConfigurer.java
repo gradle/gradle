@@ -37,7 +37,7 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
         } else {
             for (Project project : gradle.getRootProject().getAllprojects()) {
                 if (cancellationToken.isCancellationRequested()) {
-                    throw new BuildCancelledException("Build cancelled.");
+                    throw new BuildCancelledException();
                 }
                 ((ProjectInternal) project).evaluate();
             }
