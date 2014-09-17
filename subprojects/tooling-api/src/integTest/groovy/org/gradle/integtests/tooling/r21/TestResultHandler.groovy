@@ -50,6 +50,12 @@ class TestResultHandler implements ResultHandler<Object> {
 
     def finished(int seconds) {
         latch.await(seconds, TimeUnit.SECONDS)
-        assert (failure != null) == expectFailure
+        if (expectFailure) {
+            assert failure != null
+        } else {
+            if (failure != null) {
+                throw failure
+            }
+        }
     }
 }

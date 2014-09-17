@@ -19,12 +19,12 @@ package org.gradle.integtests.tooling.r21
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
-import spock.lang.Ignore
+import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -32,8 +32,7 @@ import java.util.concurrent.TimeUnit
 @ToolingApiVersion(">=2.1")
 @TargetGradleVersion(">=1.0-milestone-8")
 class PreCancellationCrossVersionSpec extends ToolingApiSpecification {
-//    final appender = new TestAppender()
-//    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
         // in-process call does not support cancelling (yet)
@@ -43,20 +42,15 @@ rootProject.name = 'cancelling'
 '''
     }
 
-    @Ignore
     @TargetGradleVersion("<2.1 >=1.0-milestone-8")
     def "cancel with older provider issues warning only"() {
-        def marker = file("warning.txt")
         buildFile << """
 task t << {
-    println "waiting"
-    def marker = file('${marker.toURI()}')
-    long timeout = System.currentTimeMillis() + 10000
-    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+    new URL("${server.uri}").text
     println "finished"
 }
 """
+
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler(false)
         def output = new TestOutputStream()
@@ -68,14 +62,13 @@ task t << {
                 .withCancellationToken(cancel.token())
                 .setStandardOutput(output)
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            server.waitFor()
             cancel.cancel()
-            marker.text = 'go!'
+            server.release()
             resultHandler.finished()
         }
 
         then:
-//        appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
         resultHandler.failure == null
         output.toString().contains("finished")
     }

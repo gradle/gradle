@@ -15,16 +15,14 @@
  */
 package org.gradle.integtests.tooling.r21;
 
-import org.gradle.integtests.tooling.r16.CustomModel;
+import org.gradle.api.GradleException;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.GradleProject;
 
 public class HangingBuildAction implements BuildAction<Void> {
     public Void execute(BuildController controller) {
-        System.out.println("waiting");
-        controller.getModel(CustomModel.class);
-        System.out.println("finished");
-        return null;
+        controller.getModel(GradleProject.class);
+        throw new GradleException("Should be cancelled before the end of action.");
     }
-
 }

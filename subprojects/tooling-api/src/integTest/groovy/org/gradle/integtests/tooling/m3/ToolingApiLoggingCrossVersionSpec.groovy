@@ -18,28 +18,28 @@ package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
+import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+
     def setup() {
         toolingApi.isEmbedded = false
     }
 
     def "logging is live"() {
-        def marker = file("marker.txt")
-
         file("build.gradle") << """
 task log << {
     println "waiting"
-    def marker = file('${marker.toURI()}')
-    long timeout = System.currentTimeMillis() + 10000
-    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
+    println "connecting to ${server.uri}"
+    new URL("${server.uri}").text
     println "finished"
 }
 """
@@ -51,9 +51,15 @@ task log << {
             def build = connection.newBuild()
             build.standardOutput = output
             build.forTasks("log")
+            build.withArguments("-d", "-s")
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(20) { assert output.toString().contains("waiting") }
-            marker.text = 'go!'
+            server.waitFor()
+            ConcurrentTestUtil.poll {
+                // Need to poll, as logging output is delivered asynchronously to client
+                assert output.toString().contains("waiting")
+            }
+            assert !output.toString().contains("finished")
+            server.release()
             resultHandler.finished()
         }
 

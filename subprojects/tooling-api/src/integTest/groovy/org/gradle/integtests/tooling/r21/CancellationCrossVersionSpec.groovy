@@ -16,20 +16,21 @@
 
 package org.gradle.integtests.tooling.r21
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.r16.CustomModel
-import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.junit.Rule
 
 @ToolingApiVersion("=2.1")
-@TargetGradleVersion(">=1.0-milestone-8")
+@TargetGradleVersion(">=2.1")
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+
     def setup() {
         // in-process call does not support cancelling (yet)
         toolingApi.isEmbedded = false
@@ -40,58 +41,28 @@ rootProject.name = 'cancelling'
 
     @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
-        def marker = file("marker.txt")
         settingsFile << '''
 include 'sub'
 rootProject.name = 'cancelling'
 '''
         buildFile << """
-import org.gradle.initialization.BuildCancellationToken;
-import java.util.concurrent.CountDownLatch;
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
 
-ext {
-  latch = new CountDownLatch(1);
+def cancellationToken = services.get(BuildCancellationToken.class)
+def latch = new CountDownLatch(1)
+
+cancellationToken.addCallback{
+    latch.countDown()
 }
 
-println "__waiting__ (configuring root project)"
-def marker = file('${marker.toURI()}')
-long timeout = System.currentTimeMillis() + 10000
-while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
-
-task first(type: CancellingTask) {
-
-    cancellationToken.addCallback(new Runnable() {
-        public void run() {
-            project.rootProject.latch.countDown();
-        }
-    });
-    // this will block root project configuration until cancel request is delivered
-    project.rootProject.latch.await();
-
-    doFirst {
-        println "__should_not_run__"
-    }
-}
-
-class CancellingTask extends DefaultTask {
-    public final BuildCancellationToken cancellationToken;
-
-    public CancellingTask() {
-        this.cancellationToken = getServices().get(BuildCancellationToken.class);
-    }
-
-    @TaskAction
-    def noop() {
-    }
-}
+new URL("${server.uri}").text
+latch.await()
 """
         projectDir.file('sub/build.gradle') << """
-println '__should_not_run__ (configuring :sub)'
-task second << {
-    println "__should_not_run__"
-}
+throw new RuntimeException("should not run")
 """
+
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
@@ -105,38 +76,35 @@ task second << {
                     .setStandardOutput(output)
                     .setStandardError(error)
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
-            marker.text = 'go!'
+            server.sync()
             cancel.cancel()
-            resultHandler.finished(20)
+            resultHandler.finished()
         }
 
         then:
-        output.toString().contains("__waiting__")
-        !output.toString().contains("__should_not_run__")
-        new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted()
-
         resultHandler.failure instanceof GradleConnectionException
         resultHandler.failure.cause.message.contains('Build cancelled.')
     }
 
-    @TargetGradleVersion(">=2.1")
     def "can cancel build and skip some tasks"() {
-        def marker = file("marker.txt")
-
         buildFile << """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
+
 task hang << {
-    println "__waiting__"
-    def marker = file('${marker.toURI()}')
-    long timeout = System.currentTimeMillis() + 10000
-    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
-    Thread.sleep(1000)
-    println "__finished__"
+    def cancellationToken = services.get(BuildCancellationToken.class)
+    def latch = new CountDownLatch(1)
+
+    cancellationToken.addCallback {
+        latch.countDown()
+    }
+
+    new URL("${server.uri}").text
+    latch.await()
 }
 
 task notExecuted(dependsOn: hang) << {
-    println "__should_not_run__"
+    throw new RuntimeException("should not run")
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -152,34 +120,30 @@ task notExecuted(dependsOn: hang) << {
                     .setStandardOutput(output)
                     .setStandardError(error)
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
-            marker.text = 'go!'
+            server.sync()
             cancel.cancel()
             resultHandler.finished()
         }
         then:
-        output.toString().contains("__waiting__")
-        output.toString().contains("__finished__")
-        !output.toString().contains("__should_not_run__")
-        new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
-
         resultHandler.failure instanceof GradleConnectionException
         resultHandler.failure.cause.cause.message.contains('Build cancelled.')
     }
 
-    @TargetGradleVersion(">=2.1")
     def "can cancel build"() {
-        def marker = file("marker.txt")
-
         buildFile << """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
+
 task hang << {
-    println "__waiting__"
-    def marker = file('${marker.toURI()}')
-    long timeout = System.currentTimeMillis() + 10000
-    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
-    Thread.sleep(1000)
-    println "__finished__"
+    def cancellationToken = services.get(BuildCancellationToken.class)
+    def latch = new CountDownLatch(1)
+
+    cancellationToken.addCallback {
+        latch.countDown()
+    }
+
+    new URL("${server.uri}").text
+    latch.await()
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -195,34 +159,20 @@ task hang << {
                     .setStandardOutput(output)
                     .setStandardError(error)
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
-            marker.text = 'go!'
+            server.sync()
             cancel.cancel()
             resultHandler.finished()
         }
         then:
-        output.toString().contains("__waiting__")
-        output.toString().contains("__finished__")
-        new OutputScrapingExecutionResult(output.toString(), error.toString()).assertTasksExecuted(':hang')
-
         resultHandler.failure instanceof GradleConnectionException
         resultHandler.failure.cause.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure.cause.cause.cause.message.contains('Build cancelled.')
     }
 
-    @TargetGradleVersion(">=2.1")
     def "can cancel build through forced stop"() {
-        def marker = file("marker.txt")
-
         buildFile << """
 task hang << {
-    println "__waiting__"
-    def marker = file('${marker.toURI()}')
-    long timeout = System.currentTimeMillis() + 12000
-    while (!marker.file && System.currentTimeMillis() < timeout) { Thread.sleep(200) }
-    if (!marker.file) { throw new RuntimeException("Timeout waiting for marker file") }
-    Thread.sleep(1000)
-    println "__finished__"
+    new URL("${server.uri}").text
 }
 """
         def cancel = GradleConnector.newCancellationTokenSource()
@@ -236,24 +186,18 @@ task hang << {
                     .withCancellationToken(cancel.token())
                     .setStandardOutput(output)
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            server.waitFor()
             cancel.cancel()
             resultHandler.finished(20)
-            marker.text = 'go!'
         }
         then:
-        output.toString().contains("__waiting__")
-        !output.toString().contains("__finished__")
         resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure instanceof GradleConnectionException
     }
 
-    @TargetGradleVersion(">=2.1")
     def "early cancel stops the build before beginning"() {
         buildFile << """
-task hang << {
-    throw new GradleException("should not run")
-}
+throw new GradleException("should not run")
 """
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
@@ -271,7 +215,6 @@ task hang << {
         resultHandler.failure instanceof BuildCancelledException
     }
 
-    @TargetGradleVersion(">=2.1")
     def "early cancel stops model retrieval before beginning"() {
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
@@ -288,62 +231,25 @@ task hang << {
         resultHandler.failure instanceof BuildCancelledException
     }
 
-    @TargetGradleVersion(">=2.1")
     def "can cancel action"() {
-        buildFile << """
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.gradle.initialization.BuildCancellationToken;
-import java.util.concurrent.CountDownLatch;
-
-import javax.inject.Inject
-
-apply plugin: CustomPlugin
-
-ext {
-  latch = new CountDownLatch(1);
-}
-
-class CustomModel implements Serializable {
-    String getValue() { 'greetings' }
-    Set<CustomThing> getThings() { return [new CustomThing()] }
-    Map<String, CustomThing> getThingsByName() { return [thing: new CustomThing()] }
-}
-class CustomThing implements Serializable {
-}
-class CustomBuilder implements ToolingModelBuilder {
-    private final BuildCancellationToken cancellationToken;
-
-    CustomBuilder(BuildCancellationToken cancellationToken) {
-        this.cancellationToken = cancellationToken;
-    }
-    boolean canBuild(String modelName) {
-        return modelName == '${CustomModel.name}'
-    }
-    Object buildAll(String modelName, Project project) {
-        cancellationToken.addCallback(new Runnable() {
-            public void run() {
-                project.ext.latch.countDown();
-            }
-        });
-        // this will block root project configuration until cancel request is delivered
-        project.ext.latch.await();
-        return new CustomModel()
-    }
-}
-class CustomPlugin implements Plugin<Project> {
-    @Inject
-    CustomPlugin(ToolingModelBuilderRegistry registry, BuildCancellationToken cancellationToken) {
-        registry.register(new CustomBuilder(cancellationToken))
-    }
-
-    public void apply(Project project) {
-    }
-}
-"""
         def cancel = GradleConnector.newCancellationTokenSource()
-        def resultHandler = new TestResultHandler(false)
+        def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
+
+        buildFile << """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
+
+def cancellationToken = services.get(BuildCancellationToken.class)
+def latch = new CountDownLatch(1)
+
+cancellationToken.addCallback {
+    latch.countDown()
+}
+
+new URL("${server.uri}").text
+latch.await()
+"""
 
         when:
         withConnection { ProjectConnection connection ->
@@ -351,17 +257,16 @@ class CustomPlugin implements Plugin<Project> {
             build.withCancellationToken(cancel.token())
                     .setStandardOutput(output)
             build.run(resultHandler)
-            ConcurrentTestUtil.poll(10) { assert output.toString().contains("waiting") }
+            server.waitFor()
             cancel.cancel()
+            server.release()
             resultHandler.finished()
         }
 
         then:
-        output.toString().contains("waiting")
-        output.toString().contains("finished")
+        resultHandler.failure instanceof GradleConnectionException
     }
 
-    @TargetGradleVersion(">=2.1")
     def "early cancel stops the action before beginning"() {
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
