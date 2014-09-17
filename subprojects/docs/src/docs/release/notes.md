@@ -61,7 +61,7 @@ Upgrading to a later version is now simple:
     apply plugin: "sonar-runner"
     
     sonarRunner {
-      toolVerison = "2.4"
+      toolVersion = "2.4"
       
       // Fine grained control over the runner process
       forkOptions {
