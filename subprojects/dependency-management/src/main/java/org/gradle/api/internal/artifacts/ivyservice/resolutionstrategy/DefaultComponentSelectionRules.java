@@ -33,6 +33,7 @@ import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,10 +43,9 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     final Set<RuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
-    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
 
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
-    private static final String ILLEGAL_CHAR_SPEC_ERROR = "Illegal character '%s' found in module constraint.";
+    private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
 
     public Collection<RuleAction<? super ComponentSelection>> getRules() {
@@ -108,29 +108,27 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
                 .toType(ModuleIdentifier.class)
                 .parser(new ModuleIdentiferNotationParser())
                 .toComposite();
-        final ModuleIdentifier moduleIdentifier = parser.parseNotation(id);
+        final ModuleIdentifier moduleIdentifier;
 
-        for (char c : INVALID_SPEC_CHARS) {
-            if (moduleIdentifier.getGroup().indexOf(c) != -1 || moduleIdentifier.getName().indexOf(c) != -1) {
-                throw new InvalidUserDataException(String.format(ILLEGAL_CHAR_SPEC_ERROR, c));
-            }
+        try {
+            moduleIdentifier = parser.parseNotation(id);
+        } catch (UnsupportedNotationException e) {
+            throw new InvalidUserCodeException(String.format(INVALID_SPEC_ERROR, id == null ? "null" : id.toString()), e);
         }
 
-        Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(moduleIdentifier.getGroup(), moduleIdentifier.getName());
+        Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(moduleIdentifier);
         return new DelegatingTargetedRuleAction<ComponentSelection>(spec, ruleAction);
     }
 
     static class ComponentSelectionMatchingSpec implements Spec<ComponentSelection> {
-        final String group;
-        final String module;
+        final ModuleIdentifier target;
 
-        private ComponentSelectionMatchingSpec(String group, String module) {
-            this.group = group;
-            this.module = module;
+        private ComponentSelectionMatchingSpec(ModuleIdentifier target) {
+            this.target = target;
         }
 
         public boolean isSatisfiedBy(ComponentSelection selection) {
-            return selection.getCandidate().getGroup().equals(group) && selection.getCandidate().getModule().equals(module);
+            return selection.getCandidate().getGroup().equals(target.getGroup()) && selection.getCandidate().getModule().equals(target.getName());
         }
     }
 }

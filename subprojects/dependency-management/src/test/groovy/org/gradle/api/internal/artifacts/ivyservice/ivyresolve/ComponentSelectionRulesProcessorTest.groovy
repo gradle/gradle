@@ -27,6 +27,7 @@ import org.gradle.api.internal.ClosureBackedRuleAction
 import org.gradle.api.internal.DelegatingTargetedRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
@@ -222,7 +223,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def targetedRule(String group, String module, Closure<?> closure) {
         rules << new DelegatingTargetedRuleAction(
-                new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(group, module),
+                new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, module)),
                 new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure)
         )
     }

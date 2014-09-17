@@ -20,16 +20,17 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.NoInputsRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentSelectionRulesProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
@@ -74,8 +75,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         then:
         rules.rules[0] == metadataRule
         rules.rules[1].ruleAction == metadataRule
-        rules.rules[1].spec.group == "group"
-        rules.rules[1].spec.module == "module"
+        rules.rules[1].spec.target == DefaultModuleIdentifier.newId("group", "module")
     }
 
     def "can add action rules via api"() {
@@ -95,8 +95,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         targetRuleAction.inputTypes == []
         targetRuleAction instanceof NoInputsRuleAction
         targetRuleAction.action == action
-        rules.rules[1].spec.group == "group"
-        rules.rules[1].spec.module == "module"
+        rules.rules[1].spec.target == DefaultModuleIdentifier.newId("group", "module")
     }
 
     def "produces sensible error with parameter-less closure" () {
@@ -194,8 +193,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module(id, closureOrActionOrRule)
 
         then:
-        def e = thrown(UnsupportedNotationException)
-        e.message == """Cannot convert a null value to an object of type ModuleIdentifier.
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Could not add a component selection rule for module 'null'."
+        def cause = e.cause
+        cause.message == """Cannot convert a null value to an object of type ModuleIdentifier.
 The following types/formats are supported:
   - Instances of ModuleIdentifier.
   - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
@@ -212,8 +213,10 @@ The following types/formats are supported:
         rules.module(id, closureOrActionOrRule)
 
         then:
-        def e = thrown(UnsupportedNotationException)
-        e.message == """Cannot convert the provided notation to an object of type ModuleIdentifier: ${id}.
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Could not add a component selection rule for module '${id}'."
+        def cause = e.cause
+        cause.message == """Cannot convert the provided notation to an object of type ModuleIdentifier: ${id}.
 The following types/formats are supported:
   - Instances of ModuleIdentifier.
   - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
@@ -236,8 +239,13 @@ The following types/formats are supported:
         rules.module("group:module${character}", closureOrActionOrRule)
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "Illegal character '${character}' found in module constraint."
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Could not add a component selection rule for module 'group:module${character}'."
+        def cause = e.cause
+        cause.message == """Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.
+The following types/formats are supported:
+  - Instances of ModuleIdentifier.
+  - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
 
         where:
         character  | closureOrActionOrRule
@@ -265,7 +273,7 @@ The following types/formats are supported:
     }
 
     def "ComponentSelectionSpec matches on group and name" () {
-        def spec = new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(group, name)
+        def spec = new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, name))
         def candidate = Mock(ModuleComponentIdentifier) {
             1 * getGroup() >> "org.gradle"
             (0..1) * getModule() >> "api"
