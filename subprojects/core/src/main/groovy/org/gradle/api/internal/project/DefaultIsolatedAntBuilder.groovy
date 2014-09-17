@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project
 
+import com.google.common.collect.Lists
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.BasicAntBuilder
@@ -22,70 +23,55 @@ import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.ConfigureUtil
 
+// TODO: should be threadsafe; is stateful and of build scope
+
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
-    private final Map<List<File>, ClassLoader> baseClassloaders = [:]
-    private final Map<List<File>, Map<String, Object>> classloaders = [:]
+
+    private final ClassLoader antClassloader
+    private final Map<ClassPath, ClassLoaderSet> classloaders
     private final ClassPathRegistry classPathRegistry
     private final ClassLoaderFactory classLoaderFactory
-    private final Iterable<File> groovyClasspath
-    private final Iterable<File> libClasspath = []
+    private final ClassPath libClasspath
 
     def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
-        groovyClasspath = classPathRegistry.getClassPath("GROOVY").asFiles
+        this.classloaders = [:]
+        this.libClasspath = new DefaultClassPath()
+
+        List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").asFiles)
+        // Need tools.jar for compile tasks
+        File toolsJar = Jvm.current().toolsJar
+        if (toolsJar) {
+            antClasspath += toolsJar
+        }
+        this.antClassloader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath))
     }
 
-    private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> groovyClasspath, Iterable<File> libClasspath) {
+    private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
         this.classPathRegistry = copy.classPathRegistry
         this.classLoaderFactory = copy.classLoaderFactory
         this.classloaders = copy.classloaders
-        this.baseClassloaders = copy.baseClassloaders
-        this.groovyClasspath = groovyClasspath
-        this.libClasspath = libClasspath
-    }
-
-    IsolatedAntBuilder withGroovy(Iterable<File> classpath) {
-        return new DefaultIsolatedAntBuilder(this, classpath, libClasspath);
+        this.antClassloader = copy.antClassloader
+        this.libClasspath = new DefaultClassPath(libClasspath)
     }
 
     IsolatedAntBuilder withClasspath(Iterable<File> classpath) {
-        return new DefaultIsolatedAntBuilder(this, groovyClasspath, classpath);
+        return new DefaultIsolatedAntBuilder(this, classpath)
     }
 
     void execute(Closure antClosure) {
-        List<File> baseClasspath = []
-        baseClasspath.addAll(classPathRegistry.getClassPath("ANT").asFiles)
-        baseClasspath.addAll(groovyClasspath as List)
+        def classLoadersForImpl = classloaders[libClasspath]
 
-        ClassLoader baseLoader = baseClassloaders[baseClasspath]
-        if (baseLoader == null) {
-            // Need tools.jar for compile tasks
-            List<File> fullClasspath = baseClasspath
-            File toolsJar = Jvm.current().toolsJar
-            if (toolsJar) {
-                fullClasspath += toolsJar
-            }
-            baseLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(fullClasspath))
-            baseClassloaders[baseClasspath] = baseLoader
-        }
-
-        List<File> normalisedClasspath = []
-        normalisedClasspath.addAll(libClasspath as List)
-
-        Map<String, Object> classloadersForPath = classloaders[normalisedClasspath]
-        ClassLoader antLoader
-        ClassLoader gradleLoader
-        if (classloadersForPath) {
-            antLoader = classloadersForPath.antLoader
-            gradleLoader = classloadersForPath.gradleLoader
-        } else {
+        if (!classLoadersForImpl) {
             // Need gradle core to pick up ant logging adapter, AntBuilder and such
             def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
+            gradleCoreUrls += classPathRegistry.getClassPath("GROOVY")
 
             // Need Transformer (part of AntBuilder API) from base services
             gradleCoreUrls += classPathRegistry.getClassPath("GRADLE_BASE_SERVICES")
@@ -94,31 +80,41 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             loggingLoader.allowPackage('org.slf4j')
             loggingLoader.allowPackage('org.apache.commons.logging')
             loggingLoader.allowPackage('org.apache.log4j')
-            ClassLoader parent = new MultiParentClassLoader(baseLoader, loggingLoader)
+            ClassLoader parent = new MultiParentClassLoader(antClassloader, loggingLoader)
 
-            List<URL> classpathUrls = normalisedClasspath.collect { it.toURI().toURL() }
-            antLoader = new URLClassLoader(classpathUrls as URL[], parent)
-            gradleLoader = new MutableURLClassLoader(parent, gradleCoreUrls)
+            def antLoader = new URLClassLoader(libClasspath.asURLArray, parent)
+            def gradleLoader = new MutableURLClassLoader(parent, gradleCoreUrls)
 
-            classloaders[normalisedClasspath] = [antLoader: antLoader, gradleLoader: gradleLoader]
+            classLoadersForImpl = new ClassLoaderSet(gradleLoader, antLoader)
+            classloaders[libClasspath] = classLoadersForImpl
         }
 
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = antLoader
+        Thread.currentThread().contextClassLoader = classLoadersForImpl.ant
         try {
-            Object antBuilder = gradleLoader.loadClass(BasicAntBuilder.class.name).newInstance()
+            Object antBuilder = classLoadersForImpl.gradle.loadClass(BasicAntBuilder.class.name).newInstance()
 
-            Object antLogger = gradleLoader.loadClass(AntLoggingAdapter.class.name).newInstance()
+            Object antLogger = classLoadersForImpl.gradle.loadClass(AntLoggingAdapter.class.name).newInstance()
             antBuilder.project.removeBuildListener(antBuilder.project.getBuildListeners()[0])
             antBuilder.project.addBuildListener(antLogger)
 
             // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
             // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
             // because they are not an instanceof it's Closure class
-            Object delegate = new AntBuilderDelegate(antBuilder, antLoader)
+            Object delegate = new AntBuilderDelegate(antBuilder, classLoadersForImpl.ant)
             ConfigureUtil.configure(antClosure, delegate)
         } finally {
             Thread.currentThread().contextClassLoader = originalLoader
+        }
+    }
+
+    private static class ClassLoaderSet {
+        final ClassLoader gradle
+        final ClassLoader ant
+
+        ClassLoaderSet(ClassLoader gradle, ClassLoader ant) {
+            this.gradle = gradle
+            this.ant = ant
         }
     }
 }
@@ -160,7 +156,11 @@ class AntBuilderDelegate extends BuilderSupport {
     }
 
     protected Object createNode(Object name, Map attributes) {
-        builder.createNode(name, attributes)
+        if (name == "taskdef") {
+            taskdef(attributes)
+        } else {
+            builder.createNode(name, attributes)
+        }
     }
 
     protected Object createNode(Object name, Map attributes, Object value) {
@@ -176,6 +176,10 @@ class AntBuilderDelegate extends BuilderSupport {
     }
 
     protected void nodeCompleted(Object parent, Object node) {
+        if (parent == null && node == null) { // happens when dispatching to taskdef via createNode()
+            return
+        }
+
         builder.nodeCompleted(parent, node)
     }
 

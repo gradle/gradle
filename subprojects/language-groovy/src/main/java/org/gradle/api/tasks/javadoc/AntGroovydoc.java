@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.javadoc;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,7 +47,7 @@ public class AntGroovydoc {
         this.ant = ant;
     }
 
-    public void execute(final FileCollection source, File destDir, boolean use, String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate, final Set<Groovydoc.Link> links, Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
+    public void execute(final FileCollection source, File destDir, boolean use, String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate, final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
 
         final File tmpDir = new File(project.getBuildDir(), "tmp/groovydoc");
         FileOperations fileOperations = (ProjectInternal) project;
@@ -67,7 +69,12 @@ public class AntGroovydoc {
         putIfNotNull(args, "footer", footer);
         putIfNotNull(args, "overview", overview);
 
-        ant.withGroovy(groovyClasspath).withClasspath(classpath).execute(new Closure<Object>(this, this) {
+        List<File> combinedClasspath = ImmutableList.<File>builder()
+                .addAll(classpath)
+                .addAll(groovyClasspath)
+                .build();
+
+        ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
             public Object doCall(Object it) {
                 final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
