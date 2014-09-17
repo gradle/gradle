@@ -16,16 +16,13 @@
 
 package org.gradle.integtests.tooling.m3
 
+import org.gradle.integtests.tooling.fixture.TestOutputStream
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.ResultHandler
 import org.junit.Rule
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
@@ -66,44 +63,5 @@ task log << {
         then:
         output.toString().contains("waiting")
         output.toString().contains("finished")
-    }
-
-    class TestResultHandler implements ResultHandler<Object> {
-        final latch = new CountDownLatch(1)
-        def failure
-
-        void onComplete(Object result) {
-            latch.countDown()
-        }
-
-        void onFailure(GradleConnectionException failure) {
-            this.failure = failure
-            latch.countDown()
-        }
-
-        def finished() {
-            latch.await(10, TimeUnit.SECONDS)
-            if (failure != null) {
-                throw failure
-            }
-        }
-    }
-
-    class TestOutputStream extends OutputStream {
-        final buffer = new ByteArrayOutputStream()
-
-        @Override
-        void write(int b) throws IOException {
-            synchronized (buffer) {
-                buffer.write(b)
-            }
-        }
-
-        @Override
-        String toString() {
-            synchronized (buffer) {
-                return buffer.toString()
-            }
-        }
     }
 }

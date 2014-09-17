@@ -17,10 +17,11 @@
 package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r21.HangingBuildAction
-import org.gradle.integtests.tooling.r21.TestResultHandler
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
@@ -239,7 +240,6 @@ task hang << {
     }
 
     def "can cancel action"() {
-        def marker = file("marker.txt")
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
@@ -290,23 +290,6 @@ latch.await()
         resultHandler.failure instanceof BuildCancelledException
     }
 
-    class TestOutputStream extends OutputStream {
-        final buffer = new ByteArrayOutputStream()
-
-        @Override
-        void write(int b) throws IOException {
-            synchronized (buffer) {
-                buffer.write(b)
-            }
-        }
-
-        @Override
-        String toString() {
-            synchronized (buffer) {
-                return buffer.toString()
-            }
-        }
-    }
 
     interface SomeModel extends Serializable {}
 }

@@ -16,18 +16,11 @@
 
 package org.gradle.integtests.tooling.r21
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.ResultHandler
 import org.junit.Rule
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 @ToolingApiVersion(">=2.1")
 @TargetGradleVersion(">=1.0-milestone-8")
@@ -71,51 +64,5 @@ task t << {
         then:
         resultHandler.failure == null
         output.toString().contains("finished")
-    }
-
-    class TestResultHandler implements ResultHandler<Object> {
-        final latch = new CountDownLatch(1)
-        final boolean expectFailure
-        def failure
-
-        TestResultHandler() {
-            this(true)
-        }
-
-        TestResultHandler(boolean expectFailure) {
-            this.expectFailure = expectFailure
-        }
-
-        void onComplete(Object result) {
-            latch.countDown()
-        }
-
-        void onFailure(GradleConnectionException failure) {
-            this.failure = failure
-            latch.countDown()
-        }
-
-        def finished() {
-            latch.await(10, TimeUnit.SECONDS)
-            assert (failure != null) == expectFailure
-        }
-    }
-
-    class TestOutputStream extends OutputStream {
-        final buffer = new ByteArrayOutputStream()
-
-        @Override
-        void write(int b) throws IOException {
-            synchronized (buffer) {
-                buffer.write(b)
-            }
-        }
-
-        @Override
-        String toString() {
-            synchronized (buffer) {
-                return buffer.toString()
-            }
-        }
     }
 }

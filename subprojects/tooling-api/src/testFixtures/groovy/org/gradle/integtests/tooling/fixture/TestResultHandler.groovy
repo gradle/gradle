@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r21
+package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
@@ -24,16 +24,7 @@ import java.util.concurrent.TimeUnit
 
 class TestResultHandler implements ResultHandler<Object> {
     final latch = new CountDownLatch(1)
-    final boolean expectFailure
     def failure
-
-    TestResultHandler() {
-        this(true)
-    }
-
-    TestResultHandler(boolean expectFailure) {
-        this.expectFailure = expectFailure
-    }
 
     void onComplete(Object result) {
         latch.countDown()
@@ -45,17 +36,12 @@ class TestResultHandler implements ResultHandler<Object> {
     }
 
     def finished() {
-        finished(10)
+        finished(20)
     }
 
     def finished(int seconds) {
-        latch.await(seconds, TimeUnit.SECONDS)
-        if (expectFailure) {
-            assert failure != null
-        } else {
-            if (failure != null) {
-                throw failure
-            }
+        if (!latch.await(seconds, TimeUnit.SECONDS)) {
+            throw new AssertionError("Timeout waiting for operation to complete.")
         }
     }
 }

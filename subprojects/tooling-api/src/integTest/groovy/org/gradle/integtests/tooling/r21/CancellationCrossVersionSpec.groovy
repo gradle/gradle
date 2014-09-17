@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r21
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestOutputStream
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
@@ -24,6 +26,7 @@ import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
 
 @ToolingApiVersion("=2.1")
@@ -215,6 +218,27 @@ throw new GradleException("should not run")
         resultHandler.failure instanceof BuildCancelledException
     }
 
+    def "can cancel build after completion"() {
+        buildFile << """
+task thing
+"""
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks('thing')
+            build.withCancellationToken(cancel.token())
+            build.run(resultHandler)
+            resultHandler.finished()
+            cancel.cancel()
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
     def "early cancel stops model retrieval before beginning"() {
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
@@ -225,6 +249,42 @@ throw new GradleException("should not run")
             def build = connection.model(SomeModel)
             build.withCancellationToken(cancel.token())
             build.get(resultHandler)
+            resultHandler.finished()
+        }
+        then:
+        resultHandler.failure instanceof BuildCancelledException
+    }
+
+    def "can cancel build after model retrieval"() {
+        buildFile << """
+task thing
+"""
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.model(GradleBuild)
+            build.withCancellationToken(cancel.token())
+            build.get(resultHandler)
+            resultHandler.finished()
+            cancel.cancel()
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "early cancel stops the action before beginning"() {
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+
+        when:
+        cancel.cancel()
+        withConnection { ProjectConnection connection ->
+            def build = connection.action(new HangingBuildAction())
+            build.withCancellationToken(cancel.token())
+            build.run(resultHandler)
             resultHandler.finished()
         }
         then:
@@ -265,40 +325,6 @@ latch.await()
 
         then:
         resultHandler.failure instanceof GradleConnectionException
-    }
-
-    def "early cancel stops the action before beginning"() {
-        def cancel = GradleConnector.newCancellationTokenSource()
-        def resultHandler = new TestResultHandler()
-
-        when:
-        cancel.cancel()
-        withConnection { ProjectConnection connection ->
-            def build = connection.action(new HangingBuildAction())
-            build.withCancellationToken(cancel.token())
-            build.run(resultHandler)
-            resultHandler.finished()
-        }
-        then:
-        resultHandler.failure instanceof BuildCancelledException
-    }
-
-    class TestOutputStream extends OutputStream {
-        final buffer = new ByteArrayOutputStream()
-
-        @Override
-        void write(int b) throws IOException {
-            synchronized (buffer) {
-                buffer.write(b)
-            }
-        }
-
-        @Override
-        String toString() {
-            synchronized (buffer) {
-                return buffer.toString()
-            }
-        }
     }
 
     interface SomeModel extends Serializable {}

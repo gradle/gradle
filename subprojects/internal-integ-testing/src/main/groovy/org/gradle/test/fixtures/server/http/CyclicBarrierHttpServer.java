@@ -25,10 +25,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.Channels;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +69,9 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                         try {
                             connection = serverSocket.accept();
                         } catch (AsynchronousCloseException e) {
+                            // Socket has been closed, so we're stopping
+                            return;
+                        } catch (ClosedChannelException e) {
                             // Socket has been closed, so we're stopping
                             return;
                         }
