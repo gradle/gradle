@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.ClosureBackedRuleAction;
 import org.gradle.api.internal.NoInputsRuleAction;
+import org.gradle.api.internal.RuleActionValidator;
 import org.gradle.api.internal.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
@@ -37,15 +38,13 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
-    private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
+    private final RuleActionValidator<ComponentSelection> ruleActionValidator = new RuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
 
-    private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type for component selection rule: %s";
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
 
@@ -59,7 +58,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction) {
-        addRule(createAllSpecRulesAction(validateInputTypes(ruleAction)));
+        addRule(createAllSpecRulesAction(ruleActionValidator.validate(ruleAction)));
         return this;
     }
 
@@ -74,7 +73,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public ComponentSelectionRules module(String id, RuleAction<? super ComponentSelection> ruleAction) {
-        addRule(createSpecRuleActionFromId(id, validateInputTypes(ruleAction)));
+        addRule(createSpecRuleActionFromId(id, ruleActionValidator.validate(ruleAction)));
         return this;
     }
 
@@ -89,19 +88,10 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
         try {
-            return validateInputTypes(new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection.class, closure));
+            return ruleActionValidator.validate(new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection.class, closure));
         } catch (IllegalArgumentException e) {
             throw new InvalidUserCodeException(String.format(INVALID_CLOSURE_ERROR, ComponentSelectionRules.class.getSimpleName()), e);
         }
-    }
-
-    private RuleAction<? super ComponentSelection> validateInputTypes(RuleAction<? super ComponentSelection> ruleAction) {
-        for (Class<?> inputType : ruleAction.getInputTypes()) {
-            if (!VALID_INPUT_TYPES.contains(inputType)) {
-                throw new IllegalArgumentException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
-            }
-        }
-        return ruleAction;
     }
 
     private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {

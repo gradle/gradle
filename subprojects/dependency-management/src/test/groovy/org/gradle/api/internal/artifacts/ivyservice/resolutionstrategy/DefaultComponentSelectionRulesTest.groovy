@@ -120,10 +120,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
         { it -> }                                                                                     | "First parameter of rule action closure must be of type 'ComponentSelection'."
         { String something -> }                                                                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
         { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                          | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type for component selection rule: java.lang.String"
-        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type for component selection rule: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type for component selection rule: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type for component selection rule: java.lang.String"
+        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type: java.lang.String"
+        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type: java.lang.String"
+        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type: java.lang.String"
+        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type: java.lang.String"
     }
 
     def "produces sensible error for invalid targeted closure" () {
@@ -140,10 +140,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
         { it -> }                                                                                     | "First parameter of rule action closure must be of type 'ComponentSelection'."
         { String something -> }                                                                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
         { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                          | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type for component selection rule: java.lang.String"
-        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type for component selection rule: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type for component selection rule: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type for component selection rule: java.lang.String"
+        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type: java.lang.String"
+        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type: java.lang.String"
+        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type: java.lang.String"
+        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type: java.lang.String"
     }
 
     def "produces sensible error when bad input type is declared for rule action" () {
@@ -159,11 +159,11 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         where:
         inputTypes                                       | message
-        [String]                                         | "Unsupported parameter type for component selection rule: java.lang.String"
-        [ComponentMetadata, String]                      | "Unsupported parameter type for component selection rule: java.lang.String"
-        [IvyModuleDescriptor, String]                    | "Unsupported parameter type for component selection rule: java.lang.String"
-        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type for component selection rule: java.lang.String"
-        [ComponentMetadataDetails]                       | "Unsupported parameter type for component selection rule: ${ComponentMetadataDetails.name}"
+        [String]                                         | "Unsupported parameter type: java.lang.String"
+        [ComponentMetadata, String]                      | "Unsupported parameter type: java.lang.String"
+        [IvyModuleDescriptor, String]                    | "Unsupported parameter type: java.lang.String"
+        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type: java.lang.String"
+        [ComponentMetadataDetails]                       | "Unsupported parameter type: ${ComponentMetadataDetails.name}"
     }
 
     def "produces sensible error when bad input type is declared for a targeted rule action" () {
@@ -179,11 +179,11 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         where:
         inputTypes                                       | message
-        [String]                                         | "Unsupported parameter type for component selection rule: java.lang.String"
-        [ComponentMetadata, String]                      | "Unsupported parameter type for component selection rule: java.lang.String"
-        [IvyModuleDescriptor, String]                    | "Unsupported parameter type for component selection rule: java.lang.String"
-        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type for component selection rule: java.lang.String"
-        [ComponentMetadataDetails]                       | "Unsupported parameter type for component selection rule: ${ComponentMetadataDetails.name}"
+        [String]                                         | "Unsupported parameter type: java.lang.String"
+        [ComponentMetadata, String]                      | "Unsupported parameter type: java.lang.String"
+        [IvyModuleDescriptor, String]                    | "Unsupported parameter type: java.lang.String"
+        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type: java.lang.String"
+        [ComponentMetadataDetails]                       | "Unsupported parameter type: ${ComponentMetadataDetails.name}"
     }
 
     def "produces sensible error when null module id is provided" () {

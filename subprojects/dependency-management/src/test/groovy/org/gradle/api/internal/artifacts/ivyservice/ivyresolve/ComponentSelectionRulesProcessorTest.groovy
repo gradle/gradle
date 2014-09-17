@@ -63,50 +63,96 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
         rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
         rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
-        targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 8 }
 
         and:
         apply(moduleAccess)
 
         then:
         !componentSelection.rejected
-        closureCalled == [0, 8, 1, 2, 3, 4, 5, 6, 7]
+        // rules without metadata should be executed first
+        closureCalled[0] == 0
+        // metadata rules get called second in indeterminate order
+        closureCalled[1..-1].sort() == 1..7
     }
 
-    def "short-circuits evaluate when rule rejects candidate" () {
-        def moduleAccess = Mock(Factory)
-        def closuresCalled = []
-
+    def "all non-rejecting targeted rules are evaluated" () {
+        def moduleAccess = Stub(Factory) {
+            create() >> {
+                return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
+            }
+        }
+        def closureCalled = []
         when:
-        rule { ComponentSelection cs -> closuresCalled << 0 }
-        rule { ComponentSelection cs -> cs.reject("rejecting") }
-        rule { ComponentSelection cs -> closuresCalled << 1 }
+        targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 0 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 3 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
 
         and:
         apply(moduleAccess)
 
         then:
-        componentSelection.rejected
-        componentSelection.rejectionReason == "rejecting"
-        closuresCalled == [0]
-
-        and:
-        0 * moduleAccess._
+        !componentSelection.rejected
+        // rules without metadata should be executed first
+        closureCalled[0] == 0
+        // metadata rules get called second in in-determinate order
+        closureCalled[1..-1].sort() == 1..7
     }
 
-    def "prefers non-metadata rules over rules requiring metadata"() {
+    def "can call both targeted and untargeted rules" () {
+        def moduleAccess = Stub(Factory) {
+            create() >> {
+                return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
+            }
+        }
+        def closureCalled = []
+        when:
+        rule { ComponentSelection cs -> closureCalled << 0 }
+        rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 3 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
+        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
+        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 6 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
+        targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 8 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 9 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 10 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closureCalled << 11 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 12 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 13 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetaData mvm -> closureCalled << 14 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 15 }
+
+        and:
+        apply(moduleAccess)
+
+        then:
+        !componentSelection.rejected
+        // rules without metadata should be executed first in in-determinate order
+        closureCalled[0..1].sort() == [0, 8]
+        // metadata rules get called second in in-determinate order
+        closureCalled[2..-1].sort() == [*1..7, *9..15]
+    }
+
+    def "short-circuit prefers non-metadata rules over rules requiring metadata"() {
         def moduleAccess = Mock(Factory)
         def closuresCalled = []
 
         when:
         rule { ComponentSelection cs -> closuresCalled << 0 }
-        targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 1 }
-        rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
-        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 3}
-        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 4}
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 5}
-        rule { ComponentSelection cs -> closuresCalled << 6 }
-        rule { ComponentSelection cs -> cs.reject("rejected") }
+        rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2 }
+        rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 3 }
+        rule { ComponentSelection cs -> closuresCalled << 4 }
+        rule { ComponentSelection cs ->
+            closuresCalled << 5
+            cs.reject("rejected")
+        }
 
         and:
         apply(moduleAccess)
@@ -116,7 +162,40 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         componentSelection.rejectionReason == "rejected"
 
         and:
-        closuresCalled == [0, 1, 6]
+        // None of the metadata rules get fired because a non-metadata rule rejected first
+        closuresCalled.intersect(1..3) == []
+        closuresCalled.contains(5)
+
+        and:
+        0 * moduleAccess._
+    }
+
+    def "short-circuit prefers non-metadata rules over rules requiring metadata for targeted rules"() {
+        def moduleAccess = Mock(Factory)
+        def closuresCalled = []
+
+        when:
+        targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 0 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2 }
+        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm -> closuresCalled << 3 }
+        targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 4 }
+        targetedRule("group", "module") { ComponentSelection cs ->
+            closuresCalled << 5
+            cs.reject("rejected")
+        }
+
+        and:
+        apply(moduleAccess)
+
+        then:
+        componentSelection.rejected
+        componentSelection.rejectionReason == "rejected"
+
+        and:
+        // None of the metadata rules get fired because a non-metadata rule rejected first
+        closuresCalled.intersect(1..3) == []
+        closuresCalled.contains(5)
 
         and:
         0 * moduleAccess._
@@ -134,7 +213,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
         then:
         !componentSelection.rejected
-        closuresCalled == [0, 1]
+        closuresCalled.sort() == [0, 1]
 
         and:
         0 * moduleAccess._
@@ -215,7 +294,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
         then:
         !componentSelection.rejected
-        closuresCalled == [0, 2, 4, 5, 6, 8, 9, 10]
+        closuresCalled.sort() == [0, 2, 4, 5, 6, 8, 9, 10]
     }
 
     def rule(Closure<?> closure) {

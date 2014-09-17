@@ -440,7 +440,7 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         where:
         parameters                           | message
         "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        "ComponentSelection vs, String s ->" | "Unsupported parameter type for component selection rule: java.lang.String"
+        "ComponentSelection vs, String s ->" | "Unsupported parameter type: java.lang.String"
     }
 
     def "produces sensible error when rule throws an exception" () {
@@ -617,6 +617,8 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
                             assert cs.candidate.group == "org.utils"
                             assert cs.candidate.module == "api"
                         }
+                        module("some.other:module") { ComponentSelection cs -> }
+                        module("some.other:module") { ComponentSelection cs, IvyModuleDescriptor descriptor, ComponentMetadata metadata -> }
                     }
                 }
             }
