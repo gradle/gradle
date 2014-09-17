@@ -192,8 +192,13 @@ ear {
 
     @Test
     void "works with existing descriptor containing a doctype declaration"() {
+        // We serve the DTD locally because the the parser actually pulls on this URL,
+        // and we don't want it reaching out to the Internet in our tests
+        def dtdResource = getClass().getResource("application_1_3.dtd")
+        assert dtdResource != null
+
         def applicationXml = """<?xml version="1.0"?>
-<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">
+<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "$dtdResource">
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
   <application-name>customear</application-name>
 </application>
