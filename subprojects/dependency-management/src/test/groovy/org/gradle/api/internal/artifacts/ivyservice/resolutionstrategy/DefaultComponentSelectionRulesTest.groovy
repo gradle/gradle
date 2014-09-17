@@ -196,10 +196,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def e = thrown(InvalidUserCodeException)
         e.message == "Could not add a component selection rule for module 'null'."
         def cause = e.cause
-        cause.message == """Cannot convert a null value to an object of type ModuleIdentifier.
-The following types/formats are supported:
-  - Instances of ModuleIdentifier.
-  - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
+        cause.message.startsWith("Cannot convert a null value to an object of type ModuleIdentifier.")
 
         where:
         id                     | closureOrActionOrRule
@@ -216,10 +213,7 @@ The following types/formats are supported:
         def e = thrown(InvalidUserCodeException)
         e.message == "Could not add a component selection rule for module '${id}'."
         def cause = e.cause
-        cause.message == """Cannot convert the provided notation to an object of type ModuleIdentifier: ${id}.
-The following types/formats are supported:
-  - Instances of ModuleIdentifier.
-  - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
+        cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: ${id}.")
 
         where:
         id                     | closureOrActionOrRule
@@ -242,10 +236,7 @@ The following types/formats are supported:
         def e = thrown(InvalidUserCodeException)
         e.message == "Could not add a component selection rule for module 'group:module${character}'."
         def cause = e.cause
-        cause.message == """Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.
-The following types/formats are supported:
-  - Instances of ModuleIdentifier.
-  - String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'."""
+        cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.")
 
         where:
         character  | closureOrActionOrRule

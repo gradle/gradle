@@ -672,6 +672,7 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasLineNumber(18)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
