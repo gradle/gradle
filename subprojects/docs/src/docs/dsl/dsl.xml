@@ -553,12 +553,6 @@
                 <td>org.gradle.nativeplatform.Flavor</td>
             </tr>
             <tr>
-                <td>org.gradle.nativeplatform.platform.Platform</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.toolchain.ToolChain</td>
-            </tr>
-            <tr>
                 <td>org.gradle.nativeplatform.toolchain.Gcc</td>
             </tr>
             <tr>
