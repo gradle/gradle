@@ -69,7 +69,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
-        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
@@ -178,4 +178,17 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
+    // returns the Extension Classloader needed to compile JavaFX programs
+    // or null on platforms where JavaFX must be explicitly added to the classpath.
+    private ClassLoader getExtClassLoader() {
+        try {
+            // javafx.application.Application is the most visible class available the ExtClassLoader
+            Class<?> jfxClass = Class.forName("javafx.application.Application");
+            return jfxClass.getClassLoader();
+        } catch (Exception ignored) {
+            // This can happen on Oracle JDK 7 and OpenJDK builds without OpenJFX
+            // In these cases jfxrt.jar must be added manually to the compile classpath
+        }
+        return null;
+    }
 }
