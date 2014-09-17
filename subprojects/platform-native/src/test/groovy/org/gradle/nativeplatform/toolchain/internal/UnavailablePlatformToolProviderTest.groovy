@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-class UnavailableNativePlatformToolProviderTest extends Specification {
+class UnavailablePlatformToolProviderTest extends Specification {
     def reason = new ToolChainAvailability().unavailable("broken")
     def toolChain = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), reason)
 

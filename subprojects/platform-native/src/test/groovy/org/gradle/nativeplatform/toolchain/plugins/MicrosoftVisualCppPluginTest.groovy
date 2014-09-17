@@ -17,13 +17,13 @@
 package org.gradle.nativeplatform.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.nativeplatform.toolchain.NativeToolChain
+import org.gradle.nativeplatform.toolchain.ToolChain
 import org.gradle.nativeplatform.toolchain.VisualCpp
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class MicrosoftVisualCppPluginTest extends NativeToolChainPluginTest {
+class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
@@ -33,7 +33,7 @@ class MicrosoftVisualCppPluginTest extends NativeToolChainPluginTest {
     }
 
     @Override
-    Class<? extends NativeToolChain> getToolchainClass() {
+    Class<? extends ToolChain> getToolchainClass() {
         VisualCpp
     }
 

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.platform.jvm.JvmPlatform;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.ToolChain;
 
 /**
  * A set of tools for building from Java source.
@@ -37,7 +36,7 @@ import org.gradle.platform.base.ToolChain;
  */
 @Incubating
 @HasInternalProtocol
-public interface JavaToolChain extends ToolChain {
+public interface JavaToolChain {
     String getDisplayName();
     JavaVersion getJavaVersion();
     void assertValidPlatform(JvmPlatform platform);

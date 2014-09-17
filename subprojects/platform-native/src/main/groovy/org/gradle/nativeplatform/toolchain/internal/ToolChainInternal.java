@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.platform.internal;
 
-import org.gradle.nativeplatform.platform.NativePlatform;
+package org.gradle.nativeplatform.toolchain.internal;
 
-public interface NativePlatformInternal extends NativePlatform {
-    ArchitectureInternal getArchitecture();
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.toolchain.ToolChain;
 
-    OperatingSystemInternal getOperatingSystem();
+public interface ToolChainInternal extends ToolChain {
+    /**
+     * Locates the tools that can target the given platform.
+     */
+    PlatformToolProvider select(PlatformInternal targetPlatform);
 
-    String getCompatibilityString();
+    /**
+     * Returns a unique identifier for the output produced by this toolchain on the current platform.
+     */
+    String getOutputType();
 }

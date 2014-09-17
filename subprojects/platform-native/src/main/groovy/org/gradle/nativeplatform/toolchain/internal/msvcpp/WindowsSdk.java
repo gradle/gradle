@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -75,11 +75,11 @@ public class WindowsSdk implements Named {
         return version;
     }
 
-    public File getResourceCompiler(NativePlatformInternal platform) {
+    public File getResourceCompiler(PlatformInternal platform) {
         return new File(getBinDir(platform), "rc.exe");
     }
 
-    public File getBinDir(NativePlatformInternal platform) {
+    public File getBinDir(PlatformInternal platform) {
         if (architecture(platform).isAmd64()) {
             return getAvailableFile(BINPATHS_AMD64);
         }
@@ -107,7 +107,7 @@ public class WindowsSdk implements Named {
         return includesSdk8;
     }
 
-    public File getLibDir(NativePlatformInternal platform) {
+    public File getLibDir(PlatformInternal platform) {
         if (architecture(platform).isAmd64()) {
             return getAvailableFile(LIBPATHS_AMD64);
         }
@@ -120,7 +120,7 @@ public class WindowsSdk implements Named {
         return getAvailableFile(LIBPATHS_X86);
     }
 
-    private ArchitectureInternal architecture(NativePlatformInternal platform) {
+    private ArchitectureInternal architecture(PlatformInternal platform) {
         return platform.getArchitecture();
     }
 

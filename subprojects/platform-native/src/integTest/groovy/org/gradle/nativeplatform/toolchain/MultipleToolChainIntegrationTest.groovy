@@ -26,7 +26,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @RequiresInstalledToolChain
-class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
+class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
     def helloWorld = new CppCompilerDetectingTestApp()
 
     def setup() {

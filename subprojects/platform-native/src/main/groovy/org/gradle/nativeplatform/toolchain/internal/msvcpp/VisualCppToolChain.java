@@ -25,8 +25,8 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
 import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
@@ -44,7 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements VisualCpp, NativeToolChainInternal {
+public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements VisualCpp, ToolChainInternal {
 
     private final String name;
     protected final OperatingSystem operatingSystem;
@@ -97,7 +97,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
-    public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
+    public PlatformToolProvider select(PlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
@@ -147,10 +147,10 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     }
 
     public static class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
-        private final NativePlatform platform;
+        private final Platform platform;
         private final Map<ToolType, CommandLineToolConfigurationInternal> tools;
 
-        public DefaultVisualCppPlatformToolChain(NativePlatform platform, Instantiator instantiator) {
+        public DefaultVisualCppPlatformToolChain(Platform platform, Instantiator instantiator) {
             this.platform = platform;
             tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
             tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.C_COMPILER));
@@ -185,7 +185,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             return tools.get(ToolType.STATIC_LIB_ARCHIVER);
         }
 
-        public NativePlatform getPlatform() {
+        public Platform getPlatform() {
             return platform;
         }
     }
@@ -194,9 +194,9 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
         private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
-        private final NativePlatformInternal targetPlatform;
+        private final PlatformInternal targetPlatform;
 
-        private VisualCppPlatformToolProvider(Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform) {
+        private VisualCppPlatformToolProvider(Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, PlatformInternal targetPlatform) {
             this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;

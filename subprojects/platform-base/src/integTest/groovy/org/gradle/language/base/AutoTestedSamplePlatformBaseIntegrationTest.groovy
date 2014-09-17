@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.language.base
 
-import org.gradle.api.Incubating;
+import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
+import org.junit.Test
 
-/**
- * Platform defines the variants a component can produce.
- *
- * Examples: the JvmPlatform may define a binary version to target,
- * while the NativePlatform may define architecture to target.
- */
-@Incubating
-public interface Platform {
+class AutoTestedSamplePlatformBaseIntegrationTest extends AbstractAutoTestedSamplesTest {
+    @Test
+    void runSamples() {
+        runSamplesFrom("subprojects/platform-base/src/main")
+    }
 }

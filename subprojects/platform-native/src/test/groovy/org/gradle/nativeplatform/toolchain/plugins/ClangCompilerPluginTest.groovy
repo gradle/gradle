@@ -17,11 +17,11 @@
 package org.gradle.nativeplatform.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.nativeplatform.toolchain.NativeToolChain
+import org.gradle.nativeplatform.toolchain.ToolChain
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain
 
-class ClangCompilerPluginTest extends NativeToolChainPluginTest {
+class ClangCompilerPluginTest extends ToolChainPluginTest {
 
     @Override
     Class<? extends Plugin> getPluginClass() {
@@ -29,7 +29,7 @@ class ClangCompilerPluginTest extends NativeToolChainPluginTest {
     }
 
     @Override
-    Class<? extends NativeToolChain> getToolchainClass() {
+    Class<? extends ToolChain> getToolchainClass() {
         Clang
     }
 

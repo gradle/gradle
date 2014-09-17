@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.nativeplatform.toolchain;
 
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
-public interface NativeToolChainInternal extends NativeToolChain {
+/**
+ * A set of compilers and linkers that are used together to construct a native binary.
+ */
+@Incubating
+@HasInternalProtocol
+public interface ToolChain extends Named {
     /**
-     * Locates the tools that can target the given platform.
+     * Returns a human consumable name for this tool chain.
+     *
+     * @since 1.11
      */
-    PlatformToolProvider select(NativePlatformInternal targetPlatform);
-
-    /**
-     * Returns a unique identifier for the output produced by this toolchain on the current platform.
-     */
-    String getOutputType();
+    String getDisplayName();
 }

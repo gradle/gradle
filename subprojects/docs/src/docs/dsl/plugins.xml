@@ -81,7 +81,13 @@
     <plugin id="jvm-component" description="JVM Component Model Plugin">
         <extends targetClass="org.gradle.api.Project" id="jvm" extensionClass="org.gradle.jvm.JvmComponentExtension"/>
     </plugin>
-    <plugin id="native-component" description="Native Component Model Plugin"></plugin>
+    <plugin id="native-component" description="Native Component Model Plugin">
+        <extends targetClass="org.gradle.api.Project" id="nativeRuntime" extensionClass="org.gradle.nativeplatform.NativeComponentExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativeplatform.toolchain.ToolChainRegistry"/>
+        <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativeplatform.BuildTypeContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativeplatform.platform.PlatformContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="flavors" extensionClass="org.gradle.nativeplatform.FlavorContainer"/>
+    </plugin>
     <plugin id="cpp" description="C++ Plugin">
         <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="cppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>

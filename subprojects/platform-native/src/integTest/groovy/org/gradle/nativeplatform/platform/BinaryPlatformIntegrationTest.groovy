@@ -31,7 +31,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
     def os = OperatingSystem.current()
 

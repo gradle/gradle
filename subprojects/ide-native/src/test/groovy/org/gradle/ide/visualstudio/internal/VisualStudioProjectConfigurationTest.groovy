@@ -29,7 +29,7 @@ import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.language.PreprocessingTool
-import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.platform.Platform
 import spock.lang.Specification
 
 class VisualStudioProjectConfigurationTest extends Specification {
@@ -39,7 +39,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)
-    def platform = Mock(NativePlatform)
+    def platform = Mock(Platform)
     def exeBinary = Mock(TestExecutableBinary) {
         getExtensions() >> extensions
         getFlavor() >> flavor

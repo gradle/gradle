@@ -19,9 +19,9 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.toolchain.ToolChain;
 import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
@@ -29,30 +29,30 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<NativeToolChain> implements ToolChainRegistryInternal {
-    private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
-    private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
+public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<ToolChain> implements ToolChainRegistryInternal {
+    private final Map<String, Class<? extends ToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends ToolChain>>();
+    private final List<ToolChainInternal> searchOrder = new ArrayList<ToolChainInternal>();
 
     public DefaultToolChainRegistry(Instantiator instantiator) {
-        super(NativeToolChain.class, instantiator);
-        whenObjectAdded(new Action<NativeToolChain>() {
-            public void execute(NativeToolChain toolChain) {
-                searchOrder.add((NativeToolChainInternal) toolChain);
+        super(ToolChain.class, instantiator);
+        whenObjectAdded(new Action<ToolChain>() {
+            public void execute(ToolChain toolChain) {
+                searchOrder.add((ToolChainInternal) toolChain);
             }
         });
-        whenObjectRemoved(new Action<NativeToolChain>() {
-            public void execute(NativeToolChain toolChain) {
+        whenObjectRemoved(new Action<ToolChain>() {
+            public void execute(ToolChain toolChain) {
                 searchOrder.remove(toolChain);
             }
         });
     }
 
     @Override
-    protected void handleAttemptToAddItemWithNonUniqueName(NativeToolChain toolChain) {
+    protected void handleAttemptToAddItemWithNonUniqueName(ToolChain toolChain) {
         throw new InvalidUserDataException(String.format("ToolChain with name '%s' added multiple times", toolChain.getName()));
     }
 
-    public void registerDefaultToolChain(String name, Class<? extends NativeToolChain> type) {
+    public void registerDefaultToolChain(String name, Class<? extends ToolChain> type) {
         registeredDefaults.put(name, type);
     }
 
@@ -62,8 +62,8 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
     }
 
-    public NativeToolChainInternal getForPlatform(NativePlatformInternal targetPlatform) {
-        for (NativeToolChainInternal toolChain : searchOrder) {
+    public ToolChainInternal getForPlatform(PlatformInternal targetPlatform) {
+        for (ToolChainInternal toolChain : searchOrder) {
             if (toolChain.select(targetPlatform).isAvailable()) {
                 return toolChain;
             }
@@ -71,18 +71,18 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
         // No tool chains can build for this platform. Assemble a description of why
         Map<String, PlatformToolProvider> candidates = new LinkedHashMap<String, PlatformToolProvider>();
-        for (NativeToolChainInternal toolChain : searchOrder) {
+        for (ToolChainInternal toolChain : searchOrder) {
             candidates.put(toolChain.getDisplayName(), toolChain.select(targetPlatform));
         }
 
-        return new UnavailableNativeToolChain(new UnavailableToolChainDescription(targetPlatform, candidates));
+        return new UnavailableToolChain(new UnavailableToolChainDescription(targetPlatform, candidates));
     }
 
     private static class UnavailableToolChainDescription implements ToolSearchResult {
-        private final NativePlatform targetPlatform;
+        private final Platform targetPlatform;
         private final Map<String, PlatformToolProvider> candidates;
 
-        private UnavailableToolChainDescription(NativePlatform targetPlatform, Map<String, PlatformToolProvider> candidates) {
+        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolProvider> candidates) {
             this.targetPlatform = targetPlatform;
             this.candidates = candidates;
         }
@@ -107,10 +107,10 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
     }
 
-    private static class UnavailableNativeToolChain implements NativeToolChainInternal {
+    private static class UnavailableToolChain implements ToolChainInternal {
         private final ToolSearchResult failure;
 
-        UnavailableNativeToolChain(ToolSearchResult failure) {
+        UnavailableToolChain(ToolSearchResult failure) {
             this.failure = failure;
         }
 
@@ -122,7 +122,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
-        public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
+        public PlatformToolProvider select(PlatformInternal targetPlatform) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
         }
 

@@ -18,14 +18,14 @@ package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.typeconversion.NotationParser;
 
-public class DefaultNativePlatform implements NativePlatformInternal {
+public class DefaultPlatform implements PlatformInternal {
     private final NotationParser<Object, ArchitectureInternal> archParser;
     private final NotationParser<Object, OperatingSystemInternal> osParser;
     private final String name;
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
 
-    public DefaultNativePlatform(String name, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
+    public DefaultPlatform(String name, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
         this.name = name;
         this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         this.operatingSystem = DefaultOperatingSystem.TOOL_CHAIN_DEFAULT;
@@ -33,7 +33,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this.osParser = osParser;
     }
 
-    public DefaultNativePlatform(String name) {
+    public DefaultPlatform(String name) {
         this(name, ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
     }
 

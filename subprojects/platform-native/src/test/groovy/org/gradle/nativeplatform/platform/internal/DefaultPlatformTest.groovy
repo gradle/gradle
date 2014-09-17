@@ -18,10 +18,10 @@ package org.gradle.nativeplatform.platform.internal
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
-class DefaultNativePlatformTest extends Specification {
+class DefaultPlatformTest extends Specification {
     def archParser = Mock(NotationParser)
     def osParser = Mock(NotationParser)
-    def platform = new DefaultNativePlatform("platform", archParser, osParser)
+    def platform = new DefaultPlatform("platform", archParser, osParser)
 
     def "has useful string representation"() {
         expect:

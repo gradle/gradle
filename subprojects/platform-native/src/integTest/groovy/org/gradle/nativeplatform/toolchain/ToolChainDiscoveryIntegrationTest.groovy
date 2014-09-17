@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 /**
  * Test that each available tool chain can be discovered and used without configuration, assuming it is in the path.
  */
-class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class ToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def helloWorldApp = new CppCompilerDetectingTestApp()
 
