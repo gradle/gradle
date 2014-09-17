@@ -41,6 +41,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
 
     // TODO - have to do much better here
     public static final String INVALID_STATEMENT = "illegal rule";
+    public static final String ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE = "Rules can only be specified using a closure literal";
 
     private final RuleVisitor ruleVisitor;
 
@@ -76,7 +77,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     public void visitMethodCallExpression(MethodCallExpression call) {
         ClosureExpression closureExpression = AstUtils.getSingleClosureArg(call);
         if (closureExpression == null) {
-            restrict(call);
+            restrict(call, ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE);
             return;
         }
 

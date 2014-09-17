@@ -334,7 +334,7 @@ One potential option will be to insert a fake statement as the first statement o
   - ~~Invalid model path given as argument (see validation in `ModelPath`)~~
 - Input binding failure
   - Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)
-- Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error
+- ~~Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error~~
 - ~~Non “transformed” closure given as model block (i.e. `def c = {}; model(c)`) produces error~~
 - ~~Success~~
   - ~~Existing inputs can be used~~

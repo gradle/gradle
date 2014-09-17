@@ -17,6 +17,9 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.model.dsl.internal.transform.RulesVisitor
+
+import static org.hamcrest.Matchers.containsString
 
 /**
  * Tests the fundamental usages of the model dsl.
@@ -200,6 +203,39 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printStrings"
         output.contains "a: " + ["foo", "a"]
         output.contains "b: " + ["foo", "b"]
+    }
+
+    def "only closure literals can be used as rules"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin<Project> {
+
+              void apply(Project project) {}
+
+              @RuleSource
+              static class Rules {
+                @Model
+                String foo() {
+                  "foo"
+                }
+              }
+            }
+
+            apply plugin: MyPlugin
+
+            def c = {};
+            model {
+                foo(c)
+            }
+        """
+
+        then:
+        fails "tasks"
+        failure.assertHasLineNumber 21
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(RulesVisitor.ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE))
     }
 
 }
