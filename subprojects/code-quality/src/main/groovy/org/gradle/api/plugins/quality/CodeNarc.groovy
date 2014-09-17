@@ -17,12 +17,14 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 
@@ -84,10 +86,16 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    ClassPathRegistry getClassPathRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
-        antBuilder.withClasspath(getCodenarcClasspath()).execute {
+        def classpath = new DefaultClassPath(getCodenarcClasspath()).plus(getClassPathRegistry().getClassPath("GROOVY"))
+        antBuilder.withClasspath(classpath.asFiles).execute {
             ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
             try {
                 ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: getMaxPriority1Violations(), maxPriority2Violations: getMaxPriority2Violations(), maxPriority3Violations: getMaxPriority3Violations()) {
