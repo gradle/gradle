@@ -20,11 +20,13 @@ import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
@@ -77,7 +79,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
         ModuleVersionSelector requested = dependency.getRequested();
-        List<RuleAction<? super ComponentSelection>> rules = buildRulesForSelector(requested);
+        List<SpecRuleAction<? super ComponentSelection>> rules = buildRulesForSelector(requested);
 
         for (Versioned candidate : sortLatestFirst(versions)) {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
@@ -91,12 +93,12 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return null;
     }
 
-    private List<RuleAction<? super ComponentSelection>> buildRulesForSelector(ModuleVersionSelector requested) {
-        List<RuleAction<? super ComponentSelection>> rules = Lists.newArrayList();
+    private List<SpecRuleAction<? super ComponentSelection>> buildRulesForSelector(ModuleVersionSelector requested) {
+        List<SpecRuleAction<? super ComponentSelection>> rules = Lists.newArrayList();
         if (versionMatcher.needModuleMetadata(requested.getVersion())) {
-            rules.add(new MetadataVersionMatchingRule(requested.getVersion()));
+            rules.add(createAllSpecRulesAction(new MetadataVersionMatchingRule(requested.getVersion())));
         } else {
-            rules.add(new SimpleVersionMatchingRule(requested.getVersion()));
+            rules.add(createAllSpecRulesAction(new SimpleVersionMatchingRule(requested.getVersion())));
         }
         rules.addAll(componentSelectionRules.getRules());
         return rules;
@@ -106,7 +108,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), metaDataSupplier);
     }
 
-    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<RuleAction<? super ComponentSelection>> rules, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
+    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
         rulesProcessor.apply(selection, rules, metaDataSupplier);
         return selection.isRejected();
@@ -116,6 +118,10 @@ class NewestVersionComponentChooser implements ComponentChooser {
         List<Versioned> sorted = latestStrategy.sort(listing.getVersions());
         Collections.reverse(sorted);
         return sorted;
+    }
+
+    private SpecRuleAction<? super ComponentSelection> createAllSpecRulesAction(RuleAction<? super ComponentSelection> ruleAction) {
+        return new SpecRuleAction<ComponentSelection>(ruleAction, Specs.<ComponentSelection>satisfyAll());
     }
 
     private static class MetaDataSupplier implements Factory<MutableModuleComponentResolveMetaData> {

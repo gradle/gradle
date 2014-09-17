@@ -24,11 +24,12 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.ClosureBackedRuleAction
-import org.gradle.api.internal.DelegatingTargetedRuleAction
+import org.gradle.api.internal.SpecRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
+import org.gradle.api.specs.Specs
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
@@ -218,13 +219,16 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def rule(Closure<?> closure) {
-        rules << new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure)
+        rules << new SpecRuleAction<ComponentSelection>(
+                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
+                Specs.<ComponentSelection>satisfyAll()
+        )
     }
 
     def targetedRule(String group, String module, Closure<?> closure) {
-        rules << new DelegatingTargetedRuleAction(
-                new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, module)),
-                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure)
+        rules << new SpecRuleAction<ComponentSelection>(
+                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
+                new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, module))
         )
     }
 

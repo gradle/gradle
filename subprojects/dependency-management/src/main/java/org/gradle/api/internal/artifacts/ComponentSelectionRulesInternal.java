@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.RuleAction;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
+import org.gradle.api.internal.SpecRuleAction;
 
 import java.util.Collection;
 
 public interface ComponentSelectionRulesInternal extends ComponentSelectionRules {
-    Collection<RuleAction<? super ComponentSelection>> getRules();
+    Collection<SpecRuleAction<? super ComponentSelection>> getRules();
 }

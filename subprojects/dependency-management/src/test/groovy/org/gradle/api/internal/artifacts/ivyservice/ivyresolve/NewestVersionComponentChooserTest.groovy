@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.ClosureBackedRuleAction
+import org.gradle.api.internal.SpecRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
@@ -326,7 +328,10 @@ class NewestVersionComponentChooserTest extends Specification {
 
     def rules(Closure closure) {
         return [
-            new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure)
+            new SpecRuleAction<ComponentSelection>(
+                    new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
+                    Specs.<ComponentSelection>satisfyAll()
+            )
         ]
     }
 }

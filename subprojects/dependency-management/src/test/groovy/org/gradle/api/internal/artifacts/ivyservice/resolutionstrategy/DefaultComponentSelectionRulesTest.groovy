@@ -20,7 +20,6 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.NoInputsRuleAction
@@ -54,15 +53,14 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module("group:module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> }
 
         then:
-        rules.rules[0].inputTypes == []
-        rules.rules[1].inputTypes == [ComponentMetadata]
-        rules.rules[2].inputTypes == [IvyModuleDescriptor]
-        rules.rules[3].inputTypes == [IvyModuleDescriptor, ComponentMetadata]
-
-        rules.rules[4].ruleAction.inputTypes == []
-        rules.rules[5].ruleAction.inputTypes == [ComponentMetadata]
-        rules.rules[6].ruleAction.inputTypes == [IvyModuleDescriptor]
-        rules.rules[7].ruleAction.inputTypes == [IvyModuleDescriptor, ComponentMetadata]
+        rules.rules[0].action.inputTypes == []
+        rules.rules[1].action.inputTypes == [ComponentMetadata]
+        rules.rules[2].action.inputTypes == [IvyModuleDescriptor]
+        rules.rules[3].action.inputTypes == [IvyModuleDescriptor, ComponentMetadata]
+        rules.rules[4].action.inputTypes == []
+        rules.rules[5].action.inputTypes == [ComponentMetadata]
+        rules.rules[6].action.inputTypes == [IvyModuleDescriptor]
+        rules.rules[7].action.inputTypes == [IvyModuleDescriptor, ComponentMetadata]
     }
 
     def "can add metadata rules via api"() {
@@ -73,8 +71,8 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module("group:module", metadataRule)
 
         then:
-        rules.rules[0] == metadataRule
-        rules.rules[1].ruleAction == metadataRule
+        rules.rules[0].action == metadataRule
+        rules.rules[1].action == metadataRule
         rules.rules[1].spec.target == DefaultModuleIdentifier.newId("group", "module")
     }
 
@@ -86,12 +84,12 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module("group:module", action)
 
         then:
-        def ruleAction = rules.rules[0]
+        def ruleAction = rules.rules[0].action
         ruleAction.inputTypes == []
         ruleAction instanceof NoInputsRuleAction
         ruleAction.action == action
 
-        def targetRuleAction = rules.rules[1].ruleAction
+        def targetRuleAction = rules.rules[1].action
         targetRuleAction.inputTypes == []
         targetRuleAction instanceof NoInputsRuleAction
         targetRuleAction.action == action

@@ -14,16 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.internal;
 
+import org.gradle.api.RuleAction;
 import org.gradle.api.specs.Spec;
 
 /**
- * A RuleAction that is filtered or targeted in some way, using the subject of the action
- * to determine the satisfaction of the Spec.
- *
- * @param <T> the type to be used as the subject of the RuleAction and the
+ * Represents a tuple containing a Spec and a RuleAction
  */
-public interface TargetedRuleAction<T> extends Spec<T>, RuleAction<T> {
+public class SpecRuleAction<T> {
+    final RuleAction<? super T> action;
+    final Spec<? super T> spec;
 
+    public SpecRuleAction(RuleAction<? super T> action, Spec<? super T> spec) {
+        this.action = action;
+        this.spec = spec;
+    }
+
+    public RuleAction<? super T> getAction() {
+        return action;
+    }
+
+    public Spec<? super T> getSpec() {
+        return spec;
+    }
 }

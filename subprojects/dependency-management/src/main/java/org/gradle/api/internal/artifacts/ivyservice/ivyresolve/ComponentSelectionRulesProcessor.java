@@ -18,11 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.RuleAction;
-import org.gradle.api.TargetedRuleAction;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.internal.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
@@ -40,16 +39,16 @@ public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
     private static final String USER_CODE_ERROR = "Could not apply component selection rule with all().";
 
-    public void apply(ComponentSelection selection, Collection<RuleAction<? super ComponentSelection>> rules, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
+    public void apply(ComponentSelection selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
         MetadataProvider metadataProvider = new MetadataProvider(metaDataSupplier);
 
-        List<RuleAction<? super ComponentSelection>> noInputRules = Lists.newArrayList();
-        List<RuleAction<? super ComponentSelection>> inputRules = Lists.newArrayList();
-        for (RuleAction<? super ComponentSelection> rule : rules) {
-            if (rule.getInputTypes().isEmpty()) {
-                noInputRules.add(rule);
+        List<SpecRuleAction<? super ComponentSelection>> noInputRules = Lists.newArrayList();
+        List<SpecRuleAction<? super ComponentSelection>> inputRules = Lists.newArrayList();
+        for (SpecRuleAction<? super ComponentSelection> specRuleAction : specRuleActions) {
+            if (specRuleAction.getAction().getInputTypes().isEmpty()) {
+                noInputRules.add(specRuleAction);
             } else {
-                inputRules.add(rule);
+                inputRules.add(specRuleAction);
             }
         }
 
@@ -58,8 +57,8 @@ public class ComponentSelectionRulesProcessor {
         }
     }
 
-    private boolean processRules(List<RuleAction<? super ComponentSelection>> rules, ComponentSelection selection, MetadataProvider metadataProvider) {
-        for (RuleAction<? super ComponentSelection> rule : rules) {
+    private boolean processRules(List<SpecRuleAction<? super ComponentSelection>> specRuleActions, ComponentSelection selection, MetadataProvider metadataProvider) {
+        for (SpecRuleAction<? super ComponentSelection> rule : specRuleActions) {
             processRule(selection, metadataProvider, rule);
 
             if (((ComponentSelectionInternal) selection).isRejected()) {
@@ -70,14 +69,13 @@ public class ComponentSelectionRulesProcessor {
         return true;
     }
 
-    private void processRule(ComponentSelection selection, MetadataProvider metadataProvider, RuleAction<? super ComponentSelection> rule) {
-        if (rule instanceof TargetedRuleAction
-                && !((TargetedRuleAction<? super ComponentSelection>)rule).isSatisfiedBy(selection)) {
-                return;
+    private void processRule(ComponentSelection selection, MetadataProvider metadataProvider, SpecRuleAction<? super ComponentSelection> specRuleAction) {
+        if (!specRuleAction.getSpec().isSatisfiedBy(selection)) {
+            return;
         }
 
         List<Object> inputs = Lists.newArrayList();
-        for (Class<?> inputType : rule.getInputTypes()) {
+        for (Class<?> inputType : specRuleAction.getAction().getInputTypes()) {
             if (inputType == ModuleComponentResolveMetaData.class) {
                 inputs.add(metadataProvider.getMetaData());
                 continue;
@@ -100,7 +98,7 @@ public class ComponentSelectionRulesProcessor {
         }
 
         try {
-            rule.execute(selection, inputs);
+            specRuleAction.getAction().execute(selection, inputs);
         } catch (Exception e) {
             throw new InvalidUserCodeException(USER_CODE_ERROR, e);
         }

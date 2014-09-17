@@ -26,11 +26,12 @@ import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.ClosureBackedRuleAction;
-import org.gradle.api.internal.DelegatingTargetedRuleAction;
 import org.gradle.api.internal.NoInputsRuleAction;
+import org.gradle.api.internal.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
-    final Set<RuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
+    final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
     private final static List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
@@ -48,42 +49,42 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
 
-    public Collection<RuleAction<? super ComponentSelection>> getRules() {
+    public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
         return rules;
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
-        addRule(new NoInputsRuleAction<ComponentSelection>(selectionAction));
+        addRule(createAllSpecRulesAction(new NoInputsRuleAction<ComponentSelection>(selectionAction)));
         return this;
     }
 
     public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction) {
-        addRule(validateInputTypes(ruleAction));
+        addRule(createAllSpecRulesAction(validateInputTypes(ruleAction)));
         return this;
     }
 
     public ComponentSelectionRules all(Closure<?> closure) {
-        addRule(createRuleActionFromClosure(closure));
+        addRule(createAllSpecRulesAction(createRuleActionFromClosure(closure)));
         return this;
     }
 
     public ComponentSelectionRules module(String id, Action<? super ComponentSelection> selectionAction) {
-        addRule(createTargetedRuleActionFromId(id, new NoInputsRuleAction<ComponentSelection>(selectionAction)));
+        addRule(createSpecRuleActionFromId(id, new NoInputsRuleAction<ComponentSelection>(selectionAction)));
         return this;
     }
 
     public ComponentSelectionRules module(String id, RuleAction<? super ComponentSelection> ruleAction) {
-        addRule(createTargetedRuleActionFromId(id, validateInputTypes(ruleAction)));
+        addRule(createSpecRuleActionFromId(id, validateInputTypes(ruleAction)));
         return this;
     }
 
     public ComponentSelectionRules module(String id, Closure<?> closure) {
-        addRule(createTargetedRuleActionFromId(id, createRuleActionFromClosure(closure)));
+        addRule(createSpecRuleActionFromId(id, createRuleActionFromClosure(closure)));
         return this;
     }
 
-    private void addRule(RuleAction<? super ComponentSelection> ruleAction) {
-        rules.add(ruleAction);
+    private void addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
+        rules.add(specRuleAction);
     }
 
     private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
@@ -103,7 +104,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return ruleAction;
     }
 
-    private RuleAction<? super ComponentSelection> createTargetedRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
+    private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
         final NotationParser<Object, ModuleIdentifier> parser = NotationParserBuilder
                 .toType(ModuleIdentifier.class)
                 .parser(new ModuleIdentiferNotationParser())
@@ -117,7 +118,11 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         }
 
         Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(moduleIdentifier);
-        return new DelegatingTargetedRuleAction<ComponentSelection>(spec, ruleAction);
+        return new SpecRuleAction<ComponentSelection>(ruleAction, spec);
+    }
+
+    private SpecRuleAction<? super ComponentSelection> createAllSpecRulesAction(RuleAction<? super ComponentSelection> ruleAction) {
+        return new SpecRuleAction<ComponentSelection>(ruleAction, Specs.<ComponentSelection>satisfyAll());
     }
 
     static class ComponentSelectionMatchingSpec implements Spec<ComponentSelection> {
