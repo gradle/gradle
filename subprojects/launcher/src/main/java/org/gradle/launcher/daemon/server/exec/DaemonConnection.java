@@ -29,7 +29,7 @@ public interface DaemonConnection extends Stoppable {
     /**
      * Registers a handler for incoming client stdin. The handler is notified from at most one thread at a time.
      *
-     * The following events trigger and end of input:
+     * The following events trigger an end of input:
      * <ul>
      * <li>A {@link org.gradle.launcher.daemon.protocol.CloseInput} event received from the client.</li>
      * <li>When the client connection disconnects unexpectedly.</li>
@@ -55,6 +55,20 @@ public interface DaemonConnection extends Stoppable {
      * @param handler the handler. Use null to remove the current handler.
      */
     void onDisconnect(@Nullable Runnable handler);
+
+    /**
+     * Registers a handler for when this connection receives cancel command. The handler is notified at most once.
+     *
+     * The handler is not notified after any of the following occurs:
+     * <ul>
+     * <li>When the connection is closed using {@link #stop()}.</li>
+     * </ul>
+     *
+     * Note: the handler may be run from another thread before this method returns.
+     *
+     * @param handler the handler. Use null to remove the current handler.
+     */
+    void onCancel(@Nullable Runnable handler);
 
     /**
      * Dispatches a daemon unavailable message to the client.

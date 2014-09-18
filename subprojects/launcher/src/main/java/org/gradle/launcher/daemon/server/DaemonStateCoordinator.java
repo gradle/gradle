@@ -16,15 +16,14 @@
 
 package org.gradle.launcher.daemon.server;
 
-import com.google.common.base.Objects;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
-import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -43,15 +42,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
-    private static class ScopedBuildCancellationToken {
-        final Object cancellationId;
-        final DefaultBuildCancellationToken token;
-
-        public ScopedBuildCancellationToken(Object cancellationId, DefaultBuildCancellationToken token) {
-            this.cancellationId = cancellationId;
-            this.token = token;
-        }
-    }
     private enum State {Running, StopRequested, Stopped, Broken}
 
     private final Lock lock = new ReentrantLock();
@@ -61,7 +51,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private State state = State.Running;
     private long lastActivityAt = -1;
     private String currentCommandExecution;
-    private volatile ScopedBuildCancellationToken cancellationToken;
+    private volatile DefaultBuildCancellationToken cancellationToken;
 
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
@@ -76,7 +66,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         this.onFinishCommand = onFinishCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
         updateActivityTimestamp();
-        cancellationToken = new ScopedBuildCancellationToken(new Object(), new DefaultBuildCancellationToken());
+        cancellationToken = new DefaultBuildCancellationToken();
     }
 
     private void setState(State state) {
@@ -198,24 +188,19 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public BuildCancellationToken updateCancellationToken(Object cancellationTokenId) {
-        // TODO under lock?
-        DefaultBuildCancellationToken token = new DefaultBuildCancellationToken();
-        cancellationToken = new ScopedBuildCancellationToken(cancellationTokenId, token);
-        return token;
+    public BuildCancellationToken getCancellationToken() {
+        return cancellationToken;
     }
 
-    public void cancelBuild(Object cancellationTokenId) {
-        ScopedBuildCancellationToken currentToken = cancellationToken;
-        if (!Objects.equal(currentToken.cancellationId, cancellationTokenId)
-                && !Objects.equal(currentToken.cancellationId.toString(), cancellationTokenId)) {
-            LOGGER.info("Cancel request does not match current build ({}). Ignoring", currentToken.cancellationId);
-            return;
-        }
+    private void updateCancellationToken() {
+        cancellationToken = new DefaultBuildCancellationToken();
+    }
+
+    public void cancelBuild() {
         long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
-            currentToken.token.doCancel();
+            cancellationToken.doCancel();
         } catch (Exception ex) {
             LOGGER.error("Cancel processing failed. Will continue.", ex);
         }
@@ -282,6 +267,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 currentCommandExecution = commandDisplayName;
                 this.onDisconnect = onDisconnect;
                 updateActivityTimestamp();
+                updateCancellationToken();
                 condition.signalAll();
             } catch (Throwable throwable) {
                 setState(State.Broken);

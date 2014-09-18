@@ -38,20 +38,17 @@ public interface DaemonStateControl {
     /**
      * Communicates a request for build cancellation.
      *
-     * <p>If any long running command is currently runnning. and the daemon this method does block for certain time to give chance to perform cancellation, and if the command
+     * <p>If any long running command is currently running, this method does block for certain time to give chance to perform cancellation, and if the command
      * doesn't finnish in a timely manner a request for forceful stop will be issued ({@link #requestForcefulStop()}.</p>
-     *
-     * @param cancellationTokenId value describing build that should be cancelled
      */
-    void cancelBuild(Object cancellationTokenId);
+    void cancelBuild();
 
     /**
      * Returns a cancellation token used to communicate cancel requests to commands processed in this daemon.
      *
-     * @param cancellationTokenId value describing currently running build to associate cancel request with its build
-     * @return Cancellation token associated with currently running command or an arbitrary instance if no command is running.
+     * @return Created cancellation token associated with currently running command or an arbitrary instance if no command is running.
      */
-    BuildCancellationToken updateCancellationToken(Object cancellationTokenId);
+    BuildCancellationToken getCancellationToken();
 
     /**
      * Runs the given long running command. No more than 1 command may be running at any given time.

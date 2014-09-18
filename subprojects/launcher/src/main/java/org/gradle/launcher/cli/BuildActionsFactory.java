@@ -54,7 +54,6 @@ class BuildActionsFactory implements CommandLineAction {
 
     private static final String FOREGROUND = "foreground";
     private static final String STOP = "stop";
-    private static final String CANCEL = "cancel";
 
     private final ServiceRegistry loggingServices;
     private final LayoutCommandLineConverter layoutConverter;
@@ -100,7 +99,6 @@ class BuildActionsFactory implements CommandLineAction {
 
         parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").incubating();
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
-        parser.option(CANCEL).hasArgument().hasDescription("Cancels the build in Gradle daemon if it is running.").incubating();
     }
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
@@ -122,9 +120,6 @@ class BuildActionsFactory implements CommandLineAction {
         if (commandLine.hasOption(STOP)) {
             return stopAllDaemons(daemonParameters, loggingServices);
         }
-        if (commandLine.hasOption(CANCEL)) {
-            return cancelDaemonBuild(daemonParameters, loggingServices, commandLine.option(CANCEL).getValue());
-        }
         if (commandLine.hasOption(FOREGROUND)) {
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                     daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
@@ -143,12 +138,6 @@ class BuildActionsFactory implements CommandLineAction {
         DaemonClientServices clientServices = new StopDaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient stopClient = clientServices.get(DaemonClient.class);
         return new StopDaemonAction(stopClient);
-    }
-
-    private Runnable cancelDaemonBuild(DaemonParameters daemonParameters, ServiceRegistry loggingServices, String cancelledBuildId) {
-        DaemonClientServices clientServices = new StopDaemonClientServices(loggingServices, daemonParameters, System.in);
-        DaemonClient stopClient = clientServices.get(DaemonClient.class);
-        return new CancelDaemonAction(stopClient, cancelledBuildId);
     }
 
     private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {

@@ -43,12 +43,14 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private final StoppableExecutor executor;
     private final StdinQueue stdinQueue;
     private final DisconnectQueue disconnectQueue;
+    private final CancelQueue cancelQueue;
     private final ReceiveQueue receiveQueue;
 
     public DefaultDaemonConnection(final Connection<Object> connection, ExecutorFactory executorFactory) {
         this.connection = connection;
         stdinQueue = new StdinQueue(executorFactory);
         disconnectQueue = new DisconnectQueue();
+        cancelQueue = new CancelQueue(executorFactory);
         receiveQueue = new ReceiveQueue();
         executor = executorFactory.create("Handler for " + connection.toString());
         executor.execute(new Runnable() {
@@ -69,16 +71,20 @@ public class DefaultDaemonConnection implements DaemonConnection {
                             return;
                         }
 
-                        if (!(message instanceof IoCommand)) {
-                            LOGGER.debug("Received non-IO message from client: {}", message);
-                            receiveQueue.add(message);
-                        } else {
+                        if (message instanceof IoCommand) {
                             LOGGER.debug("Received IO message from client: {}", message);
                             stdinQueue.add((IoCommand) message);
+                        } else if (message instanceof Cancel) {
+                            LOGGER.debug("Received cancel message from client: {}", message);
+                            cancelQueue.add((Cancel) message);
+                        } else {
+                            LOGGER.debug("Received non-IO message from client: {}", message);
+                            receiveQueue.add(message);
                         }
                     }
                 } finally {
                     stdinQueue.disconnect();
+                    cancelQueue.disconnect();
                     disconnectQueue.disconnect();
                     receiveQueue.disconnect(failure);
                 }
@@ -92,6 +98,10 @@ public class DefaultDaemonConnection implements DaemonConnection {
 
     public void onDisconnect(Runnable handler) {
         disconnectQueue.useHandler(handler);
+    }
+
+    public void onCancel(Runnable handler) {
+        cancelQueue.useHandler(handler);
     }
 
     public Object receive(long timeoutValue, TimeUnit timeoutUnits) {
@@ -120,19 +130,21 @@ public class DefaultDaemonConnection implements DaemonConnection {
         // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin and receive queues to signal end of input.
         // 4. Stop the receive queue, to unblock any threads blocked in receive().
         // 5. Stop handling stdin. Blocks until the handler has finished. Discards any queued input.
-        CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue).stop();
+        CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue).stop();
     }
 
-    private static class StdinQueue implements Stoppable {
+    private static abstract class CommandQueue<C extends Command, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
-        private final LinkedList<IoCommand> stdin = new LinkedList<IoCommand>();
+        protected final LinkedList<C> queue = new LinkedList<C>();
+        private final String name;
         private StoppableExecutor executor;
         private boolean removed;
         private final ExecutorFactory executorFactory;
 
-        private StdinQueue(ExecutorFactory executorFactory) {
+        private CommandQueue(ExecutorFactory executorFactory, String name) {
             this.executorFactory = executorFactory;
+            this.name = name;
         }
 
         public void stop() {
@@ -148,17 +160,17 @@ public class DefaultDaemonConnection implements DaemonConnection {
             }
         }
 
-        public void add(IoCommand command) {
+        public void add(C command) {
             lock.lock();
             try {
-                stdin.add(command);
+                queue.add(command);
                 condition.signalAll();
             } finally {
                 lock.unlock();
             }
         }
 
-        public void useHandler(final StdinHandler handler) {
+        public void useHandler(final H handler) {
             if (handler != null) {
                 startConsuming(handler);
             } else {
@@ -166,11 +178,11 @@ public class DefaultDaemonConnection implements DaemonConnection {
             }
         }
 
-        private void stopConsuming() {
+        protected void stopConsuming() {
             StoppableExecutor executor;
             lock.lock();
             try {
-                stdin.clear();
+                queue.clear();
                 removed = true;
                 condition.signalAll();
                 executor = this.executor;
@@ -182,20 +194,20 @@ public class DefaultDaemonConnection implements DaemonConnection {
             }
         }
 
-        private void startConsuming(final StdinHandler handler) {
+        protected void startConsuming(final H handler) {
             lock.lock();
             try {
                 if (executor != null) {
-                    throw new UnsupportedOperationException("Multiple stdin handlers not supported.");
+                    throw new UnsupportedOperationException("More instances of " + name + " not supported.");
                 }
-                executor = executorFactory.create("Stdin handler");
+                executor = executorFactory.create(name);
                 executor.execute(new Runnable() {
                     public void run() {
                         while (true) {
-                            IoCommand command;
+                            C command;
                             lock.lock();
                             try {
-                                while (!removed && stdin.isEmpty()) {
+                                while (!removed && queue.isEmpty()) {
                                     try {
                                         condition.await();
                                     } catch (InterruptedException e) {
@@ -205,19 +217,11 @@ public class DefaultDaemonConnection implements DaemonConnection {
                                 if (removed) {
                                     return;
                                 }
-                                command = stdin.removeFirst();
+                                command = queue.removeFirst();
                             } finally {
                                 lock.unlock();
                             }
-                            try {
-                                if (command instanceof CloseInput) {
-                                    handler.onEndOfInput();
-                                    return;
-                                } else {
-                                    handler.onInput((ForwardInput) command);
-                                }
-                            } catch (Exception e) {
-                                LOGGER.warn("Could not forward client stdin.", e);
+                            if (doHandleCommand(handler, command)) {
                                 return;
                             }
                         }
@@ -228,15 +232,69 @@ public class DefaultDaemonConnection implements DaemonConnection {
             }
         }
 
+        /** @return true if the queue should stop processing. */
+        protected abstract boolean doHandleCommand(final H handler, C command);
+        // Called under lock
+        protected abstract void doHandleDisconnect();
+
         public void disconnect() {
             lock.lock();
             try {
-                stdin.clear();
-                stdin.add(new CloseInput("<disconnected>"));
+                doHandleDisconnect();
                 condition.signalAll();
             } finally {
                 lock.unlock();
             }
+        }
+    }
+
+    private static class StdinQueue extends CommandQueue<IoCommand, StdinHandler> {
+
+        private StdinQueue(ExecutorFactory executorFactory) {
+            super(executorFactory, "Stdin handler");
+        }
+
+        protected boolean doHandleCommand(final StdinHandler handler, IoCommand command) {
+            try {
+                if (command instanceof CloseInput) {
+                    handler.onEndOfInput();
+                    return true;
+                } else {
+                    handler.onInput((ForwardInput) command);
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Could not forward client stdin.", e);
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        protected void doHandleDisconnect() {
+            queue.clear();
+            queue.add(new CloseInput("<disconnected>"));
+        }
+    }
+
+    private static class CancelQueue extends CommandQueue<Cancel, Runnable> {
+
+        private CancelQueue(ExecutorFactory executorFactory) {
+            super(executorFactory, "Cancel handler");
+        }
+
+        @Override
+        protected boolean doHandleCommand(Runnable handler, Cancel command) {
+            try {
+                handler.run();
+            } catch (Exception e) {
+                LOGGER.warn("Could not process cancel request from client.", e);
+            }
+            return true;
+        }
+
+        @Override
+        protected void doHandleDisconnect() {
+            queue.clear();
         }
     }
 

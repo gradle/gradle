@@ -95,15 +95,6 @@ class BuildActionsFactoryTest extends Specification {
         action instanceof StopDaemonAction
     }
 
-    def "cancels daemon build"() {
-        when:
-        def action = convert('--cancel=12')
-
-        then:
-        action instanceof CancelDaemonAction
-        ((CancelDaemonAction) action).cancelledBuildId == '12'
-    }
-
     def "runs daemon in foreground"() {
         when:
         def action = convert('--foreground')

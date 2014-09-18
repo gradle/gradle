@@ -51,6 +51,6 @@ public class SingleUseDaemonClient extends DaemonClient {
 
         DaemonClientConnection daemonConnection = getConnector().startDaemon(ExplainingSpecs.<DaemonContext>satisfyAll());
 
-        return (T) executeBuild(build, daemonConnection, null);
+        return (T) executeBuild(build, daemonConnection, cancellationToken);
     }
 }

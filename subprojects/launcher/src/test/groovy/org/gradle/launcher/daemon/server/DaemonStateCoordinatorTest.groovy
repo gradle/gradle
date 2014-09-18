@@ -471,7 +471,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
     def "cancelBuild when running command completes in short time"() {
         Runnable command = Mock()
-        Object buildId = Mock()
         CountDownLatch beforeStopRequest = new CountDownLatch(1)
 
         expect:
@@ -483,7 +482,7 @@ class DaemonStateCoordinatorTest extends Specification {
         }
         concurrent.start {
             beforeStopRequest.await()
-            coordinator.cancelBuild(buildId)
+            coordinator.cancelBuild()
         }
         concurrent.finished()
 
@@ -494,9 +493,8 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * onStartCommand.run()
         1 * command.run() >> {
             assert !coordinator.stopped
-            coordinator.updateCancellationToken(buildId)
             beforeStopRequest.countDown()
-            concurrent.poll { assert coordinator.cancellationToken.token.isCancellationRequested() }
+            concurrent.poll { assert coordinator.cancellationToken.isCancellationRequested() }
         }
         1 * onFinishCommand.run()
         0 * _._ // no onDisconnect()!
@@ -504,7 +502,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
     def "cancelBuild when running command completes in short time and cancel callback fails"() {
         Runnable command = Mock()
-        Object buildId = Mock()
         CountDownLatch beforeStopRequest = new CountDownLatch(1)
 
         expect:
@@ -516,7 +513,7 @@ class DaemonStateCoordinatorTest extends Specification {
         }
         concurrent.start {
             beforeStopRequest.await()
-            coordinator.cancelBuild(buildId)
+            coordinator.cancelBuild()
         }
         concurrent.finished()
 
@@ -527,18 +524,16 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * onStartCommand.run()
         1 * command.run() >> {
             assert !coordinator.stopped
-            def token = coordinator.updateCancellationToken(buildId)
-            token.addCallback { throw new RuntimeException('failing cancel callback') }
+            coordinator.cancellationToken.addCallback { throw new RuntimeException('failing cancel callback') }
             beforeStopRequest.countDown()
-            concurrent.poll { assert coordinator.cancellationToken.token.isCancellationRequested() }
+            concurrent.poll { assert coordinator.cancellationToken.isCancellationRequested() }
         }
         1 * onFinishCommand.run()
-        0 * _._ // no onDisconnect()!
+        0 * _._ // no onDisconnect()
     }
 
     def "requestFullStop when running command does not complete in short time"() {
         Runnable command = Mock()
-        Object buildId = Mock()
         CountDownLatch beforeStopRequest = new CountDownLatch(1)
         CountDownLatch afterStopRequest = new CountDownLatch(1)
         def onForcedDisconnect = new DisconnectHandler()
@@ -554,7 +549,7 @@ class DaemonStateCoordinatorTest extends Specification {
         concurrent.start {
             beforeStopRequest.await()
             println 'before requestForcefulStop'
-            coordinator.cancelBuild(buildId)
+            coordinator.cancelBuild()
             assert coordinator.stoppingOrStopped
             assert coordinator.stopped
             println 'after requestForcefulStop'
@@ -569,8 +564,6 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * onStartCommand.run()
         1 * command.run() >> {
             assert !coordinator.stopped
-            coordinator.updateCancellationToken(buildId)
-            println 'beforeStopRequest.countDown()'
             beforeStopRequest.countDown()
             concurrent.poll {
                 println 'check stopped daemon ' + coordinator.stopped + ', ' + coordinator.stoppingOrStopped
@@ -584,7 +577,6 @@ class DaemonStateCoordinatorTest extends Specification {
 
     def "cancel calls requestFullStop when cancel callback fails"() {
         Runnable command = Mock()
-        Object buildId = Mock()
         CountDownLatch beforeStopRequest = new CountDownLatch(1)
         CountDownLatch afterStopRequest = new CountDownLatch(1)
         def onForcedDisconnect = new DisconnectHandler()
@@ -600,7 +592,7 @@ class DaemonStateCoordinatorTest extends Specification {
         concurrent.start {
             beforeStopRequest.await()
             println 'before requestForcefulStop'
-            coordinator.cancelBuild(buildId)
+            coordinator.cancelBuild()
             assert coordinator.stoppingOrStopped
             assert coordinator.stopped
             println 'after requestForcefulStop'
@@ -615,8 +607,7 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * onStartCommand.run()
         1 * command.run() >> {
             assert !coordinator.stopped
-            def token = coordinator.updateCancellationToken(buildId)
-            token.addCallback { throw new RuntimeException('failing cancel callback') }
+            coordinator.cancellationToken.addCallback { throw new RuntimeException('failing cancel callback') }
             println 'beforeStopRequest.countDown()'
             beforeStopRequest.countDown()
             concurrent.poll {
@@ -632,8 +623,6 @@ class DaemonStateCoordinatorTest extends Specification {
     def "canceled build does not affect next build"() {
         Runnable command1 = Mock()
         Runnable command2 = Mock()
-        Object buildId1 = Mock()
-        Object buildId2 = Mock()
         CountDownLatch beforeStopRequest = new CountDownLatch(1)
 
         expect:
@@ -646,7 +635,7 @@ class DaemonStateCoordinatorTest extends Specification {
         }
         concurrent.start {
             beforeStopRequest.await()
-            coordinator.cancelBuild(buildId1)
+            coordinator.cancelBuild()
         }
         concurrent.start {
         }
@@ -659,52 +648,16 @@ class DaemonStateCoordinatorTest extends Specification {
         2 * onStartCommand.run()
         1 * command1.run() >> {
             assert !coordinator.stopped
-            coordinator.updateCancellationToken(buildId1)
             beforeStopRequest.countDown()
-            concurrent.poll { assert coordinator.cancellationToken.token.isCancellationRequested() }
+            concurrent.poll { assert coordinator.cancellationToken.isCancellationRequested() }
         }
         1 * command2.run() >> {
             assert !coordinator.stopped
-            coordinator.updateCancellationToken(buildId2)
-            assert !coordinator.cancellationToken.token.isCancellationRequested()
+            assert !coordinator.cancellationToken.isCancellationRequested()
         }
         2 * onFinishCommand.run()
         0 * _._ // no onDisconnect()!
 
-    }
-
-    def "cancel request for different build is ignored"() {
-        Runnable command = Mock()
-        Object buildId = Mock()
-        Object anotherBuildId = Mock()
-        CountDownLatch beforeStopRequest = new CountDownLatch(1)
-
-        expect:
-        !coordinator.stopped
-
-        when:
-        concurrent.start {
-            coordinator.runCommand(command, "command", onDisconnect)
-        }
-        concurrent.start {
-            beforeStopRequest.await()
-            coordinator.cancelBuild(anotherBuildId)
-        }
-        concurrent.finished()
-
-        then:
-        !coordinator.stoppingOrStopped
-        !coordinator.stopped
-        !coordinator.cancellationToken.token.isCancellationRequested()
-        coordinator.isIdle()
-        1 * onStartCommand.run()
-        1 * command.run() >> {
-            assert !coordinator.stopped
-            coordinator.updateCancellationToken(buildId)
-            beforeStopRequest.countDown()
-        }
-        1 * onFinishCommand.run()
-        0 * _._ // no onDisconnect()!
     }
 
     class DisconnectHandler implements Runnable {
