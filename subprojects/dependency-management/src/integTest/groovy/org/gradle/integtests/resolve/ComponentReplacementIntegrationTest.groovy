@@ -228,6 +228,60 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect: resolvedModules 'c', 'b'
     }
 
+    def "replacement is not used when it replaced by resolve rule"() {
+        publishedMavenModules('d')
+        declaredDependencies 'a', 'b'
+        declaredReplacements 'a->b'
+        buildFile << """
+            configurations.all { resolutionStrategy.eachDependency { dep ->
+                if (dep.requested.name == 'b') {
+                    dep.useTarget 'org:d:1'
+                }
+            }}
+        """
+        expect: resolvedModules 'a', 'd'
+    }
+
+    def "replacement and resolve rule have exactly the same target"() {
+        declaredDependencies 'a', 'b'
+        declaredReplacements 'a->b'
+        buildFile << """
+            configurations.all { resolutionStrategy.eachDependency { dep ->
+                if (dep.requested.name == 'a') {
+                    dep.useTarget 'org:b:1'
+                }
+            }}
+        """
+        expect: resolvedModules 'b'
+    }
+
+    def "replacement is used when it is pulled to the graph via resolve rule"() {
+        publishedMavenModules('d')
+        declaredDependencies 'a', 'b'
+        declaredReplacements 'a->d'
+        buildFile << """
+            configurations.all { resolutionStrategy.eachDependency { dep ->
+                if (dep.requested.name == 'b') {
+                    dep.useTarget 'org:d:1'
+                }
+            }}
+        """
+        expect: resolvedModules 'd'
+    }
+
+    def "both source and replacement target are pulled to the graph via resolve rule"() {
+        publishedMavenModules('a', 'b')
+        declaredDependencies 'c', 'd'
+        declaredReplacements 'a->b'
+        buildFile << """
+            configurations.all { resolutionStrategy.eachDependency { dep ->
+                if (dep.requested.name == 'c') { dep.useTarget 'org:a:1' }
+                if (dep.requested.name == 'd') { dep.useTarget 'org:b:1' }
+            }}
+        """
+        expect: resolvedModules 'b'
+    }
+
     //TODO SF when forced
     //when resolve target is unresolved, check exception
 }
