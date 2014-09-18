@@ -140,7 +140,7 @@
             </tr>
             <tr>
                 <td>sonar.dynamicAnalysis</td>
-                <td>“"reuseReports”</td>
+                <td>“reuseReports”</td>
             </tr>
         </table>
         <table>
@@ -191,6 +191,19 @@
             <tr>
                 <td>sonar.junit.reportsPath</td>
                 <td>test.testResultsDir (if the directory exists)</td>
+            </tr>
+        </table>
+        <table>
+            <title>Additional defaults when <literal>jacoco</literal> plugin is applied</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Gradle default</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>sonar.jacoco.reportPath</td>
+                <td>jacoco.destinationFile</td>
             </tr>
         </table>
     </section>

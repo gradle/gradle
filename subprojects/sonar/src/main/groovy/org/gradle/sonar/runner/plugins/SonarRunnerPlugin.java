@@ -90,14 +90,13 @@ public class SonarRunnerPlugin implements Plugin<Project> {
         SonarRunner sonarRunnerTask = createTask(project, actionBroadcastMap);
 
         ActionBroadcast<SonarProperties> actionBroadcast = addBroadcaster(actionBroadcastMap, project);
-        SonarRunnerRootExtension rootExtension = project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerRootExtension.class, actionBroadcast);
         project.subprojects(new Action<Project>() {
             public void execute(Project project) {
                 ActionBroadcast<SonarProperties> actionBroadcast = addBroadcaster(actionBroadcastMap, project);
                 project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerExtension.class, actionBroadcast);
             }
         });
-
+        SonarRunnerRootExtension rootExtension = project.getExtensions().create(SonarRunnerExtension.SONAR_RUNNER_EXTENSION_NAME, SonarRunnerRootExtension.class, actionBroadcast);
         addConfiguration(project, rootExtension);
         rootExtension.setForkOptions(sonarRunnerTask.getForkOptions());
     }
