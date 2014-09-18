@@ -314,6 +314,18 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect: resolvedModules 'b', 'c'
     }
 
+    def "multiple source modules have the same replacement target"() {
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->c', 'b->c'
+        expect: resolvedModules 'c'
+    }
+
+    def "multiple source modules but only some are included in graph"() {
+        declaredDependencies 'a', 'c'
+        declaredReplacements 'a->c', 'b->c'
+        expect: resolvedModules 'c'
+    }
+
     @Ignore
     def "pulls extra dependency to graph if multiple replacement targets declared"() {
         publishedMavenModules 'c'

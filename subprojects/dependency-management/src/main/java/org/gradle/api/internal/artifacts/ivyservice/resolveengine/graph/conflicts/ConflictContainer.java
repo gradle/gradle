@@ -17,23 +17,30 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static java.util.Arrays.asList;
 
 /**
  * Generic container for conflicts. It's generic so that hopefully it's easier to comprehend (and test).
  */
 class ConflictContainer<K, T> {
 
+    //TODO SF this does not have to be a map. We iterate all elements anyway.
     final Map<K, Conflict> conflicts = newLinkedHashMap();
+
     private final Map<K, Collection<? extends T>> elements = newHashMap();
-    private final Map<K, K> targetToSource = newLinkedHashMap();
+    private final Multimap<K, K> targetToSource = LinkedHashMultimap.create();
 
     /**
      * Adds new element and returns a conflict instance if given element is conflicted. Element is conflicted when:
@@ -54,8 +61,8 @@ class ConflictContainer<K, T> {
             }
         }
 
-        K replacementSource = targetToSource.get(target);
-        if (replacementSource != null) {
+        Collection<K> replacementSource = targetToSource.get(target);
+        if (!replacementSource.isEmpty()) {
             //2) new module is a replacement to a module we've seen already, register conflict and return
             return registerConflict(replacementSource, target);
         }
@@ -67,13 +74,15 @@ class ConflictContainer<K, T> {
         return null;
     }
 
-    private Conflict registerConflict(K target, K replacedBy) {
+    private Conflict registerConflict(Collection<K> targets, K replacedBy) {
+        assert !targets.isEmpty();
+
         //replacement candidates are the only important candidates
         Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
 
-        Collection<K> participants = new LinkedHashSet<K>();
-        participants.add(target);
+        Set<K> participants = new LinkedHashSet<K>();
+        participants.addAll(targets);
         participants.add(replacedBy);
 
         //We need to ensure that the conflict is orderly injected to the list of conflicts
@@ -83,8 +92,8 @@ class ConflictContainer<K, T> {
         //Find an existing matching conflict
         for (K e : conflicts.keySet()) {
             Conflict c = conflicts.get(e);
-            if (c.participants.contains(target) || c.participants.contains(replacedBy)) {
-                //If there is already registered conflict with matching participants, hook up to this conflict
+            if (!Sets.intersection(participants, c.participants).isEmpty()) {
+                //there is already registered conflict with at least one matching participant, hook up to this conflict
                 c.candidates = candidates;
                 c.participants.addAll(participants);
                 return c;
@@ -93,8 +102,12 @@ class ConflictContainer<K, T> {
 
         //No conflict with matching participants found, create new
         Conflict c = new Conflict(participants, candidates);
-        conflicts.put(target, c);
+        conflicts.put(participants.iterator().next(), c);
         return c;
+    }
+
+    private Conflict registerConflict(K target, K replacedBy) {
+        return registerConflict(asList(target), replacedBy);
     }
 
     public int getSize() {
@@ -108,10 +121,10 @@ class ConflictContainer<K, T> {
     }
 
     class Conflict {
-        Collection<K> participants;
+        Set<K> participants;
         Collection<? extends T> candidates;
 
-        public Conflict(Collection<K> participants, Collection<? extends T> candidates) {
+        public Conflict(Set<K> participants, Collection<? extends T> candidates) {
             this.participants = participants;
             this.candidates = candidates;
         }

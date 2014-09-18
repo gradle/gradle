@@ -126,4 +126,24 @@ class ConflictContainerTest extends Specification {
         container.conflicts.size() == 1
         container.popConflict().toString() == "a,b,c:3"
     }
+
+    def "allows registering multiple elements with the same replacedBy before the replacedBy"() {
+        container.newElement("a", [1], "c")
+        container.newElement("b", [2], "c")
+        container.newElement("c", [3], null)
+
+        expect:
+        container.conflicts.size() == 1
+        container.popConflict().toString() == "a,b,c:3"
+    }
+
+    def "allows registering multiple elements with the same replacedBy after the replacedBy"() {
+        container.newElement("c", [3], null)
+        container.newElement("a", [1], "c")
+        container.newElement("b", [2], "c")
+
+        expect:
+        container.conflicts.size() == 1
+        container.popConflict().toString() == "a,c,b:3"
+    }
 }
