@@ -45,7 +45,7 @@ task t << {
 """
 
         def cancel = GradleConnector.newCancellationTokenSource()
-        def resultHandler = new TestResultHandler(false)
+        def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
 
         when:
