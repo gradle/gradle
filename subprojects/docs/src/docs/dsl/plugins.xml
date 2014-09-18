@@ -110,7 +110,7 @@
         <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioExtension"/>
     </plugin>
     <plugin id="sonar-runner" description="Sonar Runner Plugin">
-        <extends targetClass="org.gradle.api.Project" id="jacoco" extensionClass="org.gradle.sonar.runner.SonarRunnerExtension"/>
-        <extends targetClass="org.gradle.api.Project" id="jacoco" extensionClass="org.gradle.sonar.runner.SonarRunnerRootExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="sonarRunner" extensionClass="org.gradle.sonar.runner.SonarRunnerExtension"/>
+        <extends targetClass="org.gradle.api.Project" id="sonarRunner" extensionClass="org.gradle.sonar.runner.SonarRunnerRootExtension"/>
     </plugin>
 </plugins>
