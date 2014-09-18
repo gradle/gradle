@@ -282,6 +282,15 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect: resolvedModules 'b'
     }
 
-    //TODO SF when forced
-    //when resolve target is unresolved, check exception
+    def "replacement target is manipulated by resolve rule and then replaced again by different module replacement declaration"() {
+        publishedMavenModules 'd'
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->b', 'c->d'
+        buildFile << """
+            configurations.all { resolutionStrategy.eachDependency { dep ->
+                if (dep.requested.name == 'b') { dep.useTarget 'org:d:1' }
+            }}
+        """
+        expect: resolvedModules 'a', 'd'
+    }
 }
