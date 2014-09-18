@@ -102,7 +102,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
-    void target(TargetPlatformConfiguration targetPlatformConfiguration) {
+    private void target(TargetPlatformConfiguration targetPlatformConfiguration) {
         platformConfigs.add(configInsertLocation, targetPlatformConfiguration);
         configInsertLocation++;
     }

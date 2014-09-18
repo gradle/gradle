@@ -19,7 +19,11 @@ package org.gradle.internal.component.external.model
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
+
+import static com.google.common.collect.Sets.newHashSet
 
 class BuildableIvyModuleResolveMetaDataTest extends Specification {
 
@@ -27,36 +31,39 @@ class BuildableIvyModuleResolveMetaDataTest extends Specification {
     def meta = new BuildableIvyModuleResolveMetaData(md)
 
     def "adds correct artifact to meta-data"() {
-        def a = new BuildableIvyArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
-        a.addConfiguration("runtime")
+        def a = ivyArtifact("foo", "jar", "ext", [a: 'b'])
         md.addConfiguration(new Configuration("runtime"))
 
-        when: meta.addArtifact(a)
+        when: meta.addArtifact(a, newHashSet("runtime"))
 
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.ext(jar)"]
         md.getArtifacts("runtime")*.toString() == ["org#foo;1.0!foo.ext(jar)"]
     }
 
+    private static IvyArtifactName ivyArtifact(String name, String type, String ext, Map<String, String> attributes = [:]) {
+        return new DefaultIvyArtifactName(name, type, ext, attributes)
+    }
+
     def "prevents adding artifact without configurations"() {
-        def unattached = new BuildableIvyArtifact("foo", "jar", "ext", new File("foo.jar").toURI().toURL(), [a: 'b'])
+        def unattached = ivyArtifact("foo", "jar", "ext", [a: 'b'])
         md.addConfiguration(new Configuration("runtime"))
 
-        when: meta.addArtifact(unattached)
+        when: meta.addArtifact(unattached, newHashSet())
 
         then: thrown(IllegalArgumentException)
     }
 
     def "can be added to metadata that already contains artifacts"() {
-        def a1 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("runtime")
-        def a2 = new BuildableIvyArtifact("foo-all", "zip", "zip").addConfiguration("testUtil")
+        def a1 = ivyArtifact("foo", "jar", "jar")
+        def a2 = ivyArtifact("foo-all", "zip", "zip")
 
         md.addConfiguration(new Configuration("runtime"))
         md.addConfiguration(new Configuration("testUtil"))
 
         when:
-        meta.addArtifact(a1)
-        meta.addArtifact(a2)
+        meta.addArtifact(a1, newHashSet("runtime"))
+        meta.addArtifact(a2, newHashSet("testUtil"))
 
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.jar", "org#foo;1.0!foo-all.zip"]
@@ -65,16 +72,16 @@ class BuildableIvyModuleResolveMetaDataTest extends Specification {
     }
 
     def "can be added to metadata that already contains the same artifact in different configuration"() {
-        def a1 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("archives")
+        def a1 = ivyArtifact("foo", "jar", "jar")
         //some publishers create ivy metadata that contains separate entries for the same artifact but different configurations
-        def a2 = new BuildableIvyArtifact("foo", "jar", "jar").addConfiguration("runtime")
+        def a2 = ivyArtifact("foo", "jar", "jar")
 
         md.addConfiguration(new Configuration("runtime"))
         md.addConfiguration(new Configuration("archives"))
 
         when:
-        meta.addArtifact(a1)
-        meta.addArtifact(a2)
+        meta.addArtifact(a1, newHashSet("archives"))
+        meta.addArtifact(a2, newHashSet("runtime"))
 
         then:
         md.allArtifacts*.toString() == ["org#foo;1.0!foo.jar"]

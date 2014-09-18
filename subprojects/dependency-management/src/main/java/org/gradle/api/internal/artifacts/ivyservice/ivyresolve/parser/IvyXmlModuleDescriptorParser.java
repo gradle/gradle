@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.NormalRelativeUrlResolver;
 import org.apache.ivy.core.RelativeUrlResolver;
@@ -36,11 +37,12 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.internal.component.external.model.BuildableIvyArtifact;
 import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.UrlExternalResource;
@@ -497,12 +499,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             checkConfigurations();
             replaceConfigurationWildcards();
             if (!artifactsDeclared) {
-                String[] configurationNames = getMd().getConfigurationsNames();
-                BuildableIvyArtifact implicitArtifact = new BuildableIvyArtifact(getMd().getModuleRevisionId().getName(), "jar", "jar");
-                for (String configurationName : configurationNames) {
-                    implicitArtifact.addConfiguration(configurationName);
-                }
-                metaData.addArtifact(implicitArtifact);
+                IvyArtifactName implicitArtifact = new DefaultIvyArtifactName(getMd().getModuleRevisionId().getName(), "jar", "jar");
+                Set<String> configurationNames = Sets.newHashSet(getMd().getConfigurationsNames());
+                metaData.addArtifact(implicitArtifact, configurationNames);
             }
             checkErrors();
             getMd().check();
@@ -890,9 +889,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String artName = elvis(substitute(attributes.getValue("name")), getMd().getModuleRevisionId().getName());
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
-                String url = substitute(attributes.getValue("url"));
                 Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
-                artifact = new BuildableIvyArtifact(artName, type, ext, url == null ? null : new URL(url), extraAttributes);
+                artifact = new BuildableIvyArtifact(artName, type, ext, extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements
@@ -1104,7 +1102,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                         artifact.addConfiguration(confName.trim());
                     }
                 }
-                metaData.addArtifact(artifact);
+                metaData.addArtifact(artifact.getArtifact(), artifact.getConfigurations());
                 artifact = null;
             } else if ("configurations".equals(qName)) {
                 checkConfigurations();
