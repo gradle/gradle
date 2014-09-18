@@ -90,7 +90,7 @@ two things:
 - A replaces B when A is created from C via dependency resolve rule
 - A replaces B when A is created from C and B from D via dependency resolve rules, selection reason for B is 'A replaces B'
 
-## Story: Allow declaring module replacements via module specs
+## Story: Allow declaring multiple module replacements
 
 Make it possible to declare module replacements flexibly, so that sets of modules can be replaced.
 
@@ -98,7 +98,7 @@ Make it possible to declare module replacements flexibly, so that sets of module
 
 - modules replaced by a set of modules: spring -> spring-core, spring-aop, ...
 - as above but starting from some version: groovy -> groovy, groovy-ant, groovy-xml only starting from 2.0
-- a set of modules replaced by a single module (hypothetical)
+- a set of modules replaced by a single module (hypothetical, not covered by this story)
 
 DSL mock-up:
 
