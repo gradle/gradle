@@ -65,7 +65,7 @@ class ClosureBackedRuleActionTest extends Specification {
         action(closure)
 
         then:
-        def e = thrown IllegalArgumentException
+        def e = thrown RuleActionValidationException
         e.message == "Rule action closure must declare at least one parameter."
     }
 
@@ -78,7 +78,7 @@ class ClosureBackedRuleActionTest extends Specification {
         action(closure)
 
         then:
-        def e = thrown IllegalArgumentException
+        def e = thrown RuleActionValidationException
         e.message == "First parameter of rule action closure must be of type 'String'."
     }
 
@@ -91,7 +91,7 @@ class ClosureBackedRuleActionTest extends Specification {
         action(closure)
 
         then:
-        def e = thrown IllegalArgumentException
+        def e = thrown RuleActionValidationException
         e.message == "First parameter of rule action closure must be of type 'String'."
     }
 
