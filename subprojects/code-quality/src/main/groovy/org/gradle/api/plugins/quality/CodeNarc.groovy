@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
@@ -86,15 +85,10 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    ClassPathRegistry getClassPathRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def classpath = new DefaultClassPath(getCodenarcClasspath()).plus(getClassPathRegistry().getClassPath("GROOVY"))
+        def classpath = new DefaultClassPath(getCodenarcClasspath())
         antBuilder.withClasspath(classpath.asFiles).execute {
             ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
             try {
