@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
+import spock.lang.Ignore
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -292,5 +293,32 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
             }}
         """
         expect: resolvedModules 'a', 'd'
+    }
+
+    def "replacement target forms a legal cycle with resolve rule"() {
+        publishedMavenModules 'd'
+        declaredDependencies 'a', 'b'
+        declaredReplacements 'a->b', 'd->a'
+        buildFile << """
+            configurations.all { resolutionStrategy.eachDependency { dep ->
+                if (dep.requested.name == 'b') { dep.useTarget 'org:d:1' }
+            }}
+        """
+        //a->b->d->a
+        expect: resolvedModules 'a'
+    }
+
+    def "supports multiple replacement targets"() {
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->b', 'a->c'
+        expect: resolvedModules 'b', 'c'
+    }
+
+    @Ignore
+    def "pulls extra dependency to graph if multiple replacement targets declared"() {
+        publishedMavenModules 'c'
+        declaredDependencies 'a', 'b'
+        declaredReplacements 'a->b', 'a->c'
+        expect: resolvedModules 'b', 'c'
     }
 }
