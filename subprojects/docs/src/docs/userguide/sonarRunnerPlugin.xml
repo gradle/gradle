@@ -316,7 +316,7 @@
         </note>
         <para>A Sonar property value set via a system property overrides any value set in a build script (for the same property). When
             analyzing a project hierarchy, values set via system properties apply to the root project of the analyzed hierarchy.
-            Each system property starting with <literal>sonar.</literal> will taken into account for the sonar runner setup, which allows the
+            Each system property starting with "<literal>"sonar."</literal> will taken into account for the sonar runner setup, which allows the
             Gradle Sonar Runner plugin to support also upcoming new sonar properties introduced in upcoming Sonar Runner versions.
         </para>
     </section>
