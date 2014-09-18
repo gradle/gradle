@@ -75,12 +75,6 @@ two things:
 - A replaces B and ResolvedConfiguration API is still happy
 - A replaces B, only A artifact is included in the ResolvedConfiguration's artifacts
 
-## Story: component replacement is explicit in the dependency reports
-
-- a:a:1.0 replaces b:b:1.0, the 'dependencies' report shows "a:a:1.0 -> b:b:1.0"
-- a:a:1.0 replaces b:b:1.0, the 'dependencyInsight' report shows "a:a:1.0 -> b:b:1.0 (a:a replaces b:b)"
-- A replaces B, ResolutionResult object contains correct selection reason for B
-
 ## Story: component replacement coexists with dependency resolve rules
 
 ### Test coverage
@@ -130,6 +124,19 @@ This states that 'org.springframework:spring' was replaced by both 'org.springfr
 - A replaced by B (rule1) and C (rule2). A,B,C in graph
 uhappy paths:
 - cycle between come of the modules
+
+## Story: component replacement is explicit in the dependency reports
+
+It's an open question whether we want to implement this story.
+The existing presentation in the reports treats the replacements as conflict resolution which technically is correct
+because the module replacement declarations are an input to conflict resolution.
+The current model of a single selection reason attached to the module is not enough for real world use cases.
+Resulting resolved module is possibly a product of multiple resolution rules and multiple replacement declarations, possibly interleaving.
+Down the road we need a mechanism that describes/lists all the manipulations done to the module (model rules will address that).
+
+- a:a:1.0 replaces b:b:1.0, the 'dependencies' report shows "a:a:1.0 -> b:b:1.0"
+- a:a:1.0 replaces b:b:1.0, the 'dependencyInsight' report shows "a:a:1.0 -> b:b:1.0 (a:a replaces b:b)"
+- A replaces B, ResolutionResult object contains correct selection reason for B
 
 # Open issues
 
