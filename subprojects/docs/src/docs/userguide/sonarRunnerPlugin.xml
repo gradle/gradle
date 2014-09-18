@@ -324,10 +324,11 @@
     <section>
         <title>Controlling the Sonar Runner process</title>
         <para>
-            The Sonar Runner is executed via a forked process.
+            The Sonar Runner is executed in a forked process.
             This allows fine grained control over memory settings, system properties etc. just for the Sonar Runner process.
             The <literal>forkOptions</literal> property of the <literal>sonarRunner</literal> extension of the project that applies the <literal>sonar-runner</literal> plugin
-            (this property is not available via the extension of child projects) allows the process configuration to be specified.
+            (Usually the <literal>rootProject</literal> but not necessarily) allows the process configuration to be specified.
+            This property is not available in the <apilink class="org.gradle.sonar.runner.SonarRunnerExtension"/> extension applied to the subprojects.
         </para>
         <sample id="advanced" dir="sonarRunner/advanced" title="setting custom Sonar Runner fork options">
             <sourcefile file="build.gradle" snippet="forkoptions"/>
