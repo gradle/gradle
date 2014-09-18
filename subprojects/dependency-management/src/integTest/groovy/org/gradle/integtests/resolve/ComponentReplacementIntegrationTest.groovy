@@ -214,7 +214,20 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         fails().assertHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org:foo:1.0")
     }
 
-    //TODO catch user error when declaring wrong input
+    def "replacement target is not used if it is excluded"() {
+        declaredDependencies 'a', 'b->c'
+        declaredReplacements 'a->c'
+        buildFile << "configurations.all { exclude module: 'c' }"
+        expect: resolvedModules 'a', 'b'
+    }
+
+    def "replacement target is used if replacement source is excluded"() {
+        declaredDependencies 'a', 'b->c'
+        declaredReplacements 'a->c'
+        buildFile << "configurations.all { exclude module: 'a' }"
+        expect: resolvedModules 'c', 'b'
+    }
+
     //TODO SF when forced
     //when resolve target is unresolved, check exception
 }
