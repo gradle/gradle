@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.api.internal;
 
-import org.gradle.api.RuleAction
+import org.gradle.api.RuleAction;
 
-class DefaultRuleActionValidator<T> implements RuleActionValidator<T> {
+import java.util.List;
+
+public class DefaultRuleActionValidator<T> implements RuleActionValidator<T> {
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type: %s";
 
     private final List<Class<?>> validInputTypes;
 
-    DefaultRuleActionValidator(List<Class<?>> validInputTypes) {
-        this.validInputTypes = validInputTypes
+    public DefaultRuleActionValidator(List<Class<?>> validInputTypes) {
+        this.validInputTypes = validInputTypes;
     }
 
     public RuleAction<? super T> validate(RuleAction<? super T> ruleAction) {
