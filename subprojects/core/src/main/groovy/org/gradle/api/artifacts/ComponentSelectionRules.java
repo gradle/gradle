@@ -98,11 +98,11 @@ public interface ComponentSelectionRules {
      * Adds a component selection rule that will apply to the specified module.
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
-     * @param id the module to apply this rule to in "group:module" format
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param selectionAction the Action that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules module(String id, Action<? super ComponentSelection> selectionAction);
+    public ComponentSelectionRules module(Object id, Action<? super ComponentSelection> selectionAction);
 
     /**
      * Adds a component selection rule that will apply to the specified module.
@@ -111,11 +111,11 @@ public interface ComponentSelectionRules {
      * as well as any other inputs defined in the {@link org.gradle.api.RuleAction}. Allowable values for
      * {@link org.gradle.api.RuleAction#getInputTypes()} are {@link org.gradle.api.artifacts.ComponentMetadata} and {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
      *
-     * @param id the module to apply this rule to in "group:module" format
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param ruleAction the RuleAction that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules module(String id, RuleAction<? super ComponentSelection> ruleAction);
+    public ComponentSelectionRules module(Object id, RuleAction<? super ComponentSelection> ruleAction);
 
     /**
      * Adds a component selection rule that will apply to the specified module.
@@ -126,9 +126,9 @@ public interface ComponentSelectionRules {
      * {@link org.gradle.api.artifacts.ComponentMetadata} and/or
      * {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
      *
-     * @param id the module to apply this rule to in "group:module" format
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules module(String id, Closure<?> closure);
+    public ComponentSelectionRules module(Object id, Closure<?> closure);
 }

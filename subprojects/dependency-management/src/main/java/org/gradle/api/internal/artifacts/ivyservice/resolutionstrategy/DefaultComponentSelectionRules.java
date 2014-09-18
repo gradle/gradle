@@ -67,17 +67,17 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return this;
     }
 
-    public ComponentSelectionRules module(String id, Action<? super ComponentSelection> selectionAction) {
+    public ComponentSelectionRules module(Object id, Action<? super ComponentSelection> selectionAction) {
         addRule(createSpecRuleActionFromId(id, new NoInputsRuleAction<ComponentSelection>(selectionAction)));
         return this;
     }
 
-    public ComponentSelectionRules module(String id, RuleAction<? super ComponentSelection> ruleAction) {
+    public ComponentSelectionRules module(Object id, RuleAction<? super ComponentSelection> ruleAction) {
         addRule(createSpecRuleActionFromId(id, ruleActionValidator.validate(ruleAction)));
         return this;
     }
 
-    public ComponentSelectionRules module(String id, Closure<?> closure) {
+    public ComponentSelectionRules module(Object id, Closure<?> closure) {
         addRule(createSpecRuleActionFromId(id, createRuleActionFromClosure(closure)));
         return this;
     }
