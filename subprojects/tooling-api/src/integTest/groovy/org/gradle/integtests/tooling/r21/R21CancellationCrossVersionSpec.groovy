@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r22
+package org.gradle.integtests.tooling.r21
 
 import org.gradle.integtests.tooling.fixture.*
-import org.gradle.integtests.tooling.r21.HangingBuildAction
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
-@ToolingApiVersion(">=2.2")
+@ToolingApiVersion("=2.1")
 @TargetGradleVersion(">=2.1")
-class CancellationR22CrossVersionSpec extends ToolingApiSpecification {
+class R21CancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
@@ -69,18 +68,19 @@ throw new RuntimeException("should not run")
         when:
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.forTasks(':sub:broken')
+            build.forTasks(':first', ':sub:second')
                     .withCancellationToken(cancel.token())
                     .setStandardOutput(output)
                     .setStandardError(error)
             build.run(resultHandler)
             server.sync()
             cancel.cancel()
-            resultHandler.finished(20)
+            resultHandler.finished()
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure.cause.message.contains('Build cancelled.')
     }
 
     def "can cancel build and skip some tasks"() {
@@ -104,7 +104,6 @@ task notExecuted(dependsOn: hang) << {
     throw new RuntimeException("should not run")
 }
 """
-
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
@@ -122,9 +121,9 @@ task notExecuted(dependsOn: hang) << {
             cancel.cancel()
             resultHandler.finished()
         }
-
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
     }
 
     def "can cancel build"() {
@@ -144,7 +143,6 @@ task hang << {
     latch.await()
 }
 """
-
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
@@ -162,9 +160,10 @@ task hang << {
             cancel.cancel()
             resultHandler.finished()
         }
-
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure.cause.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
+        resultHandler.failure.cause.cause.cause.message.contains('Build cancelled.')
     }
 
     def "can cancel build through forced stop"() {
@@ -188,13 +187,9 @@ task hang << {
             cancel.cancel()
             resultHandler.finished(20)
         }
-
         then:
-        resultHandler.failure instanceof BuildCancelledException
-    }
-
-    def "can cancel model retrieval"() {
-        // TODO
+        resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
+        resultHandler.failure instanceof GradleConnectionException
     }
 
     def "can cancel action"() {
@@ -209,7 +204,7 @@ import java.util.concurrent.CountDownLatch
 def cancellationToken = services.get(BuildCancellationToken.class)
 def latch = new CountDownLatch(1)
 
-cancellationToken.addCallback{
+cancellationToken.addCallback {
     latch.countDown()
 }
 
@@ -223,12 +218,13 @@ latch.await()
             build.withCancellationToken(cancel.token())
                     .setStandardOutput(output)
             build.run(resultHandler)
-            server.sync()
+            server.waitFor()
             cancel.cancel()
+            server.release()
             resultHandler.finished()
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.failure instanceof GradleConnectionException
     }
 }
