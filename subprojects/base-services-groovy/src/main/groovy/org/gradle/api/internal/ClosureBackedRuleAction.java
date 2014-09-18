@@ -56,13 +56,13 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
         Class<?>[] parameterTypes = closure.getParameterTypes();
 
         if (parameterTypes.length == 0) {
-            throw new IllegalArgumentException("Rule action closure must declare at least one parameter.");
+            throw new RuleActionValidationException("Rule action closure must declare at least one parameter.");
         }
 
         List<Class<?>> inputTypes = Lists.newArrayList();
 
         if (parameterTypes[0] != subjectType) {
-            throw new IllegalArgumentException(String.format("First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
+            throw new RuleActionValidationException(String.format("First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
         }
 
         for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {

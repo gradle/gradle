@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.NoInputsRuleAction
+import org.gradle.api.internal.RuleActionAdapter
+import org.gradle.api.internal.RuleActionValidationException
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
@@ -78,21 +80,19 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "can add action rules via api"() {
         def Action<ComponentSelection> action = new TestComponentSelectionAction()
+        rules.ruleActionAdapter = Mock(RuleActionAdapter) {
+            2 * createFromAction(_) >> { Action providedAction ->
+                new NoInputsRuleAction<ComponentSelection>(providedAction)
+            }
+        }
 
         when:
         rules.all action
         rules.module("group:module", action)
 
         then:
-        def ruleAction = rules.rules[0].action
-        ruleAction.inputTypes == []
-        ruleAction instanceof NoInputsRuleAction
-        ruleAction.action == action
-
-        def targetRuleAction = rules.rules[1].action
-        targetRuleAction.inputTypes == []
-        targetRuleAction instanceof NoInputsRuleAction
-        targetRuleAction.action == action
+        rules.rules[0].action.action == action
+        rules.rules[1].action.action == action
         rules.rules[1].spec.target == DefaultModuleIdentifier.newId("group", "module")
     }
 
@@ -154,7 +154,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.all ruleAction
 
         then:
-        def e = thrown(IllegalArgumentException)
+        def e = thrown(RuleActionValidationException)
         e.message == message
 
         where:
@@ -174,7 +174,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.module("group:module", ruleAction)
 
         then:
-        def e = thrown(IllegalArgumentException)
+        def e = thrown(RuleActionValidationException)
         e.message == message
 
         where:

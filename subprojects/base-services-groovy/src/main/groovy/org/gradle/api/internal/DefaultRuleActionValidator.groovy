@@ -18,12 +18,12 @@ package org.gradle.api.internal
 
 import org.gradle.api.RuleAction
 
-class RuleActionValidator<T> {
+class DefaultRuleActionValidator<T> implements RuleActionValidator<T> {
     private static final String UNSUPPORTED_PARAMETER_TYPE_ERROR = "Unsupported parameter type: %s";
 
     private final List<Class<?>> validInputTypes;
 
-    RuleActionValidator(List<Class<?>> validInputTypes) {
+    DefaultRuleActionValidator(List<Class<?>> validInputTypes) {
         this.validInputTypes = validInputTypes
     }
 
@@ -35,7 +35,7 @@ class RuleActionValidator<T> {
     private void validateInputTypes(RuleAction<? super T> ruleAction) {
         for (Class<?> inputType : ruleAction.getInputTypes()) {
             if (!validInputTypes.contains(inputType)) {
-                throw new IllegalArgumentException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
+                throw new RuleActionValidationException(String.format(UNSUPPORTED_PARAMETER_TYPE_ERROR, inputType.getName()));
             }
         }
     }

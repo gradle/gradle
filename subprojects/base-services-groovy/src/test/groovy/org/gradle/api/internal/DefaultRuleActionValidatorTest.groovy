@@ -19,8 +19,8 @@ package org.gradle.api.internal
 import org.gradle.api.RuleAction
 import spock.lang.Specification
 
-class RuleActionValidatorTest extends Specification {
-    def ruleValidator = new RuleActionValidator<Object>([String, Integer])
+class DefaultRuleActionValidatorTest extends Specification {
+    def ruleValidator = new DefaultRuleActionValidator<Object>([String, Integer])
 
     def "rejects invalid types" () {
         when:
@@ -29,7 +29,7 @@ class RuleActionValidatorTest extends Specification {
         })
 
         then:
-        def failure = thrown(IllegalArgumentException)
+        def failure = thrown(RuleActionValidationException)
         failure.message == "Unsupported parameter type: java.lang.Long"
     }
 

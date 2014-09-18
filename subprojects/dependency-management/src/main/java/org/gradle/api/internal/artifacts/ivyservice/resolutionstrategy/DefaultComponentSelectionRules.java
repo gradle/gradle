@@ -25,8 +25,10 @@ import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.ClosureBackedRuleAction;
-import org.gradle.api.internal.NoInputsRuleAction;
+import org.gradle.api.internal.DefaultRuleActionAdapter;
+import org.gradle.api.internal.DefaultRuleActionValidator;
+import org.gradle.api.internal.RuleActionAdapter;
+import org.gradle.api.internal.RuleActionValidationException;
 import org.gradle.api.internal.RuleActionValidator;
 import org.gradle.api.internal.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
@@ -43,17 +45,19 @@ import java.util.Set;
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
-    private final RuleActionValidator<ComponentSelection> ruleActionValidator = new RuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
+    RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
+    RuleActionAdapter<ComponentSelection> ruleActionAdapter = new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator);
 
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
+    private static final String INVALID_ACTION_ERROR = "The action provided is not valid as a rule action for '%s'.";
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
         return rules;
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
-        addRule(createAllSpecRulesAction(new NoInputsRuleAction<ComponentSelection>(selectionAction)));
+        addRule(createAllSpecRulesAction(createRuleActionFromAction(selectionAction)));
         return this;
     }
 
@@ -68,7 +72,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public ComponentSelectionRules module(Object id, Action<? super ComponentSelection> selectionAction) {
-        addRule(createSpecRuleActionFromId(id, new NoInputsRuleAction<ComponentSelection>(selectionAction)));
+        addRule(createSpecRuleActionFromId(id, createRuleActionFromAction(selectionAction)));
         return this;
     }
 
@@ -88,9 +92,17 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
         try {
-            return ruleActionValidator.validate(new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection.class, closure));
-        } catch (IllegalArgumentException e) {
+            return ruleActionAdapter.createFromClosure(ComponentSelection.class, closure);
+        } catch (RuleActionValidationException e) {
             throw new InvalidUserCodeException(String.format(INVALID_CLOSURE_ERROR, ComponentSelectionRules.class.getSimpleName()), e);
+        }
+    }
+
+    private RuleAction<? super ComponentSelection> createRuleActionFromAction(Action<? super ComponentSelection> action) {
+        try {
+            return ruleActionAdapter.createFromAction(action);
+        } catch (RuleActionValidationException e) {
+            throw new InvalidUserCodeException(String.format(INVALID_ACTION_ERROR, ComponentSelectionRules.class.getSimpleName()), e);
         }
     }
 
