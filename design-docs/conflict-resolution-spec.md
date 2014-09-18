@@ -84,9 +84,24 @@ two things:
 - A replaces B when A is created from C via dependency resolve rule
 - A replaces B when A is created from C and B from D via dependency resolve rules, selection reason for B is 'A replaces B'
 
+## Story: multiple modules are replaced by a single module
+
+Make following possible:
+
+    dependencies {
+        components.module('com:a').replacedBy('com:c')
+        components.module('com:b').replacedBy('com:c')
+    }
+
+### Test coverage
+
+- a replaced by c (a->c), b->c, all a,b,c in graph, only c is resolved
+- a->c, b->c, only a,b in graph, only c is resolved
+- a->c, b->c, only a,c in graph, only c is resolved
+
 ## Story: Allow declaring multiple module replacements
 
-Make it possible to declare module replacements flexibly, so that sets of modules can be replaced.
+Make it possible to declare module multiple replacement targets for single replacement source.
 
 ### Use cases:
 
@@ -119,11 +134,10 @@ This states that 'org.springframework:spring' was replaced by both 'org.springfr
 - A replaced by A-api, A-impl
     - When dependencies on A and A-api:1.2 are present in the graph, the result should contain A-api:1.2 and A-impl:1.2
     - When dependencies on A and A-api:1.2 and A-impl:1.3 are present in the graph, the result should contain A-api:1.3 and A-impl:1.3
-- B-api, B-impl replaced by B
-- A replaced by A-api, A-impl starting from version 2.0
-- A replaced by B (rule1) and C (rule2). A,B,C in graph
+
 uhappy paths:
-- cycle between come of the modules
+- cycle between newly added dependency
+- dependency added by the mechanism is unresolved
 
 ## Story: component replacement is explicit in the dependency reports
 
