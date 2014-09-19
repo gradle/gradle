@@ -232,6 +232,15 @@ Please use `model {}` blocks instead for that purpose, e.g.:
         } 
     }
 
+### CodeNarc plugin Groovy version changes
+
+The version of Groovy that the [CodeNarc plugin](userguide/codenarc_plugin.html) uses while analyzing Groovy source code has changed in this Gradle release.
+Previously, the version of Groovy that Gradle ships with was used.
+Now, the version of Groovy that the CodeNarc tool declares as a dependency is used. 
+
+This should have no impact on users of the CodeNarc plugin.
+Upon first use of the CodeNarc plugin with Gradle 2.1, you may see Gradle downloading a Groovy implementation for use with the CodeNarc plugin.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
