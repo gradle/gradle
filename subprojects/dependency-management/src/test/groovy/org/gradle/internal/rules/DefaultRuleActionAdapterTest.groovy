@@ -16,6 +16,7 @@
 
 package org.gradle.internal.rules
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserCodeException
 import spock.lang.Specification
 
 class DefaultRuleActionAdapterTest extends Specification {
@@ -25,7 +26,7 @@ class DefaultRuleActionAdapterTest extends Specification {
         def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> ruleAction }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator)
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
         def closureCalled = false
 
         when:
@@ -40,7 +41,7 @@ class DefaultRuleActionAdapterTest extends Specification {
         def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> ruleAction }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator)
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
         def actionCalled = false
 
         when:
@@ -57,28 +58,31 @@ class DefaultRuleActionAdapterTest extends Specification {
         def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> throw new RuleActionValidationException("FAILED") }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator)
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
 
         when:
         ruleActionAdapter.createFromClosure(String, { String s -> })
 
         then:
-        def failure = thrown(RuleActionValidationException)
-        failure.message == "FAILED"
+        def failure = thrown(InvalidUserCodeException)
+        failure.message == "The closure provided is not valid as a rule for 'context'."
+        failure.cause instanceof RuleActionValidationException
+        failure.cause.message == "FAILED"
     }
 
     def "fails to adapt action when validation fails" () {
         def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> throw new RuleActionValidationException("FAILED") }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator)
-        def closureCalled = false
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
 
         when:
         ruleActionAdapter.createFromAction(Stub(Action))
 
         then:
-        def failure = thrown(RuleActionValidationException)
-        failure.message == "FAILED"
+        def failure = thrown(InvalidUserCodeException)
+        failure.message == "The action provided is not valid as a rule for 'context'."
+        failure.cause instanceof RuleActionValidationException
+        failure.cause.message == "FAILED"
     }
 }

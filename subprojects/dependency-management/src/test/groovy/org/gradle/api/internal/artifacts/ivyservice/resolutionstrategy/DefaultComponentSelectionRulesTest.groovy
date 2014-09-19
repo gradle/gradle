@@ -103,7 +103,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
+        e.message == "The closure provided is not valid as a rule for 'ComponentSelectionRules'."
         e.cause.message == "First parameter of rule action closure must be of type 'ComponentSelection'."
     }
 
@@ -113,7 +113,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
+        e.message == "The closure provided is not valid as a rule for 'ComponentSelectionRules'."
         e.cause.message == message
 
         where:
@@ -133,7 +133,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "The closure provided is not valid as a rule action for 'ComponentSelectionRules'."
+        e.message == "The closure provided is not valid as a rule for 'ComponentSelectionRules'."
         e.cause.message == message
 
         where:

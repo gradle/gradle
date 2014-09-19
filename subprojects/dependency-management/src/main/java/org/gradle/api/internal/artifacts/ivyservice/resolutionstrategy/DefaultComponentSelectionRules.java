@@ -38,67 +38,45 @@ import java.util.Collection;
 import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
-    final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
-
-    RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
-    RuleActionAdapter<ComponentSelection> ruleActionAdapter = new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator);
-
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
-    private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule action for '%s'.";
-    private static final String INVALID_ACTION_ERROR = "The action provided is not valid as a rule action for '%s'.";
+
+    private final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
+
+    private final RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
+    private final RuleActionAdapter<ComponentSelection> ruleActionAdapter = new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, ComponentSelectionRules.class.getSimpleName());
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
         return rules;
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
-        addRule(createAllSpecRulesAction(createRuleActionFromAction(selectionAction)));
-        return this;
+        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromAction(selectionAction)));
     }
 
     public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction) {
-        addRule(createAllSpecRulesAction(ruleActionValidator.validate(ruleAction)));
-        return this;
+        return addRule(createAllSpecRulesAction(ruleActionValidator.validate(ruleAction)));
     }
 
     public ComponentSelectionRules all(Closure<?> closure) {
-        addRule(createAllSpecRulesAction(createRuleActionFromClosure(closure)));
+        addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
         return this;
     }
 
     public ComponentSelectionRules module(Object id, Action<? super ComponentSelection> selectionAction) {
-        addRule(createSpecRuleActionFromId(id, createRuleActionFromAction(selectionAction)));
-        return this;
+        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
     }
 
     public ComponentSelectionRules module(Object id, RuleAction<? super ComponentSelection> ruleAction) {
-        addRule(createSpecRuleActionFromId(id, ruleActionValidator.validate(ruleAction)));
-        return this;
+        return addRule(createSpecRuleActionFromId(id, ruleActionValidator.validate(ruleAction)));
     }
 
     public ComponentSelectionRules module(Object id, Closure<?> closure) {
-        addRule(createSpecRuleActionFromId(id, createRuleActionFromClosure(closure)));
-        return this;
+        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
-    private void addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
+    private ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         rules.add(specRuleAction);
-    }
-
-    private RuleAction<? super ComponentSelection> createRuleActionFromClosure(Closure<?> closure) {
-        try {
-            return ruleActionAdapter.createFromClosure(ComponentSelection.class, closure);
-        } catch (RuleActionValidationException e) {
-            throw new InvalidUserCodeException(String.format(INVALID_CLOSURE_ERROR, ComponentSelectionRules.class.getSimpleName()), e);
-        }
-    }
-
-    private RuleAction<? super ComponentSelection> createRuleActionFromAction(Action<? super ComponentSelection> action) {
-        try {
-            return ruleActionAdapter.createFromAction(action);
-        } catch (RuleActionValidationException e) {
-            throw new InvalidUserCodeException(String.format(INVALID_ACTION_ERROR, ComponentSelectionRules.class.getSimpleName()), e);
-        }
+        return this;
     }
 
     private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
