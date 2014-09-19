@@ -37,6 +37,14 @@ class ModuleIdentiferNotationParserTest extends Specification {
     def "reports invalid notation"() {
         when: parser.parseNotation(notation)
         then: thrown(UnsupportedNotationException)
-        where: notation << ["", ":", "foo:", "bar:", "foo:bar:baz", "  :", ":  ", "  :  "]
+        where: notation << [null, "", ":", "foo:", "bar:", "foo:bar:baz", "  :", ":  ", "  :  "]
     }
+
+    def "reports notation with invalid character"() {
+        when: parser.parseNotation("group:module${character}")
+        then: thrown(UnsupportedNotationException)
+        where: character << ["+", "*", "[", "]", "(", ")", ","]
+    }
+
+
 }

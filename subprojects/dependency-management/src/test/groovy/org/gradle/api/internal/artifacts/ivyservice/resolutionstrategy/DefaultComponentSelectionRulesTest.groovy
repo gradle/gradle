@@ -27,11 +27,14 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
+import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
     RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
-    ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules(adapter)
+    NotationParser<Object, String> notationParser = Mock(NotationParser)
+    ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules(adapter, notationParser)
     ComponentSelectionInternal componentSelection
     def ruleAction = Mock(RuleAction)
 
@@ -57,12 +60,16 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add closure rule that applies to module"() {
         def input = { ComponentSelection cs ->  }
+        def group = "group"
+        def module = "module"
+        def notation = "${group}:${module}"
 
         when:
-        rules.module("group:module", input)
+        rules.module(notation, input)
 
         then:
         1 * adapter.createFromClosure(ComponentSelection, input) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(group, module)
 
         and:
         rules.rules.size() == 1
@@ -87,12 +94,16 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add action rule that applies to module"() {
         def Action<ComponentSelection> action = Mock(Action)
+        def group = "group"
+        def module = "module"
+        def notation = "${group}:${module}"
 
         when:
-        rules.module("group:module", action)
+        rules.module(notation, action)
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(group, module)
 
         and:
         rules.rules.size() == 1
@@ -146,65 +157,40 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad targeted action") }
     }
 
-    def "produces sensible error when null module id is provided" () {
+    def "propagates error parsing module identifier for closure" () {
+        def input = { ComponentSelection cs -> }
+        def notation = "group:module:1.0"
+
         when:
-        rules.module(id, closureOrActionOrRule)
+        rules.module(notation, input)
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "Could not add a component selection rule for module 'null'."
+        e.message == "Could not add a component selection rule for module '${notation}'."
         def cause = e.cause
-        cause.message.startsWith("Cannot convert a null value to an object of type ModuleIdentifier.")
+        cause instanceof UnsupportedNotationException
+        cause.notation == notation
 
-        where:
-        id                     | closureOrActionOrRule
-        null                   | { ComponentSelection cs -> }
-        null                   | new TestComponentSelectionAction()
+        and:
+        1 * notationParser.parseNotation(notation) >> { throw new UnsupportedNotationException(notation) }
     }
 
-    def "produces sensible error when un-parsable module id is provided" () {
+    def "propagates error parsing module identifier for action" () {
+        def input = Mock(Action)
+        def notation = "group:module:1.0"
+
         when:
-        rules.module(id, closureOrActionOrRule)
+        rules.module(notation, input)
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "Could not add a component selection rule for module '${id}'."
+        e.message == "Could not add a component selection rule for module '${notation}'."
         def cause = e.cause
-        cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: ${id}.")
+        cause instanceof UnsupportedNotationException
+        cause.notation == notation
 
-        where:
-        id                     | closureOrActionOrRule
-        ""                     | { ComponentSelection cs -> }
-        "module"               | { ComponentSelection cs -> }
-        "group:module:version" | { ComponentSelection cs -> }
-        ""                     | new TestComponentSelectionAction()
-        "module"               | new TestComponentSelectionAction()
-        "group:module:version" | new TestComponentSelectionAction()
-    }
-
-    def "produces sensible error when illegal characters are provided in target module id" () {
-        def closure = { ComponentSelection cs -> }
-        def action = new TestComponentSelectionAction()
-
-        when:
-        rules.module("group:module${character}", closure)
-
-        then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "Could not add a component selection rule for module 'group:module${character}'."
-        e.cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.")
-
-
-        when:
-        rules.module("group:module${character}", action)
-
-        then:
-        e = thrown(InvalidUserCodeException)
-        e.message == "Could not add a component selection rule for module 'group:module${character}'."
-        e.cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.")
-
-        where:
-        character << ["+", "*", "[", "]", "(", ")", ","]
+        and:
+        1 * notationParser.parseNotation(notation) >> { throw new UnsupportedNotationException(notation) }
     }
 
     def "ComponentSelectionSpec matches on group and name" () {

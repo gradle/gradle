@@ -46,12 +46,12 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
 
     public DefaultComponentSelectionRules() {
-        this(createAdapter());
+        this(createAdapter(), createModuleIdentifierNotationParser());
     }
 
-    protected DefaultComponentSelectionRules(RuleActionAdapter<ComponentSelection> ruleActionAdapter) {
+    protected DefaultComponentSelectionRules(RuleActionAdapter<ComponentSelection> ruleActionAdapter, NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser) {
         this.ruleActionAdapter = ruleActionAdapter;
-        moduleIdentifierNotationParser = createModuleIdentifierNotationParser();
+        this.moduleIdentifierNotationParser = moduleIdentifierNotationParser;
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
