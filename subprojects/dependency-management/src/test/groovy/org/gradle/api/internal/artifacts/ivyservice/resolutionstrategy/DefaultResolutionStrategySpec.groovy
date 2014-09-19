@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.internal.NoInputsRuleAction
+import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification

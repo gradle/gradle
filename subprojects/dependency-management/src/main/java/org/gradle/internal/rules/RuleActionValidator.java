@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.internal.rules;
 
-import java.util.List;
-
-/**
- * An action representing a rule, taking declared inputs and performing an action on a subject.
- *
- * @param <T> The subject type
- */
-@Incubating
-public interface RuleAction<T> {
-    List<Class<?>> getInputTypes();
-    void execute(T subject, List<?> inputs);
+public interface RuleActionValidator<T> {
+    public RuleAction<? super T> validate(RuleAction<? super T> ruleAction);
 }

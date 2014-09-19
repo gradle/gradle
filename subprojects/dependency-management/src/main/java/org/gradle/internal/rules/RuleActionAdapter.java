@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.rules;
 
-import org.gradle.api.GradleException;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 
-public class RuleActionValidationException extends GradleException {
-    public RuleActionValidationException() {
-    }
+public interface RuleActionAdapter<T> {
+    RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure);
 
-    public RuleActionValidationException(String message) {
-        super(message);
-    }
-
-    public RuleActionValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    RuleAction<? super T> createFromAction(Action<? super T> action);
 }

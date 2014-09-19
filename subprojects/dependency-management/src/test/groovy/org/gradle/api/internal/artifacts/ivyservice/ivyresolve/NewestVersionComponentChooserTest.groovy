@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.internal.ClosureBackedRuleAction
-import org.gradle.api.internal.SpecRuleAction
+import org.gradle.internal.rules.ClosureBackedRuleAction
+import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector

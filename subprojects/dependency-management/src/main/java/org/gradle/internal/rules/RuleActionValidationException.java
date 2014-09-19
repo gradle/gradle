@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.rules;
 
-import org.gradle.api.RuleAction;
+import org.gradle.api.GradleException;
 
-public interface RuleActionValidator<T> {
-    public RuleAction<? super T> validate(RuleAction<? super T> ruleAction);
+public class RuleActionValidationException extends GradleException {
+    public RuleActionValidationException() {
+    }
+
+    public RuleActionValidationException(String message) {
+        super(message);
+    }
+
+    public RuleActionValidationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

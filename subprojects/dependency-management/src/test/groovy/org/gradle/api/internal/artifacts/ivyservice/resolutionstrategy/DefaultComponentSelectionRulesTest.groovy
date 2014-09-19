@@ -22,9 +22,10 @@ import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.api.internal.NoInputsRuleAction
-import org.gradle.api.internal.RuleActionAdapter
-import org.gradle.api.internal.RuleActionValidationException
+import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.internal.rules.RuleAction
+import org.gradle.internal.rules.RuleActionAdapter
+import org.gradle.internal.rules.RuleActionValidationException
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection

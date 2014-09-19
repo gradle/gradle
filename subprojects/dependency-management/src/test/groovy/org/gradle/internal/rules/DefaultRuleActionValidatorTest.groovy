@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal.rules
 
-import org.gradle.api.RuleAction
 import spock.lang.Specification
 
 class DefaultRuleActionValidatorTest extends Specification {

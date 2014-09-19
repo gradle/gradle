@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.rules;
 
 import org.gradle.api.Action;
-import org.gradle.api.RuleAction;
 
 import java.util.Collections;
 import java.util.List;

@@ -23,8 +23,8 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.api.internal.ClosureBackedRuleAction
-import org.gradle.api.internal.SpecRuleAction
+import org.gradle.internal.rules.ClosureBackedRuleAction
+import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier

@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.rules;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.RuleAction;
+import org.gradle.api.Incubating;
 
-public interface RuleActionAdapter<T> {
-    RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure);
+import java.util.List;
 
-    RuleAction<? super T> createFromAction(Action<? super T> action);
+/**
+ * An action representing a rule, taking declared inputs and performing an action on a subject.
+ *
+ * @param <T> The subject type
+ */
+@Incubating
+public interface RuleAction<T> {
+    List<Class<?>> getInputTypes();
+    void execute(T subject, List<?> inputs);
 }
