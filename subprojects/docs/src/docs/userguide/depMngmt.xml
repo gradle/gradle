@@ -1094,8 +1094,8 @@ someroot/[artifact]-[revision].[ext]
                     Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other.
                     This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem
                     holistically for all Gradle-powered projects in the enterprise.
-                    <sample id="module_replacement" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
-                        <sourcefile file="build.gradle" snippet="module_replacement"/>
+                    <sample id="module_replacement_declaration" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
+                        <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
                     </sample>
                     For more examples and detailed API, please refer to the DSL reference for <apilink class="org.gradle.api.artifacts.dsl.ComponentMetadataHandler"/>.
                 </para>
@@ -1108,6 +1108,10 @@ someroot/[artifact]-[revision].[ext]
                     Gradle will not eagerly replace it with "guava".
                     Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict
                     (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
+                </para>
+                <para>
+                    Currently it is not possible to declare that certain modules is replaced by a set of modules.
+                    However, it is possible to declare that multiple modules are replaced by a single module.
                 </para>
             </section>
 
