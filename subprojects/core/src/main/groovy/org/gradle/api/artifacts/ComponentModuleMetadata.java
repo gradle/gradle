@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.api.artifacts;
 
-//TODO SF elevate, add samples to javadoc
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
 /**
- * Contains and allows configuring component module metadata information.
+ * Contains immutable component module metadata information.
+ *
+ * @since 2.2
  */
-public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata {
+@Incubating
+public interface ComponentModuleMetadata {
 
     /**
-     * Configures a replacement module for this module.
-     * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
-     *
-     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
+     * The identifier of the module.
      */
-    void replacedBy(Object moduleNotation);
+    ModuleIdentifier getId();
+
+    /**
+     * The identifier of module that replaces this module.
+     * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
+     */
+    @Nullable ModuleIdentifier getReplacedBy();
 }

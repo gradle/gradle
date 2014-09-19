@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.Incubating;
 
 /**
- * Contains immutable component module metadata information.
+ * Contains and allows configuring component module metadata information.
+ *
+ * @since 2.2
  */
-public interface ComponentModuleMetadata {
+@Incubating
+public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata {
 
     /**
-     * The identifier of the module.
-     */
-    ModuleIdentifier getId();
-
-    /**
-     * The identifier of module that replaces this module.
+     * Configures a replacement module for this module.
      * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
+     *
+     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
      */
-    @Nullable ModuleIdentifier getReplacedBy();
+    void replacedBy(Object moduleNotation);
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
 import org.gradle.internal.typeconversion.NotationParser;

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 
 /**
  * Allows to modify the metadata of depended-on software components.
@@ -27,6 +28,7 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  * <pre autoTested=''>
  * dependencies {
  *     components {
+ *         //triggered during dependency resolution, for each component:
  *         eachComponent { ComponentMetadataDetails details ->
  *             if (details.id.group == "org.foo") {
  *                 def version = details.id.version
@@ -35,6 +37,12 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
  *             }
  *         }
+ *
+ *         //Configuring component module metadata for the entire 'google-collections' module,
+ *         // declaring that legacy library was replaced with a new one.
+ *         //This way, Gradle's conflict resolution can use this information and use guava
+ *         // in case both libraries appear in the same dependency tree.
+ *         module('com.google.collections:google-collections').replacedBy('com.google.guava:guava')
  *     }
  * }
  * </pre>
@@ -74,4 +82,22 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      */
     void eachComponent(Closure<?> rule);
+
+    /**
+     * Enables configuring component module metadata.
+     * This metadata applies to the entire component module (e.g. "group:name", like "org.gradle:gradle-core") regardless of the component version.
+     *
+     * <pre autoTested=''>
+     * //declaring that google collections are replaced by guava
+     * //so that conflict resolution can take advantage of this information:
+     * dependencies.components.module('com.google.collections:google-collections').replacedBy('com.google.guava:guava')
+     * </pre>
+     *
+     * @param moduleNotation an identifier of the module. String "group:name", e.g. 'org.gradle:gradle-core'
+     * or an instance of {@link org.gradle.api.artifacts.ModuleIdentifier}
+     *
+     * @return an object that allows querying and configuring metadata of given component module
+     * @since 2.2
+     */
+    public ComponentModuleMetadataDetails module(Object moduleNotation);
 }
