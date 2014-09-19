@@ -42,7 +42,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/Foo.class").exists()
     }
 
-    def "default settings are correctly applied for java plugin"() {
+    def "uses default platform settings when applying java plugin"() {
         buildFile << """
             apply plugin:"java"
         """
