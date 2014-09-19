@@ -82,6 +82,14 @@ public interface ComponentSelectionRules {
     public ComponentSelectionRules all(Closure<?> closure);
 
     /**
+     * Adds a component selection rule that will apply to all resolved components.
+     *
+     * @param ruleSource a class providing a rule implementation
+     * @return this
+     */
+    public ComponentSelectionRules all(Class<?> ruleSource);
+
+    /**
      * Adds a component selection rule that will apply to the specified module.
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
@@ -105,4 +113,13 @@ public interface ComponentSelectionRules {
      * @return this
      */
     public ComponentSelectionRules module(Object id, Closure<?> closure);
+
+    /**
+     * Adds a component selection rule that will apply to all resolved components.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param ruleSource a class providing a rule implementation
+     * @return this
+     */
+    public ComponentSelectionRules module(Object id, Class<?> ruleSource);
 }

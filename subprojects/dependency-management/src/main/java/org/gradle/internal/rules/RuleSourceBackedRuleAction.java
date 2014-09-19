@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.rule;
+package org.gradle.internal.rules;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.RuleAction;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaReflectionUtil;

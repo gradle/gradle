@@ -32,6 +32,8 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
+    static final GROUP = "group"
+    static final MODULE = "module"
     RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
     NotationParser<Object, String> notationParser = Mock(NotationParser)
     ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules(adapter, notationParser)
@@ -39,7 +41,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     def ruleAction = Mock(RuleAction)
 
     def setup() {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(GROUP, MODULE, "version")
         componentSelection = new DefaultComponentSelection(componentIdentifier)
     }
 
@@ -60,21 +62,19 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add closure rule that applies to module"() {
         def input = { ComponentSelection cs ->  }
-        def group = "group"
-        def module = "module"
-        def notation = "${group}:${module}"
+        def notation = "${GROUP}:${MODULE}"
 
         when:
         rules.module(notation, input)
 
         then:
         1 * adapter.createFromClosure(ComponentSelection, input) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(group, module)
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         rules.rules.size() == 1
         rules.rules[0].action == ruleAction
-        rules.rules[0].spec.target == DefaultModuleIdentifier.newId("group", "module")
+        rules.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "add action rule that applies to all components"() {
@@ -94,21 +94,48 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add action rule that applies to module"() {
         def Action<ComponentSelection> action = Mock(Action)
-        def group = "group"
-        def module = "module"
-        def notation = "${group}:${module}"
+        def notation = "${GROUP}:${MODULE}"
 
         when:
         rules.module(notation, action)
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(group, module)
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         rules.rules.size() == 1
         rules.rules[0].action == ruleAction
-        rules.rules[0].spec.target == DefaultModuleIdentifier.newId("group", "module")
+        rules.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "add rule source rule that applies to all components"() {
+        when:
+        rules.all String.class
+
+        then:
+        1 * adapter.createFromRuleSource(ComponentSelection, String) >> ruleAction
+
+        and:
+        rules.rules.size() == 1
+        rules.rules[0].action == ruleAction
+        rules.rules[0].spec == Specs.satisfyAll()
+    }
+
+    def "add rule source rule that applies to module"() {
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        rules.module(notation, String)
+
+        then:
+        1 * adapter.createFromRuleSource(ComponentSelection, String) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        rules.rules.size() == 1
+        rules.rules[0].action == ruleAction
+        rules.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "propagates error creating rule for closure" () {
@@ -131,6 +158,28 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         and:
         1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad targeted closure") }
+    }
+
+    def "propagates error creating rule for rule source" () {
+        when:
+        rules.all String.class
+
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "bad rule source"
+
+        and:
+        1 * adapter.createFromRuleSource(ComponentSelection, String.class) >> { throw new InvalidUserCodeException("bad rule source") }
+
+        when:
+        rules.module("group:module", String.class)
+
+        then:
+        e = thrown(InvalidUserCodeException)
+        e.message == "bad targeted rule source"
+
+        and:
+        1 * adapter.createFromRuleSource(ComponentSelection, String.class) >> { throw new InvalidUserCodeException("bad targeted rule source") }
     }
 
     def "propagates error creating rule for action" () {

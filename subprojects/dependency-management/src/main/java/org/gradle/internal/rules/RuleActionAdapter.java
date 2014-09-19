@@ -23,4 +23,6 @@ public interface RuleActionAdapter<T> {
     RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure);
 
     RuleAction<? super T> createFromAction(Action<? super T> action);
+
+    RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Class<?> ruleSource);
 }

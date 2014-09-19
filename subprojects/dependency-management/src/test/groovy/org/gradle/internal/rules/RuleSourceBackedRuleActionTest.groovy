@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.rule
+package org.gradle.internal.rules
 
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Mutate

@@ -19,10 +19,12 @@ package org.gradle.internal.rules;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.model.internal.core.ModelType;
 
 public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule for '%s'.";
     private static final String INVALID_ACTION_ERROR = "The action provided is not valid as a rule for '%s'.";
+    private static final String INVALID_RULE_SOURCE_ERROR = "The rule source provided does not provide a valid rule for '%s'.";
 
     private final RuleActionValidator<T> ruleActionValidator;
     private final String context;
@@ -45,6 +47,14 @@ public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
             return ruleActionValidator.validate(new NoInputsRuleAction<T>(action));
         } catch (RuleActionValidationException e) {
             throw new InvalidUserCodeException(String.format(INVALID_ACTION_ERROR, context), e);
+        }
+    }
+
+    public RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Class<?> ruleSource) {
+        try {
+            return ruleActionValidator.validate(RuleSourceBackedRuleAction.create(ruleSource, ModelType.of(subjectType)));
+        } catch (RuleActionValidationException e) {
+            throw new InvalidUserCodeException(String.format(INVALID_RULE_SOURCE_ERROR, context), e);
         }
     }
 }
