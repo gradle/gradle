@@ -186,6 +186,10 @@ public class JavaReflectionUtil {
         return methods.isEmpty() ? null : methods.get(0);
     }
 
+    public static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
+        return findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(), false);
+    }
+
     // Not hasProperty() because that's awkward with Groovy objects implementing it
     public static boolean propertyExists(Object target, String propertyName) {
         Class<?> targetType = target.getClass();
