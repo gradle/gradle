@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.plugins;
 
+import com.sun.deploy.config.NativePlatform;
 import org.gradle.api.*;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
@@ -115,9 +116,20 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void registerExtensions(ExtensionContainer extensions, PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
+        public void registerExtensions(ExtensionContainer extensions, BuildTypeContainer buildTypes, FlavorContainer flavors) {
             extensions.add("buildTypes", buildTypes);
             extensions.add("flavors", flavors);
+        }
+
+        @Mutate
+        public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+
+            platforms.registerFactory(DefaultNativePlatform.class, new NamedDomainObjectFactory<DefaultNativePlatform>() {
+                public DefaultNativePlatform create(String name) {
+                    return instantiator.newInstance(DefaultNativePlatform.class, name);
+                }
+            });
         }
 
         @Mutate

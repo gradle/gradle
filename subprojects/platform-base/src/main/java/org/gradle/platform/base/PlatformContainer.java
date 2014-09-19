@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 
@@ -23,5 +24,5 @@ import org.gradle.api.PolymorphicDomainObjectContainer;
  * A container of {@link Platform}s.
  */
 @Incubating
-public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform> {
+public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
 }
