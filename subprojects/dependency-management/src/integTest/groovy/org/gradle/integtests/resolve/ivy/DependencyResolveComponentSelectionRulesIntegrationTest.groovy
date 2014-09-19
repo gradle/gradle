@@ -434,7 +434,7 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failureHasCause("The closure provided is not valid as a rule action for 'ComponentSelectionRules'.")
+        failureHasCause("The closure provided is not valid as a rule for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
         where:
