@@ -31,6 +31,7 @@ import org.gradle.util.CollectionUtils;
 import java.lang.reflect.Method;
 import java.util.List;
 
+// TODO:DAZ Probably better for now to use user-supplied instance of ruleSource.
 public class RuleSourceBackedRuleAction<T> implements RuleAction<T> {
     private final MethodRuleDefinition<Void> methodRuleDefinition;
 

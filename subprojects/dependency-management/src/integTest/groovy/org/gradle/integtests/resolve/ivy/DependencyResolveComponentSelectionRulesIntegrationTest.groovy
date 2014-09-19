@@ -679,6 +679,41 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
+    def "can provide component selection rule as rule source"() {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all Select11
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+                assert artifacts.size() == 1
+                assert artifacts[0].moduleVersion.id.version == '1.1'
+            }
+
+            class Select11 {
+                @org.gradle.model.Mutate
+                void select(ComponentSelection selection) {
+                    if (selection.candidate.version != '1.1') {
+                        selection.reject("not 1.1")
+                    }
+                }
+            }
+"""
+        expect:
+        succeeds "resolveConf"
+    }
+
     def "copies selection rules when configuration is copied" () {
         buildFile << """
             $baseBuildFile
