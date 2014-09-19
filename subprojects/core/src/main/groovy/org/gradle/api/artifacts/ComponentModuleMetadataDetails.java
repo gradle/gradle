@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * Contains and allows configuring component module metadata information.
+ * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}
  *
  * @since 2.2
  */
@@ -30,7 +31,9 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      * Configures a replacement module for this module.
      * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
      *
-     * //TODO SF document that it replaces, add coverage for replacing with 'self'
+     * Subsequent invocations of this method replace the previous 'replacedBy' value.
+     *
+     * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
      *
      * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
      */
