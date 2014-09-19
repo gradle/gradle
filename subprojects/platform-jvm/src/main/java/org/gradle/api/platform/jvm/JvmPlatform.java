@@ -39,5 +39,4 @@ import org.gradle.api.Named;
 @Incubating
 public interface JvmPlatform extends Named {
     JavaVersion getTargetCompatibility();
-    //TODO: Set<File> getBootclasspath();
 }

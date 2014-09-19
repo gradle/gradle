@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.platform.jvm.DefaultJvmPlatform;
+import org.gradle.api.platform.jvm.internal.DefaultJvmPlatform;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
