@@ -326,6 +326,13 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect: resolvedModules 'c'
     }
 
+    @Ignore //maybe, as a way to 'clear' any replacements
+    def "allow replacing with self"() {
+        declaredDependencies 'a', 'b', 'c'
+        declaredReplacements 'a->c', 'a->b', 'a->a'
+        expect: resolvedModules 'a', 'b', 'c'
+    }
+
     @Ignore
     def "pulls extra dependency to graph if multiple replacement targets declared"() {
         publishedMavenModules 'c'
