@@ -25,6 +25,7 @@ class VersionSelectionReasonsTest extends Specification {
     def "decorates with conflict resolution"() {
         expect:
         withConflictResolution(REQUESTED) == CONFLICT_RESOLUTION
+        withConflictResolution(FORCED) == CONFLICT_RESOLUTION
         withConflictResolution(SELECTED_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
         withConflictResolution(CONFLICT_RESOLUTION) == CONFLICT_RESOLUTION
         withConflictResolution(CONFLICT_RESOLUTION_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
@@ -32,10 +33,10 @@ class VersionSelectionReasonsTest extends Specification {
 
     def "does not decorate unsupported reasons"() {
         when:
-        withConflictResolution(FORCED)
+        withConflictResolution(ROOT)
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message.contains FORCED.toString()
+        ex.message.contains ROOT.toString()
     }
 }
