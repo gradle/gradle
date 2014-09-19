@@ -25,7 +25,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
-import org.gradle.nativeplatform.platform.PlatformContainer
+import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry

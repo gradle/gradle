@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
@@ -41,9 +42,11 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
+import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -184,5 +187,18 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         void closeSourcesForBinaries(BinaryContainer binaries, ProjectSourceSet sources) {
             // Only required because sources aren't fully integrated into model
         }
+
+
+        @Model
+        PlatformContainer platforms(ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
+        }
+
+        @Mutate
+        void registerPlatformExtension(ExtensionContainer extensions, PlatformContainer platforms) {
+            extensions.add("platforms", platforms);
+        }
+
     }
 }

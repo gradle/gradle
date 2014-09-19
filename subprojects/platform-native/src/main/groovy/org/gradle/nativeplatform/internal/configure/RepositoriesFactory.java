@@ -30,10 +30,15 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
-import org.gradle.nativeplatform.platform.PlatformContainer;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.platform.base.Platform;
+import org.gradle.platform.base.PlatformContainer;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RepositoriesFactory implements ModelCreator {
     private final ModelPath path;
@@ -72,7 +77,7 @@ public class RepositoriesFactory implements ModelCreator {
 
     public ModelAdapter create(Inputs inputs) {
         FlavorContainer flavors = inputs.get(0, ModelType.of(FlavorContainer.class)).getInstance();
-        PlatformContainer platforms = inputs.get(1, ModelType.of(PlatformContainer.class)).getInstance();
+        Set<NativePlatform> platforms = DefaultNativePlatform.getNativePlatforms(inputs.get(1, ModelType.of(PlatformContainer.class)).getInstance());
         BuildTypeContainer buildTypes = inputs.get(2, ModelType.of(BuildTypeContainer.class)).getInstance();
         Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, platforms, buildTypes, flavors);
         return InstanceModelAdapter.of(type, new DefaultRepositories(instantiator, fileResolver, initializer));

@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.internal.configure
 
-import org.gradle.nativeplatform.platform.PlatformContainer
+import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 

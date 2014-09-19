@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,11 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 
 /**
- * Platform defines the variants a component can produce.
- *
- * Examples: the JvmPlatform may define a binary version to target,
- * while the NativePlatform may define architecture to target.
+ * A container of {@link Platform}s.
  */
 @Incubating
-public interface Platform extends Named {
+public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform> {
 }
