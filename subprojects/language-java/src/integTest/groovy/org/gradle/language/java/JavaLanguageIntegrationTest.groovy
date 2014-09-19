@@ -350,41 +350,6 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         assert failure.assertHasCause("Could not use target JVM platform: '$badTarget' when using JDK: '${JavaVersion.current()}'. Change to a lower target.")
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "component report contains target data"() {
-        String target1 = JavaVersion.VERSION_1_5;
-        String target2 = JavaVersion.VERSION_1_6;
-        String target3 = JavaVersion.current();
-        when:
-        def javaApp = new TestJavaLibrary()
-        javaApp.sources*.writeToDir(file("src/myLib/java"))
-
-        and:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
-                target java("$target1")
-                target java("$target2")
-                target java("$target3")
-            }
-        }
-    }
-"""
-        then:
-        succeeds "components"
-
-        and:
-        assert output.contains("platform: target JDK ${target1}")
-        and:
-        assert output.contains("platform: target JDK ${target2}")
-        and:
-        assert output.contains("platform: target JDK ${target3}")
-    }
-
     private JarTestFixture jarFile(String s) {
         new JarTestFixture(file(s))
     }

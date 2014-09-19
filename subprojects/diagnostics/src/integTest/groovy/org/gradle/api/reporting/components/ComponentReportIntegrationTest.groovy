@@ -16,8 +16,13 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
+import org.gradle.language.fixtures.TestJavaLibrary
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -513,6 +518,79 @@ Note: currently not all plugins register their components, so some components ma
 
 BUILD SUCCESSFUL
 """))
+    }
+
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "shows details of jvm library with multiple targets"() {
+        String current = JavaVersion.current();
+        String target1 = JavaVersion.VERSION_1_5;
+        String target2 = JavaVersion.VERSION_1_6;
+        String target3 = current;
+        when:
+        def javaApp = new TestJavaLibrary()
+        javaApp.sources*.writeToDir(file("src/myLib/java"))
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib {
+                target java("$target1")
+                target java("$target2")
+                target java("$target3")
+            }
+        }
+    }
+"""
+        then:
+        succeeds "components"
+
+        and:
+        output.contains("""
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+JVM library 'myLib'
+-------------------
+
+Source sets
+    Resources 'myLib:resources'
+        src/myLib/resources
+    Java source 'myLib:java'
+        src/myLib/java
+
+Binaries""")
+    //order not guaranteed so check individual
+    and:
+    output.contains("""Jar 'myLib:jdk$target1:jar'
+        build using task: :jdk${target1}MyLibJar
+        platform: target JDK $target1
+        tool chain: current JDK ($current)
+        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar""")
+
+    and:
+    output.contains("""Jar 'myLib:jdk$target2:jar'
+        build using task: :jdk${target2}MyLibJar
+        platform: target JDK $target2
+        tool chain: current JDK ($current)
+        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar""")
+    and:
+    output.contains("""
+    Jar 'myLib:jdk$target3:jar'
+        build using task: :jdk${target3}MyLibJar
+        platform: target JDK $target3
+        tool chain: current JDK ($current)
+        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar""")
+    and:
+    output.contains("""
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
+""")
     }
 
     String expected(String normalised) {
