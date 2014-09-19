@@ -22,13 +22,10 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 import static java.util.Arrays.asList;
 
 /**
@@ -36,8 +33,7 @@ import static java.util.Arrays.asList;
  */
 class ConflictContainer<K, T> {
 
-    //TODO SF this does not have to be a map. We iterate all elements anyway.
-    final Map<K, Conflict> conflicts = newLinkedHashMap();
+    final LinkedList<Conflict> conflicts = newLinkedList();
 
     private final Map<K, Collection<? extends T>> elements = newHashMap();
     private final Multimap<K, K> targetToSource = LinkedHashMultimap.create();
@@ -90,8 +86,7 @@ class ConflictContainer<K, T> {
         //If we find any matching conflict we have to hook up with it
 
         //Find an existing matching conflict
-        for (K e : conflicts.keySet()) {
-            Conflict c = conflicts.get(e);
+        for (Conflict c : conflicts) {
             if (!Sets.intersection(participants, c.participants).isEmpty()) {
                 //there is already registered conflict with at least one matching participant, hook up to this conflict
                 c.candidates = candidates;
@@ -102,7 +97,7 @@ class ConflictContainer<K, T> {
 
         //No conflict with matching participants found, create new
         Conflict c = new Conflict(participants, candidates);
-        conflicts.put(participants.iterator().next(), c);
+        conflicts.add(c);
         return c;
     }
 
@@ -116,8 +111,7 @@ class ConflictContainer<K, T> {
 
     public Conflict popConflict() {
         assert !conflicts.isEmpty();
-        K first = conflicts.keySet().iterator().next();
-        return conflicts.remove(first);
+        return conflicts.pop();
     }
 
     class Conflict {
