@@ -23,6 +23,10 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface ExtractedInputs {
-    String[] value() default {};
+public @interface RuleMetadata {
+    String[] inputPaths() default {};
+    int[] inputLineNumbers() default {};
+    String scriptSourceDescription();
+    int lineNumber();
+    int columnNumber();
 }

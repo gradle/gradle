@@ -16,12 +16,15 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimaps;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.codehaus.groovy.syntax.Token;
@@ -34,17 +37,18 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 // This is explicitly not threadsafe
 public class RuleVisitor extends CodeVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
 
-    private static final String AST_NODE_METADATA_KEY = RuleVisitor.class.getName();
+    private static final String AST_NODE_METADATA_INPUTS_KEY = RuleVisitor.class.getName() + ".inputs";
+    public static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
 
     private static final String DOLLAR = "$";
-    private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(ExtractedInputs.class);
+    private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RuleMetadata.class);
     private static final ClassNode CONTEXTUAL_INPUT_TYPE = new ClassNode(RuleInputAccessBacking.class);
     private static final ClassNode ACCESS_API_TYPE = new ClassNode(RuleInputAccess.class);
     private static final String GET_ACCESS = "getAccess";
@@ -52,7 +56,7 @@ public class RuleVisitor extends CodeVisitorSupport {
     private static final String ACCESS_HOLDER_FIELD = "_" + RuleInputAccess.class.getName().replace(".", "_");
 
     private final SourceUnit sourceUnit;
-    private ImmutableSet.Builder<String> inputs;
+    private ImmutableListMultimap.Builder<String, Integer> inputs;
     private VariableExpression accessVariable;
 
     public RuleVisitor(SourceUnit sourceUnit) {
@@ -62,29 +66,37 @@ public class RuleVisitor extends CodeVisitorSupport {
     // Not part of a normal visitor, see ClosureCreationInterceptingVerifier
     public static void visitGeneratedClosure(ClassNode node) {
         MethodNode method = AstUtils.getGeneratedClosureImplMethod(node);
-        Set<String> inputs = method.getCode().getNodeMetaData(AST_NODE_METADATA_KEY);
-        if (inputs != null) {
-            AnnotationNode inputsAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
-            List<Expression> values = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
-            for (String input : inputs) {
-                values.add(new ConstantExpression(input));
+        Statement closureCode = method.getCode();
+        ClosureBackedRuleLocation ruleLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
+        if (ruleLocation != null) {
+            ListMultimap<String, Integer> inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+            AnnotationNode metadataAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
+            List<Expression> pathValues = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
+            List<Expression> lineNumberValues = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
+            for (Map.Entry<String, List<Integer>> input : Multimaps.asMap(inputs).entrySet()) {
+                pathValues.add(new ConstantExpression(input.getKey()));
+                lineNumberValues.add(new ConstantExpression(input.getValue().get(0)));
             }
-            inputsAnnotation.addMember("value", new ListExpression(values));
-            node.addAnnotation(inputsAnnotation);
+            metadataAnnotation.addMember("inputPaths", new ListExpression(pathValues));
+            metadataAnnotation.addMember("inputLineNumbers", new ListExpression(lineNumberValues));
+            metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(ruleLocation.getScriptSourceDescription()));
+            metadataAnnotation.addMember("lineNumber", new ConstantExpression(ruleLocation.getLineNumber()));
+            metadataAnnotation.addMember("columnNumber", new ConstantExpression(ruleLocation.getColumnNumber()));
+            node.addAnnotation(metadataAnnotation);
         }
     }
 
     @Override
     public void visitClosureExpression(ClosureExpression expression) {
         if (inputs == null) {
-            inputs = ImmutableSet.builder();
+            inputs = ImmutableListMultimap.builder();
             try {
                 accessVariable = new VariableExpression(ACCESS_HOLDER_FIELD, ACCESS_API_TYPE);
 
                 super.visitClosureExpression(expression);
 
                 BlockStatement code = (BlockStatement) expression.getCode();
-                code.setNodeMetaData(AST_NODE_METADATA_KEY, inputs.build());
+                code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs.build());
                 accessVariable.setClosureSharedVariable(true);
                 StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(CONTEXTUAL_INPUT_TYPE, GET_ACCESS, ArgumentListExpression.EMPTY_ARGUMENTS);
                 DeclarationExpression variableDeclaration = new DeclarationExpression(accessVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
@@ -136,7 +148,7 @@ public class RuleVisitor extends CodeVisitorSupport {
                 return;
             }
 
-            inputs.add(modelPath);
+            inputs.put(modelPath, call.getLineNumber());
             call.setObjectExpression(new VariableExpression(accessVariable));
         }
     }

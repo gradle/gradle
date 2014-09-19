@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.control.CompilationUnit;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
@@ -23,10 +24,12 @@ public class BuildScriptTransformer implements Transformer {
 
     private final String id;
     private final Transformer extractionTransformer;
+    private final ScriptSource scriptSource;
 
-    public BuildScriptTransformer(String id, Transformer extractionTransformer) {
+    public BuildScriptTransformer(String id, Transformer extractionTransformer, ScriptSource scriptSource) {
         this.id = id;
         this.extractionTransformer = extractionTransformer;
+        this.scriptSource = scriptSource;
     }
 
     public String getId() {
@@ -38,6 +41,7 @@ public class BuildScriptTransformer implements Transformer {
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
         new StatementLabelsScriptTransformer().register(compilationUnit);
+        new ScriptSourceDescriptionTransformer(scriptSource.getDisplayName()).register(compilationUnit);
         new ModelBlockTransformer().register(compilationUnit);
     }
 }

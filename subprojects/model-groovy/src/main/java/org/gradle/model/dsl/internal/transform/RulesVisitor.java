@@ -29,6 +29,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
+import org.gradle.groovy.scripts.internal.ScriptSourceDescriptionTransformer;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.util.List;
@@ -43,10 +44,12 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     public static final String INVALID_STATEMENT = "illegal rule";
     public static final String ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE = "Rules can only be specified using a closure literal";
 
+    private final SourceUnit sourceUnit;
     private final RuleVisitor ruleVisitor;
 
     public RulesVisitor(SourceUnit sourceUnit, RuleVisitor ruleVisitor) {
         super(sourceUnit, INVALID_STATEMENT);
+        this.sourceUnit = sourceUnit;
         this.ruleVisitor = ruleVisitor;
     }
 
@@ -96,7 +99,14 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setImplicitThis(true);
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
+        ClosureBackedRuleLocation ruleLocation = new ClosureBackedRuleLocation(getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
+        closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, ruleLocation);
+
         closureExpression.visit(ruleVisitor);
+    }
+
+    private String getScriptSourceDescription() {
+        return sourceUnit.getAST().getNodeMetaData(ScriptSourceDescriptionTransformer.AST_NODE_METADATA_KEY);
     }
 
     @Nullable // if the target was invalid

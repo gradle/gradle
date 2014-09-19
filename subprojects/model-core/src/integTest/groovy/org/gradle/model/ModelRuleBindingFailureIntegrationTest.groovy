@@ -65,10 +65,10 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertThatCause(unbound(
                 UnboundRule.descriptor('MyPlugin$Rules#thing1(MyPlugin$MyThing2)')
-                        .immutableInput(UnboundRuleInput.type('MyPlugin$MyThing2')),
+                        .immutableInput(UnboundRuleInput.type('MyPlugin$MyThing2').description("parameter 1")),
                 UnboundRule.descriptor('MyPlugin$Rules#mutateThing2(MyPlugin$MyThing2, MyPlugin$MyThing3)')
-                        .mutableInput(UnboundRuleInput.type('MyPlugin$MyThing2'))
-                        .immutableInput(UnboundRuleInput.type('MyPlugin$MyThing3'))
+                        .mutableInput(UnboundRuleInput.type('MyPlugin$MyThing2').description("parameter 1"))
+                        .immutableInput(UnboundRuleInput.type('MyPlugin$MyThing3').description("parameter 2"))
         ))
     }
 
@@ -88,7 +88,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor('model.foo.bar')
+                UnboundRule.descriptor("model.foo.bar", buildFile, 4, 17)
                         .mutableInput(UnboundRuleInput.type(Object).path('foo.bar'))
         ))
     }
@@ -126,7 +126,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.tasks.foonar")
+                UnboundRule.descriptor("model.tasks.foonar", buildFile, 21, 17)
                     .mutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar"))
         ))
     }

@@ -17,8 +17,11 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.model.internal.report.unbound.UnboundRule
+import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import spock.lang.Unroll
 
+import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
@@ -191,4 +194,45 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
     }
 
+    def "location and suggestions are provided for unbound rule inputs specified using a name"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {}
+
+                @RuleSource
+                static class Rules {
+                    @Mutate
+                    void addTasks(CollectionBuilder<Task> tasks) {
+                        tasks.create("foobar")
+                        tasks.create("raboof")
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    \$('tasks.foonar')
+                    \$('tasks.fooar')
+                    \$('tasks.foonar')
+                }
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertThatCause(unbound(
+                UnboundRule.descriptor("model.tasks", buildFile, 21, 17)
+                        .mutableInput(UnboundRuleInput.type(Object).path("tasks").bound())
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 22"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 23"))
+        ))
+    }
 }

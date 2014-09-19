@@ -75,6 +75,7 @@ public class UnboundRulesProcessor {
         if (path != null) {
             builder.path(path);
         }
+        builder.description(reference.getDescription());
         return builder;
     }
 }

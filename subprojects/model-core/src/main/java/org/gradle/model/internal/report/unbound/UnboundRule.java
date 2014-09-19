@@ -18,6 +18,7 @@ package org.gradle.model.internal.report.unbound;
 
 import com.google.common.collect.Lists;
 
+import java.io.File;
 import java.util.List;
 
 public class UnboundRule {
@@ -47,6 +48,10 @@ public class UnboundRule {
 
     public static Builder descriptor(String descriptor) {
         return new Builder(descriptor);
+    }
+
+    public static Builder descriptor(String descriptor, File location, int line, int column) {
+        return new Builder(String.format("%s @ build file '%s' line %d, column %d", descriptor, location.getAbsolutePath(), line, column));
     }
 
     public static class Builder {

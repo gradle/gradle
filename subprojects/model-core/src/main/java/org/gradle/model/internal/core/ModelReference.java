@@ -66,7 +66,11 @@ public class ModelReference<T> {
     }
 
     public static ModelReference<Object> untyped(ModelPath path) {
-        return of(path, ModelType.UNTYPED);
+        return untyped(path, null);
+    }
+
+    public static ModelReference<Object> untyped(ModelPath path, String description) {
+        return of(path, ModelType.UNTYPED, description);
     }
 
     @Nullable

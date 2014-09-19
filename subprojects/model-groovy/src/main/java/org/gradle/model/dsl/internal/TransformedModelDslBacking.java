@@ -16,58 +16,73 @@
 
 package org.gradle.model.dsl.internal;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Transformer;
 import org.gradle.model.dsl.ModelDsl;
-import org.gradle.model.dsl.internal.transform.ExtractedInputs;
+import org.gradle.model.dsl.internal.transform.ClosureBackedRuleLocation;
+import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 public class TransformedModelDslBacking implements ModelDsl {
 
     private static final InputReferencesExtractor INPUT_PATHS_EXTRACTOR = new InputReferencesExtractor();
+    private static final RuleLocationExtractor RULE_LOCATION_EXTRACTOR = new RuleLocationExtractor();
 
     private final ModelRegistry modelRegistry;
     private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
+    private final Transformer<ClosureBackedRuleLocation, ? super Closure<?>> ruleLocationExtractor;
 
     public TransformedModelDslBacking(ModelRegistry modelRegistry) {
-        this(modelRegistry, INPUT_PATHS_EXTRACTOR);
+        this(modelRegistry, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
+                               Transformer<ClosureBackedRuleLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
         this.inputPathsExtractor = inputPathsExtractor;
+        this.ruleLocationExtractor = ruleLocationExtractor;
     }
 
     public void configure(String modelPathString, Closure<?> configuration) {
         List<ModelReference<?>> references = inputPathsExtractor.transform(configuration);
+        ClosureBackedRuleLocation location = ruleLocationExtractor.transform(configuration);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        modelRegistry.mutate(new ClosureBackedModelMutator(configuration, references, modelPath));
+        modelRegistry.mutate(new ClosureBackedModelMutator(configuration, references, modelPath, location));
+    }
+
+    private static RuleMetadata getRuleMetadata(Closure<?> closure) {
+        RuleMetadata ruleMetadata = closure.getClass().getAnnotation(RuleMetadata.class);
+        if (ruleMetadata == null) {
+            throw new IllegalStateException(String.format("Expected %s annotation to be used on the argument closure.", RuleMetadata.class.getName()));
+        }
+        return ruleMetadata;
+    }
+
+    private static class RuleLocationExtractor implements Transformer<ClosureBackedRuleLocation, Closure<?>> {
+
+        public ClosureBackedRuleLocation transform(Closure<?> closure) {
+            RuleMetadata ruleMetadata = getRuleMetadata(closure);
+            return new ClosureBackedRuleLocation(ruleMetadata.scriptSourceDescription(), ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+        }
     }
 
     private static class InputReferencesExtractor implements Transformer<List<ModelReference<?>>, Closure<?>> {
 
-        private static final StringPathToUntypeReference STRING_PATH_TO_UNTYPE_REFERENCE = new StringPathToUntypeReference();
-
         public List<ModelReference<?>> transform(Closure<?> closure) {
-            ExtractedInputs extractedInputs = closure.getClass().getAnnotation(ExtractedInputs.class);
-            if (extractedInputs == null) {
-                return Collections.emptyList();
-            } else {
-                return CollectionUtils.collect(extractedInputs.value(), STRING_PATH_TO_UNTYPE_REFERENCE);
+            RuleMetadata ruleMetadata = getRuleMetadata(closure);
+            String[] paths = ruleMetadata.inputPaths();
+            List<ModelReference<?>> references = Lists.newArrayListWithCapacity(paths.length);
+            for (int i = 0; i < paths.length; i++) {
+                String description = String.format("@ line %d", ruleMetadata.inputLineNumbers()[i]);
+                references.add(ModelReference.untyped(ModelPath.path(paths[i]), description));
             }
-        }
-
-        private static class StringPathToUntypeReference implements Transformer<ModelReference<?>, String> {
-            public ModelReference<?> transform(String s) {
-                return ModelReference.untyped(ModelPath.path(s));
-            }
+            return references;
         }
     }
 

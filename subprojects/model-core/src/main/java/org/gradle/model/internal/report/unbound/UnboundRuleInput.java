@@ -29,6 +29,7 @@ public class UnboundRuleInput {
     private final String path;
     private final String type;
     private final boolean bound;
+    private final String description;
     private final Collection<String> suggestedPaths;
 
     public String getPath() {
@@ -47,11 +48,16 @@ public class UnboundRuleInput {
         return suggestedPaths;
     }
 
-    private UnboundRuleInput(String path, String type, boolean bound, List<String> suggestedPaths) {
+    public String getDescription() {
+        return description;
+    }
+
+    private UnboundRuleInput(String path, String type, boolean bound, List<String> suggestedPaths, String description) {
         this.path = path;
         this.type = type;
         this.bound = bound;
         this.suggestedPaths = suggestedPaths;
+        this.description = description;
     }
 
     public static Builder type(String type) {
@@ -72,6 +78,7 @@ public class UnboundRuleInput {
         private String type;
         private boolean bound;
         private List<String> suggestedPaths = new ArrayList<String>();
+        private String description;
 
         private Builder(String type) {
             this.type = type;
@@ -100,8 +107,13 @@ public class UnboundRuleInput {
             return suggestions(Arrays.asList(suggestedPath));
         }
 
+        public Builder description(String description) {
+            this.description = description;
+            return this;
+        }
+
         public UnboundRuleInput build() {
-            return new UnboundRuleInput(path, type, bound, suggestedPaths);
+            return new UnboundRuleInput(path, type, bound, suggestedPaths, description);
         }
     }
 }

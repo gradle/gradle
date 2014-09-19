@@ -59,6 +59,9 @@ public class UnboundRulesReporter {
             writer.print(input.isBound() ? "+ " : "- ");
             String path = input.getPath() == null ? "<unspecified>" : input.getPath();
             writer.print(String.format("%s (%s)", path, input.getType()));
+            if (input.getDescription() != null) {
+                writer.print(String.format(" %s", input.getDescription()));
+            }
             if (input.getSuggestedPaths().size() > 0) {
                 writer.print(" - suggestions: ");
                 writer.print(Joiner.on(", ").join(input.getSuggestedPaths()));

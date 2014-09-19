@@ -132,7 +132,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClassloader(targetScope.getLocalClassLoader());
 
-            compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
+            BuildScriptTransformer transformer = new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert(), scriptSource);
+            compiler.setTransformer(transformer);
 
             // TODO - find a less tangled way of getting this in here, see the verifier impl for why it's needed
             compiler.setVerifier(new ClosureCreationInterceptingVerifier());
