@@ -19,7 +19,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.nativeplatform.toolchain.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 public class IncrementalCompilerBuilder {
@@ -31,7 +31,7 @@ public class IncrementalCompilerBuilder {
         this.fileSnapshotter = fileSnapshotter;
     }
 
-    public Compiler<NativeCompileSpec> createIncrementalCompiler(TaskInternal task, Compiler<NativeCompileSpec> compiler, ToolChain toolchain) {
+    public Compiler<NativeCompileSpec> createIncrementalCompiler(TaskInternal task, Compiler<NativeCompileSpec> compiler, NativeToolChain toolchain) {
         return new IncrementalNativeCompiler(task, cacheAccess, fileSnapshotter, compiler, toolchain);
     }
 }

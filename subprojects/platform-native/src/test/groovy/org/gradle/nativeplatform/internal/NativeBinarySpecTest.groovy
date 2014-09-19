@@ -24,11 +24,11 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
@@ -41,10 +41,10 @@ class NativeBinarySpecTest extends Specification {
     def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
     def component = new TestNativeComponentSpec(id, sourceSet)
 
-    def toolChain1 = Stub(ToolChainInternal) {
+    def toolChain1 = Stub(NativeToolChainInternal) {
         getName() >> "ToolChain1"
     }
-    def platform1 = Stub(Platform) {
+    def platform1 = Stub(NativePlatform) {
         getArchitecture() >> new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 64)
     }
     def buildType1 = Stub(BuildType) {
@@ -199,7 +199,7 @@ class NativeBinarySpecTest extends Specification {
     class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
 
-        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, ToolChainInternal toolChain, PlatformToolProvider toolProvider, Platform targetPlatform, BuildType buildType,
+        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider, NativePlatform targetPlatform, BuildType buildType,
                    BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
             super(owner, flavor, toolChain, toolProvider, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner

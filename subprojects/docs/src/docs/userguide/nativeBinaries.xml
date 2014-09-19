@@ -369,7 +369,7 @@
             <sourcefile file="build.gradle" snippet="all-binaries"/>
         </sample>
         <para>
-            Each binary is associated with a particular <apilink class="org.gradle.nativeplatform.toolchain.ToolChain"/>, allowing settings to be targeted based on
+            Each binary is associated with a particular <apilink class="org.gradle.nativeplatform.toolchain.NativeToolChain"/>, allowing settings to be targeted based on
             this value.
         </para>
         <para>
@@ -514,7 +514,7 @@
             <title>Platform</title>
             <para>
                 An executable or library can be built to run on different operating systems and cpu architectures, with a variant being
-                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativeplatform.platform.Platform"/>,
+                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativeplatform.platform.NativePlatform"/>,
                 and a project may define any number of platforms.
                 If no platforms are defined in a project, then a single, default platform 'current' is added.
             </para>
@@ -528,7 +528,7 @@
                 <sourcefile file="build.gradle" snippet="platforms"/>
             </sample>
             <para>
-                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativeplatform.toolchain.ToolChain"/> that is able to build
+                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativeplatform.toolchain.NativeToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
                 See the <link linkend="native_binaries:tool_chain">tool chains</link> section below for more details.
             </para>
@@ -631,7 +631,7 @@
             <title>Using tool chains</title>
             <para>
                 It is not necessary or possible to specify the tool chain that should be used to build.
-                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativeplatform.toolchain.ToolChain"/> that is able to build
+                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativeplatform.toolchain.NativeToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
             </para>
             <note>

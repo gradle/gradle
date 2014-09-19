@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.PrebuiltSharedLibraryBinary;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
 
@@ -29,7 +29,7 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor) {
         super(name, library, buildType, targetPlatform, flavor);
     }
 

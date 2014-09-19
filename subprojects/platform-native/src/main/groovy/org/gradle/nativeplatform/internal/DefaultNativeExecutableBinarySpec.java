@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
@@ -28,8 +28,8 @@ import java.io.File;
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
     private File executableFile;
 
-    public DefaultNativeExecutableBinarySpec(NativeExecutableSpec executable, Flavor flavor, ToolChainInternal toolChain, PlatformToolProvider toolProvider,
-                                             Platform platform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultNativeExecutableBinarySpec(NativeExecutableSpec executable, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider,
+                                             NativePlatform platform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, toolProvider, platform, buildType, namingScheme, resolver);
     }
 

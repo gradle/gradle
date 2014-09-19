@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.platform.PlatformContainer
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 
-class CreateDefaultPlatformTest extends Specification {
+class CreateDefaultNativePlatformTest extends Specification {
     def platforms = Mock(PlatformContainer)
     def action = new NativeComponentModelPlugin.Rules()
 

@@ -31,7 +31,7 @@ public interface TargetedNativeComponent {
     void targetFlavors(String... flavorSelectors);
 
     /**
-     * Specifies the names of one or more {@link org.gradle.nativeplatform.platform.Platform}s that this component should be built for.
+     * Specifies the names of one or more {@link org.gradle.nativeplatform.platform.NativePlatform}s that this component should be built for.
      */
     void targetPlatforms(String... platformSelectors);
 

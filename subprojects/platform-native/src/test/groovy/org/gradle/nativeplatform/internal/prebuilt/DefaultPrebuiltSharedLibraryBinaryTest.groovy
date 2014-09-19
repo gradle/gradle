@@ -19,11 +19,11 @@ package org.gradle.nativeplatform.internal.prebuilt
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.PrebuiltLibrary
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.NativePlatform
 import spock.lang.Specification
 
 class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
-    def binary = new DefaultPrebuiltSharedLibraryBinary("name", Stub(PrebuiltLibrary), Stub(BuildType), Stub(Platform), Stub(Flavor))
+    def binary = new DefaultPrebuiltSharedLibraryBinary("name", Stub(PrebuiltLibrary), Stub(BuildType), Stub(NativePlatform), Stub(Flavor))
 
     def "has useful string representation"() {
         expect:

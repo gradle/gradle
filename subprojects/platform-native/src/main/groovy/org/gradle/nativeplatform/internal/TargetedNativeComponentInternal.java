@@ -18,12 +18,12 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.TargetedNativeComponent;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.util.Set;
 
 public interface TargetedNativeComponentInternal extends TargetedNativeComponent {
     Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
-    Set<Platform> choosePlatforms(Set<? extends Platform> candidates);
+    Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates);
     Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
 }

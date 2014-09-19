@@ -22,10 +22,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
-import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
-import org.gradle.nativeplatform.toolchain.ToolChain;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -37,8 +37,8 @@ import java.util.List;
 @Incubating
 public class Assemble extends DefaultTask {
     private FileCollection source;
-    private ToolChainInternal toolChain;
-    private PlatformInternal targetPlatform;
+    private NativeToolChainInternal toolChain;
+    private NativePlatformInternal targetPlatform;
     private File objectFileDir;
     private List<String> assemblerArgs;
 
@@ -98,23 +98,23 @@ public class Assemble extends DefaultTask {
     /**
      * The tool chain being used to build.
      */
-    public ToolChain getToolChain() {
+    public NativeToolChain getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(ToolChain toolChain) {
-        this.toolChain = (ToolChainInternal) toolChain;
+    public void setToolChain(NativeToolChain toolChain) {
+        this.toolChain = (NativeToolChainInternal) toolChain;
     }
 
     /**
      * The platform being targeted.
      */
-    public Platform getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
-    public void setTargetPlatform(Platform targetPlatform) {
-        this.targetPlatform = (PlatformInternal) targetPlatform;
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**

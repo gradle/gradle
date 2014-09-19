@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.Gcc
-import org.gradle.nativeplatform.toolchain.ToolChain
+import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -33,7 +33,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def delegateCompiler = Mock(Compiler)
-    def toolChain = Mock(ToolChain)
+    def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
     def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain)
 

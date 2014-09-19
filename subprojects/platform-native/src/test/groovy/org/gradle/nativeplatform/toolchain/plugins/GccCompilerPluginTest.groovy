@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.nativeplatform.toolchain.ToolChain
+import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.Gcc
 import org.gradle.nativeplatform.toolchain.internal.gcc.GccToolChain
 import org.gradle.util.TestUtil
 
-class GccCompilerPluginTest extends ToolChainPluginTest {
+class GccCompilerPluginTest extends NativeToolChainPluginTest {
     def project = TestUtil.createRootProject()
 
     @Override
@@ -31,7 +31,7 @@ class GccCompilerPluginTest extends ToolChainPluginTest {
     }
 
     @Override
-    Class<? extends ToolChain> getToolchainClass() {
+    Class<? extends NativeToolChain> getToolchainClass() {
         Gcc
     }
 

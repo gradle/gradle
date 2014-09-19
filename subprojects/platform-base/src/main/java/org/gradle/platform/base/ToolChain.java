@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.platform;
+package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * A container of {@link NativePlatform}s.
+ * A set of compilers that are used together to construct binaries.
  */
 @Incubating
-public interface PlatformContainer extends NamedDomainObjectContainer<NativePlatform> {
+public interface ToolChain {
 }

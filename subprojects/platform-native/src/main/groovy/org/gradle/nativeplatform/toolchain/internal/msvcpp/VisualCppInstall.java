@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -64,7 +64,7 @@ public class VisualCppInstall implements Named {
         return version;
     }
 
-    public boolean isSupportedPlatform(PlatformInternal targetPlatform) {
+    public boolean isSupportedPlatform(NativePlatformInternal targetPlatform) {
         // TODO:ADAM - ARM only if the target OS is Windows 8 or later
         // TODO:MPUT - ARM also if the target OS is Windows RT or Windows Phone/Mobile/CE
         // TODO:ADAM - IA64 only if the target OS is Windows 2008 or earlier
@@ -72,44 +72,44 @@ public class VisualCppInstall implements Named {
                 && (binaryPaths.containsKey(getPlatformArchitecture(targetPlatform)));
     }
 
-    public List<File> getPath(PlatformInternal targetPlatform) {
+    public List<File> getPath(NativePlatformInternal targetPlatform) {
         return paths.get(getPlatformArchitecture(targetPlatform));
     }
 
-    public File getCompiler(PlatformInternal targetPlatform) {
+    public File getCompiler(NativePlatformInternal targetPlatform) {
         return new File(binaryPaths.get(getPlatformArchitecture(targetPlatform)), COMPILER_FILENAME);
     }
 
-    public File getLinker(PlatformInternal targetPlatform) {
+    public File getLinker(NativePlatformInternal targetPlatform) {
         return new File(binaryPaths.get(getPlatformArchitecture(targetPlatform)), LINKER_FILENAME);
     }
 
-    public File getArchiver(PlatformInternal targetPlatform) {
+    public File getArchiver(NativePlatformInternal targetPlatform) {
         return new File(binaryPaths.get(getPlatformArchitecture(targetPlatform)), ARCHIVER_FILENAME);
     }
 
-    public File getAssembler(PlatformInternal targetPlatform) {
+    public File getAssembler(NativePlatformInternal targetPlatform) {
         Architecture architecture = getPlatformArchitecture(targetPlatform);
         return new File(binaryPaths.get(architecture), assemblerFilenames.get(architecture));
     }
 
-    public File getBinaryPath(PlatformInternal targetPlatform) {
+    public File getBinaryPath(NativePlatformInternal targetPlatform) {
         return binaryPaths.get(getPlatformArchitecture(targetPlatform));
     }
 
-    public File getLibraryPath(PlatformInternal targetPlatform) {
+    public File getLibraryPath(NativePlatformInternal targetPlatform) {
         return libraryPaths.get(getPlatformArchitecture(targetPlatform));
     }
 
-    public Map<String, String> getDefinitions(PlatformInternal targetPlatform) {
+    public Map<String, String> getDefinitions(NativePlatformInternal targetPlatform) {
         return definitions.get(getPlatformArchitecture(targetPlatform));
     }
 
-    public File getIncludePath(PlatformInternal targetPlatform) {
+    public File getIncludePath(NativePlatformInternal targetPlatform) {
         return includePaths.get(getPlatformArchitecture(targetPlatform));
     }
 
-    private Architecture getPlatformArchitecture(PlatformInternal targetPlatform) {
+    private Architecture getPlatformArchitecture(NativePlatformInternal targetPlatform) {
         ArchitectureInternal architecture = targetPlatform.getArchitecture();
         return (architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT) ? defaultArchitecture : architecture;
     }

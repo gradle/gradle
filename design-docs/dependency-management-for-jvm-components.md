@@ -811,7 +811,6 @@ Add a sample to show a JVM library built for multiple Java versions.
     - `org.gradle.nativeplatform.toolchain.NativeToolChain`
     - `org.gradle.platform.base.toolchain.ToolChain`
 - Change `JavaToolChain` to extend `ToolChain`.
-- Add metadata-information about each `ToolChain` (`NativeToolChain`, `JavaToolChain`) so that a platform can know what capabilities it has.
 - Change `JvmPlatform` to extend `Platform`.
 - The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by the current JVM.
 - Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task
@@ -837,6 +836,7 @@ the binary is not buildable.
 - Link with correct flags for a windows resource only binary (ie when neither c nor c++ runtime is required).
 - Provide the correct flags to compile and link against Foundation framework when using objective-c
 - Use mingw under cygwin when target is windows, gcc under cygwin when target is posix
+- Should there be metadata-information about each `ToolChain` (`NativeToolChain`, `JavaToolChain`) so that a platform can know what capabilities it has.
 
 ### Story: Plugin declares custom language source set
 

@@ -21,8 +21,8 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner
-import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.toolchain.ToolChain
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.internal.LinkerSpec
 
 import javax.inject.Inject
@@ -38,8 +38,8 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
     /**
      * The tool chain used for linking.
      */
-    ToolChain toolChain
-    Platform targetPlatform
+    NativeToolChain toolChain
+    NativePlatform targetPlatform
 
     // Invalidate output when the tool chain output changes
     @Input

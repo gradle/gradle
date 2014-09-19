@@ -21,10 +21,10 @@ import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
-import org.gradle.nativeplatform.platform.Platform;
-import org.gradle.nativeplatform.platform.internal.PlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
@@ -35,13 +35,13 @@ import java.util.Set;
 public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final ToolChainRegistryInternal toolChainRegistry;
-    private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
+    private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
     public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, ToolChainRegistryInternal toolChainRegistry,
-                                          Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+                                          Collection<? extends NativePlatform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChainRegistry = toolChainRegistry;
@@ -52,9 +52,9 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        for (Platform platform : targetedComponent.choosePlatforms(allPlatforms)) {
-            PlatformInternal platformInternal = (PlatformInternal) platform;
-            ToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
+        for (NativePlatform platform : targetedComponent.choosePlatforms(allPlatforms)) {
+            NativePlatformInternal platformInternal = (NativePlatformInternal) platform;
+            NativeToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
             PlatformToolProvider toolProvider = toolChain.select(platformInternal);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
                 for (Flavor flavor : targetedComponent.chooseFlavors(allFlavors)) {
@@ -65,7 +65,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
         }
     }
 
-    private BinaryNamingSchemeBuilder initializeNamingScheme(TargetedNativeComponentInternal component, String name, Platform platform, BuildType buildType, Flavor flavor) {
+    private BinaryNamingSchemeBuilder initializeNamingScheme(TargetedNativeComponentInternal component, String name, NativePlatform platform, BuildType buildType, Flavor flavor) {
         BinaryNamingSchemeBuilder builder = namingSchemeBuilder.withComponentName(name);
         if (usePlatformDimension(component)) {
             builder = builder.withVariantDimension(platform.getName());

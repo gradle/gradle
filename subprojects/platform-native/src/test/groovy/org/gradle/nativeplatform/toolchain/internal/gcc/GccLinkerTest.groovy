@@ -19,9 +19,9 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.platform.internal.DefaultPlatform
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -58,7 +58,7 @@ class GccLinkerTest extends Specification {
         spec.getLibraries() >> []
         spec.getLibraryPath() >> []
         spec.getInstallName() >> "installName"
-        spec.getTargetPlatform() >> new DefaultPlatform("default")
+        spec.getTargetPlatform() >> new DefaultNativePlatform("default")
         spec.getObjectFiles() >> [testDir.file("one.o"), testDir.file("two.o")]
 
         and:
@@ -93,7 +93,7 @@ class GccLinkerTest extends Specification {
                 testDir.file("one.o").absolutePath].flatten()
 
         when:
-        Platform platform = Mock(Platform)
+        NativePlatform platform = Mock(NativePlatform)
         platform.getOperatingSystem() >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
 
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
@@ -127,7 +127,7 @@ class GccLinkerTest extends Specification {
                 testDir.file("one.o").absolutePath].flatten()
 
         when:
-        Platform platform = Mock(Platform)
+        NativePlatform platform = Mock(NativePlatform)
         platform.getOperatingSystem() >> new DefaultOperatingSystem("windows", OperatingSystem.WINDOWS)
 
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
@@ -162,7 +162,7 @@ class GccLinkerTest extends Specification {
                 testDir.file("one.o").absolutePath].flatten()
 
         when:
-        Platform platform = Mock(Platform)
+        NativePlatform platform = Mock(NativePlatform)
         platform.getOperatingSystem() >> new DefaultOperatingSystem("osx", OperatingSystem.LINUX)
 
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)

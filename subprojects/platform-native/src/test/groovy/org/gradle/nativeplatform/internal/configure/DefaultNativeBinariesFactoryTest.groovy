@@ -26,8 +26,8 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
-import org.gradle.nativeplatform.platform.Platform
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
 import spock.lang.Specification
 
@@ -35,9 +35,9 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def resolver = Mock(NativeDependencyResolver)
     Action<NativeBinarySpec> configAction = Mock(Action)
 
-    def toolChain = Mock(ToolChainInternal)
+    def toolChain = Mock(NativeToolChainInternal)
     def toolProvider = Mock(PlatformToolProvider)
-    def platform = Mock(Platform)
+    def platform = Mock(NativePlatform)
     def buildType = Mock(BuildType)
     def flavor = Mock(Flavor)
 

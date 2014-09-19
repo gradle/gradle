@@ -25,9 +25,9 @@ import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.platform.base.LibraryBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
@@ -38,8 +38,8 @@ import java.util.Set;
 
 public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
 
-    protected AbstractNativeLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, ToolChainInternal toolChain, PlatformToolProvider toolProvider,
-                                              Platform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractNativeLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider,
+                                              NativePlatform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, toolProvider, targetPlatform, buildType, namingScheme, resolver);
     }
 

@@ -27,10 +27,10 @@ import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.PlatformInternal
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.ToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -82,7 +82,7 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         modelRegistryHelper
                 .configure(ToolChainRegistry) { it.add toolChain("tc") }
-                .configure(PlatformContainer) { it.add named(PlatformInternal, "platform") }
+                .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
@@ -101,7 +101,7 @@ class NativeComponentModelPluginTest extends Specification {
         project.plugins.apply(NativeComponentModelPlugin)
         modelRegistryHelper
                 .configure(ToolChainRegistry) { it.add toolChain("tc") }
-                .configure(PlatformContainer) { it.add named(PlatformInternal, "platform") }
+                .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
@@ -128,7 +128,7 @@ class NativeComponentModelPluginTest extends Specification {
         project.plugins.apply(NativeComponentModelPlugin)
         modelRegistryHelper
                 .configure(ToolChainRegistry) { it.add toolChain("tc") }
-                .configure(PlatformContainer) { it.add named(PlatformInternal, "platform") }
+                .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
@@ -201,7 +201,7 @@ class NativeComponentModelPluginTest extends Specification {
     }
 
     def toolChain(def name) {
-        Stub(ToolChainInternal) {
+        Stub(NativeToolChainInternal) {
             getName() >> name
             select(_) >> Stub(PlatformToolProvider) {
                 isAvailable() >> true

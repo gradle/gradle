@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativeplatform.toolchain.ToolChain
+import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.Gcc
 
 import javax.inject.Inject
@@ -56,7 +56,7 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The tool chain used for linking.
      */
-    ToolChain toolChain
+    NativeToolChain toolChain
 
     /**
      * The directory to install files into.

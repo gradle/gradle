@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.platform;
+package org.gradle.nativeplatform.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A container of {@link NativePlatform}s.
+ * A set of compilers and linkers that are used together to construct a native binary.
  */
 @Incubating
-public interface PlatformContainer extends NamedDomainObjectContainer<NativePlatform> {
+@HasInternalProtocol
+public interface NativeToolChain extends Named {
+    /**
+     * Returns a human consumable name for this tool chain.
+     *
+     * @since 1.11
+     */
+    String getDisplayName();
 }

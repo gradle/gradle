@@ -22,9 +22,9 @@ import org.gradle.nativeplatform.sourceset.NativeResourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
-import org.gradle.nativeplatform.platform.Platform
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.ToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -33,8 +33,8 @@ import spock.lang.Specification
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main", "sharedLibrary", [])
-    final toolChain = Stub(ToolChainInternal)
-    final platform = Stub(Platform)
+    final toolChain = Stub(NativeToolChainInternal)
+    final platform = Stub(NativePlatform)
     final buildType = Stub(BuildType)
     final library = Stub(NativeLibrarySpec)
     final resolver = Stub(NativeDependencyResolver)

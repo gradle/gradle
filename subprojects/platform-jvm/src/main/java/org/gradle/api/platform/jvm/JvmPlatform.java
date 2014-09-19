@@ -19,6 +19,7 @@ package org.gradle.api.platform.jvm;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Named;
+import org.gradle.platform.base.Platform;
 
 /**
  * Defines and configures a JVM platform.
@@ -37,6 +38,6 @@ import org.gradle.api.Named;
  * </pre>
  */
 @Incubating
-public interface JvmPlatform extends Named {
+public interface JvmPlatform extends Named, Platform {
     JavaVersion getTargetCompatibility();
 }
