@@ -20,28 +20,37 @@ import org.gradle.api.InvalidUserCodeException
 import spock.lang.Specification
 
 class DefaultRuleActionAdapterTest extends Specification {
-    def DefaultRuleActionAdapter<String> ruleActionAdapter
+    def RuleActionValidator<String> noopValidator
+    def ruleActionAdapter
 
-    def "can adapt from closure" () {
-        def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
+    def setup() {
+        noopValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> ruleAction }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
-        def closureCalled = false
+    }
+    def "can adapt from closure" () {
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
+        def closureCalled = ""
 
         when:
-        def ruleAction = ruleActionAdapter.createFromClosure(String, { String s -> closureCalled = true })
+        def ruleAction = ruleActionAdapter.createFromClosure(String, { String s -> closureCalled = "yep" })
         ruleAction.execute("", [])
 
         then:
-        closureCalled
+        ruleAction.inputTypes == []
+        closureCalled == "yep"
+
+        when:
+        ruleAction = ruleActionAdapter.createFromClosure(String, { String s, String input1, Integer input2 -> closureCalled = input1 + input2 })
+        ruleAction.execute("", ["foo", 3])
+
+        then:
+        ruleAction.inputTypes == [String, Integer]
+        closureCalled == "foo3"
     }
 
     def "can adapt from action" () {
-        def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
-            validate(_) >> { RuleAction ruleAction -> ruleAction }
-        }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
         def actionCalled = false
 
         when:
@@ -52,6 +61,32 @@ class DefaultRuleActionAdapterTest extends Specification {
 
         then:
         actionCalled
+    }
+
+    def "fails to adapt empty closure" () {
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
+
+        when:
+        ruleActionAdapter.createFromClosure(String, {})
+
+        then:
+        def failure = thrown(InvalidUserCodeException)
+        failure.message == "The closure provided is not valid as a rule for 'context'."
+        failure.cause instanceof RuleActionValidationException
+        failure.cause.message == "First parameter of rule action closure must be of type 'String'."
+    }
+
+    def "fails to adapt closure with invalid subject" () {
+        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
+
+        when:
+        ruleActionAdapter.createFromClosure(String, {List subject -> })
+
+        then:
+        def failure = thrown(InvalidUserCodeException)
+        failure.message == "The closure provided is not valid as a rule for 'context'."
+        failure.cause instanceof RuleActionValidationException
+        failure.cause.message == "First parameter of rule action closure must be of type 'String'."
     }
 
     def "fails to adapt closure when validation fails" () {

@@ -15,176 +15,135 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
-
-import org.gradle.api.*
-import org.gradle.api.artifacts.ComponentMetadata
-import org.gradle.api.artifacts.ComponentMetadataDetails
+import org.gradle.api.Action
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.internal.rules.NoInputsRuleAction
-import org.gradle.internal.rules.RuleAction
-import org.gradle.internal.rules.RuleActionAdapter
-import org.gradle.internal.rules.RuleActionValidationException
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentSelectionRulesProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
+import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.rules.RuleAction
+import org.gradle.internal.rules.RuleActionAdapter
 import spock.lang.Specification
 
 class DefaultComponentSelectionRulesTest extends Specification {
-    ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules()
+    RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
+    ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules(adapter)
     ComponentSelectionInternal componentSelection
+    def ruleAction = Mock(RuleAction)
 
     def setup() {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         componentSelection = new DefaultComponentSelection(componentIdentifier)
     }
 
-    def "converts closure input to rule actions"() {
-        when:
-        rules.all { ComponentSelection cs ->  }
-        rules.all { ComponentSelection cs, ComponentMetadata cm ->  }
-        rules.all { ComponentSelection cs, IvyModuleDescriptor imd -> }
-        rules.all { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> }
-        rules.module("group:module") { ComponentSelection cs ->  }
-        rules.module("group:module") { ComponentSelection cs, ComponentMetadata cm ->  }
-        rules.module("group:module") { ComponentSelection cs, IvyModuleDescriptor imd -> }
-        rules.module("group:module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> }
-
-        then:
-        rules.rules[0].action.inputTypes == []
-        rules.rules[1].action.inputTypes == [ComponentMetadata]
-        rules.rules[2].action.inputTypes == [IvyModuleDescriptor]
-        rules.rules[3].action.inputTypes == [IvyModuleDescriptor, ComponentMetadata]
-        rules.rules[4].action.inputTypes == []
-        rules.rules[5].action.inputTypes == [ComponentMetadata]
-        rules.rules[6].action.inputTypes == [IvyModuleDescriptor]
-        rules.rules[7].action.inputTypes == [IvyModuleDescriptor, ComponentMetadata]
-    }
-
-    def "can add metadata rules via api"() {
-        def metadataRule = new TestRuleAction()
+    def "add closure rule that applies to all components"() {
+        def input = { ComponentSelection cs ->  }
 
         when:
-        rules.all metadataRule
-        rules.module("group:module", metadataRule)
+        rules.all input
 
         then:
-        rules.rules[0].action == metadataRule
-        rules.rules[1].action == metadataRule
-        rules.rules[1].spec.target == DefaultModuleIdentifier.newId("group", "module")
+        1 * adapter.createFromClosure(ComponentSelection, input) >> ruleAction
+
+        and:
+        rules.rules.size() == 1
+        rules.rules[0].action == ruleAction
+        rules.rules[0].spec == Specs.satisfyAll()
     }
 
-    def "can add action rules via api"() {
-        def Action<ComponentSelection> action = new TestComponentSelectionAction()
-        rules.ruleActionAdapter = Mock(RuleActionAdapter) {
-            2 * createFromAction(_) >> { Action providedAction ->
-                new NoInputsRuleAction<ComponentSelection>(providedAction)
-            }
-        }
+    def "add closure rule that applies to module"() {
+        def input = { ComponentSelection cs ->  }
+
+        when:
+        rules.module("group:module", input)
+
+        then:
+        1 * adapter.createFromClosure(ComponentSelection, input) >> ruleAction
+
+        and:
+        rules.rules.size() == 1
+        rules.rules[0].action == ruleAction
+        rules.rules[0].spec.target == DefaultModuleIdentifier.newId("group", "module")
+    }
+
+    def "add action rule that applies to all components"() {
+        def Action<ComponentSelection> action = Mock(Action)
 
         when:
         rules.all action
+
+        then:
+        1 * adapter.createFromAction(action) >> ruleAction
+
+        and:
+        rules.rules.size() == 1
+        rules.rules[0].action == ruleAction
+        rules.rules[0].spec == Specs.satisfyAll()
+    }
+
+    def "add action rule that applies to module"() {
+        def Action<ComponentSelection> action = Mock(Action)
+
+        when:
         rules.module("group:module", action)
 
         then:
-        rules.rules[0].action.action == action
-        rules.rules[1].action.action == action
-        rules.rules[1].spec.target == DefaultModuleIdentifier.newId("group", "module")
+        1 * adapter.createFromAction(action) >> ruleAction
+
+        and:
+        rules.rules.size() == 1
+        rules.rules[0].action == ruleAction
+        rules.rules[0].spec.target == DefaultModuleIdentifier.newId("group", "module")
     }
 
-    def "produces sensible error with parameter-less closure" () {
+    def "propagates error creating rule for closure" () {
         when:
         rules.all { }
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "The closure provided is not valid as a rule for 'ComponentSelectionRules'."
-        e.cause.message == "First parameter of rule action closure must be of type 'ComponentSelection'."
+        e.message == "bad closure"
+
+        and:
+        1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad closure") }
+
+        when:
+        rules.module("group:module") { }
+
+        then:
+        e = thrown(InvalidUserCodeException)
+        e.message == "bad targeted closure"
+
+        and:
+        1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad targeted closure") }
     }
 
-    def "produces sensible error for invalid closure" () {
+    def "propagates error creating rule for action" () {
+        def action = Mock(Action)
+
         when:
-        rules.all closure
+        rules.all action
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "The closure provided is not valid as a rule for 'ComponentSelectionRules'."
-        e.cause.message == message
+        e.message == "bad action"
 
-        where:
-        closure                                                                                       | message
-        { it -> }                                                                                     | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { String something -> }                                                                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                          | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type: java.lang.String"
-        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type: java.lang.String"
-    }
-
-    def "produces sensible error for invalid targeted closure" () {
-        when:
-        rules.module("group:module", closure)
-
-        then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "The closure provided is not valid as a rule for 'ComponentSelectionRules'."
-        e.cause.message == message
-
-        where:
-        closure                                                                                       | message
-        { it -> }                                                                                     | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { String something -> }                                                                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { IvyModuleDescriptor imd, ComponentMetadata cm -> }                                          | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        { ComponentSelection cs, String something -> }                                                | "Unsupported parameter type: java.lang.String"
-        { ComponentSelection cs, ComponentMetadata cm, String something -> }                          | "Unsupported parameter type: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, String something -> }                       | "Unsupported parameter type: java.lang.String"
-        { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm, String something -> } | "Unsupported parameter type: java.lang.String"
-    }
-
-    def "produces sensible error when bad input type is declared for rule action" () {
-        def ruleAction = Mock(RuleAction)
+        and:
+        1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad action") }
 
         when:
-        ruleAction.inputTypes >> inputTypes
-        rules.all ruleAction
+        rules.module("group:module", action)
 
         then:
-        def e = thrown(RuleActionValidationException)
-        e.message == message
+        e = thrown(InvalidUserCodeException)
+        e.message == "bad targeted action"
 
-        where:
-        inputTypes                                       | message
-        [String]                                         | "Unsupported parameter type: java.lang.String"
-        [ComponentMetadata, String]                      | "Unsupported parameter type: java.lang.String"
-        [IvyModuleDescriptor, String]                    | "Unsupported parameter type: java.lang.String"
-        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type: java.lang.String"
-        [ComponentMetadataDetails]                       | "Unsupported parameter type: ${ComponentMetadataDetails.name}"
-    }
-
-    def "produces sensible error when bad input type is declared for a targeted rule action" () {
-        def ruleAction = Mock(RuleAction)
-
-        when:
-        ruleAction.inputTypes >> inputTypes
-        rules.module("group:module", ruleAction)
-
-        then:
-        def e = thrown(RuleActionValidationException)
-        e.message == message
-
-        where:
-        inputTypes                                       | message
-        [String]                                         | "Unsupported parameter type: java.lang.String"
-        [ComponentMetadata, String]                      | "Unsupported parameter type: java.lang.String"
-        [IvyModuleDescriptor, String]                    | "Unsupported parameter type: java.lang.String"
-        [ComponentMetadata, IvyModuleDescriptor, String] | "Unsupported parameter type: java.lang.String"
-        [ComponentMetadataDetails]                       | "Unsupported parameter type: ${ComponentMetadataDetails.name}"
+        and:
+        1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad targeted action") }
     }
 
     def "produces sensible error when null module id is provided" () {
@@ -199,7 +158,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         where:
         id                     | closureOrActionOrRule
-        null                   | new TestRuleAction()
         null                   | { ComponentSelection cs -> }
         null                   | new TestComponentSelectionAction()
     }
@@ -216,9 +174,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         where:
         id                     | closureOrActionOrRule
-        ""                     | new TestRuleAction()
-        "module"               | new TestRuleAction()
-        "group:module:version" | new TestRuleAction()
         ""                     | { ComponentSelection cs -> }
         "module"               | { ComponentSelection cs -> }
         "group:module:version" | { ComponentSelection cs -> }
@@ -228,38 +183,28 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "produces sensible error when illegal characters are provided in target module id" () {
+        def closure = { ComponentSelection cs -> }
+        def action = new TestComponentSelectionAction()
+
         when:
-        rules.module("group:module${character}", closureOrActionOrRule)
+        rules.module("group:module${character}", closure)
 
         then:
         def e = thrown(InvalidUserCodeException)
         e.message == "Could not add a component selection rule for module 'group:module${character}'."
-        def cause = e.cause
-        cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.")
+        e.cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.")
+
+
+        when:
+        rules.module("group:module${character}", action)
+
+        then:
+        e = thrown(InvalidUserCodeException)
+        e.message == "Could not add a component selection rule for module 'group:module${character}'."
+        e.cause.message.startsWith("Cannot convert the provided notation to an object of type ModuleIdentifier: group:module${character}.")
 
         where:
-        character  | closureOrActionOrRule
-        "+"        | new TestRuleAction()
-        "*"        | new TestRuleAction()
-        "["        | new TestRuleAction()
-        "]"        | new TestRuleAction()
-        "("        | new TestRuleAction()
-        ")"        | new TestRuleAction()
-        ","        | new TestRuleAction()
-        "+"        | { ComponentSelection cs -> }
-        "*"        | { ComponentSelection cs -> }
-        "["        | { ComponentSelection cs -> }
-        "]"        | { ComponentSelection cs -> }
-        "("        | { ComponentSelection cs -> }
-        ")"        | { ComponentSelection cs -> }
-        ","        | { ComponentSelection cs -> }
-        "+"        | new TestComponentSelectionAction()
-        "*"        | new TestComponentSelectionAction()
-        "["        | new TestComponentSelectionAction()
-        "]"        | new TestComponentSelectionAction()
-        "("        | new TestComponentSelectionAction()
-        ")"        | new TestComponentSelectionAction()
-        ","        | new TestComponentSelectionAction()
+        character << ["+", "*", "[", "]", "(", ")", ","]
     }
 
     def "ComponentSelectionSpec matches on group and name" () {
@@ -282,22 +227,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
         "com.gradle" | "api" | false
     }
 
-    private class TestRuleAction implements RuleAction<ComponentSelection> {
-        boolean called = false
-        List<Class> inputTypes = []
-
-
-        @Override
-        List<Class<?>> getInputTypes() {
-            return inputTypes
-        }
-
-        @Override
-        void execute(ComponentSelection subject, List inputs) {
-            called = true
-        }
-    }
-
     private class TestComponentSelectionAction implements Action<ComponentSelection> {
         boolean called = false
 
@@ -305,9 +234,5 @@ class DefaultComponentSelectionRulesTest extends Specification {
         void execute(ComponentSelection componentSelection) {
             called = true
         }
-    }
-
-    def process(ModuleComponentRepositoryAccess moduleAccess) {
-        new ComponentSelectionRulesProcessor().apply(componentSelection, rules.rules, moduleAccess)
     }
 }

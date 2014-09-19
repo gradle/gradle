@@ -42,8 +42,29 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     private final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
-    private final RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
-    private final RuleActionAdapter<ComponentSelection> ruleActionAdapter = new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, ComponentSelectionRules.class.getSimpleName());
+    private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
+    private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
+
+    public DefaultComponentSelectionRules() {
+        this(createAdapter());
+    }
+
+    protected DefaultComponentSelectionRules(RuleActionAdapter<ComponentSelection> ruleActionAdapter) {
+        this.ruleActionAdapter = ruleActionAdapter;
+        moduleIdentifierNotationParser = createModuleIdentifierNotationParser();
+    }
+
+    private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
+        return NotationParserBuilder
+                .toType(ModuleIdentifier.class)
+                .parser(new ModuleIdentiferNotationParser())
+                .toComposite();
+    }
+
+    private static RuleActionAdapter<ComponentSelection> createAdapter() {
+        RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
+        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, ComponentSelectionRules.class.getSimpleName());
+    }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
         return rules;
@@ -53,21 +74,12 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromAction(selectionAction)));
     }
 
-    public ComponentSelectionRules all(RuleAction<? super ComponentSelection> ruleAction) {
-        return addRule(createAllSpecRulesAction(ruleActionValidator.validate(ruleAction)));
-    }
-
     public ComponentSelectionRules all(Closure<?> closure) {
-        addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
-        return this;
+        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     public ComponentSelectionRules module(Object id, Action<? super ComponentSelection> selectionAction) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
-    }
-
-    public ComponentSelectionRules module(Object id, RuleAction<? super ComponentSelection> ruleAction) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionValidator.validate(ruleAction)));
     }
 
     public ComponentSelectionRules module(Object id, Closure<?> closure) {
@@ -80,14 +92,10 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
-        final NotationParser<Object, ModuleIdentifier> parser = NotationParserBuilder
-                .toType(ModuleIdentifier.class)
-                .parser(new ModuleIdentiferNotationParser())
-                .toComposite();
         final ModuleIdentifier moduleIdentifier;
 
         try {
-            moduleIdentifier = parser.parseNotation(id);
+            moduleIdentifier = moduleIdentifierNotationParser.parseNotation(id);
         } catch (UnsupportedNotationException e) {
             throw new InvalidUserCodeException(String.format(INVALID_SPEC_ERROR, id == null ? "null" : id.toString()), e);
         }
