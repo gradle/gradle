@@ -30,9 +30,12 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.sonar.runner.SonarRunnerExtension;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
@@ -71,10 +74,15 @@ public class SonarRunner extends DefaultTask {
 
         FileCollection sonarRunnerConfiguration = getProject().getConfigurations().getAt(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
 
+        Properties propertiesObject = new Properties();
+        propertiesObject.putAll(properties);
+        File propertyFile = new File(getTemporaryDir(), "sonar-project.properties");
+        GUtil.saveProperties(propertiesObject, propertyFile);
+
         return javaExec
+                .systemProperty("project.settings", propertyFile.getAbsolutePath())
                 .setClasspath(sonarRunnerConfiguration)
-                .setMain(MAIN_CLASS_NAME)
-                .systemProperties(properties);
+                .setMain(MAIN_CLASS_NAME);
     }
 
     /**
