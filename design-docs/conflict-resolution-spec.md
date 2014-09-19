@@ -16,6 +16,8 @@ There are two things we need to be able to do when traversing the graph:
 1. Detect whether two different modules conflict with each other.
 2. Decide which of a set of conflicting modules to select.
 
+# Feature: Conflict resolution replaces a module or modules with a single module
+
 ## Story: Allow declaring that certain module is replaced by some other.
 
 DSL mock up:
@@ -99,6 +101,8 @@ Make following possible:
 - a->c, b->c, only a,b in graph, only c is resolved
 - a->c, b->c, only a,c in graph, only c is resolved
 
+# Feature: Conflict resolution replaces a module or modules with a set of modules
+
 ## Story: Allow declaring multiple module replacements
 
 Make it possible to declare module multiple replacement targets for single replacement source.
@@ -138,6 +142,8 @@ This states that 'org.springframework:spring' was replaced by both 'org.springfr
 uhappy paths:
 - cycle between newly added dependency
 - dependency added by the mechanism is unresolved
+
+# Feature: Better reporting of module replacements
 
 ## Story: component replacement is explicit in the dependency reports
 
