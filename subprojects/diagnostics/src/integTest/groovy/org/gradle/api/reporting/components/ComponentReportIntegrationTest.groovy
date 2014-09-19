@@ -18,8 +18,6 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.SystemProperties
-import org.gradle.language.fixtures.TestJavaLibrary
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -526,11 +524,7 @@ BUILD SUCCESSFUL
         String target1 = JavaVersion.VERSION_1_5;
         String target2 = JavaVersion.VERSION_1_6;
         String target3 = current;
-        when:
-        def javaApp = new TestJavaLibrary()
-        javaApp.sources*.writeToDir(file("src/myLib/java"))
-
-        and:
+        given:
         buildFile << """
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
@@ -545,10 +539,10 @@ BUILD SUCCESSFUL
         }
     }
 """
-        then:
+        when:
         succeeds "components"
 
-        and:
+        then:
         output.contains("""
 ------------------------------------------------------------
 Root project
