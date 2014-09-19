@@ -33,16 +33,17 @@ public class DefaultJarBinarySpec extends AbstractBuildableModelElement implemen
     private final JvmLibrarySpec library;
     private final BinaryNamingScheme namingScheme;
     private final JavaToolChain toolChain;
+    private final JvmPlatform platform;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
-    private JvmPlatform platform;
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
 
-    public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain) {
+    public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JvmPlatform platform) {
         this.library = library;
         this.namingScheme = namingScheme;
         this.toolChain = toolChain;
+        this.platform = platform;
     }
 
     public boolean isBuildable() {
@@ -76,10 +77,6 @@ public class DefaultJarBinarySpec extends AbstractBuildableModelElement implemen
 
     public JvmPlatform getTargetPlatform() {
         return platform;
-    }
-
-    public void setTargetPlatform(JvmPlatform platform) {
-        this.platform = platform;
     }
 
     public BinaryNamingScheme getNamingScheme() {

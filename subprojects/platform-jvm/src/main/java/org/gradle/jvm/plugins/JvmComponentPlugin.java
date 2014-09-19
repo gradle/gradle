@@ -98,8 +98,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     BinaryNamingScheme namingScheme = componentBuilder.build();
                     JvmPlatform platform = new DefaultJvmPlatform(target);
                     toolChain.assertValidPlatform(platform);
-                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain);
-                    jarBinary.setTargetPlatform(platform);
+                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
                     jarBinary.source(jvmLibrary.getSource());
                     configureBinaryOutputLocations(jarBinary, buildDir);
                     jvmLibrary.getBinaries().add(jarBinary);

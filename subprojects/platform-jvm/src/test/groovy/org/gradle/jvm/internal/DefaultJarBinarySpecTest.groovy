@@ -15,6 +15,8 @@
  */
 
 package org.gradle.jvm.internal
+
+import org.gradle.api.platform.jvm.JvmPlatform
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.toolchain.JavaToolChain
@@ -24,6 +26,7 @@ class DefaultJarBinarySpecTest extends Specification {
     def library = Mock(JvmLibrarySpec)
     def namingScheme = Mock(BinaryNamingScheme)
     def toolChain = Mock(JavaToolChain)
+    def platform = Mock(JvmPlatform)
 
     def "binary takes name and displayName from naming scheme"() {
         when:
@@ -69,6 +72,6 @@ class DefaultJarBinarySpecTest extends Specification {
     }
 
     private DefaultJarBinarySpec binary() {
-        new DefaultJarBinarySpec(library, namingScheme, toolChain)
+        new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
     }
 }

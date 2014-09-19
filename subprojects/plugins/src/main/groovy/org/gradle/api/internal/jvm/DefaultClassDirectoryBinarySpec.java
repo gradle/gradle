@@ -32,14 +32,15 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
     private final JavaToolChain toolChain;
+    private final JvmPlatform platform;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
     private File resourcesDir;
-    private JvmPlatform platform;
 
-    public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain) {
+    public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JvmPlatform platform) {
         this.name = name;
         this.toolChain = toolChain;
+        this.platform = platform;
         this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));
     }
 
@@ -56,10 +57,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     public JavaToolChain getToolChain() {
         return toolChain;
-    }
-
-    public void setTargetPlatform(JvmPlatform platform) {
-        this.platform = platform;
     }
 
     public JvmPlatform getTargetPlatform() {

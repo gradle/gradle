@@ -20,7 +20,6 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.platform.jvm.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -61,7 +60,6 @@ import java.io.File;
  */
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
-    private JvmPlatform platform;
     private final CompileOptions compileOptions = new CompileOptions();
 
     /**
@@ -84,15 +82,6 @@ public class JavaCompile extends AbstractCompile {
     public void setToolChain(JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
-    }
-
-    @Incubating
-    public JvmPlatform getTargetPlatform() {
-        return platform;
-    }
-
-    public void setTargetPlatform(JvmPlatform platform) {
-        this.platform = platform;
     }
 
     @TaskAction
@@ -170,23 +159,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
-        final String targetCompatibility;
-        final String sourceCompatibility;
-        //TODO: freekh This is not right I know. If I do not do this though, we will have to change the way JavaCompile is used from the end-user perspective. Or, we can inject a platform (so a platform is never null). I am uncertain about what we want to inject or not. A platform is something the user decides which is why it felt wrong to inject it, asked around but Daz is the one that should be able to answer that question. In any case the targetCompatibility must be possible to use?
-        if (getTargetPlatform() != null) {
-            targetCompatibility = getTargetPlatform().getTargetCompatibility().toString();
-            if (getSourceCompatibility() != null) { //do not overwrite source compatibility before we find a way to support it
-                sourceCompatibility = getSourceCompatibility();
-            } else {
-                sourceCompatibility = targetCompatibility;
-            }
-        } else {
-            targetCompatibility = getTargetCompatibility();
-            sourceCompatibility = getSourceCompatibility();
-        }
-
-        spec.setTargetCompatibility(targetCompatibility);
-        spec.setSourceCompatibility(sourceCompatibility);
+        spec.setTargetCompatibility(getTargetCompatibility());
+        spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
         return spec;
     }

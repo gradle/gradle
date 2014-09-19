@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.jvm
 
+import org.gradle.api.platform.jvm.JvmPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 
 public class DefaultClassDirectoryBinarySpecTest extends Specification {
     def toolChain = Mock(JavaToolChain)
+    def platform = Mock(JvmPlatform)
 
     def "uses short task names for binary with name 'mainClasses'"() {
         when:
@@ -81,6 +83,6 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, toolChain)
+        new DefaultClassDirectoryBinarySpec(name, toolChain, platform)
     }
 }

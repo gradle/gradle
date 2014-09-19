@@ -27,6 +27,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             task compile(type: JavaCompile) {
                 classpath = files()
                 sourceCompatibility = JavaVersion.current()
+                targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
                 dependencyCacheDir = file("build/dependency-cache")
                 source "src/main/java"
@@ -34,7 +35,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
-
+        org.gradle.api.tasks.compile.JavaCompileTest
         when:
         run("compile")
 
