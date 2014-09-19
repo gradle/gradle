@@ -30,6 +30,8 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      * Configures a replacement module for this module.
      * A real world example: 'com.google.collections:google-collections' is replaced by 'com.google.guava:guava'.
      *
+     * //TODO SF document that it replaces, add coverage for replacing with 'self'
+     *
      * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
      */
     void replacedBy(Object moduleNotation);

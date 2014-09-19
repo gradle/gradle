@@ -1,0 +1,9 @@
+apply plugin: 'java'
+
+// START SNIPPET module_replacement
+dependencies {
+    components {
+        module("com.google.collections:google-collections").replacedBy("com.google.guava:guava")
+    }
+}
+// END SNIPPET module_replacement

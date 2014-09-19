@@ -38,11 +38,11 @@ import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
  *             }
  *         }
  *
- *         //Configuring component module metadata for the entire 'google-collections' module,
- *         // declaring that legacy library was replaced with a new one.
- *         //This way, Gradle's conflict resolution can use this information and use guava
+ *         //Configuring component module metadata for the entire "google-collections" module,
+ *         // declaring that legacy library was replaced with "guava".
+ *         //This way, Gradle's conflict resolution can use this information and use "guava"
  *         // in case both libraries appear in the same dependency tree.
- *         module('com.google.collections:google-collections').replacedBy('com.google.guava:guava')
+ *         module("com.google.collections:google-collections").replacedBy("com.google.guava:guava")
  *     }
  * }
  * </pre>
