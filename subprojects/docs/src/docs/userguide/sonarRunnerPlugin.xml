@@ -17,7 +17,11 @@
     <title>The Sonar Runner Plugin</title>
     <note>
         <para>
-            The Sonar runner plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            The Sonar Runner plugin is currently <link linkend="feature_lifecycle">incubating</link>.
+            Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+        <para>
+            It is intended that this plugin will replace the older <link linkend="sonar_plugin">Sonar Plugin</link> in a future Gradle version.
         </para>
     </note>
     <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
@@ -49,17 +53,14 @@
     </variablelist>
 
     <section>
-        <title>Plugin Status and Compatibility</title>
+        <title>Sonar Runner version and compatibility</title>
         <para>
-            The Sonar Runner plugin is the successor to the <link linkend="sonar_plugin">Sonar Plugin</link>. It is currently
-            <link linkend="sec:incubating_state">incubating</link>. The default version of the Sonar Runner used by the plugin is 2.3, which makes it compatible
-            with Sonar 3.0 and higher. For compliance with Sonar versions lower than 3.0, you can configure Gradle to use an earlier sonar runner version.
-            Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar 3.4 and higher.
+            The default version of the Sonar Runner used by the plugin is 2.3, which makes it compatible with Sonar 3.0 and higher.
+            For compatibility with Sonar versions earlier than 3.0, you can configure the use of an earlier Sonar Runner version (see <xref linkend="sec:specify_sonar_runner_version"/>).
         </para>
     </section>
-
     <section>
-        <title>Getting Started</title>
+        <title>Getting started</title>
         <para>To get started, apply the Sonar Runner plugin to the project to be analyzed.</para>
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Applying the Sonar Runner plugin">
             <sourcefile file="build.gradle" snippet="apply-plugin"/>
@@ -87,18 +88,15 @@
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
-        <para>In addition to set Sonar properties, the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the Sonar Runner version and
-            the <apilink class="org.gradle.process.JavaForkOptions" /> of the forked Sonar Runner process.
+        <para>
+            Alternatively, Sonar properties can be set from the command line. See <xref linkend="sec:sonar_command_line_parameters" /> for more information.
         </para>
-        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar runner version">
-            <sourcefile file="build.gradle" snippet="version-settings"/>
-        </sample>
         <para>
             For a complete list of standard Sonar properties, consult the <ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
             If you happen to use additional Sonar plugins, consult their documentation.
         </para>
-        <para>
-            Alternatively, Sonar properties can be set from the command line. See <xref linkend="sec:sonar_command_line_parameters" /> for more information.
+        <para>In addition to set Sonar properties, the <apilink class="org.gradle.sonar.runner.SonarRunnerRootExtension" /> extension allows the configuration of the Sonar Runner version and
+            the <apilink class="org.gradle.process.JavaForkOptions" /> of the forked Sonar Runner process.
         </para>
         <para>
             The Sonar Runner plugin leverages information contained in Gradle's object model to provide smart defaults for many of the standard Sonar properties.
@@ -207,7 +205,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:specify_sonar_runner_version">
         <title>Specifying the Sonar Runner version</title>
         <para>
             By default, version 2.3 of the Sonar Runner is used.
@@ -215,6 +213,9 @@
             of the <literal>sonarRunner</literal> extension of the project the plugin was applied to to the desired version.
             This will result in the Sonar Runner dependency <literal>org.codehaus.sonar.runner:sonar-runner-dist:«toolVersion»</literal> being used as the Sonar Runner.
         </para>
+        <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar runner version">
+            <sourcefile file="build.gradle" snippet="version-settings"/>
+        </sample>
     </section>
     <section>
         <title>Analyzing Multi-Project Builds</title>
@@ -316,8 +317,7 @@
         </note>
         <para>A Sonar property value set via a system property overrides any value set in a build script (for the same property). When
             analyzing a project hierarchy, values set via system properties apply to the root project of the analyzed hierarchy.
-            Each system property starting with "<literal>"sonar."</literal> will taken into account for the sonar runner setup, which allows the
-            Gradle Sonar Runner plugin to support also upcoming new sonar properties introduced in upcoming Sonar Runner versions.
+            Each system property starting with "<literal>"sonar."</literal> will taken into account for the sonar runner setup.
         </para>
     </section>
 
