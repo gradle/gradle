@@ -72,7 +72,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     }
 
     public List<Class<?>> getInputTypes() {
-        return Arrays.asList(ruleMethod.getParameterTypes()).subList(1, ruleMethod.getMethod().getParameterCount());
+        Class<?>[] parameterTypes = ruleMethod.getParameterTypes();
+        return Arrays.asList(parameterTypes).subList(1, parameterTypes.length);
     }
 
     public void execute(T subject, List<?> inputs) {
