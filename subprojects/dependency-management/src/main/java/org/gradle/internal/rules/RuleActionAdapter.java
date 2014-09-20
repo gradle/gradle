@@ -24,5 +24,5 @@ public interface RuleActionAdapter<T> {
 
     RuleAction<? super T> createFromAction(Action<? super T> action);
 
-    RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Class<?> ruleSource);
+    RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource);
 }

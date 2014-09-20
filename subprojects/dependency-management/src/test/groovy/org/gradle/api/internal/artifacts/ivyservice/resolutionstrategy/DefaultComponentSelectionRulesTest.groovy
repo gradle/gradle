@@ -39,6 +39,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules(adapter, notationParser)
     ComponentSelectionInternal componentSelection
     def ruleAction = Mock(RuleAction)
+    def ruleSource = new Object()
 
     def setup() {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(GROUP, MODULE, "version")
@@ -111,10 +112,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "add rule source rule that applies to all components"() {
         when:
-        rules.all String.class
+        rules.all ruleSource
 
         then:
-        1 * adapter.createFromRuleSource(ComponentSelection, String) >> ruleAction
+        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> ruleAction
 
         and:
         rules.rules.size() == 1
@@ -126,10 +127,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        rules.module(notation, String)
+        rules.module(notation, ruleSource)
 
         then:
-        1 * adapter.createFromRuleSource(ComponentSelection, String) >> ruleAction
+        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> ruleAction
         1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
@@ -162,24 +163,24 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "propagates error creating rule for rule source" () {
         when:
-        rules.all String.class
+        rules.all ruleSource
 
         then:
         def e = thrown(InvalidUserCodeException)
         e.message == "bad rule source"
 
         and:
-        1 * adapter.createFromRuleSource(ComponentSelection, String.class) >> { throw new InvalidUserCodeException("bad rule source") }
+        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> { throw new InvalidUserCodeException("bad rule source") }
 
         when:
-        rules.module("group:module", String.class)
+        rules.module("group:module", ruleSource)
 
         then:
         e = thrown(InvalidUserCodeException)
         e.message == "bad targeted rule source"
 
         and:
-        1 * adapter.createFromRuleSource(ComponentSelection, String.class) >> { throw new InvalidUserCodeException("bad targeted rule source") }
+        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> { throw new InvalidUserCodeException("bad targeted rule source") }
     }
 
     def "propagates error creating rule for action" () {

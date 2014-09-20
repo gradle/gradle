@@ -82,12 +82,21 @@ public interface ComponentSelectionRules {
     public ComponentSelectionRules all(Closure<?> closure);
 
     /**
-     * Adds a component selection rule that will apply to all resolved components.
+     * Adds a rule-source backed component selection rule that will apply to all resolved components.
      *
-     * @param ruleSource a class providing a rule implementation
+     * The ruleSource provides the rule as a rule method annotated with {@link org.gradle.model.Mutate}.
+     *
+     * This rule method:
+     * <ul>
+     *     <li>must return void.</li>
+     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as the first parameter.</li>
+     *     <li>may have additional parameters of type {@link org.gradle.api.artifacts.ComponentMetadata} and/or {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
+     * </ul>
+     *
+     * @param ruleSource an instance providing a rule implementation
      * @return this
      */
-    public ComponentSelectionRules all(Class<?> ruleSource);
+    public ComponentSelectionRules all(Object ruleSource);
 
     /**
      * Adds a component selection rule that will apply to the specified module.
@@ -115,11 +124,20 @@ public interface ComponentSelectionRules {
     public ComponentSelectionRules module(Object id, Closure<?> closure);
 
     /**
-     * Adds a component selection rule that will apply to all resolved components.
+     * Adds a rule-source backed component selection rule that will apply to the specified module.
+     *
+     * The ruleSource provides the rule as a rule method annotated with {@link org.gradle.model.Mutate}.
+     *
+     * This rule method:
+     * <ul>
+     *     <li>must return void.</li>
+     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as the first parameter.</li>
+     *     <li>may have additional parameters of type {@link org.gradle.api.artifacts.ComponentMetadata} and/or {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
+     * </ul>
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
-     * @param ruleSource a class providing a rule implementation
+     * @param ruleSource an instance providing a rule implementation
      * @return this
      */
-    public ComponentSelectionRules module(Object id, Class<?> ruleSource);
+    public ComponentSelectionRules module(Object id, Object ruleSource);
 }

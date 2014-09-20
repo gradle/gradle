@@ -17,69 +17,68 @@
 package org.gradle.internal.rules;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Mutate;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.List;
 
-// TODO:DAZ Probably better for now to use user-supplied instance of ruleSource.
-public class RuleSourceBackedRuleAction<T> implements RuleAction<T> {
-    private final MethodRuleDefinition<Void> methodRuleDefinition;
+public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
+    private final MethodRuleDefinition<Void> ruleMethodDefinition;
+    private final R instance;
+    private final JavaMethod<R, T> ruleMethod;
 
-    private RuleSourceBackedRuleAction(MethodRuleDefinition<Void> methodRuleDefinition) {
-        this.methodRuleDefinition = methodRuleDefinition;
+    private RuleSourceBackedRuleAction(R instance, MethodRuleDefinition<Void> ruleMethodDefinition, JavaMethod<R, T> ruleMethod) {
+        this.instance = instance;
+        this.ruleMethodDefinition = ruleMethodDefinition;
+        this.ruleMethod = ruleMethod;
     }
 
-    public static <T> RuleSourceBackedRuleAction<T> create(Class<?> ruleSource, ModelType<T> subjectType) {
-        List<Method> mutateMethods = JavaReflectionUtil.findAllMethods(ruleSource, new Spec<Method>() {
+    public static <R, T> RuleSourceBackedRuleAction<R, T> create(ModelType<T> subjectType, R ruleSourceInstance) {
+        ModelType<R> ruleSourceType = ModelType.typeOf(ruleSourceInstance);
+        List<Method> mutateMethods = JavaReflectionUtil.findAllMethods(ruleSourceType.getConcreteClass(), new Spec<Method>() {
             public boolean isSatisfiedBy(Method element) {
                 return element.isAnnotationPresent(Mutate.class);
             }
         });
         if (mutateMethods.size() != 1) {
-            throw invalid(ruleSource, "must have at exactly one method annotated with @Mutate");
+            throw invalid(ruleSourceType, "must have at exactly one method annotated with @Mutate");
         }
         Method ruleMethod = mutateMethods.get(0);
         if (ruleMethod.getReturnType() != Void.TYPE) {
-            throw invalid(ruleSource, "rule method must return void");
+            throw invalid(ruleSourceType, "rule method must return void");
         }
-        MethodRuleDefinition<Void> ruleDefinition = DefaultMethodRuleDefinition.create(ruleSource, ruleMethod);
-        List<ModelReference<?>> references = ruleDefinition.getReferences();
-        if (references.size() == 0) {
-            throw invalid(ruleSource, "rule method must have at least one parameter");
+        Type[] parameterTypes = ruleMethod.getGenericParameterTypes();
+        if (parameterTypes.length == 0) {
+            throw invalid(ruleSourceType, "rule method must have at least one parameter");
         }
-        if (!references.get(0).getType().equals(subjectType)) {
-            throw invalid(ruleSource, String.format("first parameter of rule method must be of type %s", subjectType));
+        if (!subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
+            throw invalid(ruleSourceType, String.format("first parameter of rule method must be of type %s", subjectType));
         }
-        return new RuleSourceBackedRuleAction<T>(ruleDefinition);
+        MethodRuleDefinition<Void> ruleDefinition = DefaultMethodRuleDefinition.create(ruleSourceType.getRawClass(), ruleMethod);
+        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, ruleDefinition, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), ruleMethod));
     }
 
-    private static RuntimeException invalid(Class<?> source, String reason) {
-        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
+    private static RuntimeException invalid(ModelType<?> source, String reason) {
+        return new InvalidModelRuleDeclarationException("Type " + source + " is not a valid model rule source: " + reason);
     }
 
     public List<Class<?>> getInputTypes() {
-        List<ModelReference<?>> references = methodRuleDefinition.getReferences();
-        return CollectionUtils.collect(references.subList(1, references.size()), new Transformer<Class<?>, ModelReference<?>>() {
-            public Class<?> transform(ModelReference<?> modelReference) {
-                return modelReference.getType().getRawClass();
-            }
-        });
+        return Arrays.asList(ruleMethod.getParameterTypes()).subList(1, ruleMethod.getMethod().getParameterCount());
     }
 
     public void execute(T subject, List<?> inputs) {
         List<Object> args = Lists.newArrayList();
         args.add(subject);
         args.addAll(inputs);
-        methodRuleDefinition.getRuleInvoker().invoke(args.toArray());
+        ruleMethod.invoke(instance, args.toArray());
     }
 }

@@ -50,9 +50,9 @@ public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
         }
     }
 
-    public RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Class<?> ruleSource) {
+    public RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource) {
         try {
-            return ruleActionValidator.validate(RuleSourceBackedRuleAction.create(ruleSource, ModelType.of(subjectType)));
+            return ruleActionValidator.validate(RuleSourceBackedRuleAction.create(ModelType.of(subjectType), ruleSource));
         } catch (RuleActionValidationException e) {
             throw new InvalidUserCodeException(String.format(INVALID_RULE_SOURCE_ERROR, context), e);
         }

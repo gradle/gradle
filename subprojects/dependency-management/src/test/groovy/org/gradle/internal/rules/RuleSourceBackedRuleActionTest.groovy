@@ -30,7 +30,7 @@ class RuleSourceBackedRuleActionTest extends Specification {
 
     def "creates rule action for rule source"() {
         when:
-        action = RuleSourceBackedRuleAction.create(SimpleRuleSource, ModelType.of(List))
+        action = RuleSourceBackedRuleAction.create(ModelType.of(List), ruleSource)
 
         then:
         action.inputTypes == [String, Integer, Set]
@@ -40,9 +40,12 @@ class RuleSourceBackedRuleActionTest extends Specification {
 
         then:
         collector == ["foo", 1, "bar", "baz"]
+
+        where:
+        ruleSource << [new ListRuleSource(), new ArrayListRuleSource()]
     }
 
-    static class SimpleRuleSource {
+    static class ListRuleSource {
         @Mutate
         void theRule(List subject, String input1, Integer input2, Set input3) {
             subject.add(input1)
@@ -51,9 +54,18 @@ class RuleSourceBackedRuleActionTest extends Specification {
         }
     }
 
+    static class ArrayListRuleSource {
+        @Mutate
+        void theRule(ArrayList subject, String input1, Integer input2, Set input3) {
+            subject.add(input1)
+            subject.add(input2)
+            subject.addAll(input3)
+        }
+    }
+
     def "creates rule action for rule source with typed params"() {
         when:
-        action = RuleSourceBackedRuleAction.create(RuleSourceWithTypedParams, listType)
+        action = RuleSourceBackedRuleAction.create(listType, new RuleSourceWithTypedParams())
 
         then:
         action.inputTypes == [AtomicReference, Map, Set]
@@ -69,28 +81,29 @@ class RuleSourceBackedRuleActionTest extends Specification {
         @Mutate
         void theRule(List<String> subject, AtomicReference<String> input1, Map<Integer, String> input2, Set<Number> input3) {
             subject.add(input1.get())
-            subject.addAll(input2.keySet().collect({it.toString()}))
+            subject.addAll(input2.keySet().collect({ it.toString() }))
             subject.addAll(input2.values())
-            subject.addAll(input3.collect({it.toString()}))
+            subject.addAll(input3.collect({ it.toString() }))
         }
     }
 
     def "fails to create rule action for rule source that #issue"() {
         when:
-        action = RuleSourceBackedRuleAction.create(ruleSource, listType)
+        action = RuleSourceBackedRuleAction.create(listType, ruleSource)
 
         then:
         def e = thrown InvalidModelRuleDeclarationException
-        e.message == "Type ${ruleSource.name} is not a valid model rule source: ${reason}"
+        e.message == "Type ${ruleSource.class.name} is not a valid model rule source: ${reason}"
 
         where:
-        ruleSource                          | reason
-        RuleSourceWithNoMethod              | "must have at exactly one method annotated with @Mutate"
-        RuleSourceWithNoMutateMethod        | "must have at exactly one method annotated with @Mutate"
-        RuleSourceWithMultipleMutateMethods | "must have at exactly one method annotated with @Mutate"
-        RuleSourceWithDifferentSubjectType  | "first parameter of rule method must be of type java.util.List<java.lang.String>"
-        RuleSourceWithNoSubject             | "rule method must have at least one parameter"
-        RuleSourceWithReturnValue           | "rule method must return void"
+        ruleSource                                | reason
+        new RuleSourceWithNoMethod()              | "must have at exactly one method annotated with @Mutate"
+        new RuleSourceWithNoMutateMethod()        | "must have at exactly one method annotated with @Mutate"
+        new RuleSourceWithMultipleMutateMethods() | "must have at exactly one method annotated with @Mutate"
+        new RuleSourceWithDifferentSubjectClass()  | "first parameter of rule method must be of type java.util.List<java.lang.String>"
+        new RuleSourceWithDifferentSubjectType()  | "first parameter of rule method must be of type java.util.List<java.lang.String>"
+        new RuleSourceWithNoSubject()             | "rule method must have at least one parameter"
+        new RuleSourceWithReturnValue()           | "rule method must return void"
     }
 
     static class RuleSourceWithNoMethod {}
@@ -100,19 +113,30 @@ class RuleSourceBackedRuleActionTest extends Specification {
     }
 
     static class RuleSourceWithMultipleMutateMethods {
-        @Mutate void theRule(List<String> subject) {}
-        @Mutate void theOtherRule(List<String> subject) {}
+        @Mutate
+        void theRule(List<String> subject) {}
+
+        @Mutate
+        void theOtherRule(List<String> subject) {}
+    }
+
+    static class RuleSourceWithDifferentSubjectClass {
+        @Mutate
+        void theRule(String subject) {}
     }
 
     static class RuleSourceWithDifferentSubjectType {
-        @Mutate void theRule(String subject) {}
+        @Mutate
+        void theRule(List<Integer> subject) {}
     }
 
     static class RuleSourceWithReturnValue {
-        @Mutate String theRule(List<String> subject) {}
+        @Mutate
+        String theRule(List<String> subject) {}
     }
 
     static class RuleSourceWithNoSubject {
-        @Mutate void theRule() {}
+        @Mutate
+        void theRule() {}
     }
 }

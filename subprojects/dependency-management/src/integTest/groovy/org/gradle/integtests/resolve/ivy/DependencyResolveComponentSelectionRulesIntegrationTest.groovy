@@ -687,10 +687,12 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
                 conf "org.utils:api:1.+"
             }
 
+            def ruleSource = new Select11()
+
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all Select11
+                        all ruleSource
                     }
                 }
             }
@@ -699,14 +701,18 @@ class DependencyResolveComponentSelectionRulesIntegrationTest extends AbstractHt
                 def artifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
                 assert artifacts.size() == 1
                 assert artifacts[0].moduleVersion.id.version == '1.1'
+                assert ruleSource.candidates == ['1.2', '1.1']
             }
 
             class Select11 {
+                def candidates = []
+
                 @org.gradle.model.Mutate
                 void select(ComponentSelection selection) {
                     if (selection.candidate.version != '1.1') {
                         selection.reject("not 1.1")
                     }
+                    candidates << selection.candidate.version
                 }
             }
 """

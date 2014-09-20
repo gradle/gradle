@@ -78,7 +78,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
-    public ComponentSelectionRules all(Class<?> ruleSource) {
+    public ComponentSelectionRules all(Object ruleSource) {
         return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
@@ -90,7 +90,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
-    public ComponentSelectionRules module(Object id, Class<?> ruleSource) {
+    public ComponentSelectionRules module(Object id, Object ruleSource) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
