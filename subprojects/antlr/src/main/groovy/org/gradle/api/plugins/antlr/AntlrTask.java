@@ -16,23 +16,30 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.apache.tools.ant.taskdefs.optional.ANTLR;
-import org.apache.tools.ant.types.Path;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.antlr.internal.GenerationPlan;
-import org.gradle.api.plugins.antlr.internal.GenerationPlanBuilder;
-import org.gradle.api.plugins.antlr.internal.MetadataExtracter;
-import org.gradle.api.plugins.antlr.internal.XRef;
+
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GFileUtils;
+
+import org.gradle.api.GradleException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
+
+import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.plugins.antlr.internal.AntlrSpec;
+import org.gradle.api.plugins.antlr.internal.AntlrResult;
+
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.WorkerProcessBuilder;
+
+import javax.inject.Inject;
 
 /**
  * <p>Generates parsers from Antlr grammars.</p>
@@ -50,10 +57,12 @@ public class AntlrTask extends SourceTask {
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
+    private String antlrVersion;
 
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
+    private File sourceDirectory;
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -118,6 +127,14 @@ public class AntlrTask extends SourceTask {
         this.outputDirectory = outputDirectory;
     }
 
+    public File getSourceDirectory() {
+        return sourceDirectory;
+    }
+
+    public void setSourceDirectory(File sourceDirectory) {
+        this.sourceDirectory = sourceDirectory;
+    }
+
     /**
      * Returns the classpath containing the Ant ANTLR task implementation.
      *
@@ -130,44 +147,47 @@ public class AntlrTask extends SourceTask {
 
     /**
      * Specifies the classpath containing the Ant ANTLR task implementation.
-     *
+     *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
     public void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;
     }
 
+    @Inject
+    public Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void generate() {
-        // Determine the grammar files and the proper ordering amongst them
-        XRef xref = new MetadataExtracter().extractMetadata(getSource());
-        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
+        AntlrWorkerManager manager = new AntlrWorkerManager();
 
-        for (GenerationPlan generationPlan : generationPlans) {
-            if (!generationPlan.isOutOfDate()) {
-                LOGGER.info("grammar [" + generationPlan.getId() + "] was up-to-date; skipping");
-                continue;
+        // Build args
+        List<String> args = new ArrayList<String>();
+        args.add("-o");
+        args.add(outputDirectory.getAbsolutePath());
+
+        // Get files in source directory
+        for (File file : sourceDirectory.listFiles()) {
+            if (file.getName().endsWith(".g") || file.getName().endsWith(".g4")) {
+                args.add(file.getAbsolutePath());
             }
+        }
 
-            LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
+        AntlrSpec spec = new AntlrSpec(args);
+        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), antlrClasspath, spec);
+        evaluateAntlrResult(result);
+    }
 
-            //noinspection ResultOfMethodCallIgnored
-            GFileUtils.mkdirs(generationPlan.getGenerationDirectory());
-
-            ANTLR antlr = new ANTLR();
-            antlr.setProject(getAnt().getAntProject());
-            Path antlrTaskClasspath = antlr.createClasspath();
-            for (File dep : getAntlrClasspath()) {
-                antlrTaskClasspath.createPathElement().setLocation(dep);
-            }
-            antlr.setTrace(trace);
-            antlr.setTraceLexer(traceLexer);
-            antlr.setTraceParser(traceParser);
-            antlr.setTraceTreeWalker(traceTreeWalker);
-            antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
-            antlr.setTarget(generationPlan.getSource());
-
-            antlr.execute();
+    public void evaluateAntlrResult(AntlrResult result) {
+        int errorCount = result.getErrorCount();
+        if (errorCount == 1) {
+            throw new GradleException("There was 1 error during grammar generation");
+        } else if (errorCount > 1) {
+            throw new GradleException("There were "
+                + errorCount
+                + " errors during grammar generation");
         }
     }
 }
