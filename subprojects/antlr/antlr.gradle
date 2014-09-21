@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+configurations { providedCompile }
+
+
 dependencies {
     compile libraries.groovy
 
@@ -23,6 +27,14 @@ dependencies {
     compile libraries.ant
     compile libraries.ant_antlr
     compile libraries.antlr
+    providedCompile libraries.antlr3
+    providedCompile libraries.antlr4
+    testCompile libraries.antlr3
+    testCompile libraries.antlr4
 }
+
+sourceSets.main.compileClasspath += configurations.providedCompile
+sourceSets.test.compileClasspath += configurations.providedCompile
+sourceSets.test.runtimeClasspath += configurations.providedCompile
 
 useTestFixtures()
