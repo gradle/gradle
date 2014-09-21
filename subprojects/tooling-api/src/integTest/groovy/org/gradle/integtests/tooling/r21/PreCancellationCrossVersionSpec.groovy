@@ -23,19 +23,16 @@ import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
 @ToolingApiVersion(">=2.1")
-@TargetGradleVersion(">=1.0-milestone-8")
+@TargetGradleVersion("<2.1 >=1.0-milestone-8")
 class PreCancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
-        // in-process call does not support cancelling (yet)
-        toolingApi.isEmbedded = false
         settingsFile << '''
 rootProject.name = 'cancelling'
 '''
     }
 
-    @TargetGradleVersion("<2.1 >=1.0-milestone-8")
     def "cancel with older provider issues warning only"() {
         buildFile << """
 task t << {

@@ -22,21 +22,15 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.junit.Rule
 
 @ToolingApiVersion(">=2.1")
 @TargetGradleVersion(">=2.1")
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-
     def setup() {
-        // in-process call does not support cancelling (yet)
-        toolingApi.isEmbedded = false
         settingsFile << '''
 rootProject.name = 'cancelling'
 '''

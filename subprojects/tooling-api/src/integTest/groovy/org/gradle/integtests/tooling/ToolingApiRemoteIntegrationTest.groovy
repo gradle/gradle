@@ -92,18 +92,14 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        ByteArrayOutputStream buildOutput = new ByteArrayOutputStream()
-
         toolingApi.withConnection { ProjectConnection connection ->
             BuildLauncher launcher = connection.newBuild().forTasks("hello")
                 .withCancellationToken(tokenSource.token())
-            launcher.standardOutput = buildOutput;
             launcher.run()
         }
 
         then:
         BuildCancelledException e = thrown()
-        e.printStackTrace()
         e.message.contains('Distribution download cancelled.')
 
         cleanup:

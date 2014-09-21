@@ -29,8 +29,6 @@ class R21CancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
-        // in-process call does not support cancelling (yet)
-        toolingApi.isEmbedded = false
         settingsFile << '''
 rootProject.name = 'cancelling'
 '''
@@ -167,6 +165,9 @@ task hang << {
     }
 
     def "can cancel build through forced stop"() {
+        // in-process call does not support forced stop
+        toolingApi.isEmbedded = false
+
         buildFile << """
 task hang << {
     new URL("${server.uri}").text
