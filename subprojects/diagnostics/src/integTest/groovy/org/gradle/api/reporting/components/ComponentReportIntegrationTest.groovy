@@ -518,6 +518,10 @@ BUILD SUCCESSFUL
 """))
     }
 
+    def normalizePath(String input) {
+        return input.replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
+    }
+
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of jvm library with multiple targets"() {
         String current = JavaVersion.current();
@@ -543,7 +547,7 @@ BUILD SUCCESSFUL
         succeeds "components"
 
         then:
-        output.contains("""
+        output.contains(normalizePath("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -557,28 +561,28 @@ Source sets
     Java source 'myLib:java'
         src/myLib/java
 
-Binaries""")
+Binaries"""))
     //order not guaranteed so check individual
     and:
-    output.contains("""Jar 'myLib:jdk$target1:jar'
+    output.contains(normalizePath("""Jar 'myLib:jdk$target1:jar'
         build using task: :jdk${target1}MyLibJar
         platform: target JDK $target1
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar""")
+        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar"""))
 
     and:
-    output.contains("""Jar 'myLib:jdk$target2:jar'
+    output.contains(normalizePath("""Jar 'myLib:jdk$target2:jar'
         build using task: :jdk${target2}MyLibJar
         platform: target JDK $target2
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar""")
+        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar"""))
     and:
-    output.contains("""
+    output.contains(normalizePath("""
     Jar 'myLib:jdk$target3:jar'
         build using task: :jdk${target3}MyLibJar
         platform: target JDK $target3
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar""")
+        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar"""))
     and:
     output.contains("""
 Note: currently not all plugins register their components, so some components may not be visible here.
