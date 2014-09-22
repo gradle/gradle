@@ -561,13 +561,13 @@
             <para>
                 For a default component, Gradle will attempt to create a native binary variant for each and every combination of <literal>buildType</literal>,
                 <literal>platform</literal> and <literal>flavor</literal> defined for the project. It is possible to override this on a per-component
-                basis, by specifying the set of <literal>targetBuildTypes</literal>, <literal>targetPlatforms</literal> and/or <literal>targetFlavors</literal>.
+                basis, by specifying the set of <literal>targetBuildTypes</literal>, <literal>targetPlatform</literal> and/or <literal>targetFlavors</literal>.
             </para>
             <sample id="targets" dir="native-binaries/variants" title="Targeting a component at particular platforms">
                 <sourcefile file="build.gradle" snippet="target-platforms"/>
             </sample>
             <para>
-                Here you can see that the <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetPlatforms"/> method is used to
+                Here you can see that the <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetPlatform"/> method is used to
                 select the set of platforms to target for <literal>executables.main</literal>.
             </para>
             <para>
