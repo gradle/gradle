@@ -115,6 +115,7 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
         "noComponentSpec"           | "ComponentBinaries method must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
         "missmatchingComponentSpec" | "ComponentBinaries method parameter of type SomeOtherLibrary does not support binaries of type SomeBinarySpec."               | "non matching CompnentSpec type"
         "returnValue"               | "ComponentBinaries method must not have a return value."                                                                      | "non void method"
+        "rawCollectionBuilder"      | "Parameter of type 'ComponentBinaries' must declare a type parameter extending 'BinarySpec'."                                                                                  | "non typed CollectionBuilder parameter"
     }
 
     def getStringDescription(MethodRuleDefinition ruleDefinition) {
@@ -166,6 +167,11 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
 
         @ComponentBinaries
         static void rawBinarySpec(CollectionBuilder<BinarySpec> binaries, RawLibrary library) {
+            binaries.create("${library.name}Binary", library)
+        }
+
+        @ComponentBinaries
+        static void rawCollectionBuilder(CollectionBuilder binaries, RawLibrary library) {
             binaries.create("${library.name}Binary", library)
         }
 

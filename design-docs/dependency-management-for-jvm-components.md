@@ -424,24 +424,16 @@ Running `gradle assemble` will execute lifecycle task for each binary.
 
 #### Test cases
 
-- Can create binaries via rules that declare these as input:
-    - `CollectionBuilder<BinarySpec>`
-    - `CollectionBuilder<SampleBinary>`
-    - `CollectionBuilder<SampleBinarySubType>`
-- Can execute lifecycle task of each created binary, individually and via 'assemble' task
-- Can access lifecycle task of binary via BinarySpec.buildTask
+- ~~Can create binaries via rules that declare these as input:~~
+   - ~~`CollectionBuilder<BinarySpec>`~~
+   - ~~`CollectionBuilder<SampleBinary>`~~
+   - ~~`CollectionBuilder<SampleBinarySubType>`~~
+- ~~Can execute lifecycle task of each created binary, individually and via 'assemble' task~~
+- ~~Can access lifecycle task of binary via BinarySpec.buildTask~~
 - Friendly error message when annotated binary rule method:
-    - Does not have a single parameter of type BinaryTypeBuilder
-    - Parameter does not have a generic type
-    - Has a non-void return value
-- Friendly error message when supplied binary type:
-    - Does not extend `LibraryBinarySpec`
-    - Equals `LibraryBinarySpec`
-- Friendly error message when supplied binary implementation:
-    - Does not have a public no-arg constructor
-    - Does not implement binary type
-    - Does not extend `DefaultLibraryBinarySpec`
-- Friendly error message when attempting to register the same binary type with different implementations
+    - ~~Does not have a single parameter of type CollectionBuilder~~
+    - ~~Parameter does not have a generic type~~
+    - ~~Has a non-void return value~~
 
 #### Open issues
 

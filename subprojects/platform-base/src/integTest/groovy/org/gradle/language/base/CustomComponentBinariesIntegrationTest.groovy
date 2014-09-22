@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -28,7 +29,9 @@ import org.gradle.model.*
 import org.gradle.model.collection.*
 
 interface SampleBinary extends BinarySpec {}
+interface OtherSampleBinary extends SampleBinary {}
 class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
+class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {}
 interface SampleLibrary extends ComponentSpec<SampleBinary> {}
 class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
@@ -43,9 +46,13 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
         apply plugin:MyBinaryDeclarationModel
 
         task checkModel << {
-            assert project.binaries.size() == 1
+            assert project.binaries.size() == 2
             def sampleBinary = project.binaries.sampleLibBinary
+            def othersSampleBinary = project.binaries.sampleLibOtherBinary
             assert sampleBinary instanceof SampleBinary
+            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
+            assert othersSampleBinary instanceof OtherSampleBinary
+            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl: 'sampleLibOtherBinary'"
             assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
         }
 """
@@ -73,11 +80,13 @@ Source sets
 Binaries
     DefaultSampleBinary: 'sampleLibBinary'
         build using task: :sampleLibBinary
-
+    OtherSampleBinaryImpl: 'sampleLibOtherBinary'
+        build using task: :sampleLibOtherBinary
 """))
     }
 
-    def "creates lifecycle task for binary"() {
+    @Unroll
+    def "can execute #taskdescr to build binary"() {
         given:
         buildFile << myBinaryDeclarationModel()
         buildFile << """
@@ -85,14 +94,34 @@ Binaries
         apply plugin:MyBinaryDeclarationModel
 """
         when:
-        succeeds "sampleLibBinary"
+        succeeds taskName
         then:
         output.contains(":sampleLibBinary UP-TO-DATE")
+        where:
+        taskName          | taskdescr
+        "sampleLibBinary" | "lifecycle task"
+        "assemble"        | "assemble task"
+    }
+
+    def "Can access lifecycle task of binary via BinarySpec.buildTask"(){
+        when:
+        buildFile << myBinaryDeclarationModel()
+        buildFile << """
+
+        apply plugin:MyBinaryDeclarationModel
+
+        task tellTaskName << {
+            assert project.binaries.sampleLibBinary.buildTask instanceof Task
+            assert project.binaries.sampleLibBinary.buildTask.name ==  "sampleLibBinary"
+        }
+"""
+        then:
+        succeeds "tellTaskName"
     }
 
 
     String myBinaryDeclarationModel() {
-"""
+        """
         class MyBinaryDeclarationModel implements Plugin<Project> {
             void apply(final Project project) {}
 
@@ -112,10 +141,15 @@ Binaries
                     builder.defaultImplementation(DefaultSampleBinary)
                 }
 
+                @BinaryType
+                void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {
+                    builder.defaultImplementation(OtherSampleBinaryImpl)
+                }
+
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("\${library.name}Binary", SampleBinary)
-                    //binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
+                    binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
                 }
             }
         }
