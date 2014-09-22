@@ -416,7 +416,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
     executables {
         main {
-            targetPlatforms "win32", "otherWin32"
+            targetPlatform "win32", "otherWin32"
         }
     }
 """
@@ -820,7 +820,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
     executables {
         main {
-            targetPlatforms "win32"
+            targetPlatform "win32"
             targetBuildTypes "release"
         }
     }

@@ -42,7 +42,7 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
         Collections.addAll(flavors, flavorSelectors);
     }
 
-    public void targetPlatforms(String... platformSelectors) {
+    public void targetPlatform(String... platformSelectors) {
         Collections.addAll(targetPlatforms, platformSelectors);
     }
 

@@ -63,7 +63,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 [platform, Mock(NativePlatform)], [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
-        component.targetPlatforms("platform1")
+        component.targetPlatform("platform1")
         component.targetBuildTypes("buildType1")
         component.targetFlavors("flavor1")
         factory.execute(component)

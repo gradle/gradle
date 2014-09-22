@@ -78,7 +78,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     }
                 }
             }
-            executables.main.targetPlatforms "x86"
+            executables.main.targetPlatform "x86"
 """
 
         and:
@@ -116,7 +116,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             sources {
                 exe.cpp.lib libraries.hello.static
             }
-            executables.exe.targetPlatforms "x86"
+            executables.exe.targetPlatform "x86"
 """
 
         and:
@@ -284,7 +284,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     main
                 }
             }
-            executables.main.targetPlatforms "unknown"
+            executables.main.targetPlatform "unknown"
 """
 
         and:
@@ -308,7 +308,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             }
             libraries {
                 hello {
-                    targetPlatforms "two"
+                    targetPlatform "two"
                 }
             }
             sources {

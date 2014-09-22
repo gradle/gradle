@@ -33,7 +33,7 @@ public interface TargetedNativeComponent {
     /**
      * Specifies the names of one or more {@link org.gradle.nativeplatform.platform.NativePlatform}s that this component should be built for.
      */
-    void targetPlatforms(String... platformSelectors);
+    void targetPlatform(String... platformSelectors);
 
     /**
      * Specifies the names of one or more {@link BuildType}s that this component should be built for.
