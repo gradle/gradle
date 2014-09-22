@@ -372,34 +372,6 @@ Source sets
         src/someLib/asm
 
 Binaries
-    Shared library 'someLib:amd64:free:sharedLibrary'
-        build using task: :amd64FreeSomeLibSharedLibrary
-        platform: amd64
-        build type: debug
-        flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
-    Static library 'someLib:amd64:free:staticLibrary'
-        build using task: :amd64FreeSomeLibStaticLibrary
-        platform: amd64
-        build type: debug
-        flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
-    Shared library 'someLib:amd64:paid:sharedLibrary'
-        build using task: :amd64PaidSomeLibSharedLibrary
-        platform: amd64
-        build type: debug
-        flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
-    Static library 'someLib:amd64:paid:staticLibrary'
-        build using task: :amd64PaidSomeLibStaticLibrary
-        platform: amd64
-        build type: debug
-        flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
     Shared library 'someLib:i386:free:sharedLibrary'
         build using task: :i386FreeSomeLibSharedLibrary
         platform: i386
@@ -428,6 +400,34 @@ Binaries
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
+    Shared library 'someLib:amd64:free:sharedLibrary'
+        build using task: :amd64FreeSomeLibSharedLibrary
+        platform: amd64
+        build type: debug
+        flavor: free
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/amd64Free/libsomeLib.dylib
+    Static library 'someLib:amd64:free:staticLibrary'
+        build using task: :amd64FreeSomeLibStaticLibrary
+        platform: amd64
+        build type: debug
+        flavor: free
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/amd64Free/libsomeLib.a
+    Shared library 'someLib:amd64:paid:sharedLibrary'
+        build using task: :amd64PaidSomeLibSharedLibrary
+        platform: amd64
+        build type: debug
+        flavor: paid
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/amd64Paid/libsomeLib.dylib
+    Static library 'someLib:amd64:paid:staticLibrary'
+        build using task: :amd64PaidSomeLibStaticLibrary
+        platform: amd64
+        build type: debug
+        flavor: paid
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
