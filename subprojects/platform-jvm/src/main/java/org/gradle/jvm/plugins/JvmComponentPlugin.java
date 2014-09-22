@@ -84,7 +84,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+        public void registerJvmPlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
 
@@ -93,10 +93,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     return new DefaultJvmPlatform(name);
                 }
             });
-        }
 
-        @Mutate
-        public void createDefaultJvmPlatforms(PlatformContainer platforms) {
+            //Create default platforms available for Java
             for (JavaVersion javaVersion: JavaVersion.values()) {
                 platforms.create(javaVersion.toString(), JvmPlatform.class);
             }
