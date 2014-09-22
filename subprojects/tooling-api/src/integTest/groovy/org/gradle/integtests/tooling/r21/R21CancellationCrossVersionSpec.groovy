@@ -189,8 +189,9 @@ task hang << {
             resultHandler.finished(20)
         }
         then:
-        resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure instanceof GradleConnectionException
+        resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
+        resultHandler.failure.cause.message == 'Build cancelled.'
     }
 
     def "can cancel action"() {

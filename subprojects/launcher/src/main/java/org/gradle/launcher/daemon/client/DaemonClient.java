@@ -236,7 +236,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         LOGGER.error(diagnostics.describe());
         if (cancellationToken.isCancellationRequested()) {
             LOGGER.error("Daemon was stopped to handle build cancel request.");
-            throw new BuildCancelledException("Build interrupted");
+            throw new BuildCancelledException();
         }
 
         throw new DaemonDisappearedException();
