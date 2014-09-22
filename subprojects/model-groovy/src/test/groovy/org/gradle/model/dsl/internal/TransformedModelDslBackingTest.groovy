@@ -29,7 +29,8 @@ class TransformedModelDslBackingTest extends Specification {
     def modelRegistry = new DefaultModelRegistry()
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
     Transformer<ClosureBackedRuleLocation, Closure<?>> locationExtractor = Mock()
-    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), referenceExtractor, locationExtractor)
+    def blockOwner = new Object()
+    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {
         def path = new ModelPath(pathString)
@@ -43,7 +44,10 @@ class TransformedModelDslBackingTest extends Specification {
         referenceExtractor.transform(_) >> []
 
         when:
-        modelDsl.configure("foo") { add 1 }
+        modelDsl.configure("foo") {
+            assert owner.is(this.blockOwner)
+            add 1
+        }
 
         then:
         modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.dsl;
+package org.gradle.model.dsl.internal.inputs;
 
 /**
  * Model rules declared in scripts can use this API to access model elements.

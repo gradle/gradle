@@ -31,7 +31,7 @@ import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.internal.SystemProperties;
-import org.gradle.model.dsl.RuleInputAccess;
+import org.gradle.model.dsl.internal.inputs.RuleInputAccess;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.internal.core.ModelPath;
 

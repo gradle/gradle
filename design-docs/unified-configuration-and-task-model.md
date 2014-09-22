@@ -345,6 +345,7 @@ One potential option will be to insert a fake statement as the first statement o
 - ~~Nested `model {}` usage~~
   - ~~Can use model rules in nested context that don't require inputs~~
   - ~~Attempted use of inputs in model rule in nested context yields “unsupported” error message~~
+- ~~Individual block has some scope/access as regular closure declared in top level of build script~~
 
 ## Story: Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule
 

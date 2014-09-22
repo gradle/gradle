@@ -19,7 +19,6 @@ package org.gradle.model.dsl.internal;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Transformer;
-import org.gradle.model.dsl.ModelDsl;
 import org.gradle.model.dsl.internal.transform.ClosureBackedRuleLocation;
 import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
@@ -29,22 +28,26 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public class TransformedModelDslBacking implements ModelDsl {
+public class TransformedModelDslBacking {
 
     private static final InputReferencesExtractor INPUT_PATHS_EXTRACTOR = new InputReferencesExtractor();
     private static final RuleLocationExtractor RULE_LOCATION_EXTRACTOR = new RuleLocationExtractor();
 
     private final ModelRegistry modelRegistry;
+    private final Object thisObject;
+    private final Object owner;
     private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<ClosureBackedRuleLocation, ? super Closure<?>> ruleLocationExtractor;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry) {
-        this(modelRegistry, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner) {
+        this(modelRegistry, thisObject, owner, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
                                Transformer<ClosureBackedRuleLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
+        this.thisObject = thisObject;
+        this.owner = owner;
         this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
@@ -53,7 +56,8 @@ public class TransformedModelDslBacking implements ModelDsl {
         List<ModelReference<?>> references = inputPathsExtractor.transform(configuration);
         ClosureBackedRuleLocation location = ruleLocationExtractor.transform(configuration);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        modelRegistry.mutate(new ClosureBackedModelMutator(configuration, references, modelPath, location));
+        Closure<?> reownered = configuration.rehydrate(null, owner, thisObject);
+        modelRegistry.mutate(new ClosureBackedModelMutator(reownered, references, modelPath, location));
     }
 
     private static RuleMetadata getRuleMetadata(Closure<?> closure) {

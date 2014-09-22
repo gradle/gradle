@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -60,7 +59,6 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.model.dsl.ModelDsl;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
@@ -972,10 +970,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
 
-    // TODO longer term, this method shouldn't be here, so there's no way for a user to call it with a general closure
-    public void model(@DelegatesTo(ModelDsl.class) Closure<?> modelRules) {
+    public void model(Closure<?> modelRules) {
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            new ClosureBackedAction<ModelDsl>(modelRules).execute(new TransformedModelDslBacking(getModelRegistry()));
+            ClosureBackedAction.execute(new TransformedModelDslBacking(getModelRegistry(), modelRules.getOwner(), modelRules.getThisObject()), modelRules);
         } else {
             new NonTransformedModelDslBacking(getModelRegistry()).configure(modelRules);
         }

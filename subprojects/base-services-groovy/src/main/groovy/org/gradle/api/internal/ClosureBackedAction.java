@@ -41,6 +41,10 @@ public class ClosureBackedAction<T> implements Action<T> {
         this.resolveStrategy = resolveStrategy;
     }
 
+    public static <T> void execute(T delegate, Closure<?> closure) {
+        new ClosureBackedAction<T>(closure).execute(delegate);
+    }
+
     public void execute(T delegate) {
         if (closure == null) {
             return;

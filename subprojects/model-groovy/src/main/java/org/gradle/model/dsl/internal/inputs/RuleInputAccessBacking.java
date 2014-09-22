@@ -17,7 +17,6 @@
 package org.gradle.model.dsl.internal.inputs;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.model.dsl.RuleInputAccess;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelRuleInput;
 

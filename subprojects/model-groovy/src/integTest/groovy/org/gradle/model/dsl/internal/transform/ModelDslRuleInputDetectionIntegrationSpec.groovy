@@ -235,4 +235,24 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
                         .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 23"))
         ))
     }
+
+    def "owner chain for rule script does not include intermediate objects"() {
+        when:
+        buildScript """
+            def o
+            def c = {
+                o = owner
+            }
+            c()
+
+            model {
+                tasks {
+                    assert owner.is(o)
+                }
+            }
+        """
+
+        then:
+        succeeds "tasks"
+    }
 }
