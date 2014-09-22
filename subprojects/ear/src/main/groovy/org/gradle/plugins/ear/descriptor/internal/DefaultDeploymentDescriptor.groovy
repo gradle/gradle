@@ -16,6 +16,7 @@
 package org.gradle.plugins.ear.descriptor.internal
 
 import groovy.xml.QName
+
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.XmlProvider
@@ -27,8 +28,10 @@ import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.EarWebModule
+import org.xml.sax.SAXNotRecognizedException;
 
 import javax.inject.Inject
+import javax.xml.XMLConstants;
 
 class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
@@ -123,7 +126,17 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     DeploymentDescriptor readFrom(Reader reader) {
         try {
-            def appNode = new XmlParser(false, true, true).parse(reader)
+            XmlParser parser = new XmlParser(false, true, true)
+            try {
+                // If not set, >= JAXP 1.5 / Java8 won't allow referencing DTDs e.g.
+                // using http URLs. However, those exact URLs might be required by
+                // some application servers at EAR deploy time.
+                parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, 'all')
+            } catch (SAXNotRecognizedException ignore) {
+                // property requires >= JAXP 1.5 / Java8
+            }
+            def appNode = parser.parse(reader)
+
             version = appNode.@version
 
             appNode.children().each { child ->
