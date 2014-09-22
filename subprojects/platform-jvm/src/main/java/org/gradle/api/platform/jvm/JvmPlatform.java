@@ -18,7 +18,6 @@ package org.gradle.api.platform.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Named;
 import org.gradle.platform.base.Platform;
 
 /**

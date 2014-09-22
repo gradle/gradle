@@ -17,7 +17,6 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.*;
-import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 
 /**
  * A container of {@link Platform}s.

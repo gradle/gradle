@@ -32,11 +32,9 @@ import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
