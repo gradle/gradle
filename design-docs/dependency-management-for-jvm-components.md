@@ -818,13 +818,37 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Add `PlatformAwareComponentSpec`
     - Move `JvmLibrary.target()` up onto this interface as `targetPlatform`, with String[] input.
     - Replace `TargetedNativeComponentSpec.targetPlatforms()` with `targetPlatform`
-- Change `NativeComponentSpecInitializer` to build only for chosen platforms, or default/current platform if none defined
+- Use a consistent DSL for declaring the target platforms of all platform aware component types.
+- Change `NativeComponentSpecInitializer` to build only for targeted platforms, or default/current platform if none targeted
+    - If only 1 platform in PlatformContainer, use it
+    - If multiple platforms defined, attempt to choose 'current' platform
     - Fix tests that build for multiple platforms by explicitly targeting those platforms
+
+#### Test coverage
+
+- Fails gracefully when attempting to target an unknown platform
+- Fails gracefully when attempting to target a JVM platform for a native component, and vice-versa
+- When multiple native platforms are defined but none are targeted, attempts to build for sensible default platform
+- When no JVM platform is targeted, attempts to build for current JVM
+
+#### Open issues
+
+- Add factory methods for common platforms to match those used for the Java runtime.
+- Replace or reuse `platforms` container.
+- Add infrastructure to coerce string to platform, architecture or operating system types.
+- Populate the platform container with `NativePlatform` instances for all known OS/arch combinations
+- Remove the 'default' platform/os/arch combinations: instead we should determine the current architecture to use for default.
+
+### Story: Use a consistent approach for native and JVM too chains
+
+TBD
+
+#### Implementation
+
 - The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by the current JVM.
 - Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task
 should fail.
 - The implementation should delegate to the JavaToolChain to determine if a binary is buildable.
-- Use a consistent DSL for declaring the target platforms of all platform aware component types.
 - Mention breaking change in release notes.
 
 #### Test cases
@@ -834,9 +858,6 @@ the binary is not buildable.
 
 #### Open issues
 
-- Add factory methods for common platforms to match those used for the Java runtime.
-- Replace or reuse `platforms` container.
-- Add infrastructure to coerce string to platform, architecture or operating system types.
 - Turn what is `ToolChain` into a tool chain locator or factory.
 - Turn what is `PlatformToolChain` into an immutable tool chain. Resolve the tool chain during configuration, and use this as input for incremental build.
 - Treat Java tool chain as input for incremental build.
