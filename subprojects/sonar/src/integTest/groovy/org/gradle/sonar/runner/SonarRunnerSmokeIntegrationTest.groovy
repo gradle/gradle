@@ -53,7 +53,6 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
         run "sonarRunner"
 
         then:
-        def resources = sonarServer.getResources()
         sonarServer.assertProjectPresent('org.gradle.test.sonar:SonarTestBuild')
     }
 
