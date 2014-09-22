@@ -143,7 +143,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
-#### Open issues
+### Open issues
 
 - `BinarySpec` hierarchy
     - No general way to navigate to the owning component (if any).
