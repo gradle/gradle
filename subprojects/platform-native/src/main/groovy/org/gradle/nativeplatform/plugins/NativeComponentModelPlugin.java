@@ -23,7 +23,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.*;
 import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -36,7 +36,6 @@ import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -128,8 +127,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
 
-            defaultPlatforms.registerDefaultFactory(new NamedDomainObjectFactory<Platform>() {
-                public Platform create(String name) {
+            defaultPlatforms.registerDefaultFactory(new NamedDomainObjectFactory<NativePlatform>() {
+                public NativePlatform create(String name) {
                     return new DefaultNativePlatform(name);
                 }
             });
