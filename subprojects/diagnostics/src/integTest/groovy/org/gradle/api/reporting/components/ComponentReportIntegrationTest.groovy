@@ -539,9 +539,7 @@ BUILD SUCCESSFUL
     jvm {
         libraries {
             myLib {
-                target java("$target1")
-                target java("$target2")
-                target java("$target3")
+                targetPlatform "$target1", "$target2", "$target3"
             }
         }
     }
