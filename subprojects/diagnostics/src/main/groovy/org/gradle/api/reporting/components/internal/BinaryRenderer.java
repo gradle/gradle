@@ -18,7 +18,7 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.nativeplatform.*;

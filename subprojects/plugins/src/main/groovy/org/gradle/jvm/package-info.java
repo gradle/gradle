@@ -17,4 +17,4 @@
 /**
  * Classes for adapting the legacy plugins to the new component model.
  */
-package org.gradle.api.jvm;
+package org.gradle.jvm;

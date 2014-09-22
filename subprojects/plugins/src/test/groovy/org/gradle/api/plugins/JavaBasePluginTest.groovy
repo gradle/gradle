@@ -17,7 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.jvm.ClassDirectoryBinarySpec
+import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet

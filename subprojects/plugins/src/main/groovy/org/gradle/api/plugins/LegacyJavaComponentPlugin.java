@@ -20,7 +20,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.platform.jvm.internal.DefaultJvmPlatform;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -43,9 +43,9 @@ import java.util.concurrent.Callable;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  *
  * Base plugin for Java language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.platform.base.BinaryContainer}.
- * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
- * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
+ * Registers the {@link org.gradle.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.platform.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.jvm.ClassDirectoryBinarySpec}.
+ * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.jvm.ClassDirectoryBinarySpec}.
  */
 @Incubating
 public class LegacyJavaComponentPlugin implements Plugin<Project> {

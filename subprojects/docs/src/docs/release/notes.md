@@ -198,6 +198,11 @@ executing the first block.
 - Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
 - Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
 - Removed deprecated `ExecutableBinary`: use `NativeExecutableBinary` instead.
+- Renamed `org.gradle.language.jvm.ResourceSet` to `JvmResourceSet`
+- Moved `org.gradle.api.jvm.ClassDirectoryBinarySpec` to `org.gradle.jvm.ClassDirectoryBinarySpec`
+- Renamed package `org.gradle.nativeplatform.sourceset` to `org.gradle.language.nativeplatform`
+- Renamed package `org.gradle.language.nativebase` to `org.gradle.language.nativeplatform`
+- Added binary type parameter to `ComponentSpec`
 
 ### JVM language support
 

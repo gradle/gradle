@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.jvm;
+package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.jvm.JvmLibraryBinarySpec;
 
 /**
  * An exploded binary containing resources and compiled class files.

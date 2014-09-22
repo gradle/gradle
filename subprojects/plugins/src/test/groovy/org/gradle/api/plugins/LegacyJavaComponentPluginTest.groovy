@@ -16,7 +16,7 @@
 package org.gradle.api.plugins
 import org.gradle.api.Project
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec
-import org.gradle.api.jvm.ClassDirectoryBinarySpec
+import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
