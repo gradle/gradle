@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.messaging.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonContext;
 
@@ -23,7 +24,10 @@ import java.util.List;
 
 /**
  * Provides access to existing daemons.
+ *
+ * Implementations should be thread-safe.
  */
+@ThreadSafe
 public interface DaemonRegistry {
 
     List<DaemonInfo> getAll();

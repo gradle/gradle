@@ -25,8 +25,8 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.ConnectException;
-import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 
 import java.util.List;
 
@@ -130,7 +130,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private DaemonClientConnection connectToDaemon(DaemonInfo daemonInfo, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
-        Connection<Object> connection;
+        RemoteConnection<Object> connection;
         try {
             connection = connector.connect(daemonInfo.getAddress()).create(getClass().getClassLoader());
         } catch (ConnectException e) {

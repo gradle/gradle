@@ -16,12 +16,13 @@
 
 package org.gradle.launcher.daemon.client
 
-import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.MessageIOException
+import org.gradle.messaging.remote.internal.RemoteConnection
 import spock.lang.Specification
 
 class DaemonClientConnectionTest extends Specification {
 
-    final delegate = Mock(Connection)
+    final delegate = Mock(RemoteConnection)
     final staleAddressDetector = Mock(DaemonClientConnection.StaleAddressDetector)
     final connection = new DaemonClientConnection(delegate, 'id', staleAddressDetector)
 
@@ -130,5 +131,9 @@ class DaemonClientConnectionTest extends Specification {
         0 * staleAddressDetector._
     }
 
-    class FooException extends RuntimeException {}
+    class FooException extends MessageIOException {
+        FooException() {
+            super("broken", null)
+        }
+    }
 }

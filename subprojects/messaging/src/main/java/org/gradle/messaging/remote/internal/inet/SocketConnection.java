@@ -17,12 +17,11 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
@@ -37,7 +36,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-public class SocketConnection<T> implements Connection<T> {
+public class SocketConnection<T> implements RemoteConnection<T> {
     private final SocketChannel socket;
     private final SocketInetAddress localAddress;
     private final SocketInetAddress remoteAddress;
@@ -67,18 +66,10 @@ public class SocketConnection<T> implements Connection<T> {
 
     @Override
     public String toString() {
-        return String.format("socket connection at %s with %s", localAddress, remoteAddress);
+        return String.format("socket connection from %s to %s", localAddress, remoteAddress);
     }
 
-    public Address getLocalAddress() {
-        return localAddress;
-    }
-
-    public Address getRemoteAddress() {
-        return remoteAddress;
-    }
-
-    public T receive() {
+    public T receive() throws MessageIOException {
         try {
             return objectReader.read();
         } catch (Exception e) {
@@ -107,7 +98,7 @@ public class SocketConnection<T> implements Connection<T> {
         return false;
     }
 
-    public void dispatch(T message) {
+    public void dispatch(T message) throws MessageIOException {
         try {
             objectWriter.write(message);
             outstr.flush();

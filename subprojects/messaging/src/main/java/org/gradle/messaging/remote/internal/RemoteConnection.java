@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,25 @@
 
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.api.Nullable;
+
 /**
- * A builder that allows a {@link Connection} to be created once the underlying transport with the peer has been
- * established.
+ * <p>A messaging end-point with some remote, or otherwise unreliable, peer.</p>
+ *
+ * <p>This interface simply specializes the exceptions thrown by the methods of this connection.</p>
  */
-public interface ConnectCompletion {
+public interface RemoteConnection<T> extends Connection<T> {
     /**
-     * Creates the connection. Uses Java serialization for all messages.
+     * {@inheritDoc}
      *
-     * @param messageClassLoader The ClassLoader to use to deserialize incoming messages.
+     * @throws MessageIOException On failure to dispatch the message to the peer.
      */
-    <T> RemoteConnection<T> create(ClassLoader messageClassLoader);
+    void dispatch(T message) throws MessageIOException;
 
     /**
-     * Creates the connection. Uses the specified serializer for all messages.
-     *
-     * @return The serializer to use.
+     * {@inheritDoc}
+     * @throws MessageIOException On failure to receive the message from the peer.
      */
-    <T> RemoteConnection<T> create(MessageSerializer<T> serializer);
+    @Nullable
+    T receive() throws MessageIOException;
 }

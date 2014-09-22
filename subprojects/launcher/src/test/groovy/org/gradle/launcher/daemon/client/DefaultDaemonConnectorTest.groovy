@@ -24,8 +24,8 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.ConnectException
-import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.OutgoingConnector
+import org.gradle.messaging.remote.internal.RemoteConnection
 import spock.lang.Specification
 
 class DefaultDaemonConnectorTest extends Specification {
@@ -36,7 +36,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     class OutgoingConnectorStub implements OutgoingConnector {
         ConnectCompletion connect(Address address) throws ConnectException {
-            def connection = [:] as Connection
+            def connection = [:] as RemoteConnection
             // unsure why I can't add this as property in the map-mock above
             connection.metaClass.num = address.num
             return { connection } as ConnectCompletion

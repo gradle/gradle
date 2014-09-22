@@ -32,6 +32,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A multi-channel message router.
+ *
+ * Use {@link #getOutgoing(String, Class)} to create a {@link Dispatch} to send unicast messages on a given channel.
+ * Use {@link #addHandler(String, Object)} to create a worker for incoming messages on a given channel.
+ * Use {@link #addConnection(Connection)} to attach another router to this router.
  */
 public class MessageHub implements AsyncStoppable {
     private enum State {Running, Stopping, Stopped}
@@ -56,9 +60,10 @@ public class MessageHub implements AsyncStoppable {
     }
 
     /**
-     * <p>Adds a {@link Dispatch} implementation that can be used to send outgoing messages on the given channel. The returned value is thread-safe.</p>
+     * <p>Adds a {@link Dispatch} implementation that can be used to send outgoing unicast messages on the given channel. Messages are queued in the order that they are
+     * dispatched, and are forwarded to at most one handler.</p>
      *
-     * <p>All messages sent via the dispatch are forwarded to exactly one connection.</p>
+     * <p>The returned value is thread-safe.</p>
      */
     public <T> Dispatch<T> getOutgoing(final String channelName, final Class<T> type) {
         lock.lock();

@@ -15,6 +15,8 @@
  */
 package org.gradle.messaging.dispatch;
 
+import org.gradle.api.Nullable;
+
 /**
  * A source for messages. Implementations do not have to be thread-safe.
  */
@@ -24,5 +26,6 @@ public interface Receive<T> {
      *
      * @return The next message, or null when the end of the stream has been reached.
      */
+    @Nullable
     T receive();
 }
