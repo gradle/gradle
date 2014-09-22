@@ -19,7 +19,7 @@ package org.gradle.model.dsl.internal;
 import groovy.lang.Closure;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
-import org.gradle.model.dsl.internal.transform.ClosureBackedRuleLocation;
+import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelMutator;
 import org.gradle.model.internal.core.ModelPath;
@@ -34,13 +34,13 @@ class ClosureBackedModelMutator implements ModelMutator<Object> {
     private final Closure<?> action;
     private final List<ModelReference<?>> inputReferences;
     private final ModelPath modelPath;
-    private final ClosureBackedRuleLocation location;
+    private final SourceLocation sourceLocation;
 
-    public ClosureBackedModelMutator(Closure<?> action, List<ModelReference<?>> inputReferences, ModelPath modelPath, ClosureBackedRuleLocation location) {
+    public ClosureBackedModelMutator(Closure<?> action, List<ModelReference<?>> inputReferences, ModelPath modelPath, SourceLocation sourceLocation) {
         this.action = action;
         this.inputReferences = inputReferences;
         this.modelPath = modelPath;
-        this.location = location;
+        this.sourceLocation = sourceLocation;
     }
 
     public ModelReference<Object> getSubject() {
@@ -56,7 +56,7 @@ class ClosureBackedModelMutator implements ModelMutator<Object> {
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        String descriptor = String.format("model.%s @ %s", modelPath, location);
+        String descriptor = String.format("model.%s @ %s", modelPath, sourceLocation);
         return new SimpleModelRuleDescriptor(descriptor);
     }
 

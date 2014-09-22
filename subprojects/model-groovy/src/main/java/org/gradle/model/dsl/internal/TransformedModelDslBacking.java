@@ -19,9 +19,9 @@ package org.gradle.model.dsl.internal;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Transformer;
-import org.gradle.model.dsl.internal.transform.ClosureBackedRuleLocation;
 import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
+import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -30,54 +30,7 @@ import java.util.List;
 
 public class TransformedModelDslBacking {
 
-    private static final InputReferencesExtractor INPUT_PATHS_EXTRACTOR = new InputReferencesExtractor();
-    private static final RuleLocationExtractor RULE_LOCATION_EXTRACTOR = new RuleLocationExtractor();
-
-    private final ModelRegistry modelRegistry;
-    private final Object thisObject;
-    private final Object owner;
-    private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
-    private final Transformer<ClosureBackedRuleLocation, ? super Closure<?>> ruleLocationExtractor;
-
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner) {
-        this(modelRegistry, thisObject, owner, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
-    }
-
-    TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
-                               Transformer<ClosureBackedRuleLocation, ? super Closure<?>> ruleLocationExtractor) {
-        this.modelRegistry = modelRegistry;
-        this.thisObject = thisObject;
-        this.owner = owner;
-        this.inputPathsExtractor = inputPathsExtractor;
-        this.ruleLocationExtractor = ruleLocationExtractor;
-    }
-
-    public void configure(String modelPathString, Closure<?> configuration) {
-        List<ModelReference<?>> references = inputPathsExtractor.transform(configuration);
-        ClosureBackedRuleLocation location = ruleLocationExtractor.transform(configuration);
-        ModelPath modelPath = ModelPath.path(modelPathString);
-        Closure<?> reownered = configuration.rehydrate(null, owner, thisObject);
-        modelRegistry.mutate(new ClosureBackedModelMutator(reownered, references, modelPath, location));
-    }
-
-    private static RuleMetadata getRuleMetadata(Closure<?> closure) {
-        RuleMetadata ruleMetadata = closure.getClass().getAnnotation(RuleMetadata.class);
-        if (ruleMetadata == null) {
-            throw new IllegalStateException(String.format("Expected %s annotation to be used on the argument closure.", RuleMetadata.class.getName()));
-        }
-        return ruleMetadata;
-    }
-
-    private static class RuleLocationExtractor implements Transformer<ClosureBackedRuleLocation, Closure<?>> {
-
-        public ClosureBackedRuleLocation transform(Closure<?> closure) {
-            RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            return new ClosureBackedRuleLocation(ruleMetadata.scriptSourceDescription(), ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
-        }
-    }
-
-    private static class InputReferencesExtractor implements Transformer<List<ModelReference<?>>, Closure<?>> {
-
+    private static final Transformer<List<ModelReference<?>>, Closure<?>> INPUT_PATHS_EXTRACTOR = new Transformer<List<ModelReference<?>>, Closure<?>>() {
         public List<ModelReference<?>> transform(Closure<?> closure) {
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
             String[] paths = ruleMetadata.inputPaths();
@@ -88,6 +41,48 @@ public class TransformedModelDslBacking {
             }
             return references;
         }
+    };
+
+    private static final Transformer<SourceLocation, Closure<?>> RULE_LOCATION_EXTRACTOR = new Transformer<SourceLocation, Closure<?>>() {
+        public SourceLocation transform(Closure<?> closure) {
+            RuleMetadata ruleMetadata = getRuleMetadata(closure);
+            return new SourceLocation(ruleMetadata.scriptSourceDescription(), ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+        }
+    };
+
+    private final ModelRegistry modelRegistry;
+    private final Object thisObject;
+    private final Object owner;
+    private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
+    private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
+
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner) {
+        this(modelRegistry, thisObject, owner, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
+    }
+
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
+                               Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
+        this.modelRegistry = modelRegistry;
+        this.thisObject = thisObject;
+        this.owner = owner;
+        this.inputPathsExtractor = inputPathsExtractor;
+        this.ruleLocationExtractor = ruleLocationExtractor;
+    }
+
+    public void configure(String modelPathString, Closure<?> configuration) {
+        List<ModelReference<?>> references = inputPathsExtractor.transform(configuration);
+        SourceLocation sourceLocation = ruleLocationExtractor.transform(configuration);
+        ModelPath modelPath = ModelPath.path(modelPathString);
+        Closure<?> reownered = configuration.rehydrate(null, owner, thisObject);
+        modelRegistry.mutate(new ClosureBackedModelMutator(reownered, references, modelPath, sourceLocation));
+    }
+
+    private static RuleMetadata getRuleMetadata(Closure<?> closure) {
+        RuleMetadata ruleMetadata = closure.getClass().getAnnotation(RuleMetadata.class);
+        if (ruleMetadata == null) {
+            throw new IllegalStateException(String.format("Expected %s annotation to be used on the argument closure.", RuleMetadata.class.getName()));
+        }
+        return ruleMetadata;
     }
 
     public static boolean isTransformedBlock(Closure<?> closure) {

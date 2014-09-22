@@ -16,12 +16,12 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-public class ClosureBackedRuleLocation {
+public class SourceLocation {
     private final String scriptSourceDescription;
     private final int lineNumber;
     private final int columnNumber;
 
-    public ClosureBackedRuleLocation(String scriptSourceDescription, int lineNumber, int columnNumber) {
+    public SourceLocation(String scriptSourceDescription, int lineNumber, int columnNumber) {
         this.scriptSourceDescription = scriptSourceDescription;
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;

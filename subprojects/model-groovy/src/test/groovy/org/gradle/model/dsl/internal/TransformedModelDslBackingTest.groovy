@@ -18,7 +18,7 @@ package org.gradle.model.dsl.internal
 
 import org.gradle.api.Transformer
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking
-import org.gradle.model.dsl.internal.transform.ClosureBackedRuleLocation
+import org.gradle.model.dsl.internal.transform.SourceLocation
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
@@ -28,7 +28,7 @@ class TransformedModelDslBackingTest extends Specification {
 
     def modelRegistry = new DefaultModelRegistry()
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
-    Transformer<ClosureBackedRuleLocation, Closure<?>> locationExtractor = Mock()
+    Transformer<SourceLocation, Closure<?>> locationExtractor = Mock()
     def blockOwner = new Object()
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
 

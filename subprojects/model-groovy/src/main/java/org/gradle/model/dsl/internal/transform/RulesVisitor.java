@@ -99,8 +99,8 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setImplicitThis(true);
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
-        ClosureBackedRuleLocation ruleLocation = new ClosureBackedRuleLocation(getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
-        closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, ruleLocation);
+        SourceLocation sourceLocation = new SourceLocation(getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
+        closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
 
         closureExpression.visit(ruleVisitor);
     }

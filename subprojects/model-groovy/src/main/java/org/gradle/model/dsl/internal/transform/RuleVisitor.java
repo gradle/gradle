@@ -68,8 +68,8 @@ public class RuleVisitor extends CodeVisitorSupport {
     public static void visitGeneratedClosure(ClassNode node) {
         MethodNode method = AstUtils.getGeneratedClosureImplMethod(node);
         Statement closureCode = method.getCode();
-        ClosureBackedRuleLocation ruleLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
-        if (ruleLocation != null) {
+        SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
+        if (sourceLocation != null) {
             ListMultimap<String, Integer> inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
             AnnotationNode metadataAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
             List<Expression> pathValues = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
@@ -80,9 +80,9 @@ public class RuleVisitor extends CodeVisitorSupport {
             }
             metadataAnnotation.addMember("inputPaths", new ListExpression(pathValues));
             metadataAnnotation.addMember("inputLineNumbers", new ListExpression(lineNumberValues));
-            metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(ruleLocation.getScriptSourceDescription()));
-            metadataAnnotation.addMember("lineNumber", new ConstantExpression(ruleLocation.getLineNumber()));
-            metadataAnnotation.addMember("columnNumber", new ConstantExpression(ruleLocation.getColumnNumber()));
+            metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(sourceLocation.getScriptSourceDescription()));
+            metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
+            metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
             node.addAnnotation(metadataAnnotation);
         }
     }
