@@ -24,7 +24,7 @@ import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.nativebase.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.nativeplatform.internal.DefaultTool;
 import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 

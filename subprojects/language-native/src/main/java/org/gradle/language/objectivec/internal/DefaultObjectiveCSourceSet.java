@@ -19,7 +19,7 @@ package org.gradle.language.objectivec.internal;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.nativebase.internal.AbstractHeaderExportingDependentSourceSet;
+import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 
 import javax.inject.Inject;

@@ -24,10 +24,10 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
-import org.gradle.language.nativebase.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.language.nativebase.internal.CompileTaskConfig;
-import org.gradle.language.nativebase.internal.DefaultPreprocessingTool;
+import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 
 import java.util.Map;
 
