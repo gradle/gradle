@@ -19,15 +19,15 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.base.FunctionalSourceSet
 import spock.lang.Specification
 
-class DefaultResourceSetTest extends Specification {
+class DefaultJvmResourceSetTest extends Specification {
     def "has useful String representation"() {
         def functionalSourceSet = Stub(FunctionalSourceSet) {
             getName() >> "mainX"
         }
-        def resourceSet = new DefaultResourceSet("resourcesX", Stub(SourceDirectorySet), functionalSourceSet)
+        def resourceSet = new DefaultJvmResourceSet("resourcesX", Stub(SourceDirectorySet), functionalSourceSet)
 
         expect:
-        resourceSet.displayName == "resources 'mainX:resourcesX'"
-        resourceSet.toString() == "resources 'mainX:resourcesX'"
+        resourceSet.displayName == "Jvm resources 'mainX:resourcesX'"
+        resourceSet.toString() == "Jvm resources 'mainX:resourcesX'"
     }
 }

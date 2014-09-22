@@ -171,7 +171,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - `Component` hierarchy
     - `Component` is in `org.gradle.api.component` package.
     - `PrebuiltLibrary` is actually a prebuilt native library.
-- Should rename `ResourceSet` to `JvmResourceSet`
 - Java lang plugin is called `JavaLanguagePlugin`, other language plugins are called, for example, `CLangPlugin`.
 - Java compilation options per binary.
 - `LanguageRegistration.applyToBinary()` should be replaced, instead use the output file types for the language and input file types for the binary.

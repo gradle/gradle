@@ -20,18 +20,18 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
-import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
 
 import javax.inject.Inject;
 
-public class DefaultResourceSet extends AbstractLanguageSourceSet implements ResourceSet {
+public class DefaultJvmResourceSet extends AbstractLanguageSourceSet implements JvmResourceSet {
 
     @Inject
-    public DefaultResourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
-        super(name, parent, "resources", new DefaultSourceDirectorySet("source", fileResolver));
+    public DefaultJvmResourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+        super(name, parent, "Jvm resources", new DefaultSourceDirectorySet("source", fileResolver));
     }
 
-    public DefaultResourceSet(String name, SourceDirectorySet source, FunctionalSourceSet parent) {
-        super(name, parent, "resources", source);
+    public DefaultJvmResourceSet(String name, SourceDirectorySet source, FunctionalSourceSet parent) {
+        super(name, parent, "Jvm resources", source);
     }
 }

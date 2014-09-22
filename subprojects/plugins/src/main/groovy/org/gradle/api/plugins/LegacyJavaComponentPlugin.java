@@ -29,7 +29,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -93,7 +93,6 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
         binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
             public void execute(JavaSourceSet javaSourceSet) {
-                // TODO: handle case where binary has multiple JavaSourceSet's
                 JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
                 configureCompileTask(compileTask, javaSourceSet, binary);
                 binary.getTasks().add(compileTask);
@@ -104,9 +103,8 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createProcessResourcesTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
-            public void execute(ResourceSet resourceSet) {
-                // TODO: handle case where binary has multiple ResourceSet's
+        binary.getSource().withType(JvmResourceSet.class).all(new Action<JvmResourceSet>() {
+            public void execute(JvmResourceSet resourceSet) {
                 Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
                 resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
                 new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {

@@ -37,8 +37,8 @@ import org.gradle.jvm.Classpath;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
-import org.gradle.language.jvm.ResourceSet;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.util.WrapUtil;
 
@@ -132,7 +132,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getJava(), compileClasspath, functionalSourceSet);
                 functionalSourceSet.add(javaSourceSet);
-                ResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
                 functionalSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
