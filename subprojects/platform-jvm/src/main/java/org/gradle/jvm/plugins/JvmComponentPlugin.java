@@ -20,6 +20,7 @@ import org.gradle.api.platform.jvm.internal.DefaultJvmPlatform;
 import org.gradle.api.platform.jvm.JvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -30,10 +31,8 @@ import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.internal.*;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
@@ -85,6 +84,25 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
+        public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
+
+            defaultPlatforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
+                public JvmPlatform create(String name) {
+                    return new DefaultJvmPlatform(name);
+                }
+            });
+        }
+
+        @Mutate
+        public void createDefaultJvmPlatforms(PlatformContainer platforms) {
+            for (JavaVersion javaVersion: JavaVersion.values()) {
+                platforms.create(javaVersion.toString(), JvmPlatform.class);
+            }
+        }
+
+        @Mutate
         public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
             for (JvmLibrarySpec jvmLibrary : libraries) {
@@ -96,7 +114,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         componentBuilder = componentBuilder.withVariantDimension("jdk" + target);
                     }
                     BinaryNamingScheme namingScheme = componentBuilder.build();
-                    JvmPlatform platform = new DefaultJvmPlatform(target);
+                    JvmPlatform platform = new DefaultJvmPlatform(target.toString());
                     toolChain.assertValidPlatform(platform);
                     JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
                     jarBinary.source(jvmLibrary.getSource());

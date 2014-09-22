@@ -27,8 +27,8 @@ import org.gradle.api.platform.jvm.JvmPlatform;
 public class DefaultJvmPlatform implements JvmPlatform {
     private final JavaVersion targetCompatibility;
 
-    public DefaultJvmPlatform(JavaVersion targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
+    public DefaultJvmPlatform(String targetCompatibility) {
+        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility);
     }
 
     public JavaVersion getTargetCompatibility() {

@@ -65,7 +65,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJvmPlatform(JavaVersion.current()));
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJvmPlatform(JavaVersion.current().toString()));
             }
         });
 
