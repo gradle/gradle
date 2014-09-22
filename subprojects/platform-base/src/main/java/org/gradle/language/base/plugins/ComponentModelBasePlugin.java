@@ -39,6 +39,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
@@ -188,11 +189,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             // Only required because sources aren't fully integrated into model
         }
 
-
         @Model
         PlatformContainer platforms(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
+            return instantiator.newInstance(DefaultPlatformContainer.class, NativePlatform.class, instantiator);
         }
 
         @Mutate

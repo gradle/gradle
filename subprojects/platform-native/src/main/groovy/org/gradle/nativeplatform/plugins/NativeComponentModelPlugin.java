@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.plugins;
 
-import com.sun.deploy.config.NativePlatform;
 import org.gradle.api.*;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
@@ -47,6 +46,7 @@ import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultPlatform;
+import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -126,12 +126,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
-            final NotationParser<Object, OperatingSystemInternal> osParser = OperatingSystemNotationParser.parser();
+            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
 
-            platforms.registerPlatform(new DefaultNativePlatform.Parser(archParser, osParser), new NamedDomainObjectFactory<Platform>() {
+            defaultPlatforms.registerDefaultFactory(new NamedDomainObjectFactory<Platform>() {
                 public Platform create(String name) {
-                    return new DefaultNativePlatform(name, archParser, osParser);
+                    return new DefaultNativePlatform(name);
                 }
             });
         }

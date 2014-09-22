@@ -16,15 +16,12 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.*;
+import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 
 /**
  * A container of {@link Platform}s.
  */
 @Incubating
-public interface PlatformContainer extends NamedDomainObjectContainer<Platform> {
-
-    public void registerPlatform(PlatformParser parser, NamedDomainObjectFactory<Platform> factory);
+public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
 }

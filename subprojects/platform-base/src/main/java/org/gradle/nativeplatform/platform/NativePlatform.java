@@ -42,7 +42,7 @@ import java.util.Set;
  */
 @Incubating
 @HasInternalProtocol
-public interface NativePlatform extends Platform {
+public interface NativePlatform extends Platform { //TODO: freekh NativePlatform should be in platform-native, but it is currently used as the default platform container factory, thus we need to have it here
     /**
      * Returns a human-consumable display name for this platform.
      */

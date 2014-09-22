@@ -33,7 +33,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     private final Convention convention;
     private final DynamicObject dynamicObject;
 
-    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+    protected AbstractPolymorphicDomainObjectContainer(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
         this.convention = new DefaultConvention(instantiator);
         this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
