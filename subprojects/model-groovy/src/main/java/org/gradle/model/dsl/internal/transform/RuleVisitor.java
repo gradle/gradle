@@ -35,7 +35,6 @@ import org.gradle.model.dsl.internal.inputs.RuleInputAccess;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.internal.core.ModelPath;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -70,19 +69,25 @@ public class RuleVisitor extends CodeVisitorSupport {
         Statement closureCode = method.getCode();
         SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
         if (sourceLocation != null) {
-            ListMultimap<String, Integer> inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
             AnnotationNode metadataAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
-            List<Expression> pathValues = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
-            List<Expression> lineNumberValues = inputs.isEmpty() ? Collections.<Expression>emptyList() : Lists.<Expression>newArrayListWithCapacity(inputs.size());
-            for (Map.Entry<String, List<Integer>> input : Multimaps.asMap(inputs).entrySet()) {
-                pathValues.add(new ConstantExpression(input.getKey()));
-                lineNumberValues.add(new ConstantExpression(input.getValue().get(0)));
-            }
-            metadataAnnotation.addMember("inputPaths", new ListExpression(pathValues));
-            metadataAnnotation.addMember("inputLineNumbers", new ListExpression(lineNumberValues));
+
             metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(sourceLocation.getScriptSourceDescription()));
             metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
             metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
+
+            ListMultimap<String, Integer> inputs = closureCode.getNodeMetaData(AST_NODE_METADATA_INPUTS_KEY);
+            if (!inputs.isEmpty()) {
+                List<Expression> pathValues = Lists.newArrayListWithCapacity(inputs.size());
+                List<Expression> lineNumberValues = Lists.newArrayListWithCapacity(inputs.size());
+                for (Map.Entry<String, List<Integer>> input : Multimaps.asMap(inputs).entrySet()) {
+                    pathValues.add(new ConstantExpression(input.getKey()));
+                    lineNumberValues.add(new ConstantExpression(input.getValue().get(0)));
+                }
+
+                metadataAnnotation.addMember("inputPaths", new ListExpression(pathValues));
+                metadataAnnotation.addMember("inputLineNumbers", new ListExpression(lineNumberValues));
+            }
+
             node.addAnnotation(metadataAnnotation);
         }
     }
