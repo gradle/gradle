@@ -48,6 +48,7 @@ public class RuleVisitor extends CodeVisitorSupport {
     public static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
 
     private static final String DOLLAR = "$";
+    private static final String INPUT = "input";
     private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RuleMetadata.class);
     private static final ClassNode CONTEXTUAL_INPUT_TYPE = new ClassNode(RuleInputAccessBacking.class);
     private static final ClassNode ACCESS_API_TYPE = new ClassNode(RuleInputAccess.class);
@@ -150,6 +151,7 @@ public class RuleVisitor extends CodeVisitorSupport {
 
             inputs.put(modelPath, call.getLineNumber());
             call.setObjectExpression(new VariableExpression(accessVariable));
+            call.setMethod(new ConstantExpression(INPUT));
         }
     }
 

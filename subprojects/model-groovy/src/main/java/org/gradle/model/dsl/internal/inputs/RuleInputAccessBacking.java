@@ -46,7 +46,7 @@ public abstract class RuleInputAccessBacking {
     public static RuleInputAccess getAccess() {
         final ImmutableMap<String, Object> inputs = INPUT.get();
         return new RuleInputAccess() {
-            public Object $(String modelPath) {
+            public Object input(String modelPath) {
                 return inputs.get(modelPath);
             }
         };

@@ -63,7 +63,7 @@ class TransformedModelDslBackingTest extends Specification {
         modelDsl.with {
             configure("foo.bar") {
                 // this is effectively what it gets transformed to
-                add RuleInputAccessBacking.access.$("value")
+                add RuleInputAccessBacking.access.input("value")
             }
         }
 
