@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.sourceset;
+package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;

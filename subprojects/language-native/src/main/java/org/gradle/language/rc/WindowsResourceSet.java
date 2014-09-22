@@ -16,8 +16,8 @@
 package org.gradle.language.rc;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
-import org.gradle.nativeplatform.sourceset.NativeResourceSet;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.language.nativeplatform.NativeResourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**

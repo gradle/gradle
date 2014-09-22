@@ -179,7 +179,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - For windows resources source files, the output type is `res`.
     - Fail if windows resources are input to a component for which there are no windows binaries.
 - `PolymorphicDomainObjectContainer.containerWithType()` should instead override `withType()`.
-- Source sets are in the wrong package `org.gradle.nativeplatform.sourceset`
 
 ## Feature: Plugin defines a custom library type
 

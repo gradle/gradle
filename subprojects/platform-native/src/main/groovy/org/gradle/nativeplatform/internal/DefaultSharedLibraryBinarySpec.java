@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativeplatform.sourceset.NativeResourceSet;
+import org.gradle.language.nativeplatform.NativeResourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;

@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.internal
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
-import org.gradle.nativeplatform.sourceset.NativeResourceSet
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet
+import org.gradle.language.nativeplatform.NativeResourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver

@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativeplatform.sourceset.DependentSourceSet
+import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet

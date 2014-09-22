@@ -18,7 +18,7 @@ package org.gradle.ide.cdt.model
 import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativeplatform.*
 

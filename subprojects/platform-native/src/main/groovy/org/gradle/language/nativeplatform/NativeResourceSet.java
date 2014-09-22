@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.language.nativeplatform;
+
+import org.gradle.api.Incubating;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * Model classes for managing language sources.
+ * A source set that provides resources.
  */
-package org.gradle.nativeplatform.sourceset;
+@Incubating
+public interface NativeResourceSet extends LanguageSourceSet {
+}
