@@ -243,7 +243,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("$target")
+                targetPlatform "$target"
             }
         }
     }
@@ -276,10 +276,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("$target1")
-                target java("$target2")
-                target java("$target3")
-                target java("$target4")
+                targetPlatform "$target1", "$target2", "$target3", "$target4"
             }
         }
     }
@@ -311,7 +308,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("$badTarget")
+                targetPlatform "$badTarget"
             }
         }
     }
@@ -338,7 +335,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     jvm {
         libraries {
             myLib {
-                target java("$badTarget")
+                targetPlatform "$badTarget"
             }
         }
     }

@@ -104,15 +104,15 @@ public class JvmComponentPlugin implements Plugin<Project> {
         public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
             for (JvmLibrarySpec jvmLibrary : libraries) {
-                for (JavaVersion target : jvmLibrary.getTargets()) {
+                for (JavaVersion target : jvmLibrary.getTargetPlatforms()) {
                     BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                             .withComponentName(jvmLibrary.getName())
                             .withTypeString("jar");
-                    if (jvmLibrary.getTargets().size() > 1) { //Only add variant dimension for multiple jdk targets to avoid breaking the default naming scheme
+                    if (jvmLibrary.getTargetPlatforms().size() > 1) { //Only add variant dimension for multiple jdk targets to avoid breaking the default naming scheme
                         componentBuilder = componentBuilder.withVariantDimension("jdk" + target);
                     }
                     BinaryNamingScheme namingScheme = componentBuilder.build();
-                    JvmPlatform platform = new DefaultJvmPlatform(target.toString());
+                    JvmPlatform platform = new DefaultJvmPlatform(target);
                     toolChain.assertValidPlatform(platform);
                     JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
                     jarBinary.source(jvmLibrary.getSource());

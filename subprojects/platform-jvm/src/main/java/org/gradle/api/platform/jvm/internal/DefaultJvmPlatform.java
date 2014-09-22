@@ -31,6 +31,10 @@ public class DefaultJvmPlatform implements JvmPlatform {
         this.targetCompatibility = JavaVersion.toVersion(targetCompatibility);
     }
 
+    public DefaultJvmPlatform(JavaVersion targetCompatibility) {
+        this.targetCompatibility = targetCompatibility;
+    }
+
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
        }

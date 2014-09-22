@@ -33,5 +33,7 @@ public interface JvmLibrarySpec extends LibrarySpec<JvmLibraryBinarySpec> {
      */
     DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
 
-    Set<JavaVersion> getTargets();
+    Set<JavaVersion> getTargetPlatforms();
+
+    public void targetPlatform(String... targets);
 }

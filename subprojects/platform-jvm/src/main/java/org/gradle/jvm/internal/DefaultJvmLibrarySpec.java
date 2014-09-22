@@ -89,7 +89,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         return languageOutputs;
     }
 
-    public Set<JavaVersion> getTargets() {
+    public Set<JavaVersion> getTargetPlatforms() {
         if (targets.isEmpty()) {
             return Sets.newHashSet(defaultTarget);
         } else {
@@ -97,11 +97,9 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         }
     }
 
-    public void target(JavaVersion target) {
-        targets.add(target);
-    }
-
-    public static JavaVersion java(String target) {
-        return JavaVersion.toVersion(target);
+    public void targetPlatform(String... targets) {
+        for (String target: targets) {
+            this.targets.add(JavaVersion.toVersion(target));
+        }
     }
 }
