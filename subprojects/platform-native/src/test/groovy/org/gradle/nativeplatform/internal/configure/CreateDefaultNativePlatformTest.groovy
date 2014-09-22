@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.internal.configure
 
+import com.google.common.collect.Lists
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
@@ -29,7 +31,8 @@ class CreateDefaultNativePlatformTest extends Specification {
         action.createDefaultPlatforms(platforms)
 
         then:
-        1 * platforms.empty >> true
+        //TODO: freekh not sure this is stable enough:
+        1 * platforms.iterator() >> Collections.emptyList().iterator()
         1 * platforms.create("current")
         0 * platforms._
     }
@@ -39,7 +42,9 @@ class CreateDefaultNativePlatformTest extends Specification {
         action.createDefaultPlatforms(platforms)
 
         then:
-        1 * platforms.empty >> false
+        //TODO: freekh not sure this is stable enough:
+        1 * platforms.iterator() >> Lists.newArrayList(new DefaultNativePlatform("fake")).iterator()
+        0 * platforms.create('current')
         0 * platforms._
     }
 }
