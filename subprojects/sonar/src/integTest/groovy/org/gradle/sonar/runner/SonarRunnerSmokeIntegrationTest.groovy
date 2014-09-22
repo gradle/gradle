@@ -40,9 +40,20 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled() // sonar.dynamicAnalysis is deprecated since SonarQube 4.3
 
         when:
+        buildFile << """
+           sonarRunner {
+              sonarProperties {
+                // Use a very long property to test limits
+                // https://issues.gradle.org/browse/GRADLE-3168
+                property "sonar.foo", ("a" * 200000)
+              }
+            }
+        """
+
         run "sonarRunner"
 
         then:
+        def resources = sonarServer.getResources()
         sonarServer.assertProjectPresent('org.gradle.test.sonar:SonarTestBuild')
     }
 
