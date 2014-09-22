@@ -18,6 +18,7 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -518,8 +519,10 @@ BUILD SUCCESSFUL
 """))
     }
 
-    def normalizePath(String input) {
-        return input.replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
+    def normalize(String input) {
+        return input
+                .replace("\n", SystemProperties.lineSeparator)
+                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -547,7 +550,9 @@ BUILD SUCCESSFUL
         succeeds "components"
 
         then:
-        output.contains(normalizePath("""
+        //cannot use ComponentReportOutputFormatter because
+        //we target multiple platforms
+        output.contains(normalize("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -564,20 +569,20 @@ Source sets
 Binaries"""))
     //order not guaranteed so check individual
     and:
-    output.contains(normalizePath("""Jar 'myLib:jdk$target1:jar'
+    output.contains(normalize("""Jar 'myLib:jdk$target1:jar'
         build using task: :jdk${target1}MyLibJar
         platform: target JDK $target1
         tool chain: current JDK ($current)
         Jar file: build/jars/myLibJar/jdk$target1/myLib.jar"""))
 
     and:
-    output.contains(normalizePath("""Jar 'myLib:jdk$target2:jar'
+    output.contains(normalize("""Jar 'myLib:jdk$target2:jar'
         build using task: :jdk${target2}MyLibJar
         platform: target JDK $target2
         tool chain: current JDK ($current)
         Jar file: build/jars/myLibJar/jdk$target2/myLib.jar"""))
     and:
-    output.contains(normalizePath("""
+    output.contains(normalize("""
     Jar 'myLib:jdk$target3:jar'
         build using task: :jdk${target3}MyLibJar
         platform: target JDK $target3
