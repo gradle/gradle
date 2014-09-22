@@ -56,9 +56,27 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
         ruleHandler.spec.isSatisfiedBy(ruleDefinition)
     }
 
-    def "applies ComponentModelBasePlugin and creates componentBinary rule"() {
+    @Unroll
+    def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleDefinitionForMethod(ruleName), modelRegistry, ruleDependencies)
+
+        then:
+        1 * ruleDependencies.add(ComponentModelBasePlugin)
+
+        and:
+        1 * modelRegistry.mutate(_)
+
+        where:
+        ruleName          |  descr
+        "rawBinarySpec"   |  "for plain BinarySpec"
+        "validTypeRule"   |  "for plain sample binary"
+        "librarySubType"  |  "for library sub types"
+    }
+
+    def "can use plain BinarySpec"() {
+        when:
+        ruleHandler.register(ruleDefinitionForMethod("rawBinarySpec"), modelRegistry, ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
@@ -121,6 +139,8 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
     interface SomeOtherBinarySpec extends BinarySpec {}
     interface SomeLibrary extends ComponentSpec<SomeBinarySpec>{}
     interface SomeOtherLibrary extends ComponentSpec<SomeOtherBinarySpec>{}
+    interface RawLibrary extends ComponentSpec<BinarySpec>{}
+    interface SomeBinarySubType extends SomeBinarySpec{}
 
 
     static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec {}
@@ -141,6 +161,16 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
     static class Rules {
         @ComponentBinaries
         static void validTypeRule(CollectionBuilder<SomeBinarySpec> binaries, SomeLibrary library) {
+            binaries.create("${library.name}Binary", library)
+        }
+
+        @ComponentBinaries
+        static void rawBinarySpec(CollectionBuilder<BinarySpec> binaries, RawLibrary library) {
+            binaries.create("${library.name}Binary", library)
+        }
+
+        @ComponentBinaries
+        static void librarySubType(CollectionBuilder<SomeBinarySubType> binaries, SomeLibrary library) {
             binaries.create("${library.name}Binary", library)
         }
 

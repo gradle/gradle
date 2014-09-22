@@ -103,23 +103,22 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
                     ComponentSpec.class.getSimpleName()));
         }
 
-        boolean validGivenBinaryType = false;
         for (Type type : componentType.getGenericInterfaces()) {
             if (type instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 if (parameterizedType.getRawType().equals(ComponentSpec.class)) {
                     for (Type givenBinaryType : parameterizedType.getActualTypeArguments()) {
-                        validGivenBinaryType = expectedBinaryType.isAssignableFrom((Class)givenBinaryType);
+                        if (((Class) givenBinaryType).isAssignableFrom(expectedBinaryType)) {
+                            return;
+                        }
                     }
                 }
             }
         }
-        if(!validGivenBinaryType){
-            throw new InvalidComponentModelException(String.format("%s method parameter of type %s does not support binaries of type %s.", ComponentBinaries.class.getSimpleName(),
-                    componentType.getSimpleName(),
-                    expectedBinaryType.getSimpleName()));
+        throw new InvalidComponentModelException(String.format("%s method parameter of type %s does not support binaries of type %s.", ComponentBinaries.class.getSimpleName(),
+                componentType.getSimpleName(),
+                expectedBinaryType.getSimpleName()));
 
-        }
     }
 
     @SuppressWarnings("unchecked")

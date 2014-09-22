@@ -112,7 +112,6 @@ Binaries
                     builder.defaultImplementation(DefaultSampleBinary)
                 }
 
-                //@Mutate
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("\${library.name}Binary", SampleBinary)
