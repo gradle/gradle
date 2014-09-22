@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
+public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> { //TODO: move to platform.base too?
     private final NativeBinariesFactory factory;
     private final ToolChainRegistryInternal toolChainRegistry;
     private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();

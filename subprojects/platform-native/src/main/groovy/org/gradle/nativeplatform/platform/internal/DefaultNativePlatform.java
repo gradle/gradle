@@ -20,6 +20,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.PlatformParser;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -84,5 +85,23 @@ public class DefaultNativePlatform implements NativePlatformInternal {
             }
         }
         return platforms;
+    }
+
+    public static class Parser implements PlatformParser {
+
+        //TODO: freekh we should architect this differently to avoid this:
+        private NotationParser<Object, ArchitectureInternal> archParser;
+        private NotationParser<Object, OperatingSystemInternal> osParser;
+
+        public Parser(NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
+            this.archParser = archParser;
+            this.osParser = osParser;
+        }
+
+        public boolean parse(Object notation) {
+            OperatingSystemInternal operatingSystem = osParser.parseNotation(notation);
+            ArchitectureInternal architecture = archParser.parseNotation(notation);
+            return architecture != null && operatingSystem != null;
+        }
     }
 }

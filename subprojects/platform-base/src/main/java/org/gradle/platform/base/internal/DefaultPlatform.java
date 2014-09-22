@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.platform.base.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.platform.base.Platform;
 
-/**
- * A container of {@link Platform}s.
- */
-@Incubating
-public interface PlatformContainer extends NamedDomainObjectContainer<Platform> {
+public class DefaultPlatform implements Platform {
+    public final static String DEFAULT_NAME = "current";
 
-    public void registerPlatform(PlatformParser parser, NamedDomainObjectFactory<Platform> factory);
+    private final String name;
+
+    public DefaultPlatform(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean parsable(Object notation) {
+        return notation.toString().equals(DEFAULT_NAME);
+    }
 }

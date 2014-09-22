@@ -16,13 +16,43 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import com.google.common.collect.Maps;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.PlatformParser;
 
-public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
-    public DefaultPlatformContainer(Instantiator instantiator) {
-        super(Platform.class, instantiator);
+import java.util.Map;
+
+public class DefaultPlatformContainer extends AbstractNamedDomainObjectContainer<Platform> implements PlatformContainer, NamedDomainObjectContainer<Platform> {
+    private Map<PlatformParser, NamedDomainObjectFactory<Platform>> factories = Maps.newHashMap();
+
+    protected DefaultPlatformContainer(Class<Platform> type, Instantiator instantiator) {
+        super(type, instantiator);
     }
+
+
+    @Override
+    protected Platform doCreate(String name) {
+        for (PlatformParser parser: factories.keySet()) {
+            if (parser.parse(name)) {
+                return factories.get(parser).create(name);
+            }
+        }
+        throw new InvalidUserDataException(String.format("Cannot create %s because there are no platforms that can parse it. Available platforms: %s", name, factories.keySet())); //TODO: better error reporting
+
+
+    }
+
+    public void registerPlatform(PlatformParser parser, NamedDomainObjectFactory<Platform> factory) {
+        if (factories.containsKey(parser)) {
+            throw new RuntimeException("Cannot create factory because parser already exists.");
+        }
+        factories.put(parser, factory);
+    }
+
 }

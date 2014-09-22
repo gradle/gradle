@@ -24,8 +24,8 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.nativeplatform.platform.internal.*;
 import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
@@ -37,6 +37,7 @@ import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -45,6 +46,7 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultPlatform;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -124,10 +126,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            final NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+            final NotationParser<Object, OperatingSystemInternal> osParser = OperatingSystemNotationParser.parser();
 
-            platforms.registerFactory(DefaultNativePlatform.class, new NamedDomainObjectFactory<DefaultNativePlatform>() {
-                public DefaultNativePlatform create(String name) {
-                    return instantiator.newInstance(DefaultNativePlatform.class, name);
+            platforms.registerPlatform(new DefaultNativePlatform.Parser(archParser, osParser), new NamedDomainObjectFactory<Platform>() {
+                public Platform create(String name) {
+                    return new DefaultNativePlatform(name, archParser, osParser);
                 }
             });
         }
@@ -163,7 +167,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
             if (platforms.isEmpty()) {
-                platforms.create("current");
+                platforms.create(DefaultPlatform.DEFAULT_NAME);
             }
         }
 

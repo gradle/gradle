@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,10 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectFactory;
-
-/**
- * A container of {@link Platform}s.
- */
-@Incubating
-public interface PlatformContainer extends NamedDomainObjectContainer<Platform> {
-
-    public void registerPlatform(PlatformParser parser, NamedDomainObjectFactory<Platform> factory);
+public interface PlatformParser {
+    /**
+     *
+     * @return true if platform can parse notation
+     */
+    boolean parse(Object notation);
 }
