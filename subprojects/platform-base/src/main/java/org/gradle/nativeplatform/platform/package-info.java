@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+/**
+ * General purpose types for library support.
+ */
+@Incubating
+package org.gradle.nativeplatform.platform;
 
-public interface PlatformParser {
-    /**
-     *
-     * @return true if platform can parse notation
-     */
-    boolean parse(Object notation);
-}
+import org.gradle.api.Incubating;
