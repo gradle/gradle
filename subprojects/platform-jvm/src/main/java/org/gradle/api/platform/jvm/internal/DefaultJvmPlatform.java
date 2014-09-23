@@ -39,12 +39,15 @@ public class DefaultJvmPlatform implements JvmPlatform {
         return targetCompatibility;
        }
 
-    public String getName() {
-        return "JVM " + targetCompatibility;
+    public String getDisplayName() {
+        return "JVM " + getName();
+    }
 
+    public String getName() {
+        return targetCompatibility.toString();
     }
 
     public String toString() {
-        return getName();
+        return getDisplayName();
     }
 }
