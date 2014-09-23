@@ -44,5 +44,9 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     String getSourceCompatibility();
 
+    void setSourceCompatibility(String sourceCompatibility);
+
     String getTargetCompatibility();
+
+    void setTargetCompatibility(String targetCompatibility);
 }
