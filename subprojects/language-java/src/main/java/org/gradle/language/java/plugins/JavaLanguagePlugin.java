@@ -91,8 +91,8 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
 
                     compile.setSource(javaSourceSet.getSource());
                     compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
-                    compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString()); //TODO: freekh use an actual source compatibility
+                    compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().getName());
+                    compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
                     compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
                     compile.dependsOn(javaSourceSet);

@@ -131,7 +131,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             File outputDir = new File(classesDir, outputBaseName);
             jarBinary.setClassesDir(outputDir);
             jarBinary.setResourcesDir(outputDir);
-            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName()))); //TODO: add target to jar here?
+            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName())));
         }
 
         @Mutate
