@@ -40,7 +40,7 @@ public class DefaultJvmPlatform implements JvmPlatform {
        }
 
     public String getName() {
-        return "target JDK " + targetCompatibility;
+        return "JVM " + targetCompatibility;
 
     }
 

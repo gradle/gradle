@@ -32,6 +32,7 @@ import org.gradle.jvm.JvmLibraryBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal<JvmLibraryBinarySpec> {
@@ -40,7 +41,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
-    private final Set<JavaVersion> targets = new HashSet<JavaVersion>();
+    private final Set<JavaVersion> targets = new LinkedHashSet<JavaVersion>();
     protected final JavaVersion defaultTarget = JavaVersion.current();
 
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {

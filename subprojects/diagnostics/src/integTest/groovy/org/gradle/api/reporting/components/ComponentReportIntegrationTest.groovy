@@ -18,7 +18,6 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.SystemProperties
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -76,13 +75,13 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    platform: target JDK 1.7
+    platform: JVM 1.7
     tool chain: current JDK (1.7)
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    platform: target JDK 1.7
+    platform: JVM 1.7
     tool chain: current JDK (1.7)
     classes dir: build/classes/test
     resources dir: build/resources/test
@@ -126,7 +125,7 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        platform: target JDK 1.7
+        platform: JVM 1.7
         tool chain: current JDK (1.7)
         Jar file: build/jars/someLibJar/someLib.jar
 
@@ -484,7 +483,7 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        platform: target JDK 1.7
+        platform: JVM 1.7
         tool chain: current JDK (1.7)
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
@@ -519,12 +518,6 @@ BUILD SUCCESSFUL
 """))
     }
 
-    def normalize(String input) {
-        return input
-                .replace("\n", SystemProperties.lineSeparator)
-                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
-    }
-
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of jvm library with multiple targets"() {
         String current = JavaVersion.current();
@@ -548,9 +541,9 @@ BUILD SUCCESSFUL
         succeeds "components"
 
         then:
-        //cannot use ComponentReportOutputFormatter because
+        //cannot use expected because
         //we target multiple platforms
-        output.contains(normalize("""
+        output.contains(ComponentReportOutputFormatter.normalize("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -564,34 +557,27 @@ Source sets
     Java source 'myLib:java'
         src/myLib/java
 
-Binaries"""))
-    //order not guaranteed so check individual
-    and:
-    output.contains(normalize("""Jar 'myLib:jdk$target1:jar'
+Binaries
+    Jar 'myLib:jdk$target1:jar'
         build using task: :jdk${target1}MyLibJar
-        platform: target JDK $target1
+        platform: JVM $target1
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar"""))
-
-    and:
-    output.contains(normalize("""Jar 'myLib:jdk$target2:jar'
+        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar
+    Jar 'myLib:jdk$target2:jar'
         build using task: :jdk${target2}MyLibJar
-        platform: target JDK $target2
+        platform: JVM $target2
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar"""))
-    and:
-    output.contains(normalize("""
+        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar
     Jar 'myLib:jdk$target3:jar'
         build using task: :jdk${target3}MyLibJar
-        platform: target JDK $target3
+        platform: JVM $target3
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar"""))
-    and:
-    output.contains("""
+        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar
+
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     String expected(String normalised) {
