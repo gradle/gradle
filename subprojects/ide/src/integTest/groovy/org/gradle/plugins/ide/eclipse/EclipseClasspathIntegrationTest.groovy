@@ -81,6 +81,7 @@ dependencies {
         def baseJar = module.artifactFile
         def extraJar = module.artifactFile(classifier: 'extra')
         def testsJar = module.artifactFile(classifier: 'tests')
+        def javadocJar = module.artifactFile(classifier: 'javadoc')
         def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publish().artifactFile
         def srcJar = module.artifactFile(classifier: 'sources')
 
@@ -93,6 +94,11 @@ repositories {
     maven { url "${mavenRepo.uri}" }
 }
 
+eclipse {
+    classpath {
+        downloadJavadoc = true
+    }
+}
 dependencies {
     compile 'coolGroup:niceArtifact:1.0'
     compile 'coolGroup:niceArtifact:1.0:extra'
@@ -106,13 +112,13 @@ dependencies {
         assert libraries.size() == 4
         libraries[0].assertHasJar(baseJar)
         libraries[0].assertHasSource(srcJar)
-        libraries[0].assertHasNoJavadoc()
+        libraries[0].assertHasJavadoc(javadocJar)
         libraries[1].assertHasJar(extraJar)
         libraries[1].assertHasSource(srcJar)
-        libraries[1].assertHasNoJavadoc()
+        libraries[1].assertHasJavadoc(javadocJar)
         libraries[2].assertHasJar(testsJar)
         libraries[2].assertHasSource(srcJar)
-        libraries[2].assertHasNoJavadoc()
+        libraries[2].assertHasJavadoc(javadocJar)
         libraries[3].assertHasJar(anotherJar)
         libraries[3].assertHasNoSource()
         libraries[3].assertHasNoJavadoc()
