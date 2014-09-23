@@ -122,9 +122,6 @@ public abstract class Transformers {
         };
     }
 
-    /**
-     * Converts an {@link Factory} to a {@link Transformer} that runs the that returns the result of {@link Factory#create()} call.
-     */
     public static <R> Transformer<R, Object> toTransformer(final Factory<R> factory) {
         return new Transformer<R, Object>() {
             public R transform(Object original) {
