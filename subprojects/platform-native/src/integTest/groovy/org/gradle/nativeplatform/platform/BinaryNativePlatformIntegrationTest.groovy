@@ -91,6 +91,68 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
+    def "use default platform when no platforms are defined"() {
+        when:
+        buildFile
+
+        and:
+        succeeds "assemble"
+
+        then:
+        // Platform dimension is flattened since there is only one possible value
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.getName() == Native.get(SystemInfo).architectureName
+        executable("build/binaries/mainExecutable/main").exec().out == "${Native.get(SystemInfo).architectureName} ${os.familyName}" * 2
+    }
+
+    def "use platform as default when only one platform is defined"() {
+        when:
+        buildFile << """
+            model {
+                platforms {
+                    x86_64 {
+                        architecture "x86_64"
+                    }
+                }
+            }
+"""
+
+        and:
+        succeeds "assemble"
+
+        then:
+        // Platform dimension is flattened since there is only one possible value
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch == Native.get(SystemInfo).architectureName
+        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
+    }
+
+    def "use default target platform for multiple defined platforms"() {
+        when:
+        buildFile << """
+            model {
+                platforms {
+                    x86 {
+                        architecture "x86"
+                    }
+                    x86_64 {
+                        architecture "x86_64"
+                    }
+                }
+            }
+"""
+
+        and:
+        succeeds "assemble"
+
+        then:
+        // Platform dimension is flattened since there is only one possible value
+        println(executable("build/binaries/mainExecutable/main").file)
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch == Native.get(SystemInfo).architecture
+        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
+    }
+
     def "library with matching platform is chosen by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
