@@ -75,11 +75,14 @@ dependencies {
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'extra')
         module.artifact(classifier: 'tests')
+        module.artifact(classifier: 'sources')
+        module.artifact(classifier: 'javadoc')
         module.publish()
         def baseJar = module.artifactFile
         def extraJar = module.artifactFile(classifier: 'extra')
         def testsJar = module.artifactFile(classifier: 'tests')
         def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publish().artifactFile
+        def srcJar = module.artifactFile(classifier: 'sources')
 
         when:
         runEclipseTask """
@@ -102,9 +105,17 @@ dependencies {
         def libraries = classpath.libs
         assert libraries.size() == 4
         libraries[0].assertHasJar(baseJar)
+        libraries[0].assertHasSource(srcJar)
+        libraries[0].assertHasNoJavadoc()
         libraries[1].assertHasJar(extraJar)
+        libraries[1].assertHasSource(srcJar)
+        libraries[1].assertHasNoJavadoc()
         libraries[2].assertHasJar(testsJar)
+        libraries[2].assertHasSource(srcJar)
+        libraries[2].assertHasNoJavadoc()
         libraries[3].assertHasJar(anotherJar)
+        libraries[3].assertHasNoSource()
+        libraries[3].assertHasNoJavadoc()
     }
 
     @Test
