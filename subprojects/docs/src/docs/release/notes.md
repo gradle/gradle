@@ -287,6 +287,7 @@ We would like to thank the following community members for making contributions 
 * [Justin Ryan](https://github.com/quidryan) - documentation fixes.
 * [Alexander Shutyaev](https://github.com/shutyaev) - log4j-over-slf4j version upgrade. [GRADLE-3167]
 * [Schalk Cronjé](https://github.com/ysb33r) - DSL documentation improvements
+* [Ryan Liptak](https://github.com/squeek502) - Eclipse integration test coverage improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
