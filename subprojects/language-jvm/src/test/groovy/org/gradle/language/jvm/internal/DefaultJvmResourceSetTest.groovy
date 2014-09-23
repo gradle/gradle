@@ -27,7 +27,7 @@ class DefaultJvmResourceSetTest extends Specification {
         def resourceSet = new DefaultJvmResourceSet("resourcesX", Stub(SourceDirectorySet), functionalSourceSet)
 
         expect:
-        resourceSet.displayName == "Jvm resources 'mainX:resourcesX'"
-        resourceSet.toString() == "Jvm resources 'mainX:resourcesX'"
+        resourceSet.displayName == "JVM resources 'mainX:resourcesX'"
+        resourceSet.toString() == "JVM resources 'mainX:resourcesX'"
     }
 }

@@ -38,7 +38,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         assert sources.myLib instanceof FunctionalSourceSet
         assert sources.myLib.size() == 2
         assert sources.myLib.java instanceof JavaSourceSet
-        assert sources.myLib.resources instanceof ResourceSet
+        assert sources.myLib.resources instanceof JvmResourceSet
 
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrarySpec
@@ -65,7 +65,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     sources {
         myLib {
             extraJava(JavaSourceSet)
-            extraResources(ResourceSet)
+            extraResources(JvmResourceSet)
         }
     }
 
@@ -81,8 +81,8 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         assert sources.myLib.size() == 4
         assert sources.myLib.java instanceof JavaSourceSet
         assert sources.myLib.extraJava instanceof JavaSourceSet
-        assert sources.myLib.resources instanceof ResourceSet
-        assert sources.myLib.extraResources instanceof ResourceSet
+        assert sources.myLib.resources instanceof JvmResourceSet
+        assert sources.myLib.extraResources instanceof JvmResourceSet
 
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrarySpec
@@ -109,7 +109,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     sources {
         myExtraSources {
             java(JavaSourceSet)
-            resources(ResourceSet)
+            resources(JvmResourceSet)
         }
     }
 
@@ -129,7 +129,7 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
             assert it instanceof FunctionalSourceSet
             assert it.size() == 2
             assert it.java instanceof JavaSourceSet
-            assert it.resources instanceof ResourceSet
+            assert it.resources instanceof JvmResourceSet
         }
 
         def myLib = jvm.libraries.myLib

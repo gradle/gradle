@@ -62,7 +62,7 @@ class JavaBasePluginTest extends Specification {
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
 
         def processResources = project.tasks['processCustomResources']
-        processResources.description == "Processes Jvm resources 'custom:resources'."
+        processResources.description == "Processes JVM resources 'custom:resources'."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir

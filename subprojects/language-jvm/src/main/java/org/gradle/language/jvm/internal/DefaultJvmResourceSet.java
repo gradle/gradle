@@ -28,10 +28,10 @@ public class DefaultJvmResourceSet extends AbstractLanguageSourceSet implements 
 
     @Inject
     public DefaultJvmResourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
-        super(name, parent, "Jvm resources", new DefaultSourceDirectorySet("source", fileResolver));
+        super(name, parent, "JVM resources", new DefaultSourceDirectorySet("source", fileResolver));
     }
 
     public DefaultJvmResourceSet(String name, SourceDirectorySet source, FunctionalSourceSet parent) {
-        super(name, parent, "Jvm resources", source);
+        super(name, parent, "JVM resources", source);
     }
 }

@@ -64,11 +64,11 @@ Additional source sets
 ----------------------
 Java source 'main:java'
     src/main/java
-Resources 'main:resources'
+JVM resources 'main:resources'
     src/main/resources
 Java source 'test:java'
     src/test/java
-Resources 'test:resources'
+JVM resources 'test:resources'
     src/test/resources
 
 Additional binaries
@@ -117,7 +117,7 @@ JVM library 'someLib'
 ---------------------
 
 Source sets
-    Resources 'someLib:resources'
+    JVM resources 'someLib:resources'
         src/someLib/resources
     Java source 'someLib:java'
         src/someLib/java
@@ -475,7 +475,7 @@ JVM library 'jvmLib'
 --------------------
 
 Source sets
-    Resources 'jvmLib:resources'
+    JVM resources 'jvmLib:resources'
         src/jvmLib/resources
     Java source 'jvmLib:java'
         src/jvmLib/java
@@ -552,7 +552,7 @@ JVM library 'myLib'
 -------------------
 
 Source sets
-    Resources 'myLib:resources'
+    JVM resources 'myLib:resources'
         src/myLib/resources
     Java source 'myLib:java'
         src/myLib/java
