@@ -27,4 +27,9 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Platform extends Named {
+    /**
+     * Returns a human consumable name for this platform.
+     *
+     */
+    String getDisplayName();
 }

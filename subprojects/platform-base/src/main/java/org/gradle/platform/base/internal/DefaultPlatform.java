@@ -31,6 +31,10 @@ public class DefaultPlatform implements Platform {
         return name;
     }
 
+    public String getDisplayName() {
+        return getName();
+    }
+
     public boolean parsable(Object notation) {
         return notation.toString().equals(DEFAULT_NAME);
     }

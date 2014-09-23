@@ -40,7 +40,7 @@ public class DefaultJvmPlatform implements JvmPlatform {
        }
 
     public String getDisplayName() {
-        return "JVM " + getName();
+        return "platform: JVM " + getName();
     }
 
     public String getName() {
