@@ -178,11 +178,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return observableActionList;
     }
 
-    public void setActions(final List<Action<? super Task>> actions) {
+    public void setActions(final List<Action<? super Task>> replacements) {
         taskMutator.mutate("Task.setActions(List<Action>)", new Runnable() {
             public void run() {
                 actions.clear();
-                for (Action<? super Task> action : actions) {
+                for (Action<? super Task> action : replacements) {
                     doLast(action);
                 }
             }
