@@ -100,7 +100,7 @@ class RuleSourceBackedRuleActionTest extends Specification {
         new RuleSourceWithNoMethod()              | "must have at exactly one method annotated with @Mutate"
         new RuleSourceWithNoMutateMethod()        | "must have at exactly one method annotated with @Mutate"
         new RuleSourceWithMultipleMutateMethods() | "must have at exactly one method annotated with @Mutate"
-        new RuleSourceWithDifferentSubjectClass()  | "first parameter of rule method must be of type java.util.List<java.lang.String>"
+        new RuleSourceWithDifferentSubjectClass() | "first parameter of rule method must be of type java.util.List<java.lang.String>"
         new RuleSourceWithDifferentSubjectType()  | "first parameter of rule method must be of type java.util.List<java.lang.String>"
         new RuleSourceWithNoSubject()             | "rule method must have at least one parameter"
         new RuleSourceWithReturnValue()           | "rule method must return void"
