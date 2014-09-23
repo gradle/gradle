@@ -21,7 +21,7 @@ import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.api.jvm.platform.internal.DefaultJvmPlatform;
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;

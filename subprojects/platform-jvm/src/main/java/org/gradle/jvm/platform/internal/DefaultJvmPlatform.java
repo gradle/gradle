@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.jvm.platform.internal;
+package org.gradle.jvm.platform.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JvmPlatform;
 
 /**
  * Default implementation of JvmPlatform

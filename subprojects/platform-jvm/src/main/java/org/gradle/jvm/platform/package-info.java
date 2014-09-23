@@ -17,4 +17,4 @@
 /**
  * Classes for managing platform variance
  */
-package org.gradle.api.jvm.platform;
+package org.gradle.jvm.platform;
