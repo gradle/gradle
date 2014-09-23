@@ -804,18 +804,32 @@ Add a sample to show a JVM library built for multiple Java versions.
     - native plugin registers factory for `NativePlatform`, and makes this the default type as well
     - JVM plugin registers factory for `JvmPlatform`, and adds instance for every known JVM.
 - Add `PlatformAwareComponentSpec`
-    - Move `JvmLibrary.target()` up onto this interface as `targetPlatform`, with String[] input.
-    - Replace `TargetedNativeComponentSpec.targetPlatforms()` with `targetPlatform`
+    - Common superclass of `JvmLibrary` and `TargetedNativeComponent`
+    - Add `PlatformAwareComponentSpec.targetPlatform(String[])`
+         - Remove `JvmLibrary.target()` (replaced by this method)
+         - Remove `TargetedNativeComponent.targetPlatforms()` (replaced by this method)
+    - Add `List<String> PlatformAwareComponentSpec.getTargetPlatforms()`
+         - (Later this will return a list of 'platform requirement' instances, so we don't need to rely on platform name)
+         - Should return an empty list if no target platforms are explicitly configured.
+         - Replace `TargetedNativeComponentInternal.choosePlatforms()` with code that uses this new method
+         - In `JvmComponentPlugin.Rules.createBinaries()` need to select matching `JvmPlatform`s from the `PlatformContainer`
+               - `PlatformContainer` will be a rule input
 - Use a consistent DSL for declaring the target platforms of all platform aware component types.
-- Change `NativeComponentSpecInitializer` to build only for targeted platforms, or default/current platform if none targeted
-    - If only 1 platform in PlatformContainer, use it
-    - If multiple platforms defined, attempt to choose 'current' platform
+- Change `NativeComponentSpecInitializer` to build binaries only for targeted platforms
+    - If `getTargetPlatforms()` is empty, choose the 'current' platform from the `PlatformContainer` and create binary for that platform
+    - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
     - Fix tests that build for multiple platforms by explicitly targeting those platforms
+- Introduce `JvmComponentSpecInitializer` to mirror `NativeComponentSpecInitializer`
+    - Extracted out of `JvmComponentPlugin.Rules.createBinaries()`
+    - If `JvmLibrary.getTargetPlatforms()` is empty, select the 'current' platform from PlatformContainer and create binary for that platform.
+    - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
 
 #### Test coverage
 
-- Fails gracefully when attempting to target an unknown platform
-- Fails gracefully when attempting to target a JVM platform for a native component, and vice-versa
+- For both JVM and native
+    - Fails gracefully when attempting to target an unknown platform
+    - Fails gracefully when any one of a set of a target platforms is not known: reports the name of the invalid platform
+    - Fails gracefully when attempting to target a JVM platform for a native component, and vice-versa
 - When multiple native platforms are defined but none are targeted, attempts to build for sensible default platform
 - When no JVM platform is targeted, attempts to build for current JVM
 
