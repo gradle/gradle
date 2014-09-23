@@ -838,6 +838,7 @@ TBD
 should fail.
 - The implementation should delegate to the JavaToolChain to determine if a binary is buildable.
 - Mention breaking change in release notes.
+- Verify the java version of the tool chain, rather than assuming current
 
 #### Test cases
 

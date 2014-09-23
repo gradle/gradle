@@ -36,7 +36,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     public DefaultJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
         this.execActionFactory = execActionFactory;
-        this.javaVersion = JavaVersion.current(); //TODO: freekh verify that this is true in all cases (if the java compiler is forked for example?)
+        this.javaVersion = JavaVersion.current();
     }
 
     public String getDisplayName() {
