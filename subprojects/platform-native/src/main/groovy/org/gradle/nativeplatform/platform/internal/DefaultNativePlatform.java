@@ -21,7 +21,6 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
