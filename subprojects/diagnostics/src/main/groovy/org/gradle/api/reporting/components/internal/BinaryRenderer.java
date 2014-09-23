@@ -18,15 +18,18 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.nativeplatform.*;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
-import org.gradle.reporting.ReportRenderer;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.JvmLibraryBinarySpec;
+import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.reporting.ReportRenderer;
 
 class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
     private final FileResolver fileResolver;
@@ -71,8 +74,8 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
             }
         }
 
-        if (binary instanceof JvmLibraryBinarySpec) {
-            JvmLibraryBinarySpec libraryBinary = (JvmLibraryBinarySpec) binary;
+        if (binary instanceof JvmBinarySpec) {
+            JvmBinarySpec libraryBinary = (JvmBinarySpec) binary;
             textOutput.formatln("    platform: JVM %s", libraryBinary.getTargetPlatform().getName());
             textOutput.formatln("    tool chain: %s", libraryBinary.getToolChain().toString());
             if (binary instanceof JarBinarySpec) {

@@ -21,7 +21,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.platform.base.TransformationFileType;
+import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -31,11 +32,11 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.JvmLibraryBinarySpec;
+import org.gradle.platform.base.TransformationFileType;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
@@ -83,7 +84,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
                     JavaCompile compile = (JavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JvmLibraryBinarySpec binary = (JvmLibraryBinarySpec) binarySpec;
+                    JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
@@ -102,7 +103,7 @@ public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
         }
 
         public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmLibraryBinarySpec;
+            return binary instanceof JvmBinarySpec;
         }
     }
 }

@@ -157,7 +157,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - `JvmBinarySpec` assumes binary is built from intermediate classes and resources.
     - `JarBinarySpec` assumes binary belongs to a library.
     - `ClassDirectoryBinarySpec` assumes binary belongs to a library.
-    - `JvmLibraryBinarySpec` has a mutable targetPlatform, should also be on `JvmBinarySpec`.
 - `ComponentSpec` hierarchy
     - `ComponentSpec` assumes component is built from source.
     - `ComponentSpec` assumes component produces binaries.

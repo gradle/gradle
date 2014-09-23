@@ -17,17 +17,17 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.language.jvm.JvmResourceSet;
-import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
-import org.gradle.platform.base.TransformationFileType;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.jvm.JvmLibraryBinarySpec;
+import org.gradle.platform.base.TransformationFileType;
 
 import java.util.Collections;
 import java.util.Map;
@@ -78,7 +78,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
-                    JvmLibraryBinarySpec jvmBinary = (JvmLibraryBinarySpec) binary;
+                    JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
                     resourcesTask.from(resourceSet.getSource());
                     resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
                     jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
@@ -87,7 +87,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         }
 
         public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmLibraryBinarySpec;
+            return binary instanceof JvmBinarySpec;
         }
     }
 
