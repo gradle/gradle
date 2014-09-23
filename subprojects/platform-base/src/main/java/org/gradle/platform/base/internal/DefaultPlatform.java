@@ -16,26 +16,7 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.platform.base.Platform;
+public class DefaultPlatform {
+    public final static String NAME = "current";
 
-public class DefaultPlatform implements Platform {
-    public final static String DEFAULT_NAME = "current";
-
-    private final String name;
-
-    public DefaultPlatform(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDisplayName() {
-        return getName();
-    }
-
-    public boolean parsable(Object notation) {
-        return notation.toString().equals(DEFAULT_NAME);
-    }
 }
