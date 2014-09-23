@@ -16,7 +16,9 @@
 package org.gradle.nativeplatform.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -35,6 +37,8 @@ import org.gradle.model.*;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
+import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
+import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
@@ -57,18 +61,14 @@ import java.io.File;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
-    private final FileResolver fileResolver;
 
     @Inject
-    public NativeComponentModelPlugin(Instantiator instantiator, FileResolver fileResolver) {
+    public NativeComponentModelPlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.fileResolver = fileResolver;
     }
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-
-        project.getModelRegistry().create(new RepositoriesFactory("repositories", instantiator, fileResolver));
 
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
         ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);
@@ -92,6 +92,14 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
+
+        @Model
+        Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, DefaultNativePlatform.getNativePlatforms(platforms), buildTypes, flavors);
+            return new DefaultRepositories(instantiator, fileResolver, initializer);
+        }
 
         @Model
         ToolChainRegistryInternal toolChains(ServiceRegistry serviceRegistry) {
@@ -228,6 +236,23 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) nativeBinarySpec.getToolChain();
             boolean canBuild = toolChainInternal.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform()).isAvailable();
             ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
+        }
+    }
+
+    private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
+        private DefaultRepositories(final Instantiator instantiator, final FileResolver fileResolver, final Action<PrebuiltLibrary> binaryFactory) {
+            super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer());
+            registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
+                public PrebuiltLibraries create(String name) {
+                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, fileResolver, binaryFactory);
+                }
+            });
+        }
+    }
+
+    private static class ArtifactRepositoryNamer implements Namer<ArtifactRepository> {
+        public String determineName(ArtifactRepository object) {
+            return object.getName();
         }
     }
 }

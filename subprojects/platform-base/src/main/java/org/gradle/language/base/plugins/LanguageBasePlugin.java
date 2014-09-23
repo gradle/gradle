@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.PolymorphicDomainObjectContainerModelAdapter;
+import org.gradle.api.internal.ModelCreators;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -28,8 +28,7 @@ import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
@@ -38,8 +37,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Base plugin for language support.
@@ -67,31 +64,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 
-        final PolymorphicDomainObjectContainerModelAdapter<BinarySpec, DefaultBinaryContainer> binarySpecContainerAdapter = new PolymorphicDomainObjectContainerModelAdapter<BinarySpec, DefaultBinaryContainer>(
-                binaries, ModelType.of(BinaryContainer.class), BinarySpec.class
-        );
-
-        modelRegistry.create(new ModelCreator() {
-            public ModelPath getPath() {
-                return ModelPath.path("binaries");
-            }
-
-            public ModelPromise getPromise() {
-                return binarySpecContainerAdapter.asPromise();
-            }
-
-            public ModelAdapter create(Inputs inputs) {
-                return binarySpecContainerAdapter;
-            }
-
-            public List<ModelReference<?>> getInputs() {
-                return Collections.emptyList();
-            }
-
-            public ModelRuleDescriptor getDescriptor() {
-                return new SimpleModelRuleDescriptor("Project.<init>.binaries()");
-            }
-        });
+        modelRegistry.create(ModelCreators.forPolymorphicDomainObjectContainer(
+                ModelReference.of("binaries", BinaryContainer.class), BinarySpec.class, binaries, new SimpleModelRuleDescriptor("Project.<init>.binaries()")
+        ));
 
 
     }

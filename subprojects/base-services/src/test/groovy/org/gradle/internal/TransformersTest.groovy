@@ -88,6 +88,17 @@ class TransformersTest extends Specification {
         result == null
     }
 
+    def "factory as transformer"() {
+        def factory = Mock(Factory)
+
+        when:
+        def result = toTransformer(factory).transform("original")
+
+        then:
+        1 * factory.create() >> "transformed"
+        result == "transformed"
+    }
+
     def constants() {
         def foo = "foo"
         expect:

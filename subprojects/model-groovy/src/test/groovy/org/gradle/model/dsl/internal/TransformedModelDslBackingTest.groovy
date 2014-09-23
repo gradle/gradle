@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal
 
 import org.gradle.api.Transformer
+import org.gradle.api.internal.ModelCreators
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking
 import org.gradle.model.dsl.internal.transform.SourceLocation
 import org.gradle.model.internal.core.*
@@ -33,9 +34,7 @@ class TransformedModelDslBackingTest extends Specification {
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {
-        def path = new ModelPath(pathString)
-        def type = ModelType.of(element.class)
-        modelRegistry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("register"), element))
+        modelRegistry.create(ModelCreators.forInstance(ModelReference.of(pathString, element.class), new SimpleModelRuleDescriptor("register"), element))
     }
 
     def "can add rules via dsl"() {

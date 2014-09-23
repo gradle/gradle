@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core
 
+import org.gradle.api.internal.ModelCreators
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
@@ -32,14 +33,14 @@ class InstanceBackedModelCreatorTest extends Specification {
         def descriptor = new SimpleModelRuleDescriptor("foo")
 
         def fooList = []
-        def fooCreator = InstanceBackedModelCreator.of(foo, descriptor, fooList)
+        def fooCreator = ModelCreators.forInstance(foo, descriptor, fooList)
         registry.create(fooCreator)
 
         def barList = []
         def factory = Mock(org.gradle.internal.Factory) {
             1 * create() >> barList
         }
-        def barCreator = InstanceBackedModelCreator.of(bar, descriptor, factory)
+        def barCreator = ModelCreators.forFactory(bar, descriptor, factory)
         registry.create(barCreator)
 
         then:

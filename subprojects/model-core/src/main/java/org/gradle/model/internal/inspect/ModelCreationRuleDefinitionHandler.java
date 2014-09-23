@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Transformer;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
@@ -40,8 +41,10 @@ public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDriven
         ModelType<T> returnType = ruleDefinition.getReturnType();
         ModelPath path = ModelPath.path(modelName);
         List<ModelReference<?>> references = ruleDefinition.getReferences();
+        ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        modelRegistry.create(new MethodModelCreator<T>(returnType, path, references, ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor()));
+        Transformer<T, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(ruleDefinition.getRuleInvoker(), descriptor, references);
+        modelRegistry.create(DefaultModelCreator.forTransformer(ModelReference.of(path, returnType), descriptor, references, transformer));
     }
 
     private String determineModelName(MethodRuleDefinition<?> ruleDefinition) {
@@ -53,60 +56,34 @@ public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDriven
         }
     }
 
-    private static class MethodModelCreator<R> implements ModelCreator {
-        private final ModelType<R> type;
-        private final ModelPath path;
-        private final ModelPromise promise;
+    private static class ModelRuleInvokerBackedTransformer<T> implements Transformer<T, Inputs> {
+
         private final ModelRuleDescriptor descriptor;
-        private List<ModelReference<?>> inputs;
-        private final ModelRuleInvoker<R> ruleInvoker;
+        private final ModelRuleInvoker<T> ruleInvoker;
+        private final List<ModelReference<?>> inputReferences;
 
-        public MethodModelCreator(ModelType<R> type, ModelPath path, List<ModelReference<?>> inputs, ModelRuleInvoker<R> ruleInvoker, ModelRuleDescriptor descriptor) {
-            this.type = type;
-            this.path = path;
-            this.inputs = inputs;
-            this.promise = new SingleTypeModelPromise(type);
-            this.ruleInvoker = ruleInvoker;
+        private ModelRuleInvokerBackedTransformer(ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
             this.descriptor = descriptor;
+            this.ruleInvoker = ruleInvoker;
+            this.inputReferences = inputReferences;
         }
 
-        public ModelPath getPath() {
-            return path;
-        }
-
-        public ModelPromise getPromise() {
-            return promise;
-        }
-
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
-        }
-
-        public ModelAdapter create(Inputs inputs) {
-            R instance = invoke(inputs);
-            if (instance == null) {
-                throw new ModelRuleExecutionException(getDescriptor(), "rule returned null");
-            }
-
-            return InstanceModelAdapter.of(type, instance);
-        }
-
-        @SuppressWarnings("unchecked")
-        private R invoke(Inputs inputs) {
+        public T transform(Inputs inputs) {
+            T instance;
             if (inputs.size() == 0) {
-                return ruleInvoker.invoke();
+                instance = ruleInvoker.invoke();
             } else {
                 Object[] args = new Object[inputs.size()];
                 for (int i = 0; i < inputs.size(); i++) {
-                    args[i] = inputs.get(i, this.inputs.get(i).getType()).getInstance();
+                    args[i] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
                 }
 
-                return ruleInvoker.invoke(args);
+                instance = ruleInvoker.invoke(args);
             }
-        }
-
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
+            if (instance == null) {
+                throw new ModelRuleExecutionException(descriptor, "rule returned null");
+            }
+            return instance;
         }
     }
 }

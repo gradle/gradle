@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
+import org.gradle.api.internal.ModelCreators
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
@@ -253,7 +254,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
+        registry.create(ModelCreators.forInstance(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
 
         when:
         inspector.inspect(MutationRules, registry, dependencies)
@@ -287,7 +288,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
+        registry.create(ModelCreators.forInstance(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registry, dependencies)
@@ -301,8 +302,8 @@ class ModelRuleInspectorTest extends Specification {
         def path = new ModelPath("strings")
         def type = new ModelType<List<String>>() {}
 
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
-        registry.create(InstanceBackedModelCreator.of(ModelReference.of(ModelPath.path("integers"), new ModelType<List<Integer>>() {}), new SimpleModelRuleDescriptor("integers"), []))
+        registry.create(ModelCreators.forInstance(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
+        registry.create(ModelCreators.forInstance(ModelReference.of(ModelPath.path("integers"), new ModelType<List<Integer>>() {}), new SimpleModelRuleDescriptor("integers"), []))
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)

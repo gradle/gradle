@@ -16,13 +16,9 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.model.InvalidModelRuleException
-import org.gradle.model.Model
-import org.gradle.model.ModelRuleBindingException
-import org.gradle.model.Mutate
-import org.gradle.model.Path
+import org.gradle.model.*
+import org.gradle.model.internal.core.IdentityModelProjection
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.core.SingleTypeModelPromise
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
@@ -140,7 +136,7 @@ class ModelRuleBindingTest extends Specification {
                 Integer.name,
                 "parameter 1",
                 true,
-                [SingleTypeModelPromise.description(ModelType.of(String))]
+                [IdentityModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message
@@ -174,7 +170,7 @@ class ModelRuleBindingTest extends Specification {
                 Integer.name,
                 "parameter 2",
                 false,
-                [SingleTypeModelPromise.description(ModelType.of(String))]
+                [IdentityModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message

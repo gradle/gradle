@@ -68,7 +68,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        ruleRegistrar.create(InstanceBackedModelCreator.of(
+        ruleRegistrar.create(DefaultModelCreator.forFactory(
                 ModelReference.of(path, type),
                 descriptor,
                 implicitInputs.getReferences(),
