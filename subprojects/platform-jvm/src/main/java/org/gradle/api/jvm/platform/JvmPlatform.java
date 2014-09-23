@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.platform.jvm;
+package org.gradle.api.jvm.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;

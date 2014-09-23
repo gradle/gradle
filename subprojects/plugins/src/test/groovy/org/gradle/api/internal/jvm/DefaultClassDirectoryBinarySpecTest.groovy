@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.jvm
 
-import org.gradle.api.platform.jvm.JvmPlatform
+import org.gradle.api.jvm.platform.JvmPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
 

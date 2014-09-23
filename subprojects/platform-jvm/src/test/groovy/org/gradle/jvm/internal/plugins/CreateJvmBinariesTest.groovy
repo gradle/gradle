@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal.plugins
 
-import org.gradle.api.platform.jvm.JvmPlatform
+import org.gradle.api.jvm.platform.JvmPlatform
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet

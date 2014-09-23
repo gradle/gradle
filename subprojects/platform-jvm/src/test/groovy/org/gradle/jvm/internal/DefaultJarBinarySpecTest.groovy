@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal
 
-import org.gradle.api.platform.jvm.JvmPlatform
+import org.gradle.api.jvm.platform.JvmPlatform
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.toolchain.JavaToolChain
