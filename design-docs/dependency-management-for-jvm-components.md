@@ -823,6 +823,9 @@ Add a sample to show a JVM library built for multiple Java versions.
     - Extracted out of `JvmComponentPlugin.Rules.createBinaries()`
     - If `JvmLibrary.getTargetPlatforms()` is empty, select the 'current' platform from PlatformContainer and create binary for that platform.
     - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
+- Rename the canned `JvmPlatform` instances: use 'java6', 'java7', etc
+    - Add `JvmPlatform.targetCompatibility(String)` to configure the target compatibility
+    - When creating JvmPlatforms for each JavaVersion, add an action to configure the target compatibility.
 
 #### Test coverage
 
