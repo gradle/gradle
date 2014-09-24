@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 import java.util.Collection;
@@ -35,26 +36,26 @@ import java.util.Set;
 public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> { //TODO: move to platform.base too?
     private final NativeBinariesFactory factory;
     private final ToolChainRegistryInternal toolChainRegistry;
-    private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
+    private final PlatformContainer platforms;
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
+    //TODO freekh: Do we want to have PlatformContainer here? We need to use the select method below for targetPlatforms but it is possible to move this out?
     public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, ToolChainRegistryInternal toolChainRegistry,
-                                          Collection<? extends NativePlatform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+                                          PlatformContainer platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChainRegistry = toolChainRegistry;
-        this.allPlatforms.addAll(allPlatforms);
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
+        this.platforms = platforms;
     }
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        for (String platformName : targetedComponent.getTargetPlatforms()) {
-            NativePlatform platform = null; //TODO: DO N
-            NativePlatformInternal platformInternal = null; //TODO:
+        for (NativePlatform platform: platforms.select(NativePlatform.class, targetedComponent.getTargetPlatforms())) {
+            NativePlatformInternal platformInternal = (NativePlatformInternal) platform;
             NativeToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
             PlatformToolProvider toolProvider = toolChain.select(platformInternal);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {

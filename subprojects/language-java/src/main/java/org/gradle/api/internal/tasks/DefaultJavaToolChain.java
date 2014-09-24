@@ -72,9 +72,11 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     }
 
     private boolean isCompatible(JvmPlatform platform, JavaVersion version) {
-        return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO: freekh need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
+        return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO freekh: need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
     }
 
+
+    //TODO freekh: remove this method:
     public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
         List<JvmPlatform> alternatives = platforms.select(JvmPlatform.class);
         alternatives.sort(new Comparator<JvmPlatform>() {
@@ -94,5 +96,9 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             String compatibleVersionsString = compatibleVersions.isEmpty() ? "(None)" : compatibleVersions.toString();
             throw new IllegalArgumentException(String.format("Cannot use target JVM platform: '"+platform.getName()+"' with target compatibility '"+platform.getTargetCompatibility()+"' because it is too high compared to Java toolchain version '"+getJavaVersion()+"'. Compatible target platforms are: " + compatibleVersionsString + "."));
         }
+    }
+
+    public boolean select(JvmPlatform platform) {
+        return isCompatible(platform, getJavaVersion());
     }
 }

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+package org.gradle.jvm.internal.configure;
 
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
-public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {
-    void setBuildable(boolean buildable); //TODO: move to BinarySpecInternal
+public interface JarBinariesFactory {
+    void createJarBinaries(JvmLibrarySpec jvmLibrary, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JvmPlatform platform);
 }

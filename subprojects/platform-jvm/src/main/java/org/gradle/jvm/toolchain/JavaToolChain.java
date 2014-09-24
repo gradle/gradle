@@ -43,5 +43,8 @@ import java.util.List;
 public interface JavaToolChain extends ToolChain {
     String getDisplayName();
     JavaVersion getJavaVersion();
-    void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms);
+
+    //TODO freekh: move this into JavaToolChainInternal?
+    void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms); //TODO freekh: consolidate with NativeToolChain isSupportedPlatform
+    boolean select(JvmPlatform platform); //TODO freekh: consolidate with NativeToolChain select. This should return some compostite (ADT) type like Failure so we can communicate
 }
