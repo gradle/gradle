@@ -21,12 +21,11 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.DefaultPlatform;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
 
@@ -58,7 +57,15 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
         return chooseElements(BuildType.class, candidates, buildTypes);
     }
 
-    public Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates) {
+
+    public List<String> getTargetPlatforms() {
+        return null;
+    }
+
+    private Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates) {
+        if (targetPlatforms.isEmpty()) {
+            //return new DefaultPlatform();
+        }
         return chooseElements(NativePlatform.class, candidates, targetPlatforms);
     }
 

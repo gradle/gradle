@@ -16,10 +16,11 @@
 
 package org.gradle.jvm.internal;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
@@ -31,9 +32,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.jvm.JvmLibraryBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal<JvmLibraryBinarySpec> {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
@@ -41,8 +40,8 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
-    private final Set<JavaVersion> targets = new LinkedHashSet<JavaVersion>();
-    protected final JavaVersion defaultTarget = JavaVersion.current();
+    private final List<String> targets = new ArrayList<String>();
+    protected final String defaultTarget = DefaultJvmPlatform.generateName(JavaVersion.current());
 
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
@@ -90,17 +89,17 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         return languageOutputs;
     }
 
-    public Set<JavaVersion> getTargetPlatforms() {
+    public List<String> getTargetPlatforms() {
         if (targets.isEmpty()) {
-            return Sets.newHashSet(defaultTarget);
+            return Lists.newArrayList(defaultTarget);
         } else {
             return targets;
         }
     }
 
     public void targetPlatform(String... targets) {
-        for (String target: targets) {
-            this.targets.add(JavaVersion.toVersion(target));
+        for (String target : targets) {
+            this.targets.add(target);
         }
     }
 }

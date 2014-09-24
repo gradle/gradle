@@ -16,6 +16,13 @@
 package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.internal.Actions;
+import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.internal.configure.DefaultJarBinariesFactory;
+import org.gradle.jvm.internal.configure.JarBinariesFactory;
+import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
+import org.gradle.jvm.internal.configure.JvmLibrarySpecInitializer;
 import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
@@ -28,14 +35,10 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
-import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.toolchain.JavaToolChain;
@@ -86,9 +89,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @Mutate
         public void registerJvmPlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
-
-            defaultPlatforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
+            platforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
                 public JvmPlatform create(String name) {
                     return new DefaultJvmPlatform(name);
                 }
@@ -96,43 +97,38 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             //Create default platforms available for Java
             for (JavaVersion javaVersion: JavaVersion.values()) {
-                platforms.create(javaVersion.toString(), JvmPlatform.class);
+                String name = DefaultJvmPlatform.generateName(javaVersion);
+                platforms.create(name, JvmPlatform.class);
+                //TODO: can I assume unique names?
+                JvmPlatform platform = (JvmPlatform) platforms.findByName(name); //TODO: break this and above steps into 2 rules?
+                platform.setTargetCompatibility(javaVersion);
             }
         }
 
         @Mutate
-        public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
+        public void createBinaries(BinaryContainer binaries, PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
+
+            Action<JarBinarySpec> configureBinaryAction = new JarBinarySpecInitializer(buildDir);
+
+            //TODO freekh: we are skipping tools setup for jvm, because we only have one language, and we will want each language to register their own extensions/extra toolchains
+            @SuppressWarnings("unchecked") Action<JarBinarySpec> initAction = Actions.composite(configureBinaryAction, new MarkBinariesBuildable());
+            JarBinariesFactory factory = new DefaultJarBinariesFactory(instantiator, initAction);
+
+            Action<JvmLibrarySpec> createBinariesAction =
+                    new JvmLibrarySpecInitializer(factory, namingSchemeBuilder, toolChain, platforms);
+
             for (JvmLibrarySpec jvmLibrary : libraries) {
-                for (JavaVersion target : jvmLibrary.getTargetPlatforms()) {
-                    BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
-                            .withComponentName(jvmLibrary.getName())
-                            .withTypeString("jar");
-                    if (jvmLibrary.getTargetPlatforms().size() > 1) { //Only add variant dimension for multiple jdk targets to avoid breaking the default naming scheme
-                        componentBuilder = componentBuilder.withVariantDimension("jdk" + target);
-                    }
-                    BinaryNamingScheme namingScheme = componentBuilder.build();
-                    JvmPlatform platform = new DefaultJvmPlatform(target);
-                    toolChain.assertValidPlatform(platform);
-                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
-                    jarBinary.source(jvmLibrary.getSource());
-                    configureBinaryOutputLocations(jarBinary, buildDir);
-                    jvmLibrary.getBinaries().add(jarBinary);
-                    binaries.add(jarBinary);
+                createBinariesAction.execute(jvmLibrary);
+                //TODO freekh: this should be moved into MarkBinariesBuildable
+                for (JvmBinarySpec jarBinarySpec: jvmLibrary.getBinaries()){
+                    toolChain.assertValidPlatform(jarBinarySpec.getTargetPlatform(), platforms);
                 }
+                binaries.addAll(jvmLibrary.getBinaries());
             }
         }
 
-        private void configureBinaryOutputLocations(JarBinarySpecInternal jarBinary, File buildDir) {
-            File binariesDir = new File(buildDir, "jars");
-            File classesDir = new File(buildDir, "classes");
-
-            String outputBaseName = jarBinary.getNamingScheme().getOutputDirectoryBase();
-            File outputDir = new File(classesDir, outputBaseName);
-            jarBinary.setClassesDir(outputDir);
-            jarBinary.setResourcesDir(outputDir);
-            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName())));
-        }
 
         @Mutate
         public void createTasks(TaskContainer tasks, BinaryContainer binaries) {
@@ -153,6 +149,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
             jar.setArchiveName(binary.getJarFile().getName());
 
             return jar;
+        }
+    }
+
+    private static class MarkBinariesBuildable implements Action<JarBinarySpec> { //TODO: this is exactly the same for both Native and Jvm and should be refactored
+        public void execute(JarBinarySpec jarBinarySpec) {
+            JavaToolChain toolChain = jarBinarySpec.getToolChain();
+            boolean canBuild = toolChain.select(jarBinarySpec.getTargetPlatform());
+            ((JarBinarySpecInternal) jarBinarySpec).setBuildable(canBuild);
         }
     }
 }

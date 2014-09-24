@@ -20,7 +20,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.ToolChain;
+
+import java.util.List;
 
 /**
  * A set of tools for building from Java source.
@@ -40,5 +43,8 @@ import org.gradle.platform.base.ToolChain;
 public interface JavaToolChain extends ToolChain {
     String getDisplayName();
     JavaVersion getJavaVersion();
-    void assertValidPlatform(JvmPlatform platform);
+
+    //TODO freekh: move this into JavaToolChainInternal?
+    void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms); //TODO freekh: consolidate with NativeToolChain isSupportedPlatform
+    boolean select(JvmPlatform platform); //TODO freekh: consolidate with NativeToolChain select. This should return some compostite (ADT) type like Failure so we can communicate
 }

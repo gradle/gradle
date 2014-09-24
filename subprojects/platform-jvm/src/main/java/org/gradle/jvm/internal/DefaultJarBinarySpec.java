@@ -38,6 +38,7 @@ public class DefaultJarBinarySpec extends AbstractBuildableModelElement implemen
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
+    private boolean buildable;
 
     public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JvmPlatform platform) {
         this.library = library;
@@ -47,7 +48,11 @@ public class DefaultJarBinarySpec extends AbstractBuildableModelElement implemen
     }
 
     public boolean isBuildable() {
-        return true;
+        return buildable;
+    }
+
+    public void setBuildable(boolean buildable) {
+        this.buildable = buildable;
     }
 
     public boolean isLegacyBinary() {

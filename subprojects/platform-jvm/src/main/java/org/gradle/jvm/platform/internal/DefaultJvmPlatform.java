@@ -25,14 +25,11 @@ import org.gradle.jvm.platform.JvmPlatform;
  */
 @Incubating
 public class DefaultJvmPlatform implements JvmPlatform {
-    private final JavaVersion targetCompatibility;
+    private final String name;
+    private JavaVersion targetCompatibility;
 
-    public DefaultJvmPlatform(String targetCompatibility) {
-        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility);
-    }
-
-    public DefaultJvmPlatform(JavaVersion targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
+    public DefaultJvmPlatform(String name) {
+        this.name = name;
     }
 
     public JavaVersion getTargetCompatibility() {
@@ -40,14 +37,22 @@ public class DefaultJvmPlatform implements JvmPlatform {
        }
 
     public String getDisplayName() {
-        return "platform: JVM " + getName();
+        return "platform: JVM " + targetCompatibility;
     }
 
     public String getName() {
-        return targetCompatibility.toString();
+        return name;
     }
 
     public String toString() {
         return getDisplayName();
+    }
+
+    public void setTargetCompatibility(JavaVersion targetCompatibility) {
+        this.targetCompatibility = targetCompatibility;
+    }
+
+    public static String generateName(JavaVersion javaVersion) {
+        return "java"+javaVersion.getMajorVersion();
     }
 }

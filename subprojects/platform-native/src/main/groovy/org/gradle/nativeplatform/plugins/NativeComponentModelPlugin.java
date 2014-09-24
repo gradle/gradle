@@ -155,7 +155,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
-                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms.withType(NativePlatform.class), buildTypes, flavors);
+                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);
@@ -171,14 +171,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-        public void createDefaultPlatforms(PlatformContainer platforms) {
-            if (platforms.withType(NativePlatform.class).isEmpty()) {
-                platforms.create(DefaultPlatform.NAME);
-            }
-        }
-
-        @Finalize
-        public void createDefaultPlatforms(BuildTypeContainer buildTypes) {
+        public void createDefaultBuildTypes(BuildTypeContainer buildTypes) {
             if (buildTypes.isEmpty()) {
                 buildTypes.create("debug");
             }

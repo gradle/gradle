@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
+package org.gradle.jvm.internal.configure;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.LibrarySpec;
-import org.gradle.platform.base.PlatformAwareComponentSpec;
+import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
-/**
- * Definition of a JVM library component that is to be built by Gradle.
- */
-@Incubating
-public interface JvmLibrarySpec extends LibrarySpec<JvmLibraryBinarySpec>, PlatformAwareComponentSpec {
-    /**
-     * {@inheritDoc}
-     */
-    DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
+public interface JarBinariesFactory {
+    void createJarBinaries(JvmLibrarySpec jvmLibrary, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JvmPlatform platform);
 }
