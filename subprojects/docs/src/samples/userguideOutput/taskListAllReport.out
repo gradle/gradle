@@ -24,7 +24,7 @@ wrapper - Generates Gradle wrapper files. [incubating]
 
 Help tasks
 ----------
-components - Displays the components produced by root project 'projectReports'.
+components - Displays the components produced by root project 'projectReports'. [incubating]
 api:components - Displays the components produced by project ':api'.
 webapp:components - Displays the components produced by project ':webapp'.
 dependencies - Displays all dependencies declared in root project 'projectReports'.

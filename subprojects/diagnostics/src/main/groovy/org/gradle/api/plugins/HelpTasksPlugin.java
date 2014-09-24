@@ -128,7 +128,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             public void run() {
                 tasks.create(COMPONENTS_TASK, ComponentReport.class, new Action<ComponentReport>() {
                     public void execute(ComponentReport task) {
-                        task.setDescription("Displays the components produced by " + project + ".");
+                        task.setDescription("Displays the components produced by " + project + ". [incubating]");
                         task.setGroup(HELP_GROUP);
                         task.setImpliesSubProjects(true);
                     }
