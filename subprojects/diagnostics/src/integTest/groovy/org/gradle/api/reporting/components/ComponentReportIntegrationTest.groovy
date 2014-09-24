@@ -15,16 +15,15 @@
  */
 
 package org.gradle.api.reporting.components
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
+    private JavaVersion currentJvm = JavaVersion.current()
+
     def setup() {
         settingsFile << "rootProject.name = 'test'"
     }
@@ -34,16 +33,9 @@ class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
         succeeds "components"
 
         then:
-        output.contains(toPlatformLineSeparators("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 No components defined for this project.
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-"""))
+"""
     }
 
     def "shows details of legacy Java project"() {
@@ -57,7 +49,7 @@ plugins {
         succeeds "components"
 
         then:
-        output.contains(expected("""
+        outputMatches output, """
 No components defined for this project.
 
 Additional source sets
@@ -75,19 +67,17 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    platform: JVM 1.7
-    tool chain: current JDK (1.7)
+    platform: JVM $currentJvm
+    tool chain: current JDK ($currentJvm)
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    platform: JVM 1.7
-    tool chain: current JDK (1.7)
+    platform: JVM $currentJvm
+    tool chain: current JDK ($currentJvm)
     classes dir: build/classes/test
     resources dir: build/resources/test
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-"""))
+"""
     }
 
     def "shows details of Java library"() {
@@ -108,11 +98,7 @@ jvm {
         succeeds "components"
 
         then:
-        output.contains(expected("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 JVM library 'someLib'
 ---------------------
 
@@ -125,14 +111,10 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        platform: JVM 1.7
-        tool chain: current JDK (1.7)
+        platform: JVM $currentJvm
+        tool chain: current JDK ($currentJvm)
         Jar file: build/jars/someLibJar/someLib.jar
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+"""
     }
 
     def "shows details of native C++ library"() {
@@ -158,11 +140,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(expected("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 Native library 'someLib'
 ------------------------
 
@@ -185,11 +163,7 @@ Binaries
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/libsomeLib.a
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+"""
     }
 
     def "shows details of native C++ library that is not buildable"() {
@@ -218,11 +192,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(expected("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 Native library 'someLib'
 ------------------------
 
@@ -245,11 +215,7 @@ Binaries
         flavor: default
         tool chain: unavailable
         static library file: build/binaries/someLibStaticLibrary/someLib.lib
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+"""
     }
 
     def "shows details of native C executable with test suite"() {
@@ -276,11 +242,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(expected("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 Native executable 'someExe'
 ---------------------------
 
@@ -314,11 +276,7 @@ Binaries
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/binaries/someExeTestCUnitExe/someExeTest
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+"""
     }
 
     def "shows details of polyglot native library with multiple variants"() {
@@ -354,11 +312,7 @@ nativeRuntime {
         succeeds "components"
 
         then:
-        output.contains(expected("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 Native library 'someLib'
 ------------------------
 
@@ -427,11 +381,7 @@ Binaries
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+"""
     }
 
     def "shows details of multiple components"() {
@@ -466,11 +416,7 @@ nativeRuntime {
 
         then:
         // TODO - flesh this out when languages are associated with correct component types
-        output.contains(expected("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 JVM library 'jvmLib'
 --------------------
 
@@ -483,8 +429,8 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        platform: JVM 1.7
-        tool chain: current JDK (1.7)
+        platform: JVM ${currentJvm}
+        tool chain: current JDK (${currentJvm})
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
 Native library 'nativeLib'
@@ -511,19 +457,11 @@ Binaries
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/nativeLibStaticLibrary/libnativeLib.a
-
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+"""
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of jvm library with multiple targets"() {
-        String current = JavaVersion.current();
-        String target1 = JavaVersion.VERSION_1_5;
-        String target2 = JavaVersion.VERSION_1_6;
-        String target3 = current;
         given:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -532,7 +470,7 @@ BUILD SUCCESSFUL
     jvm {
         libraries {
             myLib {
-                targetPlatform "$target1", "$target2", "$target3"
+                targetPlatform "1.5", "1.6", "1.7"
             }
         }
     }
@@ -541,13 +479,7 @@ BUILD SUCCESSFUL
         succeeds "components"
 
         then:
-        //cannot use expected because
-        //we target multiple platforms
-        output.contains(ComponentReportOutputFormatter.normalize("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-
+        outputMatches output, """
 JVM library 'myLib'
 -------------------
 
@@ -558,30 +490,41 @@ Source sets
         src/myLib/java
 
 Binaries
-    Jar 'myLib:jdk$target1:jar'
-        build using task: :jdk${target1}MyLibJar
-        platform: JVM $target1
-        tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar
-    Jar 'myLib:jdk$target2:jar'
-        build using task: :jdk${target2}MyLibJar
-        platform: JVM $target2
-        tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar
-    Jar 'myLib:jdk$target3:jar'
-        build using task: :jdk${target3}MyLibJar
-        platform: JVM $target3
-        tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar
+    Jar 'myLib:jdk1.5:jar'
+        build using task: :jdk1.5MyLibJar
+        platform: JVM 1.5
+        tool chain: current JDK ($currentJvm)
+        Jar file: build/jars/myLibJar/jdk1.5/myLib.jar
+    Jar 'myLib:jdk1.6:jar'
+        build using task: :jdk1.6MyLibJar
+        platform: JVM 1.6
+        tool chain: current JDK ($currentJvm)
+        Jar file: build/jars/myLibJar/jdk1.6/myLib.jar
+    Jar 'myLib:jdk1.7:jar'
+        build using task: :jdk1.7MyLibJar
+        platform: JVM 1.7
+        tool chain: current JDK ($currentJvm)
+        Jar file: build/jars/myLibJar/jdk1.7/myLib.jar
+"""
+    }
 
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-BUILD SUCCESSFUL
-"""))
+    private boolean outputMatches(String actualOutput, String expectedOutput) {
+        String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
+        assert cleaned == expected(expectedOutput)
+        return true
     }
 
     String expected(String normalised) {
-        return new ComponentReportOutputFormatter(toolChain).transform(normalised)
+        String raw = """:components
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+""" + normalised + """
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+"""
+        return new ComponentReportOutputFormatter(toolChain).transform(raw)
     }
 
     AvailableToolChains.InstalledToolChain getToolChain() {

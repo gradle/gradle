@@ -15,8 +15,6 @@
  */
 
 package org.gradle.api.reporting.components
-
-import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
@@ -33,20 +31,14 @@ class ComponentReportOutputFormatter implements Transformer<String, String> {
         this.toolChain = toolChain
     }
 
-    static String normalize(String original) {
-        return original
-                 .replace("\n", SystemProperties.lineSeparator)
-                 .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
-    }
-
     @Override
     String transform(String original) {
-        return normalize(original)
-                .replace("platform: JVM 1.7", "platform: JVM ${JavaVersion.current()}")
-                .replace("current JDK (1.7)", "current JDK (${JavaVersion.current()})")
+        return original
                 .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
+                .replace("\n", SystemProperties.lineSeparator)
                 .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
                 .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
                 .replaceAll('(?m)(build/binaries/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
+                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 }
