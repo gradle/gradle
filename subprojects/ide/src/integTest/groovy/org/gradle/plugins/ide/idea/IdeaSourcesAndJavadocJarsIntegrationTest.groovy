@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
-
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.test.fixtures.server.http.HttpArtifact
 
@@ -54,5 +53,16 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     @Override
     void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact) {
         httpArtifact.expectGet()
+    }
+
+    void ideFileContainsAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
+        def iml = parseFile("root.iml")
+
+        iml.component.orderEntry.library.CLASSES.root.each{ entry ->
+            def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url.text()
+            assert sourcesUrl.endsWith("/module-1.0-${sourcesClassifier}.jar!/")
+            def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url.text()
+            assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
+        }
     }
 }
