@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal.registry
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
+import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
@@ -66,11 +67,28 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         ex.cause.message == expectedMessage
 
         where:
-        methodName               | expectedMessage                                                                             | descr
-        "returnValue"            | "BinaryTask method must not have a return value."                                           | "non void method"
-        "noParams"               | "BinaryTask method must have a parameter of type '${CollectionBuilder.name}'."              | "no CollectionBuilder subject"
-        "wrongSubject"           | "BinaryTask method first parameter must be of type '${CollectionBuilder.name}'."            | "wrong rule subject type"
-        "rawCollectionBuilder"   | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."     | "non typed CollectionBuilder parameter"
+        methodName               | expectedMessage                                                                                             | descr
+        "returnValue"            | "BinaryTask method must not have a return value."                                                           | "non void method"
+        "noParams"               | "BinaryTask method must have a parameter of type '${CollectionBuilder.name}'."                              | "no CollectionBuilder subject"
+        "wrongSubject"           | "BinaryTask method first parameter must be of type '${CollectionBuilder.name}'."                            | "wrong rule subject type"
+        "rawCollectionBuilder"   | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."                     | "non typed CollectionBuilder parameter"
+        "noBinaryParameter"      | "BinaryTask method must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."  | "no component spec parameter"
+    }
+
+    @Unroll
+    def "applies ComponentModelBasePlugin and adds binary task creation rule #descr"() {
+        when:
+        ruleHandler.register(ruleDefinitionForMethod(ruleName), modelRegistry, ruleDependencies)
+
+        then:
+        1 * ruleDependencies.add(ComponentModelBasePlugin)
+
+        and:
+        1 * modelRegistry.mutate(_)
+
+        where:
+        ruleName          |  descr
+        "validTypeRule"   |  "for plain sample binary"
     }
 
     def getStringDescription(MethodRuleDefinition ruleDefinition) {
@@ -96,7 +114,7 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
     static class Rules {
 
         @BinaryTask
-        static void rawCollectionBuilder(CollectionBuilder tasks, SomeBinary binary) {
+        static String returnValue(CollectionBuilder<Task> builder, SomeBinary binary) {
         }
 
         @BinaryTask
@@ -108,17 +126,16 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         }
 
         @BinaryTask
-        static void noBinaryParameter(CollectionBuilder<Task> builder) {
+        static void rawCollectionBuilder(CollectionBuilder tasks, SomeBinary binary) {
         }
 
         @BinaryTask
-        static String returnValue(CollectionBuilder<Task> builder, SomeBinary binary) {
+        static void noBinaryParameter(CollectionBuilder<Task> builder) {
         }
 
         @BinaryTask
         static void validTypeRule(CollectionBuilder<Task> tasks, SomeBinary binary) {
             tasks.create("create${binary.getName()}")
         }
-
     }
 }

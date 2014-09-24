@@ -49,5 +49,4 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
             throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", typeParameter.getName(), subType.toString()));
         }
     }
-
 }
