@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http;
 
 import junit.framework.AssertionFailedError;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.os.OperatingSystem;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
@@ -63,6 +64,8 @@ public class CyclicBarrierHttpServer extends ExternalResource {
         executor = Executors.newCachedThreadPool();
         executor.execute(new Runnable() {
             public void run() {
+                int i = 0;
+
                 while (true) {
                     try {
                         SocketChannel connection;
@@ -77,6 +80,7 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                         }
                         try {
                             OutputStream outputStream = Channels.newOutputStream(connection);
+                            System.out.println("Handle connection request no." + (++i));
                             handleConnection(outputStream);
                             outputStream.flush();
                         } finally {
@@ -183,6 +187,15 @@ public class CyclicBarrierHttpServer extends ExternalResource {
      * Sends a response back on the connection.
      */
     public void release() {
+        // TODO(radim): quick socket operation on Windows is not noticed by client
+        // and it re-opens the connection immediately. Need to find a better way here.
+        if (OperatingSystem.current().isWindows()) {
+            try {
+                Thread.sleep(2000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         synchronized (lock) {
             released = true;
             lock.notifyAll();
