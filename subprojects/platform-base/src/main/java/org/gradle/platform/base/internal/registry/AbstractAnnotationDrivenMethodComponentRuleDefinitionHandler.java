@@ -41,7 +41,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
             throw new InvalidComponentModelException(String.format("%s method first parameter must be of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", annotationType.getSimpleName(), typeParameter.getSimpleName()));
+            throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", CollectionBuilder.class.getSimpleName(), typeParameter.getSimpleName()));
         }
         ModelType<?> subType = builder.getTypeVariables().get(0);
 
