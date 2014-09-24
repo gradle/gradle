@@ -469,6 +469,18 @@ Running `gradle assemble` will execute tasks for each library binary.
 - The task-creation rule will be executed for each binary when closing the TaskContainer.
 - Document in the user guide how to define a component, binaries and tasks for a custom model. Include some samples.
 
+#### Tests
+#### Test cases
+
+- Friendly error message when annotated binary rule method:
+    - ~~Does not have any parameters
+    - ~~CollectionBuilder Parameter does not have a generic type~~
+    - ~~Has a non-void return value~~
+    - Has no Binary parameter
+
+- Can create tasks via BinaryTask rules that declare these as input:
+   - `CollectionBuilder<Task>`, SampleBinary
+
 #### Open issues
 
 - Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
