@@ -209,7 +209,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
     }
 
-    def "sources and javadoc jars are attached to all artifacts with same base name"() {
+    def "sources and javadoc jars resolved from maven repo are attached to all artifacts with same base name"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
         def api = module.artifact(classifier: "api")
@@ -225,7 +225,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         buildFile << """
 dependencies {
     compile 'some:module:1.0:api'
-    compile 'some:module:1.0:tests'
+    testCompile 'some:module:1.0:tests'
 }"""
 
         and:
@@ -244,6 +244,33 @@ dependencies {
         and:
         ideFileContainsAndJavadocEntryForEachLib()
     }
+
+    def "sources and javadoc jars resolved from ivy repo are attached to all artifacts with same base name"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        addCompleteConfigurations(module)
+        module.configuration("api")
+        module.configuration("tests")
+        module.artifact(type: "api", classifier: "api", ext: "jar", conf: "api")
+        module.artifact(type: "tests", classifier: "tests", ext: "jar", conf: "tests")
+
+        module.publish()
+        module.allowAll()
+
+        when:
+        useIvyRepo(repo)
+        buildFile << """
+dependencies {
+    compile 'some:module:1.0:api'
+    testCompile 'some:module:1.0:tests'
+}"""
+
+        succeeds ideTask
+
+        then:
+        ideFileContainsAndJavadocEntryForEachLib("my-sources", "my-javadoc")
+    }
+
 
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
