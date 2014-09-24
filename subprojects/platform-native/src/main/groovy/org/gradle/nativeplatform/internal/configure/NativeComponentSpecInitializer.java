@@ -52,8 +52,9 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        for (NativePlatform platform : targetedComponent.choosePlatforms(allPlatforms)) {
-            NativePlatformInternal platformInternal = (NativePlatformInternal) platform;
+        for (String platformName : targetedComponent.getTargetPlatforms()) {
+            NativePlatform platform = null; //TODO: DO N
+            NativePlatformInternal platformInternal = null; //TODO:
             NativeToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
             PlatformToolProvider toolProvider = toolChain.select(platformInternal);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
@@ -80,7 +81,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
     }
 
     private boolean usePlatformDimension(TargetedNativeComponentInternal component) {
-        return component.choosePlatforms(allPlatforms).size() > 1;
+        return component.getTargetPlatforms().size() > 1; //choosePlatforms(allPlatforms)
     }
 
     private boolean useBuildTypeDimension(TargetedNativeComponentInternal component) {

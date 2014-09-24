@@ -28,10 +28,7 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
@@ -41,6 +38,8 @@ import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.toolchain.JavaToolChain;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
@@ -86,9 +85,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @Mutate
         public void registerJvmPlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
-
-            defaultPlatforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
+            platforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
                 public JvmPlatform create(String name) {
                     return new DefaultJvmPlatform(name);
                 }
@@ -96,29 +93,53 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             //Create default platforms available for Java
             for (JavaVersion javaVersion: JavaVersion.values()) {
-                platforms.create(javaVersion.toString(), JvmPlatform.class);
+                String name = DefaultJvmPlatform.generateName(javaVersion);
+                platforms.create(name, JvmPlatform.class);
+                //TODO: can I assume unique names?
+                JvmPlatform platform = (JvmPlatform) platforms.findByName(name); //TODO: break this and above steps into 2 rules?
+                platform.setTargetCompatibility(javaVersion);
             }
         }
 
         @Mutate
-        public void createBinaries(BinaryContainer binaries, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
+        public void createBinaries(BinaryContainer binaries, PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
             for (JvmLibrarySpec jvmLibrary : libraries) {
-                for (JavaVersion target : jvmLibrary.getTargetPlatforms()) {
-                    BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
-                            .withComponentName(jvmLibrary.getName())
-                            .withTypeString("jar");
-                    if (jvmLibrary.getTargetPlatforms().size() > 1) { //Only add variant dimension for multiple jdk targets to avoid breaking the default naming scheme
-                        componentBuilder = componentBuilder.withVariantDimension("jdk" + target);
+                List<JvmPlatform> selectedPlatforms = platforms.select(JvmPlatform.class, jvmLibrary.getTargetPlatforms());
+                if (selectedPlatforms.size() != jvmLibrary.getTargetPlatforms().size()) { //TODO: factor out
+                    List<String> notFound = new ArrayList<String>();
+                    for (String target: jvmLibrary.getTargetPlatforms()) {
+                        Platform found = platforms.findByName(target);
+                        if (found == null || !(found instanceof JvmPlatform)) {
+                            notFound.add(target);
+                        }
                     }
-                    BinaryNamingScheme namingScheme = componentBuilder.build();
-                    JvmPlatform platform = new DefaultJvmPlatform(target);
-                    toolChain.assertValidPlatform(platform);
-                    JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
-                    jarBinary.source(jvmLibrary.getSource());
-                    configureBinaryOutputLocations(jarBinary, buildDir);
-                    jvmLibrary.getBinaries().add(jarBinary);
-                    binaries.add(jarBinary);
+
+                    //TODO: create test case for this:
+                    //TODO: use some other exceptions? Check this somewhere else?
+                    if (notFound.size() == 1) {
+                        throw new InvalidUserDataException("Could not find JvmPlatform with name: '" + notFound.get(0) + "'");
+                    } else if (notFound.size() > 1) {
+                        throw new InvalidUserDataException("Could not find JvmPlatforms with names: " + notFound);
+                    } else {
+                        throw new InvalidUserDataException("Could not determine JvmPlatforms: " + jvmLibrary.getTargetPlatforms());
+                    }
+                }
+                for (JvmPlatform platform: selectedPlatforms) { //TODO: check empty/use default
+                        BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
+                                .withComponentName(jvmLibrary.getName())
+                                .withTypeString("jar");
+                        if (selectedPlatforms.size() > 1) { //Only add variant dimension for multiple jdk targets to avoid breaking the default naming scheme
+                            componentBuilder = componentBuilder.withVariantDimension(platform.getName());
+                        }
+                        BinaryNamingScheme namingScheme = componentBuilder.build();
+                        toolChain.assertValidPlatform(platform, platforms);
+                        JarBinarySpecInternal jarBinary = new DefaultJarBinarySpec(jvmLibrary, namingScheme, toolChain, platform);
+                        jarBinary.source(jvmLibrary.getSource());
+                        configureBinaryOutputLocations(jarBinary, buildDir);
+                        jvmLibrary.getBinaries().add(jarBinary);
+                        binaries.add(jarBinary);
+
                 }
             }
         }

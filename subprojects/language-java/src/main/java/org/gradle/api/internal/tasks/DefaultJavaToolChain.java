@@ -25,8 +25,13 @@ import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class DefaultJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
@@ -66,9 +71,28 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         return javaVersion;
     }
 
-    public void assertValidPlatform(JvmPlatform platform) {
-        if (platform.getTargetCompatibility().compareTo(getJavaVersion()) > 0) {
-            throw new IllegalArgumentException(String.format("Could not use target JVM platform: '"+platform.getTargetCompatibility()+"' when using JDK: '"+getJavaVersion()+"'. Change to a lower target."));
+    private boolean isCompatible(JvmPlatform platform, JavaVersion version) {
+        return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO: freekh need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
+    }
+
+    public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
+        List<JvmPlatform> alternatives = platforms.select(JvmPlatform.class);
+        alternatives.sort(new Comparator<JvmPlatform>() {
+                public int compare(JvmPlatform p1, JvmPlatform p2) {
+                    return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());
+                }
+            });
+
+        if (!isCompatible(platform, getJavaVersion())) {
+            List<String> compatibleVersions = new ArrayList<String>();
+            for (JvmPlatform alternative: alternatives) {
+                if (isCompatible(alternative, getJavaVersion())) {
+                    compatibleVersions.add(alternative.getName());
+                }
+            }
+
+            String compatibleVersionsString = compatibleVersions.isEmpty() ? "(None)" : compatibleVersions.toString();
+            throw new IllegalArgumentException(String.format("Cannot use target JVM platform: '"+platform.getName()+"' with target compatibility '"+platform.getTargetCompatibility()+"' because it is too high compared to Java toolchain version '"+getJavaVersion()+"'. Compatible target platforms are: " + compatibleVersionsString + "."));
         }
     }
 }

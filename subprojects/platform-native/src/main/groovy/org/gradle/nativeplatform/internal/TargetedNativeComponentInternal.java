@@ -24,6 +24,5 @@ import java.util.Set;
 
 public interface TargetedNativeComponentInternal extends TargetedNativeComponent {
     Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
-    Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates);
     Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
 }

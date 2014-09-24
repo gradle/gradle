@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
+package org.gradle.platform.base;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.LibrarySpec;
-import org.gradle.platform.base.PlatformAwareComponentSpec;
+import java.util.List;
 
 /**
- * Definition of a JVM library component that is to be built by Gradle.
+ * Defines Platform specific operations for ComponentSpecs
  */
-@Incubating
-public interface JvmLibrarySpec extends LibrarySpec<JvmLibraryBinarySpec>, PlatformAwareComponentSpec {
+public interface PlatformAwareComponentSpec {
     /**
-     * {@inheritDoc}
+     * Get the names of the targeted platforms that this component should be built for.
+     *
+     * @return the list of targeted platforms, may be empty but never null.
      */
-    DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
+    List<String> getTargetPlatforms();
+
+    /**
+     * Selects the targeted platforms names this component should be built be for.
+     */
+    public void targetPlatform(String... targets);
 }

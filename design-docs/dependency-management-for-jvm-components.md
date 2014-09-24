@@ -818,7 +818,7 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Add `PlatformAwareComponentSpec`
     - Common superclass of `JvmLibrary` and `TargetedNativeComponent`
     - Add `PlatformAwareComponentSpec.targetPlatform(String[])`
-         - Remove `JvmLibrary.target()` (replaced by this method)
+- Remove `JvmLibrary.target()` (replaced by this method)
          - Remove `TargetedNativeComponent.targetPlatforms()` (replaced by this method)
     - Add `List<String> PlatformAwareComponentSpec.getTargetPlatforms()`
          - (Later this will return a list of 'platform requirement' instances, so we don't need to rely on platform name)
@@ -856,7 +856,8 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Populate the platform container with `NativePlatform` instances for all known OS/arch combinations
 - Remove the 'default' platform/os/arch combinations: instead we should determine the current architecture to use for default.
 
-### Story: Use a consistent approach for native and JVM too chains
+### Story: Use a consistent approach for native and JVM toolchains
+
 
 TBD
 
