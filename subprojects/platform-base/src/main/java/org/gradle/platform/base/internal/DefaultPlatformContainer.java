@@ -16,14 +16,44 @@
 
 package org.gradle.platform.base.internal;
 
+import com.google.common.base.Predicate;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
 
     public DefaultPlatformContainer(Class<? extends Platform> type, Instantiator instantiator) {
         super(type, instantiator);
+    }
+
+    private <T extends Platform> List<T> select(Predicate<Platform> predicate) {
+        List<T> selected = new ArrayList<T>();
+        for (Platform platform : getStore()) {
+            if (predicate.apply(platform)) {
+                selected.add((T)platform);
+            }
+        }
+        return selected;
+    }
+
+    public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
+        return select(new Predicate<Platform>() {
+            public boolean apply(Platform platform) {
+                return type.isInstance(platform) && targets.contains(platform.getName());
+            }
+        });
+    }
+
+    public <T extends Platform> List<T> select(final Class<T> type) {
+        return select(new Predicate<Platform>() {
+            public boolean apply(Platform platform) {
+                return type.isInstance(platform);
+            }
+        });
     }
 }
