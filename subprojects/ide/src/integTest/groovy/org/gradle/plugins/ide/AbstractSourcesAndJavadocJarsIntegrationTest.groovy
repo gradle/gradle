@@ -242,7 +242,7 @@ dependencies {
         succeeds ideTask
 
         and:
-        ideFileContainsAndJavadocEntryForEachLib()
+        ideFileContainsSourcesAndJavadocEntryForEachLib()
     }
 
     def "sources and javadoc jars resolved from ivy repo are attached to all artifacts with same base name"() {
@@ -268,7 +268,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsAndJavadocEntryForEachLib("my-sources", "my-javadoc")
+        ideFileContainsSourcesAndJavadocEntryForEachLib("my-sources", "my-javadoc")
     }
 
 
@@ -338,5 +338,5 @@ task resolve << {
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
-    abstract void ideFileContainsAndJavadocEntryForEachLib(String sourcesClassifier, String javadocClassifier)
+    abstract void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier, String javadocClassifier)
 }

@@ -31,7 +31,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     }
 
 
-    void ideFileContainsAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
+    void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
         def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
         classpath.libs.each {
             assert it.sourcePath.endsWith("/module-1.0-${sourcesClassifier}.jar")

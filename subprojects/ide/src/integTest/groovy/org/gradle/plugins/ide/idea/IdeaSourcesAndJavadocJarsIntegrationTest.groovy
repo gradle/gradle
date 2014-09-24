@@ -55,7 +55,7 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         httpArtifact.expectGet()
     }
 
-    void ideFileContainsAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
+    void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
         def iml = parseFile("root.iml")
 
         iml.component.orderEntry.library.CLASSES.root.each{ entry ->
