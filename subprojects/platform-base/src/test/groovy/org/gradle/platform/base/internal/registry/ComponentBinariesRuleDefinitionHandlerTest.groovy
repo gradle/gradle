@@ -98,6 +98,7 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         where:
         methodName                  | expectedMessage                                                                                                               | descr
         "noParams"                  | "ComponentBinaries method must have a parameter of type '${CollectionBuilder.name}'."                                         | "no CollectionBuilder parameter"
+        "wrongSubject"              | "ComponentBinaries method first parameter must be of type '${CollectionBuilder.name}'."                                       | "wrong rule subject type"
         "multipileComponentSpecs"   | "ComponentBinaries method must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
         "noComponentSpec"           | "ComponentBinaries method must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
         "missmatchingComponentSpec" | "ComponentBinaries method parameter of type SomeOtherLibrary does not support binaries of type SomeBinarySpec."               | "non matching CompnentSpec type"
@@ -159,6 +160,10 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         @ComponentBinaries
         static void missmatchingComponentSpec(CollectionBuilder<SomeBinarySpec> binaries, SomeOtherLibrary library) {
             binaries.create("${library.name}Binary", library)
+        }
+
+        @ComponentBinaries
+        static void wrongSubject(SomeLibrary library) {
         }
 
         @ComponentBinaries
