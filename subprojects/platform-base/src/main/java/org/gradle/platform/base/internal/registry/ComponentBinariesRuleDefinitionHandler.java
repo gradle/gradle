@@ -55,27 +55,10 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
     }
 
     private <R> void verifyMethodSignature(MethodRuleDefinition<R> ruleDefinition) {
-        if (ruleDefinition.getReferences().size() == 0) {
-            throw new InvalidComponentModelException(String.format("%s method must have a parameter of type '%s'.", ComponentBinaries.class.getSimpleName(), CollectionBuilder.class.getName()));
-        }
-        assertIsVoidMethod(ruleDefinition, ComponentBinaries.class.getSimpleName());
-        assertHasCollectionBuilderParameter(ruleDefinition);
+        assertIsVoidMethod(ruleDefinition);
+        assertHasCollectionBuilderSubject(ruleDefinition, BinarySpec.class);
     }
 
-    private <R> void assertHasCollectionBuilderParameter(MethodRuleDefinition<R> ruleDefinition) {
-        ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
-        if (!ModelType.of(CollectionBuilder.class).isAssignableFrom(builder)) {
-            throw new InvalidComponentModelException(String.format("%s method must have first parameter of type '%s'.", ComponentBinaries.class.getSimpleName(), CollectionBuilder.class.getSimpleName()));
-        }
-        if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", ComponentBinaries.class.getSimpleName(), BinarySpec.class.getSimpleName()));
-        }
-        ModelType<?> subType = builder.getTypeVariables().get(0);
-
-        if (subType.isWildcard()) {
-            throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", BinarySpec.class.getName(), subType.toString()));
-        }
-    }
 
     @SuppressWarnings("unchecked")
     private <R> Class<? extends ComponentSpec> getComponentType(Class<? extends BinarySpec> expectedBinaryType, MethodRuleDefinition<R> ruleDefinition) {
@@ -84,7 +67,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         for (ModelReference<?> reference : references) {
             if (ComponentSpec.class.isAssignableFrom(reference.getType().getConcreteClass())) {
                 if (componentType != null) {
-                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", ComponentBinaries.class.getSimpleName(),
+                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
                             ComponentSpec.class.getSimpleName(),
                             ComponentSpec.class.getSimpleName()));
                 }
@@ -98,7 +81,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
     private void validateComponentType(Class<? extends BinarySpec> expectedBinaryType, Class<?> componentType) {
         if (componentType == null) {
-            throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.", ComponentBinaries.class.getSimpleName(),
+            throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.", annotationType.getSimpleName(),
                     ComponentSpec.class.getSimpleName(),
                     ComponentSpec.class.getSimpleName()));
         }
@@ -115,7 +98,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
                 }
             }
         }
-        throw new InvalidComponentModelException(String.format("%s method parameter of type %s does not support binaries of type %s.", ComponentBinaries.class.getSimpleName(),
+        throw new InvalidComponentModelException(String.format("%s method parameter of type %s does not support binaries of type %s.", annotationType.getSimpleName(),
                 componentType.getSimpleName(),
                 expectedBinaryType.getSimpleName()));
 

@@ -16,12 +16,17 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import org.gradle.api.Task;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTask;
 import org.gradle.platform.base.InvalidComponentModelException;
+
+import java.util.List;
 
 public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTask> {
 
@@ -41,8 +46,25 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-
     private <R> void verifyMethodSignature(MethodRuleDefinition<R> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition, BinaryTask.class.getSimpleName());
+        assertIsVoidMethod(ruleDefinition);
+        assertHasCollectionBuilderSubject(ruleDefinition, Task.class);
+        assertHasDependency(ruleDefinition, BinarySpec.class);
+    }
+
+    private <R> Class<?> assertHasDependency(MethodRuleDefinition<R> ruleDefinition, Class<?> expectedDependencyClass) {
+        List<ModelReference<?>> references = ruleDefinition.getReferences();
+        Class<?> dependencyClass = null;
+        for (ModelReference<?> reference : references) {
+            if (expectedDependencyClass.isAssignableFrom(reference.getType().getConcreteClass())) {
+                if (dependencyClass != null) {
+                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
+                            expectedDependencyClass.getSimpleName(),
+                            expectedDependencyClass.getSimpleName()));
+                }
+                dependencyClass = reference.getType().getConcreteClass();
+            }
+        }
+        return dependencyClass;
     }
 }

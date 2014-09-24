@@ -66,10 +66,10 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         ex.cause.message == expectedMessage
 
         where:
-        methodName                  | expectedMessage                                                                                                               | descr
-        "returnValue"               | "BinaryTask method must not have a return value."                                                                      | "non void method"
-
-//        "noParams"                  | "BinaryTask method must have a parameter of type '${CollectionBuilder.name}'."                                         | "no CollectionBuilder parameter"
+        methodName                    | expectedMessage                                                                                                      | descr
+        "returnValue"                 | "BinaryTask method must not have a return value."                                                                    | "non void method"
+        "noParams"                    | "BinaryTask method must have a parameter of type '${CollectionBuilder.name}'."                                       | "no CollectionBuilder subject"
+        "wrongSubject"                | "BinaryTask method first parameter must be of type '${CollectionBuilder.name}'."                                       | "wrong rule subject type"
 //        "multipileComponentSpecs"   | "BinaryTask method must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
 //        "noComponentSpec"           | "BinaryTask method must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
 //        "missmatchingComponentSpec" | "BinaryTask method parameter of type SomeOtherLibrary does not support binaries of type SomeBinarySpec."               | "non matching CompnentSpec type"
@@ -94,7 +94,6 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
-
     interface SomeBinary extends BinarySpec {}
 
     static class Rules {
@@ -105,6 +104,10 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
         @BinaryTask
         static void noParams() {
+        }
+
+        @BinaryTask
+        static void wrongSubject(binary) {
         }
 
         @BinaryTask

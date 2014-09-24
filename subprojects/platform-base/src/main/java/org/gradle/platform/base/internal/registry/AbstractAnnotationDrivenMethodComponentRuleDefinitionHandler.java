@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.inspect.AbstractAnnotationDrivenMethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -24,9 +25,29 @@ import org.gradle.platform.base.InvalidComponentModelException;
 import java.lang.annotation.Annotation;
 
 public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
-    protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition, String annotationName) {
+    protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition) {
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
-            throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationName));
+            throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationType.getSimpleName()));
         }
     }
+
+    protected <R> void assertHasCollectionBuilderSubject(MethodRuleDefinition<R> ruleDefinition, Class<?> typeParameter) {
+        if (ruleDefinition.getReferences().size() == 0) {
+            throw new InvalidComponentModelException(String.format("%s method must have a parameter of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
+        }
+
+        ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
+        if (!ModelType.of(CollectionBuilder.class).isAssignableFrom(builder)) {
+            throw new InvalidComponentModelException(String.format("%s method first parameter must be of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
+        }
+        if (builder.getTypeVariables().size() != 1) {
+            throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", annotationType.getSimpleName(), typeParameter.getSimpleName()));
+        }
+        ModelType<?> subType = builder.getTypeVariables().get(0);
+
+        if (subType.isWildcard()) {
+            throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", typeParameter.getName(), subType.toString()));
+        }
+    }
+
 }

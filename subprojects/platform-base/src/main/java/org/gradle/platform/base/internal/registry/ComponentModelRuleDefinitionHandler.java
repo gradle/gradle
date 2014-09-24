@@ -75,7 +75,7 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
     }
 
     protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition, annotationClass.getSimpleName());
+        assertIsVoidMethod(ruleDefinition);
         if (ruleDefinition.getReferences().size() != 1) {
             throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.", annotationClass.getSimpleName(), builderInterface.toString()));
         }
