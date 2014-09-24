@@ -23,14 +23,14 @@ import org.gradle.platform.base.Platform;
 /**
  * Defines and configures a JVM platform.
  *
- * <pre>
+ * <pre autoTested="true">>
  * apply plugin: 'jvm-component'
  * apply plugin: 'java-lang'
  *
  * jvm {
  *   libraries {
  *     myLib {
- *       target java("1.6")
+ *       targetPlatform "1.6"
  *     }
  *   }
  * }
