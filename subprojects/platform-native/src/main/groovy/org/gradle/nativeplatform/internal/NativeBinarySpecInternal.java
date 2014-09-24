@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.sourceset.DependentSourceSet;
+import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 

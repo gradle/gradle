@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
@@ -77,7 +77,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public static Set<NativePlatform> getNativePlatforms(PlatformContainer allPlatforms) {
-        Set<NativePlatform> platforms = new HashSet<NativePlatform>();
+        Set<NativePlatform> platforms = new LinkedHashSet<NativePlatform>();
         for (Platform platform: allPlatforms) {
             if (platform instanceof NativePlatform) {
                 platforms.add((NativePlatform) platform);

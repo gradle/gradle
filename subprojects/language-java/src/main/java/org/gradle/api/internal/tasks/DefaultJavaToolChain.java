@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.platform.jvm.JvmPlatform;
+import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -36,7 +36,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     public DefaultJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
         this.execActionFactory = execActionFactory;
-        this.javaVersion = JavaVersion.current(); //TODO: freekh verify that this is true in all cases (if the java compiler is forked for example?)
+        this.javaVersion = JavaVersion.current();
     }
 
     public String getDisplayName() {

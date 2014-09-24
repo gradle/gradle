@@ -17,7 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.jvm.ClassDirectoryBinarySpec
+import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -62,7 +62,7 @@ class JavaBasePluginTest extends Specification {
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
 
         def processResources = project.tasks['processCustomResources']
-        processResources.description == "Processes resources 'custom:resources'."
+        processResources.description == "Processes JVM resources 'custom:resources'."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir

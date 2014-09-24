@@ -27,7 +27,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.*;
-import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageRegistry;
@@ -173,7 +173,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
             if (DefaultNativePlatform.getNativePlatforms(platforms).isEmpty()) {
-                platforms.create(DefaultPlatform.DEFAULT_NAME);
+                platforms.create(DefaultPlatform.NAME);
             }
         }
 

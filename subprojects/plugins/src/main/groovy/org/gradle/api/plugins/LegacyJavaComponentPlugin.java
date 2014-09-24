@@ -20,8 +20,8 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.jvm.ClassDirectoryBinarySpec;
-import org.gradle.api.platform.jvm.internal.DefaultJvmPlatform;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -29,7 +29,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -43,9 +43,9 @@ import java.util.concurrent.Callable;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  *
  * Base plugin for Java language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.platform.base.BinaryContainer}.
- * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
- * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinarySpec}.
+ * Registers the {@link org.gradle.jvm.ClassDirectoryBinarySpec} element type for the {@link org.gradle.platform.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.jvm.ClassDirectoryBinarySpec}.
+ * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.jvm.ClassDirectoryBinarySpec}.
  */
 @Incubating
 public class LegacyJavaComponentPlugin implements Plugin<Project> {
@@ -93,7 +93,6 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
         binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
             public void execute(JavaSourceSet javaSourceSet) {
-                // TODO: handle case where binary has multiple JavaSourceSet's
                 JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
                 configureCompileTask(compileTask, javaSourceSet, binary);
                 binary.getTasks().add(compileTask);
@@ -104,9 +103,8 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createProcessResourcesTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
-            public void execute(ResourceSet resourceSet) {
-                // TODO: handle case where binary has multiple ResourceSet's
+        binary.getSource().withType(JvmResourceSet.class).all(new Action<JvmResourceSet>() {
+            public void execute(JvmResourceSet resourceSet) {
                 Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
                 resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
                 new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {

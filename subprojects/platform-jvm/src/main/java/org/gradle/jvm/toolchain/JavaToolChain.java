@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.platform.jvm.JvmPlatform;
+import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.ToolChain;
 

@@ -21,13 +21,13 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.JvmLibraryBinarySpec;
 
 public class DefaultJvmBinaryTasks extends DefaultDomainObjectSet<Task> implements JvmBinaryTasks {
-    private final JvmLibraryBinarySpec binary;
+    private final JvmBinarySpec binary;
 
-    public DefaultJvmBinaryTasks(JvmLibraryBinarySpec binary) {
+    public DefaultJvmBinaryTasks(JvmBinarySpec binary) {
         super(Task.class);
         this.binary = binary;
     }

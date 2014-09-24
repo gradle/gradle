@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.internal
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativeplatform.BuildType

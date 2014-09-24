@@ -17,8 +17,8 @@ package org.gradle.language.c;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativeplatform.sourceset.DependentSourceSet;
-import org.gradle.nativeplatform.sourceset.HeaderExportingSourceSet;
+import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 
 /**
  * A set of C source files.

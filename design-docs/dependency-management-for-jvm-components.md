@@ -143,7 +143,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
-#### Open issues
+### Open issues
 
 - `BinarySpec` hierarchy
     - No general way to navigate to the owning component (if any).
@@ -157,8 +157,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - `JvmBinarySpec` assumes binary is built from intermediate classes and resources.
     - `JarBinarySpec` assumes binary belongs to a library.
     - `ClassDirectoryBinarySpec` assumes binary belongs to a library.
-    - `ClassDirectoryBinarySpec` is in package `org.gradle.api.jvm`.
-    - `JvmLibraryBinarySpec` has a mutable targetPlatform, should also be on `JvmBinarySpec`.
 - `ComponentSpec` hierarchy
     - `ComponentSpec` assumes component is built from source.
     - `ComponentSpec` assumes component produces binaries.
@@ -171,7 +169,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - `Component` hierarchy
     - `Component` is in `org.gradle.api.component` package.
     - `PrebuiltLibrary` is actually a prebuilt native library.
-- Should rename `ResourceSet` to `JvmResourceSet`
 - Java lang plugin is called `JavaLanguagePlugin`, other language plugins are called, for example, `CLangPlugin`.
 - Java compilation options per binary.
 - `LanguageRegistration.applyToBinary()` should be replaced, instead use the output file types for the language and input file types for the binary.
@@ -180,7 +177,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
     - For windows resources source files, the output type is `res`.
     - Fail if windows resources are input to a component for which there are no windows binaries.
 - `PolymorphicDomainObjectContainer.containerWithType()` should instead override `withType()`.
-- Source sets are in the wrong package `org.gradle.nativeplatform.sourceset`
 
 ## Feature: Plugin defines a custom library type
 
@@ -808,18 +804,35 @@ Add a sample to show a JVM library built for multiple Java versions.
     - native plugin registers factory for `NativePlatform`, and makes this the default type as well
     - JVM plugin registers factory for `JvmPlatform`, and adds instance for every known JVM.
 - Add `PlatformAwareComponentSpec`
-    - Move `JvmLibrary.target()` up onto this interface as `targetPlatform`, with String[] input.
-    - Replace `TargetedNativeComponentSpec.targetPlatforms()` with `targetPlatform`
+    - Common superclass of `JvmLibrary` and `TargetedNativeComponent`
+    - Add `PlatformAwareComponentSpec.targetPlatform(String[])`
+         - Remove `JvmLibrary.target()` (replaced by this method)
+         - Remove `TargetedNativeComponent.targetPlatforms()` (replaced by this method)
+    - Add `List<String> PlatformAwareComponentSpec.getTargetPlatforms()`
+         - (Later this will return a list of 'platform requirement' instances, so we don't need to rely on platform name)
+         - Should return an empty list if no target platforms are explicitly configured.
+         - Replace `TargetedNativeComponentInternal.choosePlatforms()` with code that uses this new method
+         - In `JvmComponentPlugin.Rules.createBinaries()` need to select matching `JvmPlatform`s from the `PlatformContainer`
+               - `PlatformContainer` will be a rule input
 - Use a consistent DSL for declaring the target platforms of all platform aware component types.
-- Change `NativeComponentSpecInitializer` to build only for targeted platforms, or default/current platform if none targeted
-    - If only 1 platform in PlatformContainer, use it
-    - If multiple platforms defined, attempt to choose 'current' platform
+- Change `NativeComponentSpecInitializer` to build binaries only for targeted platforms
+    - If `getTargetPlatforms()` is empty, choose the 'current' platform from the `PlatformContainer` and create binary for that platform
+    - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
     - Fix tests that build for multiple platforms by explicitly targeting those platforms
+- Introduce `JvmComponentSpecInitializer` to mirror `NativeComponentSpecInitializer`
+    - Extracted out of `JvmComponentPlugin.Rules.createBinaries()`
+    - If `JvmLibrary.getTargetPlatforms()` is empty, select the 'current' platform from PlatformContainer and create binary for that platform.
+    - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
+- Rename the canned `JvmPlatform` instances: use 'java6', 'java7', etc
+    - Add `JvmPlatform.targetCompatibility(String)` to configure the target compatibility
+    - When creating JvmPlatforms for each JavaVersion, add an action to configure the target compatibility.
 
 #### Test coverage
 
-- Fails gracefully when attempting to target an unknown platform
-- Fails gracefully when attempting to target a JVM platform for a native component, and vice-versa
+- For both JVM and native
+    - Fails gracefully when attempting to target an unknown platform
+    - Fails gracefully when any one of a set of a target platforms is not known: reports the name of the invalid platform
+    - Fails gracefully when attempting to target a JVM platform for a native component, and vice-versa
 - When multiple native platforms are defined but none are targeted, attempts to build for sensible default platform
 - When no JVM platform is targeted, attempts to build for current JVM
 
@@ -842,6 +855,7 @@ TBD
 should fail.
 - The implementation should delegate to the JavaToolChain to determine if a binary is buildable.
 - Mention breaking change in release notes.
+- Verify the java version of the tool chain, rather than assuming current
 
 #### Test cases
 

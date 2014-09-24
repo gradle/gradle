@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.cpp.CppSourceSet;
-import org.gradle.language.nativebase.internal.AbstractHeaderExportingDependentSourceSet;
+import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 
 public class DefaultCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements CppSourceSet {
     public DefaultCppSourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {

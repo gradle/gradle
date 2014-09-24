@@ -23,8 +23,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Mutate;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -32,13 +30,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
-    private final MethodRuleDefinition<Void> ruleMethodDefinition;
     private final R instance;
     private final JavaMethod<R, T> ruleMethod;
 
-    private RuleSourceBackedRuleAction(R instance, MethodRuleDefinition<Void> ruleMethodDefinition, JavaMethod<R, T> ruleMethod) {
+    private RuleSourceBackedRuleAction(R instance, JavaMethod<R, T> ruleMethod) {
         this.instance = instance;
-        this.ruleMethodDefinition = ruleMethodDefinition;
         this.ruleMethod = ruleMethod;
     }
 
@@ -63,8 +59,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         if (!subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
             throw invalid(ruleSourceType, String.format("first parameter of rule method must be of type %s", subjectType));
         }
-        MethodRuleDefinition<Void> ruleDefinition = DefaultMethodRuleDefinition.create(ruleSourceType.getRawClass(), ruleMethod);
-        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, ruleDefinition, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), ruleMethod));
+        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), ruleMethod));
     }
 
     private static RuntimeException invalid(ModelType<?> source, String reason) {

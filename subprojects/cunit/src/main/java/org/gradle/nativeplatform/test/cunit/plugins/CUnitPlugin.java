@@ -29,7 +29,7 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
-import org.gradle.language.nativebase.internal.DefaultPreprocessingTool;
+import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;

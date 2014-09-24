@@ -35,7 +35,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
-        org.gradle.api.tasks.compile.JavaCompileTest
+
         when:
         run("compile")
 

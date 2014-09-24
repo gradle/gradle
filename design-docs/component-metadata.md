@@ -1,4 +1,6 @@
 
+# Feature: Component selection rules
+
 ## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
 
 This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
@@ -131,60 +133,6 @@ The primary changes are:
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
 - ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
-## Story: Java API for component selection rules
-
-A few options:
-
-### Option 1
-
-    interface ComponentMetaDataAction<T> {
-        void execute(T target, ComponentMetadata metadata);
-    }
-
-    interface IvyComponentMetaDataAction<T> {
-        void execute(T target, ComponentMetadata metadata, IvyModuleDescriptor descriptor);
-    }
-
-    interface ComponentSelectionRules {
-        void all(Action<? super ComponentSelection> action);
-        void all(ComponentMetaDataAction<? super ComponentSelection> action);
-        void all(IvyComponentMetaDataAction<? super ComponentSelection> action);
-    }
-
-### Option 2
-
-    class MyCustomRule {
-        @Mutate
-        void whatever(ComponentSelection selection, ComponentMetadata metadata) { ... }
-    }
-
-    class MyIvyCustomRule {
-        @Mutate
-        void whatever(ComponentSelection selection, ComponentMetadata metadata, IvyModuleDescriptor descriptor) { ... }
-    }
-
-    interface ComponentSelectionRules {
-        void all(Object rule);
-    }
-
-Option 1 can turn into option 2 later.
-
-### Implementation
-
-- Move `RuleAction` into internal package.
-
-## Story: Add Java API for component metadata rules
-
-The approach from the previous story and apply it to `ComponentMetadataHandler` and component metadata rules.
-
-Generate closure-based methods for any methods that take a `RuleAction` parameter, and remove the existing Closure-accepting duplicates.
-
-### Open issues:
-
-- `ComponentChooser.isRejectedByRules` takes a mutable meta-data. It should be immutable.
-- `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
-- `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
-
 ## Story: Build script targets component selection rule to particular module
 
 This story adds some convenience DSL to target a selection rule to a particular module:
@@ -210,10 +158,81 @@ This story adds some convenience DSL to target a selection rule to a particular 
     - 'module' value does not match `group:module` pattern
     - 'module' value contains invalid characters: '*', '+', '[', ']', '(', ')', ',' (others?)
 
+## Story: Java API for component selection rules
 
-## Open issues
+This story adds a Java API for defining component selection rules that is closely modelled on configuration rules.
+A component selection rule can be provided as an instance of a Java class that has a single method annotated with @Mutate.
 
-- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
+### User visible changes
+
+    class MySimpleRule {
+        @Mutate
+        void whatever(ComponentSelection selection) { ... }
+    }
+
+    class MyMetadataRule {
+        @Mutate
+        void whatever(ComponentSelection selection, ComponentMetadata metadata) { ... }
+    }
+
+    class MyIvyRule {
+        @Mutate
+        void whatever(ComponentSelection selection, ComponentMetadata metadata, IvyModuleDescriptor descriptor) { ... }
+    }
+
+    interface ComponentSelectionRules {
+        void all(Object rule);
+        void module(Object id, Object rule);
+    }
+
+Rule source class:
+    - Must have a single method annotated with @Mutate (other methods are ignored)
+    - The @Mutate method must have void return
+    - The @Mutate method must have `ComponentSelection` as it's first parameter
+    - The @Mutate method may have additional parameters of type `ComponentMetadata` and `IvyModuleDescriptor`
+
+### Implementation
+
+- Remove `RuleAction` methods from `ComponentSelectionRules` and remove `RuleAction` from public API
+- Add `RuleSourceBackedRuleAction` implementation that adapts a `@Mutate` method to `RuleAction`
+- Add new rule methods to `ComponentSelectionRules`
+- Include a `@Mutate` rule in the component selection sample
+- Update release notes, DSL reference and Userguide
+
+### Test coverage
+
+- Can provide a `@Mutate` rules as defined above
+- Reasonable error message for:
+    - Invalid rule source class (unit tests)
+    - `@Mutate` method does not have `ComponentSelection` as first parameter (integration test)
+    - Exception thrown by rule method
+
+## Story: Add Java API for component metadata rules
+
+This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and component metadata rules.
+
+### User visible changes
+
+    class MyCustomRule {
+        @Mutate
+        void whatever(ComponentMetadataDetails metadata) { ... }
+    }
+
+    class MyIvyRule {
+        @Mutate
+        void whatever(ComponentMetadataDetails metadata, IvyModuleDescriptor ivyDescriptor) { ... }
+    }
+
+    interface ComponentMetadataHandler {
+        all(Object ruleSource);
+    }
+
+### Implementation
+
+- Change `DefaultComponentMetadataHandler` so that it adapts `Action` and `Closure` inputs to `RuleAction` for execution
+- Add new method `ComponentMetadataHandler.all(Object)`
+- Deprecate `ComponentMetadataHandler.eachComponent()` methods, replacing them with `ComponentMetadataHandler.all()`
+    - Update samples, Userguide, release notes etc.
 
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
@@ -237,6 +256,13 @@ that matched the specified version selector, together with the reason each was r
 ### Open issues
 
 - Dependency reports should indicate reasons for candidate selection (why other candidates were rejected).
+
+## Feature open issues:
+
+- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
+- `ComponentChooser.isRejectedByRules` takes a mutable meta-data. It should be immutable.
+- `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
+- `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
 
 # Later milestones
 

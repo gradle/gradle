@@ -18,7 +18,6 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.SystemProperties
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -65,24 +64,24 @@ Additional source sets
 ----------------------
 Java source 'main:java'
     src/main/java
-Resources 'main:resources'
+JVM resources 'main:resources'
     src/main/resources
 Java source 'test:java'
     src/test/java
-Resources 'test:resources'
+JVM resources 'test:resources'
     src/test/resources
 
 Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    platform: target JDK 1.7
+    platform: JVM 1.7
     tool chain: current JDK (1.7)
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    platform: target JDK 1.7
+    platform: JVM 1.7
     tool chain: current JDK (1.7)
     classes dir: build/classes/test
     resources dir: build/resources/test
@@ -118,7 +117,7 @@ JVM library 'someLib'
 ---------------------
 
 Source sets
-    Resources 'someLib:resources'
+    JVM resources 'someLib:resources'
         src/someLib/resources
     Java source 'someLib:java'
         src/someLib/java
@@ -126,7 +125,7 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        platform: target JDK 1.7
+        platform: JVM 1.7
         tool chain: current JDK (1.7)
         Jar file: build/jars/someLibJar/someLib.jar
 
@@ -372,34 +371,6 @@ Source sets
         src/someLib/asm
 
 Binaries
-    Shared library 'someLib:i386:free:sharedLibrary'
-        build using task: :i386FreeSomeLibSharedLibrary
-        platform: i386
-        build type: debug
-        flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
-    Static library 'someLib:i386:free:staticLibrary'
-        build using task: :i386FreeSomeLibStaticLibrary
-        platform: i386
-        build type: debug
-        flavor: free
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
-    Shared library 'someLib:i386:paid:sharedLibrary'
-        build using task: :i386PaidSomeLibSharedLibrary
-        platform: i386
-        build type: debug
-        flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
-    Static library 'someLib:i386:paid:staticLibrary'
-        build using task: :i386PaidSomeLibStaticLibrary
-        platform: i386
-        build type: debug
-        flavor: paid
-        tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
     Shared library 'someLib:amd64:free:sharedLibrary'
         build using task: :amd64FreeSomeLibSharedLibrary
         platform: amd64
@@ -428,6 +399,34 @@ Binaries
         flavor: paid
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/someLibStaticLibrary/amd64Paid/libsomeLib.a
+    Shared library 'someLib:i386:free:sharedLibrary'
+        build using task: :i386FreeSomeLibSharedLibrary
+        platform: i386
+        build type: debug
+        flavor: free
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/i386Free/libsomeLib.dylib
+    Static library 'someLib:i386:free:staticLibrary'
+        build using task: :i386FreeSomeLibStaticLibrary
+        platform: i386
+        build type: debug
+        flavor: free
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/i386Free/libsomeLib.a
+    Shared library 'someLib:i386:paid:sharedLibrary'
+        build using task: :i386PaidSomeLibSharedLibrary
+        platform: i386
+        build type: debug
+        flavor: paid
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/someLibSharedLibrary/i386Paid/libsomeLib.dylib
+    Static library 'someLib:i386:paid:staticLibrary'
+        build using task: :i386PaidSomeLibStaticLibrary
+        platform: i386
+        build type: debug
+        flavor: paid
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/someLibStaticLibrary/i386Paid/libsomeLib.a
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 
@@ -476,7 +475,7 @@ JVM library 'jvmLib'
 --------------------
 
 Source sets
-    Resources 'jvmLib:resources'
+    JVM resources 'jvmLib:resources'
         src/jvmLib/resources
     Java source 'jvmLib:java'
         src/jvmLib/java
@@ -484,7 +483,7 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        platform: target JDK 1.7
+        platform: JVM 1.7
         tool chain: current JDK (1.7)
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
@@ -519,12 +518,6 @@ BUILD SUCCESSFUL
 """))
     }
 
-    def normalize(String input) {
-        return input
-                .replace("\n", SystemProperties.lineSeparator)
-                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
-    }
-
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of jvm library with multiple targets"() {
         String current = JavaVersion.current();
@@ -548,9 +541,9 @@ BUILD SUCCESSFUL
         succeeds "components"
 
         then:
-        //cannot use ComponentReportOutputFormatter because
+        //cannot use expected because
         //we target multiple platforms
-        output.contains(normalize("""
+        output.contains(ComponentReportOutputFormatter.normalize("""
 ------------------------------------------------------------
 Root project
 ------------------------------------------------------------
@@ -559,39 +552,32 @@ JVM library 'myLib'
 -------------------
 
 Source sets
-    Resources 'myLib:resources'
+    JVM resources 'myLib:resources'
         src/myLib/resources
     Java source 'myLib:java'
         src/myLib/java
 
-Binaries"""))
-    //order not guaranteed so check individual
-    and:
-    output.contains(normalize("""Jar 'myLib:jdk$target1:jar'
+Binaries
+    Jar 'myLib:jdk$target1:jar'
         build using task: :jdk${target1}MyLibJar
-        platform: target JDK $target1
+        platform: JVM $target1
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar"""))
-
-    and:
-    output.contains(normalize("""Jar 'myLib:jdk$target2:jar'
+        Jar file: build/jars/myLibJar/jdk$target1/myLib.jar
+    Jar 'myLib:jdk$target2:jar'
         build using task: :jdk${target2}MyLibJar
-        platform: target JDK $target2
+        platform: JVM $target2
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar"""))
-    and:
-    output.contains(normalize("""
+        Jar file: build/jars/myLibJar/jdk$target2/myLib.jar
     Jar 'myLib:jdk$target3:jar'
         build using task: :jdk${target3}MyLibJar
-        platform: target JDK $target3
+        platform: JVM $target3
         tool chain: current JDK ($current)
-        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar"""))
-    and:
-    output.contains("""
+        Jar file: build/jars/myLibJar/jdk$target3/myLib.jar
+
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 BUILD SUCCESSFUL
-""")
+"""))
     }
 
     String expected(String normalised) {

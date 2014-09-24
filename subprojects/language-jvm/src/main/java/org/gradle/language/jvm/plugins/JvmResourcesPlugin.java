@@ -17,24 +17,24 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.platform.base.TransformationFileType;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.jvm.ResourceSet;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.jvm.JvmLibraryBinarySpec;
+import org.gradle.platform.base.TransformationFileType;
 
 import java.util.Collections;
 import java.util.Map;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
- * org.gradle.language.jvm.ResourceSet}.
+ * org.gradle.language.jvm.JvmResourceSet}.
  */
 @Incubating
 public class JvmResourcesPlugin implements Plugin<Project> {
@@ -44,17 +44,17 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         project.getExtensions().getByType(LanguageRegistry.class).add(new JvmResources());
     }
 
-    private static class JvmResources implements LanguageRegistration<ResourceSet> {
+    private static class JvmResources implements LanguageRegistration<JvmResourceSet> {
         public String getName() {
             return "resources";
         }
 
-        public Class<ResourceSet> getSourceSetType() {
-            return ResourceSet.class;
+        public Class<JvmResourceSet> getSourceSetType() {
+            return JvmResourceSet.class;
         }
 
-        public Class<? extends ResourceSet> getSourceSetImplementation() {
-            return DefaultResourceSet.class;
+        public Class<? extends JvmResourceSet> getSourceSetImplementation() {
+            return DefaultJvmResourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {
@@ -77,8 +77,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
                     ProcessResources resourcesTask = (ProcessResources) task;
-                    ResourceSet resourceSet = (ResourceSet) sourceSet;
-                    JvmLibraryBinarySpec jvmBinary = (JvmLibraryBinarySpec) binary;
+                    JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
+                    JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
                     resourcesTask.from(resourceSet.getSource());
                     resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
                     jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
@@ -87,7 +87,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         }
 
         public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmLibraryBinarySpec;
+            return binary instanceof JvmBinarySpec;
         }
     }
 

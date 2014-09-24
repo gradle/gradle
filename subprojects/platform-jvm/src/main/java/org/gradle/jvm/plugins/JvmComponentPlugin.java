@@ -16,8 +16,8 @@
 package org.gradle.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.platform.jvm.internal.DefaultJvmPlatform;
-import org.gradle.api.platform.jvm.JvmPlatform;
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
+import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.reflect.Instantiator;
@@ -131,7 +131,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             File outputDir = new File(classesDir, outputBaseName);
             jarBinary.setClassesDir(outputDir);
             jarBinary.setResourcesDir(outputDir);
-            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName()))); //TODO: add target to jar here?
+            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinary.getLibrary().getName())));
         }
 
         @Mutate

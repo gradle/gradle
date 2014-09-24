@@ -60,7 +60,7 @@ jvm {
 }
 sources {
     myLib {
-        other(ResourceSet)
+        other(JvmResourceSet)
     }
 }
 """
