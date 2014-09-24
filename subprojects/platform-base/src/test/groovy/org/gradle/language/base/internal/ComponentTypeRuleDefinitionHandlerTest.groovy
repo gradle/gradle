@@ -27,39 +27,28 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
 import org.gradle.platform.base.internal.registry.ComponentTypeRuleDefinitionHandler
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
-class ComponentTypeRuleDefinitionHandlerTest extends Specification {
+class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
     Instantiator instantiator = new DirectInstantiator()
     def ruleDefinition = Mock(MethodRuleDefinition)
     def modelRegistry = Mock(ModelRegistry)
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    ComponentTypeRuleDefinitionHandler componentRuleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
+    ComponentTypeRuleDefinitionHandler ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
 
-    def "handles methods annotated with @ComponentType"() {
-        when:
-        1 * ruleDefinition.getAnnotation(ComponentType) >> null
-
-        then:
-        !componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
-
-
-        when:
-        1 * ruleDefinition.getAnnotation(ComponentType) >> Mock(ComponentType)
-
-        then:
-        componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
-    }
+    @Override
+    Class<? extends Annotation> getAnnotation() { return ComponentType }
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
@@ -70,7 +59,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
@@ -94,7 +83,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        componentRuleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -134,7 +123,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends Specification {
         Settings settings = Mock(Settings)
         _ * pluginApplication.target >> settings
         _ * pluginApplication.plugin >> plugin
-        componentRuleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
+        ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
     interface SomeComponentSpec extends ComponentSpec {}

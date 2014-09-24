@@ -24,16 +24,13 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
-import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.lang.annotation.Annotation
 import java.lang.reflect.Method
-/**
- * Created by Rene on 05/09/14.
- */
-class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
+
+class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
     def ruleDefinition = Mock(MethodRuleDefinition)
     def modelRegistry = Mock(ModelRegistry)
@@ -41,19 +38,9 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
 
     ComponentBinariesRuleDefinitionHandler ruleHandler = new ComponentBinariesRuleDefinitionHandler()
 
-    def "handles methods annotated with @ComponentBinaries"() {
-        when:
-        1 * ruleDefinition.getAnnotation(ComponentBinaries) >> null
-
-        then:
-        !ruleHandler.spec.isSatisfiedBy(ruleDefinition)
-
-
-        when:
-        1 * ruleDefinition.getAnnotation(ComponentBinaries) >> Mock(ComponentBinaries)
-
-        then:
-        ruleHandler.spec.isSatisfiedBy(ruleDefinition)
+    @Override
+    Class<? extends Annotation> getAnnotation() {
+        return ComponentBinaries
     }
 
     @Unroll
@@ -144,22 +131,11 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
     interface SomeBinarySubType extends SomeBinarySpec{}
 
 
-    static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec {}
-
-    static class SomeBinarySpecOtherImpl extends SomeBinarySpecImpl {}
-
-    interface NotBinarySpec {}
-
-    static class NotImplementingCustomBinary extends BaseBinarySpec implements BinarySpec {}
-
-    abstract static class NotExtendingBaseBinarySpec implements BinaryTypeRuleDefinitionHandlerTest.SomeBinarySpec {}
-
-    static class NoDefaultConstructor extends BaseBinarySpec implements SomeBinarySpec {
-        NoDefaultConstructor(String arg) {
-        }
-    }
-
     static class Rules {
+        @ComponentBinaries
+        static void noParams() {
+        }
+
         @ComponentBinaries
         static void validTypeRule(CollectionBuilder<SomeBinarySpec> binaries, SomeLibrary library) {
             binaries.create("${library.name}Binary", library)
@@ -188,10 +164,6 @@ class ComponentBinariesRuleDefinitionHandlerTest extends Specification {
         @ComponentBinaries
         static void multipileComponentSpecs(CollectionBuilder<SomeBinarySpec> binaries, SomeLibrary library, SomeLibrary otherLibrary) {
             binaries.create("${library.name}Binary", library)
-        }
-
-        @ComponentBinaries
-        static void noParams() {
         }
 
         @ComponentBinaries

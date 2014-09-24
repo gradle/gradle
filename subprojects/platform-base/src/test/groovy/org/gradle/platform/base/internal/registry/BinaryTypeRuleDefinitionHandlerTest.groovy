@@ -15,7 +15,6 @@
  */
 
 package org.gradle.platform.base.internal.registry
-
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -24,45 +23,32 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
 import org.gradle.platform.base.InvalidComponentModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
-class BinaryTypeRuleDefinitionHandlerTest extends Specification {
+class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
     Instantiator instantiator = new DirectInstantiator()
-    def ruleDefinition = Mock(MethodRuleDefinition)
-    def modelRegistry = Mock(ModelRegistry)
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    BinaryTypeRuleDefinitionHandler componentRuleHandler = new BinaryTypeRuleDefinitionHandler(instantiator)
+    BinaryTypeRuleDefinitionHandler ruleHandler = new BinaryTypeRuleDefinitionHandler(instantiator)
 
-    def "handles methods annotated with @BinaryType"() {
-        when:
-        1 * ruleDefinition.getAnnotation(BinaryType) >> null
-
-        then:
-        !componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
-
-
-        when:
-        1 * ruleDefinition.getAnnotation(BinaryType) >> Mock(BinaryType)
-
-        then:
-        componentRuleHandler.spec.isSatisfiedBy(ruleDefinition)
+    @Override
+    Class<? extends Annotation> getAnnotation() {
+        return BinaryType
     }
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
@@ -73,7 +59,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
         when:
-        componentRuleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
@@ -97,7 +83,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        componentRuleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -136,7 +122,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends Specification {
         Settings settings = Mock(Settings)
         _ * pluginApplication.target >> settings
         _ * pluginApplication.plugin >> plugin
-        componentRuleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
+        ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
     interface SomeBinarySpec extends BinarySpec {}
