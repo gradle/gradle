@@ -16,7 +16,8 @@
 
 package org.gradle.sonar.runner
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -24,7 +25,8 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
+@TargetVersions(['default', '2.4'])
+class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
@@ -49,6 +51,14 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
               }
             }
         """
+
+        if (getVersion() != "default") {
+            buildFile << """
+                sonarRunner {
+                  toolVersion = "${getVersion()}"
+                }
+            """
+        }
 
         run "sonarRunner"
 

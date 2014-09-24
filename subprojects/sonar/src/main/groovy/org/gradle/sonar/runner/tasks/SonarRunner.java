@@ -81,6 +81,11 @@ public class SonarRunner extends DefaultTask {
 
         return javaExec
                 .systemProperty("project.settings", propertyFile.getAbsolutePath())
+
+                // This value is set in the properties file, but Sonar Runner 2.4 requires it on the command line as well
+                // http://forums.gradle.org/gradle/topics/gradle-2-2-nightly-sonarrunner-task-fails-with-toolversion-2-4
+                .systemProperty("project.home", getProject().getProjectDir().getAbsolutePath())
+
                 .setClasspath(sonarRunnerConfiguration)
                 .setMain(MAIN_CLASS_NAME);
     }
