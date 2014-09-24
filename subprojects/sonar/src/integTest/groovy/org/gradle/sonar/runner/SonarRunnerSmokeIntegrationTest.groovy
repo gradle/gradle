@@ -54,6 +54,10 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         sonarServer.assertProjectPresent('org.gradle.test.sonar:SonarTestBuild')
+
+        and:
+        //Make sure that no warnings are emitted for missing test report directories
+        !output.contains("WARN  - Reports path not found")
     }
 
 }

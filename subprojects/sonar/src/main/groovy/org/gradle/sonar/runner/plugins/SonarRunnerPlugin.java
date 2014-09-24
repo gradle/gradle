@@ -220,20 +220,24 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                 SourceSet main = javaPluginConvention.getSourceSets().getAt("main");
                 properties.put("sonar.sources", nonEmptyOrNull(Iterables.filter(main.getAllSource().getSrcDirs(), FILE_EXISTS)));
                 SourceSet test = javaPluginConvention.getSourceSets().getAt("test");
-                properties.put("sonar.tests", nonEmptyOrNull(Iterables.filter(test.getAllSource().getSrcDirs(), FILE_EXISTS)));
+                List<File> testDirectories = nonEmptyOrNull(Iterables.filter(test.getAllSource().getSrcDirs(), FILE_EXISTS));
+                properties.put("sonar.tests", testDirectories);
 
                 properties.put("sonar.binaries", nonEmptyOrNull(Iterables.filter(main.getRuntimeClasspath(), IS_DIRECTORY)));
                 properties.put("sonar.libraries", getLibraries(main));
 
                 final Test testTask = (Test) project.getTasks().getByName(JavaPlugin.TEST_TASK_NAME);
-                File testResultsValue = testTask.getReports().getJunitXml().getDestination();
-                // create the test results folder to prevent SonarQube from emitting
-                // a warning if a project does not contain any tests
-                testResultsValue.mkdirs();
 
-                properties.put("sonar.surefire.reportsPath", testResultsValue);
-                // added due to https://issues.gradle.org/browse/GRADLE-3005
-                properties.put("sonar.junit.reportsPath", testResultsValue);
+                if (testDirectories != null) {
+                    File testResultsDir = testTask.getReports().getJunitXml().getDestination();
+                    // create the test results folder to prevent SonarQube from emitting
+                    // a warning if a project does not contain any tests
+                    testResultsDir.mkdirs();
+
+                    properties.put("sonar.surefire.reportsPath", testResultsDir);
+                    // added due to https://issues.gradle.org/browse/GRADLE-3005
+                    properties.put("sonar.junit.reportsPath", testResultsDir);
+                }
 
                 project.getPlugins().withType(JacocoPlugin.class, new Action<JacocoPlugin>() {
                     public void execute(JacocoPlugin jacocoPlugin) {
