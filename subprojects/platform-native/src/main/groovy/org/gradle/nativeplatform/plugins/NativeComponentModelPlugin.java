@@ -171,14 +171,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-        public void createDefaultPlatforms(PlatformContainer platforms) {
-            if (platforms.withType(NativePlatform.class).isEmpty()) {
-                platforms.create(DefaultPlatform.NAME);
-            }
-        }
-
-        @Finalize
-        public void createDefaultPlatforms(BuildTypeContainer buildTypes) {
+        public void createDefaultBuildTypes(BuildTypeContainer buildTypes) {
             if (buildTypes.isEmpty()) {
                 buildTypes.create("debug");
             }
