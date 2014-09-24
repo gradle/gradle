@@ -17,12 +17,6 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.platform.base.Platform;
-import org.gradle.platform.base.PlatformContainer;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
     private final NotationParser<Object, ArchitectureInternal> archParser;
@@ -74,15 +68,5 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     public String getCompatibilityString() {
         return String.format("%s:%s", architecture.getName(), operatingSystem.getName());
-    }
-
-    public static Set<NativePlatform> getNativePlatforms(PlatformContainer allPlatforms) {
-        Set<NativePlatform> platforms = new LinkedHashSet<NativePlatform>();
-        for (Platform platform: allPlatforms) {
-            if (platform instanceof NativePlatform) {
-                platforms.add((NativePlatform) platform);
-            }
-        }
-        return platforms;
     }
 }

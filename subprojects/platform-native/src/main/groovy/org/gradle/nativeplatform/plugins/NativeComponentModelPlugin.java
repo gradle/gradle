@@ -97,7 +97,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, DefaultNativePlatform.getNativePlatforms(platforms), buildTypes, flavors);
+            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, platforms.withType(NativePlatform.class), buildTypes, flavors);
             return new DefaultRepositories(instantiator, fileResolver, initializer);
         }
 
@@ -155,7 +155,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
-                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, DefaultNativePlatform.getNativePlatforms(platforms), buildTypes, flavors);
+                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms.withType(NativePlatform.class), buildTypes, flavors);
 
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);
@@ -172,7 +172,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
-            if (DefaultNativePlatform.getNativePlatforms(platforms).isEmpty()) {
+            if (platforms.withType(NativePlatform.class).isEmpty()) {
                 platforms.create(DefaultPlatform.NAME);
             }
         }
