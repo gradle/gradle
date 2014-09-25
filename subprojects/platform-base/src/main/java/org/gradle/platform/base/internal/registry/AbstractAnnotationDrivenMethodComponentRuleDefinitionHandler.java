@@ -34,7 +34,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
         }
     }
 
-    protected <R, V, S extends V> void visitCollectionBuilderSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<V> typeParameter) {
+    protected <R, V> void visitCollectionBuilderSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<V> typeParameter) {
         if (ruleDefinition.getReferences().size() == 0) {
             throw new InvalidComponentModelException(String.format("%s method must have a parameter of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
         }
@@ -57,10 +57,6 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
 
     protected class RuleMethodDataCollector {
         HashMap<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
-
-        public <S, R extends S> void add(Class<S> base, Class<R> implementationClass){
-            parameterTypes.put(base, implementationClass);
-        }
 
         @SuppressWarnings("unchecked")
         public <S, R extends S> Class<R> getParameterType(Class<S> baseClass) {

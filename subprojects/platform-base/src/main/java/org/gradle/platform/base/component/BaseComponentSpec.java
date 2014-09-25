@@ -34,7 +34,7 @@ import org.gradle.platform.base.ModelInstantiationException;
  * A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-@SuppressWarnings(value = {"rawtypes", "unchecked"})
+@SuppressWarnings("rawtypes")
 public abstract class BaseComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
