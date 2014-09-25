@@ -23,8 +23,6 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.ToolChain;
 
-import java.util.List;
-
 /**
  * A set of tools for building from Java source.
  *

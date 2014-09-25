@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;

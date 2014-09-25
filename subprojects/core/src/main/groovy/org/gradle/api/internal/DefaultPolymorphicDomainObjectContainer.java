@@ -60,6 +60,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         return factory.create(name);
     }
 
+    //TODO freekh: Create registerDefaultFactory on ExtensiblePolymorphicDomainObjectContainer or a new interface with this method that extends ExtensiblePolymorphicDomainObjectContainer?
     public void registerDefaultFactory(NamedDomainObjectFactory<? extends T> factory) {
         factories.put(getType(), factory);
     }

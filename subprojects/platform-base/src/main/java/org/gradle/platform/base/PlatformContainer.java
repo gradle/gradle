@@ -25,5 +25,5 @@ import java.util.List;
  */
 @Incubating
 public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
-    public <T extends Platform> List<T> select(Class<T> type,  List<String> targets);
+    <T extends Platform> List<T> select(Class<T> type,  List<String> targets); //TODO freekh: not sure I like this method here... it seems inconsistent with the rest of NamedDomainObjectContainer?
 }

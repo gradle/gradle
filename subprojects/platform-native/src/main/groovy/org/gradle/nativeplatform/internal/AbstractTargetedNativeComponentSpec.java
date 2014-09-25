@@ -15,21 +15,22 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.internal.DefaultPlatform;
+import org.gradle.platform.base.Platform;
 
 import java.util.*;
 
 public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
 
-    private final Set<String> targetPlatforms = new HashSet<String>();
+    private final Set<String> targetPlatforms = new LinkedHashSet<String>();
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
@@ -58,19 +59,22 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
     }
 
 
+    //TODO freekh: clean up this and choosePlatforms method
     public List<String> getTargetPlatforms() {
-        return null;
+        List<String> targets = new ArrayList<String>();
+        targets.addAll(targetPlatforms);
+        return targets;
     }
 
     private Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates) {
         if (targetPlatforms.isEmpty()) {
-            //return new DefaultPlatform();
+            return Sets.newHashSet((NativePlatform) new DefaultNativePlatform(Platform.DEFAULT_NAME));
         }
         return chooseElements(NativePlatform.class, candidates, targetPlatforms);
     }
 
-    private <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, final Set<String> names) {
-        if (names.isEmpty()) {
+    protected <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, Set<String> names) {
+        if (names.isEmpty()) { //TODO freekh: handle this
             return new LinkedHashSet<T>(candidates);
         }
 

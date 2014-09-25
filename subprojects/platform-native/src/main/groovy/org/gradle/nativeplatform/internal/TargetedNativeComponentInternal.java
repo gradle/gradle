@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.TargetedNativeComponent;
-import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.util.Set;
 

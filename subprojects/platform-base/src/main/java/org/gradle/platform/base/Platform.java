@@ -27,6 +27,8 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Platform extends Named {
+    public final static String DEFAULT_NAME = "current";
+
     /**
      * Returns a human consumable name for this platform.
      *

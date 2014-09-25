@@ -19,8 +19,6 @@ package org.gradle.jvm.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.internal.DefaultJarBinarySpec;
-import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.Platform;

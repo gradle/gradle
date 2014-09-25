@@ -40,6 +40,7 @@ import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -48,7 +49,6 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultPlatform;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
@@ -133,13 +133,14 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms;
-
-            defaultPlatforms.registerDefaultFactory(new NamedDomainObjectFactory<NativePlatform>() {
+            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms; //TODO freekh: remove cast/this comment when registerDefault exists on interface
+            NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
                 public NativePlatform create(String name) {
                     return new DefaultNativePlatform(name);
                 }
-            });
+            };
+            defaultPlatforms.registerDefaultFactory(nativePlatformFactory);
+            defaultPlatforms.registerFactory(NativePlatform.class, nativePlatformFactory);
         }
 
         @Mutate
@@ -151,6 +152,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
             Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
             Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languages);
+            Action<NativeBinarySpec> setDefaultTargetsAction = new ToolSettingNativeBinaryInitializer(languages);
             @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
@@ -160,6 +162,13 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);
                 binaries.addAll(component.getBinaries());
+            }
+        }
+
+        @Finalize
+        public void createDefaultPlatforms(PlatformContainer platforms) {
+            if (platforms.withType(NativePlatform.class).isEmpty()) {
+                NativePlatform defaultPlatform = platforms.create(Platform.DEFAULT_NAME, NativePlatform.class); //TODO: rename to createDefault?
             }
         }
 
