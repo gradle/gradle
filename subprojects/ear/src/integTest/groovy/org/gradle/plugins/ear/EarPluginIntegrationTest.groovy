@@ -15,10 +15,12 @@
  */
 
 package org.gradle.plugins.ear
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
+import spock.lang.Unroll
 
 import static org.testng.Assert.assertEquals
 
@@ -101,7 +103,8 @@ dependencies {
         assertEquals(modules[1].web.'web-uri'.text(), 'moduleB.war')
     }
 
-    void "uses content from application xml located in root folder"() {
+    @Unroll
+    void "uses content from application xml located #location"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
   <application-name>customear</application-name>
@@ -113,31 +116,8 @@ dependencies {
         file('META-INF/application.xml').createFile().write(applicationXml)
         buildFile << """
 apply plugin: 'ear'
-"""
-
-        when:
-        run 'assemble'
-
-        then:
-        def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.assertFileContent("META-INF/application.xml", TextUtil.toPlatformLineSeparators(applicationXml))
-    }
-
-    void "uses content found in specified app folder"() {
-        def applicationXml = """<?xml version="1.0"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
-  <application-name>customear</application-name>
-</application>
-"""
-
-        file('app/META-INF/application.xml').createFile().write(applicationXml)
-        file('app/someOtherFile.txt').createFile()
-        file('app/META-INF/stuff/yetAnotherFile.txt').createFile()
-        buildFile << """
-apply plugin: 'ear'
-
 ear {
-  appDirName 'app'
+    $appConfig
 }
 """
 
@@ -146,24 +126,31 @@ ear {
 
         then:
         def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.assertContainsFile("someOtherFile.txt")
-        ear.assertContainsFile("META-INF/stuff/yetAnotherFile.txt")
-        ear.assertFileContent("META-INF/application.xml", applicationXml)
+        // Since the application.xml file is generated (using the supplied content), it uses platform line separators
+        ear.assertFileContent("META-INF/application.xml", TextUtil.toPlatformLineSeparators(applicationXml))
+
+        where:
+        location                      | metaInfFolder   | appConfig
+        "in root folder"              | "META-INF"      | ""
+        "in specified metaInf folder" | "customMetaInf" | "metaInf { from 'customMetaInf' }"
     }
 
-    void "uses content found in default app folder"() {
+    @Unroll
+    void "uses content found in #location app folder, ignoring descriptor modification"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
   <application-name>customear</application-name>
 </application>
 """
 
-        file('src/main/application/META-INF/application.xml').createFile().write(applicationXml)
-        file('src/main/application/someOtherFile.txt').createFile()
-        file('src/main/application/META-INF/stuff/yetAnotherFile.txt').createFile()
+        file("${appDirectory}/META-INF/application.xml").createFile().write(applicationXml)
+        file("${appDirectory}/someOtherFile.txt").createFile()
+        file("${appDirectory}/META-INF/stuff/yetAnotherFile.txt").createFile()
         buildFile << """
 apply plugin: 'ear'
+
 ear {
+    ${descriptorConfig}
     deploymentDescriptor {
         applicationName = 'descriptor modification will not have any affect when application.xml already exists in source'
     }
@@ -178,8 +165,12 @@ ear {
         ear.assertContainsFile("someOtherFile.txt")
         ear.assertContainsFile("META-INF/stuff/yetAnotherFile.txt")
         ear.assertFileContent("META-INF/application.xml", applicationXml)
-    }
 
+        where:
+        location    | descriptorConfig   | appDirectory
+        "specified" | "appDirName 'app'" | "app"
+        "default"   | ""                 | "src/main/application"
+    }
 
     void "works with existing descriptor containing a doctype declaration"() {
         // We serve the DTD locally because the the parser actually pulls on this URL,
