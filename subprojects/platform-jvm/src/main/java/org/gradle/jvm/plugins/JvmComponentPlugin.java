@@ -98,9 +98,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             //Create default platforms available for Java
             for (JavaVersion javaVersion: JavaVersion.values()) {
                 String name = DefaultJvmPlatform.generateName(javaVersion);
-                platforms.create(name, JvmPlatform.class);
-                //TODO: can I assume unique names?
-                JvmPlatform platform = (JvmPlatform) platforms.findByName(name); //TODO: break this and above steps into 2 rules?
+                JvmPlatform platform = platforms.create(name, JvmPlatform.class);
                 platform.setTargetCompatibility(javaVersion);
             }
         }
@@ -112,7 +110,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             Action<JarBinarySpec> configureBinaryAction = new JarBinarySpecInitializer(buildDir);
 
-            //TODO freekh: we are skipping tools setup for jvm, because we only have one language, and we will want each language to register their own extensions/extra toolchains
+            //TODO freekh: we are skipping tools setup for jvm, because we only have one language, and we will want each language to register their own extensions/extra toolchains (using rules?)
             @SuppressWarnings("unchecked") Action<JarBinarySpec> initAction = Actions.composite(configureBinaryAction, new MarkBinariesBuildable());
             JarBinariesFactory factory = new DefaultJarBinariesFactory(instantiator, initAction);
 
