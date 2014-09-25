@@ -26,7 +26,6 @@ import org.gradle.platform.base.InvalidComponentModelException;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
     protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition) {
@@ -35,12 +34,13 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
         }
     }
 
-    protected <R> void visitCollectionBuilderSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<?> typeParameter) {
+    protected <R, V, S extends V> void visitCollectionBuilderSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<V> typeParameter) {
         if (ruleDefinition.getReferences().size() == 0) {
             throw new InvalidComponentModelException(String.format("%s method must have a parameter of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
         }
 
         ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
+
         if (!ModelType.of(CollectionBuilder.class).isAssignableFrom(builder)) {
             throw new InvalidComponentModelException(String.format("%s method first parameter must be of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
         }
@@ -55,20 +55,23 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
         dataCollector.parameterTypes.put(typeParameter, subType.getConcreteClass());
     }
 
-
-
-    @SuppressWarnings("unchecked")
     protected class RuleMethodDataCollector {
-        Map<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
+        HashMap<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
 
-        public <T> Class<? extends T> getParameterType(Class<T> baseClass) {
-            return (Class<T>)parameterTypes.get(baseClass);
+        public <S, R extends S> void add(Class<S> base, Class<R> implementationClass){
+            parameterTypes.put(base, implementationClass);
+        }
+
+        @SuppressWarnings("unchecked")
+        public <S, R extends S> Class<R> getParameterType(Class<S> baseClass) {
+            return (Class<R>) parameterTypes.get(baseClass);
         }
     }
 
-    protected <R> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<?> expectedDependencyClass) {
+    @SuppressWarnings("unchecked")
+    protected <R, S, V extends S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<S> expectedDependencyClass) {
         List<ModelReference<?>> references = ruleDefinition.getReferences();
-        Class<?> dependencyClass = null;
+        Class<V> dependencyClass = null;
         for (ModelReference<?> reference : references) {
             if (expectedDependencyClass.isAssignableFrom(reference.getType().getConcreteClass())) {
                 if (dependencyClass != null) {
@@ -76,7 +79,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
                             expectedDependencyClass.getSimpleName(),
                             expectedDependencyClass.getSimpleName()));
                 }
-                dependencyClass = reference.getType().getConcreteClass();
+                dependencyClass = (Class<V>) reference.getType().getConcreteClass();
             }
         }
         if (dependencyClass == null) {
@@ -84,8 +87,6 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
                     expectedDependencyClass.getSimpleName(),
                     expectedDependencyClass.getSimpleName()));
         }
-
         dataCollector.parameterTypes.put(expectedDependencyClass, dependencyClass);
     }
-
 }

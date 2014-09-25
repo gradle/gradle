@@ -33,27 +33,36 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings(value = {"rawtypes", "unchecked"})
+@SuppressWarnings("unchecked")
 public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<ComponentBinaries> {
 
+
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+        doRegister(ruleDefinition, modelRegistry, dependencies);
+    }
+
+    private <R, S extends BinarySpec> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
 
-            final Class<? extends BinarySpec> binaryType = dataCollector.getParameterType(BinarySpec.class);
-            final Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
+            final Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
+            final Class<? extends ComponentSpec<S>> componentType = dataCollector.getParameterType(ComponentSpec.class);
 
             validateComponentType(binaryType, componentType);
 
             dependencies.add(ComponentModelBasePlugin.class);
-            final ModelReference<CollectionBuilder<? extends BinarySpec>> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<CollectionBuilder<? extends BinarySpec>>() {
+            final ModelReference<CollectionBuilder<S>> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<CollectionBuilder<S>>() {
             });
 
-            modelRegistry.mutate(new ComponentBinariesRule(subject, componentType, binaryType, ruleDefinition, modelRegistry));
+            configureMutationRule(modelRegistry, subject, componentType, binaryType, ruleDefinition);
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
         }
+    }
+
+    private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<CollectionBuilder<S>> subject, Class<? extends ComponentSpec<S>> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
+        modelRegistry.mutate(new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition, modelRegistry));
     }
 
     private <R> void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition) {
@@ -87,36 +96,35 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
     }
 
-    @SuppressWarnings("unchecked")
-    private class ComponentBinariesRule<R, T extends BinarySpec> implements ModelMutator<CollectionBuilder<T>> {
 
-        private final Class<? extends ComponentSpec> componentType;
+    @SuppressWarnings("unchecked")
+    private class ComponentBinariesRule<R, S extends BinarySpec> implements ModelMutator<CollectionBuilder<S>> {
+
+        private final Class<? extends ComponentSpec<S>> componentType;
         private final MethodRuleDefinition<R> ruleDefinition;
         private final ModelRegistry modelRegistry;
-        private final ModelReference<CollectionBuilder<T>> subject;
-        private final Class<T> binaryType;
+        private final ModelReference<CollectionBuilder<S>> subject;
+        private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<CollectionBuilder<T>> subject,
-                                     Class<? extends ComponentSpec> componentType,
-                                     Class<T> binaryType,
-                                     MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
+        public ComponentBinariesRule(ModelReference<CollectionBuilder<S>> subject, Class<? extends ComponentSpec<S>> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
             this.subject = subject;
             this.componentType = componentType;
             this.binaryType = binaryType;
             this.ruleDefinition = ruleDefinition;
             this.modelRegistry = modelRegistry;
+
         }
 
-        public ModelReference<CollectionBuilder<T>> getSubject() {
+        public ModelReference<CollectionBuilder<S>> getSubject() {
             return subject;
         }
 
-        public void mutate(final CollectionBuilder<T> binaries, final Inputs inputs) {
+        public void mutate(final CollectionBuilder<S> binaries, final Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
             final List<String> binariesAddedByRule = new ArrayList<String>();
 
-            for(ComponentSpec<T> componentSpec : componentSpecs.withType(componentType)){
-                CollectionBuilder<? extends T> collectionBuilder = new ActionAwareCollectionBuilder(binaries, new Action<String>() {
+            for(ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)){
+                CollectionBuilder<? extends S> collectionBuilder = new ActionAwareCollectionBuilder<S>(binaries, new Action<String>() {
                     public void execute(String binaryName) {
                         binariesAddedByRule.add(binaryName);
                     }
@@ -124,7 +132,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
                 ruleDefinition.getRuleInvoker().invoke(collectionBuilder, componentSpec);
 
                 for (String binaryAddedByRule : binariesAddedByRule) {
-                    T binarySpec = modelRegistry.get(ModelPath.path(String.format("binaries.%s", binaryAddedByRule)), ModelType.of(binaryType));
+                    S binarySpec = modelRegistry.get(ModelPath.path(String.format("binaries.%s", binaryAddedByRule)), ModelType.of(binaryType));
                     componentSpec.getBinaries().add(binarySpec);
                 }
             }

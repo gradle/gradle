@@ -55,7 +55,7 @@ import javax.inject.Inject;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-@SuppressWarnings(value={"rawtypes", "unchecked"})
+@SuppressWarnings(value={"rawtypes"})
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
