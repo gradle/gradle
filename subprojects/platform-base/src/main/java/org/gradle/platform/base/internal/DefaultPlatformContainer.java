@@ -48,12 +48,4 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
             }
         });
     }
-
-    public <T extends Platform> List<T> select(final Class<T> type) {
-        return select(new Predicate<Platform>() {
-            public boolean apply(Platform platform) {
-                return type.isInstance(platform);
-            }
-        });
-    }
 }

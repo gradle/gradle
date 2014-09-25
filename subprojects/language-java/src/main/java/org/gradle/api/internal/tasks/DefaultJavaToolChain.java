@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
@@ -78,7 +79,8 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
 
     //TODO freekh: remove this method:
     public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
-        List<JvmPlatform> alternatives = platforms.select(JvmPlatform.class);
+        List<JvmPlatform> alternatives = new ArrayList<JvmPlatform>();
+        alternatives.addAll(platforms.withType(JvmPlatform.class));
         alternatives.sort(new Comparator<JvmPlatform>() {
                 public int compare(JvmPlatform p1, JvmPlatform p2) {
                     return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());

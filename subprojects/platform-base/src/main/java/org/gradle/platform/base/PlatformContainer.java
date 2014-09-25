@@ -26,5 +26,4 @@ import java.util.List;
 @Incubating
 public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
     public <T extends Platform> List<T> select(Class<T> type,  List<String> targets);
-    public <T extends Platform> List<T> select(Class<T> type);
 }
