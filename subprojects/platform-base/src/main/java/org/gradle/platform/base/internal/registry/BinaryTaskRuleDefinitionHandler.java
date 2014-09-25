@@ -31,15 +31,13 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTask;
 import org.gradle.platform.base.InvalidComponentModelException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTask> {
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
-            RuleMetaDataCollector dataCollector = new RuleMetaDataCollector();
+            RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
 
             Class<? extends BinarySpec> binaryType =  dataCollector.getParameterType(BinarySpec.class);
@@ -55,10 +53,10 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
         }
     }
 
-    private <R> void verifyMethodSignature(RuleMetaDataCollector taskDataCollector, MethodRuleDefinition<R> ruleDefinition) {
+    private <R> void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<R> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        assertHasCollectionBuilderSubject(ruleDefinition, Task.class);
-        assertHasDependency(taskDataCollector, ruleDefinition, BinarySpec.class);
+        visitCollectionBuilderSubject(taskDataCollector, ruleDefinition, Task.class);
+        visitDependency(taskDataCollector, ruleDefinition, BinarySpec.class);
     }
 
     //TODO extract common general method reusable by all AnnotationRuleDefinitionHandler
@@ -68,31 +66,6 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
         sb.append(" is not a valid BinaryTask model rule method.");
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
-
-
-    private <R> void assertHasDependency(RuleMetaDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<?> expectedDependencyClass) {
-        List<ModelReference<?>> references = ruleDefinition.getReferences();
-        Class<?> dependencyClass = null;
-        for (ModelReference<?> reference : references) {
-            if (expectedDependencyClass.isAssignableFrom(reference.getType().getConcreteClass())) {
-                if (dependencyClass != null) {
-                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
-                            expectedDependencyClass.getSimpleName(),
-                            expectedDependencyClass.getSimpleName()));
-                }
-                dependencyClass = reference.getType().getConcreteClass();
-            }
-        }
-        if (dependencyClass == null) {
-            throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.", annotationType.getSimpleName(),
-                    expectedDependencyClass.getSimpleName(),
-                    expectedDependencyClass.getSimpleName()));
-        }
-
-        dataCollector.parameterTypes.put(expectedDependencyClass, dependencyClass);
-
-    }
-
 
     private class BinaryTaskRule<R, T extends BinarySpec> implements ModelMutator<CollectionBuilder<Task>> {
 
@@ -128,14 +101,6 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
 
         public ModelRuleDescriptor getDescriptor() {
             return ruleDefinition.getDescriptor();
-        }
-    }
-
-    private class RuleMetaDataCollector{
-        Map<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
-
-        public <T> Class<? extends T> getParameterType(Class<BinarySpec> baseClass) {
-            return (Class<T>)parameterTypes.get(baseClass);
         }
     }
 }

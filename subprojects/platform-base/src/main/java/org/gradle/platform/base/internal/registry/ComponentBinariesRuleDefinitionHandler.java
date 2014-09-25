@@ -38,44 +38,28 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
-            verifyMethodSignature(ruleDefinition);
-            final Class<? extends BinarySpec> binaryType = (Class<? extends BinarySpec>) ruleDefinition.getReferences().get(0).getType().getTypeVariables().get(0).getConcreteClass();
-            final Class<? extends ComponentSpec> componentType = getComponentType(binaryType, ruleDefinition);
+            RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
+            visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
+
+            final Class<? extends BinarySpec> binaryType = dataCollector.getParameterType(BinarySpec.class);
+            final Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
+
+            validateComponentType(binaryType, componentType);
 
             dependencies.add(ComponentModelBasePlugin.class);
             final ModelReference<CollectionBuilder<? extends BinarySpec>> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<CollectionBuilder<? extends BinarySpec>>() {
             });
 
             modelRegistry.mutate(new ComponentBinariesRule(subject, componentType, binaryType, ruleDefinition, modelRegistry));
-
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
         }
     }
 
-    private <R> void verifyMethodSignature(MethodRuleDefinition<R> ruleDefinition) {
+    private <R> void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
-        assertHasCollectionBuilderSubject(ruleDefinition, BinarySpec.class);
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private <R> Class<? extends ComponentSpec> getComponentType(Class<? extends BinarySpec> expectedBinaryType, MethodRuleDefinition<R> ruleDefinition) {
-        List<ModelReference<?>> references = ruleDefinition.getReferences();
-        Class<?> componentType = null;
-        for (ModelReference<?> reference : references) {
-            if (ComponentSpec.class.isAssignableFrom(reference.getType().getConcreteClass())) {
-                if (componentType != null) {
-                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
-                            ComponentSpec.class.getSimpleName(),
-                            ComponentSpec.class.getSimpleName()));
-                }
-                componentType = reference.getType().getConcreteClass();
-            }
-        }
-
-        validateComponentType(expectedBinaryType, componentType);
-        return (Class<? extends ComponentSpec>) componentType;
+        visitCollectionBuilderSubject(dataCollector, ruleDefinition, BinarySpec.class);
+        visitDependency(dataCollector, ruleDefinition, ComponentSpec.class);
     }
 
     private void validateComponentType(Class<? extends BinarySpec> expectedBinaryType, Class<?> componentType) {
