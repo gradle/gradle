@@ -94,8 +94,6 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
     }
 
-
-    @SuppressWarnings("unchecked")
     private class ComponentBinariesRule<R, S extends BinarySpec> implements ModelMutator<CollectionBuilder<S>> {
 
         private final Class<? extends ComponentSpec<S>> componentType;
