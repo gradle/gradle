@@ -33,21 +33,26 @@ import org.gradle.platform.base.InvalidComponentModelException;
 
 import java.util.List;
 
-@SuppressWarnings(value = {"rawtypes", "unchecked"})
+@SuppressWarnings("unchecked")
 public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTask> {
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+        doRegister(ruleDefinition, modelRegistry, dependencies);
+
+    }
+
+    private <R, S extends BinarySpec> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
 
-            Class<? extends BinarySpec> binaryType =  dataCollector.getParameterType(BinarySpec.class);
+            Class<S> binaryType =  dataCollector.getParameterType(BinarySpec.class);
             dependencies.add(ComponentModelBasePlugin.class);
 
-            final ModelReference<CollectionBuilder<? extends Task>> tasks = ModelReference.of(ModelPath.path("tasks"), new ModelType<CollectionBuilder<? extends Task>>() {
+            final ModelReference<CollectionBuilder<Task>> tasks = ModelReference.of(ModelPath.path("tasks"), new ModelType<CollectionBuilder<Task>>() {
             });
 
-            modelRegistry.mutate(new BinaryTaskRule(tasks, binaryType, ruleDefinition, modelRegistry));
+            modelRegistry.mutate(new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition, modelRegistry));
 
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
@@ -76,15 +81,12 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
         private final ModelRegistry modelRegistry;
         private final ImmutableList<ModelReference<?>> inputs;
 
-        public BinaryTaskRule(ModelReference<CollectionBuilder<Task>> subject,
-                                     Class<T> binaryType,
-                                     MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
+        public BinaryTaskRule(ModelReference<CollectionBuilder<Task>> subject, Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
             this.subject = subject;
             this.binaryType = binaryType;
             this.ruleDefinition = ruleDefinition;
             this.modelRegistry = modelRegistry;
             this.inputs =  ImmutableList.<ModelReference<?>>of(ModelReference.of(ProjectIdentifier.class));
-
         }
 
         public ModelReference<CollectionBuilder<Task>> getSubject() {
