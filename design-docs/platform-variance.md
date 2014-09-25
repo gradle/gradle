@@ -1,3 +1,7 @@
+# Intro
+This doc is purely speculative. Its purpose is to discuss our overall vision going forward with variants/platform support.
+It was written the 16th September 2014, and might be outdated or plain wrong, in which case it should be removed.
+
 # Platform variance alternatives
 The concept of variance is one of the key features on our roadmap (http://www.gradle.org/roadmap#variant).
 The highlevel goal is to find a flexible and safe way for users to describe what they want their build to do.
