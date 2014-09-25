@@ -113,6 +113,8 @@ dependencies {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
   <application-name>customear</application-name>
+  <display-name>displayname</display-name>
+  <library-directory>mylib</library-directory>
 </application>
 """
 
@@ -126,8 +128,7 @@ apply plugin: 'ear'
 
         //then
         def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.assertContainsFile("META-INF/application.xml")
-        ear.assertFileContent("META-INF/application.xml", Matchers.containsString("<application-name>customear</application-name>"))
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
     @Test
