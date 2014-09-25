@@ -46,9 +46,8 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             final ModelReference<CollectionBuilder<? extends BinarySpec>> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<CollectionBuilder<? extends BinarySpec>>() {
             });
 
-            if (componentType != null) {
-                modelRegistry.mutate(new ComponentBinariesRule(subject, componentType, binaryType, ruleDefinition, modelRegistry));
-            }
+            modelRegistry.mutate(new ComponentBinariesRule(subject, componentType, binaryType, ruleDefinition, modelRegistry));
+
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
         }
