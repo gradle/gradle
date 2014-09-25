@@ -115,23 +115,19 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
             final List<String> binariesAddedByRule = new ArrayList<String>();
 
-            //don't use all. this should explicitly executed on types _IN_ the container now
-            componentSpecs.withType(componentType).all(new Action<ComponentSpec>() {
-                public void execute(ComponentSpec componentSpec) {
-                    CollectionBuilder<? extends ComponentSpec> collectionBuilder = new ActionAwareCollectionBuilder(binaries, new Action<String>() {
-                        public void execute(String binaryName) {
-                            binariesAddedByRule.add(binaryName);
-                        }
-                    });
-                    ruleDefinition.getRuleInvoker().invoke(collectionBuilder, componentSpec);
-
-                    for (String binaryAddedByRule : binariesAddedByRule) {
-                        T binarySpec = modelRegistry.get(ModelPath.path(String.format("binaries.%s", binaryAddedByRule)), ModelType.of(binaryType));
-                        componentSpec.getBinaries().add(binarySpec);
+            for(ComponentSpec<T> componentSpec : componentSpecs.withType(componentType)){
+                CollectionBuilder<? extends T> collectionBuilder = new ActionAwareCollectionBuilder(binaries, new Action<String>() {
+                    public void execute(String binaryName) {
+                        binariesAddedByRule.add(binaryName);
                     }
-                }
+                });
+                ruleDefinition.getRuleInvoker().invoke(collectionBuilder, componentSpec);
 
-            });
+                for (String binaryAddedByRule : binariesAddedByRule) {
+                    T binarySpec = modelRegistry.get(ModelPath.path(String.format("binaries.%s", binaryAddedByRule)), ModelType.of(binaryType));
+                    componentSpec.getBinaries().add(binarySpec);
+                }
+            }
         }
 
 
