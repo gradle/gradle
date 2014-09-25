@@ -21,6 +21,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 
+@SuppressWarnings(value = {"rawtypes"})
 public class DefaultComponentSpecContainer extends RuleAwarePolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
     public DefaultComponentSpecContainer(Instantiator instantiator) {
         super(ComponentSpec.class, instantiator);

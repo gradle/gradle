@@ -31,5 +31,5 @@ public interface TestSuiteSpec<T extends BinarySpec> extends ComponentSpec<T> {
     /**
      * The tested component.
      */
-    ComponentSpec getTestedComponent();
+    ComponentSpec<T> getTestedComponent();
 }

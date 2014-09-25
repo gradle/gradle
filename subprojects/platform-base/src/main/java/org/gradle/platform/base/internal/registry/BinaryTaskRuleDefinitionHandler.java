@@ -33,6 +33,7 @@ import org.gradle.platform.base.InvalidComponentModelException;
 
 import java.util.List;
 
+@SuppressWarnings(value = {"rawtypes", "unchecked"})
 public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTask> {
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {

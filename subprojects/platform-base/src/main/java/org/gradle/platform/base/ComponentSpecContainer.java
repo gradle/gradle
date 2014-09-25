@@ -24,5 +24,6 @@ import org.gradle.api.Incubating;
  * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponentContainer
  */
 @Incubating
+@SuppressWarnings(value = {"rawtypes"})
 public interface ComponentSpecContainer extends ExtensiblePolymorphicDomainObjectContainer<ComponentSpec> {
 }

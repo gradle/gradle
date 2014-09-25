@@ -57,6 +57,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
 
 
 
+    @SuppressWarnings("unchecked")
     protected class RuleMethodDataCollector {
         Map<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
 
