@@ -61,11 +61,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelState;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -176,41 +172,43 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
 
-        modelRegistry.create(ModelCreators.forInstance(
-                ModelReference.of("serviceRegistry", ServiceRegistry.class),
-                new SimpleModelRuleDescriptor("Project.<init>.serviceRegistry()"),
-                services
-        ));
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
+                        .simpleDescriptor("Project.<init>.serviceRegistry()")
+                        .build()
+        );
 
-        modelRegistry.create(ModelCreators.forFactory(
-                ModelReference.of("buildDir", File.class),
-                new SimpleModelRuleDescriptor("Project.<init>.buildDir()"),
-                new Factory<File>() {
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of("buildDir", File.class), new Factory<File>() {
                     public File create() {
                         return getBuildDir();
                     }
-                }
-        ));
+                })
+                        .simpleDescriptor("Project.<init>.buildDir()")
+                        .build()
+        );
 
-        modelRegistry.create(ModelCreators.forInstance(
-                ModelReference.of("projectIdentifier", ProjectIdentifier.class),
-                new SimpleModelRuleDescriptor("Project.<init>.projectIdentifier()"),
-                this
-        ));
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
+                        .simpleDescriptor("Project.<init>.projectIdentifier()")
+                        .build()
+        );
 
-        modelRegistry.create(ModelCreators.forFactory(
-                ModelReference.of("extensions", ExtensionContainer.class),
-                new SimpleModelRuleDescriptor("Project.<init>.extensions()"),
-                new Factory<ExtensionContainer>() {
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of("extensions", ExtensionContainer.class), new Factory<ExtensionContainer>() {
                     public ExtensionContainer create() {
                         return getExtensions();
                     }
-                }
-        ));
+                })
+                        .simpleDescriptor("Project.<init>.extensions()")
+                        .build()
+        );
 
-        modelRegistry.create(ModelCreators.forPolymorphicDomainObjectContainer(
-                ModelReference.of(TaskContainerInternal.MODEL_PATH, ModelType.of(TaskContainer.class)), Task.class, taskContainer, new SimpleModelRuleDescriptor("Project.<init>.tasks()")
-        ));
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of(TaskContainerInternal.MODEL_PATH, ModelType.of(TaskContainer.class)), taskContainer)
+                        .simpleDescriptor("Project.<init>.tasks()")
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<TaskContainerInternal, Task>(taskContainer, Task.class))
+                        .build());
 
         taskContainer.all(new Action<Task>() {
             public void execute(final Task task) {
@@ -219,11 +217,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
                 ModelState state = modelRegistry.state(modelPath);
                 if (state == null || state.getStatus() != ModelState.Status.IN_CREATION) {
-                    modelRegistry.create(ModelCreators.forInstance(
-                            ModelReference.of(modelPath, ModelType.typeOf(task)),
-                            new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
-                            task
-                    ));
+                    modelRegistry.create(
+                            ModelCreators.of(ModelReference.of(modelPath, ModelType.typeOf(task)), task)
+                                    .simpleDescriptor("Project.<init>.tasks." + name + "()")
+                                    .build()
+                    );
                 }
             }
         });

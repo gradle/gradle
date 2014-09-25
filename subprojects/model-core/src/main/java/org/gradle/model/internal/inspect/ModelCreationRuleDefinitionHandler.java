@@ -44,7 +44,12 @@ public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDriven
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         Transformer<T, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(ruleDefinition.getRuleInvoker(), descriptor, references);
-        modelRegistry.create(DefaultModelCreator.forTransformer(ModelReference.of(path, returnType), descriptor, references, transformer));
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of(path, returnType), transformer)
+                        .descriptor(descriptor)
+                        .inputs(references)
+                        .build()
+        );
     }
 
     private String determineModelName(MethodRuleDefinition<?> ruleDefinition) {

@@ -60,7 +60,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S extends T> void doCreate(final String name, ModelType<S> type, Action<? super S> configAction, Factory<? extends S> factory) {
-        ModelPath path = collectionPath.child(name);
+        ModelReference<S> modelReference = ModelReference.of(collectionPath.child(name), type);
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -68,12 +68,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        ruleRegistrar.create(DefaultModelCreator.forFactory(
-                ModelReference.of(path, type),
-                descriptor,
-                implicitInputs.getReferences(),
-                new CreateAndConfigureFactory<S>(factory, configAction)
-        ));
+        ruleRegistrar.create(
+                ModelCreators.of(modelReference, new CreateAndConfigureFactory<S>(factory, configAction))
+                        .descriptor(descriptor)
+                        .inputs(implicitInputs.getReferences())
+                        .build()
+        );
     }
 
     private class CustomTypeFactory<S extends T> implements Factory<S> {

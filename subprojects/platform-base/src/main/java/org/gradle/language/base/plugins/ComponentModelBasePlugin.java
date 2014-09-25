@@ -16,7 +16,6 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.ModelCreators;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -35,8 +34,9 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.core.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -73,9 +73,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
-        modelRegistry.create(ModelCreators.forPolymorphicDomainObjectContainer(
-                ModelReference.of("componentSpecs", DefaultComponentSpecContainer.class), ComponentSpec.class, components, new SimpleModelRuleDescriptor("Project.<init>.componentSpecs()")
-        ));
+        modelRegistry.create(
+                ModelCreators.of(ModelReference.of("componentSpecs", DefaultComponentSpecContainer.class), components)
+                        .simpleDescriptor("Project.<init>.componentSpecs()")
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
+                        .build()
+        );
 
         // TODO:DAZ Convert to model rules
         createLanguageSourceSets(sources, components, languageRegistry, project.getFileResolver());

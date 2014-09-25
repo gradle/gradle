@@ -31,7 +31,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collection;
 import java.util.Collections;
 
-public class PolymorphicDomainObjectContainerModelProjection<M, C extends PolymorphicDomainObjectContainerInternal<M>> implements ModelProjection<C> {
+public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection<C> {
 
     private final C container;
     private final Class<M> itemType;
@@ -91,7 +91,7 @@ public class PolymorphicDomainObjectContainerModelProjection<M, C extends Polymo
         return Collections.emptySet();
     }
 
-    private String getBuilderTypeDescriptionForCreatableTypes(Collection<? extends Class<?>> createableTypes) {
+    public static String getBuilderTypeDescriptionForCreatableTypes(Collection<? extends Class<?>> createableTypes) {
         StringBuilder sb = new StringBuilder(CollectionBuilder.class.getName());
         if (createableTypes.size() == 1) {
             @SuppressWarnings("ConstantConditions")

@@ -16,16 +16,14 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
-public class DefaultModelCreator<T> implements ModelCreator {
+public class ProjectionBackedModelCreator<T> implements ModelCreator {
 
     private final List<? extends ModelProjection<? super T>> projections;
     private final ModelRuleDescriptor descriptor;
@@ -33,23 +31,13 @@ public class DefaultModelCreator<T> implements ModelCreator {
     private final ModelPath path;
     private final Transformer<? extends T, ? super Inputs> transformer;
 
-    public DefaultModelCreator(ModelPath path, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, List<? extends ModelProjection<? super T>> projections,
-                               final Transformer<? extends T, ? super Inputs> transformer) {
+    public ProjectionBackedModelCreator(ModelPath path, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, List<? extends ModelProjection<? super T>> projections,
+                                        final Transformer<? extends T, ? super Inputs> transformer) {
         this.transformer = transformer;
         this.projections = projections;
         this.path = path;
         this.descriptor = descriptor;
         this.inputs = inputs;
-    }
-
-    public static <T> ModelCreator forFactory(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelReference<?>> inputs, org.gradle.internal.Factory<T> factory) {
-        return forTransformer(reference, sourceDescriptor, inputs, Transformers.toTransformer(factory));
-    }
-
-    public static <T> ModelCreator forTransformer(ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelReference<?>> inputs, Transformer<T, ? super Inputs> transformer) {
-        ModelProjection<T> identityProjection = new IdentityModelProjection<T>(reference.getType(), true, true);
-        List<ModelProjection<T>> projections = ImmutableList.of(identityProjection);
-        return new DefaultModelCreator<T>(reference.getPath(), sourceDescriptor, inputs, projections, transformer);
     }
 
     public ModelPath getPath() {

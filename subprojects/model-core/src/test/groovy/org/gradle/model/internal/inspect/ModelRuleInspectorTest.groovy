@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.api.internal.ModelCreators
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -254,7 +252,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.forInstance(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
+        registry.create(ModelCreators.of(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
 
         when:
         inspector.inspect(MutationRules, registry, dependencies)
@@ -288,7 +286,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.forInstance(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
+        registry.create(ModelCreators.of(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registry, dependencies)
@@ -299,11 +297,11 @@ class ModelRuleInspectorTest extends Specification {
 
     def "methods are processed ordered by their to string representation"() {
         given:
-        def path = new ModelPath("strings")
-        def type = new ModelType<List<String>>() {}
+        def stringListType = new ModelType<List<String>>() {}
+        def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.forInstance(ModelReference.of(path, type), new SimpleModelRuleDescriptor("strings"), []))
-        registry.create(ModelCreators.forInstance(ModelReference.of(ModelPath.path("integers"), new ModelType<List<Integer>>() {}), new SimpleModelRuleDescriptor("integers"), []))
+        registry.create(ModelCreators.of(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.of(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)

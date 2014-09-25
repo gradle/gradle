@@ -16,10 +16,8 @@
 
 package org.gradle.model.internal.registry
 
-import org.gradle.api.internal.ModelCreators
-import org.gradle.internal.Factories
+import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
 
 class DefaultModelRegistryTest extends Specification {
@@ -27,11 +25,14 @@ class DefaultModelRegistryTest extends Specification {
     def registry = new DefaultModelRegistry()
 
     def "can register creator that is bound immediately"() {
-        def foo = ModelCreators.forFactory(ModelReference.of("foo", String), new SimpleModelRuleDescriptor("foo"), [], Factories.constant("foo"))
-        def bar = ModelCreators.forFactory(ModelReference.of("bar", Integer), new SimpleModelRuleDescriptor("bar"), [], Factories.constant(1))
+        def foo = ModelCreators.of(ModelReference.of("foo", String), "foo").simpleDescriptor("foo").build()
+        def bar = ModelCreators.of(ModelReference.of("bar", Integer), 1).simpleDescriptor("bar").build()
 
         // importantly, this creator has a type only input reference to something that is already bindable
-        def other = ModelCreators.forFactory(ModelReference.of("other", String), new SimpleModelRuleDescriptor("other"), [ModelReference.of(String)], Factories.constant("other"))
+        def other = ModelCreators.of(ModelReference.of("other", String), "other")
+                .simpleDescriptor("other")
+                .inputs([ModelReference.of(String)])
+                .build()
 
         when:
         registry.create(foo)

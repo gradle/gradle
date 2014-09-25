@@ -17,11 +17,12 @@
 package org.gradle.model.dsl.internal
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.ModelCreators
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking
 import org.gradle.model.dsl.internal.transform.SourceLocation
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
@@ -34,7 +35,7 @@ class TransformedModelDslBackingTest extends Specification {
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.forInstance(ModelReference.of(pathString, element.class), new SimpleModelRuleDescriptor("register"), element))
+        modelRegistry.create(ModelCreators.of(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
     }
 
     def "can add rules via dsl"() {
