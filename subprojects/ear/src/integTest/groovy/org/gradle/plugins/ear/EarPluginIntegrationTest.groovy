@@ -18,6 +18,7 @@ package org.gradle.plugins.ear
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Ignore
@@ -128,7 +129,7 @@ apply plugin: 'ear'
 
         //then
         def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.assertFileContent("META-INF/application.xml", applicationXml)
+        ear.assertFileContent("META-INF/application.xml", TextUtil.toPlatformLineSeparators(applicationXml))
     }
 
     @Test
