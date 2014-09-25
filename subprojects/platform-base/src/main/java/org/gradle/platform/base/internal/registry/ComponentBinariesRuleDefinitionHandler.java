@@ -33,9 +33,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<ComponentBinaries> {
-
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         doRegister(ruleDefinition, modelRegistry, dependencies);
@@ -71,7 +69,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         visitDependency(dataCollector, ruleDefinition, ComponentSpec.class);
     }
 
-    private void validateComponentType(Class<? extends BinarySpec> expectedBinaryType, Class<?> componentType) {
+    private <T extends BinarySpec> void validateComponentType(Class<T> expectedBinaryType, Class<? extends ComponentSpec<T>> componentType) {
         if (componentType == null) {
             throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.", annotationType.getSimpleName(),
                     ComponentSpec.class.getSimpleName(),
@@ -83,7 +81,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 if (parameterizedType.getRawType().equals(ComponentSpec.class)) {
                     for (Type givenBinaryType : parameterizedType.getActualTypeArguments()) {
-                        if (((Class) givenBinaryType).isAssignableFrom(expectedBinaryType)) {
+                        if (((Class<?>) givenBinaryType).isAssignableFrom(expectedBinaryType)) {
                             return;
                         }
                     }
