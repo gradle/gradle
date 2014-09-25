@@ -66,11 +66,11 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
         return targets;
     }
 
-    private Set<NativePlatform> choosePlatforms(Set<? extends NativePlatform> candidates) {
+    public Set<Platform> choosePlatforms(Set<? extends Platform> candidates) {
         if (targetPlatforms.isEmpty()) {
-            return Sets.newHashSet((NativePlatform) new DefaultNativePlatform(Platform.DEFAULT_NAME));
+            return Sets.newHashSet((Platform) new DefaultNativePlatform(Platform.DEFAULT_NAME));
         }
-        return chooseElements(NativePlatform.class, candidates, targetPlatforms);
+        return chooseElements(Platform.class, candidates, targetPlatforms);
     }
 
     protected <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, Set<String> names) {

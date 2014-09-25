@@ -132,7 +132,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure
         @Mutate
-        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, ComponentSpecContainer components) {
+        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, ComponentSpecContainer components) { //TODO freekh: experiment if this is needed
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.

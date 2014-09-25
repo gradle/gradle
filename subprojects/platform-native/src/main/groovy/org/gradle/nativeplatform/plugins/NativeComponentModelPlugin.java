@@ -236,6 +236,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {
         public void execute(NativeBinarySpec nativeBinarySpec) {
             NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) nativeBinarySpec.getToolChain();
+            NativePlatform p = (NativePlatformInternal) nativeBinarySpec.getTargetPlatform(); //TODO freekh: remove
             boolean canBuild = toolChainInternal.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform()).isAvailable();
             ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
         }
