@@ -62,7 +62,7 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
     private <R> void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<R> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         visitCollectionBuilderSubject(taskDataCollector, ruleDefinition, Task.class);
-        visitDependency(taskDataCollector, ruleDefinition, BinarySpec.class);
+        visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class));
     }
 
     //TODO extract common general method reusable by all AnnotationRuleDefinitionHandler

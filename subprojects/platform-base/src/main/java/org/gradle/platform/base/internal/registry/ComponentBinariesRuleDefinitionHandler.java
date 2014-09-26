@@ -66,7 +66,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
     private <R> void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         visitCollectionBuilderSubject(dataCollector, ruleDefinition, BinarySpec.class);
-        visitDependency(dataCollector, ruleDefinition, ComponentSpec.class);
+        visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
     }
 
     private <T extends BinarySpec> void validateComponentType(Class<T> expectedBinaryType, Class<? extends ComponentSpec<T>> componentType) {

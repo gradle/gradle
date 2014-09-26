@@ -64,25 +64,24 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected <R, S, V extends S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<S> expectedDependencyClass) {
+    protected <R, S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, ModelType<S> expectedDependency) {
         List<ModelReference<?>> references = ruleDefinition.getReferences();
-        Class<V> dependencyClass = null;
+        ModelType<? extends S> dependency = null;
         for (ModelReference<?> reference : references) {
-            if (expectedDependencyClass.isAssignableFrom(reference.getType().getConcreteClass())) {
-                if (dependencyClass != null) {
-                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
-                            expectedDependencyClass.getSimpleName(),
-                            expectedDependencyClass.getSimpleName()));
-                }
-                dependencyClass = (Class<V>) reference.getType().getConcreteClass();
+            ModelType<? extends S> newDependency = expectedDependency.asSubclass(reference.getType());
+            if (dependency != null) {
+                throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
+                        expectedDependency.getConcreteClass().getSimpleName(),
+                        expectedDependency.getConcreteClass().getSimpleName()));
             }
+            dependency = newDependency;
         }
-        if (dependencyClass == null) {
+
+        if (dependency == null) {
             throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.", annotationType.getSimpleName(),
-                    expectedDependencyClass.getSimpleName(),
-                    expectedDependencyClass.getSimpleName()));
+                    expectedDependency.getConcreteClass().getSimpleName(),
+                    expectedDependency.getConcreteClass().getSimpleName()));
         }
-        dataCollector.parameterTypes.put(expectedDependencyClass, dependencyClass);
+        dataCollector.parameterTypes.put(expectedDependency.getConcreteClass(), dependency.getConcreteClass());
     }
 }
