@@ -22,8 +22,9 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -49,6 +50,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
     private JavaToolChainInternal toolChain = context.mock(JavaToolChainInternal.class);
+    private ToolProvider toolProvider = context.mock(ToolProvider.class);
     @SuppressWarnings("unchecked")
     private Compiler<JavadocSpec> generator = (Compiler<JavadocSpec>) context.mock(Compiler.class);
     private Javadoc task;
@@ -70,7 +72,9 @@ public class JavadocTest extends AbstractConventionTaskTest {
 
     private void expectCompilerCreated() {
         context.checking(new Expectations(){{
-            one(toolChain).newCompiler(with(notNullValue(JavadocSpec.class)));
+            one(toolChain).select(null);
+            will(returnValue(toolProvider));
+            one(toolProvider).newCompiler(with(notNullValue(JavadocSpec.class)));
             will(returnValue(generator));
         }});
     }

@@ -18,8 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 
-public interface NativeToolChainInternal extends NativeToolChain {
+public interface NativeToolChainInternal extends NativeToolChain, ToolChainInternal<NativePlatformInternal> {
     /**
      * Locates the tools that can target the given platform.
      */

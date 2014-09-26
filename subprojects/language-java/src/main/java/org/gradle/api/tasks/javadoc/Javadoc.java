@@ -136,7 +136,7 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
-        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).newCompiler(spec);
+        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(null).newCompiler(spec);
         generator.execute(spec);
     }
 

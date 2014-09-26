@@ -17,10 +17,9 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
-import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.platform.base.ToolChain;
 
 /**
@@ -39,10 +38,6 @@ import org.gradle.platform.base.ToolChain;
 @Incubating
 @HasInternalProtocol
 public interface JavaToolChain extends ToolChain {
-    String getDisplayName();
-    JavaVersion getJavaVersion();
-
-    //TODO freekh: move this into JavaToolChainInternal?
-    void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms); //TODO freekh: consolidate with NativeToolChain isSupportedPlatform
-    boolean select(JvmPlatform platform); //TODO freekh: consolidate with NativeToolChain select. This should return some compostite (ADT) type like Failure so we can communicate
+    // TODO:DAZ Get rid of this, instead use ToolChainInternal.select(JvmPlatform)
+    void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms);
 }

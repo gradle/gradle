@@ -17,19 +17,13 @@
 package org.gradle.nativeplatform.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.ToolChain;
 
 /**
  * A set of compilers and linkers that are used together to construct a native binary.
  */
 @Incubating
 @HasInternalProtocol
-public interface NativeToolChain extends Named {
-    /**
-     * Returns a human consumable name for this tool chain.
-     *
-     * @since 1.11
-     */
-    String getDisplayName();
+public interface NativeToolChain extends ToolChain {
 }

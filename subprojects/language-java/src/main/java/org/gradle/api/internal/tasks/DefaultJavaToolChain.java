@@ -17,24 +17,25 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class DefaultJavaToolChain implements JavaToolChainInternal {
+public class DefaultJavaToolChain implements JavaToolChainInternal, ToolProvider {
     private final JavaCompilerFactory compilerFactory;
     private final ExecActionFactory execActionFactory;
     private final JavaVersion javaVersion;
@@ -43,6 +44,10 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         this.compilerFactory = compilerFactory;
         this.execActionFactory = execActionFactory;
         this.javaVersion = JavaVersion.current();
+    }
+
+    public String getName() {
+        return String.format("JDK%s", javaVersion);
     }
 
     public String getDisplayName() {
@@ -76,7 +81,6 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO freekh: need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
     }
 
-
     //TODO freekh: remove this method:
     public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
         List<JvmPlatform> alternatives = new ArrayList<JvmPlatform>();
@@ -100,7 +104,8 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         }
     }
 
-    public boolean select(JvmPlatform platform) {
-        return isCompatible(platform, getJavaVersion());
+
+    public ToolProvider select(JvmPlatform targetPlatform) {
+        return this;
     }
 }

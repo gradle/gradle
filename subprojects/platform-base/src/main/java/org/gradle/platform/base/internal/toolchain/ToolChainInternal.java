@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.Platform;
+import org.gradle.platform.base.ToolChain;
 
-/**
- * A set of compilers that are used together to construct binaries.
- */
-@Incubating
-@HasInternalProtocol
-public interface ToolChain extends Named {
+public interface ToolChainInternal<T extends Platform> extends ToolChain {
     /**
-     * Returns a human consumable name for this tool chain.
-     *
-     * @since 1.11
+     * Locates the tools that can target the given platform.
      */
-    String getDisplayName();
+    ToolProvider select(T targetPlatform);
 }

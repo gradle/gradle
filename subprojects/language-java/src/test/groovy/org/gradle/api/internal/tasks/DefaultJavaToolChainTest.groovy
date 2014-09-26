@@ -33,6 +33,7 @@ class DefaultJavaToolChainTest extends Specification {
 
     def "has reasonable string representation"() {
         expect:
+        toolChain.name == "JDK${JavaVersion.current()}"
         toolChain.displayName == "current JDK (${JavaVersion.current()})"
         toolChain.toString() == toolChain.displayName
     }
