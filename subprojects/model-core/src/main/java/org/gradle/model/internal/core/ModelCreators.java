@@ -44,9 +44,10 @@ abstract public class ModelCreators {
 
         private final Transformer<? extends T, ? super Inputs> transformer;
         private final ModelReference<? super T> modelReference;
+        private final ImmutableList.Builder<ModelProjection<? super T>> projections = ImmutableList.builder();
+
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<ModelReference<?>> inputs = Collections.emptyList();
-        private ImmutableList.Builder<? extends ModelProjection<? super T>> projections = new ImmutableList.Builder<ModelProjection<? super T>>();
 
         private Builder(ModelReference<? super T> modelReference, Transformer<? extends T, ? super Inputs> transformer) {
             this.modelReference = modelReference;
@@ -68,7 +69,6 @@ abstract public class ModelCreators {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
         public Builder<T> withIdentityProjection() {
             projections.add(new IdentityModelProjection<T>(modelReference.getType(), true, true));
             return this;
