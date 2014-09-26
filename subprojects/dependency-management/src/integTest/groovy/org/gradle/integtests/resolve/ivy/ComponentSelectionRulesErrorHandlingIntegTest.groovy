@@ -94,13 +94,6 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasCause("Could not apply component selection rule with all().")
         failure.assertHasCause("From test")
-
-        where:
-        rule                                                                                                           | _
-        '{ ComponentSelection cs -> throw new RuntimeException("From test") }'                                         | _
-        '{ ComponentSelection cs -> throw new Exception("From test") }'                                                | _
-        '{ ComponentSelection cs, ComponentMetadata cm -> throw new Exception("From test") }'                          | _
-        '{ ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> throw new Exception("From test") }' | _
     }
 
     def "produces sensible error for invalid module target id" () {
@@ -126,5 +119,82 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasLineNumber(18)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
+    }
+
+    def "produces sensible error when @Mutate method provides invalid arguments" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            def ruleSource = new Select11()
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ruleSource
+                    }
+                }
+            }
+
+            class Select11 {
+                def candidates = []
+
+                @org.gradle.model.Mutate
+                void select(${parameters}) {
+                    if (selection.candidate.version != '1.1') {
+                        selection.reject("not 1.1")
+                    }
+                    candidates << selection.candidate.version
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failureHasCause(message)
+
+        where:
+        parameters                               | message
+        "String selection"                       | "Type Select11 is not a valid model rule source: first parameter of rule method must be of type org.gradle.api.artifacts.ComponentSelection"
+        "ComponentSelection selection, String s" | "The rule source provided does not provide a valid rule for 'ComponentSelectionRules'."
+    }
+
+    def "produces sensible error when rule source throws an exception" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            def ruleSource = new ExceptionRuleSource()
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ruleSource
+                    }
+                }
+            }
+
+            class ExceptionRuleSource {
+                def candidates = []
+
+                @org.gradle.model.Mutate
+                void select(ComponentSelection cs) {
+                    throw new Exception("thrown from rule")
+                }
+            }
+        """
+
+        expect:
+        fails 'resolveConf'
+        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 }
