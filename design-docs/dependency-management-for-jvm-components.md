@@ -838,6 +838,7 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Rename the canned `JvmPlatform` instances: use 'java6', 'java7', etc
     - Add `JvmPlatform.targetCompatibility(String)` to configure the target compatibility
     - When creating JvmPlatforms for each JavaVersion, add an action to configure the target compatibility.
+- Mention breaking changes in release notes.
 
 #### Test coverage
 
@@ -856,22 +857,32 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Populate the platform container with `NativePlatform` instances for all known OS/arch combinations
 - Remove the 'default' platform/os/arch combinations: instead we should determine the current architecture to use for default.
 
-### Story: Use a consistent approach for native and JVM toolchains
+### Story: Use a consistent approach for native and JVM tool chains
 
+Given a binary for a platform, Gradle requires a `ToolChain`, that can produce a `ToolProvider` to provide any tools
+required to compile the sources and link them into a binary.
+In the native domain, the `ToolProvider` obtained for a platform is already configured to build for the target platform, so additional tool arguments
+are not required.
 
-TBD
+This story will extract common infrastructure for defining tool chains and obtaining a tool provider to build a binary.
+
+#### User visible changes
+
+- Verify the java version of the tool chain, rather than assuming current
 
 #### Implementation
 
-- The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by the current JVM.
-- Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task
-should fail.
-- The implementation should delegate to the JavaToolChain to determine if a binary is buildable.
-- Mention breaking change in release notes.
-- Verify the java version of the tool chain, rather than assuming current
+- Extract `ToolChainRegistry` and `ToolChainRegistryInternal` into 'platform-base'
+    - Will provide a `ToolChain` given a `Platform`, or an 'unavailable' tool chain if none can target the platform
+- Extract `ToolChainInternal` out of `NativeToolChainInternal`: `NativeToolChainInternal` and `JavaToolChainInternal` extend this
+    - Will produce a `ToolProvider` given a `Platform`, or throws an exception for 'unavailable' tool chain.
+- Delegate to the JavaToolChain to determine if a binary is buildable.
 
 #### Test cases
 
+- The 'current' JDK will be available as a tool chain in `ToolChainRegistry`
+- The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by any available JVM.
+- Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task should fail.
 - Running `gradle components` on a build which cannot be built with the current JVM should not fail, and should indicate that
 the binary is not buildable.
 
