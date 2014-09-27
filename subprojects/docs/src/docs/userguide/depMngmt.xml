@@ -1212,6 +1212,21 @@ someroot/[artifact]-[revision].[ext]
                 Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required when
                 declaring a component selection rule but the metadata arguments are optional.
             </para>
+            <para>
+                Lastly, component selection rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
+                is any object that contains exactly one method that defines the rule action and is annotated with <literal>@Mutate</literal>.
+            </para>
+            <para>
+                This method:
+            </para>
+            <itemizedlist>
+                <listitem>must return void.</listitem>
+                <listitem>must have <apilink class="org.gradle.api.artifacts.ComponentSelection" /> as the first argument.</listitem>
+                <listitem>may have additional parameters of type <apilink class="org.gradle.api.artifacts.ComponentMetadata" /> and/or <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.</listitem>
+            </itemizedlist>
+            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule using API">
+                <sourcefile file="build.gradle" snippet="api-component-selection" />
+            </sample>
         </section>
     </section>
     <section id='sec:dependency_cache'>

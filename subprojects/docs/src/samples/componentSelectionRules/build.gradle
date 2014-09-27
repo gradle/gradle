@@ -1,4 +1,5 @@
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+import org.gradle.model.Mutate
 
 /*
  * Copyright 2014 the original author or authors.
@@ -79,6 +80,27 @@ configurations {
     }
 }
 // END SNIPPET targeted-component-selection
+
+// START SNIPPET api-component-selection
+class RejectTestBranch {
+    @Mutate
+    void evaluateRule(ComponentSelection selection, IvyModuleDescriptor ivy) {
+        if (ivy.branch == "test") {
+            selection.reject("Rejecting test branch")
+        }
+    }
+}
+
+configurations {
+    ruleSourceConfig {
+        resolutionStrategy {
+            componentSelection {
+                all new RejectTestBranch()
+            }
+        }
+    }
+}
+// END SNIPPET api-component-selection
 
 configurations {
     sampleConfig {
