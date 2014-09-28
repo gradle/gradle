@@ -101,4 +101,19 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
         distBase.file("docs/READ-ME.txt").text == "Read me!!!"
     }
 
+    def "application packages are built when running the assemble task"() {
+        when:
+        file("src/dist/dir").with {
+            file("r1.txt") << "r1"
+            file("r2.txt") << "r2"
+        }
+
+        then:
+        succeeds "assemble"
+
+        and:
+        def distBase = file("build/distributions")
+        distBase.file("app.zip").exists()
+        distBase.file("app.tar").exists()
+    }
 }

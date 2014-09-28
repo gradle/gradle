@@ -54,7 +54,8 @@ class ApplicationPlugin implements Plugin<Project> {
 
         configureDistSpec(pluginConvention.applicationDistribution)
         def distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
-        configureDistribution(distribution)
+        distribution.conventionMapping.baseName = {pluginConvention.applicationName}
+        configureDistSpec(distribution.contents)
         addInstallTask(distribution)
     }
 
@@ -104,13 +105,6 @@ class ApplicationPlugin implements Plugin<Project> {
             project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
         }
     }
-
-    private configureDistribution(Distribution distribution){
-        distribution.configureBaseName { pluginConvention.applicationName }
-
-        configureDistSpec(distribution.contents)
-    }
-
 
     private CopySpec configureDistSpec(CopySpec distSpec) {
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]

@@ -101,7 +101,7 @@ class DistributionPluginTest extends Specification {
         project.distributions.create('custom')
 
         then:
-        def task = project.tasks.assemblecustomDist
+        def task = project.tasks.assembleCustomDist
         task instanceof DefaultTask
         task TaskDependencyMatchers.dependsOn ("customDistZip","customDistTar")
     }

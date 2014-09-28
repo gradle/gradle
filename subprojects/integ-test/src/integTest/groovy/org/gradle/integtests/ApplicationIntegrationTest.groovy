@@ -328,6 +328,43 @@ installApp.destinationDir = buildDir
         file("build/scripts/mega-app").exists()
     }
 
+    def "application packages are built when running the assemble task"() {
+        file('settings.gradle') << 'rootProject.name = "application"'
+        file('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+    }
+}
+'''
+
+        when:
+        run 'assemble'
+
+        then:
+        def distributionsDir = file('build/distributions')
+        distributionsDir.assertIsDir()
+
+        def distZipFile = file('build/distributions/application.zip')
+        distZipFile.assertIsFile()
+
+        def distZipDir = file('build/unzip')
+        distZipFile.usingNativeTools().unzipTo(distZipDir)
+        checkApplicationImage('application', distZipDir.file('application'))
+
+        def distTarFile = file('build/distributions/application.tar')
+        distTarFile.assertIsFile()
+
+        def distTarDir = file('build/untar')
+        distTarFile.usingNativeTools().untarTo(distTarDir)
+        checkApplicationImage('application', distTarDir.file('application'))
+    }
+
     private void checkApplicationImage(String applicationName, TestFile installDir) {
         installDir.file("bin/${applicationName}").assertIsFile()
         installDir.file("bin/${applicationName}.bat").assertIsFile()
