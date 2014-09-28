@@ -23,12 +23,18 @@ import java.util.List;
 public class AntlrSpec implements Serializable {
 
     private List<String> arguments;
+    private String maxHeapSize;
 
-    public AntlrSpec(List<String> arguments) {
+    public AntlrSpec(List<String> arguments, String maxHeapSize) {
         this.arguments = arguments;
+        this.maxHeapSize = maxHeapSize;
     }
 
     public List<String> getArguments() {
         return arguments;
+    }
+
+    public String getMaxHeapSize() {
+        return maxHeapSize;
     }
 }

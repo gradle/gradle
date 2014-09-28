@@ -53,16 +53,17 @@ import javax.inject.Inject;
 public class AntlrTask extends SourceTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrTask.class);
 
-    private boolean trace;
-    private boolean traceLexer;
-    private boolean traceParser;
-    private boolean traceTreeWalker;
-    private String antlrVersion;
+    private boolean trace = false;
+    private boolean traceLexer = false;
+    private boolean traceParser = false;
+    private boolean traceTreeWalker = false;
+    private List<String> arguments = new ArrayList<String>();
 
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
     private File sourceDirectory;
+    private String maxHeapSize = "1g";
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -106,6 +107,24 @@ public class AntlrTask extends SourceTask {
 
     public void setTraceTreeWalker(boolean traceTreeWalker) {
         this.traceTreeWalker = traceTreeWalker;
+    }
+
+    public String getMaxHeapSize() {
+        return maxHeapSize;
+    }
+
+    public void setMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
+    }
+
+    public void setArguments(List<String> arguments) {
+        if (arguments != null) {
+            this.arguments = arguments;
+        }
+    }
+
+    public List<String> getArguments() {
+        return arguments;
     }
 
     /**
@@ -162,20 +181,8 @@ public class AntlrTask extends SourceTask {
     @TaskAction
     public void generate() {
         AntlrWorkerManager manager = new AntlrWorkerManager();
-
-        // Build args
-        List<String> args = new ArrayList<String>();
-        args.add("-o");
-        args.add(outputDirectory.getAbsolutePath());
-
-        // Get files in source directory
-        for (File file : sourceDirectory.listFiles()) {
-            if (file.getName().endsWith(".g") || file.getName().endsWith(".g4")) {
-                args.add(file.getAbsolutePath());
-            }
-        }
-
-        AntlrSpec spec = new AntlrSpec(args);
+        List<String> args = buildArguments();
+        AntlrSpec spec = new AntlrSpec(args, maxHeapSize);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), antlrClasspath, spec);
         evaluateAntlrResult(result);
     }
@@ -189,5 +196,42 @@ public class AntlrTask extends SourceTask {
                 + errorCount
                 + " errors during grammar generation");
         }
+    }
+
+    /**
+     * Finalizes the list of arguments that will be sent to the ANTLR tool.
+     */
+    List<String> buildArguments() {
+        List<String> args = new ArrayList<String>();    // List for finalized arguments
+        
+        // Output file
+        args.add("-o");
+        args.add(outputDirectory.getAbsolutePath());
+        
+        // Custom arguments
+        for (String argument : arguments) {
+            args.add(argument);
+        }
+
+        // Add trace parameters, if they don't already exist
+        if (isTrace() && !arguments.contains("-trace")) {
+            args.add("-trace");
+        }
+        if (isTraceLexer() && !arguments.contains("-traceLexer")) {
+            args.add("-traceLexer");
+        }
+        if (isTraceParser() && !arguments.contains("-traceParser")) {
+            args.add("-traceParser");
+        }
+        if (isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
+            args.add("-traceTreeWalker");
+        }
+
+        // Files in source directory
+        for (File file : sourceDirectory.listFiles()) {
+            args.add(file.getAbsolutePath());
+        }
+
+        return args;
     }
 }

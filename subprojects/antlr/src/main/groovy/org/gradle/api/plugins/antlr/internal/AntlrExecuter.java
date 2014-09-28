@@ -37,10 +37,11 @@ public class AntlrExecuter implements Serializable {
 
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        List<String> arguments = spec.getArguments();
+        String[] argArr = new String[arguments.size()];
+        arguments.toArray(argArr);
+
         try {
-            final List<String> args = spec.getArguments();
-            String[] argArr = new String[args.size()];
-            args.toArray(argArr);
             Thread.currentThread().setContextClassLoader(antlr.Tool.class.getClassLoader());
 
             // Try ANTLR 4
