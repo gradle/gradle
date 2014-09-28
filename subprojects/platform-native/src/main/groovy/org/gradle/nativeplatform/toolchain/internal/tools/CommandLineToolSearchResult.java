@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
-import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 import java.io.File;
 

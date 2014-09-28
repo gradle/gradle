@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;

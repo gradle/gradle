@@ -24,8 +24,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain
-import org.gradle.nativeplatform.toolchain.internal.ToolChainAvailability
-import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

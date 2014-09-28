@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.api.GradleException
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 

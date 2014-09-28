@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.platform.base.internal.toolchain;
 
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.TreeVisitor;

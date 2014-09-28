@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult;
+import org.gradle.util.TreeVisitor;
 
-import java.io.File;
+public interface ToolSearchResult {
+    boolean isAvailable();
 
-public interface InstallationSearchResult extends ToolSearchResult {
-    String getVersion();
-
-    File getResult();
+    /**
+     * Writes some diagnostics about why the tool is not available.
+     */
+    void explain(TreeVisitor<? super String> visitor);
 }

@@ -32,6 +32,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchR
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

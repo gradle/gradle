@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.toolchain.internal
+package org.gradle.platform.base.internal.toolchain
 
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-class NativeToolChainAvailabilityTest extends Specification {
+class ToolChainAvailabilityTest extends Specification {
     def "visits message"() {
         def visitor = Mock(TreeVisitor)
 

@@ -21,6 +21,7 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
 public class UnavailablePlatformToolProvider implements PlatformToolProvider {

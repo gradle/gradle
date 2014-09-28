@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.platform.internal.*
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.PlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult

@@ -19,6 +19,7 @@ package org.gradle.platform.base.internal.toolchain;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public interface ToolProvider {
+// TODO:DAZ Introduce "LocatedToolProvider extends ToolProvider, ToolSearchResult"
+public interface ToolProvider extends ToolSearchResult {
     <T extends CompileSpec> Compiler<T> newCompiler(T spec);
 }

@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.toolchain.internal.ToolSearchResult;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.VersionNumber;
 
 public interface GccVersionResult extends ToolSearchResult {

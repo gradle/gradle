@@ -34,6 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 import org.slf4j.Logger;

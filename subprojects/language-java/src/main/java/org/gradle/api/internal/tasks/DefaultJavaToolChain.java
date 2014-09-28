@@ -29,13 +29,14 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class DefaultJavaToolChain implements JavaToolChainInternal, ToolProvider {
+public class DefaultJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
     private final ExecActionFactory execActionFactory;
     private final JavaVersion javaVersion;
@@ -59,18 +60,12 @@ public class DefaultJavaToolChain implements JavaToolChainInternal, ToolProvider
         return getDisplayName();
     }
 
-    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
-        if (spec instanceof JavaCompileSpec) {
-            CompileOptions options = ((JavaCompileSpec) spec).getCompileOptions();
-            @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) compilerFactory.create(options);
-            return compiler;
+    public ToolProvider select(JvmPlatform targetPlatform) {
+        // TODO:DAZ Remove all of the calls to this method with null platform
+        if (targetPlatform != null && targetPlatform.getTargetCompatibility().compareTo(javaVersion) > 0) {
+            return new UnavailableToolProvider(targetPlatform);
         }
-        if (spec instanceof JavadocSpec) {
-            @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) new JavadocGenerator(execActionFactory);
-            return compiler;
-        }
-
-        throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", spec.getClass().getSimpleName()));
+        return new JavaToolProvider();
     }
 
     public JavaVersion getJavaVersion() {
@@ -81,6 +76,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal, ToolProvider
         return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO freekh: need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
     }
 
+    // TODO:DAZ Remove this method: check availability in the binary initializer, throw failure when creating compiler in task
     //TODO freekh: remove this method:
     public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
         List<JvmPlatform> alternatives = new ArrayList<JvmPlatform>();
@@ -104,8 +100,50 @@ public class DefaultJavaToolChain implements JavaToolChainInternal, ToolProvider
         }
     }
 
+    private class JavaToolProvider implements ToolProvider {
+        public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
+            if (spec instanceof JavaCompileSpec) {
+                CompileOptions options = ((JavaCompileSpec) spec).getCompileOptions();
+                @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) compilerFactory.create(options);
+                return compiler;
+            }
+            if (spec instanceof JavadocSpec) {
+                @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) new JavadocGenerator(execActionFactory);
+                return compiler;
+            }
 
-    public ToolProvider select(JvmPlatform targetPlatform) {
-        return this;
+            throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", spec.getClass().getSimpleName()));
+        }
+
+        public boolean isAvailable() {
+            return true;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+        }
+    }
+
+    private class UnavailableToolProvider implements ToolProvider {
+        private final JvmPlatform targetPlatform;
+
+        private UnavailableToolProvider(JvmPlatform targetPlatform) {
+            this.targetPlatform = targetPlatform;
+        }
+
+        public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
+            throw new IllegalArgumentException(getMessage());
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(getMessage());
+        }
+
+        private String getMessage() {
+            return String.format("Could not use target JVM platform: '%s' when using JDK: '%s'.", targetPlatform.getTargetCompatibility(), javaVersion);
+        }
     }
 }
