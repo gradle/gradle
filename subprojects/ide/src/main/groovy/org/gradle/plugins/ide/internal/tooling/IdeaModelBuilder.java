@@ -110,8 +110,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
-            .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))
-            .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs()))
+            .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
+            .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs(), ideaModule.getGeneratedSourceDirs()))
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
@@ -128,10 +128,14 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 
-    private Set<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs) {
+    private Set<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
         Set<IdeaSourceDirectory> out = new LinkedHashSet<IdeaSourceDirectory>();
         for (File s : sourceDirs) {
-            out.add(new DefaultIdeaSourceDirectory().setDirectory(s));
+            DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
+            if (generatedSourceDirs.contains(s)) {
+                sourceDirectory.setGenerated(true);
+            }
+            out.add(sourceDirectory);
         }
         return out;
     }

@@ -295,6 +295,7 @@ We would like to thank the following community members for making contributions 
 * [Ryan Liptak](https://github.com/squeek502) - Eclipse integration test coverage improvements
 * [Stuart Armitage](https://github.com/maiflai) - Fixed bug in AbstractTask.setActions
 * [Björn Kautler](https://github.com/Vampire) - improvements to `'sonar-runner'` plugin
+* [Andrii Liubimov](https://github.com/aliubimov) - enhancement to `IdeaModule` model to mark generated source directories
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
