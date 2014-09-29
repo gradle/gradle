@@ -17,10 +17,8 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.DefaultCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
@@ -166,37 +164,5 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid ComponentBinaries model rule method.");
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
-    }
-
-
-    private class ActionAwareCollectionBuilder<T extends BinarySpec> implements CollectionBuilder<T> {
-        private final CollectionBuilder<T> delegate;
-        private final Action<String> callbackAction;
-
-        public ActionAwareCollectionBuilder(CollectionBuilder<T> delegate, Action<String> callbackAction) {
-            this.delegate = delegate;
-            this.callbackAction = callbackAction;
-        }
-
-        public void create(String name) {
-            delegate.create(name);
-            callbackAction.execute(name);
-        }
-
-        public void create(String name, Action<? super T> configAction) {
-            delegate.create(name, configAction);
-            callbackAction.execute(name);
-
-        }
-
-        public <S extends T> void create(String name, Class<S> type) {
-            delegate.create(name, type);
-            callbackAction.execute(name);
-        }
-
-        public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
-            delegate.create(name, type, configAction);
-            callbackAction.execute(name);
-        }
     }
 }
