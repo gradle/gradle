@@ -147,7 +147,7 @@ Binaries
 
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
-                    binaries.create("\${library.name}Binary", SampleBinary)
+                    binaries.create("\${library.name}Binary")
                     binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
                 }
             }
