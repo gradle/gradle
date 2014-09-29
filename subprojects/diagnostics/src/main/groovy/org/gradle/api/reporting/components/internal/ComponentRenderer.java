@@ -19,8 +19,12 @@ package org.gradle.api.reporting.components.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.util.CollectionUtils;
+
+import java.util.Comparator;
 
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
     private final SourceSetRenderer sourceSetRenderer;
@@ -37,6 +41,10 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
         builder.getOutput().println();
         builder.collection("Source sets", component.getSource(), sourceSetRenderer, "source sets");
         builder.getOutput().println();
-        builder.collection("Binaries", component.getBinaries(), renderer, "binaries");
+        builder.collection("Binaries", CollectionUtils.sort(component.getBinaries(), new Comparator<BinarySpec>() {
+            public int compare(BinarySpec binary1, BinarySpec binary2) {
+                return binary1.getName().compareTo(binary2.getName());
+            }
+        }), renderer, "binaries");
     }
 }
