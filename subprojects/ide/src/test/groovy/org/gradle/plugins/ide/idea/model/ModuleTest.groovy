@@ -22,9 +22,9 @@ import spock.lang.Specification
 class ModuleTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
     final XmlTransformer xmlTransformer = new XmlTransformer()
-    final customSourceFolders = [path('file://$MODULE_DIR$/src')] as LinkedHashSet
-    final customGeneratedSourceFolders = [path('file://$MODULE_DIR$/generated-src')] as LinkedHashSet
-    final customTestSourceFolders = [path('file://$MODULE_DIR$/srcTest')] as LinkedHashSet
+    final customSourceFolders = [path('file://$MODULE_DIR$/src'), path('file://$MODULE_DIR$/generated-src')] as LinkedHashSet
+    final customTestSourceFolders = [path('file://$MODULE_DIR$/srcTest'), path('file://$MODULE_DIR$/generated-test-src')] as LinkedHashSet
+    final customGeneratedSourceFolders = [path('file://$MODULE_DIR$/generated-src'), path('file://$MODULE_DIR$/generated-test-src')] as LinkedHashSet
     final customExcludeFolders = [path('file://$MODULE_DIR$/target')] as LinkedHashSet
     final customDependencies = [
             new ModuleLibrary([path('file://$MODULE_DIR$/gradle/lib')] as Set,
@@ -44,6 +44,7 @@ class ModuleTest extends Specification {
         module.jdkName == "1.6"
         module.sourceFolders == customSourceFolders
         module.testSourceFolders == customTestSourceFolders
+        module.generatedSourceFolders == customGeneratedSourceFolders
         module.excludeFolders == customExcludeFolders
         module.outputDir == path('file://$MODULE_DIR$/out')
         module.testOutputDir == path('file://$MODULE_DIR$/outTest')
@@ -51,10 +52,10 @@ class ModuleTest extends Specification {
     }
 
     def configureOverwritesDependenciesAndAppendsAllOtherEntries() {
-        def constructorSourceFolders = [path('a')] as Set
-        def constructorTestSourceFolders = [path('b')] as Set
+        def constructorSourceFolders = [path('a'), path('d')] as Set
+        def constructorTestSourceFolders = [path('b'), path('e')] as Set
         def constructorExcludeFolders = [path('c')] as Set
-        def constructorGeneratedSourceFolders = [path('d')] as Set
+        def constructorGeneratedSourceFolders = [path('d'), path('e')] as Set
         def constructorInheritOutputDirs = false
         def constructorOutputDir = path('someOut')
         def constructorJavaVersion = JavaVersion.VERSION_1_6.toString()
@@ -65,7 +66,7 @@ class ModuleTest extends Specification {
 
         when:
         module.load(customModuleReader)
-        module.configure(null, constructorSourceFolders, constructorGeneratedSourceFolders, constructorTestSourceFolders, constructorExcludeFolders,
+        module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorGeneratedSourceFolders, constructorExcludeFolders,
                 constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion)
 
         then:

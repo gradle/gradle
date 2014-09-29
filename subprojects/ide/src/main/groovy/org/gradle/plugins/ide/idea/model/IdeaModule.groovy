@@ -50,15 +50,12 @@ import org.gradle.util.ConfigureUtil
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
  *
- *     //and some generated source
- *     generatedSourceDirs += file('some-extra-generated-source-folder')
- *
  *     //and some extra test source dirs
  *     testSourceDirs += file('some-extra-test-dir')
  *
- *     //and some generated test source
- *     generatedTestDirs += file('some-extra-generated-test-source-folder')
-
+ *     //and hint to mark some of existing source dirs as generated sources
+ *     generatedSourceDirs += file('some-extra-source-folder')
+ *
  *     //and some extra dirs that should be excluded by IDEA
  *     excludeDirs += file('some-extra-exclude-dir')
  *
@@ -165,7 +162,7 @@ class IdeaModule {
     Set<File> sourceDirs
 
     /**
-     * The directories containing the generated sources.
+     * The directories containing the generated sources (both production and test sources).
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -226,13 +223,6 @@ class IdeaModule {
      * For example see docs for {@link IdeaModule}
      */
     Set<File> testSourceDirs
-
-    /**
-     * The directories containing the generated test sources.
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     */
-    Set<File> generatedTestDirs = []
 
     /**
      * {@link ConventionProperty} for the directories to be excluded.
@@ -351,13 +341,12 @@ class IdeaModule {
         Set sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
         Set generatedSourceFolders = getGeneratedSourceDirs().findAll { it.exists() }.collect { path(it) }
         Set testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
-        Set generatedTestFolders = getGeneratedTestDirs().findAll { it.exists() }.collect { path(it) }
         Set excludeFolders = getExcludeDirs().collect { path(it) }
         def outputDir = getOutputDir() ? path(getOutputDir()) : null
         def testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
         Set dependencies = resolveDependencies()
 
-        xmlModule.configure(contentRoot, sourceFolders, generatedSourceFolders, testSourceFolders, generatedTestFolders, excludeFolders,
+        xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
                 getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
 
         iml.whenMerged.execute(xmlModule)

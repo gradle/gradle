@@ -36,19 +36,14 @@ class Module extends XmlPersistableConfigurationObject {
     Set<Path> sourceFolders = [] as LinkedHashSet
 
     /**
-     * The directories containing generated the production sources. Must not be null.
-     */
-    Set<Path> generatedSourceFolders = [] as LinkedHashSet
-
-    /**
      * The directories containing the test sources. Must not be null.
      */
     Set<Path> testSourceFolders = [] as LinkedHashSet
 
     /**
-     * The directories containing the generated test sources. Must not be null.
+     * The directories containing generated the production sources. Must not be null.
      */
-    Set<Path> testGeneratedSourceFolders = [] as LinkedHashSet
+    Set<Path> generatedSourceFolders = [] as LinkedHashSet
 
     /**
      * The directories to be excluded. Must not be null.
@@ -105,17 +100,12 @@ class Module extends XmlPersistableConfigurationObject {
     private readSourceAndExcludeFolderFromXml() {
         findSourceFolder().each { sourceFolder ->
             if (sourceFolder.@isTestSource == 'false') {
-                if (sourceFolder.@generated == 'true') {
-                    generatedSourceFolders.add(pathFactory.path(sourceFolder.@url))
-                } else {
-                    sourceFolders.add(pathFactory.path(sourceFolder.@url))
-                }
+                sourceFolders.add(pathFactory.path(sourceFolder.@url))
             } else {
-                if (sourceFolder.@generated == 'true') {
-                    testGeneratedSourceFolders.add(pathFactory.path(sourceFolder.@url))
-                } else {
-                    testSourceFolders.add(pathFactory.path(sourceFolder.@url))
-                }
+                testSourceFolders.add(pathFactory.path(sourceFolder.@url))
+            }
+            if (sourceFolder.@generated == 'true') {
+                generatedSourceFolders.add(pathFactory.path(sourceFolder.@url))
             }
         }
         findExcludeFolder().each { excludeFolder ->
@@ -157,14 +147,13 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    protected def configure(Path contentPath, Set sourceFolders, Set generatedSourceFolders, Set testSourceFolders, Set testGeneratedTestFolders, Set excludeFolders,
+    protected def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set generatedSourceFolders, Set excludeFolders,
                             Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String jdkName) {
         this.contentPath = contentPath
         this.sourceFolders.addAll(sourceFolders)
-        this.generatedSourceFolders.addAll(generatedSourceFolders)
         this.excludeFolders.addAll(excludeFolders)
-        this.testGeneratedSourceFolders.addAll(testGeneratedTestFolders)
         this.testSourceFolders.addAll(testSourceFolders)
+        this.generatedSourceFolders.addAll(generatedSourceFolders)
         if (inheritOutputDirs != null) {
             this.inheritOutputDirs = inheritOutputDirs
         }
@@ -249,19 +238,19 @@ class Module extends XmlPersistableConfigurationObject {
 
     private addSourceAndExcludeFolderToXml() {
         sourceFolders.each { Path path ->
-            findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'false'])
-        }
-
-        generatedSourceFolders.each { Path path ->
-            findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'false', generated: 'true'])
+            if (generatedSourceFolders.contains(path)) {
+                findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'false', generated: 'true'])
+            } else {
+                findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'false'])
+            }
         }
 
         testSourceFolders.each { Path path ->
-            findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'true'])
-        }
-
-        testGeneratedSourceFolders.each { Path path ->
-            findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'true', generated: 'true'])
+            if (generatedSourceFolders.contains(path)) {
+                findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'true', generated: 'true'])
+            } else {
+                findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'true'])
+            }
         }
 
         excludeFolders.each { Path path ->
@@ -332,7 +321,6 @@ class Module extends XmlPersistableConfigurationObject {
         if (sourceFolders != module.sourceFolders) { return false }
         if (generatedSourceFolders != module.generatedSourceFolders) { return false }
         if (testOutputDir != module.testOutputDir) { return false }
-        if (testGeneratedSourceFolders != module.testGeneratedSourceFolders) { return false }
         if (testSourceFolders != module.testSourceFolders) { return false }
 
         return true
@@ -345,7 +333,6 @@ class Module extends XmlPersistableConfigurationObject {
         result = 31 * result + (generatedSourceFolders != null ? generatedSourceFolders.hashCode() : 0)
         result = 31 * result + (testSourceFolders != null ? testSourceFolders.hashCode() : 0)
         result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0)
-        result = 31 * result + (testGeneratedSourceFolders != null ? testGeneratedSourceFolders.hashCode() : 0)
         result = 31 * result + (inheritOutputDirs != null ? inheritOutputDirs.hashCode() : 0)
         result = 31 * result + outputDir.hashCode()
         result = 31 * result + testOutputDir.hashCode()
@@ -358,9 +345,8 @@ class Module extends XmlPersistableConfigurationObject {
         return "Module{" +
                 "dependencies=" + dependencies +
                 ", sourceFolders=" + sourceFolders +
-                ", generatedSourceFolders=" + generatedSourceFolders +
                 ", testSourceFolders=" + testSourceFolders +
-                ", testGeneratedSourceFolders=" + testGeneratedSourceFolders +
+                ", generatedSourceFolders=" + generatedSourceFolders +
                 ", excludeFolders=" + excludeFolders +
                 ", inheritOutputDirs=" + inheritOutputDirs +
                 ", outputDir=" + outputDir +

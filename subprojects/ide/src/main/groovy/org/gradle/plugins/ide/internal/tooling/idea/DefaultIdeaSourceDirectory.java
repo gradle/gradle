@@ -49,7 +49,7 @@ public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializ
     public String toString() {
         return "DefaultIdeaSourceDirectory{"
                 + "directory=" + directory
-                + "generated=" + generated
+                + ", generated=" + generated
                 + '}';
     }
 }
