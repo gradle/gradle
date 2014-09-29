@@ -23,4 +23,11 @@ import org.gradle.tooling.model.SourceDirectory;
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaSourceDirectory extends SourceDirectory {}
+public interface IdeaSourceDirectory extends SourceDirectory {
+    /**
+     * Return true if source directory is generated.
+     *
+     * @return true if source directory is generated
+     */
+    boolean isGenerated();
+}

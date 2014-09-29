@@ -37,9 +37,19 @@ public interface IdeaContentRoot {
     DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories();
 
     /**
+     * generated source dirs.
+     */
+    DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories();
+
+    /**
      * test dirs.
      */
     DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories();
+
+    /**
+     * generated test dirs.
+     */
+    DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories();
 
     /**
      * exclude dirs

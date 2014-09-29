@@ -157,6 +157,25 @@ idea.module.excludeDirs += file('foo')
         module.contentRoots[0].excludeDirectories.any { it.path.endsWith 'foo' }
     }
 
+    def "provides generated sources dir information"() {
+
+        file('build.gradle').text = """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+idea.module.generatedSourceDirs += file('foo')
+idea.module.generatedTestDirs += file('foo2')
+"""
+
+        when:
+        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        def module = project.children[0]
+
+        then:
+        module.contentRoots[0].generatedSourceDirectories.any { it.path.endsWith 'foo' }
+        module.contentRoots[0].generatedTestDirectories.any { it.path.endsWith 'foo2' }
+    }
+
     def "provides dependencies"() {
         
         def fakeRepo = file("repo")
