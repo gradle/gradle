@@ -21,8 +21,11 @@ import org.gradle.api.Action;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.internal.DefaultCollectionBuilder;
+import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -30,7 +33,6 @@ import org.gradle.platform.base.*;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<ComponentBinaries> {
@@ -50,7 +52,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             validateComponentType(binaryType, componentType);
 
             dependencies.add(ComponentModelBasePlugin.class);
-            final ModelReference<CollectionBuilder<S>> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<CollectionBuilder<S>>() {
+            final ModelReference<BinaryContainer> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<BinaryContainer>() {
             });
 
             configureMutationRule(modelRegistry, subject, componentType, binaryType, ruleDefinition);
@@ -59,7 +61,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         }
     }
 
-    private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<CollectionBuilder<S>> subject, Class<? extends ComponentSpec<S>> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
+    private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec<S>> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
         modelRegistry.mutate(new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition, modelRegistry));
     }
 
@@ -94,15 +96,15 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
     }
 
-    private class ComponentBinariesRule<R, S extends BinarySpec> implements ModelMutator<CollectionBuilder<S>> {
+    private class ComponentBinariesRule<R, S extends BinarySpec> implements ModelMutator<BinaryContainer> {
 
         private final Class<? extends ComponentSpec<S>> componentType;
         private final MethodRuleDefinition<R> ruleDefinition;
         private final ModelRegistry modelRegistry;
-        private final ModelReference<CollectionBuilder<S>> subject;
+        private final ModelReference<BinaryContainer> subject;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<CollectionBuilder<S>> subject, Class<? extends ComponentSpec<S>> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
+        public ComponentBinariesRule(ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec<S>> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
             this.subject = subject;
             this.componentType = componentType;
             this.binaryType = binaryType;
@@ -111,26 +113,40 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
         }
 
-        public ModelReference<CollectionBuilder<S>> getSubject() {
+        public ModelReference<BinaryContainer> getSubject() {
             return subject;
         }
 
-        public void mutate(final CollectionBuilder<S> binaries, final Inputs inputs) {
+        public void mutate(final BinaryContainer binaries, final Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
-            final List<String> binariesAddedByRule = new ArrayList<String>();
 
-            for(ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)){
-                CollectionBuilder<? extends S> collectionBuilder = new ActionAwareCollectionBuilder<S>(binaries, new Action<String>() {
-                    public void execute(String binaryName) {
-                        binariesAddedByRule.add(binaryName);
+            for(final ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)){
+                NamedEntityInstantiator<S> namedEntityInstantiator = new NamedEntityInstantiator<S>() {
+                    public ModelType<S> getType() {
+                        return ModelType.of(binaryType);
                     }
-                });
-                ruleDefinition.getRuleInvoker().invoke(collectionBuilder, componentSpec);
 
-                for (String binaryAddedByRule : binariesAddedByRule) {
-                    S binarySpec = modelRegistry.get(ModelPath.path(String.format("binaries.%s", binaryAddedByRule)), ModelType.of(binaryType));
-                    componentSpec.getBinaries().add(binarySpec);
-                }
+                    public S create(String name) {
+                        S binary = binaries.create(name, binaryType);
+                        componentSpec.getBinaries().add(binary);
+                        return binary;
+                    }
+
+                    public <U extends S> U create(String name, Class<U> type) {
+                        U binary = binaries.create(name, type);
+                        componentSpec.getBinaries().add(binary);
+                        return binary;
+                    }
+                };
+
+                DefaultCollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
+                        subject.getPath(),
+                        namedEntityInstantiator,
+                        new SimpleModelRuleDescriptor("Project.<init>.binaries()"),
+                        inputs,
+                        modelRegistry);
+
+                ruleDefinition.getRuleInvoker().invoke(collectionBuilder, componentSpec);
             }
         }
 
