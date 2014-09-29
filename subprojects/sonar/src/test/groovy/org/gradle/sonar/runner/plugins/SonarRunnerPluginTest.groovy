@@ -207,8 +207,21 @@ class SonarRunnerPluginTest extends Specification {
         !properties.containsKey("sonar.tests")
         !properties.containsKey("sonar.binaries")
         properties.containsKey("sonar.libraries") == (Jvm.current().getRuntimeJar() != null)
-        !properties.containsKey("sonar.surefire.reportsPath")
-        !properties.containsKey("sonar.junit.reportsPath")
+    }
+
+    private void fileExists(String path) {
+        assert path && new File(path).exists()
+    }
+
+    def "always adds test report path properties pointing at an existing paths to prevent Sonar Runner from emitting a warning about missing test report directory"() {
+        parentProject.plugins.apply(JavaPlugin)
+
+        when:
+        def properties = parentSonarRunnerTask().sonarProperties
+
+        then:
+        fileExists(properties["sonar.surefire.reportsPath"])
+        fileExists(properties["sonar.junit.reportsPath"])
     }
 
     def "adds empty 'sonar.sources' property if no sources exist (because Sonar Runner 2.0 always expects this property to be set)"() {
