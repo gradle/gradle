@@ -29,5 +29,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
-public @interface BinaryTask {
+public @interface BinaryTasks {
 }

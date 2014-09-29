@@ -118,25 +118,9 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         public void mutate(final BinaryContainer binaries, final Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
-            for(final ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)){
-                NamedEntityInstantiator<S> namedEntityInstantiator = new NamedEntityInstantiator<S>() {
-                    public ModelType<S> getType() {
-                        return ModelType.of(binaryType);
-                    }
 
-                    public S create(String name) {
-                        S binary = binaries.create(name, binaryType);
-                        componentSpec.getBinaries().add(binary);
-                        return binary;
-                    }
-
-                    public <U extends S> U create(String name, Class<U> type) {
-                        U binary = binaries.create(name, type);
-                        componentSpec.getBinaries().add(binary);
-                        return binary;
-                    }
-                };
-
+            for (final ComponentSpec<S> componentSpec : componentSpecs.withType(componentType)) {
+                NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(binaryType, componentSpec, binaries);
                 DefaultCollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
                         subject.getPath(),
                         namedEntityInstantiator,
@@ -164,5 +148,33 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid ComponentBinaries model rule method.");
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
+    }
+
+    private class Instantiator<S extends BinarySpec> implements NamedEntityInstantiator<S> {
+        private Class<S> binaryType;
+        private final ComponentSpec<S> componentSpec;
+        private final BinaryContainer container;
+
+        public Instantiator(Class<S> binaryType, ComponentSpec<S> componentSpec, BinaryContainer container) {
+            this.binaryType = binaryType;
+            this.componentSpec = componentSpec;
+            this.container = container;
+        }
+
+        public ModelType<S> getType() {
+            return ModelType.of(binaryType);
+        }
+
+        public S create(String name) {
+            S binary = container.create(name, binaryType);
+            componentSpec.getBinaries().add(binary);
+            return binary;
+        }
+
+        public <U extends S> U create(String name, Class<U> type) {
+            U binary = container.create(name, type);
+            componentSpec.getBinaries().add(binary);
+            return binary;
+        }
     }
 }

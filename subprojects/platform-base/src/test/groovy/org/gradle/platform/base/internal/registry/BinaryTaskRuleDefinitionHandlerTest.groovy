@@ -24,7 +24,7 @@ import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.BinaryTask
+import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidComponentModelException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
@@ -40,7 +40,7 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
     @Override
     Class<? extends Annotation> getAnnotation() {
-        return BinaryTask
+        return BinaryTasks
     }
 
     def ruleDefinitionForMethod(String methodName) {
@@ -68,11 +68,11 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
         where:
         methodName               | expectedMessage                                                                                             | descr
-        "returnValue"            | "BinaryTask method must not have a return value."                                                           | "non void method"
-        "noParams"               | "BinaryTask method must have a parameter of type '${CollectionBuilder.name}'."                              | "no CollectionBuilder subject"
-        "wrongSubject"           | "BinaryTask method first parameter must be of type '${CollectionBuilder.name}'."                            | "wrong rule subject type"
+        "returnValue"            | "BinaryTasks method must not have a return value."                                                           | "non void method"
+        "noParams"               | "BinaryTasks method must have a parameter of type '${CollectionBuilder.name}'."                              | "no CollectionBuilder subject"
+        "wrongSubject"           | "BinaryTasks method first parameter must be of type '${CollectionBuilder.name}'."                            | "wrong rule subject type"
         "rawCollectionBuilder"   | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."                     | "non typed CollectionBuilder parameter"
-        "noBinaryParameter"      | "BinaryTask method must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."  | "no component spec parameter"
+        "noBinaryParameter"      | "BinaryTasks method must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."  | "no component spec parameter"
     }
 
     @Unroll
@@ -113,27 +113,27 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
     static class Rules {
 
-        @BinaryTask
+        @BinaryTasks
         static String returnValue(CollectionBuilder<Task> builder, SomeBinary binary) {
         }
 
-        @BinaryTask
+        @BinaryTasks
         static void noParams() {
         }
 
-        @BinaryTask
+        @BinaryTasks
         static void wrongSubject(binary) {
         }
 
-        @BinaryTask
+        @BinaryTasks
         static void rawCollectionBuilder(CollectionBuilder tasks, SomeBinary binary) {
         }
 
-        @BinaryTask
+        @BinaryTasks
         static void noBinaryParameter(CollectionBuilder<Task> builder) {
         }
 
-        @BinaryTask
+        @BinaryTasks
         static void validTypeRule(CollectionBuilder<Task> tasks, SomeBinary binary) {
             tasks.create("create${binary.getName()}")
         }
