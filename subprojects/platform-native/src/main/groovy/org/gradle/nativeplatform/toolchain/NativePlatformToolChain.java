@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
  * A platform specific configurable tool chain.
  */
 @Incubating
-public interface PlatformToolChain {
+public interface NativePlatformToolChain {
     /**
      * Returns the platform which this tool chain builds for.
      */

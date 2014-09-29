@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * Visual C++ specific settings for the tools used to build for a particular platform.
  */
 @Incubating
-public interface VisualCppPlatformToolChain extends PlatformToolChain {
+public interface VisualCppPlatformToolChain extends NativePlatformToolChain {
     /**
      * Returns the settings to use for the C compiler.
      */

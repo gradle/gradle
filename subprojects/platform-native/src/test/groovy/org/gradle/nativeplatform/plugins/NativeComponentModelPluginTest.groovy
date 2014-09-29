@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
-import org.gradle.nativeplatform.toolchain.ToolChainRegistry
+import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.util.TestUtil
@@ -46,7 +46,7 @@ class NativeComponentModelPluginTest extends Specification {
         expect:
         project.nativeRuntime.executables instanceof NamedDomainObjectContainer
         project.nativeRuntime.libraries instanceof NamedDomainObjectContainer
-        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry)) != null
+        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)) != null
         project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
         project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
         project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer)) != null
@@ -64,7 +64,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "does not provide a default tool chain"() {
         expect:
-        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry)).isEmpty()
+        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)).isEmpty()
     }
 
     def "adds default flavor to every binary"() {
@@ -81,7 +81,7 @@ class NativeComponentModelPluginTest extends Specification {
     def "does not add defaults when domain is explicitly configured"() {
         when:
         modelRegistryHelper
-                .configure(ToolChainRegistry) { it.add toolChain("tc") }
+                .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
@@ -90,7 +90,7 @@ class NativeComponentModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(ToolChainRegistry))).name == 'tc'
+        one(project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
         one(project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer))).name == 'platform'
         one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
         one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
@@ -100,7 +100,7 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
         modelRegistryHelper
-                .configure(ToolChainRegistry) { it.add toolChain("tc") }
+                .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
@@ -127,7 +127,7 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
         modelRegistryHelper
-                .configure(ToolChainRegistry) { it.add toolChain("tc") }
+                .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }

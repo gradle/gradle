@@ -30,11 +30,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<NativeToolChain> implements ToolChainRegistryInternal {
+public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<NativeToolChain> implements NativeToolChainRegistryInternal {
     private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
     private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
-    public DefaultToolChainRegistry(Instantiator instantiator) {
+    public DefaultNativeToolChainRegistry(Instantiator instantiator) {
         super(NativeToolChain.class, instantiator);
         whenObjectAdded(new Action<NativeToolChain>() {
             public void execute(NativeToolChain toolChain) {

@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.*
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
-import org.gradle.nativeplatform.toolchain.PlatformToolChain
+import org.gradle.nativeplatform.toolchain.NativePlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
@@ -153,8 +153,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         given:
         int platformActionApplied = 0
-        toolChain.target([platform1.getName(), platform2.getName()], new Action<PlatformToolChain>() {
-            void execute(PlatformToolChain configurableToolChain) {
+        toolChain.target([platform1.getName(), platform2.getName()], new Action<NativePlatformToolChain>() {
+            void execute(NativePlatformToolChain configurableToolChain) {
                 platformActionApplied++;
             }
         });
@@ -320,8 +320,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         metaDataProvider.getGccMetaData(_, _) >> correctCompiler
 
         and:
-        toolChain.target(platform.getName(), new Action<PlatformToolChain>() {
-            void execute(PlatformToolChain configurableToolChain) {
+        toolChain.target(platform.getName(), new Action<NativePlatformToolChain>() {
+            void execute(NativePlatformToolChain configurableToolChain) {
                 configurationApplied = true;
             }
         })

@@ -28,7 +28,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
@@ -50,7 +50,7 @@ public class MicrosoftVisualCppPlugin implements Plugin<Project> {
     @RuleSource
     public static class Rules {
         @Mutate
-        public static void addGccToolChain(ToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
+        public static void addGccToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);

@@ -28,7 +28,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class DefaultNativeToolChainRegistryTest extends Specification {
     def project = TestUtil.createRootProject()
     def instantiator = project.services.get(Instantiator)
-    def registry = instantiator.newInstance(DefaultToolChainRegistry, instantiator)
+    def registry = instantiator.newInstance(DefaultNativeToolChainRegistry, instantiator)
     def NamedDomainObjectFactory<TestNativeToolChain> factory = Mock(NamedDomainObjectFactory)
     def platform = new DefaultNativePlatform("platform")
 

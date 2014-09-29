@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 import java.util.Collection;
@@ -35,14 +35,14 @@ import java.util.Set;
 
 public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> { //TODO: move to platform.base too?
     private final NativeBinariesFactory factory;
-    private final ToolChainRegistryInternal toolChainRegistry;
+    private final NativeToolChainRegistryInternal toolChainRegistry;
     private final PlatformContainer platforms;
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
     //TODO freekh: Do we want to have PlatformContainer here? We need to use the select method below for targetPlatforms but it is possible to move this out?
-    public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, ToolChainRegistryInternal toolChainRegistry,
+    public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, NativeToolChainRegistryInternal toolChainRegistry,
                                           PlatformContainer platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;

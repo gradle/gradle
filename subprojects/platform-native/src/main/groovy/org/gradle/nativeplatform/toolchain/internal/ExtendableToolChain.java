@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.listener.ActionBroadcast;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.NativePlatformToolChain;
 
 import java.io.File;
 
-public abstract class ExtendableToolChain<T extends PlatformToolChain> implements NativeToolChainInternal {
+public abstract class ExtendableToolChain<T extends NativePlatformToolChain> implements NativeToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final FileResolver fileResolver;

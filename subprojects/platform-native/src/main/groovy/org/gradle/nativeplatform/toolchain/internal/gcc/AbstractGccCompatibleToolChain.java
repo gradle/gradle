@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.PlatformToolChain;
+import org.gradle.nativeplatform.toolchain.NativePlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
@@ -92,7 +92,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     public void target(String platformName) {
-        target(platformName, Actions.<PlatformToolChain>doNothing());
+        target(platformName, Actions.<NativePlatformToolChain>doNothing());
     }
 
     public void target(String platformName, Action<? super GccPlatformToolChain> action) {

@@ -203,6 +203,7 @@ executing the first block.
 - Renamed package `org.gradle.nativeplatform.sourceset` to `org.gradle.language.nativeplatform`
 - Renamed package `org.gradle.language.nativebase` to `org.gradle.language.nativeplatform`
 - Added binary type parameter to `ComponentSpec`
+- Renamed `ToolChainRegistry` to `NativeToolChainRegistry` and `PlatformToolChain` to `NativePlatformToolChain`
 
 ### JVM language support
 

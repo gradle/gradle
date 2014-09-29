@@ -40,11 +40,14 @@ import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+<<<<<<< HEAD
 import org.gradle.platform.base.Platform;
+=======
+import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
+>>>>>>> Renamed some native-specific types
 import org.gradle.platform.base.PlatformContainer;
-import org.gradle.nativeplatform.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
@@ -102,9 +105,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        ToolChainRegistryInternal toolChains(ServiceRegistry serviceRegistry) {
+        NativeToolChainRegistryInternal toolChains(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultToolChainRegistry.class, instantiator);
+            return instantiator.newInstance(DefaultNativeToolChainRegistry.class, instantiator);
         }
 
         @Model
@@ -145,7 +148,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
-                                         LanguageRegistry languages, ToolChainRegistryInternal toolChains,
+                                         LanguageRegistry languages, NativeToolChainRegistryInternal toolChains,
                                          PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
@@ -166,9 +169,15 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
+<<<<<<< HEAD
         public void createDefaultPlatforms(PlatformContainer platforms) {
             if (platforms.withType(NativePlatform.class).isEmpty()) {
                 NativePlatform defaultPlatform = platforms.create(Platform.DEFAULT_NAME, NativePlatform.class); //TODO: rename to createDefault?
+=======
+        public void createDefaultToolChain(NativeToolChainRegistryInternal toolChains) {
+            if (toolChains.isEmpty()) {
+                toolChains.addDefaultToolChains();
+>>>>>>> Renamed some native-specific types
             }
         }
 
