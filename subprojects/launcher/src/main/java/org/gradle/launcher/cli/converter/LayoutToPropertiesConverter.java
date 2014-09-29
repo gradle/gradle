@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.cli.converter;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -26,6 +28,7 @@ import org.gradle.launcher.daemon.configuration.GradleProperties;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Properties;
 
@@ -33,7 +36,12 @@ public class LayoutToPropertiesConverter {
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
-        properties.putAll((Map) System.getProperties());
+        properties.putAll(Maps.filterEntries((Map) System.getProperties(), new Predicate<Map.Entry<?, ?>>() {
+            public boolean apply(Map.Entry<?, ?> input) {
+                return input.getKey() instanceof Serializable
+                        && (input.getValue() instanceof Serializable || input.getValue() == null);
+            }
+        }));
         return properties;
     }
 

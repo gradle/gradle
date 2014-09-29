@@ -92,4 +92,16 @@ class LayoutToPropertiesConverterTest extends Specification {
         then:
         converter.convert(layout, props).get(JVM_ARGS_PROPERTY) == '-Xmx2048m'
     }
+
+    def "non-serializable system properties are ignored"() {
+        when:
+        System.getProperties().put('foo', NULL_OBJECT)
+
+        then:
+        converter.convert(layout, props).foo == null
+    }
+
+    static class NotSerializable {
+    }
+    static final NULL_OBJECT = new NotSerializable()
 }
