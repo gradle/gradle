@@ -15,10 +15,8 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import spock.lang.Unroll
 
 public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -68,14 +66,16 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "can register binary creation tasks using @BinaryTask"() {
+    @Unroll
+    def "executing #taskdescr triggers custom task"() {
         when:
-        succeeds "tasks", "--all"
+        succeeds taskName
         then:
-        output.contains(toPlatformLineSeparators(
-        """
-sampleLibBinary - Assembles DefaultSampleBinary: 'sampleLibBinary'.
-    customSampleLibBinaryTask"""))
+        output.contains(":customSampleLibBinaryTask UP-TO-DATE")
+        where:
+        taskName          | taskdescr
+        "sampleLibBinary" | "lifecycle task"
+        "assemble"        | "assemble task"
     }
 
     def "@BinaryTasks adds task to binary model"() {
@@ -106,16 +106,6 @@ sampleLibBinary - Assembles DefaultSampleBinary: 'sampleLibBinary'.
         then:
         succeeds "checkModel"
     }
-
-    def "lifecycle task task runs custom task"() {
-        when:
-        succeeds "assemble"
-        then:
-        output.contains(toPlatformLineSeparators(""":customSampleLibBinaryTask UP-TO-DATE
-:sampleLibBinary UP-TO-DATE
-:assemble UP-TO-DATE"""))
-    }
-
 
     String withOtherBinaryPlugin() {
         """
