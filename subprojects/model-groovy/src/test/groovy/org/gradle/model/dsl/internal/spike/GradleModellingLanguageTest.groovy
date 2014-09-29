@@ -37,6 +37,10 @@ class GradleModellingLanguageTest extends Specification {
         modelRegistry
     }
 
+    def getModelValueAt(String path) {
+        registry.get(ModelPath.path(path))
+    }
+
     void "simple top level assignment"() {
         when:
         buildScript """
@@ -46,6 +50,20 @@ class GradleModellingLanguageTest extends Specification {
         """
 
         then:
-        registry.get(ModelPath.path("foo")) == 2
+        getModelValueAt("foo") == 2
+    }
+
+    void "simple top level assignment using sugared syntax"() {
+        when:
+        buildScript """
+            model {
+                foo = 2
+                bar = 1 + 2
+            }
+        """
+
+        then:
+        getModelValueAt("foo") == 2
+        getModelValueAt("bar") == 3
     }
 }

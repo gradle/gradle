@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal.spike;
 
 import com.google.common.collect.Lists;
+import org.codehaus.groovy.ast.VariableScope;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
@@ -28,15 +29,25 @@ class ModelRegistryDslHelperStatementGenerator {
 
     private final List<Statement> generatedStatements = Lists.newArrayList();
 
-    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, ClosureExpression creator) {
+    private String getPath(List<String> scope, VariableExpression propertyPathExpression) {
         String propertyPath = propertyPathExpression.getName();
         String scopePath = CollectionUtils.join(".", scope);
-        String path = scopePath.length() > 0 ? String.format("%s.%s", scopePath, propertyPath): propertyPath;
+        return scopePath.length() > 0 ? String.format("%s.%s", scopePath, propertyPath): propertyPath;
+    }
+
+    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, ClosureExpression creator) {
+        String path = getPath(scope, propertyPathExpression);
 
         VariableExpression subject = new VariableExpression("modelRegistryHelper");
         ArgumentListExpression arguments = new ArgumentListExpression(new ConstantExpression(path), creator);
         MethodCallExpression methodCallExpression = new MethodCallExpression(subject, "addCreator", arguments);
         generatedStatements.add(new ExpressionStatement(methodCallExpression));
+    }
+
+    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, Expression expression) {
+        ClosureExpression wrappingClosure = new ClosureExpression(null, new ExpressionStatement(expression));
+        wrappingClosure.setVariableScope(new VariableScope());
+        addCreator(scope, propertyPathExpression, wrappingClosure);
     }
 
     public List<Statement> getGeneratedStatements() {

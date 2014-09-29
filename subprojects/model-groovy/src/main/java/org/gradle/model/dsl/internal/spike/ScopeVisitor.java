@@ -24,6 +24,7 @@ import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 
@@ -54,8 +55,11 @@ public class ScopeVisitor extends RestrictiveCodeVisitor {
 
     @Override
     public void visitBinaryExpression(BinaryExpression expression) {
-        if (expression.getOperation().isA(Types.LEFT_SHIFT) && expression.getLeftExpression() instanceof VariableExpression && expression.getRightExpression() instanceof ClosureExpression) {
+        Token operation = expression.getOperation();
+        if (operation.isA(Types.LEFT_SHIFT) && expression.getLeftExpression() instanceof VariableExpression && expression.getRightExpression() instanceof ClosureExpression) {
             statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), (ClosureExpression) expression.getRightExpression());
+        } else if (operation.isA(Types.ASSIGN) && expression.getLeftExpression() instanceof VariableExpression) {
+            statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), expression.getRightExpression());
         } else {
             super.visitBinaryExpression(expression);
         }
