@@ -23,12 +23,15 @@ import org.gradle.jvm.internal.configure.DefaultJarBinariesFactory;
 import org.gradle.jvm.internal.configure.JarBinariesFactory;
 import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
 import org.gradle.jvm.internal.configure.JvmLibrarySpecInitializer;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.Model;
@@ -86,6 +89,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return new DefaultBinaryNamingSchemeBuilder();
         }
 
+        @Model
+        JavaToolChainRegistry toolChains(ServiceRegistry serviceRegistry) {
+            JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
+            return new DefaultJavaToolChainRegistry(toolChain);
+        }
+
         @Mutate
         public void registerJvmPlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
@@ -104,9 +113,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createBinaries(BinaryContainer binaries, PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
+        public void createBinaries(BinaryContainer binaries, PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            JavaToolChain toolChain = serviceRegistry.get(JavaToolChain.class);
 
             Action<JarBinarySpec> configureBinaryAction = new JarBinarySpecInitializer(buildDir);
 
@@ -115,12 +123,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
             JarBinariesFactory factory = new DefaultJarBinariesFactory(instantiator, initAction);
 
             Action<JvmLibrarySpec> createBinariesAction =
-                    new JvmLibrarySpecInitializer(factory, namingSchemeBuilder, toolChain, platforms);
+                    new JvmLibrarySpecInitializer(factory, namingSchemeBuilder, toolChains, platforms);
 
             for (JvmLibrarySpec jvmLibrary : libraries) {
                 createBinariesAction.execute(jvmLibrary);
                 //TODO freekh: this should be moved into MarkBinariesBuildable
                 for (JvmBinarySpec jarBinarySpec: jvmLibrary.getBinaries()){
+                    JavaToolChain toolChain = jarBinarySpec.getToolChain();
                     toolChain.assertValidPlatform(jarBinarySpec.getTargetPlatform(), platforms);
                 }
                 binaries.addAll(jvmLibrary.getBinaries());
@@ -152,8 +161,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
     private static class MarkBinariesBuildable implements Action<JarBinarySpec> { //TODO: this is exactly the same for both Native and Jvm and should be refactored
         public void execute(JarBinarySpec jarBinarySpec) {
-            JavaToolChain toolChain = jarBinarySpec.getToolChain();
-            boolean canBuild = toolChain.select(jarBinarySpec.getTargetPlatform());
+            JavaToolChainInternal toolChain = (JavaToolChainInternal) jarBinarySpec.getToolChain();
+            boolean canBuild = toolChain.select(jarBinarySpec.getTargetPlatform()).isAvailable();
             ((JarBinarySpecInternal) jarBinarySpec).setBuildable(canBuild);
         }
     }

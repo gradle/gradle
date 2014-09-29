@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -32,13 +33,13 @@ import java.util.List;
 public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
     private final JarBinariesFactory factory;
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
-    private final JavaToolChain toolChain;
+    private final JavaToolChainRegistry toolChains;
     private final PlatformContainer platforms;
 
-    public JvmLibrarySpecInitializer(JarBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, JavaToolChain toolChain, PlatformContainer platforms) {
+    public JvmLibrarySpecInitializer(JarBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, JavaToolChainRegistry toolChains, PlatformContainer platforms) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
-        this.toolChain = toolChain;
+        this.toolChains = toolChains;
         this.platforms = platforms;
     }
 
@@ -64,6 +65,7 @@ public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
             }
         }
         for (JvmPlatform platform: selectedPlatforms) { //TODO freekh: check empty/use default
+            JavaToolChain toolChain = toolChains.getForPlatform(platform);
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar");

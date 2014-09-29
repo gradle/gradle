@@ -40,11 +40,8 @@ import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-<<<<<<< HEAD
 import org.gradle.platform.base.Platform;
-=======
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
->>>>>>> Renamed some native-specific types
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -169,20 +166,14 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-<<<<<<< HEAD
         public void createDefaultPlatforms(PlatformContainer platforms) {
             if (platforms.withType(NativePlatform.class).isEmpty()) {
                 NativePlatform defaultPlatform = platforms.create(Platform.DEFAULT_NAME, NativePlatform.class); //TODO: rename to createDefault?
-=======
-        public void createDefaultToolChain(NativeToolChainRegistryInternal toolChains) {
-            if (toolChains.isEmpty()) {
-                toolChains.addDefaultToolChains();
->>>>>>> Renamed some native-specific types
             }
         }
 
         @Finalize
-        public void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
+        public void createDefaultToolChain(NativeToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
                 toolChains.addDefaultToolChains();
             }

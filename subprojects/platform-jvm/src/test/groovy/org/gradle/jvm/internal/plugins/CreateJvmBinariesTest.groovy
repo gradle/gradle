@@ -17,22 +17,23 @@
 package org.gradle.jvm.internal.plugins
 
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.jvm.platform.JvmPlatform
 import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.jvm.platform.internal.DefaultJvmPlatform
-import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageSourceSet
-import org.gradle.platform.base.BinaryContainer
-import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.PlatformContainer
-import org.gradle.platform.base.internal.BinaryNamingScheme
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJarBinarySpec
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
+import org.gradle.jvm.platform.JvmPlatform
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.jvm.toolchain.JavaToolChain
+import org.gradle.jvm.toolchain.JavaToolChainRegistry
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.PlatformContainer
+import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -48,14 +49,12 @@ class CreateJvmBinariesTest extends Specification {
     def mainSourceSet = Mock(FunctionalSourceSet)
 
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
-        JavaToolChain createToolChain() {
-            toolChain
-        }
         Instantiator createInstantiator() {
             instantiator
         }
 
     }).build()
+    def toolChainRegistry = Mock(JavaToolChainRegistry)
 
     def "adds a binary for each jvm library"() {
         def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
@@ -64,7 +63,7 @@ class CreateJvmBinariesTest extends Specification {
         def binary = new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
 
         when:
-        rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
+        rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry, toolChainRegistry)
 
         then:
         _ * namingScheme.description >> "jvmLibJar"
@@ -72,10 +71,20 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * toolChain.assertValidPlatform(platform)
+        1 * toolChainRegistry.getForPlatform(_ as JvmPlatform) >> toolChain
         1 * instantiator.newInstance(DefaultJarBinarySpec.class, library, namingScheme, toolChain, platform) >> binary
         1 * library.targetPlatforms >> "test"
         1 * platforms.select(_, _) >> [ platform ]
+/*
+        1 * binaries.add({ DefaultJarBinarySpec binary ->
+            binary.namingScheme == namingScheme
+            binary.library == library
+            binary.classesDir == new File(buildDir, "jvmJarOutput")
+            binary.resourcesDir == binary.classesDir
+            binary.toolChain == toolChain
+        } as BinarySpec)
+*/
+        0 * _
     }
 
     def "created binary has sources from jvm library"() {
@@ -88,7 +97,7 @@ class CreateJvmBinariesTest extends Specification {
 
         when:
         library.source([source1, source2])
-        rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
+        rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry, toolChainRegistry)
 
         then:
         _ * namingScheme.description >> "jvmLibJar"
@@ -96,6 +105,7 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
+        1 * toolChainRegistry.getForPlatform(_ as JvmPlatform) >> toolChain
         1 * toolChain.assertValidPlatform(_ as JvmPlatform)
         1 * binaries.add(binary as BinarySpec)
         1 * instantiator.newInstance(DefaultJarBinarySpec.class, library, namingScheme, toolChain, platform) >> binary

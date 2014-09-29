@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.toolchain;
+package org.gradle.jvm.toolchain;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.jvm.platform.JvmPlatform;
 import org.gradle.platform.base.ToolChainRegistry;
 
 /**
- * A container for {@link NativeToolChain}s.
+ * A container for {@link JavaToolChain}s.
  */
 @Incubating
 @HasInternalProtocol
-public interface NativeToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<NativeToolChain>, ToolChainRegistry<NativePlatform, NativeToolChain> {
+public interface JavaToolChainRegistry extends ToolChainRegistry<JvmPlatform, JavaToolChain> {
 }

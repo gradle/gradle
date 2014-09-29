@@ -56,7 +56,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         for (NativePlatform platform: platforms.select(NativePlatform.class, targetedComponent.getTargetPlatforms())) { //TODO freekh: make sure this is right
             NativePlatformInternal platformInternal = (NativePlatformInternal) platform;
-            NativeToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
+            NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChainRegistry.getForPlatform(platformInternal);
             PlatformToolProvider toolProvider = toolChain.select(platformInternal);
             for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
                 for (Flavor flavor : targetedComponent.chooseFlavors(allFlavors)) {

@@ -63,9 +63,9 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         }
     }
 
-    public NativeToolChainInternal getForPlatform(NativePlatformInternal targetPlatform) {
+    public NativeToolChain getForPlatform(NativePlatform targetPlatform) {
         for (NativeToolChainInternal toolChain : searchOrder) {
-            if (toolChain.select(targetPlatform).isAvailable()) {
+            if (toolChain.select((NativePlatformInternal) targetPlatform).isAvailable()) {
                 return toolChain;
             }
         }
@@ -73,7 +73,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         // No tool chains can build for this platform. Assemble a description of why
         Map<String, PlatformToolProvider> candidates = new LinkedHashMap<String, PlatformToolProvider>();
         for (NativeToolChainInternal toolChain : searchOrder) {
-            candidates.put(toolChain.getDisplayName(), toolChain.select(targetPlatform));
+            candidates.put(toolChain.getDisplayName(), toolChain.select((NativePlatformInternal) targetPlatform));
         }
 
         return new UnavailableNativeToolChain(new UnavailableToolChainDescription(targetPlatform, candidates));
