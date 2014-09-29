@@ -53,7 +53,6 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
             assert othersSampleBinary instanceof OtherSampleBinary
             assert othersSampleBinary.displayName == "OtherSampleBinaryImpl: 'sampleLibOtherBinary'"
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
         }
 """
         then:
