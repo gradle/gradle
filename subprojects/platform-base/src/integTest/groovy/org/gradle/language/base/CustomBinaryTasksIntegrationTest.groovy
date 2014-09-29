@@ -15,7 +15,10 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -65,59 +68,57 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register binary creation tasks using @BinaryTask"() {
+        given:
+        buildFile << withBinaryTasksPlugin();
         when:
-        buildFile << """
-        class MyBinaryTasks implements Plugin<Project> {
-            void apply(final Project project) {}
-
-            @RuleSource
-            static class Rules1 {
-                @BinaryTasks
-                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
-                    tasks.create("custom\${binary.getName().capitalize()}Task")
-                }
-            }
-        }
-
-        apply plugin:MyBinaryTasks
-"""
+        succeeds "tasks", "--all"
         then:
-        succeeds "customSampleLibBinaryTask"
+        output.contains(toPlatformLineSeparators(
+        """
+sampleLibBinary - Assembles DefaultSampleBinary: 'sampleLibBinary'.
+    customSampleLibBinaryTask"""))
     }
 
-    String myBinaryDeclarationModel() {
-        """
-        class MyBinaryDeclarationModel implements Plugin<Project> {
-            void apply(final Project project) {}
+    def "@BinaryTasks adds task to binary model"() {
+        when:
+        buildFile << withBinaryTasksPlugin();
+        buildFile << """
 
-            @RuleSource
-            static class ComponentModel {
-                @ComponentType
-                void register(ComponentTypeBuilder<SampleLibrary> builder) {
-                    builder.defaultImplementation(DefaultSampleLibrary)
-                }
-                @Mutate
-                void createSampleComponentComponents(CollectionBuilder<SampleLibrary> componentSpecs) {
-                    componentSpecs.create("sampleLib")
-                }
+        task checkModel << {
+            assert project.binaries.size() == 1
+            def sampleBinary = project.binaries.sampleLibBinary
+            assert sampleBinary instanceof SampleBinary
+            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
+            assert sampleBinary.tasks.collect{it.name} == ['customSampleLibBinaryTask']
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
 
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
-                }
+    def "lifecycle task task runs custom task"() {
+        given:
+        buildFile << withBinaryTasksPlugin();
+        when:
+        succeeds "assemble"
+        then:
+        output.contains(toPlatformLineSeparators(""":customSampleLibBinaryTask UP-TO-DATE
+:sampleLibBinary UP-TO-DATE
+:assemble UP-TO-DATE"""))
+    }
 
-                @BinaryType
-                void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {
-                    builder.defaultImplementation(OtherSampleBinaryImpl)
-                }
+    String withBinaryTasksPlugin() {
+ """class MyBinaryTasks implements Plugin<Project> {
+        void apply(final Project project) {}
 
-                @ComponentBinaries
-                void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
-                    binaries.create("\${library.name}Binary", SampleBinary)
-                    binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
-                }
+        @RuleSource
+        static class Rules1 {
+            @BinaryTasks
+            void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
+                tasks.create("custom\${binary.getName().capitalize()}Task")
             }
         }
-        """
+    }
+    apply plugin:MyBinaryTasks"""
     }
 }

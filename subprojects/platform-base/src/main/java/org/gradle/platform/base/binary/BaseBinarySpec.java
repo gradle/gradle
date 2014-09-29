@@ -44,7 +44,6 @@ import java.util.Set;
 @Incubating
 public abstract class BaseBinarySpec implements BinarySpecInternal {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryNamingScheme namingScheme;
@@ -96,7 +95,9 @@ public abstract class BaseBinarySpec implements BinarySpecInternal {
     }
 
     public DomainObjectSet<Task> getTasks() {
-        return new DefaultDomainObjectSet<Task>(Task.class);
+        DomainObjectSet<Task> tasks = new DefaultDomainObjectSet<Task>(Task.class);
+        tasks.addAll(buildDependencies.getDependencies(lifecycleTask));
+        return tasks;
     }
 
     public Task getBuildTask() {
