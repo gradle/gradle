@@ -74,7 +74,6 @@ abstract public class ModelCreators {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
         public Builder<T> withProjection(ModelProjection<? super T> projection) {
             projections.add(projection);
             return this;
