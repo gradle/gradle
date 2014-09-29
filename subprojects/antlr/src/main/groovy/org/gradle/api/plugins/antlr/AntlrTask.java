@@ -53,10 +53,10 @@ import javax.inject.Inject;
 public class AntlrTask extends SourceTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrTask.class);
 
-    private boolean trace = false;
-    private boolean traceLexer = false;
-    private boolean traceParser = false;
-    private boolean traceTreeWalker = false;
+    private boolean trace;
+    private boolean traceLexer;
+    private boolean traceParser;
+    private boolean traceTreeWalker;
     private List<String> arguments = new ArrayList<String>();
 
     private FileCollection antlrClasspath;
