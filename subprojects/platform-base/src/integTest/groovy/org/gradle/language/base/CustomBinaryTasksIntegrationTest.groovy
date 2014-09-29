@@ -28,9 +28,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         import org.gradle.model.collection.*
 
         interface SampleBinary extends BinarySpec {}
-        interface OtherSampleBinary extends SampleBinary {}
         class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
-        class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {}
         interface SampleLibrary extends ComponentSpec<SampleBinary> {}
         class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
@@ -56,10 +54,13 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
-                    binaries.create("\${library.name}Binary", SampleBinary)
+                    binaries.create("\${library.name}Binary")
                 }
 
-
+                @BinaryTasks
+                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
+                    tasks.create("custom\${binary.getName().capitalize()}Task")
+                }
             }
         }
         apply plugin:MyComponentBasePlugin
@@ -68,8 +69,6 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register binary creation tasks using @BinaryTask"() {
-        given:
-        buildFile << withBinaryTasksPlugin();
         when:
         succeeds "tasks", "--all"
         then:
@@ -81,15 +80,27 @@ sampleLibBinary - Assembles DefaultSampleBinary: 'sampleLibBinary'.
 
     def "@BinaryTasks adds task to binary model"() {
         when:
-        buildFile << withBinaryTasksPlugin();
         buildFile << """
 
         task checkModel << {
             assert project.binaries.size() == 1
-            def sampleBinary = project.binaries.sampleLibBinary
-            assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
-            assert sampleBinary.tasks.collect{it.name} == ['customSampleLibBinaryTask']
+            assert project.binaries.sampleLibBinary != null
+            assert project.binaries.sampleLibBinary.tasks.collect{it.name} == ['customSampleLibBinaryTask']
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
+
+    def "@BinaryTasks only applies to matching BinarySpec"() {
+        when:
+        buildFile << withOtherBinaryPlugin()
+        buildFile << """
+
+        task checkModel << {
+            assert project.binaries.size() == 2
+            def otherBinary = project.binaries.otherLibBinary
+            assert otherBinary.tasks == [] as Set
         }
 """
         then:
@@ -97,8 +108,6 @@ sampleLibBinary - Assembles DefaultSampleBinary: 'sampleLibBinary'.
     }
 
     def "lifecycle task task runs custom task"() {
-        given:
-        buildFile << withBinaryTasksPlugin();
         when:
         succeeds "assemble"
         then:
@@ -107,18 +116,40 @@ sampleLibBinary - Assembles DefaultSampleBinary: 'sampleLibBinary'.
 :assemble UP-TO-DATE"""))
     }
 
-    String withBinaryTasksPlugin() {
- """class MyBinaryTasks implements Plugin<Project> {
-        void apply(final Project project) {}
 
-        @RuleSource
-        static class Rules1 {
-            @BinaryTasks
-            void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
-                tasks.create("custom\${binary.getName().capitalize()}Task")
+    String withOtherBinaryPlugin() {
+        """
+        interface OtherBinary extends BinarySpec {}
+        class DefaultOtherBinary extends BaseBinarySpec implements OtherBinary {}
+        interface OtherLibrary extends ComponentSpec<OtherBinary> {}
+        class DefaultOtherLibrary extends BaseComponentSpec implements OtherLibrary{}
+
+        class MyOtherBinariesPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @ComponentType
+                void register(ComponentTypeBuilder<OtherLibrary> builder) {
+                    builder.defaultImplementation(DefaultOtherLibrary)
+                }
+
+                @BinaryType
+                void register(BinaryTypeBuilder<OtherBinary> builder) {
+                    builder.defaultImplementation(DefaultOtherBinary)
+                }
+
+                @Mutate
+                void createSampleComponentComponents(CollectionBuilder<OtherLibrary> componentSpecs) {
+                    componentSpecs.create("otherLib")
+                }
+
+                @ComponentBinaries
+                void createBinariesForSampleLibrary(CollectionBuilder<OtherBinary> binaries, OtherLibrary library) {
+                    binaries.create("\${library.name}Binary")
+                }
             }
         }
-    }
-    apply plugin:MyBinaryTasks"""
+        apply plugin:MyOtherBinariesPlugin"""
     }
 }

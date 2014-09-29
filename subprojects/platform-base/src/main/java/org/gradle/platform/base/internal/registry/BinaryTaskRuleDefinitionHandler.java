@@ -79,10 +79,10 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
     private class BinaryTaskRule<R, T extends BinarySpec> implements ModelMutator<TaskContainer> {
 
         private final ModelReference<TaskContainer> subject;
-        private final Class<T> binaryType;
         private final MethodRuleDefinition<R> ruleDefinition;
         private final ModelRegistry modelRegistry;
         private final ImmutableList<ModelReference<?>> inputs;
+        private final Class<T> binaryType;
 
         public BinaryTaskRule(ModelReference<TaskContainer> subject, Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
             this.subject = subject;
@@ -98,7 +98,7 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
 
         public void mutate(TaskContainer container, Inputs inputs) {
             BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
-            for (BinarySpec binary : binaries) {
+            for (BinarySpec binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator<Task>(binary, container);
                 DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
                         subject.getPath(),
@@ -108,9 +108,7 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
                         modelRegistry);
 
                 ruleDefinition.getRuleInvoker().invoke(collectionBuilder, binary);
-
             }
-
         }
 
         public List<ModelReference<?>> getInputs() {
