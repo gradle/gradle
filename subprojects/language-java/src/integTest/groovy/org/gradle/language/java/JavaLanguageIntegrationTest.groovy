@@ -323,7 +323,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         fails "assemble"
 
         and:
-        assert failure.assertHasCause("Could not find JvmPlatform with name: '$badName'")
+        assert failure.assertHasCause("Invalid Platform: '$badName'")
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
