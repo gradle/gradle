@@ -69,12 +69,15 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
         ModelType<? extends S> dependency = null;
         for (ModelReference<?> reference : references) {
             ModelType<? extends S> newDependency = expectedDependency.asSubclass(reference.getType());
-            if (dependency != null) {
-                throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
-                        expectedDependency.getConcreteClass().getSimpleName(),
-                        expectedDependency.getConcreteClass().getSimpleName()));
+            if (newDependency != null) {
+                if (dependency != null) {
+                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
+                            expectedDependency.getConcreteClass().getSimpleName(),
+                            expectedDependency.getConcreteClass().getSimpleName()));
+
+                }
+                dependency = newDependency;
             }
-            dependency = newDependency;
         }
 
         if (dependency == null) {

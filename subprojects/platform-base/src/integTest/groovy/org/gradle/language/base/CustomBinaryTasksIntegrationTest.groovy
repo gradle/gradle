@@ -55,10 +55,6 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
                     binaries.create("\${library.name}Binary")
                 }
 
-                @BinaryTasks
-                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
-                    tasks.create("custom\${binary.getName().capitalize()}Task")
-                }
             }
         }
         apply plugin:MyComponentBasePlugin
@@ -66,8 +62,11 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+
     @Unroll
     def "executing #taskdescr triggers custom task"() {
+        given:
+        buildFile << taskCreationRuleFromBinary()
         when:
         succeeds taskName
         then:
@@ -79,6 +78,8 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "@BinaryTasks adds task to binary model"() {
+        given:
+        buildFile << taskCreationRuleFromBinary()
         when:
         buildFile << """
 
@@ -105,6 +106,67 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 """
         then:
         succeeds "checkModel"
+    }
+
+    def "@BinaryTasks respects further parameters as rule inputs"() {
+        when:
+        buildFile << """
+        class CustomModel {
+            List<String> values = []
+        }
+
+        class BinaryTasksPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @Model
+                CustomModel customModel() {
+                    new CustomModel()
+                }
+
+                @BinaryTasks
+                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary, CustomModel model) {
+                    model.values.each { postFix ->
+                        tasks.create("\${binary.getName()}\${postFix}");
+                    }
+                }
+            }
+        }
+
+        apply plugin: BinaryTasksPlugin
+
+        model {
+            customModel {
+                values << "1st" << "2nd"
+            }
+        }
+
+        task checkModel << {
+            assert project.binaries.size() == 1
+            assert project.binaries.sampleLibBinary != null
+            assert project.binaries.sampleLibBinary.tasks.collect{it.name}.sort() == ['sampleLibBinary1st', 'sampleLibBinary2nd']
+        }"""
+        then:
+        succeeds "checkModel"
+    }
+
+    String taskCreationRuleFromBinary() {
+
+        """
+        class BinaryTasksPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @BinaryTasks
+                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
+                    tasks.create("custom\${binary.getName().capitalize()}Task")
+                }
+            }
+        }
+        apply plugin:BinaryTasksPlugin
+"""
     }
 
     String withOtherBinaryPlugin() {

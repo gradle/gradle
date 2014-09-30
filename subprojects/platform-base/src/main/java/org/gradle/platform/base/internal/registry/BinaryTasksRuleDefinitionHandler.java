@@ -37,7 +37,7 @@ import org.gradle.platform.base.InvalidComponentModelException;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTasks> {
+public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTasks> {
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         doRegister(ruleDefinition, modelRegistry, dependencies);
@@ -81,15 +81,18 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
         private final ModelReference<TaskContainer> subject;
         private final MethodRuleDefinition<R> ruleDefinition;
         private final ModelRegistry modelRegistry;
-        private final ImmutableList<ModelReference<?>> inputs;
+        private final List<ModelReference<?>> inputs;
         private final Class<T> binaryType;
 
-        public BinaryTaskRule(ModelReference<TaskContainer> subject, Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
+        public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
             this.subject = subject;
             this.binaryType = binaryType;
             this.ruleDefinition = ruleDefinition;
             this.modelRegistry = modelRegistry;
-            this.inputs =  ImmutableList.<ModelReference<?>>of(ModelReference.of("binaries", BinaryContainer.class));
+            ImmutableList.Builder<ModelReference<?>> allInputs = ImmutableList.builder();
+            allInputs.add(ModelReference.of("binaries", BinaryContainer.class));
+            allInputs.addAll(ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size()));
+            this.inputs =  allInputs.build();
         }
 
         public ModelReference<TaskContainer> getSubject() {
@@ -107,7 +110,13 @@ public class BinaryTaskRuleDefinitionHandler extends AbstractAnnotationDrivenMet
                         inputs,
                         modelRegistry);
 
-                ruleDefinition.getRuleInvoker().invoke(collectionBuilder, binary);
+                Object[] args = new Object[2 + inputs.size()-1];
+                args[0] = collectionBuilder;
+                args[1] = binary;
+                for(int i = 2; i<args.length; i++){
+                    args[i] = inputs.getRuleInputs().get(i-1).getView().getInstance();
+                }
+                ruleDefinition.getRuleInvoker().invoke(args);
             }
         }
 

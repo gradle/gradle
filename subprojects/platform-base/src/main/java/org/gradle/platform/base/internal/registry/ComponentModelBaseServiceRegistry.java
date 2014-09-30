@@ -46,7 +46,7 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new ComponentBinariesRuleDefinitionHandler();
         }
         MethodRuleDefinitionHandler createBinaryTaskPluginInspector() {
-            return new BinaryTaskRuleDefinitionHandler();
+            return new BinaryTasksRuleDefinitionHandler();
         }
     }
 }

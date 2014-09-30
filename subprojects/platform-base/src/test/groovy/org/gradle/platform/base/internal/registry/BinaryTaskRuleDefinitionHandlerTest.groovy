@@ -36,7 +36,7 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    BinaryTaskRuleDefinitionHandler ruleHandler = new BinaryTaskRuleDefinitionHandler()
+    BinaryTasksRuleDefinitionHandler ruleHandler = new BinaryTasksRuleDefinitionHandler()
 
     @Override
     Class<? extends Annotation> getAnnotation() {
