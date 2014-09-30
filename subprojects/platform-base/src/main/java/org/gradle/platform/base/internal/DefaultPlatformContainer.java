@@ -32,7 +32,6 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
         super(type, instantiator);
     }
 
-    @SuppressWarnings("unchecked")
     public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
         //TODO freekh: consider moving this logic to some other place
         if (targets.isEmpty()) {
