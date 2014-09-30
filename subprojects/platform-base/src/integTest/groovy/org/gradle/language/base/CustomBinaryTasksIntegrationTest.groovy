@@ -108,7 +108,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "checkModel"
     }
 
-    def "@BinaryTasks respects further parameters as rule inputs"() {
+    def "@BinaryTasks respects additional parameters as rule inputs"() {
         when:
         buildFile << """
         class CustomModel {
