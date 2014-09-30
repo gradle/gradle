@@ -18,6 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
@@ -33,10 +34,10 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidComponentModelException;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTasks> {
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
@@ -84,14 +85,29 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
         private final List<ModelReference<?>> inputs;
         private final Class<T> binaryType;
 
+        private int binaryParameterIndex;
+
         public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
             this.subject = subject;
             this.binaryType = binaryType;
             this.ruleDefinition = ruleDefinition;
             this.modelRegistry = modelRegistry;
+
+            final List<ModelReference<?>> references = ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size());
+            final List<ModelReference<?>> filteredReferences = CollectionUtils.filter(references, new Spec<ModelReference<?>>() {
+                public boolean isSatisfiedBy(ModelReference<?> element) {
+                    if(element.getType().equals(ModelType.of(binaryType))){
+                        binaryParameterIndex = references.indexOf(element) + 1;
+                        return false;
+                    }
+                    return true;
+                }
+            });
+
             ImmutableList.Builder<ModelReference<?>> allInputs = ImmutableList.builder();
             allInputs.add(ModelReference.of("binaries", BinaryContainer.class));
-            allInputs.addAll(ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size()));
+            allInputs.addAll(filteredReferences);
+
             this.inputs =  allInputs.build();
         }
 
@@ -110,11 +126,21 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
                         inputs,
                         modelRegistry);
 
-                Object[] args = new Object[2 + inputs.size()-1];
+                Object[] args = new Object[inputs.size() + 1];
                 args[0] = collectionBuilder;
-                args[1] = binary;
-                for(int i = 2; i<args.length; i++){
-                    args[i] = inputs.getRuleInputs().get(i-1).getView().getInstance();
+                args[binaryParameterIndex] = binary;
+
+                for (ModelRuleInput<?> modelRuleInput : inputs.getRuleInputs()) {
+                    Object instance = modelRuleInput.getView().getInstance();
+                    if(instance == binaries){
+                        continue;
+                    }
+                    for(int i = 0; i< args.length; i++){
+                        if(args[i]==null){
+                            args[i] = instance;
+                            break;
+                        }
+                    }
                 }
                 ruleDefinition.getRuleInvoker().invoke(args);
             }

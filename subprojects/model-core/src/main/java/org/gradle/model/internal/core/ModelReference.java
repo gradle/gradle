@@ -102,6 +102,12 @@ public class ModelReference<T> {
 
         ModelReference<?> that = (ModelReference<?>) o;
 
+        if(path == null){
+            if (that.path == null){
+                return type.equals(that.type);
+            }
+            return false;
+        }
         return path.equals(that.path) && type.equals(that.type);
     }
 

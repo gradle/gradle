@@ -120,13 +120,14 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
             @RuleSource
             static class Rules {
+
                 @Model
                 CustomModel customModel() {
                     new CustomModel()
                 }
 
                 @BinaryTasks
-                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary, CustomModel model) {
+                void createSampleComponentComponents(CollectionBuilder<Task> tasks, $ruleInputs) {
                     model.values.each { postFix ->
                         tasks.create("\${binary.getName()}\${postFix}");
                     }
@@ -149,6 +150,8 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         }"""
         then:
         succeeds "checkModel"
+        where:
+        ruleInputs << ["SampleBinary binary, CustomModel model",  "CustomModel model, SampleBinary binary"]
     }
 
     String taskCreationRuleFromBinary() {
