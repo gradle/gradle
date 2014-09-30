@@ -30,6 +30,7 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -80,11 +81,11 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
         List<JvmPlatform> alternatives = new ArrayList<JvmPlatform>();
         alternatives.addAll(platforms.withType(JvmPlatform.class));
-        alternatives.sort(new Comparator<JvmPlatform>() {
-                public int compare(JvmPlatform p1, JvmPlatform p2) {
-                    return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());
-                }
-            });
+        Collections.sort(alternatives, new Comparator<JvmPlatform>() {
+            public int compare(JvmPlatform p1, JvmPlatform p2) {
+                return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());
+            }
+        });
 
         if (!isCompatible(platform, getJavaVersion())) {
             List<String> compatibleVersions = new ArrayList<String>();
