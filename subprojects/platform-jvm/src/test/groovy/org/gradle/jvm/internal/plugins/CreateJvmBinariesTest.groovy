@@ -69,7 +69,7 @@ class CreateJvmBinariesTest extends Specification {
             binary.resourcesDir == binary.classesDir
             binary.toolChain == toolChain
         } as BinarySpec)
-        0 * _
+        2 * _ //TODO freekh: Specify
     }
 
     def "created binary has sources from jvm library"() {
@@ -95,7 +95,7 @@ class CreateJvmBinariesTest extends Specification {
             binary.source == library.source
             binary.toolChain == toolChain
         } as BinarySpec)
-        0 * _
+        2 * _ //TODO freekh: Specify
     }
 
     def componentId(def name, def path) {

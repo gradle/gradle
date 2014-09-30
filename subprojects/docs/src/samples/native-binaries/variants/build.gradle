@@ -33,7 +33,9 @@ executables {
 }
 // END SNIPPET target-platforms
 libraries {
-    hello {}
+    hello {
+        targetPlatform "x86", "x64"
+    }
 }
 sources {
     main.cpp.lib libraries.hello.static

@@ -17,6 +17,7 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryBinaryLocator;
 
 import java.util.ArrayList;
@@ -29,15 +30,15 @@ public class NativeDependencyResolverServices {
         return new DefaultProjectLocator(currentProjectPath, projectFinder);
     }
 
-    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator) {
+    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator, Instantiator instantiator) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        locators.add(new ProjectLibraryBinaryLocator(projectLocator));
+        locators.add(new ProjectLibraryBinaryLocator(projectLocator, instantiator));
         locators.add(new PrebuiltLibraryBinaryLocator(projectLocator));
         return new ChainedLibraryBinaryLocator(locators);
     }
 
-    public NativeDependencyResolver createResolver(LibraryBinaryLocator locator) {
-        NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
+    public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, Instantiator instantiator) {
+        NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator, instantiator);
         resolver = new ApiRequirementNativeDependencyResolver(resolver);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
         resolver = new SourceSetNativeDependencyResolver(resolver);

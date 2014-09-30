@@ -47,13 +47,18 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         testApp.writeSources(file("src/main"))
     }
 
-    def "build binary for a default target platform"() {
-        given:
+    def currentArch() {
         def arch =  [name: "x86_64", altName: "amd64"]
         // Tool chains on Windows currently build for i386 by default, even on amd64
         if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             arch = [name: "x86", altName: "i386"]
         }
+        return arch;
+    }
+
+    def "build binary for a default target platform"() {
+        given:
+        def arch = currentArch();
 
         when:
         succeeds "mainExecutable"
@@ -91,19 +96,6 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    def "use default platform when no platforms are defined"() {
-        when:
-        buildFile
-
-        and:
-        succeeds "assemble"
-
-        then:
-        // Platform dimension is flattened since there is only one possible value
-        executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.getName() == Native.get(SystemInfo).architectureName
-        executable("build/binaries/mainExecutable/main").exec().out == "${Native.get(SystemInfo).architectureName} ${os.familyName}" * 2
-    }
 
     def "use platform as default when only one platform is defined"() {
         when:
@@ -123,11 +115,11 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch == Native.get(SystemInfo).architectureName
-        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == Native.get(SystemInfo).architectureName
+        executable("build/binaries/mainExecutable/main").exec().out == "amd64 ${os.familyName}" * 2
     }
 
-    def "use default target platform for multiple defined platforms"() {
+    def "defaults to first platform if no target platforms are defined"() {
         when:
         buildFile << """
             model {
@@ -147,9 +139,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
         then:
         // Platform dimension is flattened since there is only one possible value
-        println(executable("build/binaries/mainExecutable/main").file)
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch == Native.get(SystemInfo).architecture
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
@@ -210,6 +201,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     }
                 }
             }
+
+            executables.main.targetPlatform "x86", "x86_64", "itanium", "arm"
 """
 
         and:
@@ -247,18 +240,29 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def "can configure binary for multiple target operating systems"() {
+        String currentOs
+        if (os.windows) {
+            currentOs = "windows"
+        } else if (os.linux) {
+            currentOs = "linux"
+        } else if (os.macOsX) {
+            currentOs = "osx"
+        } else {
+            throw new AssertionError("Unexpected operating system")
+        }
+
         when:
         buildFile << """
             model {
                 platforms {
+                    osx {
+                        operatingSystem "osx"
+                    }
                     windows {
                         operatingSystem "windows"
                     }
                     linux {
                         operatingSystem "linux"
-                    }
-                    osx {
-                        operatingSystem "osx"
                     }
                 }
             }
@@ -266,18 +270,19 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
                 cppCompiler.define "FRENCH"
             }
-        """
 
+            executables.main.targetPlatform "$currentOs"
+        """
         and:
         succeeds "assemble"
 
         then:
         if (os.windows) {
-            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "amd64 windows" * 2
         } else if (os.linux) {
-            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "amd64 linux" * 2
         } else if (os.macOsX) {
-            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "amd64 os x" * 2
         } else {
             throw new AssertionError("Unexpected operating system")
         }
@@ -354,7 +359,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
         then:
         failure.assertHasDescription("A problem occurred configuring root project 'bad-platform'.")
-        failure.assertHasCause("Invalid NativePlatform: 'unknown'")
+        failure.assertHasCause("Invalid Platform: 'unknown'")
     }
 
     def "fails with reasonable error message when depended on library has no variant with matching platform"() {
@@ -373,15 +378,17 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     targetPlatform "two"
                 }
             }
+
             sources {
                 main.cpp.lib libraries.hello
             }
 """
 
         and:
-        fails "oneMainExecutable"
+        fails "mainExecutable" //TODO freekh: changed from oneMainExecutable because we target the first platform and choose it as default now if none is described. Unsure whether that is good.
 
         then:
+        //TODO freekh: This error message is not particularly descriptive: it is hard to understand what to do and how to fix it.
         failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 

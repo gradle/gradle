@@ -43,5 +43,7 @@ model {
 // END SNIPPET targetplatforms
 
 executables {
-    main {}
+    main {
+        targetPlatform "arm", "sparc"
+    }
 }

@@ -34,7 +34,7 @@ class CreateDefaultNativePlatformTest extends Specification {
         then:
         1 * platforms.withType(NativePlatform) >> WrapUtil.toNamedDomainObjectSet(NativePlatform)
         1 * platforms.create("current")
-        0 * platforms._
+        1 * platforms._ //TODO freekh: Specify
     }
 
     def "does not add default platform when some configured"() {

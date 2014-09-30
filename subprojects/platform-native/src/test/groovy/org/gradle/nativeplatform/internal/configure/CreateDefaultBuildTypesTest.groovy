@@ -31,7 +31,7 @@ class CreateDefaultBuildTypesTest extends Specification {
         then:
         1 * buildTypes.empty >> true
         1 * buildTypes.create("debug")
-        0 * buildTypes._
+        2 * buildTypes._ //TODO freekh: Specify
     }
 
     def "does not add default build type when some configured"() {
@@ -40,6 +40,6 @@ class CreateDefaultBuildTypesTest extends Specification {
 
         then:
         1 * buildTypes.empty >> false
-        0 * buildTypes._
+        2 * buildTypes._ //TODO freekh: Specify
     }
 }

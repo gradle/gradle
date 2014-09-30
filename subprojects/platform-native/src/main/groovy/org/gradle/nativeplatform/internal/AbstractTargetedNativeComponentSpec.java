@@ -21,7 +21,6 @@ import org.gradle.api.Named;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.Platform;
@@ -67,6 +66,7 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
     }
 
     public Set<Platform> choosePlatforms(Set<? extends Platform> candidates) {
+        //TODO freekh: is this ugly:
         if (targetPlatforms.isEmpty()) {
             return Sets.newHashSet((Platform) new DefaultNativePlatform(Platform.DEFAULT_NAME));
         }

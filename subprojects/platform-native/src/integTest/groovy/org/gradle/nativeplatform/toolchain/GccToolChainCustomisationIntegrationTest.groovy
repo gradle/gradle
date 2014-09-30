@@ -86,6 +86,17 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
             }
+
+            executables {
+               main {
+                   targetPlatform "arm", "i386", "sparc"
+               }
+            }
+            libraries {
+               hello {
+                   targetPlatform "arm", "i386", "sparc"
+               }
+            }
 """
 
         and:
@@ -152,7 +163,17 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         and:
         buildFile << """
             executables {
-                execTest
+                execTest {
+                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+                }
+                main {
+                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+                }
+            }
+            libraries {
+                hello {
+                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+                }
             }
             model {
                 toolChains {
@@ -178,6 +199,8 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                     alwaysCPlusPlus
                 }
             }
+
+
 
 """
         succeeds "assemble"

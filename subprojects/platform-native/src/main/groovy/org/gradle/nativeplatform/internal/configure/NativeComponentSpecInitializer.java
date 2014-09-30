@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
@@ -27,7 +26,6 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.ToolChainRegistryInternal;
-import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
@@ -56,7 +54,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        for (NativePlatform platform: platforms.withType(NativePlatform.class)) {
+        for (NativePlatform platform: platforms.select(NativePlatform.class, targetedComponent.getTargetPlatforms())) { //TODO freekh: make sure this is right
             NativePlatformInternal platformInternal = (NativePlatformInternal) platform;
             NativeToolChainInternal toolChain = toolChainRegistry.getForPlatform(platformInternal);
             PlatformToolProvider toolProvider = toolChain.select(platformInternal);
@@ -84,11 +82,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
     }
 
     private boolean usePlatformDimension(TargetedNativeComponentInternal component) {
-        //TODO freekh: ugly?
-        if (component.getTargetPlatforms().contains(Platform.DEFAULT_NAME)) {
-            return true; //TODO freekh: should only be done for multiple toolchains
-        }
-        return true; //component.choosePlatforms(platforms).size() > 1; //TODO freekh: NOTICE 1!!
+        return component.choosePlatforms(platforms).size() > 1;
     }
 
     private boolean useBuildTypeDimension(TargetedNativeComponentInternal component) {
