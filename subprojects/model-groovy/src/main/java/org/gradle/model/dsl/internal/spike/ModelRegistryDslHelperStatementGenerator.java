@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl.internal.spike;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.codehaus.groovy.ast.VariableScope;
 import org.codehaus.groovy.ast.expr.*;
@@ -29,25 +30,35 @@ class ModelRegistryDslHelperStatementGenerator {
 
     private final List<Statement> generatedStatements = Lists.newArrayList();
 
-    private String getPath(List<String> scope, VariableExpression propertyPathExpression) {
-        String propertyPath = propertyPathExpression.getName();
+    private String getPath(List<String> scope, Expression propertyPathExpression) {
+        String propertyPath = propertyPathExpression.getText();
         String scopePath = CollectionUtils.join(".", scope);
         return scopePath.length() > 0 ? String.format("%s.%s", scopePath, propertyPath): propertyPath;
     }
 
-    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, ClosureExpression creator) {
-        String path = getPath(scope, propertyPathExpression);
-
+    private void addCreator(String path, ClosureExpression creator) {
         VariableExpression subject = new VariableExpression("modelRegistryHelper");
         ArgumentListExpression arguments = new ArgumentListExpression(new ConstantExpression(path), creator);
         MethodCallExpression methodCallExpression = new MethodCallExpression(subject, "addCreator", arguments);
         generatedStatements.add(new ExpressionStatement(methodCallExpression));
     }
 
-    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, Expression expression) {
+    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, ClosureExpression creator) {
+        addCreator(getPath(scope, propertyPathExpression), creator);
+    }
+
+    private void addCreator(String path, Expression expression) {
         ClosureExpression wrappingClosure = new ClosureExpression(null, new ExpressionStatement(expression));
         wrappingClosure.setVariableScope(new VariableScope());
-        addCreator(scope, propertyPathExpression, wrappingClosure);
+        addCreator(path, wrappingClosure);
+    }
+
+    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, Expression expression) {
+        addCreator(getPath(scope, propertyPathExpression), expression);
+    }
+
+    public void addCreator(ImmutableList<String> scope, PropertyExpression propertyPathExpression, Expression expression) {
+        addCreator(getPath(scope, propertyPathExpression), expression);
     }
 
     public List<Statement> getGeneratedStatements() {

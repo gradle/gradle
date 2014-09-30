@@ -17,10 +17,7 @@
 package org.gradle.model.dsl.internal.spike;
 
 import com.google.common.collect.ImmutableList;
-import org.codehaus.groovy.ast.expr.BinaryExpression;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.ast.expr.VariableExpression;
+import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
@@ -82,8 +79,14 @@ public class ScopeVisitor extends RestrictiveCodeVisitor {
         Token operation = expression.getOperation();
         if (operation.isA(Types.LEFT_SHIFT) && expression.getLeftExpression() instanceof VariableExpression && expression.getRightExpression() instanceof ClosureExpression) {
             statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), (ClosureExpression) expression.getRightExpression());
-        } else if (operation.isA(Types.ASSIGN) && expression.getLeftExpression() instanceof VariableExpression) {
-            statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), expression.getRightExpression());
+        } else if (operation.isA(Types.ASSIGN)) {
+            if (expression.getLeftExpression() instanceof VariableExpression) {
+                statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), expression.getRightExpression());
+            } else if (expression.getLeftExpression() instanceof PropertyExpression) {
+                statementGenerator.addCreator(scope, (PropertyExpression) expression.getLeftExpression(), expression.getRightExpression());
+            } else {
+                super.visitBinaryExpression(expression);
+            }
         } else {
             super.visitBinaryExpression(expression);
         }

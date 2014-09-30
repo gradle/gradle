@@ -81,9 +81,37 @@ class GradleModellingLanguageTest extends Specification {
         person.firstName == "foo"
         person.lastName == "bar"
     }
+
+    void "multipart path assignment"() {
+        given:
+        registry.create(ModelPath.path("book"), Factories.constant(new Book()))
+        registry.create(ModelPath.path("book.author"), Factories.constant(new Person()))
+
+        when:
+        buildScript """
+            model {
+                book {
+                    author {
+                        firstName = "foo"
+                    }
+                    author.lastName = "bar"
+                }
+            }
+        """
+
+        then:
+        def book = getModelValueAt("book")
+        book.author.firstName == "foo"
+        book.author.lastName == "bar"
+    }
 }
 
 class Person {
     String firstName
     String lastName
+}
+
+class Book {
+    String title
+    Person author
 }
