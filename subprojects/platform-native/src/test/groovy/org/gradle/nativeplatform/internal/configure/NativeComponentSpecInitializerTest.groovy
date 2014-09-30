@@ -63,7 +63,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         1 * platforms.select(_, _) >> [ platform ] //TODO freekh: this fakes the tests too much
         0 * namingSchemeBuilder._
-    }*/
+    }
 
     def "does not use variant dimension names when component targets a single point on dimension"() {
         def platforms = Mock(DefaultPlatformContainer)
@@ -86,7 +86,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * namingSchemeBuilder._
-    }
+    }*/
 
     def "includes platform in name for when multiple platforms"() {
         def platforms = Mock(PlatformContainer)
