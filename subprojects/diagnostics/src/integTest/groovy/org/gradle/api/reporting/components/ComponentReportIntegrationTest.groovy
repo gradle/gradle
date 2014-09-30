@@ -23,6 +23,7 @@ import org.gradle.util.TestPrecondition
 
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     private JavaVersion currentJvm = JavaVersion.current()
+    private String currentJava = "java"+currentJvm.majorVersion
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -77,7 +78,7 @@ Classes 'test'
     tool chain: current JDK ($currentJvm)
     classes dir: build/classes/test
     resources dir: build/resources/test
-"""
+""" //TODO freekh:  platform: JVM should not be currentJvm it should be currentJava
     }
 
     def "shows details of Java library"() {
@@ -111,7 +112,7 @@ Source sets
 Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
-        platform: JVM $currentJvm
+        platform: JVM $currentJava
         tool chain: current JDK ($currentJvm)
         Jar file: build/jars/someLibJar/someLib.jar
 """
@@ -304,7 +305,9 @@ model {
 
 nativeRuntime {
     libraries {
-        someLib
+        someLib {
+            targetPlatform "i386", "amd64"
+        }
     }
 }
 """
@@ -402,7 +405,9 @@ model {
 
 jvm {
     libraries {
-        jvmLib
+        jvmLib {
+            targetPlatform "$currentJava"
+        }
     }
 }
 nativeRuntime {
@@ -410,7 +415,7 @@ nativeRuntime {
         nativeLib
     }
 }
-"""
+""" //TODO freekh: should not really need to specify targetPlatform for jvmLib here
         when:
         succeeds "components"
 
@@ -429,7 +434,7 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        platform: JVM ${currentJvm}
+        platform: JVM ${currentJava}
         tool chain: current JDK (${currentJvm})
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
@@ -470,7 +475,7 @@ Binaries
     jvm {
         libraries {
             myLib {
-                targetPlatform "1.5", "1.6", "1.7"
+                targetPlatform "java5", "java6", "java7"
             }
         }
     }
@@ -490,21 +495,21 @@ Source sets
         src/myLib/java
 
 Binaries
-    Jar 'myLib:jdk1.5:jar'
-        build using task: :jdk1.5MyLibJar
-        platform: JVM 1.5
+    Jar 'myLib:java5:jar'
+        build using task: :java5MyLibJar
+        platform: JVM java5
         tool chain: current JDK ($currentJvm)
-        Jar file: build/jars/myLibJar/jdk1.5/myLib.jar
-    Jar 'myLib:jdk1.6:jar'
-        build using task: :jdk1.6MyLibJar
-        platform: JVM 1.6
+        Jar file: build/jars/myLibJar/java5/myLib.jar
+    Jar 'myLib:java6:jar'
+        build using task: :java6MyLibJar
+        platform: JVM java6
         tool chain: current JDK ($currentJvm)
-        Jar file: build/jars/myLibJar/jdk1.6/myLib.jar
-    Jar 'myLib:jdk1.7:jar'
-        build using task: :jdk1.7MyLibJar
-        platform: JVM 1.7
+        Jar file: build/jars/myLibJar/java6/myLib.jar
+    Jar 'myLib:java7:jar'
+        build using task: :java7MyLibJar
+        platform: JVM java7
         tool chain: current JDK ($currentJvm)
-        Jar file: build/jars/myLibJar/jdk1.7/myLib.jar
+        Jar file: build/jars/myLibJar/java7/myLib.jar
 """
     }
 
