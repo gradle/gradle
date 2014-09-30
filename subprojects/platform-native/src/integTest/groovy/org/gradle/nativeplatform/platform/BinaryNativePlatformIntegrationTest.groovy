@@ -115,7 +115,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == Native.get(SystemInfo).architectureName
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86_64"
         executable("build/binaries/mainExecutable/main").exec().out == "amd64 ${os.familyName}" * 2
     }
 
