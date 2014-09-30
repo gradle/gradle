@@ -17,17 +17,19 @@
 package org.gradle.model.dsl.internal.spike;
 
 import com.google.common.collect.ImmutableList;
+import org.codehaus.groovy.ast.Parameter;
+import org.codehaus.groovy.ast.VariableScope;
 import org.codehaus.groovy.ast.expr.*;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
-import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
 import org.gradle.groovy.scripts.internal.AstUtils;
-import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
+import org.gradle.util.CollectionUtils;
 
-public class ScopeVisitor extends RestrictiveCodeVisitor {
+import java.util.List;
+
+public class ScopeVisitor extends BlockAndExpressionStatementAllowingRestrictiveCodeVisitor {
 
     private final ModelRegistryDslHelperStatementGenerator statementGenerator;
     private final ImmutableList<String> scope;
@@ -51,16 +53,6 @@ public class ScopeVisitor extends RestrictiveCodeVisitor {
         return  new ScopeVisitor(sourceUnit, statementGenerator, nestedScopeBuilder.build());
     }
 
-    public void visitBlockStatement(BlockStatement block) {
-        for (Statement statement : block.getStatements()) {
-            statement.visit(this);
-        }
-    }
-
-    public void visitExpressionStatement(ExpressionStatement statement) {
-        statement.getExpression().visit(this);
-    }
-
     @Override
     public void visitMethodCallExpression(MethodCallExpression call) {
         String methodName = AstUtils.extractConstantMethodName(call);
@@ -78,17 +70,47 @@ public class ScopeVisitor extends RestrictiveCodeVisitor {
     public void visitBinaryExpression(BinaryExpression expression) {
         Token operation = expression.getOperation();
         if (operation.isA(Types.LEFT_SHIFT) && expression.getLeftExpression() instanceof VariableExpression && expression.getRightExpression() instanceof ClosureExpression) {
-            statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), (ClosureExpression) expression.getRightExpression());
+            addCreator(scope, (VariableExpression) expression.getLeftExpression(), (ClosureExpression) expression.getRightExpression());
         } else if (operation.isA(Types.ASSIGN)) {
             if (expression.getLeftExpression() instanceof VariableExpression) {
-                statementGenerator.addCreator(scope, (VariableExpression) expression.getLeftExpression(), expression.getRightExpression());
+                addCreator(scope, (VariableExpression) expression.getLeftExpression(), expression.getRightExpression());
             } else if (expression.getLeftExpression() instanceof PropertyExpression) {
-                statementGenerator.addCreator(scope, (PropertyExpression) expression.getLeftExpression(), expression.getRightExpression());
+                addCreator(scope, (PropertyExpression) expression.getLeftExpression(), expression.getRightExpression());
             } else {
                 super.visitBinaryExpression(expression);
             }
         } else {
             super.visitBinaryExpression(expression);
         }
+    }
+
+    private String getPath(List<String> scope, Expression propertyPathExpression) {
+        String propertyPath = propertyPathExpression.getText();
+        String scopePath = CollectionUtils.join(".", scope);
+        return scopePath.length() > 0 ? String.format("%s.%s", scopePath, propertyPath) : propertyPath;
+    }
+
+    private void addCreator(String path, ClosureExpression creator) {
+        ReferencesExtractor extractor = new ReferencesExtractor(sourceUnit);
+        creator.getCode().visit(extractor);
+        statementGenerator.addCreator(path, creator, extractor.getReferencedPaths());
+    }
+
+    private void addCreator(List<String> scope, VariableExpression propertyPathExpression, ClosureExpression creator) {
+        addCreator(getPath(scope, propertyPathExpression), creator);
+    }
+
+    private void addCreator(String path, Expression expression) {
+        ClosureExpression wrappingClosure = new ClosureExpression(new Parameter[0], new ExpressionStatement(expression));
+        wrappingClosure.setVariableScope(new VariableScope());
+        addCreator(path, wrappingClosure);
+    }
+
+    public void addCreator(List<String> scope, VariableExpression propertyPathExpression, Expression expression) {
+        addCreator(getPath(scope, propertyPathExpression), expression);
+    }
+
+    public void addCreator(ImmutableList<String> scope, PropertyExpression propertyPathExpression, Expression expression) {
+        addCreator(getPath(scope, propertyPathExpression), expression);
     }
 }

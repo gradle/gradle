@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl.internal.spike
 
-import org.gradle.internal.Factories
 import org.gradle.model.dsl.internal.spike.fixture.GradleModellingLanguageCompilingTestClassLoader
 import org.gradle.model.internal.core.ModelPath
 import spock.lang.Specification
@@ -64,7 +63,7 @@ class GradleModellingLanguageTest extends Specification {
 
     void "scoped assignments"() {
         given:
-        registry.create(ModelPath.path("person"), Factories.constant(new Person()))
+        registry.create(ModelPath.path("person"), ModelCreators.of(new Person()))
 
         when:
         buildScript """
@@ -84,8 +83,8 @@ class GradleModellingLanguageTest extends Specification {
 
     void "multipart path assignment"() {
         given:
-        registry.create(ModelPath.path("book"), Factories.constant(new Book()))
-        registry.create(ModelPath.path("book.author"), Factories.constant(new Person()))
+        registry.create(ModelPath.path("book"), ModelCreators.of(new Book()))
+        registry.create(ModelPath.path("book.author"), ModelCreators.of(new Person()))
 
         when:
         buildScript """
@@ -103,6 +102,23 @@ class GradleModellingLanguageTest extends Specification {
         def book = getModelValueAt("book")
         book.author.firstName == "foo"
         book.author.lastName == "bar"
+    }
+
+    void "simple root based reference"() {
+        when:
+        buildScript '''
+            model {
+                p1 {
+                    firstName = "foo"
+                }
+                p2 {
+                    firstName = $.p1.firstName
+                }
+            }
+        '''
+
+        then:
+        getModelValueAt("p2.firstName") == "foo"
     }
 }
 

@@ -16,27 +16,26 @@
 
 package org.gradle.model.dsl.internal.spike;
 
-import groovy.lang.Closure;
 import org.gradle.api.Transformer;
-import org.gradle.model.internal.core.ModelPath;
 
 import java.util.List;
 import java.util.Map;
 
-public class ModelRegistryDslHelper {
+public class ModelCreator {
 
-    private final ModelRegistry registry;
+    private final List<String> inputPaths;
 
-    public ModelRegistryDslHelper(ModelRegistry registry) {
-        this.registry = registry;
+    private final Transformer<Object, ? super Map<String, Object>> creator;
+    public ModelCreator(List<String> inputPaths, Transformer<Object, ? super Map<String, Object>> creator) {
+        this.inputPaths = inputPaths;
+        this.creator = creator;
     }
 
-    void addCreator(String path, final Closure creatorClosure, List<String> inputPaths) {
-        Transformer<Object, Map<String, Object>> closureBackedCreator = new Transformer<Object, Map<String, Object>>() {
-            public Object transform(Map<String, Object> inputs) {
-                return creatorClosure.call(inputs);
-            }
-        };
-        registry.create(ModelPath.path(path), new ModelCreator(inputPaths, closureBackedCreator));
+    public Object create(Map<String, Object> inputs) {
+        return creator.transform(inputs);
+    }
+
+    public List<String> getInputPaths() {
+        return inputPaths;
     }
 }
