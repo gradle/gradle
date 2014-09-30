@@ -41,7 +41,26 @@ public class BaseSerializerFactory {
         if (type.equals(byte[].class)) {
             return (Serializer) BYTE_ARRAY_SERIALIZER;
         }
+        if (type.isEnum()) {
+            return new EnumSerializer(type);
+        }
         return new DefaultSerializer<T>(type.getClassLoader());
+    }
+
+    private static class EnumSerializer<T extends Enum> implements Serializer<T> {
+        private final Class<T> type;
+
+        private EnumSerializer(Class<T> type) {
+            this.type = type;
+        }
+
+        public T read(Decoder decoder) throws Exception {
+            return type.getEnumConstants()[decoder.readSmallInt()];
+        }
+
+        public void write(Encoder encoder, T value) throws Exception {
+            encoder.writeSmallInt((byte) value.ordinal());
+        }
     }
 
     private static class LongSerializer implements Serializer<Long> {

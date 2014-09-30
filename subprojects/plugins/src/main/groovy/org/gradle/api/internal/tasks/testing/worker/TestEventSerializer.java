@@ -67,25 +67,6 @@ public class TestEventSerializer implements StatefulSerializer<Object[]> {
         };
     }
 
-    private static class EnumSerializer<T extends Enum> implements Serializer<T> {
-        private final Class<T> type;
-
-        private EnumSerializer(Class<T> type) {
-            this.type = type;
-            if (type.getEnumConstants().length > Byte.MAX_VALUE) {
-                throw new IllegalArgumentException(String.format("Too many constants for enum %s", type.getName()));
-            }
-        }
-
-        public T read(Decoder decoder) throws Exception {
-            return type.getEnumConstants()[decoder.readByte()];
-        }
-
-        public void write(Encoder encoder, T value) throws Exception {
-            encoder.writeByte((byte) value.ordinal());
-        }
-    }
-
     private static class NullableSerializer<T> implements Serializer<T> {
         private final Serializer<T> serializer;
 
@@ -155,7 +136,7 @@ public class TestEventSerializer implements StatefulSerializer<Object[]> {
     }
 
     private static class TestCompleteEventSerializer implements Serializer<TestCompleteEvent> {
-        private final Serializer<TestResult.ResultType> typeSerializer = new NullableSerializer<TestResult.ResultType>(new EnumSerializer<TestResult.ResultType>(TestResult.ResultType.class));
+        private final Serializer<TestResult.ResultType> typeSerializer = new NullableSerializer<TestResult.ResultType>(new BaseSerializerFactory().getSerializerFor(TestResult.ResultType.class));
 
         public TestCompleteEvent read(Decoder decoder) throws Exception {
             long endTime = decoder.readLong();
@@ -170,7 +151,7 @@ public class TestEventSerializer implements StatefulSerializer<Object[]> {
     }
 
     private static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
-        private final Serializer<TestOutputEvent.Destination> destinationSerializer = new EnumSerializer<TestOutputEvent.Destination>(TestOutputEvent.Destination.class);
+        private final Serializer<TestOutputEvent.Destination> destinationSerializer = new BaseSerializerFactory().getSerializerFor(TestOutputEvent.Destination.class);
         
         public DefaultTestOutputEvent read(Decoder decoder) throws Exception {
             TestOutputEvent.Destination destination = destinationSerializer.read(decoder);
