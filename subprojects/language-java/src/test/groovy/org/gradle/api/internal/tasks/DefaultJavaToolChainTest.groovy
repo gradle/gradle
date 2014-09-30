@@ -15,14 +15,13 @@
  */
 
 package org.gradle.api.internal.tasks
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
-import org.gradle.jvm.platform.internal.DefaultJvmPlatform
+import org.gradle.jvm.platform.JvmPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
@@ -32,7 +31,7 @@ class DefaultJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
     def execActionFactory = Stub(ExecActionFactory)
     def toolChain = new DefaultJavaToolChain(javaCompilerFactory, execActionFactory)
-    def currentPlatform = new DefaultJvmPlatform(JavaVersion.current())
+    def currentPlatform = platform(JavaVersion.current())
 
     def "has reasonable string representation"() {
         expect:
@@ -61,7 +60,7 @@ class DefaultJavaToolChainTest extends Specification {
     }
 
     def "creates available tool provider for earlier platform"() {
-        def earlierPlatform = new DefaultJvmPlatform(JavaVersion.VERSION_1_5)
+        def earlierPlatform = platform(JavaVersion.VERSION_1_5)
 
         when:
         def toolProvider = toolChain.select(earlierPlatform)
@@ -78,7 +77,7 @@ class DefaultJavaToolChainTest extends Specification {
     }
 
     def "creates unavailable tool provider for incompatible platform"() {
-        def futurePlatform = new DefaultJvmPlatform(JavaVersion.VERSION_1_9)
+        def futurePlatform = platform(JavaVersion.VERSION_1_9)
         TreeVisitor<String> visitor = Mock()
 
         when:
@@ -93,5 +92,12 @@ class DefaultJavaToolChainTest extends Specification {
         then:
         1 * visitor.node("Could not use target JVM platform: '1.9' when using JDK: '${JavaVersion.current()}'.")
         0 * _
+    }
+
+    private JvmPlatform platform(JavaVersion javaVersion) {
+        return Stub(JvmPlatform) {
+            getName() >> javaVersion.name()
+            getTargetCompatibility() >> javaVersion
+        }
     }
 }

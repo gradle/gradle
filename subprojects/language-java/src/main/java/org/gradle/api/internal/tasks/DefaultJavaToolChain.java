@@ -143,6 +143,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         }
 
         private String getMessage() {
+            // TODO:DAZ Use display names here
             return String.format("Could not use target JVM platform: '%s' when using JDK: '%s'.", targetPlatform.getTargetCompatibility(), javaVersion);
         }
     }
