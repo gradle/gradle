@@ -75,6 +75,9 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             model {
                 platforms {
+                    sparc {
+                        architecture "sparc"
+                    }
                     x86 {
                         architecture "x86"
                     }
@@ -119,6 +122,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "amd64 ${os.familyName}" * 2
     }
 
+    // TODO:DAZ This isn't doing what it appears: is actually selecting the first platform alphabetically...
     def "defaults to first platform if no target platforms are defined"() {
         when:
         buildFile << """
@@ -152,6 +156,9 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             model {
                 platforms {
+                    sparc {
+                        architecture "sparc"
+                    }
                     x86 {
                         architecture "x86"
                     }
@@ -161,15 +168,18 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                 }
             }
             executables {
-                exe {}
+                exe {
+                    targetPlatform "x86"
+                }
             }
             libraries {
-                hello {}
+                hello {
+                    targetPlatform "x86"
+                }
             }
             sources {
                 exe.cpp.lib libraries.hello.static
             }
-            executables.exe.targetPlatform "x86"
 """
 
         and:

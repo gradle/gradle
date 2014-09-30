@@ -852,7 +852,6 @@ Add a sample to show a JVM library built for multiple Java versions.
 #### Open issues
 
 - Add factory methods for common platforms to match those used for the Java runtime.
-- Replace or reuse `platforms` container.
 - Add infrastructure to coerce string to platform, architecture or operating system types.
 - Populate the platform container with `NativePlatform` instances for all known OS/arch combinations
 - Remove the 'default' platform/os/arch combinations: instead we should determine the current architecture to use for default.
