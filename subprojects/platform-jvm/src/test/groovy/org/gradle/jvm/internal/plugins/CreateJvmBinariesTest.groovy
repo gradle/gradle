@@ -16,13 +16,16 @@
 
 package org.gradle.jvm.internal.plugins
 
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.jvm.platform.JvmPlatform
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.PlatformContainer
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.jvm.JvmLibrarySpec
@@ -39,21 +42,29 @@ class CreateJvmBinariesTest extends Specification {
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChain)
     def rule = new JvmComponentPlugin.Rules()
+    def platforms = Mock(PlatformContainer)
     def binaries = Mock(BinaryContainer)
+    def instantiator = Mock(Instantiator)
     def mainSourceSet = Mock(FunctionalSourceSet)
 
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
         JavaToolChain createToolChain() {
             toolChain
         }
+        Instantiator createInstantiator() {
+            instantiator
+        }
+
     }).build()
 
     def "adds a binary for each jvm library"() {
         def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
         def namingScheme = Mock(BinaryNamingScheme)
+        def platform = new DefaultJvmPlatform("test")
+        def binary = new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
 
         when:
-        rule.createBinaries(binaries, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
+        rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
 
         then:
         _ * namingScheme.description >> "jvmLibJar"
@@ -61,15 +72,10 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * toolChain.assertValidPlatform(_ as JvmPlatform)
-        1 * binaries.add({ DefaultJarBinarySpec binary ->
-            binary.namingScheme == namingScheme
-            binary.library == library
-            binary.classesDir == new File(buildDir, "jvmJarOutput")
-            binary.resourcesDir == binary.classesDir
-            binary.toolChain == toolChain
-        } as BinarySpec)
-        2 * _ //TODO freekh: Specify
+        1 * toolChain.assertValidPlatform(platform)
+        1 * instantiator.newInstance(DefaultJarBinarySpec.class, library, namingScheme, toolChain, platform) >> binary
+        1 * library.targetPlatforms >> "test"
+        1 * platforms.select(_, _) >> [ platform ]
     }
 
     def "created binary has sources from jvm library"() {
@@ -77,10 +83,12 @@ class CreateJvmBinariesTest extends Specification {
         def namingScheme = Mock(BinaryNamingScheme)
         def source1 = Mock(LanguageSourceSet)
         def source2 = Mock(LanguageSourceSet)
+        def platform = new DefaultJvmPlatform("test")
+        def binary = new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
 
         when:
         library.source([source1, source2])
-        rule.createBinaries(binaries, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
+        rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry)
 
         then:
         _ * namingScheme.description >> "jvmLibJar"
@@ -89,13 +97,10 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
         1 * toolChain.assertValidPlatform(_ as JvmPlatform)
-        1 * binaries.add({ DefaultJarBinarySpec binary ->
-            binary.namingScheme == namingScheme
-            binary.library == library
-            binary.source == library.source
-            binary.toolChain == toolChain
-        } as BinarySpec)
-        2 * _ //TODO freekh: Specify
+        1 * binaries.add(binary as BinarySpec)
+        1 * instantiator.newInstance(DefaultJarBinarySpec.class, library, namingScheme, toolChain, platform) >> binary
+        1 * library.targetPlatforms >> "test"
+        1 * platforms.select(_, _) >> [ platform ]
     }
 
     def componentId(def name, def path) {

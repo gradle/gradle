@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
+import org.gradle.platform.base.Platform
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
@@ -33,8 +34,7 @@ class CreateDefaultNativePlatformTest extends Specification {
 
         then:
         1 * platforms.withType(NativePlatform) >> WrapUtil.toNamedDomainObjectSet(NativePlatform)
-        1 * platforms.create("current")
-        1 * platforms._ //TODO freekh: Specify
+        1 * platforms.create(Platform.DEFAULT_NAME, NativePlatform.class)
     }
 
     def "does not add default platform when some configured"() {
@@ -43,7 +43,7 @@ class CreateDefaultNativePlatformTest extends Specification {
 
         then:
         1 * platforms.withType(NativePlatform) >> WrapUtil.toNamedDomainObjectSet(NativePlatform, new DefaultNativePlatform("fake"))
-        0 * platforms.create('current')
+        0 * platforms.create(Platform.DEFAULT_NAME)
         0 * platforms._
     }
 }

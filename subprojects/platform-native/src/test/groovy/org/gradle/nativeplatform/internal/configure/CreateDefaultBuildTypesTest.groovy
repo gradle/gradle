@@ -26,20 +26,18 @@ class CreateDefaultBuildTypesTest extends Specification {
 
     def "adds a default build type when none configured"() {
         when:
-        rule.createDefaultPlatforms(buildTypes)
+        rule.createDefaultBuildTypes(buildTypes)
 
         then:
         1 * buildTypes.empty >> true
         1 * buildTypes.create("debug")
-        2 * buildTypes._ //TODO freekh: Specify
     }
 
     def "does not add default build type when some configured"() {
         when:
-        rule.createDefaultPlatforms(buildTypes)
+        rule.createDefaultBuildTypes(buildTypes)
 
         then:
         1 * buildTypes.empty >> false
-        2 * buildTypes._ //TODO freekh: Specify
     }
 }
