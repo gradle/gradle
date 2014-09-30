@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal.spike;
 
 import groovy.lang.Closure;
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelPath;
 
 public class ModelRegistryDslHelper {
@@ -27,7 +28,11 @@ public class ModelRegistryDslHelper {
         this.registry = registry;
     }
 
-    void addCreator(String path, Closure creatorClosure) {
-        registry.create(ModelPath.path(path), new ClosureBackedModelCreator(creatorClosure));
+    void addCreator(String path, final Closure creatorClosure) {
+        registry.create(ModelPath.path(path), new Factory() {
+            public Object create() {
+                return creatorClosure.call();
+            }
+        });
     }
 }

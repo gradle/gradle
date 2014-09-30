@@ -16,25 +16,20 @@
 
 package org.gradle.model.dsl.internal.spike
 
+import org.gradle.internal.Factories
 import org.gradle.model.dsl.internal.spike.fixture.GradleModellingLanguageCompilingTestClassLoader
 import org.gradle.model.internal.core.ModelPath
 import spock.lang.Specification
 
 class GradleModellingLanguageTest extends Specification {
 
-    ModelRegistry registry
+    ModelRegistry registry = new ModelRegistry()
 
     void buildScript(String script) {
-        registry = compileAndRun(script)
-    }
-
-    ModelRegistry compileAndRun(String script) {
         Class<Script> scriptClass = new GradleModellingLanguageCompilingTestClassLoader().parseClass(script)
         Script scriptInstance = scriptClass.newInstance()
-        def modelRegistry = new ModelRegistry()
-        scriptInstance.binding.setVariable("modelRegistryHelper", new ModelRegistryDslHelper(modelRegistry))
+        scriptInstance.binding.setVariable("modelRegistryHelper", new ModelRegistryDslHelper(registry))
         scriptInstance.run()
-        modelRegistry
     }
 
     def getModelValueAt(String path) {
@@ -66,4 +61,29 @@ class GradleModellingLanguageTest extends Specification {
         getModelValueAt("foo") == 2
         getModelValueAt("bar") == 3
     }
+
+    void "scoped assignments"() {
+        given:
+        registry.create(ModelPath.path("person"), Factories.constant(new Person()))
+
+        when:
+        buildScript """
+            model {
+                person {
+                    firstName = "foo"
+                    lastName = "bar"
+                }
+            }
+        """
+
+        then:
+        def person = getModelValueAt("person")
+        person.firstName == "foo"
+        person.lastName == "bar"
+    }
+}
+
+class Person {
+    String firstName
+    String lastName
 }

@@ -19,6 +19,7 @@ package org.gradle.model.dsl.internal.spike;
 import com.google.common.collect.ImmutableList;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
@@ -26,12 +27,14 @@ import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
+import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 
 public class ScopeVisitor extends RestrictiveCodeVisitor {
 
     private final ModelRegistryDslHelperStatementGenerator statementGenerator;
     private final ImmutableList<String> scope;
+    private final SourceUnit sourceUnit;
 
     public ScopeVisitor(SourceUnit sourceUnit, ModelRegistryDslHelperStatementGenerator statementGenerator) {
         this(sourceUnit, statementGenerator, ImmutableList.<String>of());
@@ -41,6 +44,14 @@ public class ScopeVisitor extends RestrictiveCodeVisitor {
         super(sourceUnit, "Expression not allowed");
         this.statementGenerator = statementGenerator;
         this.scope = scope;
+        this.sourceUnit = sourceUnit;
+    }
+
+    private ScopeVisitor nestedScope(String name) {
+        ImmutableList.Builder<String> nestedScopeBuilder = ImmutableList.builder();
+        nestedScopeBuilder.addAll(scope);
+        nestedScopeBuilder.add(name);
+        return  new ScopeVisitor(sourceUnit, statementGenerator, nestedScopeBuilder.build());
     }
 
     public void visitBlockStatement(BlockStatement block) {
@@ -51,6 +62,19 @@ public class ScopeVisitor extends RestrictiveCodeVisitor {
 
     public void visitExpressionStatement(ExpressionStatement statement) {
         statement.getExpression().visit(this);
+    }
+
+    @Override
+    public void visitMethodCallExpression(MethodCallExpression call) {
+        String methodName = AstUtils.extractConstantMethodName(call);
+        if (methodName != null) {
+            ClosureExpression nestedAction = AstUtils.getSingleClosureArg(call);
+            if (nestedAction != null) {
+                nestedAction.getCode().visit(nestedScope(methodName));
+                return;
+            }
+        }
+        super.visitMethodCallExpression(call);
     }
 
     @Override
