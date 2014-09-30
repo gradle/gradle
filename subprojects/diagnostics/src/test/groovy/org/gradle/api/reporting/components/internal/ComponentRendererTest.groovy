@@ -17,7 +17,6 @@
 
 
 package org.gradle.api.reporting.components.internal
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.DefaultDomainObjectSet
@@ -28,8 +27,6 @@ import org.gradle.logging.TestStyledTextOutput
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Specification
-
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ComponentRendererTest extends Specification {
     def project = Stub(Project) {
@@ -89,7 +86,7 @@ class ComponentRendererTest extends Specification {
         renderer.render(component, builder)
 
         then:
-        output.value.contains(toPlatformLineSeparators("""Binaries
+        output.value.contains("""Binaries
     ABinary Display Name (not buildable)
         build using task: aBinaryTask
     BBinary Display Name (not buildable)
@@ -97,7 +94,7 @@ class ComponentRendererTest extends Specification {
     CBinary Display Name (not buildable)
         build using task: cBinaryTask
     DBinary Display Name (not buildable)
-        build using task: dBinaryTask"""))
+        build using task: dBinaryTask""")
     }
 
     def binary(String name) {
