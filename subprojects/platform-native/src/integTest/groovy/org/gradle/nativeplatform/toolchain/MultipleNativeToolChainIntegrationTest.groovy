@@ -33,9 +33,6 @@ class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'cpp'
 
-            executables {
-                main {}
-            }
         """
 
         helloWorld.writeSources(file("src/main"))
@@ -69,6 +66,11 @@ class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            executables {
+                main {
+                    targetPlatform "i386", "sparc"
+                }
+            }
 """
 
         then:

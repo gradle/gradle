@@ -58,7 +58,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.writeSources(file("src/main"))
         buildFile << """
     executables {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
     }
     binaries.all {
         cppCompiler.define "TEST"
@@ -93,7 +95,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/main"))
         buildFile << """
     libraries {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
     }
 """
         and:
@@ -124,6 +128,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         main {
+            targetPlatform "win32", "x64"
         }
     }
 """
@@ -150,7 +155,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/main"))
         buildFile << """
     libraries {
-        both {}
+        both {
+             targetPlatform "win32", "x64"
+        }
         staticOnly {
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable false
@@ -175,6 +182,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         main {
+            targetPlatform "win32", "x64"
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable = false
             }
@@ -205,10 +213,14 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/hello"))
         buildFile << """
     libraries {
-        hello {}
+        hello {
+            targetPlatform "win32", "x64"
+        }
     }
     executables {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
     }
     sources {
         main.cpp.lib libraries.hello.static
@@ -242,10 +254,14 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/hello"))
         buildFile << """
     libraries {
-        hello {}
+        hello {
+            targetPlatform "win32", "x64"
+        }
     }
     executables {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
     }
     sources {
         main.cpp.lib libraries.hello
@@ -281,11 +297,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             apply plugin: "cpp"
             libraries {
-                greetings {}
-                hello {}
+                greetings {
+                   targetPlatform "win32", "x64"
+                }
+                hello {
+                   targetPlatform "win32", "x64"
+                }
             }
             executables {
-                main {}
+                main {
+                   targetPlatform "win32", "x64"
+                }
             }
             sources {
                 hello.cpp.lib libraries.greetings.static
@@ -327,11 +349,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/hello"))
         buildFile << """
     libraries {
-        hello {}
+        hello {
+            targetPlatform "win32", "x64"
+        }
     }
     executables {
-        main {}
-        mainStatic {}
+        main {
+            targetPlatform "win32", "x64"
+        }
+        mainStatic {
+            targetPlatform "win32", "x64"
+        }
     }
     sources {
         main.cpp.lib libraries.hello
@@ -366,11 +394,16 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/hello"))
         buildFile << """
     libraries {
-        hello {}
+        hello {
+            targetPlatform "win32", "x64"
+        }
     }
     executables {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
         mainRelease {
+            targetPlatform "win32", "x64"
             targetBuildTypes "release"
         }
     }
@@ -434,11 +467,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         buildFile << """
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
             libraries {
-                hello {}
-                greetings {}
+                hello {
+                    targetPlatform "win32", "x64"
+                }
+                greetings {
+                    targetPlatform "win32", "x64"
+                }
             }
             sources {
                 main.cpp.lib libraries.hello.shared
@@ -476,11 +515,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         and:
         buildFile << """
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
             libraries {
-                hello {}
-                greetings {}
+                hello {
+                    targetPlatform "win32", "x64"
+                }
+                greetings {
+                    targetPlatform "win32", "x64"
+                }
             }
             sources {
                 main.cpp.lib libraries.hello.shared
@@ -527,7 +572,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             apply plugin: 'c'
             apply plugin: 'assembler'
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
         """
 
@@ -556,7 +603,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             apply plugin: 'windows-resources'
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
             binaries.all {
                 rcCompiler.define "TEST"
@@ -589,7 +638,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         given:
         buildFile << """
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
         """
 
@@ -617,7 +668,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
         buildFile << """
     executables {
-        main {}
+        main {
+           targetPlatform "win32", "x64"
+        }
     }
     sources {
         main.cpp.source.include "**/*.cpp"
@@ -646,11 +699,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         and:
         buildFile << """
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
             libraries {
-                helloApi {}
-                hello {}
+                helloApi {
+                    targetPlatform "win32", "x64"
+                }
+                hello {
+                    targetPlatform "win32", "x64"
+                }
             }
             sources {
                 main.cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
@@ -691,7 +750,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.alternate.writeSources(file("src/x64"))
         buildFile << """
     executables {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
     }
 
     sources {
@@ -735,7 +796,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
     }
     executables {
-        main {}
+        main {
+            targetPlatform "win32", "x64"
+        }
     }
     sources {
         main.cpp.lib library: 'test', linkage: 'api'
@@ -771,11 +834,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         and:
         buildFile << """
             executables {
-                main {}
+                main {
+                    targetPlatform "win32", "x64"
+                }
             }
             libraries {
-                hello {}
-                greetings {}
+                hello {
+                    targetPlatform "win32", "x64"
+                }
+                greetings {
+                    targetPlatform "win32", "x64"
+                }
             }
             sources {
                 main.cpp.lib library: 'hello'
@@ -816,7 +885,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/hello"))
         buildFile << """
     libraries {
-        hello {}
+        hello {
+            targetPlatform "win32", "x64"
+        }
     }
     executables {
         main {
