@@ -36,4 +36,8 @@ public interface TargetedNativeComponent extends PlatformAwareComponentSpec {
      */
     void targetBuildTypes(String... platformSelectors);
 
+    /**
+     * Specifies the names of one or more {@link org.gradle.platform.base.Platform}s that this component should be built for.
+     */
+    void targetPlatform(String... platformSelectors);
 }
