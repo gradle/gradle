@@ -24,6 +24,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.platform.base.InvalidComponentModelException;
 
 import java.lang.annotation.Annotation;
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,11 +57,18 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
     }
 
     protected class RuleMethodDataCollector {
-        HashMap<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
+        private HashMap<Class<?>, Class<?>> parameterTypes = new HashMap<Class<?>, Class<?>>();
 
         @SuppressWarnings("unchecked")
         public <S, R extends S> Class<R> getParameterType(Class<S> baseClass) {
             return (Class<R>) parameterTypes.get(baseClass);
+        }
+
+        public <S> void put(Class<S> baseClass, Class<? extends S> concreteClass) {
+            if(!baseClass.isAssignableFrom(concreteClass)){
+                throw new InvalidParameterException(String.format("Class %s must be assignable from Class %s", baseClass.getName(), concreteClass.getName()));
+            }
+            parameterTypes.put(baseClass, concreteClass);
         }
     }
 
@@ -85,6 +93,6 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
                     expectedDependency.getConcreteClass().getSimpleName(),
                     expectedDependency.getConcreteClass().getSimpleName()));
         }
-        dataCollector.parameterTypes.put(expectedDependency.getConcreteClass(), dependency.getConcreteClass());
+        dataCollector.put(expectedDependency.getConcreteClass(), dependency.getConcreteClass());
     }
 }
