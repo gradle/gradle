@@ -30,6 +30,7 @@ public class DefaultJavaPlatform implements JavaPlatform {
 
     public DefaultJavaPlatform(String name) {
         this.name = name;
+        this.targetCompatibility = JavaVersion.current();
     }
 
     public DefaultJavaPlatform(JavaVersion javaVersion) {
@@ -39,10 +40,10 @@ public class DefaultJavaPlatform implements JavaPlatform {
 
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
-       }
+    }
 
     public String getDisplayName() {
-        return String.format("platform '%s'", name);
+        return String.format("Java SE %s", targetCompatibility.getMajorVersion());
     }
 
     public String getName() {
@@ -58,6 +59,6 @@ public class DefaultJavaPlatform implements JavaPlatform {
     }
 
     private static String generateName(JavaVersion javaVersion) {
-        return "java"+javaVersion.getMajorVersion();
+        return "java" + javaVersion.getMajorVersion();
     }
 }

@@ -68,7 +68,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         return new JavaToolProvider();
     }
 
-    public JavaVersion getJavaVersion() {
+    private JavaVersion getJavaVersion() {
         return javaVersion;
     }
 
