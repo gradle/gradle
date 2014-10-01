@@ -24,8 +24,51 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares the tasks that build a binary.
- **/
+ * Declares the tasks to build a custom {@link org.gradle.platform.base.BinarySpec} binary.
+ *
+ * The following example demonstrates how to register multiple tasks for custom binary using a plugin with a
+ * {@link org.gradle.platform.base.BinaryTasks} annotation.
+ *
+ * <pre autoTested='true'>
+ * import org.gradle.model.*
+ * import org.gradle.model.collection.*
+ *
+ * interface SampleComponent extends ComponentSpec<SampleBinary> {}
+ * interface SampleBinary extends BinarySpec {}
+ * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
+ *
+ * apply plugin: MyCustomBinariesPlugin
+ *
+ * class MyCustomBinaryCreationTask extends DefaultTask{
+ *      {@literal @}TaskAction void build(){
+ *          //building the binary
+ *      }
+ * }
+ *
+ * class MyCustomBinariesPlugin implements Plugin<Project> {
+ *     void apply(final Project project) {
+ *
+ *     }
+ *
+ *     {@literal @}RuleSource
+ *     static class Rules {
+ *
+ *          {@literal @}BinaryType
+ *          void register(BinaryTypeBuilder<SampleBinary> builder) {
+ *             builder.defaultImplementation(DefaultSampleBinary)
+ *          }
+ *
+ *          {@literal @}BinaryTasks
+ *          void createBinaryTasks(CollectionBuilder<Task> tasks, SampleBinary binary) {
+ *             tasks.create("${binary.name}Task1", MyCustomBinaryCreationTask)
+ *             tasks.create("${binary.name}Task2"){
+ *                  dependsOn "${binary.name}Task1"
+ *             }
+ *          }
+ *     }
+ * }
+ * </pre>
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
