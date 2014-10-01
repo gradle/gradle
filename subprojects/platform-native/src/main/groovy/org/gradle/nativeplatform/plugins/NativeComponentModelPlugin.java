@@ -25,14 +25,12 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.*;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.model.*;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
@@ -40,13 +38,15 @@ import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.platform.base.Platform;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
-import org.gradle.platform.base.PlatformContainer;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
@@ -168,7 +168,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
             if (platforms.withType(NativePlatform.class).isEmpty()) {
-                NativePlatform defaultPlatform = platforms.create(Platform.DEFAULT_NAME, NativePlatform.class); //TODO: rename to createDefault?
+                NativePlatform defaultPlatform = platforms.create(NativePlatform.DEFAULT_NAME, NativePlatform.class); //TODO: rename to createDefault?
             }
         }
 

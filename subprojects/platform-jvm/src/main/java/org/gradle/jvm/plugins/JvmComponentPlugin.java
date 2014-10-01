@@ -24,8 +24,8 @@ import org.gradle.jvm.internal.configure.JarBinariesFactory;
 import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
 import org.gradle.jvm.internal.configure.JvmLibrarySpecInitializer;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.reflect.Instantiator;
@@ -100,13 +100,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             platforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
                 public JvmPlatform create(String name) {
+                    // TODO:DAZ Use instantiator
                     return new DefaultJvmPlatform(name);
                 }
             });
 
             //Create default platforms available for Java
             for (JavaVersion javaVersion: JavaVersion.values()) {
-                String name = DefaultJvmPlatform.generateName(javaVersion);
+                String name = "java" + javaVersion.getMajorVersion();
                 JvmPlatform platform = platforms.create(name, JvmPlatform.class);
                 platform.setTargetCompatibility(javaVersion);
             }
@@ -127,6 +128,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             for (JvmLibrarySpec jvmLibrary : libraries) {
                 createBinariesAction.execute(jvmLibrary);
+                // TODO:DAZ Remove this: it's not required
                 //TODO freekh: this should be moved into MarkBinariesBuildable
                 for (JvmBinarySpec jarBinarySpec: jvmLibrary.getBinaries()){
                     JavaToolChain toolChain = jarBinarySpec.getToolChain();

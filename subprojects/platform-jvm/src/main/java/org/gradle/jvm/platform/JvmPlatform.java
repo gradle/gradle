@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.platform.base.Platform;
 
 /**
- * Defines and configures a JVM platform.
+ * Defines and configures a Java SE runtime environment, consisting of a JVM runtime and a set of class libraries.
  *
  * <pre autoTested="true">>
  * apply plugin: 'jvm-component'
@@ -30,7 +30,7 @@ import org.gradle.platform.base.Platform;
  * jvm {
  *   libraries {
  *     myLib {
- *       targetPlatform "1.6"
+ *       targetPlatform "java6"
  *     }
  *   }
  * }

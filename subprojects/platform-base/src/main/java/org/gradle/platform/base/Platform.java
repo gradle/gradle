@@ -20,14 +20,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Platform defines the variants a component can produce.
+ * The platform or runtime that a binary is designed to run on.
  *
- * Examples: the JvmPlatform may define a binary version to target,
- * while the NativePlatform may define architecture to target.
+ * Examples: the JvmPlatform defines a java runtime, while the NativePlatform defines the Operating System and Architecture for a native app.
  */
 @Incubating
 public interface Platform extends Named {
-    public final static String DEFAULT_NAME = "current";
 
     /**
      * Returns a human consumable name for this platform.

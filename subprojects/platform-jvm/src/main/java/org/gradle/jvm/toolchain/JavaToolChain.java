@@ -18,8 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.PlatformContainer;
 import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.ToolChain;
 
 /**

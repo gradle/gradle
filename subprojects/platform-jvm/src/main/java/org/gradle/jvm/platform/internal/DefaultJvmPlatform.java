@@ -32,12 +32,17 @@ public class DefaultJvmPlatform implements JvmPlatform {
         this.name = name;
     }
 
+    public DefaultJvmPlatform(JavaVersion javaVersion) {
+        this.name = generateName(javaVersion);
+        this.targetCompatibility = javaVersion;
+    }
+
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
        }
 
     public String getDisplayName() {
-        return "platform: JVM " + targetCompatibility;
+        return String.format("platform '%s'", name);
     }
 
     public String getName() {
@@ -52,7 +57,7 @@ public class DefaultJvmPlatform implements JvmPlatform {
         this.targetCompatibility = targetCompatibility;
     }
 
-    public static String generateName(JavaVersion javaVersion) {
+    private static String generateName(JavaVersion javaVersion) {
         return "java"+javaVersion.getMajorVersion();
     }
 }

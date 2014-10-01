@@ -40,7 +40,7 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
                 return typed;
             } else if (typed.size() > 1) { //we have more than one, select the best one
                 //TODO freekh: for now, we pick the first one defined, but we could pick the best based on the toolchains we have?
-                // TODO:DAZ This doesn't really work: it selects the first in _name order_
+                // TODO:DAZ This actually selects the first alphabetically
                 return typed.subList(0, 1);
             }
 

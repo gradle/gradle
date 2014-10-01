@@ -38,6 +38,8 @@ import org.gradle.platform.base.Platform;
 @Incubating
 @HasInternalProtocol
 public interface NativePlatform extends Platform {
+    String DEFAULT_NAME = "current";
+
     /**
      * The cpu architecture being targeted. Defaults to the default architecture produced by the tool chain.
      */
