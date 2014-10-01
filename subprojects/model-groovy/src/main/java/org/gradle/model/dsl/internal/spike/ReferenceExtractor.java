@@ -17,44 +17,26 @@
 package org.gradle.model.dsl.internal.spike;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.util.CollectionUtils;
 
-import java.util.LinkedList;
 import java.util.Map;
 
-public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestrictiveCodeVisitor {
+public class ReferenceExtractor extends ReferenceDetectingVisitor {
 
-    private final static String AST_NODE_REFERENCE_PATH_KEY = ReferenceExtractor.class.getName() + ".referenceKey";
     private final static String AST_NODE_REMOVE_KEY = ReferenceExtractor.class.getName() + ".remove";
+    private final Map<String, String> outerScopeReferenceAliases;
 
-    private boolean referenceEncountered;
-    private LinkedList<String> referenceStack = Lists.newLinkedList();
     private ImmutableSet.Builder<String> referencedPaths = ImmutableSet.builder();
     private Map<String, String> referenceAliases = Maps.newHashMap();
 
-    public ReferenceExtractor(SourceUnit sourceUnit) {
+    public ReferenceExtractor(SourceUnit sourceUnit, Map<String, String> outerScopeReferenceAliases) {
         super(sourceUnit, "Expression not allowed");
-    }
-
-    @Override
-    public void visitVariableExpression(VariableExpression expression) {
-        String name = expression.getName();
-        if (name.equals("$")) {
-            referenceEncountered = true;
-        } else {
-            String path = referenceAliases.get(name);
-            if (path != null) {
-                referenceStack.push(path);
-                referenceEncountered = true;
-            }
-        }
+        this.outerScopeReferenceAliases = outerScopeReferenceAliases;
     }
 
     private Expression rewrittenOrOriginal(Expression expression) {
@@ -110,20 +92,6 @@ public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestr
         }
     }
 
-    public void visitPropertyExpression(PropertyExpression expression) {
-        boolean topLevel = referenceStack.isEmpty();
-        referenceStack.push(expression.getPropertyAsString());
-        expression.getObjectExpression().visit(this);
-        if (topLevel) {
-            if (referenceEncountered) {
-                String path = CollectionUtils.join(".", referenceStack);
-                expression.setNodeMetaData(AST_NODE_REFERENCE_PATH_KEY, path);
-                referenceStack.clear();
-            }
-            referenceEncountered = false;
-        }
-    }
-
     private MethodCallExpression rewriteReferenceStatement(String path) {
         referencedPaths.add(path);
 
@@ -132,6 +100,12 @@ public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestr
         VariableExpression subject = new VariableExpression(it);
         ArgumentListExpression arguments = new ArgumentListExpression(new ConstantExpression(path));
         return new MethodCallExpression(subject, "getAt", arguments);
+    }
+
+    @Override
+    protected String getReferenceAliasPath(String aliasName) {
+        String path = referenceAliases.get(aliasName);
+        return path != null ? path : outerScopeReferenceAliases.get(aliasName);
     }
 
     public ImmutableSet<String> getReferencedPaths() {

@@ -16,8 +16,13 @@
 
 package org.gradle.model.dsl.internal.spike;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Maps;
 import org.codehaus.groovy.ast.Parameter;
+import org.codehaus.groovy.ast.Variable;
 import org.codehaus.groovy.ast.VariableScope;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
@@ -28,29 +33,43 @@ import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 
-public class ScopeVisitor extends BlockAndExpressionStatementAllowingRestrictiveCodeVisitor {
+public class ScopeVisitor extends ReferenceDetectingVisitor {
 
     private final ModelRegistryDslHelperStatementGenerator statementGenerator;
-    private final ImmutableList<String> scope;
+    private final List<String> scope;
     private final SourceUnit sourceUnit;
+    private final Map<String, String> referenceAliases = Maps.newHashMap();
 
     public ScopeVisitor(SourceUnit sourceUnit, ModelRegistryDslHelperStatementGenerator statementGenerator) {
-        this(sourceUnit, statementGenerator, ImmutableList.<String>of());
+        this(sourceUnit, statementGenerator, ImmutableList.<String>of(), ImmutableMap.<String, String>of());
     }
 
-    private ScopeVisitor(SourceUnit sourceUnit, ModelRegistryDslHelperStatementGenerator statementGenerator, ImmutableList<String> scope) {
+    private ScopeVisitor(SourceUnit sourceUnit, ModelRegistryDslHelperStatementGenerator statementGenerator, List<String> scope, Map<String, String> referenceAliases) {
         super(sourceUnit, "Expression not allowed");
         this.statementGenerator = statementGenerator;
         this.scope = scope;
         this.sourceUnit = sourceUnit;
+        this.referenceAliases.putAll(referenceAliases);
     }
 
     private ScopeVisitor nestedScope(String name) {
         ImmutableList.Builder<String> nestedScopeBuilder = ImmutableList.builder();
         nestedScopeBuilder.addAll(scope);
         nestedScopeBuilder.add(name);
-        return  new ScopeVisitor(sourceUnit, statementGenerator, nestedScopeBuilder.build());
+        return new ScopeVisitor(sourceUnit, statementGenerator, nestedScopeBuilder.build(), ImmutableMap.copyOf(referenceAliases));
+    }
+
+    @Override
+    public void visitDeclarationExpression(DeclarationExpression expression) {
+        Expression rightExpression = expression.getRightExpression();
+        rightExpression.visit(this);
+
+        String referencePath = rightExpression.getNodeMetaData(AST_NODE_REFERENCE_PATH_KEY);
+        if (referencePath != null) {
+            referenceAliases.put(expression.getLeftExpression().getText(), referencePath);
+        }
     }
 
     @Override
@@ -91,7 +110,13 @@ public class ScopeVisitor extends BlockAndExpressionStatementAllowingRestrictive
     }
 
     private void addCreator(String path, ClosureExpression creator) {
-        ReferenceExtractor extractor = new ReferenceExtractor(sourceUnit);
+        final ImmutableMap<String, String> referenceAliasesMap = ImmutableMap.copyOf(referenceAliases);
+        ReferenceExtractor extractor = new ReferenceExtractor(sourceUnit, referenceAliasesMap);
+        Iterators.removeIf(creator.getVariableScope().getReferencedLocalVariablesIterator(), new Predicate<Variable>() {
+            public boolean apply(Variable variable) {
+                return referenceAliasesMap.keySet().contains(variable.getName());
+            }
+        });
         creator.getCode().visit(extractor);
         statementGenerator.addCreator(path, creator, extractor.getReferencedPaths());
     }
@@ -110,7 +135,12 @@ public class ScopeVisitor extends BlockAndExpressionStatementAllowingRestrictive
         addCreator(getPath(scope, propertyPathExpression), expression);
     }
 
-    public void addCreator(ImmutableList<String> scope, PropertyExpression propertyPathExpression, Expression expression) {
+    public void addCreator(List<String> scope, PropertyExpression propertyPathExpression, Expression expression) {
         addCreator(getPath(scope, propertyPathExpression), expression);
+    }
+
+    @Override
+    protected String getReferenceAliasPath(String aliasName) {
+        return referenceAliases.get(aliasName);
     }
 }

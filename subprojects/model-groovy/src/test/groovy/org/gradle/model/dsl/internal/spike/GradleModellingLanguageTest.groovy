@@ -162,6 +162,38 @@ class GradleModellingLanguageTest extends Specification {
         then:
         getModelValueAt("p2.firstName") == "FOObar"
     }
+
+    void "transitive references via variable defined outside of a value expression"() {
+        given:
+        registry.create(ModelPath.path("p1"), ModelCreators.resultOf { throw new Exception("this code should not be executed") })
+        registry.create(ModelPath.path("p2"), ModelCreators.resultOf { throw new Exception("this code should not be executed") })
+
+        when:
+        buildScript '''
+            model {
+                p1 {
+                    firstName = "foo"
+                }
+                p2 {
+                    firstName = "bar"
+                }
+                def p = $.p1
+                def pFirstName = p.firstName
+                p3 {
+                    firstName = p.firstName
+                    lastName << {
+                        def fromP1 = pFirstName.toUpperCase()
+                        def p2 = $.p2
+                        fromP1 + p2.firstName
+                    }
+                }
+            }
+        '''
+
+        then:
+        getModelValueAt("p3.firstName") == "foo"
+        getModelValueAt("p3.lastName") == "FOObar"
+    }
 }
 
 class Person {
