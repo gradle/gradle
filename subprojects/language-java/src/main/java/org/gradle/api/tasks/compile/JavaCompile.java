@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -39,8 +38,6 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.SingleMessageLogger;
@@ -148,9 +145,7 @@ public class JavaCompile extends AbstractCompile {
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         // TODO:DAZ Supply the target platform to the task, using the compatibility flags as overrides
         // Or maybe split the legacy compile task from the new one
-        JavaVersion targetJavaVersion = spec.getTargetCompatibility() == null ? JavaVersion.current() : JavaVersion.toVersion(spec.getTargetCompatibility());
-        JavaPlatform dummyPlatform = new DefaultJavaPlatform(targetJavaVersion);
-        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).select(dummyPlatform).newCompiler(spec);
+        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).select(null).newCompiler(spec);
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 

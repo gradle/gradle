@@ -19,7 +19,6 @@ package org.gradle.api.tasks.javadoc
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
-import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -62,7 +61,7 @@ public class JavadocTest extends Specification {
         task.execute();
 
         then:
-        1 * toolChain.select(_ as JavaPlatform) >> toolProvider
+        1 * toolChain.select(null) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
     }
@@ -78,7 +77,7 @@ public class JavadocTest extends Specification {
         task.execute()
 
         then:
-        1 * toolChain.select(_ as JavaPlatform) >> toolProvider
+        1 * toolChain.select(null) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
     }
@@ -92,7 +91,7 @@ public class JavadocTest extends Specification {
         task.execute();
 
         then:
-        1 * toolChain.select(_ as JavaPlatform) >> toolProvider
+        1 * toolChain.select(null) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
 
