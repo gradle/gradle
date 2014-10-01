@@ -21,10 +21,13 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.jvm.JavaInfo
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Assume
 
 @TargetVersions(["1.5", "1.6", "1.7", "1.8"])
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     def JavaInfo getTarget() {
         return AvailableJavaHomes.getJdk(JavaVersion.toVersion(version))
