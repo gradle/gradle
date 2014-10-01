@@ -83,7 +83,6 @@ class CreateJvmBinariesTest extends Specification {
         1 * instantiator.newInstance(DefaultJarBinarySpec.class, library, namingScheme, toolChain, platform) >> binary
         1 * toolChain.select(platform) >> toolProvider
         1 * toolProvider.isAvailable() >> true
-        1 * toolChain.assertValidPlatform(platform, platforms)
         1 * binaries.addAll(toDomainObjectSet(JvmLibraryBinarySpec, binary))
         0 * _
 

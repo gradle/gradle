@@ -18,8 +18,6 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.ToolChain;
 
 /**
@@ -38,6 +36,4 @@ import org.gradle.platform.base.ToolChain;
 @Incubating
 @HasInternalProtocol
 public interface JavaToolChain extends ToolChain {
-    // TODO:DAZ Get rid of this, instead use ToolChainInternal.select(JvmPlatform)
-    void assertValidPlatform(JavaPlatform platform, PlatformContainer platforms);
 }

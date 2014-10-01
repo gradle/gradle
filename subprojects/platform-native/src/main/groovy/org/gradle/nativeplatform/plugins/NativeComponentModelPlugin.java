@@ -169,7 +169,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
             if (platforms.withType(NativePlatform.class).isEmpty()) {
-                NativePlatform defaultPlatform = platforms.create(NativePlatform.DEFAULT_NAME, NativePlatform.class); //TODO: rename to createDefault?
+                // TODO:DAZ Create a set of known platforms, rather than a single 'default'
+                NativePlatform defaultPlatform = platforms.create(NativePlatform.DEFAULT_NAME, NativePlatform.class);
             }
         }
 
@@ -237,7 +238,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {
         public void execute(NativeBinarySpec nativeBinarySpec) {
             NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) nativeBinarySpec.getToolChain();
-            NativePlatform p = (NativePlatformInternal) nativeBinarySpec.getTargetPlatform(); //TODO freekh: remove
             boolean canBuild = toolChainInternal.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform()).isAvailable();
             ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
         }

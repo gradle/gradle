@@ -26,15 +26,9 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 public class DefaultJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
@@ -66,38 +60,6 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             return new UnavailableToolProvider(targetPlatform);
         }
         return new JavaToolProvider();
-    }
-
-    private JavaVersion getJavaVersion() {
-        return javaVersion;
-    }
-
-    private boolean isCompatible(JavaPlatform platform, JavaVersion version) {
-        return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO freekh: need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
-    }
-
-    // TODO:DAZ Remove this method: check availability in the binary initializer, throw failure when creating compiler in task
-    //TODO freekh: remove this method:
-    public void assertValidPlatform(JavaPlatform platform, PlatformContainer platforms) {
-        List<JavaPlatform> alternatives = new ArrayList<JavaPlatform>();
-        alternatives.addAll(platforms.withType(JavaPlatform.class));
-        Collections.sort(alternatives, new Comparator<JavaPlatform>() {
-            public int compare(JavaPlatform p1, JavaPlatform p2) {
-                return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());
-            }
-        });
-
-        if (!isCompatible(platform, getJavaVersion())) {
-            List<String> compatibleVersions = new ArrayList<String>();
-            for (JavaPlatform alternative: alternatives) {
-                if (isCompatible(alternative, getJavaVersion())) {
-                    compatibleVersions.add(alternative.getName());
-                }
-            }
-
-            String compatibleVersionsString = compatibleVersions.isEmpty() ? "(None)" : compatibleVersions.toString();
-            throw new IllegalArgumentException(String.format("Cannot use target JVM platform: '"+platform.getName()+"' with target compatibility '"+platform.getTargetCompatibility()+"' because it is too high compared to Java toolchain version '"+getJavaVersion()+"'. Compatible target platforms are: " + compatibleVersionsString + "."));
-        }
     }
 
     private class JavaToolProvider implements ToolProvider {
