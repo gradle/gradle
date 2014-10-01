@@ -19,7 +19,7 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
-class AutoTestedSampleNativePlatformBaseIntegrationTest extends AbstractAutoTestedSamplesTest {
+class AutoTestedSamplePlatformBaseIntegrationTest extends AbstractAutoTestedSamplesTest {
     @Test
     void runSamples() {
         runSamplesFrom("subprojects/platform-base/src/main")
