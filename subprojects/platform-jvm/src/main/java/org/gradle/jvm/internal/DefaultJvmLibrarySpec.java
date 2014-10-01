@@ -18,13 +18,11 @@ package org.gradle.jvm.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmLibraryBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.JvmResources;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
@@ -41,7 +39,6 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<String> targets = new ArrayList<String>();
-    protected final String defaultTarget = new DefaultJavaPlatform(JavaVersion.current()).getName();
 
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;

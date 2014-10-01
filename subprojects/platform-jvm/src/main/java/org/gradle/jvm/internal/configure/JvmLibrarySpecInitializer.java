@@ -17,14 +17,17 @@
 package org.gradle.jvm.internal.configure;
 
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
+import java.util.Collections;
 import java.util.List;
 
 public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
@@ -41,7 +44,13 @@ public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
     }
 
     public void execute(JvmLibrarySpec jvmLibrary) {
-        List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, jvmLibrary.getTargetPlatforms());
+        List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
+        // TODO:DAZ We should have a generic (JVM + Native) way to get the 'best' platform to build when no target is defined.
+        // This logic needs to inspect the available platforms and find the closest one matching the current platform
+        if (targetPlatforms.isEmpty()) {
+            targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
+        }
+        List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, targetPlatforms);
         for (JavaPlatform platform: selectedPlatforms) {
             JavaToolChain toolChain = toolChains.getForPlatform(platform);
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
