@@ -62,4 +62,14 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * @param <U> a public domain object type
      */
     public <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType);
+
+    /**
+     * Registers a default factory for creating elements without a specified type.
+     *
+     * @param factory the factory to register
+     * @param <U> the type of objects created by the factory
+     *
+     * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
+     */
+    public <U extends T> void registerDefaultFactory(NamedDomainObjectFactory<U> factory); //TODO:DAZ remove this comment if you are OK with this
 }
