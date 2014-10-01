@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.BadJavaLibrary
 import org.gradle.language.fixtures.TestJavaLibrary
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -311,7 +310,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         fails "assemble"
 
         and:
-        assert failure.assertHasCause("Invalid Platform: '$badName'")
+        assert failure.assertHasCause("Invalid JavaPlatform: $badName")
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -333,11 +332,11 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         then:
-        fails "assemble"
+        // TODO:DAZ Would like to use 'assemble' here, but it currently ignores non-buildable binaries
+        fails "myLibJar"
 
         and:
-
-        assert failure.assertThatCause(Matchers.containsText("Cannot use target JVM platform: 'java9' with target compatibility '1.9' because it is too high compared to Java toolchain version '${JavaVersion.current()}'. Compatible target platforms are:")) //test becomes fragile if we add alternatives
+        assert failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
     }
 
     private JarTestFixture jarFile(String s) {

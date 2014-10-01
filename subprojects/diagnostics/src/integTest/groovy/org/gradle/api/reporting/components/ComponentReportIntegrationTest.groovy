@@ -24,6 +24,7 @@ import org.gradle.util.TestPrecondition
 class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
+    private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -69,13 +70,13 @@ Additional binaries
 Classes 'main'
     build using task: :classes
     platform: $currentJava
-    tool chain: current JDK ($currentJvm)
+    tool chain: $currentJdk
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
     platform: $currentJava
-    tool chain: current JDK ($currentJvm)
+    tool chain: $currentJdk
     classes dir: build/classes/test
     resources dir: build/resources/test
 """ //TODO freekh:  platform: JVM should not be currentJvm it should be currentJava
@@ -113,7 +114,7 @@ Binaries
     Jar 'someLib:jar'
         build using task: :someLibJar
         platform: $currentJava
-        tool chain: current JDK ($currentJvm)
+        tool chain: $currentJdk
         Jar file: build/jars/someLibJar/someLib.jar
 """
     }
@@ -435,7 +436,7 @@ Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
         platform: ${currentJava}
-        tool chain: current JDK (${currentJvm})
+        tool chain: $currentJdk
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
 Native library 'nativeLib'
@@ -498,17 +499,17 @@ Binaries
     Jar 'myLib:java5:jar'
         build using task: :java5MyLibJar
         platform: java5
-        tool chain: current JDK ($currentJvm)
+        tool chain: $currentJdk
         Jar file: build/jars/myLibJar/java5/myLib.jar
     Jar 'myLib:java6:jar'
         build using task: :java6MyLibJar
         platform: java6
-        tool chain: current JDK ($currentJvm)
+        tool chain: $currentJdk
         Jar file: build/jars/myLibJar/java6/myLib.jar
     Jar 'myLib:java7:jar'
         build using task: :java7MyLibJar
         platform: java7
-        tool chain: current JDK ($currentJvm)
+        tool chain: $currentJdk
         Jar file: build/jars/myLibJar/java7/myLib.jar
 """
     }
