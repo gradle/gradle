@@ -22,6 +22,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
 import org.gradle.jvm.platform.JavaPlatform
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
@@ -31,12 +32,13 @@ class DefaultJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
     def execActionFactory = Stub(ExecActionFactory)
     def toolChain = new DefaultJavaToolChain(javaCompilerFactory, execActionFactory)
-    def currentPlatform = platform(JavaVersion.current())
+    def JavaVersion currentJvm = JavaVersion.current()
+    def currentPlatform = platform(currentJvm)
 
     def "has reasonable string representation"() {
         expect:
-        toolChain.name == "JDK${JavaVersion.current()}"
-        toolChain.displayName == "current JDK (${JavaVersion.current()})"
+        toolChain.name == "JDK${currentJvm}"
+        toolChain.displayName == "JDK ${currentJvm.majorVersion} (${currentJvm})"
         toolChain.toString() == toolChain.displayName
     }
 
@@ -90,14 +92,11 @@ class DefaultJavaToolChainTest extends Specification {
         toolProvider.explain(visitor)
 
         then:
-        1 * visitor.node("Could not use target JVM platform: '1.9' when using JDK: '${JavaVersion.current()}'.")
+        1 * visitor.node("Could not target platform: '${futurePlatform}' using tool chain: '${toolChain}'.")
         0 * _
     }
 
-    private JavaPlatform platform(JavaVersion javaVersion) {
-        return Stub(JavaPlatform) {
-            getName() >> javaVersion.name()
-            getTargetCompatibility() >> javaVersion
-        }
+    private static JavaPlatform platform(JavaVersion javaVersion) {
+        return new DefaultJavaPlatform(javaVersion)
     }
 }

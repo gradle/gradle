@@ -52,7 +52,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     }
 
     public String getDisplayName() {
-        return String.format("current JDK (%s)", javaVersion);
+        return String.format("JDK %s (%s)", javaVersion.getMajorVersion(), javaVersion);
     }
 
     @Override
@@ -143,8 +143,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         }
 
         private String getMessage() {
-            // TODO:DAZ Use display names here
-            return String.format("Could not use target JVM platform: '%s' when using JDK: '%s'.", targetPlatform.getTargetCompatibility(), javaVersion);
+            return String.format("Could not target platform: '%s' using tool chain: '%s'.", targetPlatform.getDisplayName(), DefaultJavaToolChain.this.getDisplayName());
         }
     }
 }
