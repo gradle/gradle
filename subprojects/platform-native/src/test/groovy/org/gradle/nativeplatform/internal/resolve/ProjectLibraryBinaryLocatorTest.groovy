@@ -21,13 +21,11 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibraryRequirement
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
-import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
@@ -40,8 +38,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def binary = Mock(MockNativeLibraryBinary)
     def binaries = new DefaultDomainObjectSet(NativeBinarySpec, [binary])
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
-    def instantiator = Stub(Instantiator)
-    def locator = new ProjectLibraryBinaryLocator(projectLocator, instantiator)
+    def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
         library.binaries >> binaries
@@ -141,13 +138,9 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         def extensions = Mock(ExtensionContainerInternal)
         def components = Mock(ComponentSpecContainer)
         def libraryContainer = Mock(NamedDomainObjectSet)
-        def binaryContainer = Mock(BinaryContainer) //TODO freekh: clean up this one and binaries
         project.getExtensions() >> extensions
         extensions.findByType(ComponentSpecContainer) >> components
         components.withType(NativeLibrarySpec) >> libraryContainer
-        extensions.findByType(BinaryContainer) >> binaryContainer
-        binaryContainer.findByName("libName") >> binary //TODO freekh: this is likely wrong
-        binary.getName() >> "libName" //TODO freekh: check if this is wrong
         return libraryContainer
     }
 

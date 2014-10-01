@@ -30,9 +30,9 @@ public class NativeDependencyResolverServices {
         return new DefaultProjectLocator(currentProjectPath, projectFinder);
     }
 
-    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator, Instantiator instantiator) {
+    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        locators.add(new ProjectLibraryBinaryLocator(projectLocator, instantiator));
+        locators.add(new ProjectLibraryBinaryLocator(projectLocator));
         locators.add(new PrebuiltLibraryBinaryLocator(projectLocator));
         return new ChainedLibraryBinaryLocator(locators);
     }
