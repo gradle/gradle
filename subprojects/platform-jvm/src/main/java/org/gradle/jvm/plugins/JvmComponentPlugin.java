@@ -90,7 +90,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
-        JavaToolChainRegistry toolChains(ServiceRegistry serviceRegistry) {
+        JavaToolChainRegistry javaToolChains(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
             return new DefaultJavaToolChainRegistry(toolChain);
         }
