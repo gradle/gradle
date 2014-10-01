@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
@@ -50,6 +51,7 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
@@ -123,7 +125,10 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                    NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
 
-            Action<JarBinarySpec> initAction = Actions.composite(new JarBinarySpecInitializer(buildDir), new MarkBinariesBuildable());
+            List<Action<? super JarBinarySpec>> actions = Lists.newArrayList();
+            actions.add(new JarBinarySpecInitializer(buildDir));
+            actions.add(new MarkBinariesBuildable());
+            Action<JarBinarySpec> initAction = Actions.composite(actions);
             JarBinariesFactory factory = new DefaultJarBinariesFactory(instantiator, initAction);
 
             Action<JvmLibrarySpec> createBinariesAction =

@@ -27,9 +27,9 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 public class DefaultJarBinariesFactory implements JarBinariesFactory { //TODO: NativeBInariesFactory and this one should extend a BaseClass (BinariesFactory) that creates binaries and adds them on component specs based on the configure action - parameter should be a Factory that creates the specific type (JarBinarySpec here)
     private final Instantiator instantiator;
-    private final Action<JarBinarySpec> configureAction;
+    private final Action<? super JarBinarySpec> configureAction;
 
-    public DefaultJarBinariesFactory(Instantiator instantiator, Action<JarBinarySpec> configureAction) {
+    public DefaultJarBinariesFactory(Instantiator instantiator, Action<? super JarBinarySpec> configureAction) {
         this.instantiator = instantiator;
         this.configureAction = configureAction;
     }
