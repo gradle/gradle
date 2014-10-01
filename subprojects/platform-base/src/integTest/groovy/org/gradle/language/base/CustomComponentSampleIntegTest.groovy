@@ -35,7 +35,7 @@ task checkModel << {
     assert coreLib instanceof SampleLibrary
     assert coreLib.projectPath == project.path
     assert coreLib.displayName == "DefaultSampleLibrary 'core'"
-    assert coreLib.binaries.collect{it.name} == ['coreUnixBinary', 'coreWindowsBinary', 'coreOsxBinary']
+    assert coreLib.binaries.collect{it.name}.sort() == ['coreOsxBinary', 'coreUnixBinary', 'coreWindowsBinary']
 }
 
 """
