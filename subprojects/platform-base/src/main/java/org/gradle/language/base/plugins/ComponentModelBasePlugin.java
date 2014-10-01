@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.plugins;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -55,7 +56,6 @@ import javax.inject.Inject;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-@SuppressWarnings(value={"rawtypes"})
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
@@ -67,6 +67,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         this.modelRegistry = modelRegistry;
     }
 
+
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
@@ -74,12 +75,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
+        @SuppressWarnings("unchecked") Class<ComponentSpec<?>> componentSpecClass = (Class<ComponentSpec<?>>) new TypeToken<ComponentSpec<?>>(){}.getRawType();
         modelRegistry.create(
                 ModelCreators.of(ModelReference.of("componentSpecs", DefaultComponentSpecContainer.class), components)
                         .simpleDescriptor("Project.<init>.componentSpecs()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec<?>>(components, componentSpecClass))
                         .build()
-        );
+                        );
 
         // TODO:DAZ Convert to model rules
         createLanguageSourceSets(sources, components, languageRegistry, project.getFileResolver());
@@ -94,6 +96,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
+    @SuppressWarnings("rawtypes")
     private <U extends LanguageSourceSet> void createDefaultSourceSetForComponents(final LanguageRegistration<U> languageRegistration, ComponentSpecContainer components) {
         components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
             public void execute(final ComponentSpecInternal componentSpecInternal) {
