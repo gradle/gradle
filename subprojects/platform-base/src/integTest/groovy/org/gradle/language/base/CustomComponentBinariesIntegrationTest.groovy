@@ -35,93 +35,7 @@ class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary 
 interface SampleLibrary extends ComponentSpec<SampleBinary> {}
 class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
-"""
-    }
-
-    def "can register binaries using @ComponentBinaries"() {
-        when:
-        buildFile << myBinaryDeclarationModel()
-        buildFile << """
-
-        apply plugin:MyBinaryDeclarationModel
-
-        task checkModel << {
-            assert project.binaries.size() == 2
-            def sampleBinary = project.binaries.sampleLibBinary
-            def othersSampleBinary = project.binaries.sampleLibOtherBinary
-            assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
-            assert othersSampleBinary instanceof OtherSampleBinary
-            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl: 'sampleLibOtherBinary'"
-        }
-"""
-        then:
-        succeeds "checkModel"
-    }
-
-    def "links binaries to component"() {
-        given:
-        buildFile << myBinaryDeclarationModel()
-        buildFile << """
-
-        apply plugin:MyBinaryDeclarationModel
-"""
-        when:
-        succeeds "components"
-        then:
-        output.contains(toPlatformLineSeparators(
-"""DefaultSampleLibrary 'sampleLib'
---------------------------------
-
-Source sets
-    No source sets.
-
-Binaries
-    DefaultSampleBinary: 'sampleLibBinary'
-        build using task: :sampleLibBinary
-    OtherSampleBinaryImpl: 'sampleLibOtherBinary'
-        build using task: :sampleLibOtherBinary
-"""))
-    }
-
-    @Unroll
-    def "can execute #taskdescr to build binary"() {
-        given:
-        buildFile << myBinaryDeclarationModel()
-        buildFile << """
-
-        apply plugin:MyBinaryDeclarationModel
-"""
-        when:
-        succeeds taskName
-        then:
-        output.contains(":sampleLibBinary UP-TO-DATE")
-        where:
-        taskName          | taskdescr
-        "sampleLibBinary" | "lifecycle task"
-        "assemble"        | "assemble task"
-    }
-
-    def "Can access lifecycle task of binary via BinarySpec.buildTask"(){
-        when:
-        buildFile << myBinaryDeclarationModel()
-        buildFile << """
-
-        apply plugin:MyBinaryDeclarationModel
-
-        task tellTaskName << {
-            assert project.binaries.sampleLibBinary.buildTask instanceof Task
-            assert project.binaries.sampleLibBinary.buildTask.name ==  "sampleLibBinary"
-        }
-"""
-        then:
-        succeeds "tellTaskName"
-    }
-
-
-    String myBinaryDeclarationModel() {
-        """
-        class MyBinaryDeclarationModel implements Plugin<Project> {
+            class MyBinaryDeclarationModel implements Plugin<Project> {
             void apply(final Project project) {}
 
             @RuleSource
@@ -144,14 +58,155 @@ Binaries
                 void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {
                     builder.defaultImplementation(OtherSampleBinaryImpl)
                 }
+            }
+        }
 
+        apply plugin:MyBinaryDeclarationModel
+"""
+    }
+
+    def "can register binaries using @ComponentBinaries"() {
+        when:
+        buildFile << withSimpleComponentBinaries()
+        buildFile << """
+
+
+        task checkModel << {
+            assert project.binaries.size() == 2
+            def sampleBinary = project.binaries.sampleLibBinary
+            def othersSampleBinary = project.binaries.sampleLibOtherBinary
+            assert sampleBinary instanceof SampleBinary
+            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
+            assert othersSampleBinary instanceof OtherSampleBinary
+            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl: 'sampleLibOtherBinary'"
+        }
+"""
+        then:
+        succeeds "checkModel"
+    }
+
+    def "links binaries to component"() {
+        given:
+        buildFile << withSimpleComponentBinaries()
+        when:
+        succeeds "components"
+        then:
+        output.contains(toPlatformLineSeparators(
+"""DefaultSampleLibrary 'sampleLib'
+--------------------------------
+
+Source sets
+    No source sets.
+
+Binaries
+    DefaultSampleBinary: 'sampleLibBinary'
+        build using task: :sampleLibBinary
+    OtherSampleBinaryImpl: 'sampleLibOtherBinary'
+        build using task: :sampleLibOtherBinary
+"""))
+    }
+
+    @Unroll
+    def "can execute #taskdescr to build binary"() {
+        given:
+        buildFile << withSimpleComponentBinaries()
+        when:
+        succeeds taskName
+        then:
+        output.contains(":sampleLibBinary UP-TO-DATE")
+        where:
+        taskName          | taskdescr
+        "sampleLibBinary" | "lifecycle task"
+        "assemble"        | "assemble task"
+    }
+
+    def "Can access lifecycle task of binary via BinarySpec.buildTask"(){
+        when:
+        buildFile << withSimpleComponentBinaries()
+        buildFile << """
+
+        task tellTaskName << {
+            assert project.binaries.sampleLibBinary.buildTask instanceof Task
+            assert project.binaries.sampleLibBinary.buildTask.name ==  "sampleLibBinary"
+        }
+"""
+        then:
+        succeeds "tellTaskName"
+    }
+
+    def "@ComponentBinaries supports additional parameters as rule inputs"() {
+        given:
+        buildFile << """
+        class CustomModel {
+            List<String> values = []
+        }
+
+        class MyComponentBinariesPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+
+               @Model
+               CustomModel customModel() {
+                   new CustomModel()
+               }
+
+               @ComponentBinaries
+               void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, $ruleInputs) {
+                   myModel.values.each{ value ->
+                        binaries.create("\${library.name}\${value}Binary")
+
+                   }
+               }
+           }
+        }
+
+
+        apply plugin: MyComponentBinariesPlugin
+
+        model {
+            customModel {
+                values << "1st" << "2nd"
+            }
+        }"""
+
+        when:
+        succeeds "components"
+        then:
+        output.contains(toPlatformLineSeparators("""
+DefaultSampleLibrary 'sampleLib'
+--------------------------------
+
+Source sets
+    No source sets.
+
+Binaries
+    DefaultSampleBinary: 'sampleLib1stBinary'
+        build using task: :sampleLib1stBinary
+    DefaultSampleBinary: 'sampleLib2ndBinary'
+        build using task: :sampleLib2ndBinary
+"""))
+        where:
+        ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
+    }
+
+
+    String withSimpleComponentBinaries() {
+        """
+         class MyComponentBinariesPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("\${library.name}Binary")
                     binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
                 }
             }
-        }
+         }
+        apply plugin: MyComponentBinariesPlugin
 """
     }
 }

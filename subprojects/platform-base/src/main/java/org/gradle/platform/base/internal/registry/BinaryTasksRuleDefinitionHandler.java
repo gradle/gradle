@@ -16,16 +16,16 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.internal.DefaultCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
@@ -34,9 +34,6 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidComponentModelException;
-import org.gradle.util.CollectionUtils;
-
-import java.util.List;
 
 public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTasks> {
 
@@ -77,82 +74,30 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private class BinaryTaskRule<R, T extends BinarySpec> implements ModelMutator<TaskContainer> {
+    private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, TaskContainer> {
 
-        private final ModelReference<TaskContainer> subject;
-        private final MethodRuleDefinition<R> ruleDefinition;
         private final ModelRegistry modelRegistry;
-        private final List<ModelReference<?>> inputs;
         private final Class<T> binaryType;
 
-        private int binaryParameterIndex;
-
         public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
-            this.subject = subject;
+            super(subject, binaryType, ruleDefinition, ModelReference.of("binaries", BinaryContainer.class));
             this.binaryType = binaryType;
-            this.ruleDefinition = ruleDefinition;
             this.modelRegistry = modelRegistry;
-
-            final List<ModelReference<?>> references = ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size());
-            final List<ModelReference<?>> filteredReferences = CollectionUtils.filter(references, new Spec<ModelReference<?>>() {
-                public boolean isSatisfiedBy(ModelReference<?> element) {
-                    if(element.getType().equals(ModelType.of(binaryType))){
-                        binaryParameterIndex = references.indexOf(element) + 1;
-                        return false;
-                    }
-                    return true;
-                }
-            });
-
-            ImmutableList.Builder<ModelReference<?>> allInputs = ImmutableList.builder();
-            allInputs.add(ModelReference.of("binaries", BinaryContainer.class));
-            allInputs.addAll(filteredReferences);
-
-            this.inputs =  allInputs.build();
-        }
-
-        public ModelReference<TaskContainer> getSubject() {
-            return subject;
         }
 
         public void mutate(TaskContainer container, Inputs inputs) {
             BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
-            for (BinarySpec binary : binaries.withType(binaryType)) {
+            for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator<Task>(binary, container);
                 DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
-                        subject.getPath(),
+                        getSubject().getPath(),
                         instantiator,
-                        new SimpleModelRuleDescriptor("Project.<init>.binaries()"),
+                        new SimpleModelRuleDescriptor("Project.<init>.tasks()"),
                         inputs,
                         modelRegistry);
 
-                Object[] args = new Object[inputs.size() + 1];
-                args[0] = collectionBuilder;
-                args[binaryParameterIndex] = binary;
-
-                for (ModelRuleInput<?> modelRuleInput : inputs.getRuleInputs()) {
-                    Object instance = modelRuleInput.getView().getInstance();
-                    if(instance == binaries){
-                        continue;
-                    }
-                    for(int i = 0; i< args.length; i++){
-                        if(args[i]==null){
-                            args[i] = instance;
-                            break;
-                        }
-                    }
-                }
-                ruleDefinition.getRuleInvoker().invoke(args);
+                invoke(inputs, collectionBuilder, binary, binaries);
             }
-        }
-
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
-        }
-
-
-        public ModelRuleDescriptor getDescriptor() {
-            return ruleDefinition.getDescriptor();
         }
     }
 
