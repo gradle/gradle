@@ -17,7 +17,7 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.BinarySpec;
 
@@ -36,7 +36,7 @@ public interface JvmBinarySpec extends BinarySpec {
     /**
      * The target platform for this binary.
      */
-    JvmPlatform getTargetPlatform();
+    JavaPlatform getTargetPlatform();
 
     /**
      * Returns the {@link org.gradle.jvm.toolchain.JavaToolChain} that will be used to build this binary.

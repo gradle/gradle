@@ -18,7 +18,7 @@ package org.gradle.jvm.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -33,14 +33,14 @@ public class DefaultJarBinarySpec extends AbstractBuildableModelElement implemen
     private final JvmLibrarySpec library;
     private final BinaryNamingScheme namingScheme;
     private final JavaToolChain toolChain;
-    private final JvmPlatform platform;
+    private final JavaPlatform platform;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
     private boolean buildable;
 
-    public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JvmPlatform platform) {
+    public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JavaPlatform platform) {
         this.library = library;
         this.namingScheme = namingScheme;
         this.toolChain = toolChain;
@@ -80,7 +80,7 @@ public class DefaultJarBinarySpec extends AbstractBuildableModelElement implemen
         return toolChain;
     }
 
-    public JvmPlatform getTargetPlatform() {
+    public JavaPlatform getTargetPlatform() {
         return platform;
     }
 

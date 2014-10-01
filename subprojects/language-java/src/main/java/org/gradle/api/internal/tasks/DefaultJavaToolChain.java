@@ -23,7 +23,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.PlatformContainer;
@@ -60,7 +60,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         return getDisplayName();
     }
 
-    public ToolProvider select(JvmPlatform targetPlatform) {
+    public ToolProvider select(JavaPlatform targetPlatform) {
         // TODO:DAZ Remove all of the calls to this method with null platform
         if (targetPlatform != null && targetPlatform.getTargetCompatibility().compareTo(javaVersion) > 0) {
             return new UnavailableToolProvider(targetPlatform);
@@ -72,24 +72,24 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         return javaVersion;
     }
 
-    private boolean isCompatible(JvmPlatform platform, JavaVersion version) {
+    private boolean isCompatible(JavaPlatform platform, JavaVersion version) {
         return platform.getTargetCompatibility().compareTo(version) <= 0; //TODO freekh: need something smarter here when dealing with toolchains or perhaps a platform should define which toolchains it is compatible with so users can override this functionality by overriding the platform?
     }
 
     // TODO:DAZ Remove this method: check availability in the binary initializer, throw failure when creating compiler in task
     //TODO freekh: remove this method:
-    public void assertValidPlatform(JvmPlatform platform, PlatformContainer platforms) {
-        List<JvmPlatform> alternatives = new ArrayList<JvmPlatform>();
-        alternatives.addAll(platforms.withType(JvmPlatform.class));
-        Collections.sort(alternatives, new Comparator<JvmPlatform>() {
-            public int compare(JvmPlatform p1, JvmPlatform p2) {
+    public void assertValidPlatform(JavaPlatform platform, PlatformContainer platforms) {
+        List<JavaPlatform> alternatives = new ArrayList<JavaPlatform>();
+        alternatives.addAll(platforms.withType(JavaPlatform.class));
+        Collections.sort(alternatives, new Comparator<JavaPlatform>() {
+            public int compare(JavaPlatform p1, JavaPlatform p2) {
                 return -p1.getTargetCompatibility().compareTo(p2.getTargetCompatibility());
             }
         });
 
         if (!isCompatible(platform, getJavaVersion())) {
             List<String> compatibleVersions = new ArrayList<String>();
-            for (JvmPlatform alternative: alternatives) {
+            for (JavaPlatform alternative: alternatives) {
                 if (isCompatible(alternative, getJavaVersion())) {
                     compatibleVersions.add(alternative.getName());
                 }
@@ -124,9 +124,9 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     }
 
     private class UnavailableToolProvider implements ToolProvider {
-        private final JvmPlatform targetPlatform;
+        private final JavaPlatform targetPlatform;
 
-        private UnavailableToolProvider(JvmPlatform targetPlatform) {
+        private UnavailableToolProvider(JavaPlatform targetPlatform) {
             this.targetPlatform = targetPlatform;
         }
 

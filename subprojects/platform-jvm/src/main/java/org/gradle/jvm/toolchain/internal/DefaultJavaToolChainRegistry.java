@@ -17,7 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 
@@ -28,7 +28,7 @@ public class DefaultJavaToolChainRegistry implements JavaToolChainRegistry {
         this.toolChain = toolChain;
     }
 
-    public JavaToolChain getForPlatform(JvmPlatform targetPlatform) {
+    public JavaToolChain getForPlatform(JavaPlatform targetPlatform) {
         return toolChain;
     }
 }

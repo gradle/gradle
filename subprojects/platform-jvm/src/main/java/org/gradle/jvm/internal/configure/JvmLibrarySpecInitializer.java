@@ -19,7 +19,7 @@ package org.gradle.jvm.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.platform.base.Platform;
@@ -44,12 +44,12 @@ public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
     }
 
     public void execute(JvmLibrarySpec jvmLibrary) {
-        List<JvmPlatform> selectedPlatforms = platforms.select(JvmPlatform.class, jvmLibrary.getTargetPlatforms());
+        List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, jvmLibrary.getTargetPlatforms());
         if (selectedPlatforms.size() != jvmLibrary.getTargetPlatforms().size()) { //TODO: factor out
             List<String> notFound = new ArrayList<String>();
             for (String target: jvmLibrary.getTargetPlatforms()) {
                 Platform found = platforms.findByName(target);
-                if (found == null || !(found instanceof JvmPlatform)) {
+                if (found == null || !(found instanceof JavaPlatform)) {
                     notFound.add(target);
                 }
             }
@@ -64,7 +64,7 @@ public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
                 throw new InvalidUserDataException("Could not determine JvmPlatforms: " + jvmLibrary.getTargetPlatforms());
             }
         }
-        for (JvmPlatform platform: selectedPlatforms) { //TODO freekh: check empty/use default
+        for (JavaPlatform platform: selectedPlatforms) { //TODO freekh: check empty/use default
             JavaToolChain toolChain = toolChains.getForPlatform(platform);
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())

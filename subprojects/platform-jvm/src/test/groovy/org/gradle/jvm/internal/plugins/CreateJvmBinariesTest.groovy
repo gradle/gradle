@@ -24,7 +24,7 @@ import org.gradle.jvm.internal.DefaultJarBinarySpec
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
-import org.gradle.jvm.platform.internal.DefaultJvmPlatform
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.jvm.toolchain.JavaToolChainRegistry
 import org.gradle.language.base.FunctionalSourceSet
@@ -62,7 +62,7 @@ class CreateJvmBinariesTest extends Specification {
     def "adds a binary for each jvm library"() {
         def library = new DefaultJvmLibrarySpec(componentId("jvmLibOne", ":project-path"), mainSourceSet)
         def namingScheme = Mock(BinaryNamingScheme)
-        def platform = new DefaultJvmPlatform("test")
+        def platform = new DefaultJavaPlatform("test")
         platform.setTargetCompatibility(JavaVersion.current())
         def binary = new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
         def source1 = Mock(LanguageSourceSet)

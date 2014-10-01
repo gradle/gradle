@@ -18,21 +18,21 @@ package org.gradle.jvm.platform.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 
 /**
  * Default implementation of JvmPlatform
  */
 @Incubating
-public class DefaultJvmPlatform implements JvmPlatform {
+public class DefaultJavaPlatform implements JavaPlatform {
     private final String name;
     private JavaVersion targetCompatibility;
 
-    public DefaultJvmPlatform(String name) {
+    public DefaultJavaPlatform(String name) {
         this.name = name;
     }
 
-    public DefaultJvmPlatform(JavaVersion javaVersion) {
+    public DefaultJavaPlatform(JavaVersion javaVersion) {
         this.name = generateName(javaVersion);
         this.targetCompatibility = javaVersion;
     }

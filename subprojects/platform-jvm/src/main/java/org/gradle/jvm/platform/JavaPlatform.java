@@ -37,7 +37,7 @@ import org.gradle.platform.base.Platform;
  * </pre>
  */
 @Incubating
-public interface JvmPlatform extends Platform {
+public interface JavaPlatform extends Platform {
     JavaVersion getTargetCompatibility();
     void setTargetCompatibility(JavaVersion targetCompatibility);
 }

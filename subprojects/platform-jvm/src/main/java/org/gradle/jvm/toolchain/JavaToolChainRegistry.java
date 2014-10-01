@@ -17,7 +17,7 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.platform.base.ToolChainRegistry;
 
 /**
@@ -25,5 +25,5 @@ import org.gradle.platform.base.ToolChainRegistry;
  */
 @Incubating
 @HasInternalProtocol
-public interface JavaToolChainRegistry extends ToolChainRegistry<JvmPlatform, JavaToolChain> {
+public interface JavaToolChainRegistry extends ToolChainRegistry<JavaPlatform, JavaToolChain> {
 }

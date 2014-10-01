@@ -17,10 +17,10 @@
 package org.gradle.jvm.internal.configure;
 
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.platform.JvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 public interface JarBinariesFactory {
-    void createJarBinaries(JvmLibrarySpec jvmLibrary, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JvmPlatform platform);
+    void createJarBinaries(JvmLibrarySpec jvmLibrary, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JavaPlatform platform);
 }

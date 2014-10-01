@@ -24,8 +24,8 @@ import org.gradle.jvm.internal.configure.JarBinariesFactory;
 import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
 import org.gradle.jvm.internal.configure.JvmLibrarySpecInitializer;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.platform.JvmPlatform;
-import org.gradle.jvm.platform.internal.DefaultJvmPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.reflect.Instantiator;
@@ -98,17 +98,17 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @Mutate
         public void registerJvmPlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            platforms.registerFactory(JvmPlatform.class, new NamedDomainObjectFactory<JvmPlatform>() {
-                public JvmPlatform create(String name) {
+            platforms.registerFactory(JavaPlatform.class, new NamedDomainObjectFactory<JavaPlatform>() {
+                public JavaPlatform create(String name) {
                     // TODO:DAZ Use instantiator
-                    return new DefaultJvmPlatform(name);
+                    return new DefaultJavaPlatform(name);
                 }
             });
 
             //Create default platforms available for Java
             for (JavaVersion javaVersion: JavaVersion.values()) {
                 String name = "java" + javaVersion.getMajorVersion();
-                JvmPlatform platform = platforms.create(name, JvmPlatform.class);
+                JavaPlatform platform = platforms.create(name, JavaPlatform.class);
                 platform.setTargetCompatibility(javaVersion);
             }
         }

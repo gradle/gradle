@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
-import org.gradle.jvm.platform.JvmPlatform
+import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
@@ -94,8 +94,8 @@ class DefaultJavaToolChainTest extends Specification {
         0 * _
     }
 
-    private JvmPlatform platform(JavaVersion javaVersion) {
-        return Stub(JvmPlatform) {
+    private JavaPlatform platform(JavaVersion javaVersion) {
+        return Stub(JavaPlatform) {
             getName() >> javaVersion.name()
             getTargetCompatibility() >> javaVersion
         }
