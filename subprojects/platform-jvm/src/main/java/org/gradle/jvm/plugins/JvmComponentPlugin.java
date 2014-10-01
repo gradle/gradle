@@ -100,8 +100,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             platforms.registerFactory(JavaPlatform.class, new NamedDomainObjectFactory<JavaPlatform>() {
                 public JavaPlatform create(String name) {
-                    // TODO:DAZ Use instantiator
-                    return new DefaultJavaPlatform(name);
+                    return instantiator.newInstance(DefaultJavaPlatform.class, name);
                 }
             });
 

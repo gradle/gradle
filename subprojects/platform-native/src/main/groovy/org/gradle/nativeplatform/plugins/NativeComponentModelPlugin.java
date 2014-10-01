@@ -133,14 +133,15 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            DefaultPlatformContainer defaultPlatforms = (DefaultPlatformContainer) platforms; //TODO freekh: remove cast/this comment when registerDefault exists on interface
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
                 public NativePlatform create(String name) {
-                    return new DefaultNativePlatform(name);
+                    return instantiator.newInstance(DefaultNativePlatform.class, name);
                 }
             };
-            defaultPlatforms.registerDefaultFactory(nativePlatformFactory);
-            defaultPlatforms.registerFactory(NativePlatform.class, nativePlatformFactory);
+
+            //TODO freekh: remove cast/this comment when registerDefault exists on interface
+            ((DefaultPlatformContainer) platforms).registerDefaultFactory(nativePlatformFactory);
+            platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
         }
 
         @Mutate
