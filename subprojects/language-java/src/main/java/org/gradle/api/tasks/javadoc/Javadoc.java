@@ -18,12 +18,15 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GUtil;
@@ -136,7 +139,8 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
-        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(null).newCompiler(spec);
+        JavaPlatform dummyPlatform = new DefaultJavaPlatform(JavaVersion.current());
+        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(dummyPlatform).newCompiler(spec);
         generator.execute(spec);
     }
 

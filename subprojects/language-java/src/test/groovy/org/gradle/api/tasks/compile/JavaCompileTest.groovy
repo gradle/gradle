@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.tasks.WorkResult
+import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.platform.base.internal.toolchain.ToolProvider
@@ -43,7 +44,7 @@ class JavaCompileTest extends Specification {
         task.compile()
 
         then:
-        1 * toolChain.select(null) >> toolProvider
+        1 * toolChain.select(_ as JavaPlatform) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> compiler
         1 * compiler.execute(!null) >> Stub(WorkResult)
     }
