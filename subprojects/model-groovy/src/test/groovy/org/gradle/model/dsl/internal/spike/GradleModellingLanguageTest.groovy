@@ -120,6 +120,24 @@ class GradleModellingLanguageTest extends Specification {
         then:
         getModelValueAt("p2.firstName") == "foo"
     }
+
+    void "root based reference used in an expression"() {
+        when:
+        buildScript '''
+            model {
+                p1 {
+                    firstName = "foo"
+                    lastName = "bar"
+                }
+                p2 {
+                    firstName = $.p1.firstName.toUpperCase() + $.p1.lastName
+                }
+            }
+        '''
+
+        then:
+        getModelValueAt("p2.firstName") == "FOObar"
+    }
 }
 
 class Person {

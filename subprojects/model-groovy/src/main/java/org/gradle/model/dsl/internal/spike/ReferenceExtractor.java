@@ -27,15 +27,15 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.LinkedList;
 
-public class ReferencesExtractor extends BlockAndExpressionStatementAllowingRestrictiveCodeVisitor {
+public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestrictiveCodeVisitor {
 
-    private final static String AST_NODE_REWRITE_KEY = ReferencesExtractor.class.getName();
+    private final static String AST_NODE_REWRITE_KEY = ReferenceExtractor.class.getName();
 
     private boolean referenceEncountered;
     private LinkedList<String> referenceStack = Lists.newLinkedList();
     private ImmutableSet.Builder<String> referencedPaths = ImmutableSet.builder();
 
-    public ReferencesExtractor(SourceUnit sourceUnit) {
+    public ReferenceExtractor(SourceUnit sourceUnit) {
         super(sourceUnit, "Expression not allowed");
     }
 
@@ -46,13 +46,15 @@ public class ReferencesExtractor extends BlockAndExpressionStatementAllowingRest
         }
     }
 
+    private Expression rewrittenOrOriginal(Expression expression) {
+        Expression rewritten = expression.getNodeMetaData(AST_NODE_REWRITE_KEY);
+        return rewritten != null ? rewritten : expression;
+    }
+
     @Override
     public void visitExpressionStatement(ExpressionStatement statement) {
         super.visitExpressionStatement(statement);
-        Expression rewritten = statement.getExpression().getNodeMetaData(AST_NODE_REWRITE_KEY);
-        if (rewritten != null) {
-            statement.setExpression(rewritten);
-        }
+        statement.setExpression(rewrittenOrOriginal(statement.getExpression()));
     }
 
     @Override
@@ -62,7 +64,20 @@ public class ReferencesExtractor extends BlockAndExpressionStatementAllowingRest
 
     @Override
     public void visitBinaryExpression(BinaryExpression expression) {
-        //allow this kind of expressions for now
+        Expression leftExpression = expression.getLeftExpression();
+        leftExpression.visit(this);
+        expression.setLeftExpression(rewrittenOrOriginal(leftExpression));
+
+        Expression rightExpression = expression.getRightExpression();
+        rightExpression.visit(this);
+        expression.setRightExpression(rewrittenOrOriginal(rightExpression));
+    }
+
+    @Override
+    public void visitMethodCallExpression(MethodCallExpression call) {
+        Expression objectExpression = call.getObjectExpression();
+        objectExpression.visit(this);
+        call.setObjectExpression(rewrittenOrOriginal(objectExpression));
     }
 
     public void visitPropertyExpression(PropertyExpression expression) {

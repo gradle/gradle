@@ -91,7 +91,7 @@ public class ScopeVisitor extends BlockAndExpressionStatementAllowingRestrictive
     }
 
     private void addCreator(String path, ClosureExpression creator) {
-        ReferencesExtractor extractor = new ReferencesExtractor(sourceUnit);
+        ReferenceExtractor extractor = new ReferenceExtractor(sourceUnit);
         creator.getCode().visit(extractor);
         statementGenerator.addCreator(path, creator, extractor.getReferencedPaths());
     }
