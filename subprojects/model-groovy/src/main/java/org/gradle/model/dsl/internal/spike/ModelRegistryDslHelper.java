@@ -16,12 +16,11 @@
 
 package org.gradle.model.dsl.internal.spike;
 
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.util.List;
-import java.util.Map;
 
 public class ModelRegistryDslHelper {
 
@@ -32,11 +31,6 @@ public class ModelRegistryDslHelper {
     }
 
     void addCreator(String path, final Closure creatorClosure, List<String> inputPaths) {
-        Transformer<Object, Map<String, Object>> closureBackedCreator = new Transformer<Object, Map<String, Object>>() {
-            public Object transform(Map<String, Object> inputs) {
-                return creatorClosure.call(inputs);
-            }
-        };
-        registry.create(ModelPath.path(path), new ModelCreator(inputPaths, closureBackedCreator));
+        registry.create(ModelPath.path(path), ModelCreators.resultOf(creatorClosure, ImmutableSet.<String>builder().addAll(inputPaths).build()));
     }
 }

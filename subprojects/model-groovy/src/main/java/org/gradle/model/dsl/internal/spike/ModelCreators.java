@@ -16,12 +16,31 @@
 
 package org.gradle.model.dsl.internal.spike;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import groovy.lang.Closure;
+import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
+
+import java.util.Map;
+import java.util.Set;
 
 public class ModelCreators {
 
     public static ModelCreator of(Object object) {
-        return new ModelCreator(ImmutableList.<String>of(), Transformers.constant(object));
+        return new ModelCreator(ImmutableSet.<String>of(), Transformers.constant(object));
+    }
+
+    public static ModelCreator resultOf(final Closure creatorClosure, Set<String> modelPaths) {
+        Transformer<Object, Map<String, Object>> closureBackedCreator = new Transformer<Object, Map<String, Object>>() {
+            public Object transform(Map<String, Object> inputs) {
+                return creatorClosure.call(inputs);
+            }
+        };
+
+        return new ModelCreator(modelPaths, closureBackedCreator);
+    }
+
+    public static ModelCreator resultOf(final Closure creatorClosure) {
+        return resultOf(creatorClosure, ImmutableSet.<String>of());
     }
 }

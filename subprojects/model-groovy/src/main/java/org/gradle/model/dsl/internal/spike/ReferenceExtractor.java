@@ -18,6 +18,7 @@ package org.gradle.model.dsl.internal.spike;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.expr.*;
@@ -26,14 +27,17 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.util.CollectionUtils;
 
 import java.util.LinkedList;
+import java.util.Map;
 
 public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestrictiveCodeVisitor {
 
-    private final static String AST_NODE_REWRITE_KEY = ReferenceExtractor.class.getName();
+    private final static String AST_NODE_REFERENCE_PATH_KEY = ReferenceExtractor.class.getName() + ".referenceKey";
+    private final static String AST_NODE_REMOVE_KEY = ReferenceExtractor.class.getName() + ".remove";
 
     private boolean referenceEncountered;
     private LinkedList<String> referenceStack = Lists.newLinkedList();
     private ImmutableSet.Builder<String> referencedPaths = ImmutableSet.builder();
+    private Map<String, String> referenceAliases = Maps.newHashMap();
 
     public ReferenceExtractor(SourceUnit sourceUnit) {
         super(sourceUnit, "Expression not allowed");
@@ -41,20 +45,34 @@ public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestr
 
     @Override
     public void visitVariableExpression(VariableExpression expression) {
-        if (expression.getName().equals("$")) {
+        String name = expression.getName();
+        if (name.equals("$")) {
             referenceEncountered = true;
+        } else {
+            String path = referenceAliases.get(name);
+            if (path != null) {
+                referenceStack.push(path);
+                referenceEncountered = true;
+            }
         }
     }
 
     private Expression rewrittenOrOriginal(Expression expression) {
-        Expression rewritten = expression.getNodeMetaData(AST_NODE_REWRITE_KEY);
-        return rewritten != null ? rewritten : expression;
+        String referencePath = expression.getNodeMetaData(AST_NODE_REFERENCE_PATH_KEY);
+
+        return referencePath != null ? rewriteReferenceStatement(referencePath) : expression;
     }
 
     @Override
     public void visitExpressionStatement(ExpressionStatement statement) {
         super.visitExpressionStatement(statement);
-        statement.setExpression(rewrittenOrOriginal(statement.getExpression()));
+        Expression expression = statement.getExpression();
+        Boolean shouldRemoveExpression = expression.getNodeMetaData(AST_NODE_REMOVE_KEY);
+        if (shouldRemoveExpression != null && shouldRemoveExpression) {
+            statement.setExpression(new EmptyExpression());
+        } else {
+            statement.setExpression(rewrittenOrOriginal(expression));
+        }
     }
 
     @Override
@@ -80,6 +98,18 @@ public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestr
         call.setObjectExpression(rewrittenOrOriginal(objectExpression));
     }
 
+    @Override
+    public void visitDeclarationExpression(DeclarationExpression expression) {
+        Expression rightExpression = expression.getRightExpression();
+        rightExpression.visit(this);
+
+        String referencePath = rightExpression.getNodeMetaData(AST_NODE_REFERENCE_PATH_KEY);
+        if (referencePath != null) {
+            expression.setNodeMetaData(AST_NODE_REMOVE_KEY, true);
+            referenceAliases.put(expression.getLeftExpression().getText(), referencePath);
+        }
+    }
+
     public void visitPropertyExpression(PropertyExpression expression) {
         boolean topLevel = referenceStack.isEmpty();
         referenceStack.push(expression.getPropertyAsString());
@@ -87,8 +117,7 @@ public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestr
         if (topLevel) {
             if (referenceEncountered) {
                 String path = CollectionUtils.join(".", referenceStack);
-                referencedPaths.add(path);
-                expression.setNodeMetaData(AST_NODE_REWRITE_KEY, rewriteReferenceStatement(path));
+                expression.setNodeMetaData(AST_NODE_REFERENCE_PATH_KEY, path);
                 referenceStack.clear();
             }
             referenceEncountered = false;
@@ -96,6 +125,8 @@ public class ReferenceExtractor extends BlockAndExpressionStatementAllowingRestr
     }
 
     private MethodCallExpression rewriteReferenceStatement(String path) {
+        referencedPaths.add(path);
+
         Parameter it = new Parameter(ClassHelper.DYNAMIC_TYPE, "it");
         it.setOriginType(ClassHelper.OBJECT_TYPE);
         VariableExpression subject = new VariableExpression(it);

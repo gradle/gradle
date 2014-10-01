@@ -18,15 +18,15 @@ package org.gradle.model.dsl.internal.spike;
 
 import org.gradle.api.Transformer;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ModelCreator {
 
-    private final List<String> inputPaths;
+    private final Set<String> inputPaths;
 
     private final Transformer<Object, ? super Map<String, Object>> creator;
-    public ModelCreator(List<String> inputPaths, Transformer<Object, ? super Map<String, Object>> creator) {
+    public ModelCreator(Set<String> inputPaths, Transformer<Object, ? super Map<String, Object>> creator) {
         this.inputPaths = inputPaths;
         this.creator = creator;
     }
@@ -35,7 +35,7 @@ public class ModelCreator {
         return creator.transform(inputs);
     }
 
-    public List<String> getInputPaths() {
+    public Set<String> getInputPaths() {
         return inputPaths;
     }
 }
