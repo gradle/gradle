@@ -65,9 +65,11 @@ class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         sonarServer.assertProjectPresent('org.gradle.test.sonar:SonarTestBuild')
 
-        and:
-        //Make sure that no warnings are emitted for missing test report directories
+        and: "no warnings are emitted for missing test report directories"
         !output.contains("WARN  - Reports path not found")
+
+        and: "no reports directory is created for projects with no production and no test sources"
+        !temporaryFolder.file("emptyJavaProject", "build", "test-results").exists()
     }
 
 }
