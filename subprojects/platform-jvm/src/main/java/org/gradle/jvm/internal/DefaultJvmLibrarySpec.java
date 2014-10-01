@@ -32,10 +32,7 @@ import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal<JvmLibraryBinarySpec> {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
@@ -93,17 +90,10 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     }
 
     public List<String> getTargetPlatforms() {
-        if (targets.isEmpty()) {
-            // TODO:DAZ Don't return a default here: infrastructure should determine the best platform for an untargeted component
-            return Lists.newArrayList(defaultTarget);
-        } else {
-            return targets;
-        }
+        return Lists.newArrayList(targets);
     }
 
     public void targetPlatform(String... targets) {
-        for (String target : targets) {
-            this.targets.add(target);
-        }
+        Collections.addAll(this.targets, targets);
     }
 }

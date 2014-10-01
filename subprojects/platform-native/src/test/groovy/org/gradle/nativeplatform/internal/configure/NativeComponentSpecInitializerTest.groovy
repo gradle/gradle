@@ -131,15 +131,14 @@ class NativeComponentSpecInitializerTest extends Specification {
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * platforms.select(_, _) >> [platform] //TODO freekh: does this mock too much?
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
 
         then:
-        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("buildType1") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * _
 
         then:
-        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("buildType2") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType2, flavor)
         0 * _
@@ -158,15 +157,14 @@ class NativeComponentSpecInitializerTest extends Specification {
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * platforms.select(_, _) >> [platform] //TODO freekh: does this mock too much?
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
 
         then:
-        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("flavor1") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * _
 
         then:
-        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withVariantDimension("flavor2") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor2)
         0 * _
