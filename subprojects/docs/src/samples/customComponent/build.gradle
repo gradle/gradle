@@ -20,11 +20,15 @@ import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.model.collection.CollectionBuilder
 
-interface SampleLibrary extends LibrarySpec { }
+interface SampleLibrary extends LibrarySpec<SampleBinary> { }
 class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
+
+interface SampleBinary extends BinarySpec { }
+class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
 
 class SampleExtension {
     List<String> libraryNames = new ArrayList<String>()
+    List<String> targets = new ArrayList<String>()
 }
 
 class MySamplePlugin implements Plugin<Project> {
@@ -49,6 +53,23 @@ class MySamplePlugin implements Plugin<Project> {
                 sampleLibraries.create(libraryName)
             }
         }
+
+        @BinaryType
+        void register(BinaryTypeBuilder<SampleBinary> builder) {
+            builder.defaultImplementation(DefaultSampleBinary)
+        }
+
+        @ComponentBinaries
+        void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library, SampleExtension sample) {
+            sample.targets.each{ target ->
+                binaries.create("${library.name}${target}Binary")
+            }
+        }
+
+        @BinaryTasks
+        void createBinaryTasks(CollectionBuilder<Task> tasks, SampleBinary binary) {
+            tasks.create("${binary.getName()}CreationTask");
+        }
     }
 }
 
@@ -56,6 +77,11 @@ apply plugin:MySamplePlugin
 
 model {
     mySample {
-        libraryNames << "sampleLib1"
+        libraryNames << "core"
+        libraryNames << "feature"
+
+        targets << "Windows"
+        targets << "Unix"
+        targets << "Osx"
     }
 }

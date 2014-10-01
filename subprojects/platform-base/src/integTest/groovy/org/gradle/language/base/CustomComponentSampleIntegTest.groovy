@@ -30,11 +30,12 @@ class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
 
 
 task checkModel << {
-    assert project.componentSpecs.size() == 1
-    def sampleLib = project.componentSpecs.sampleLib1
-    assert sampleLib instanceof SampleLibrary
-    assert sampleLib.projectPath == project.path
-    assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib1'"
+    assert project.componentSpecs.size() == 2
+    def coreLib = project.componentSpecs.core
+    assert coreLib instanceof SampleLibrary
+    assert coreLib.projectPath == project.path
+    assert coreLib.displayName == "DefaultSampleLibrary 'core'"
+    assert coreLib.binaries.collect{it.name} == ['coreUnixBinary', 'coreWindowsBinary', 'coreOsxBinary']
 }
 
 """
