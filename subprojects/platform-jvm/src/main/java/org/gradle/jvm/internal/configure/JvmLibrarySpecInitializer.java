@@ -17,17 +17,14 @@
 package org.gradle.jvm.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
@@ -45,26 +42,7 @@ public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
 
     public void execute(JvmLibrarySpec jvmLibrary) {
         List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, jvmLibrary.getTargetPlatforms());
-        if (selectedPlatforms.size() != jvmLibrary.getTargetPlatforms().size()) { //TODO: factor out
-            List<String> notFound = new ArrayList<String>();
-            for (String target: jvmLibrary.getTargetPlatforms()) {
-                Platform found = platforms.findByName(target);
-                if (found == null || !(found instanceof JavaPlatform)) {
-                    notFound.add(target);
-                }
-            }
-
-            //TODO freekh: create test case for this:
-            //TODO freekh: use some other exceptions? Check this somewhere else?
-            if (notFound.size() == 1) {
-                throw new InvalidUserDataException("Could not find JvmPlatform with name: '" + notFound.get(0) + "'");
-            } else if (notFound.size() > 1) {
-                throw new InvalidUserDataException("Could not find JvmPlatforms with names: " + notFound);
-            } else {
-                throw new InvalidUserDataException("Could not determine JvmPlatforms: " + jvmLibrary.getTargetPlatforms());
-            }
-        }
-        for (JavaPlatform platform: selectedPlatforms) { //TODO freekh: check empty/use default
+        for (JavaPlatform platform: selectedPlatforms) {
             JavaToolChain toolChain = toolChains.getForPlatform(platform);
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())

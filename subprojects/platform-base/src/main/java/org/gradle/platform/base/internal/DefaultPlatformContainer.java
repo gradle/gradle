@@ -17,13 +17,15 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.*;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
@@ -33,37 +35,58 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
     }
 
     public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
-        //TODO freekh: consider moving this logic to some other place
-        if (targets.isEmpty()) {
-            List<T> typed = Lists.newArrayList(withType(type));
-            if (typed.size() == 1) { //only one of this type, return that one. Might be the default
-                return typed;
-            } else if (typed.size() > 1) { //we have more than one, select the best one
-                //TODO freekh: for now, we pick the first one defined, but we could pick the best based on the toolchains we have?
-                // TODO:DAZ This actually selects the first alphabetically
-                return typed.subList(0, 1);
-            }
-
-            //TODO freekh: Change to another type of exception?
-            throw new InvalidUserDataException(String.format("No platforms is registered for type: '%s'", type)); //TODO freekh: this should not happen if the platforms are registered correctly through a plugin
-        }
-
-        List<T> selected = new ArrayList<T>();
-
-        for (String target : targets) {
-            boolean targetFound = false;
-            for (T platform: withType(type)) {
-                if (target.equals(platform.getName())) {
-                    selected.add(platform);
-                    targetFound = true;
-                }
-            }
-            if (!targetFound) {
-                throw new InvalidUserDataException(String.format("Invalid Platform: '%s'", target)); //TODO freekh: we do this here, because we are selecting/pruning away not found platforms, and in chooseElements, because we use it to determine the variant dimensions. It is NOT correct! Fix this!
-            }
-        }
-
-        return selected;
+        return new NamedElementSelector<T>(type, targets).transform(this);
     }
 
+    /**
+     * A utility that can find a set of named and typed elements in a NamedDomainObjectContainer.
+     * @param <T> The type of element required
+     */
+    //TODO freekh: Extract this and unit test the logic (from Daz :-)
+    private static class NamedElementSelector<T extends Named> implements Transformer<List<T>, NamedDomainObjectContainer<? super T>> {
+        private final Class<T> type;
+        private final List<String> names;
+
+        private NamedElementSelector(Class<T> type, List<String> names) {
+            this.type = type;
+            this.names = names;
+        }
+
+        /**
+         * Return the matching elements: never returns an empty list (at this stage this class chooses the default).
+         */
+        public List<T> transform(NamedDomainObjectContainer<? super T> ts) {
+            NamedDomainObjectSet<T> allWithType = ts.withType(type);
+
+            //TODO freekh: consider moving this logic to some other place
+            if (names.isEmpty()) {
+                if (allWithType.size() == 1) {
+                    return Lists.newArrayList(allWithType);
+                } else if (allWithType.size() > 1) {
+                    //TODO freekh: for now, we pick the first one defined, but we could pick the best based on the toolchains we have?
+                    // TODO:DAZ This actually selects the first alphabetically
+                    return Collections.singletonList(allWithType.iterator().next());
+                }
+
+                throw new GradleException(String.format("No element is registered for type: '%s'", type));
+            }
+
+            List<T> matching = Lists.newArrayList();
+            final List<String> notFound = Lists.newArrayList(names);
+            CollectionUtils.filter(allWithType, matching, new Spec<T>() {
+                public boolean isSatisfiedBy(T element) {
+                    return notFound.remove(element.getName());
+                }
+            });
+
+            //TODO freekh: create test case for this (Need unit test and integration test for java. Already have one in BinaryNativePlatformIntegrationTest)
+            if (notFound.size() == 1) {
+                throw new InvalidUserDataException(String.format("Invalid %s: %s", type.getSimpleName(), notFound.get(0)));
+            }
+            if (notFound.size() > 1) {
+                throw new InvalidUserDataException(String.format("Invalid %ss: %s", type.getSimpleName(), notFound));
+            }
+            return matching;
+        }
+    }
 }

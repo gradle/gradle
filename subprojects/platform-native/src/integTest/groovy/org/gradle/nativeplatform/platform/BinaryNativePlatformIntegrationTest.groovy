@@ -369,7 +369,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
         then:
         failure.assertHasDescription("A problem occurred configuring root project 'bad-platform'.")
-        failure.assertHasCause("Invalid Platform: 'unknown'")
+        failure.assertHasCause("Invalid NativePlatform: unknown")
     }
 
     def "fails with reasonable error message when depended on library has no variant with matching platform"() {
