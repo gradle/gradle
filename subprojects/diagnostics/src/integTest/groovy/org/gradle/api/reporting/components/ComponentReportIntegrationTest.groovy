@@ -79,7 +79,7 @@ Classes 'test'
     tool chain: $currentJdk
     classes dir: build/classes/test
     resources dir: build/resources/test
-""" //TODO freekh:  platform: JVM should not be currentJvm it should be currentJava
+"""
     }
 
     def "shows details of Java library"() {
