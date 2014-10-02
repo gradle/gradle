@@ -374,31 +374,44 @@ This story adds coverage to ensure that model rules are fired **AFTER** afterEva
 
 This story makes it more convenient to write a plugin that is exclusively based on model rules, while keeping the implementation details of such a plugin transparent to the user.
 
-A new type will be added:
+Support for applying a `@RuleSource` annotated classes that don't implement `Plugin` will be added to `PluginAware.apply(Closure)` and `PluginAware.apply(Map)`:
 
-    package org.gradle.api;
-    import org.gradle.model.RuleSource;
-    
-    @RuleSource
-    public class RulePlugin implements Plugin<Object> {
-      public final void apply(Object object) {}
+- rule source plugins can be applied using an id
+- rule source plugins (and `Plugin` implementing classes) can be applied by type using a new `type` method/key, i.e. `apply type: MyRuleSource`
+
+The `@RuleSource` annotation can still be used on a nested class in a `Plugin` implementation.
+
+A new API for querying applied plugins that supports both `Plugin` implementing classes and rule source classes will be introduced:
+
+    interface AppliedPlugin {
+        @Nullable
+        String getVersion();
     }
-
-Rule based plugins can extend this type.
-
-The `@RuleSource` annotation can still be used on a nested class in a `Plugin` implementation, and a `RulePlugin` implementation.
+        
+    interface PluginRegistry {
+        @Nullable
+        AppliedPlugin findPlugin(String id);
+        boolean contains(String id);
+        void withPlugin(String id, Action<? super AppliedPlugin> action);
+    }
+    
+    interface PluginAware {
+        PluginRegistry getPluginRegistry();
+    }
 
 ### Test Coverage
 
-- Rule source plugin can be applied to Project via `apply()`
-- Rule source plugin can be applied to Project via `plugins.apply(Class)`
-- Rule source plugin can be applied to Project via `plugins.apply()`
+- Rule source plugin can be applied to Project via `apply()` using an id or type
+- `Plugin` implementing classes can be applied to Project via `apply(type: ... )`
 - Rule source plugin can be applied to Project via `plugins {}`
 - Rule source plugin can be applied in ProjectBuilder based unit test
 - Rule source plugin cannot be applied to `PluginAware` that is not model rule compatible (e.g. Gradle)
 - Reasonable error message is provided when the `RulePlugin` implementation violates the rules for rule sources
 - `Plugin` impl can include nested rule source class
-- `RulePlugin` impl can include nested rule source class
+- A useful error message is presented to the user if they try to apply a rule source plugin as a regular plugin, i. e. `apply plugin: RuleSourcePlugin` or `apply { plugin RuleSourcePlugin }`
+- Can use `PluginRegistry` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project
+- A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied   
+
 
 ## Story: Model DSL rule uses a typed model element as input via name
 
