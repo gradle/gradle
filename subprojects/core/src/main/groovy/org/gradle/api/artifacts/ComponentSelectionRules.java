@@ -27,7 +27,7 @@ import org.gradle.internal.HasInternalProtocol;
  * or rejected by rule.  Components that are neither accepted or rejected will be subject to
  * the default version matching strategies.
  *
- * <pre>
+ * <pre autoTested=''>
  *     configurations {
  *         conf {
  *             resolutionStrategy {
@@ -44,7 +44,7 @@ import org.gradle.internal.HasInternalProtocol;
  *                             }
  *                         }
  *                     }
- *                     module("org.sample:api") { ComponentSelection selection ->
+ *                     withModule("org.sample:api") { ComponentSelection selection ->
  *                         if (selection.candidate.version == "1.1") {
  *                             selection.reject("known bad version")
  *                         }
@@ -106,7 +106,7 @@ public interface ComponentSelectionRules {
      * @param selectionAction the Action that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules module(Object id, Action<? super ComponentSelection> selectionAction);
+    public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction);
 
     /**
      * Adds a component selection rule that will apply to the specified module.
@@ -121,7 +121,7 @@ public interface ComponentSelectionRules {
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    public ComponentSelectionRules module(Object id, Closure<?> closure);
+    public ComponentSelectionRules withModule(Object id, Closure<?> closure);
 
     /**
      * Adds a rule-source backed component selection rule that will apply to the specified module.
@@ -139,5 +139,5 @@ public interface ComponentSelectionRules {
      * @param ruleSource an instance providing a rule implementation
      * @return this
      */
-    public ComponentSelectionRules module(Object id, Object ruleSource);
+    public ComponentSelectionRules withModule(Object id, Object ruleSource);
 }

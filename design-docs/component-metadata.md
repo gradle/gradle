@@ -142,7 +142,7 @@ This story adds some convenience DSL to target a selection rule to a particular 
     configurations.all {
         resolutionStrategy {
             componentSelection {
-                module("foo:bar") { ComponentSelection selection ->
+                withModule("foo:bar") { ComponentSelection selection ->
                 }
             }
         }
@@ -209,9 +209,23 @@ Rule source class:
 
 ## Story: Add Java API for component metadata rules
 
-This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and component metadata rules.
+This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and component metadata rules, and adds an API
+consistent with component selection rules.
+
+- Deprecate and replace `ComponentMetadataHandler.eachComponent` methods with `.all()` equivalents
+- Add `ComponentMetadataHandler.all(Object)` that takes a rule source instance
+- Add `ComponentMetadataHandler.withModule()` methods to target a rule at a particular module.
 
 ### User visible changes
+
+    interface ComponentMetadataHandler {
+        all(Action<? super ComponentMetadataDetails>)
+        all(Closure)
+        all(Object ruleSource)
+        withModule(Action<? super ComponentMetadataDetails>)
+        withModule(Closure)
+        withModule(Object ruleSource)
+    }
 
     class MyCustomRule {
         @Mutate
@@ -221,10 +235,6 @@ This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and com
     class MyIvyRule {
         @Mutate
         void whatever(ComponentMetadataDetails metadata, IvyModuleDescriptor ivyDescriptor) { ... }
-    }
-
-    interface ComponentMetadataHandler {
-        all(Object ruleSource);
     }
 
 ### Implementation

@@ -107,7 +107,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        module("org.utils") { ComponentSelection cs -> }
+                        withModule("org.utils") { ComponentSelection cs -> }
                     }
                 }
             }

@@ -66,7 +66,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        rules.module(notation, input)
+        rules.withModule(notation, input)
 
         then:
         1 * adapter.createFromClosure(ComponentSelection, input) >> ruleAction
@@ -98,7 +98,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        rules.module(notation, action)
+        rules.withModule(notation, action)
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
@@ -127,7 +127,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        rules.module(notation, ruleSource)
+        rules.withModule(notation, ruleSource)
 
         then:
         1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> ruleAction
@@ -151,7 +151,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad closure") }
 
         when:
-        rules.module("group:module") { }
+        rules.withModule("group:module") { }
 
         then:
         e = thrown(InvalidUserCodeException)
@@ -173,7 +173,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> { throw new InvalidUserCodeException("bad rule source") }
 
         when:
-        rules.module("group:module", ruleSource)
+        rules.withModule("group:module", ruleSource)
 
         then:
         e = thrown(InvalidUserCodeException)
@@ -197,7 +197,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad action") }
 
         when:
-        rules.module("group:module", action)
+        rules.withModule("group:module", action)
 
         then:
         e = thrown(InvalidUserCodeException)
@@ -212,7 +212,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def notation = "group:module:1.0"
 
         when:
-        rules.module(notation, input)
+        rules.withModule(notation, input)
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -230,7 +230,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def notation = "group:module:1.0"
 
         when:
-        rules.module(notation, input)
+        rules.withModule(notation, input)
 
         then:
         def e = thrown(InvalidUserCodeException)

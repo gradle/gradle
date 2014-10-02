@@ -70,7 +70,7 @@ configurations {
     targetConfig {
         resolutionStrategy {
             componentSelection {
-                module("org.sample:api") { ComponentSelection selection ->
+                withModule("org.sample:api") { ComponentSelection selection ->
                     if (selection.candidate.version == "1.1") {
                         selection.reject("known bad version")
                     }
@@ -106,7 +106,7 @@ configurations {
     sampleConfig {
         resolutionStrategy {
             componentSelection {
-                module("com.google.guava:guava") { ComponentSelection selection ->
+                withModule("com.google.guava:guava") { ComponentSelection selection ->
                     // Veto everything except patch releases
                     if (selection.candidate.version.matches('\\d+.\\d+\\.\\d+')) {
                         logger.lifecycle("** Accepted version: ${selection.candidate.version} **")

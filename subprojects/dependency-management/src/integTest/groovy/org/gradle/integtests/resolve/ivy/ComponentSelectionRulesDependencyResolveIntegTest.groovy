@@ -238,13 +238,13 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        module("org.utils:api") ${rules[rule]}
-                        module("org.utils:api") { ComponentSelection cs ->
+                        withModule("org.utils:api") ${rules[rule]}
+                        withModule("org.utils:api") { ComponentSelection cs ->
                             assert cs.candidate.group == "org.utils"
                             assert cs.candidate.module == "api"
                         }
-                        module("some.other:module") { ComponentSelection cs -> }
-                        module("some.other:module") { ComponentSelection cs, IvyModuleDescriptor descriptor, ComponentMetadata metadata -> }
+                        withModule("some.other:module") { ComponentSelection cs -> }
+                        withModule("some.other:module") { ComponentSelection cs, IvyModuleDescriptor descriptor, ComponentMetadata metadata -> }
                     }
                 }
             }
