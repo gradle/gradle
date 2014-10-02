@@ -22,6 +22,7 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
@@ -46,7 +47,6 @@ class NativeComponentSpecInitializerTest extends Specification {
     def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
     def component = new DefaultNativeExecutableSpec(id, mainSourceSet)
 
-    /*TODO freekh: this is very wrong - we need this, but need to unbreak the build
     def "does not use variant dimension names for single valued dimensions"() {
         def platforms = Mock(PlatformContainer)
         platforms.add(platform)
@@ -60,12 +60,12 @@ class NativeComponentSpecInitializerTest extends Specification {
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
-        1 * platforms.select(_, _) >> [ platform ] //TODO freekh: this fakes the tests too much
+        1 * platforms.select(NativePlatform, []) >> [ platform ]
         0 * namingSchemeBuilder._
     }
 
     def "does not use variant dimension names when component targets a single point on dimension"() {
-        def platforms = Mock(DefaultPlatformContainer)
+        def platforms = Mock(PlatformContainer)
         def platform2 = createStub(NativePlatformInternal, "platform2")
         platforms.add(platform)
         platforms.add(platform2)
@@ -79,13 +79,13 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
+        1 * platforms.select(NativePlatform, ["platform1"]) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
-        1 * platforms.select(_, ["platform1"]) >> [ platform ] //TODO freekh: this fakes the tests too much (fix!)
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * namingSchemeBuilder._
-    }*/
+    }
 
     def "includes platform in name for when multiple platforms"() {
         def platforms = Mock(PlatformContainer)
@@ -98,23 +98,23 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
+        1 * platforms.select(NativePlatform, []) >> [ platform, platform2 ]
+
+        then:
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
-        1 * platforms.select(_, _) >> [ platform ] //TODO freekh: this fakes the tests too much
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
-        //1 * namingSchemeBuilder.withVariantDimension("platform1") >> namingSchemeBuilder //TODO: evaluate carefully whether we can do this (default platform applied here)
+        1 * namingSchemeBuilder.withVariantDimension("platform1") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
         0 * _
 
-        /* TODO freekh: Evaluate if this is correct now!
         then:
         1 * toolChains.getForPlatform(platform2) >> toolChain
         1 * toolChain.select(platform2) >> toolProvider
-        1 * platforms.select(_, _) >> [ platform, platform2 ]
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("platform2") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform2, buildType, flavor)
         0 * _
-        */
     }
 
     def "includes buildType in name for when multiple buildTypes"() {
@@ -128,9 +128,9 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
+        1 * platforms.select(NativePlatform, []) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
-        1 * platforms.select(_, _) >> [platform] //TODO freekh: does this mock too much?
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
 
         then:
@@ -154,9 +154,9 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
+        1 * platforms.select(NativePlatform, []) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
-        1 * platforms.select(_, _) >> [platform] //TODO freekh: does this mock too much?
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
 
         then:
