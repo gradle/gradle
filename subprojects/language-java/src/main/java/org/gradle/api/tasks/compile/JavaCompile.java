@@ -38,6 +38,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.SingleMessageLogger;
@@ -145,8 +146,12 @@ public class JavaCompile extends AbstractCompile {
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         // TODO:DAZ Supply the target platform to the task, using the compatibility flags as overrides
         // Or maybe split the legacy compile task from the new one
-        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).select(null).newCompiler(spec);
+        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec);
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
+    }
+
+    protected JavaPlatform getPlatform() {
+        return null;
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
