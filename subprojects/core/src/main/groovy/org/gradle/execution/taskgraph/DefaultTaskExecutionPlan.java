@@ -213,6 +213,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
             if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
+                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
                 continue;
             }
 
@@ -256,6 +257,12 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     }
                 }
             }
+        }
+    }
+
+    private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
+        if(!walkedShouldRunAfterEdges.isEmpty() && walkedShouldRunAfterEdges.peek().to.equals(taskNode)){
+            walkedShouldRunAfterEdges.pop();
         }
     }
 
