@@ -55,6 +55,18 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
                 .setTransitive(false).setDescription("The Antlr libraries to be used for this project.");
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
 
+        // Wire the antrl configuration into all antlr tasks
+        project.getTasks().withType(AntlrTask.class, new Action<AntlrTask>() {
+            public void execute(AntlrTask antlrTask) {
+                antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME).copy()
+                                .setTransitive(true);
+                    }
+                });
+            }
+        });
+
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(
                 new Action<SourceSet>() {
                     public void execute(SourceSet sourceSet) {
@@ -78,15 +90,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
                         // 3) set up convention mapping for default sources (allows user to not have to specify)
                         antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
 
-                        // 4) set up convention mapping for handling the 'antlr' dependency configuration
-                        antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {
-                            public Object call() throws Exception {
-                                return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME).copy()
-                                        .setTransitive(true);
-                            }
-                        });
-
-                        // 5) Set up the Antlr output directory (adding to javac inputs!)
+                        // 4) Set up the Antlr output directory (adding to javac inputs!)
                         final String outputDirectoryName = String.format("%s/generated-src/antlr/%s",
                                 project.getBuildDir(), sourceSet.getName());
                         final File outputDirectory = new File(outputDirectoryName);
