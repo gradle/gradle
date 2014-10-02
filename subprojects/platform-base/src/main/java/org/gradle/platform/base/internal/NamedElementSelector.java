@@ -43,7 +43,6 @@ class NamedElementSelector<T extends Named> implements Transformer<List<T>, Name
     public List<T> transform(NamedDomainObjectContainer<? super T> ts) { //TODO freekh: consider changing to select
         NamedDomainObjectSet<T> allWithType = ts.withType(type);
 
-        //TODO freekh: consider moving this logic to some other place
         if (names.isEmpty()) {
             if (allWithType.size() == 1) {
                 return Lists.newArrayList(allWithType);
@@ -64,7 +63,6 @@ class NamedElementSelector<T extends Named> implements Transformer<List<T>, Name
             }
         });
 
-        //TODO freekh: create test case for this (Need unit test and integration test for java. Already have one in BinaryNativePlatformIntegrationTest)
         if (notFound.size() == 1) {
             throw new InvalidUserDataException(String.format("Invalid %s: %s", type.getSimpleName(), notFound.get(0)));
         } else if (notFound.size() > 1) {
