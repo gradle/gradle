@@ -106,7 +106,7 @@ dependencies {
     @Unroll
     void "uses content from application xml located #location"() {
         def applicationXml = """<?xml version="1.0"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
+<application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="6">
   <application-name>customear</application-name>
   <display-name>displayname</display-name>
   <library-directory>mylib</library-directory>
