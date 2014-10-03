@@ -359,6 +359,25 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(finalized, f2, d, f1)
     }
 
+    @Issue("GRADLE-2957")
+    def "dependent tasks with the same finalizer"() {
+        // Finalizer task
+        Task finalTask = task('finalTask')
+
+        // Task with this finalizer
+        Task taskOne = task('taskOne', finalizedBy: [finalTask])
+        Task taskTwo = task('taskTwo', finalizedBy: [finalTask])
+
+        // Task to call, with the same finalizer than one of its dependencies
+        Task buggyTask = task('buggyTask', dependsOn: [taskOne], finalizedBy: [taskTwo])
+
+        when:
+        addToGraphAndPopulate([buggyTask])
+
+        then:
+        executes(taskOne, buggyTask, taskTwo, finalTask)
+    }
+
     @Issue("GRADLE-2983")
     def "multiple finalizer tasks with relationships via other tasks scheduled from multiple tasks"() {
         //finalizers with a relationship via a dependency
