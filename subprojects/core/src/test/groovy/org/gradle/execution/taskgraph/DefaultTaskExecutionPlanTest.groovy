@@ -360,22 +360,22 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     @Issue("GRADLE-2957")
-    def "dependent tasks with the same finalizer"() {
+    def "task with a dependency and a finalizer both having a common finalizer"() {
         // Finalizer task
         Task finalTask = task('finalTask')
 
         // Task with this finalizer
-        Task taskOne = task('taskOne', finalizedBy: [finalTask])
-        Task taskTwo = task('taskTwo', finalizedBy: [finalTask])
+        Task dependency = task('dependency', finalizedBy: [finalTask])
+        Task finalizer = task('finalizer', finalizedBy: [finalTask])
 
         // Task to call, with the same finalizer than one of its dependencies
-        Task buggyTask = task('buggyTask', dependsOn: [taskOne], finalizedBy: [taskTwo])
+        Task requestedTask = task('requestedTask', dependsOn: [dependency], finalizedBy: [finalizer])
 
         when:
-        addToGraphAndPopulate([buggyTask])
+        addToGraphAndPopulate([requestedTask])
 
         then:
-        executes(taskOne, buggyTask, taskTwo, finalTask)
+        executes(dependency, requestedTask, finalizer, finalTask)
     }
 
     @Issue("GRADLE-2983")
