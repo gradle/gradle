@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
@@ -105,8 +106,14 @@ dependencies {
 
     @Unroll
     void "uses content from application xml located #location"() {
+        def xsi = ["xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd\""]
+
+        if (JavaVersion.current().java8Compatible) {
+            xsi = xsi.reverse()
+        }
+
         def applicationXml = """<?xml version="1.0"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="6">
+<application xmlns="http://java.sun.com/xml/ns/javaee" ${xsi.join(" ")} version="6">
   <application-name>customear</application-name>
   <display-name>displayname</display-name>
   <library-directory>mylib</library-directory>
