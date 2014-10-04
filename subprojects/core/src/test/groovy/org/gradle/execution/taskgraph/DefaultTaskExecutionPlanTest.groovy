@@ -577,7 +577,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     def "stops returning tasks when build is cancelled"() {
-        3 * cancellationHandler.cancellationRequested >>> [false, true, true]
+        2 * cancellationHandler.cancellationRequested >>> [false, true]
         Task a = task("a");
         Task b = task("b");
 

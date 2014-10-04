@@ -124,7 +124,7 @@ task notExecuted(dependsOn: hang) << {
         resultHandler.failure.cause.cause.message.contains('Build cancelled.')
     }
 
-    def "can cancel build"() {
+    def "does not fail when build completes within the cancellation timeout"() {
         buildFile << """
 import org.gradle.initialization.BuildCancellationToken
 import java.util.concurrent.CountDownLatch
@@ -158,10 +158,9 @@ task hang << {
             cancel.cancel()
             resultHandler.finished()
         }
+
         then:
-        resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure.cause.cause.cause.message.contains('Build cancelled.')
+        noExceptionThrown()
     }
 
     def "can cancel build through forced stop"() {
@@ -186,7 +185,7 @@ task hang << {
             build.run(resultHandler)
             server.waitFor()
             cancel.cancel()
-            resultHandler.finished(20)
+            resultHandler.finished()
         }
         then:
         resultHandler.failure instanceof GradleConnectionException

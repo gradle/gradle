@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -34,7 +35,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     }
     def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), cancellationToken)
 
-    def testStopsExecutionWhenCancelled() {
+    def "stops running tasks and fails with exception when build is cancelled"() {
         def a = task("a")
         def b = task("b")
 
@@ -46,12 +47,40 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         taskExecuter.execute()
 
         then:
-        RuntimeException e = thrown()
+        BuildCancelledException e = thrown()
         e.message == 'Build cancelled.'
 
         and:
         1 * a.executeWithoutThrowingTaskFailure()
         0 * b.executeWithoutThrowingTaskFailure()
+    }
+
+    def "does not fail with exception when build is cancelled after last task has started"() {
+        def a = task("a")
+        def b = task("b")
+
+        given:
+        cancellationToken.cancellationRequested >>> [false, false, true]
+
+        when:
+        taskExecuter.addTasks([a, b])
+        taskExecuter.execute()
+
+        then:
+        1 * a.executeWithoutThrowingTaskFailure()
+        1 * b.executeWithoutThrowingTaskFailure()
+    }
+
+    def "does not fail with exception when build is cancelled and no tasks scheduled"() {
+        given:
+        cancellationToken.cancellationRequested >>> [true]
+
+        when:
+        taskExecuter.addTasks([])
+        taskExecuter.execute()
+
+        then:
+        noExceptionThrown()
     }
 
     def task(String name) {

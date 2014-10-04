@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
 
 @ToolingApiVersion(">=2.2")
@@ -48,7 +49,7 @@ import java.util.concurrent.CountDownLatch
 def cancellationToken = services.get(BuildCancellationToken.class)
 def latch = new CountDownLatch(1)
 
-cancellationToken.addCallback{
+cancellationToken.addCallback {
     latch.countDown()
 }
 
@@ -74,7 +75,7 @@ throw new RuntimeException("should not run")
             build.run(resultHandler)
             server.sync()
             cancel.cancel()
-            resultHandler.finished(20)
+            resultHandler.finished()
         }
 
         then:
@@ -125,7 +126,7 @@ task notExecuted(dependsOn: hang) << {
         resultHandler.failure instanceof BuildCancelledException
     }
 
-    def "can cancel build"() {
+    def "does not fail when build completes within the cancellation timeout"() {
         buildFile << """
 import org.gradle.initialization.BuildCancellationToken
 import java.util.concurrent.CountDownLatch
@@ -162,7 +163,7 @@ task hang << {
         }
 
         then:
-        resultHandler.failure instanceof BuildCancelledException
+        noExceptionThrown()
     }
 
     def "can cancel build through forced stop"() {
@@ -186,15 +187,56 @@ task hang << {
             build.run(resultHandler)
             server.waitFor()
             cancel.cancel()
-            resultHandler.finished(20)
+            resultHandler.finished()
         }
 
         then:
         resultHandler.failure instanceof BuildCancelledException
     }
 
+    @TargetGradleVersion(">=2.2")
     def "can cancel model retrieval"() {
-        // TODO
+        settingsFile << '''
+include 'sub'
+rootProject.name = 'cancelling'
+'''
+        buildFile << """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
+
+def cancellationToken = services.get(BuildCancellationToken.class)
+def latch = new CountDownLatch(1)
+
+cancellationToken.addCallback {
+    latch.countDown()
+}
+
+new URL("${server.uri}").text
+latch.await()
+"""
+        projectDir.file('sub/build.gradle') << """
+throw new RuntimeException("should not run")
+"""
+
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+        def error = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.model(GradleProject)
+            build.withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
+                    .setStandardError(error)
+            build.get(resultHandler)
+            server.sync()
+            cancel.cancel()
+            resultHandler.finished()
+        }
+
+        then:
+        resultHandler.failure instanceof BuildCancelledException
     }
 
     def "can cancel action"() {
