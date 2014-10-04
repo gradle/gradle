@@ -156,7 +156,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":api", ':impl')
     }
 
-    def "follows project dependencies when ran in subproject"() {
+    def "follows project dependencies when run in subproject"() {
         settingsFile << "include 'api', 'impl', 'util'"
 
         file("api/build.gradle") << "configurations { api }"
@@ -367,5 +367,25 @@ project(':api') {
         result.executedTasks.containsAll ':b:buildDependents', ':a:buildDependents'
         //unfortunately buildDependents requires all projects to be configured
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
+    }
+
+    def "task command-line argument may look like a task path"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        file("a/build.gradle") << """
+task one(type: SomeTask)
+task two(type: SomeTask)
+
+class SomeTask extends DefaultTask {
+    @org.gradle.api.internal.tasks.options.Option(description="some value")
+    String value
+}
+"""
+
+        when:
+        run(":a:one", "--value", ":b:thing", "a:two", "--value", "unknown:unknown")
+
+        then:
+        result.assertTasksExecuted(":a:one", ":a:two")
+        fixture.assertProjectsConfigured(":", ":a")
     }
 }

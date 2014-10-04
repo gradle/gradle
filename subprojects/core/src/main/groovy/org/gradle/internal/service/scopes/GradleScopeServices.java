@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service.scopes;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -65,13 +64,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser) {
+    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
-        if (get(StartParameter.class).isConfigureOnDemand()) {
-            configs.add(new ProjectEvaluatingAction());
-        }
         configs.add(new DefaultTasksBuildExecutionAction());
-        configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
+        configs.add(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector));
         configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
 
         return new DefaultBuildExecuter(

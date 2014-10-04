@@ -18,27 +18,24 @@ package org.gradle.execution
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.taskpath.ResolvedTaskPath
-import org.gradle.execution.taskpath.TaskPathResolver
 import spock.lang.Specification
 
 class TaskPathProjectEvaluatorTest extends Specification {
 
-    private resolver = Mock(TaskPathResolver)
     private project = Mock(ProjectInternal)
 
-    private evaluator = new TaskPathProjectEvaluator(resolver)
+    private evaluator = new TaskPathProjectEvaluator()
 
     def "evaluates project by task path"() {
         def path = Mock(ResolvedTaskPath)
         def fooProject = Mock(ProjectInternal)
 
         when:
-        evaluator.evaluateByPath(project, ":foo:bar")
+        evaluator.evaluateByPath(path)
 
         then:
-        1 * resolver.resolvePath(":foo:bar", project) >> path
-        1 * path.isQualified() >> true
-        1 * path.getProject() >> fooProject
+        1 * path.qualified >> true
+        1 * path.project >> fooProject
         1 * fooProject.evaluate()
         0 * _._
     }
@@ -48,11 +45,11 @@ class TaskPathProjectEvaluatorTest extends Specification {
         def subprojects = [Mock(ProjectInternal), Mock(ProjectInternal)]
 
         when:
-        evaluator.evaluateByPath(project, "someTask")
+        evaluator.evaluateByPath(path)
 
         then:
-        1 * resolver.resolvePath("someTask", project) >> path
-        1 * path.isQualified() >> false
+        1 * path.project >> project
+        1 * path.qualified >> false
 
         and:
         1 * project.evaluate()

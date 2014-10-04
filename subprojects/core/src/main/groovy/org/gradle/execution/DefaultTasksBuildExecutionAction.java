@@ -43,6 +43,10 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
 
         // Gather the default tasks from this first group project
         ProjectInternal project = context.getGradle().getDefaultProject();
+
+        //so that we don't miss out default tasks
+        project.evaluate();
+
         List<String> defaultTasks = project.getDefaultTasks();
         if (defaultTasks.size() == 0) {
             defaultTasks = Arrays.asList(ProjectInternal.HELP_TASK);
