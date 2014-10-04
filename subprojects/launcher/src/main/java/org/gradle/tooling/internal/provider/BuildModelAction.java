@@ -15,12 +15,10 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
-import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -44,13 +42,9 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
         if (runTasks) {
             buildController.run();
         } else {
-            gradle.addListener(new ModelConfigurationListener() {
-                public void onConfigure(GradleInternal gradle) {
-                    // Currently need to force everything to be configured
-                    ensureAllProjectsEvaluated(gradle);
-                }
-            });
             buildController.configure();
+            // Currently need to force everything to be configured
+            gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
         }
 
         ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
@@ -74,13 +68,5 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
         return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
-    }
-
-    private void ensureAllProjectsEvaluated(GradleInternal gradle) {
-        gradle.getRootProject().allprojects((Action) new Action<ProjectInternal>() {
-            public void execute(ProjectInternal projectInternal) {
-                projectInternal.evaluate();
-            }
-        });
     }
 }

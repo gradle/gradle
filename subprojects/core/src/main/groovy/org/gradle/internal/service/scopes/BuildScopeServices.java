@@ -275,8 +275,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TaskPathProjectEvaluator(cancellationToken);
     }
 
-    protected BuildConfigurer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildCancellationToken cancellationToken) {
-        return new DefaultBuildConfigurer(projectConfigurer, cancellationToken);
+    protected BuildConfigurer createBuildConfigurer(ProjectConfigurer projectConfigurer) {
+        return new DefaultBuildConfigurer(projectConfigurer);
     }
 
     protected ProjectAccessListener createProjectAccessListener() {

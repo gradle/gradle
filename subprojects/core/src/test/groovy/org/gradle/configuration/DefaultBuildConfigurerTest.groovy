@@ -16,20 +16,17 @@
 package org.gradle.configuration
 
 import org.gradle.StartParameter
-import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
-import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
 
 class DefaultBuildConfigurerTest extends Specification {
     private startParameter = Mock(StartParameter)
     private gradle = Mock(GradleInternal)
     private rootProject = Mock(ProjectInternal)
-    private cancellationToken = Mock(BuildCancellationToken)
     private projectConfigurer = Mock(ProjectConfigurer)
-    private configurer = new DefaultBuildConfigurer(projectConfigurer, cancellationToken)
+    private configurer = new DefaultBuildConfigurer(projectConfigurer)
 
     def setup() {
         gradle.startParameter >> startParameter
@@ -51,17 +48,5 @@ class DefaultBuildConfigurerTest extends Specification {
         then:
         startParameter.isConfigureOnDemand() >> true
         1 * projectConfigurer.configure(rootProject)
-    }
-
-    def "stops configuration when cancel requested"() {
-        given:
-        cancellationToken.cancellationRequested >> true
-
-        when:
-        configurer.configure(gradle)
-
-        then:
-        BuildCancelledException bce = thrown()
-        bce.message == 'Build cancelled.'
     }
 }

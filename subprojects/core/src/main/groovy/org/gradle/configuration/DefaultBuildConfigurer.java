@@ -16,19 +16,15 @@
 package org.gradle.configuration;
 
 import org.gradle.StartParameter;
-import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
     private final ProjectConfigurer projectConfigurer;
-    private final BuildCancellationToken cancellationToken;
 
-    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer, BuildCancellationToken cancellationToken) {
+    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer) {
         this.projectConfigurer = projectConfigurer;
-        this.cancellationToken = cancellationToken;
     }
 
     public void configure(GradleInternal gradle) {
@@ -37,9 +33,6 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
             projectConfigurer.configure(gradle.getRootProject());
         } else {
             projectConfigurer.configureHierarchy(gradle.getRootProject());
-        }
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException();
         }
     }
 

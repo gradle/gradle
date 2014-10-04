@@ -38,6 +38,48 @@ rootProject.name = 'cancelling'
     }
 
     @TargetGradleVersion(">=2.2")
+    def "can cancel build during settings phase"() {
+        settingsFile << """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
+
+def cancellationToken = gradle.services.get(BuildCancellationToken.class)
+def latch = new CountDownLatch(1)
+
+cancellationToken.addCallback {
+    latch.countDown()
+}
+
+new URL("${server.uri}").text
+latch.await()
+"""
+        buildFile << """
+throw new RuntimeException("should not run")
+"""
+
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+        def error = new TestOutputStream()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks(':sub:broken')
+                    .withCancellationToken(cancel.token())
+                    .setStandardOutput(output)
+                    .setStandardError(error)
+            build.run(resultHandler)
+            server.sync()
+            cancel.cancel()
+            resultHandler.finished()
+        }
+
+        then:
+        resultHandler.failure instanceof BuildCancelledException
+    }
+
+    @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
         file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
         setupCancelInConfigurationBuild()
