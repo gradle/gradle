@@ -26,3 +26,11 @@ subsequent story.
     - Running tasks
     - Running build action
 
+### Story: Task graph execution is aborted when operation is cancelled (DONE)
+
+In this story, task graph executor no longer starts executing new tasks when operation is cancelled.
+
+#### Test cases
+
+- Client cancels a build before the start of some task(s) execution
+    - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is still running and the task is not executed.
