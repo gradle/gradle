@@ -34,7 +34,7 @@ public interface BuildController {
     GradleInternal getGradle();
 
     /**
-     * Configure the build and schedules and executes tasks specified in the {@link org.gradle.StartParameter} associated with the build.
+     * Configures the build and schedules and executes tasks specified in the {@link org.gradle.StartParameter} associated with the build.
      *
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
