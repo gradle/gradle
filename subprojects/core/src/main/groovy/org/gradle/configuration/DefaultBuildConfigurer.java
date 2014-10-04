@@ -42,6 +42,9 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
                 ((ProjectInternal) project).evaluate();
             }
         }
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException();
+        }
     }
 
     private void maybeInformAboutIncubatingMode(StartParameter startParameter) {
