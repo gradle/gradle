@@ -30,17 +30,17 @@ import java.util.Set;
 public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private final GradleInternal gradle;
-    private final TaskPathProjectEvaluator evaluator;
+    private final ProjectConfigurer configurer;
     private final TaskPathResolver taskPathResolver = new TaskPathResolver();
 
-    public TaskSelector(GradleInternal gradle) {
-        this(gradle, new TaskNameResolver(), new TaskPathProjectEvaluator());
+    public TaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
+        this(gradle, new TaskNameResolver(), projectConfigurer);
     }
 
-    public TaskSelector(GradleInternal gradle, TaskNameResolver taskNameResolver, TaskPathProjectEvaluator evaluator) {
+    public TaskSelector(GradleInternal gradle, TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
         this.taskNameResolver = taskNameResolver;
         this.gradle = gradle;
-        this.evaluator = evaluator;
+        this.configurer = configurer;
     }
 
     public TaskSelection getSelection(String path) {
@@ -56,7 +56,7 @@ public class TaskSelector {
 
     private TaskSelection getSelection(String path, ProjectInternal project) {
         ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
-        evaluator.evaluateByPath(taskPath);
+        configurer.configureForPath(taskPath);
 
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), taskPath.getProject(), !taskPath.isQualified());
         if (tasks != null) {

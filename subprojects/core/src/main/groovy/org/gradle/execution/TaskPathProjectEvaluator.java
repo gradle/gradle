@@ -16,21 +16,45 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
+import org.gradle.initialization.BuildCancellationToken;
 
-public class TaskPathProjectEvaluator {
+public class TaskPathProjectEvaluator implements ProjectConfigurer {
+    private final BuildCancellationToken cancellationToken;
 
-    public void evaluateByPath(ResolvedTaskPath taskPath) {
+    public TaskPathProjectEvaluator(BuildCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
+    }
+
+    public void configure(ProjectInternal project) {
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException();
+        }
+        project.evaluate();
+    }
+
+    public void configureHierarchy(ProjectInternal project) {
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException();
+        }
+        project.evaluate();
+        for (Project sub : project.getSubprojects()) {
+            if (cancellationToken.isCancellationRequested()) {
+                throw new BuildCancelledException();
+            }
+            ((ProjectInternal) sub).evaluate();
+        }
+    }
+
+    public void configureForPath(ResolvedTaskPath taskPath) {
         ProjectInternal targetProject = taskPath.getProject();
         if (taskPath.isQualified()) {
-            targetProject.evaluate();
+            configure(targetProject);
         } else {
-            targetProject.evaluate();
-            for (Project sub : targetProject.getSubprojects()) {
-                ((ProjectInternal) sub).evaluate();
-            }
+            configureHierarchy(targetProject);
         }
     }
 }

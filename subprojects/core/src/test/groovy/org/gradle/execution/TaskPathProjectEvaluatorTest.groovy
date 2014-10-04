@@ -16,36 +16,72 @@
 
 package org.gradle.execution
 
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.taskpath.ResolvedTaskPath
+import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
 
 class TaskPathProjectEvaluatorTest extends Specification {
-
+    private cancellationToken = Mock(BuildCancellationToken)
     private project = Mock(ProjectInternal)
+    private evaluator = new TaskPathProjectEvaluator(cancellationToken)
 
-    private evaluator = new TaskPathProjectEvaluator()
+    def "project configuration fails when cancelled"() {
+        given:
+        cancellationToken.cancellationRequested >> true
 
-    def "evaluates project by task path"() {
+        when:
+        evaluator.configure(project)
+
+        then:
+        BuildCancelledException e = thrown()
+
+        and:
+        0 * project._
+    }
+
+    def "project hierarchy configuration fails when cancelled"() {
+        def child1 = Mock(ProjectInternal)
+        def child2 = Mock(ProjectInternal)
+        def subprojects = [child1, child2]
+
+        given:
+        project.subprojects >> subprojects
+        cancellationToken.cancellationRequested >>> [false, false, true]
+
+        when:
+        evaluator.configureHierarchy(project)
+
+        then:
+        BuildCancelledException e = thrown()
+
+        and:
+        1 * project.evaluate()
+        1 * child1.evaluate()
+        0 * child2._
+    }
+
+    def "evaluates project when task path is qualified"() {
         def path = Mock(ResolvedTaskPath)
         def fooProject = Mock(ProjectInternal)
 
         when:
-        evaluator.evaluateByPath(path)
+        evaluator.configureForPath(path)
 
         then:
         1 * path.qualified >> true
         1 * path.project >> fooProject
         1 * fooProject.evaluate()
-        0 * _._
+        0 * fooProject._
     }
 
-    def "evaluates all projects"() {
+    def "evaluates all projects when task path is not qualified"() {
         def path = Mock(ResolvedTaskPath)
         def subprojects = [Mock(ProjectInternal), Mock(ProjectInternal)]
 
         when:
-        evaluator.evaluateByPath(path)
+        evaluator.configureForPath(path)
 
         then:
         1 * path.project >> project
@@ -56,6 +92,6 @@ class TaskPathProjectEvaluatorTest extends Specification {
         1 * project.subprojects >> subprojects
         1 * subprojects[0].evaluate()
         1 * subprojects[1].evaluate()
-        0 * _._
+        0 * project._
     }
 }

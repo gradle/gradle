@@ -19,6 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
 
@@ -27,7 +28,8 @@ class DefaultBuildConfigurerTest extends Specification {
     private gradle = Mock(GradleInternal)
     private rootProject = Mock(ProjectInternal)
     private cancellationToken = Mock(BuildCancellationToken)
-    private configurer = new DefaultBuildConfigurer(cancellationToken)
+    private projectConfigurer = Mock(ProjectConfigurer)
+    private configurer = new DefaultBuildConfigurer(projectConfigurer, cancellationToken)
 
     def setup() {
         gradle.startParameter >> startParameter
@@ -35,19 +37,11 @@ class DefaultBuildConfigurerTest extends Specification {
     }
 
     def "configures build for standard mode"() {
-        def child1 = Mock(ProjectInternal)
-        def child2 = Mock(ProjectInternal)
-
-        given:
-        _ * rootProject.allprojects >> [rootProject, child1, child2]
-
         when:
         configurer.configure(gradle)
 
         then:
-        1 * rootProject.evaluate()
-        1 * child1.evaluate()
-        1 * child2.evaluate()
+        1 * projectConfigurer.configureHierarchy(rootProject)
     }
 
     def "configures build for on demand mode"() {
@@ -56,24 +50,17 @@ class DefaultBuildConfigurerTest extends Specification {
 
         then:
         startParameter.isConfigureOnDemand() >> true
-        1 * rootProject.evaluate()
-        0 * rootProject._
+        1 * projectConfigurer.configure(rootProject)
     }
 
     def "stops configuration when cancel requested"() {
-        def child1 = Mock(ProjectInternal)
-        def child2 = Mock(ProjectInternal)
-
         given:
-        _ * rootProject.allprojects >> [rootProject, child1, child2]
-        3 * cancellationToken.cancellationRequested >>> [false, false, true]
+        cancellationToken.cancellationRequested >> true
 
         when:
         configurer.configure(gradle)
 
         then:
-        1 * rootProject.evaluate()
-        1 * child1.evaluate()
         BuildCancelledException bce = thrown()
         bce.message == 'Build cancelled.'
     }

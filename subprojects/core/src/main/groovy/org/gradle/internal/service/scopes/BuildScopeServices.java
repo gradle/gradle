@@ -46,6 +46,8 @@ import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.cache.internal.DefaultCacheScopeMapping;
 import org.gradle.configuration.*;
 import org.gradle.configuration.project.*;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
@@ -269,8 +271,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new LongIdGenerator());
     }
 
-    protected BuildConfigurer createBuildConfigurer(BuildCancellationToken cancellationToken) {
-        return new DefaultBuildConfigurer(cancellationToken);
+    protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {
+        return new TaskPathProjectEvaluator(cancellationToken);
+    }
+
+    protected BuildConfigurer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildCancellationToken cancellationToken) {
+        return new DefaultBuildConfigurer(projectConfigurer, cancellationToken);
     }
 
     protected ProjectAccessListener createProjectAccessListener() {

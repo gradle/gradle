@@ -52,8 +52,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         addProvider(new TaskExecutionServices());
     }
 
-    TaskSelector createTaskSelector(GradleInternal gradle) {
-        return new TaskSelector(gradle);
+    TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
+        return new TaskSelector(gradle, projectConfigurer);
     }
 
     OptionReader createOptionReader() {
@@ -64,9 +64,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
+    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
-        configs.add(new DefaultTasksBuildExecutionAction());
+        configs.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         configs.add(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector));
         configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
 
