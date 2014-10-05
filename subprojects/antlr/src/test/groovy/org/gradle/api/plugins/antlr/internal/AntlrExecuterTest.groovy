@@ -35,7 +35,7 @@ class AntlrExecuterTest extends Specification {
 
         then:
         1 * tool.doEverything(_)
-        result.getErrorCount() == 1
+        result.getErrorCount() == 0
     }
 
     def processReturnsValidResultForToolv3() {
