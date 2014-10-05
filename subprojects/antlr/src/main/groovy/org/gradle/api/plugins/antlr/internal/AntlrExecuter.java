@@ -100,7 +100,7 @@ public class AntlrExecuter implements Serializable {
      */
     AntlrResult process(antlr.Tool tool, String[] args) {
         tool.doEverything(args);
-        return new AntlrResult(1); // Failsafe - ANTLR 2 calls System.exit() on error
+        return new AntlrResult(0);  // ANTLR 2 calls System.exit() on error
     }
 
     /**
