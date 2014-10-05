@@ -87,14 +87,6 @@ In this story, the Gradle distribution download is stopped when operation is can
     - Some time after requesting, the client receives a 'build cancelled' exception and download is terminated and partial downloads are removed
     - Verify this behavior for regularly processed downloads and for stalled downloads waiting on blocking I/O.
 
-### Story: Project configuration is aborted when operation is cancelled
-
-In this story, no further projects should be configured after the operation is cancelled. Any project configuration
-action that is currently executing should continue, similar to the task graph exececution.
-
-Implementation-wise, change `DefaultBuildConfigurer` to stop configuring projects once the cancellation
-token has been activated.
-
 ### Story: Tooling API client receives BuildCancelledException as the result of a cancelled operation
 
 This story ensures that consistent behaviour is seen by the client as the result of a cancelled operation.
