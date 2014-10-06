@@ -230,8 +230,7 @@ public interface ResolutionStrategy {
     ComponentSelectionRules getComponentSelection();
 
     /**
-     * The componentSelection block provides rules for how versions should be selected.  This is useful for defining
-     * your own version scheme.
+     * The componentSelection block provides rules to filter or blacklist certain components from appearing in the resolution result.
      *
      * @param action Action to be applied to the {@link ComponentSelectionRules}
      * @return this ResolutionStrategy instance
