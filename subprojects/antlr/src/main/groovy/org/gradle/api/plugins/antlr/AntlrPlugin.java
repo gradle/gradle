@@ -68,7 +68,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
 
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
 
-        // Wire the antrl configuration into all antlr tasks
+        // Wire the antlr configuration into all antlr tasks
         project.getTasks().withType(AntlrTask.class, new Action<AntlrTask>() {
             public void execute(AntlrTask antlrTask) {
                 antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {

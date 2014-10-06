@@ -18,6 +18,11 @@ package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.file.FileCollection;
 
+import org.gradle.api.Action;
+
+import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
@@ -25,12 +30,11 @@ import org.gradle.api.tasks.TaskAction;
 
 import org.gradle.api.GradleException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
+
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
@@ -172,9 +176,25 @@ public class AntlrTask extends SourceTask {
     }
 
     @TaskAction
-    public void generate() {
+    public void execute(IncrementalTaskInputs inputs) {
+        final List<File> grammarFiles = new ArrayList<File>();
+        final List<File> sourceFiles = Arrays.asList(getSourceDirectory().listFiles());
+        inputs.outOfDate(
+                new Action<InputFileDetails>() {
+                    public void execute(InputFileDetails details) {
+                        File input = details.getFile();
+                        for (File file : sourceFiles) {
+                            if (file.getAbsolutePath().equals(input.getAbsolutePath())) {
+                                grammarFiles.add(input);
+                                break;
+                            }
+                        }
+                    }
+                }
+        );
+
+        List<String> args = buildArguments(grammarFiles);
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        List<String> args = buildArguments();
         AntlrSpec spec = new AntlrSpec(args, maxHeapSize);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluateAntlrResult(result);
@@ -194,7 +214,7 @@ public class AntlrTask extends SourceTask {
     /**
      * Finalizes the list of arguments that will be sent to the ANTLR tool.
      */
-    List<String> buildArguments() {
+    List<String> buildArguments(List<File> grammarFiles) {
         List<String> args = new ArrayList<String>();    // List for finalized arguments
         
         // Output file
@@ -221,7 +241,7 @@ public class AntlrTask extends SourceTask {
         }
 
         // Files in source directory
-        for (File file : sourceDirectory.listFiles()) {
+        for (File file : grammarFiles) {
             args.add(file.getAbsolutePath());
         }
 
