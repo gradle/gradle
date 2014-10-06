@@ -139,8 +139,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 }
             };
 
-            //TODO freekh: remove cast/this comment when registerDefault exists on interface
-            ((DefaultPlatformContainer) platforms).registerDefaultFactory(nativePlatformFactory);
+            platforms.registerDefaultFactory(nativePlatformFactory);
             platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
         }
 
