@@ -37,6 +37,13 @@ class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
     SonarTestServer sonarServer = new SonarTestServer(tempDir, executer)
 
+    List<String> getWarningLogMessages() {
+        def warningLogMessages = output.readLines().findAll { it.contains("WARN") }
+        warningLogMessages.removeAll { it.contains("'sonar.dynamicAnalysis' is deprecated") }
+        warningLogMessages.removeAll { it.contains("H2 database should be used for evaluation purpose only") }
+        warningLogMessages
+    }
+
     def "execute 'sonarRunner' task"() {
         given:
         executer.withDeprecationChecksDisabled() // sonar.dynamicAnalysis is deprecated since SonarQube 4.3
@@ -65,8 +72,8 @@ class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         sonarServer.assertProjectPresent('org.gradle.test.sonar:SonarTestBuild')
 
-        and: "no warnings are emitted for missing test report directories"
-        !output.contains("WARN  - Reports path not found")
+        and: "no unexpected warnings are emitted"
+        !warningLogMessages
 
         and: "no reports directory is created for projects with no production and no test sources"
         !temporaryFolder.file("emptyJavaProject", "build", "test-results").exists()
