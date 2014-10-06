@@ -21,7 +21,6 @@ import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +41,7 @@ public class AntlrWorkerManager {
 
         process.waitForStop();
 
-        AntlrResult result = clientCallBack.getResult();
-
-        return result;
+        return clientCallBack.getResult();
     }
 
     private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
@@ -55,12 +52,11 @@ public class AntlrWorkerManager {
         if (antlrClasspath != null) {
             builder.applicationClasspath(antlrClasspath);
         }
-        builder.sharedPackages(new String[] {"antlr", "org.antlr", "org.antlr.v4"});
+        builder.sharedPackages(new String[] {"antlr", "org.antlr"});
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
 
-        WorkerProcess process = builder.worker(new AntlrWorkerServer(spec)).build();
-        return process;
+        return builder.worker(new AntlrWorkerServer(spec)).build();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':plugins')
+package org.gradle.api.plugins.antlr
 
-    compile libraries.slf4j_api
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        executer.withArgument("-i")
+    }
+
+    void assertAntlrVersion(int version) {
+        assert output.contains("Processing with ANTLR $version")
+    }
+
 }
-
-useTestFixtures()

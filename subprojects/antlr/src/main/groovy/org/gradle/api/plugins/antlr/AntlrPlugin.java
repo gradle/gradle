@@ -19,6 +19,8 @@ package org.gradle.api.plugins.antlr;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -51,8 +53,19 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        Configuration antlrConfiguration = project.getConfigurations().create(ANTLR_CONFIGURATION_NAME).setVisible(false)
-                .setTransitive(false).setDescription("The Antlr libraries to be used for this project.");
+        final Configuration antlrConfiguration = project.getConfigurations().create(ANTLR_CONFIGURATION_NAME)
+                .setVisible(false)
+                .setDescription("The Antlr libraries to be used for this project.");
+
+        antlrConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
+            public void execute(ResolvableDependencies resolvableDependencies) {
+                DependencySet dependencies = antlrConfiguration.getDependencies();
+                if (dependencies.isEmpty()) {
+                    dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar"));
+                }
+            }
+        });
+
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
 
         // Wire the antrl configuration into all antlr tasks
@@ -60,8 +73,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
             public void execute(AntlrTask antlrTask) {
                 antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME).copy()
-                                .setTransitive(true);
+                        return project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME);
                     }
                 });
             }

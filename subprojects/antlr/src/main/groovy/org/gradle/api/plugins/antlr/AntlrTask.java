@@ -42,16 +42,9 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import javax.inject.Inject;
 
 /**
- * <p>Generates parsers from Antlr grammars.</p>
- *
- * <p>Most properties here are self-evident, but I wanted to highlight one in particular: {@link #setAntlrClasspath} is
- * used to define the classpath that should be passed along to the Ant {@link ANTLR} task as its classpath.  That is the
- * classpath it uses to perform generation execution.  This <b>should</b> really only require the antlr jar.  In {@link
- * AntlrPlugin} usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
- * created and exposed by the {@link AntlrPlugin} itself.</p>
+ * Generates parsers from Antlr grammars.
  */
 public class AntlrTask extends SourceTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntlrTask.class);
 
     private boolean trace;
     private boolean traceLexer;
@@ -183,7 +176,7 @@ public class AntlrTask extends SourceTask {
         AntlrWorkerManager manager = new AntlrWorkerManager();
         List<String> args = buildArguments();
         AntlrSpec spec = new AntlrSpec(args, maxHeapSize);
-        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), antlrClasspath, spec);
+        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluateAntlrResult(result);
     }
 

@@ -16,17 +16,16 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import org.gradle.api.GradleException;
-
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 public class AntlrExecuter implements Serializable {
 
@@ -36,41 +35,38 @@ public class AntlrExecuter implements Serializable {
     }
 
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
-        final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         List<String> arguments = spec.getArguments();
         String[] argArr = new String[arguments.size()];
         arguments.toArray(argArr);
 
+        // Try ANTLR 4
         try {
-            Thread.currentThread().setContextClassLoader(antlr.Tool.class.getClassLoader());
-
-            // Try ANTLR 4
-            try {
-                Object toolObj = loadTool("org.antlr.v4.Tool", argArr);
-                org.antlr.v4.Tool tool = (org.antlr.v4.Tool) toolObj;
-                LOGGER.info("Processing with ANTLR 4");
-                return process(tool);
-            } catch (ClassNotFoundException e) {
-                LOGGER.debug("ANTLR 4 not found on classpath");
-            }
-
-            // Try ANTLR 3
-            try {
-                Object toolObj = loadTool("org.antlr.Tool", argArr);
-                org.antlr.Tool tool = (org.antlr.Tool) toolObj;
-                LOGGER.info("Processing with ANTLR 3");
-                return process(tool);
-            } catch (ClassNotFoundException e) {
-                LOGGER.debug("ANTLR 3 not found on classpath");
-            }
-
-            // Use ANTLR 2 - compile time version
-            antlr.Tool tool = new antlr.Tool();
-            LOGGER.info("Processing with ANTLR 2");
-            return process(tool, argArr);
-        } finally {
-            Thread.currentThread().setContextClassLoader(contextClassLoader);
+            Object toolObj = loadTool("org.antlr.v4.Tool", argArr);
+            LOGGER.info("Processing with ANTLR 4");
+            return processV4(toolObj);
+        } catch (ClassNotFoundException e) {
+            LOGGER.debug("ANTLR 4 not found on classpath");
         }
+
+        // Try ANTLR 3
+        try {
+            Object toolObj = loadTool("org.antlr.Tool", argArr);
+            LOGGER.info("Processing with ANTLR 3");
+            return processV3(toolObj);
+        } catch (ClassNotFoundException e) {
+            LOGGER.debug("ANTLR 3 not found on classpath");
+        }
+
+        // Try ANTLR 2
+        try {
+            Object toolObj = loadTool("antlr.Tool", null);
+            LOGGER.info("Processing with ANTLR 2");
+            return processV2(toolObj, argArr);
+        } catch (ClassNotFoundException e) {
+            LOGGER.debug("ANTLR 2 not found on classpath");
+        }
+
+        throw new IllegalStateException("No Antlr implementation available");
     }
 
     /**
@@ -79,11 +75,13 @@ public class AntlrExecuter implements Serializable {
      */
     Object loadTool(String className, String[] args) throws ClassNotFoundException {
         try {
-            ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            Class<?> toolClass = Class.forName(className, true, cl);
-            Constructor<?> constructor = toolClass.getConstructor(String[].class);
-            Object tool = constructor.newInstance(new Object[] {args});
-            return tool;
+            Class<?> toolClass = Class.forName(className); // ok to use caller classloader
+            if (args == null) {
+                return toolClass.newInstance();
+            } else {
+                Constructor<?> constructor = toolClass.getConstructor(String[].class);
+                return constructor.newInstance(new Object[]{args});
+            }
         } catch (NoSuchMethodException e) {
             throw new GradleException("Failed to load ANTLR", e);
         } catch (InstantiationException e) {
@@ -95,41 +93,18 @@ public class AntlrExecuter implements Serializable {
         }
     }
 
-    /**
-     * Process with ANTLR 2.
-     */
-    AntlrResult process(antlr.Tool tool, String[] args) {
-        tool.doEverything(args);
+    AntlrResult processV2(Object tool, String[] args) {
+        JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{args});
         return new AntlrResult(0);  // ANTLR 2 calls System.exit() on error
     }
 
-    /**
-     * Process with ANTLR 3.
-     */
-    AntlrResult process(org.antlr.Tool tool) {
-        tool.process();
-        return new AntlrResult(tool.getNumErrors());
+    AntlrResult processV3(Object tool) {
+        JavaReflectionUtil.method(tool, Void.class, "process").invoke(tool);
+        return new AntlrResult(JavaReflectionUtil.method(tool, Integer.class, "getNumErrors").invoke(tool));
     }
 
-    /**
-     * Process with ANTLR 4.
-     */
-    AntlrResult process(org.antlr.v4.Tool tool) {
-        tool.processGrammarsOnCommandLine();
-        return new AntlrResult(tool.getNumErrors());
-    }
-
-    /**
-     * Create ANTLR 3 result.
-     */
-    AntlrResult createAntlrResult(org.antlr.Tool tool) {
-        return new AntlrResult(tool.getNumErrors());
-    }
-
-    /**
-     * Create ANTLR 4 result.
-     */
-    AntlrResult createAntlrResult(org.antlr.v4.Tool tool) {
-        return new AntlrResult(tool.getNumErrors());
+    AntlrResult processV4(Object tool) {
+        JavaReflectionUtil.method(tool, Void.class, "processGrammarsOnCommandLine").invoke(tool);
+        return new AntlrResult(JavaReflectionUtil.method(tool, Integer.class, "getNumErrors").invoke(tool));
     }
 }
