@@ -15,9 +15,7 @@
  */
 package org.gradle.api.plugins.antlr
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class Antlr3PluginIntegrationTest extends AbstractIntegrationSpec {
+class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     def setup() {
         writeBuildFile()
@@ -31,6 +29,7 @@ class Antlr3PluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated-src/antlr/main/Test.tokens").exists()
         file("build/generated-src/antlr/main/TestLexer.java").exists()
         file("build/generated-src/antlr/main/TestParser.java").exists()
+        assertAntlrVersion(3)
     }
 
     def "analyze bad grammar"() {
@@ -38,6 +37,7 @@ class Antlr3PluginIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("generateGrammarSource")
+        assertAntlrVersion(3)
     }
 
     private goodGrammar() {
@@ -87,10 +87,6 @@ class Antlr3PluginIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 antlr 'org.antlr:antlr:3.5.2'
-            }
-
-            generateGrammarSource {
-                antlrClasspath = files(antlrClasspath)
             }
         """
     }
