@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugins.ide.idea.IdeaModuleFixture
 
 abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -29,5 +30,9 @@ abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
     protected parseFile(Map options = [:], String filename) {
         def file = getFile(options, filename)
         new XmlSlurper().parse(file)
+    }
+
+    protected IdeaModuleFixture parseIml(Map options = [:], String moduleFile) {
+        return new IdeaModuleFixture(parseFile(options, moduleFile))
     }
 }
