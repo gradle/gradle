@@ -49,7 +49,6 @@ import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
 import java.io.File;
