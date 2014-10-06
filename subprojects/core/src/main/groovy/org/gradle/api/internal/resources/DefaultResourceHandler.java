@@ -16,26 +16,34 @@
 
 package org.gradle.api.internal.resources;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.resources.TextResource;
+
+import java.io.File;
+import java.nio.charset.Charset;
 
 public class DefaultResourceHandler implements ResourceHandler {
-    private final FileResolver resolver;
+    private final FileOperations fileOperations;
+    private final TemporaryFileProvider tempFileProvider;
 
-    public DefaultResourceHandler(FileResolver resolver) {
-        this.resolver = resolver;
+    public DefaultResourceHandler(FileOperations fileOperations, TemporaryFileProvider tempFileProvider) {
+        this.fileOperations = fileOperations;
+        this.tempFileProvider = tempFileProvider;
     }
 
     public ReadableResource gzip(Object path) {
-        return new GzipArchiver(resolver.resolveResource(path));
+        return new GzipArchiver(fileOperations.getFileResolver().resolveResource(path));
     }
 
     public ReadableResource bzip2(Object path) {
-        return new Bzip2Archiver(resolver.resolveResource(path));
+        return new Bzip2Archiver(fileOperations.getFileResolver().resolveResource(path));
     }
 
     //this method is not on the interface, at least for now
@@ -43,7 +51,43 @@ public class DefaultResourceHandler implements ResourceHandler {
         if (tarPath instanceof ReadableResource) {
             return (ReadableResource) tarPath;
         } else {
-            return new MaybeCompressedFileResource(resolver.resolveResource(tarPath));
+            return new MaybeCompressedFileResource(fileOperations.getFileResolver().resolveResource(tarPath));
         }
+    }
+
+    public TextResource text(String string) {
+        return new StringBackedTextResource(tempFileProvider, string);
+    }
+
+    public TextResource text(File file) {
+        return text(file, Charset.defaultCharset().name());
+    }
+
+    public TextResource text(File file, String charset) {
+        return text(fileOperations.files(file), charset);
+    }
+
+    public TextResource text(FileCollection file) {
+        return text(file, Charset.defaultCharset().name());
+    }
+
+    public TextResource text(FileCollection file, String charset) {
+        return new FileCollectionBackedTextResource(file, Charset.forName(charset));
+    }
+
+    public TextResource archiveText(File archive, String entryPath) {
+        return archiveText(archive, entryPath, Charset.defaultCharset().name());
+    }
+
+    public TextResource archiveText(File archive, String entryPath, String charset) {
+        return archiveText(fileOperations.files(archive), entryPath, charset);
+    }
+
+    public TextResource archiveText(FileCollection archive, String entryPath) {
+        return archiveText(archive, entryPath, Charset.defaultCharset().name());
+    }
+
+    public TextResource archiveText(FileCollection archive, String entryPath, String charset) {
+        return new FileCollectionBackedArchiveTextResource(fileOperations, archive, entryPath, Charset.forName(charset));
     }
 }

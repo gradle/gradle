@@ -1,0 +1,53 @@
+class MyTask extends DefaultTask {
+    @Nested
+    TextResource config
+
+    @OutputFile
+    File output
+
+    @TaskAction
+    void generate() {
+        getOutput().text = getConfig().asString()
+    }
+}
+
+task generateConfigFile {
+    outputs.file "config.txt"
+    doLast {
+        file("config.txt").text = "my config"
+    }
+}
+
+task generateConfigZip(type: Zip) {
+    destinationDir = projectDir
+    archiveName = "config.zip"
+    from generateConfigFile
+}
+
+configurations {
+    sharedConfig
+}
+
+dependencies {
+    sharedConfig generateConfigZip.outputs.files
+}
+
+task stringText(type: MyTask) {
+    config = resources.text("my config")
+    output = project.file("output.txt")
+}
+
+task fileText(type: MyTask) {
+    config = resources.text(file("config.txt"))
+    output = project.file("output.txt")
+}
+
+task fileCollectionText(type: MyTask) {
+    config = resources.text(generateConfigFile.outputs.files)
+    output = project.file("output.txt")
+}
+
+task archiveEntryText(type: MyTask) {
+    config = resources.archiveText(configurations.sharedConfig, "config.txt")
+    output = project.file("output.txt")
+}

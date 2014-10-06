@@ -16,6 +16,11 @@
 
 package org.gradle.api.resources;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
+
+import java.io.File;
+
 /**
  * Provides access to resource-specific utility methods, for example factory methods that create various resources.
  */
@@ -36,4 +41,93 @@ public interface ResourceHandler {
      * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
      */
     ReadableResource bzip2(Object path);
+
+    /**
+     * Creates a text resource backed by the given string.
+     *
+     * @param string a string
+     * @return a text resource backed by the given string
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource text(String string);
+
+    /**
+     * Creates a text resource backed by the given file.
+     *
+     * @param file a text file
+     * @param charset the file's character encoding (e.g. {@code "utf-8"})
+     * @return a text resource backed by the given file
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource text(File file, String charset);
+
+    /**
+     * Same as {@code text(file, Charset.defaultCharset())}.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource text(File file);
+
+    /**
+     * Same as {@code text(fileCollection.singleFile, charset)}, except that the file collection
+     * will be evaluated lazily and its {@link org.gradle.api.Buildable} information preserved.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource text(FileCollection file, String charset);
+
+    /**
+     * Same as {@code text(fileCollection, Charset.defaultCharset().name())}.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource text(FileCollection file);
+
+    /**
+     * Creates a text resource backed by the archive entry at the given path within the given archive.
+     * The archive format is determined based on the archive's file extension. If the archive format
+     * is not supported or cannot be determined, any attempt to access the resource will fail with an exception.
+     *
+     * @param archive an archive file
+     * @param entryPath the path to an archive entry
+     * @param charset the archive entry's character encoding (e.g. {@code "utf-8"})
+     *
+     * @return a text resource backed by the archive entry at the given path within the given archive
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource archiveText(File archive, String entryPath, String charset);
+
+    /**
+     * Same as {@code archiveText(archive, path, Charset.defaultCharset().name())}.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource archiveText(File archive, String path);
+
+    /**
+     * Same as {@code archiveText(fileCollection.singleFile, path, charset)}, except that the file
+     * collection will be evaluated lazily and its {@link org.gradle.api.Buildable} information preserved.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource archiveText(FileCollection archive, String entryPath, String charset);
+
+    /**
+     * Same as {@code archiveText(fileCollection, path, Charset.defaultCharset().name())}.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource archiveText(FileCollection archive, String entryPath);
 }

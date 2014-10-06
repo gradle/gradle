@@ -60,7 +60,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.deleteAction = new DeleteActionImpl(fileResolver);
-        this.resourceHandler = new DefaultResourceHandler(fileResolver);
+        this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
         fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
         fileSystem = fileLookup.getFileSystem();
     }
