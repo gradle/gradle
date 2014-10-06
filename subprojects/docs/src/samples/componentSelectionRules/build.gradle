@@ -45,18 +45,14 @@ configurations {
             componentSelection {
                 // Reject any versions with a status of 'experimental'
                 all { ComponentSelection selection, ComponentMetadata metadata ->
-                    if (selection.candidate.group == 'org.sample' && selection.candidate.module == 'api') {
-                        if (metadata.status == 'experimental') {
-                            selection.reject("don't use experimental candidates of 'org.sample:api'")
-                        }
+                    if (selection.candidate.group == 'org.sample' && metadata.status == 'experimental') {
+                        selection.reject("don't use experimental candidates from 'org.sample'")
                     }
                 }
                 // Accept the highest version with a branch of 'testing' or a status of 'milestone'
-                all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                    if (selection.candidate.group == 'org.sample' && selection.candidate.module == 'api') {
-                        if (descriptor.branch != 'testing' && metadata.status != 'milestone') {
-                            selection.reject("'org.sample:api' must have testing branch or milestone status")
-                        }
+                withModule('org.sample:api') { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                    if (descriptor.branch != 'testing' && metadata.status != 'milestone') {
+                        selection.reject("'org.sample:api' must have testing branch or milestone status")
                     }
                 }
             }
@@ -72,7 +68,7 @@ configurations {
             componentSelection {
                 withModule("org.sample:api") { ComponentSelection selection ->
                     if (selection.candidate.version == "1.1") {
-                        selection.reject("known bad version")
+                        selection.reject("version 1.1 is broken for 'org.sample:api'")
                     }
                 }
             }
@@ -86,7 +82,7 @@ class RejectTestBranch {
     @Mutate
     void evaluateRule(ComponentSelection selection, IvyModuleDescriptor ivy) {
         if (ivy.branch == "test") {
-            selection.reject("Rejecting test branch")
+            selection.reject("reject test branch")
         }
     }
 }

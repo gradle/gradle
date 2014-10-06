@@ -1174,12 +1174,12 @@ someroot/[artifact]-[revision].[ext]
             <para>
                 Component selection rules define how versions should be selected when multiple versions are available that match a given set of
                 coordinates.  Rules are applied against every available version and allow the version to be explicitly rejected by rule.  This
-                allows Gradle to select alternate versions when the alternate version is not known in advance.
+                allows Gradle to ignore versions that do not satisfy conditions set by the rule.
             </para>
             <para>
                 Rules are configured via the <apilink class="org.gradle.api.artifacts.ComponentSelectionRules"/> object.  Each rule configured
                 will be called with a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> object as an argument which contains information
-                about the version being requested and the candidate version being considered.
+                about the candidate version being considered.
                 Calling <apilink class="org.gradle.api.artifacts.ComponentSelection" method="reject"/> causes the given candidate version to be explicitly rejected,
                 in which case the candidate will not be considered for the selector.
             </para>
@@ -1224,7 +1224,7 @@ someroot/[artifact]-[revision].[ext]
                 <listitem>must have <apilink class="org.gradle.api.artifacts.ComponentSelection" /> as the first argument.</listitem>
                 <listitem>may have additional parameters of type <apilink class="org.gradle.api.artifacts.ComponentMetadata" /> and/or <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.</listitem>
             </itemizedlist>
-            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule using API">
+            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule using a rule source object">
                 <sourcefile file="build.gradle" snippet="api-component-selection" />
             </sample>
         </section>

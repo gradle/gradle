@@ -5,7 +5,7 @@ Here are the new features introduced in this Gradle release.
 ### Component Selection Rules (i)
 Fine tuning the dependency resolution process is even more powerful now with the use of component selection rules.  These allow custom rules to be applied whenever
 multiple versions of a component are being evaluated.  Using such rules, one can explicitly reject a version that might otherwise be accepted by the default version matching
-strategy.  This allows Gradle to customize component selection without knowing what versions might be available at build time.
+strategy.
 
     configurations {
         conf {
@@ -24,9 +24,7 @@ strategy.  This allows Gradle to customize component selection without knowing w
                     // Rules can consider component metadata as well
                     // Accept the highest version with a branch of 'testing' or a status of 'milestone'
                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                        if (selection.candidate.group == 'org.sample'
-                                && selection.candidate.name == 'api'
-                                && (descriptor.branch != 'testing' && metadata.status != 'milestone')) {
+                        if (descriptor.branch != 'testing' && metadata.status != 'milestone') {
                             selection.reject("does not match branch or status")
                         }
                     }
@@ -38,12 +36,27 @@ strategy.  This allows Gradle to customize component selection without knowing w
                             selection.reject("known bad version")
                         }
                     }
+
+                    // Rules can be specified as "rule source" objects
+                    // Reject any version without a branch of "master" (see class definition below)
+                    withModule("org.sample:api", new RejectNotMasterRule())
                 }
             }
         }
     }
+
     dependencies {
         conf "org.sample:api:1.+"
+    }
+
+    class RejectNotMasterRule {
+        // Rule source objects must have exactly one method annotated with @Mutate
+        @org.gradle.module.Mutate
+        void rejectNotMaster(ComponentSelection selection, IvyModuleDescriptor descriptor) {
+            if (descriptor.branch != "master") {
+                selection.reject("branch is not master")
+            }
+        }
     }
 
 See the [userguide section](userguide/dependency_management.html#component_selection_rules) on component selection rules for further information.
