@@ -21,16 +21,18 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         writeBuildFile()
     }
 
-    def "analyze good grammar"() {
+    def "analyze and build good grammar"() {
         goodGrammar()
+        goodProgram()
 
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        file("build/generated-src/antlr/main/Test.java").exists()
-        file("build/generated-src/antlr/main/Test.smap").exists()
-        file("build/generated-src/antlr/main/TestTokenTypes.java").exists()
-        file("build/generated-src/antlr/main/TestTokenTypes.txt").exists()
+        file("build/generated-src/antlr/main/TestGrammar.java").exists()
+        file("build/generated-src/antlr/main/TestGrammar.smap").exists()
+        file("build/generated-src/antlr/main/TestGrammarTokenTypes.java").exists()
+        file("build/generated-src/antlr/main/TestGrammarTokenTypes.txt").exists()
+        succeeds("build")
     }
 
     def "analyze bad grammar"() {
@@ -43,7 +45,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private goodGrammar() {
-        file("src/main/antlr/Test.g") << """class Test extends Parser;
+        file("src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
             options {
                 buildAST = true; 
             }
@@ -59,8 +61,28 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
                 ;"""
     }
 
+    private goodProgram() {
+        file("src/main/java/com/example/test/Test.java") << """
+            import antlr.Token;
+            import antlr.TokenStream;
+            import antlr.TokenStreamException;
+
+            public class Test {
+                public static void main(String[] args) {
+                    TestGrammar parser = new TestGrammar(new DummyTokenStream());
+                }
+
+                private static class DummyTokenStream implements TokenStream {
+                    public Token nextToken() throws TokenStreamException {
+                        return null;
+                    }
+                }
+            }
+        """
+    }
+
     private badGrammar() {
-        file("src/main/antlr/Test.g") << """class Test extends Parser;
+        file("src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
             options {
                 buildAST = true;
             }
