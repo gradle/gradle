@@ -17,6 +17,10 @@
                 <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/codenarc</literal></td>
             </tr>
             <tr>
+                <td>config</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/config/codenarc/codenarc.xml</literal></td>
+            </tr>
+            <tr>
                 <td>configFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/config/codenarc/codenarc.xml</literal></td>
             </tr>
