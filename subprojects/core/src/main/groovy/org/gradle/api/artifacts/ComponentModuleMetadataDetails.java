@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * Contains and allows configuring component module metadata information.
- * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}
+ * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler}
  *
  * @since 2.2
  */

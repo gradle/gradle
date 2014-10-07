@@ -20,11 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ComponentModuleMetadata;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
@@ -37,12 +35,10 @@ import org.gradle.listener.ActionBroadcast;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor, ModuleMetadataProcessor {
+public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor {
     private final Instantiator instantiator;
     private final ActionBroadcast<ComponentMetadataDetails> ruleActions = new ActionBroadcast<ComponentMetadataDetails>();
     private final List<Closure<?>> ruleClosures = Lists.newArrayList();
-
-    private final ComponentModuleMetadataContainer moduleMetadataContainer = new ComponentModuleMetadataContainer();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -99,13 +95,5 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             }
         }
         closure.call(args.toArray());
-    }
-
-    public void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule) {
-        rule.execute(moduleMetadataContainer.module(moduleNotation));
-    }
-
-    public ModuleReplacementsData getModuleReplacements() {
-        return moduleMetadataContainer;
     }
 }

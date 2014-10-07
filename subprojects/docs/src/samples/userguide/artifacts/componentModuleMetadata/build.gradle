@@ -2,7 +2,7 @@ apply plugin: 'java'
 
 // START SNIPPET module_replacement_declaration
 dependencies {
-    components {
+    modules {
         module("com.google.collections:google-collections") {
             replacedBy("com.google.guava:guava")
         }

@@ -17,5 +17,5 @@ package org.gradle.api.internal.artifacts;
 
 public interface GlobalDependencyResolutionRules {
     ComponentMetadataProcessor getComponentMetadataProcessor();
-    ModuleMetadataProcessor getModuleMetadataProcessor();
+    ComponentModuleMetadataProcessor getModuleMetadataProcessor();
 }

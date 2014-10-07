@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts;
 
 public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyResolutionRules {
     private final ComponentMetadataProcessor componentMetadataProcessor;
-    private final ModuleMetadataProcessor moduleMetadataProcessor;
+    private final ComponentModuleMetadataProcessor moduleMetadataProcessor;
 
-    public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessor componentMetadataProcessor, ModuleMetadataProcessor moduleMetadataProcessor) {
+    public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessor componentMetadataProcessor, ComponentModuleMetadataProcessor moduleMetadataProcessor) {
         this.componentMetadataProcessor = componentMetadataProcessor;
         this.moduleMetadataProcessor = moduleMetadataProcessor;
     }
@@ -29,7 +29,7 @@ public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyR
         return componentMetadataProcessor;
     }
 
-    public ModuleMetadataProcessor getModuleMetadataProcessor() {
+    public ComponentModuleMetadataProcessor getModuleMetadataProcessor() {
         return moduleMetadataProcessor;
     }
 }

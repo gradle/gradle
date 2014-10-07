@@ -18,6 +18,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 
-public interface ModuleMetadataProcessor {
+public interface ComponentModuleMetadataProcessor {
     ModuleReplacementsData getModuleReplacements();
 }

@@ -70,7 +70,7 @@ org.jboss.netty->io.netty, spring->spring-core, etc. Module replacement declarat
 dependency resolution in all Gradle-powered projects in the enterprise. This new incubating feature is described in detail in the [User Guide](userguide/dependency_management.html#sec:module_replacement).
 
     dependencies {
-        components {
+        modules {
             module("com.google.collections:google-collections") {
                 replacedBy("com.google.guava:guava")
             }
