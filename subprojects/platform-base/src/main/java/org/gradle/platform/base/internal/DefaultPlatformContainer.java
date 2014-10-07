@@ -45,8 +45,11 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
 
     public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
         T defaultElement = null;
-        if (searchOrder.size() > 1) {
-            defaultElement = searchOrder.get(0);
+        for (Platform platform : searchOrder) {
+            if (type.isInstance(platform)) {
+                defaultElement = type.cast(platform);
+                break;
+            }
         }
         return new NamedElementSelector<T>(type, targets, defaultElement).transform(this);
     }

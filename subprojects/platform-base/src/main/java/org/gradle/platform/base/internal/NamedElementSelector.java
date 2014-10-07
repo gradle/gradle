@@ -31,10 +31,12 @@ import java.util.List;
 class NamedElementSelector<T extends Named> implements Transformer<List<T>, NamedDomainObjectContainer<? super T>> {
     private final Class<T> type;
     private final List<String> names;
+    private final T defaultElement;
 
-    NamedElementSelector(Class<T> type, List<String> names) {
+    NamedElementSelector(Class<T> type, List<String> names, T defaultElement) {
         this.type = type;
         this.names = names;
+        this.defaultElement = defaultElement;
     }
 
     /**
@@ -46,10 +48,8 @@ class NamedElementSelector<T extends Named> implements Transformer<List<T>, Name
         if (names.isEmpty()) {
             if (allWithType.size() == 1) {
                 return Lists.newArrayList(allWithType);
-            } else if (allWithType.size() > 1) {
-                //TODO freekh: for now, we pick the first one defined, but we could pick the best based on the toolchains we have?
-                // TODO:DAZ This actually selects the first alphabetically
-                return Collections.singletonList(allWithType.iterator().next());
+            } else if (allWithType.size() > 1 && defaultElement != null) {
+                return Collections.singletonList(defaultElement);
             }
 
             throw new GradleException(String.format("No element is registered for type: '%s'", type));
