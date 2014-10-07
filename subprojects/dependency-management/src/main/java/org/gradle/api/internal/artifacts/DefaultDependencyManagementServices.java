@@ -122,12 +122,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
-        ModuleMetadataHandler createModuleMetadataHandler(ComponentMetadataProcessor componentMetadataProcessor, ModuleMetadataProcessor moduleMetadataProcessor) {
-            return new DefaultModuleMetadataHandler(componentMetadataProcessor, moduleMetadataProcessor);
+        GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessor componentMetadataProcessor, ModuleMetadataProcessor moduleMetadataProcessor) {
+            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor);
         }
 
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
-                                                       ModuleMetadataHandler metadataHandler) {
+                                                       GlobalDependencyResolutionRules metadataHandler) {
             return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler);
         }
 
@@ -140,7 +140,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                                                            ResolveIvyFactory ivyFactory, ModuleMetadataHandler metadataHandler,
+                                                                            ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
                                                                             CacheLockingManager cacheLockingManager, ComponentTypeRegistry componentTypeRegistry) {
             return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, cacheLockingManager, componentTypeRegistry);
 

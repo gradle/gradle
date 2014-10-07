@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -32,9 +32,9 @@ import java.util.List;
 public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ArtifactDependencyResolver resolver;
     private final RepositoryHandler repositories;
-    private final ModuleMetadataHandler metadataHandler;
+    private final GlobalDependencyResolutionRules metadataHandler;
 
-    public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories, ModuleMetadataHandler metadataHandler) {
+    public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories, GlobalDependencyResolutionRules metadataHandler) {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;

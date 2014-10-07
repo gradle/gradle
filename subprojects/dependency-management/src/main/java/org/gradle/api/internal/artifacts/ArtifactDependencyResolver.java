@@ -24,6 +24,6 @@ import java.util.List;
 public interface ArtifactDependencyResolver {
     void resolve(ConfigurationInternal configuration,
                  List<? extends ResolutionAwareRepository> repositories,
-                 ModuleMetadataHandler metadataHandler,
+                 GlobalDependencyResolutionRules metadataHandler,
                  ResolverResults results) throws ResolveException;
 }

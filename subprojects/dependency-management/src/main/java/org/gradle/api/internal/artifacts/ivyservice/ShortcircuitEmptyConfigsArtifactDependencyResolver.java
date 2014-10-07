@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -44,7 +44,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
 
     public void resolve(ConfigurationInternal configuration,
                         List<? extends ResolutionAwareRepository> repositories,
-                        ModuleMetadataHandler metadataHandler,
+                        GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());

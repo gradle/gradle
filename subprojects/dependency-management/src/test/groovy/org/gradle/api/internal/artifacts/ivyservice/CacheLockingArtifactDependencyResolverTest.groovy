@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -25,7 +25,7 @@ import spock.lang.Specification
 class CacheLockingArtifactDependencyResolverTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
     final ArtifactDependencyResolver target = Mock()
-    final ModuleMetadataHandler metadataHandler = Stub()
+    final GlobalDependencyResolutionRules metadataHandler = Stub()
     final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
 

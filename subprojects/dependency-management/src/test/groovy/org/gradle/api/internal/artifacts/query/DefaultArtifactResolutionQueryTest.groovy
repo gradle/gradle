@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.query
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.component.Artifact
 import org.gradle.api.component.Component
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
@@ -26,7 +26,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry
 import spock.lang.Specification
 
 class DefaultArtifactResolutionQueryTest extends Specification {
-    def query = new DefaultArtifactResolutionQuery(Mock(ConfigurationContainerInternal), Mock(RepositoryHandler), Mock(ResolveIvyFactory), Mock(ModuleMetadataHandler), Mock(CacheLockingManager), Mock(ComponentTypeRegistry))
+    def query = new DefaultArtifactResolutionQuery(Mock(ConfigurationContainerInternal), Mock(RepositoryHandler), Mock(ResolveIvyFactory), Mock(GlobalDependencyResolutionRules), Mock(CacheLockingManager), Mock(ComponentTypeRegistry))
 
     def "cannot call withArtifacts multiple times"() {
         given:
