@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -27,11 +27,11 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
 
 public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
-    private final ModuleMetadataProcessor metadataProcessor;
+    private final ComponentMetadataProcessor metadataProcessor;
     private final LocalAccess localAccess = new LocalAccess();
     private final RemoteAccess remoteAccess = new RemoteAccess();
 
-    public LocalModuleComponentRepository(ModuleComponentRepository delegate, ModuleMetadataProcessor metadataProcessor) {
+    public LocalModuleComponentRepository(ModuleComponentRepository delegate, ComponentMetadataProcessor metadataProcessor) {
         super(delegate);
         this.metadataProcessor = metadataProcessor;
     }

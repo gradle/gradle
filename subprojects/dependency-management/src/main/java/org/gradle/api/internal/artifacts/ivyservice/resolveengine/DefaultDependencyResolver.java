@@ -87,7 +87,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", configuration);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
+                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler.getComponentMetadataProcessor());
 
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentMetaDataResolver(), dependencyDescriptorFactory);
 
@@ -104,7 +104,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     conflictResolver = new LatestModuleConflictResolver(latestStrategy);
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
-                ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleReplacements());
+                ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, metaDataResolver, projectDependencyResolver, artifactResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
 

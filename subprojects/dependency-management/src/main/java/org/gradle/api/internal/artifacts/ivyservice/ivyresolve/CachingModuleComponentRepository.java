@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
@@ -61,14 +61,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private final ModuleComponentRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
-    private final ModuleMetadataProcessor metadataProcessor;
+    private final ComponentMetadataProcessor metadataProcessor;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ModuleMetadataProcessor metadataProcessor) {
+                                            ComponentMetadataProcessor metadataProcessor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;

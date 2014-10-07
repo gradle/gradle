@@ -98,7 +98,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ConfigurationInternal configuration = configurationContainer.detachedConfiguration();
-        final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
+        final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler.getComponentMetadataProcessor());
         final ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
 
         return lockingManager.useCache("resolve artifacts", new Factory<ArtifactResolutionResult>() {

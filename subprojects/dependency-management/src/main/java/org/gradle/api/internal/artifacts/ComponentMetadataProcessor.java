@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 
-public interface ModuleMetadataProcessor {
-    ModuleReplacementsData getModuleReplacements();
+public interface ComponentMetadataProcessor {
+    void processMetadata(MutableModuleComponentResolveMetaData metadata);
 }

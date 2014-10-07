@@ -122,6 +122,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
+        ModuleMetadataHandler createModuleMetadataHandler(ComponentMetadataProcessor componentMetadataProcessor, ModuleMetadataProcessor moduleMetadataProcessor) {
+            return new DefaultModuleMetadataHandler(componentMetadataProcessor, moduleMetadataProcessor);
+        }
+
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
                                                        ModuleMetadataHandler metadataHandler) {
             return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataHandler);
