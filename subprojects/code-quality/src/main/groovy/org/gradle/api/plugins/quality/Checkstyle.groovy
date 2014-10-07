@@ -15,10 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
-import groovy.transform.PackageScope
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
@@ -47,19 +45,25 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     FileCollection classpath
 
     /**
-     * The Checkstyle configuration file to use.
-     */
-    @InputFile
-    @Optional
-    File configFile
-
-    /**
-     * The Checkstyle configuration to use. This is a replacement for {@link #getConfigFile()}.
+     * The Checkstyle configuration to use. This is a replacement for the {@code configFile} property.
      */
     @Incubating
     @Nested
-    @Optional
     TextResource config
+
+    /**
+     * The Checkstyle configuration file to use.
+     */
+    File getConfigFile() {
+        getConfig()?.asFile()
+    }
+
+    /**
+     * The Checkstyle configuration file to use.
+     */
+    void setConfigFile(File configFile) {
+        setConfig(project.resources.text(configFile))
+    }
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
@@ -133,7 +137,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
         antBuilder.withClasspath(getCheckstyleClasspath()).execute {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
 
-            ant.checkstyle(config: doGetConfigFile(), failOnViolation: false, failureProperty: propertyName) {
+            ant.checkstyle(config: getConfig().asFile(), failOnViolation: false, failureProperty: propertyName) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getClasspath().addToAntBuilder(ant, 'classpath')
                 if (showViolations) {
@@ -162,15 +166,5 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
                 }
             }
         }
-    }
-
-    @PackageScope
-    File doGetConfigFile() {
-        def config = getConfig()
-        def configFile = getConfigFile()
-        if (config == null && configFile == null) {
-            throw new InvalidUserDataException("Either 'config' or 'configFile' must be set.")
-        }
-        config != null ? config.asFile() : configFile
     }
 }
