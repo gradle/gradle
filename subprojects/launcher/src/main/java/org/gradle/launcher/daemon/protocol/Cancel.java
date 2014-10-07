@@ -20,11 +20,4 @@ public class Cancel extends Command {
     public Cancel(Object identifier) {
         super(identifier);
     }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "{"
-                + "id=" + getIdentifier()
-                + '}';
-    }
 }
