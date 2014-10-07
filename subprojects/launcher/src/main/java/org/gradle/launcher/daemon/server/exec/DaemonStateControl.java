@@ -22,7 +22,7 @@ public interface DaemonStateControl {
     /**
      * <p>Requests that the daemon stop, but wait until the daemon is idle. The stop will happen asynchronously, and this method does not block.
      *
-     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
+     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will fail with {@link DaemonUnavailableException}.
      */
     void requestStop();
 

@@ -24,6 +24,8 @@ import java.io.Serializable;
  * <p>
  * The meaning of the value parameter is specific to each concrete subclass. The validity of {@code null}
  * is also to be defined by each subclass. This implementation does allow null values.
+ *
+ * <p>The result is the last message sent from the daemon back to the daemon client.
  */
 abstract public class Result<T> implements Serializable {
 
