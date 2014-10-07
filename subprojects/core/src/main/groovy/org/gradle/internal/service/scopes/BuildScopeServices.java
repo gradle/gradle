@@ -30,6 +30,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ClassLoaderCacheFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.CorePluginRegistry;
@@ -82,6 +83,7 @@ import org.gradle.util.GradleVersion;
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
+
     public BuildScopeServices(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
         register(new Action<ServiceRegistration>() {
@@ -191,7 +193,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new AsmBackedEmptyScriptGenerator();
     }
 
-    protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, EmptyScriptGenerator emptyScriptGenerator, final StartParameter startParameter, ProgressLoggerFactory progressLoggerFactory) {
+    protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
+            CacheRepository cacheRepository, EmptyScriptGenerator emptyScriptGenerator, final StartParameter startParameter,
+            ProgressLoggerFactory progressLoggerFactory, ClassLoaderCacheFactory cacheFactory) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -200,8 +204,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new FileCacheBackedScriptClassCompiler(
                 cacheRepository,
                 scriptCacheInvalidator,
-                new DefaultScriptCompilationHandler(
-                        emptyScriptGenerator),
+                new DefaultScriptCompilationHandler(emptyScriptGenerator, cacheFactory.create()),
                 progressLoggerFactory
         );
     }
@@ -289,8 +292,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new BuildScopeServiceRegistryFactory(services);
     }
 
-    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry) {
-        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry);
+    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCacheFactory cacheFactory) {
+        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, cacheFactory.create());
     }
 
     protected ProjectTaskLister createProjectTaskLister() {

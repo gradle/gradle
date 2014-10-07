@@ -24,6 +24,7 @@ import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.initialization.ClassLoaderCacheFactory;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -170,6 +171,10 @@ public class GlobalScopeServices {
 
     FileLookup createFileLookup(FileSystem fileSystem) {
         return new DefaultFileLookup(fileSystem);
+    }
+
+    ClassLoaderCacheFactory createClassLoaderCacheFactory() {
+        return new ClassLoaderCacheFactory();
     }
 
 }
