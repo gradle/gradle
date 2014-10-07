@@ -22,30 +22,33 @@ import org.gradle.launcher.daemon.client.DaemonClientServices
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.util.GradleVersion
 
 class DaemonLogsAnalyzer {
-
-    private List<File> daemonLogs
+    private File daemonLogsDir
     private File daemonBaseDir
     private ServiceRegistry services
 
     DaemonLogsAnalyzer(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir
-        assert daemonBaseDir.listFiles().length == 1
-        def daemonFiles = daemonBaseDir.listFiles()[0].listFiles()
-        daemonLogs = daemonFiles.findAll { it.name.endsWith('.log') }
+        daemonLogsDir = new File(daemonBaseDir, GradleVersion.current().version)
         DaemonParameters daemonParameters = new DaemonParameters(new BuildLayoutParameters())
         daemonParameters.setBaseDir(daemonBaseDir)
         services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), daemonParameters, new ByteArrayInputStream(new byte[0]))
     }
 
+    void killAll() {
+        daemons*.kill()
+    }
+
     List<TestableDaemon> getDaemons() {
-        return daemonLogs.collect { new TestableDaemon(it, registry) }
+        assert daemonLogsDir.isDirectory()
+        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { new TestableDaemon(it, registry) }
     }
 
     TestableDaemon getDaemon() {
         def daemons = getDaemons()
-        assert daemons.size() == 1: "Expected only a single daemon."
+        assert daemons.size() == 1
         daemons[0]
     }
 

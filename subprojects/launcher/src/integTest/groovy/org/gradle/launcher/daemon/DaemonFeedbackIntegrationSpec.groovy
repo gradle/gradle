@@ -18,16 +18,11 @@ package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.util.TextUtil
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
-    def setup() {
-        executer.requireIsolatedDaemons()
-    }
-
     def "daemon keeps logging to the file even if the build is started"() {
         given:
         file("build.gradle") << """
@@ -66,21 +61,6 @@ task sleep << {
         def ex = thrown(Exception)
         ex.message.contains(DaemonMessages.UNABLE_TO_START_DAEMON)
         ex.message.contains("-Xyz")
-    }
-
-    @Timeout(25)
-    def "promptly shows decent message when awkward java home used"() {
-        def dummyJdk = file("dummyJdk").createDir()
-        assert dummyJdk.isDirectory()
-        def jdkPath = TextUtil.escapeString(dummyJdk.canonicalPath)
-        
-        when:
-        executer.withArguments("-Dorg.gradle.java.home=$jdkPath").run()
-
-        then:
-        def ex = thrown(Exception)
-        ex.message.contains('org.gradle.java.home')
-        ex.message.contains(jdkPath)
     }
 
     def "daemon log contains all necessary logging"() {

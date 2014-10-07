@@ -25,6 +25,8 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
+import org.junit.runners.model.FrameworkMethod
+import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 /**
@@ -33,8 +35,21 @@ import spock.lang.Specification
  * Plan is to bring features over as needed.
  */
 class AbstractIntegrationSpec extends Specification implements TestDirectoryProvider {
-
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider() {
+        @Override
+        Statement apply(Statement base, FrameworkMethod method, Object target) {
+            return super.apply(new Statement() {
+                @Override
+                void evaluate() throws Throwable {
+                    try {
+                        base.evaluate()
+                    } finally {
+                        cleanupWhileTestFilesExist()
+                    }
+                }
+            }, method, target)
+        }
+    }
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
@@ -43,6 +58,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     ExecutionFailure failure
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
+
+    protected void cleanupWhileTestFilesExist() {
+    }
 
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')

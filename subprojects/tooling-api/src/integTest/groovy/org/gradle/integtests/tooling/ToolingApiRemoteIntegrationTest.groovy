@@ -34,7 +34,7 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
-    final ToolingApi toolingApi = new ToolingApi(distribution, executer.gradleUserHomeDir, temporaryFolder, false)
+    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     void setup() {
         server.start()

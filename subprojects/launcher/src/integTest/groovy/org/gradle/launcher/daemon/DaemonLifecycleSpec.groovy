@@ -111,6 +111,10 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
+    @Override
+    protected void cleanupWhileTestFilesExist() {
+    }
+
     void stopDaemons() {
         run { stopDaemonsNow() }
     }

@@ -49,8 +49,22 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         """
     }
 
+    def "shows decent message when awkward java home used"() {
+        def dummyJdk = file("dummyJdk").createDir()
+        assert dummyJdk.isDirectory()
+
+        when:
+        file("gradle.properties") << "org.gradle.java.home=$dummyJdk.absolutePath"
+
+        then:
+        fails()
+
+        and:
+        failure.assertHasDescription("Java home supplied via 'org.gradle.java.home' seems to be invalid: ${dummyJdk.absolutePath}")
+    }
+
     @Requires(TestPrecondition.SYMLINKS)
-    def "connects to the daemon if java home is a symlink"() {
+    def "handles java home that is a symlink"() {
         given:
         def javaHome = Jvm.current().javaHome
         def javaLink = file("javaLink")

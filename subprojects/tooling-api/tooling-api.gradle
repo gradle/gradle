@@ -20,6 +20,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ':launcher', sourceSet: "integTest")
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')

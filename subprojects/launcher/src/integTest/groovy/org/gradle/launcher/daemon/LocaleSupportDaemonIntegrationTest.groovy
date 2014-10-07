@@ -45,14 +45,14 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         ranWithLocale locales[0]
-        createLogAnalyzer().daemons.size() == 1
+        daemons.daemons.size() == 1
 
         when:
         runWithLocale locales[1]
 
         then:
         ranWithLocale locales[1]
-        createLogAnalyzer().daemons.size() == 2
+        daemons.daemons.size() == 2
     }
 
     def "locale is restored after build"() {
@@ -73,14 +73,14 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         ranWithLocale changeLocale
-        createLogAnalyzer().daemons.size() == 1
+        daemons.daemons.size() == 1
 
         when:
         runWithLocale startLocale
 
         then:
         ranWithLocale changeLocale
-        createLogAnalyzer().daemons.size() == 1
+        daemons.daemons.size() == 1
     }
 
     void ranWithLocale(Locale locale) {

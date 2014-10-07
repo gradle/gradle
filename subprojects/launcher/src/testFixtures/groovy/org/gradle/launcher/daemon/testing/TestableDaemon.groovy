@@ -26,9 +26,8 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 class TestableDaemon {
-
-    final DaemonContext context
-    final String logContent
+    private final DaemonContext context
+    private final String logContent
     private final DaemonRegistry registry
 
     TestableDaemon(File daemonLog, DaemonRegistry registry) {
@@ -78,27 +77,42 @@ class TestableDaemon {
 
     @SuppressWarnings("FieldName")
     enum State {
-        busy, idle
+        busy, idle, stopped
     }
 
-    boolean isIdle() {
-        getStates()[-1] == State.idle
+    void assertIdle() {
+        assert getCurrentState() == State.idle
     }
 
-    boolean isBusy() {
-        !isIdle()
+    State getCurrentState() {
+        getStates().last()
+    }
+
+    void assertBusy() {
+        assert getCurrentState() == State.busy
+    }
+
+    void assertNotRunning() {
+        assert getCurrentState() == State.stopped
     }
 
     List<State> getStates() {
         def states = new LinkedList<State>()
+        states << State.idle
         logContent.eachLine {
-            if (it.contains(DaemonMessages.DAEMON_IDLE)) {
-                states << State.idle
-            } else if (it.contains(DaemonMessages.DAEMON_BUSY)) {
+            if (it.contains(DaemonMessages.STARTED_BUILD)) {
                 states << State.busy
+            } else if (it.contains(DaemonMessages.FINISHED_BUILD)) {
+                states << State.idle
+            } else if (it.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)) {
+                states << State.stopped
             }
         }
         states
+    }
+
+    String getLog() {
+        return logContent
     }
 
     int getPort() {

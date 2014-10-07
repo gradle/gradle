@@ -40,6 +40,7 @@ public class ExecuteBuild extends BuildCommandOnly {
     }
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
+        LOGGER.debug(DaemonMessages.STARTED_BUILD);
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
