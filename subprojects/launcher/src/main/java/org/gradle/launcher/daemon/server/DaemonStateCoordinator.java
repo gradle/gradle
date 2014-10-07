@@ -198,6 +198,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     public void cancelBuild() {
         long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
+        Date expiry = new Date(waitUntil);
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
             cancellationToken.doCancel();
@@ -220,7 +221,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                             // fall-through
                         case StopRequested:
                             LOGGER.debug("Cancel processing: daemon is busy, sleeping until state changes.");
-                            condition.await(500, TimeUnit.MILLISECONDS);
+                            condition.awaitUntil(expiry);
                             break;
                         case Stopped:
                             LOGGER.info("Cancel processing: daemon has stopped.");
