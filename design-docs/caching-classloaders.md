@@ -18,17 +18,24 @@ Cache classloaders to improve daemon's performance and memory consumption
 - we probably need to avoid mutation of the classloaders. Instead, new classloader can be created based on an existing one, and the creation managed through a service.
 - how do we roll out this change incrementally? It is a breaking change. Do we offer an opt-in for this feature?
 
-## Story 1: Some thing
+## Story 1: cache basic classloaders
 
-tbd.
+Enabled in-process caching of following classloaders:
+- buildSrc
+- build script
+- plugins
 
 ### User visible changes
 
-tbd.
+Faster builds and smaller daemon leaks
 
 ### Implementation
 
-tbd.
+- new internal system property "org.gradle.caching.classloaders" can be used to turn the classloader caching 'on'
+- DefaultClassLoaderCache needs to be fixed to honor file hash (currently it uses file path)
+- DefaultScriptCompilationHandler needs to use the ClassLoaderCache
+- validate the usefulness of CachingScriptClassCompiler
+- cache needs to be capped at reasonable size (perhaps calculated from the # of projects)
 
 ### Test coverage
 
