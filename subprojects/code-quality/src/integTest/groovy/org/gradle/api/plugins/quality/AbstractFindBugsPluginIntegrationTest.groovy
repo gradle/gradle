@@ -106,7 +106,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             findbugs {
                 effort 'max'
                 reportLevel 'high'
-                includeFilter file('include.xml')
+                includeFilterConfig resources.text(file('include.xml'))
                 excludeFilter file('exclude.xml')
                 visitors = ['FindDeadLocalStores', 'UnreadFields']
                 omitVisitors = ['WaitInLoop', 'UnnecessaryMath']
