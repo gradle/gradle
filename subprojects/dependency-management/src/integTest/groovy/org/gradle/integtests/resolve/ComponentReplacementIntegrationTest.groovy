@@ -58,7 +58,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         def content = ''
         reps.each {
             def d = new TestDependency(it)
-            content +=  "dependencies.components.module('${d.group}:${d.name}').replacedBy '${d.pointsTo.group}:${d.pointsTo.name}'\n"
+            content +=  "dependencies.components.module('${d.group}:${d.name}') { replacedBy '${d.pointsTo.group}:${d.pointsTo.name}' }\n"
         }
         buildFile << """
             $content
@@ -199,7 +199,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
     def "human error in declaring replacements is neatly reported"() {
         buildFile << """
-            dependencies.components.module('org:foo').replacedBy('org:bar:2.0')
+            dependencies.components.module('org:foo') { replacedBy('org:bar:2.0') }
         """
 
         expect:
@@ -208,7 +208,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
     def "human error in referring to component module metadata is neatly reported"() {
         buildFile << """
-            dependencies.components.module('org:foo:1.0')
+            dependencies.components.module('org:foo:1.0') {}
         """
 
         expect:

@@ -71,7 +71,9 @@ dependency resolution in all Gradle-powered projects in the enterprise. This new
 
     dependencies {
         components {
-            module("com.google.collections:google-collections").replacedBy("com.google.guava:guava")
+            module("com.google.collections:google-collections") {
+                replacedBy("com.google.guava:guava")
+            }
         }
     }
 

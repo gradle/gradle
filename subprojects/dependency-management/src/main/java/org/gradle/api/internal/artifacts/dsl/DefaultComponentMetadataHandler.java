@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
+import org.gradle.api.artifacts.ComponentModuleMetadata;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
@@ -100,8 +100,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         closure.call(args.toArray());
     }
 
-    public ComponentModuleMetadataDetails module(Object moduleNotation) {
-        return moduleMetadataContainer.module(moduleNotation);
+    public void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule) {
+        rule.execute(moduleMetadataContainer.module(moduleNotation));
     }
 
     public ModuleReplacementsData getModuleReplacements() {
