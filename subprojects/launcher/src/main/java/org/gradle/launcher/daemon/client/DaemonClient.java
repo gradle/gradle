@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  * The client piece of the build daemon.
  *
- * <p>To execute a build:</p>
+ * <p>To execute a build action:</p>
  *
  * <ul>
  * <li>The client creates a connection to daemon.</li>
@@ -77,8 +77,6 @@ import java.util.Set;
 public class DaemonClient implements BuildActionExecuter<BuildActionParameters> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private static final int STOP_TIMEOUT_SECONDS = 30;
-    // TODO reimplement
-    private static final int CANCEL_TIMEOUT_SECONDS = 15; // cancel in server wait 10s before it calls forcefulStop
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
