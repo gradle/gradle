@@ -48,7 +48,7 @@ public interface ComponentModuleMetadataHandler {
      * <pre autoTested=''>
      * //declaring that google collections are replaced by guava
      * //so that conflict resolution can take advantage of this information:
-     * dependencies.components.module('com.google.collections:google-collections') { replacedBy('com.google.guava:guava') }
+     * dependencies.modules.module('com.google.collections:google-collections') { replacedBy('com.google.guava:guava') }
      * </pre>
      *
      * @param moduleNotation an identifier of the module. String "group:name", e.g. 'org.gradle:gradle-core'
