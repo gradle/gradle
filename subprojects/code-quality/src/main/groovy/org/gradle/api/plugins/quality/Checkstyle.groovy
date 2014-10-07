@@ -15,11 +15,15 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.PackageScope
 import org.gradle.api.GradleException
+import org.gradle.api.Incubating
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
@@ -46,7 +50,16 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * The Checkstyle configuration file to use.
      */
     @InputFile
+    @Optional
     File configFile
+
+    /**
+     * The Checkstyle configuration to use. This is a replacement for {@link #getConfigFile()}.
+     */
+    @Incubating
+    @Nested
+    @Optional
+    TextResource config
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
@@ -120,7 +133,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
         antBuilder.withClasspath(getCheckstyleClasspath()).execute {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
 
-            ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
+            ant.checkstyle(config: doGetConfigFile(), failOnViolation: false, failureProperty: propertyName) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getClasspath().addToAntBuilder(ant, 'classpath')
                 if (showViolations) {
@@ -149,5 +162,15 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
                 }
             }
         }
+    }
+
+    @PackageScope
+    File doGetConfigFile() {
+        def config = getConfig()
+        def configFile = getConfigFile()
+        if (config == null && configFile == null) {
+            throw new InvalidUserDataException("Either 'config' or 'configFile' must be set.")
+        }
+        config != null ? config.asFile() : configFile
     }
 }
