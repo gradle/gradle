@@ -27,7 +27,9 @@ class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * The Checkstyle configuration to use. This is a replacement for the {@code configFile} property.
+     * The Checkstyle configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
      */
     @Incubating
     TextResource config
