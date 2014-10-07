@@ -17,6 +17,7 @@ package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.resources.TextResource;
@@ -63,7 +64,7 @@ public class StringBackedTextResource implements TextResource {
         return asString();
     }
 
-    public Object getInputFiles() {
+    public FileCollection getInputFiles() {
         return null;
     }
 }

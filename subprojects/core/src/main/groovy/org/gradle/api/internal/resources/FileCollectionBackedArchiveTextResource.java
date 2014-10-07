@@ -86,7 +86,7 @@ public class FileCollectionBackedArchiveTextResource implements TextResource {
         return charset.name();
     }
 
-    public Object getInputFiles() {
+    public FileCollection getInputFiles() {
         return archiveTree;
     }
 }
