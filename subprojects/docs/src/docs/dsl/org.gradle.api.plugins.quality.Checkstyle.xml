@@ -13,6 +13,10 @@
                 <td><literal><replaceable>sourceSet</replaceable>.output</literal></td>
             </tr>
             <tr>
+                <td>config</td>
+                <td><literal>project.checkstyle.config</literal></td>
+            </tr>
+            <tr>
                 <td>configFile</td>
                 <td><literal>project.checkstyle.configFile</literal></td>
             </tr>
