@@ -518,6 +518,23 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [a, d, e, b, c, f, g, h]
     }
 
+    @Issue("GRADLE-3166")
+    def "multiple should run after declarations are removed if causing circular reference"() {
+        Task a = createTask("a")
+        Task b = createTask("b")
+        Task c = createTask("c")
+
+        relationships(a, dependsOn: [c])
+        relationships(b, dependsOn: [a, c])
+        relationships(c, shouldRunAfter: [b, a])
+
+        when:
+        addToGraphAndPopulate([b])
+
+        then:
+        executedTasks == [c, a, b]
+    }
+
     def "should run after ordering is ignored if it is at the end of a circular reference"() {
         Task a = createTask("a")
         Task b = task("b", dependsOn: [a])

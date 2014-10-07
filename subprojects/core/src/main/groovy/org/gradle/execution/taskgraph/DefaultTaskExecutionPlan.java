@@ -322,7 +322,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(HashMultimap<TaskInfo, Integer> visitingNodes, TaskInfoInVisitingSegment taskNodeWithVisitingSegment) {
         TaskInfo taskNode = taskNodeWithVisitingSegment.taskInfo;
-        for (TaskInfo shouldRunAfterSuccessor : taskNode.getShouldSuccessors()) {
+        for (TaskInfo shouldRunAfterSuccessor : Lists.newArrayList(taskNode.getShouldSuccessors())) {
             if (visitingNodes.containsEntry(shouldRunAfterSuccessor, taskNodeWithVisitingSegment.visitingSegment)) {
                 taskNode.removeShouldRunAfterSuccessor(shouldRunAfterSuccessor);
             }
