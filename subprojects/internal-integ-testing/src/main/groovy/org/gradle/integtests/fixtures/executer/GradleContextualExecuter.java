@@ -61,6 +61,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.daemon;
     }
 
+    public static boolean isLongLivingProcess() {
+        return isEmbedded() || isDaemon();
+    }
+
     public static boolean isParallel() {
         return getSystemPropertyExecuter().executeParallel;
     }
