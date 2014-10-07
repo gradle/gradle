@@ -152,11 +152,11 @@ This can be improved later.
 
 ### Open Questions
 
-- Should `TextResource` methods throw `IOException` - (I don't think there's a point - LD)
+- Should `TextResource` methods throw `IOException` - (I don't think there's a point - LD) Currently throw UncheckedIOException
 - Should `TextResource.as*()` throw if called when the `getTaskDependencies()` are unsatisfied (e.g. can't call this at config time)
-- For the to-be deprecated `File` properties (e.g. `Checkstyle.configFile`), do we support calling the getter if the `TextResource` property was set?
-- It might be better to have separate methods rather than overloads (e.g. `resources.textFromString()` and `resources.textFromFile()`, or 
-  `resources.text.fromString()` and `resources.text.fromFile()`). This way we could support the usual coercions (e.g. `String`->`File`), 
+- For the to-be deprecated `File` properties (e.g. `Checkstyle.configFile`), do we support calling the getter if the `TextResource` property was set? Yes
+- It might be better to have separate methods rather than overloads (e.g. `resources.text()`, `resources.fileText()`, `resources.archiveEntryText()`, or 
+  `resources.text.fromString()`, `resources.text.fromFile()`, `resources.text.fromArchiveEntry()`). This way we could support the usual coercions (e.g. `String`->`File`), 
   although we'd still have to deal with the fact that the same method needs to accept both files and single-element file collections.  
 - It feels that the `resources.text()`/`resources.archiveText()` methods compensate for limitations in Gradle's file APIs. For example, 
   it would be more natural to select an archive entry using a file (tree) API and pass the result to `resources.text()`, rather than 
