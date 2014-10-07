@@ -22,8 +22,6 @@ import org.gradle.platform.base.Platform;
 import spock.lang.Specification;
 
 public class NamedElementSelectorTest extends Specification {
-
-
     def elements = Mock(NamedDomainObjectContainer)
 
     def platform1 = Stub(Platform) {
