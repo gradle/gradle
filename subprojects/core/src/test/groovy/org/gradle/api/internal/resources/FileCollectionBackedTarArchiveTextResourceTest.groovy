@@ -17,18 +17,17 @@
 package org.gradle.api.internal.resources
 
 import com.google.common.base.Charsets
-
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.util.TestUtil
 
-class FileCollectionBackedArchiveTextResourceTest extends AbstractTextResourceTest {
+class FileCollectionBackedTarArchiveTextResourceTest extends AbstractTextResourceTest {
     def setup() {
         def project = TestUtil.createRootProject()
-        def archive = project.file("archive.zip")
+        def archive = project.file("archive.tar.gz")
         def archiveEntry = project.file("archive/path/to/text")
         archiveEntry.parentFile.mkdirs()
         archiveEntry.text = "contents"
-        project.ant.zip(basedir: project.file("archive"), destfile: archive)
+        project.ant.tar(basedir: project.file("archive"), destfile: archive, compression: "gzip")
         resource = new FileCollectionBackedArchiveTextResource(project.services.get(FileOperations),
                 project.files(archive), "path/to/text", Charsets.UTF_8)
     }
