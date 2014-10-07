@@ -57,6 +57,8 @@ class FindBugsPluginTest extends Specification {
         extension.reportLevel == null
         extension.visitors == null
         extension.omitVisitors == null
+        extension.includeFilterConfig == null
+        extension.excludeFilterConfig == null
         extension.includeFilter == null
         extension.excludeFilter == null
     }
@@ -89,6 +91,8 @@ class FindBugsPluginTest extends Specification {
             reportLevel == null
             visitors == null
             omitVisitors == null
+            excludeFilterConfig == null
+            includeFilterConfig == null
             excludeFilter == null
             includeFilter == null
         }
@@ -111,6 +115,8 @@ class FindBugsPluginTest extends Specification {
             reportLevel == null
             visitors == null
             omitVisitors == null
+            excludeFilterConfig == null
+            includeFilterConfig == null
             excludeFilter == null
             includeFilter == null
         }
@@ -169,8 +175,10 @@ class FindBugsPluginTest extends Specification {
             reportLevel == 'high'
             visitors == ['org.gradle.Class']
             omitVisitors == ['org.gradle.Interface']
-            includeFilter == new File("include.txt")
-            excludeFilter == new File("exclude.txt")
+            includeFilterConfig.inputFiles.files == project.files("include.txt").files
+            excludeFilterConfig.inputFiles.files == project.files("exclude.txt").files
+            includeFilter == project.file("include.txt")
+            excludeFilter == project.file("exclude.txt")
         }
     }
     
@@ -183,8 +191,8 @@ class FindBugsPluginTest extends Specification {
             reportLevel = 'high'
             visitors = ['org.gradle.Class']
             omitVisitors = ['org.gradle.Interface']
-            includeFilter = new File("include.txt")
-            excludeFilter = new File("exclude.txt")
+            includeFilterConfig = project.resources.text(project.file("include.txt"))
+            excludeFilterConfig = project.resources.text(project.file("exclude.txt"))
         }
 
         expect:
@@ -201,8 +209,10 @@ class FindBugsPluginTest extends Specification {
             reportLevel == 'high'
             visitors == ['org.gradle.Class']
             omitVisitors == ['org.gradle.Interface']
-            includeFilter == new File("include.txt")
-            excludeFilter == new File("exclude.txt")
+            includeFilterConfig.inputFiles.files == project.files("include.txt").files
+            excludeFilterConfig.inputFiles.files == project.files("exclude.txt").files
+            includeFilter == project.file("include.txt")
+            excludeFilter == project.file("exclude.txt")
         }
     }
 
