@@ -29,7 +29,7 @@ import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
  * dependencies {
  *     components {
  *         //triggered during dependency resolution, for each component:
- *         eachComponent { ComponentMetadataDetails details ->
+ *         all { ComponentMetadataDetails details ->
  *             if (details.id.group == "org.foo") {
  *                 def version = details.id.version
  *                 // assuming status is last part of version string
@@ -59,7 +59,7 @@ public interface ComponentMetadataHandler {
      *
      * @param rule the rule to be added
      */
-    void eachComponent(Action<? super ComponentMetadataDetails> rule);
+    ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
     /**
      * Adds a rule to modify the metadata of depended-on software components.
@@ -81,7 +81,7 @@ public interface ComponentMetadataHandler {
      *
      * @param rule the rule to be added
      */
-    void eachComponent(Closure<?> rule);
+    ComponentMetadataHandler all(Closure<?> rule);
 
     /**
      * Enables configuring component module metadata.

@@ -27,7 +27,7 @@ task listFish << {
 dependencies {
     config3 "air.birds:albatross:latest.silver"
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { ComponentMetadataDetails details ->
             if (details.id.group == "air.birds") {
                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
             }
@@ -43,7 +43,7 @@ task listBirds << {
 // START SNIPPET ivy-component-metadata-rule
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
             if (details.id.group == 'my.org' && ivyModule.branch == 'testing') {
                 details.changing = true
             }

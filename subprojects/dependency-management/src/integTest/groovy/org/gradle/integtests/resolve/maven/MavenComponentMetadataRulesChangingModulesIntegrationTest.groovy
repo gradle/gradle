@@ -51,7 +51,7 @@ configurations {
 dependencies {
     modules "org.test:moduleB:1.0-SNAPSHOT"
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             file(details.id.name).text = details.changing
         }
     }

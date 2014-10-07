@@ -57,7 +57,7 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
         if (status != null) {
             buildFile.text = buildFile.text + """
 
-                dependencies.components.eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+                dependencies.components.all { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
                     details.statusScheme = [ '${sq(status)}' ]
                 }
             """

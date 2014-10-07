@@ -44,7 +44,7 @@ repositories {
                 """
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             assert details.status == "silver"
             details.statusScheme = ["gold", "silver", "bronze"]
         }
@@ -68,7 +68,7 @@ dependencies {
                 """
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             details.statusScheme = ["gold", "bronze"]
         }
     }
@@ -85,7 +85,7 @@ dependencies {
                 """
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             details.status = "milestone"
         }
     }

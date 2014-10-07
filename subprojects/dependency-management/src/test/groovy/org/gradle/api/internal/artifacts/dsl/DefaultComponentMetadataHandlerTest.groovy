@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.internal.rules.RuleActionValidationException
+
 import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
@@ -46,31 +48,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
     }
 
-    def "supports rule with untyped ComponentMetaDataDetails parameter"() {
-        def metadata = Stub(MutableModuleComponentResolveMetaData) {
-            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
-            getStatus() >> "integration"
-            getStatusScheme() >> ["integration", "release"]
-        }
-        def capturedDetails = null
-        handler.eachComponent { details ->
-            capturedDetails = details
-        }
-
-        when:
-        handler.processMetadata(metadata)
-
-        then:
-        noExceptionThrown()
-        capturedDetails instanceof ComponentMetadataDetails
-        with(capturedDetails) {
-            id.group == "group"
-            id.name == "module"
-            id.version == "version"
-            status == "integration"
-            statusScheme == ["integration", "release"]
-        }
-    }
 
     def "supports rule with typed ComponentMetaDataDetails parameter"() {
         def metadata = Stub(MutableModuleComponentResolveMetaData) {
@@ -79,7 +56,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatusScheme() >> ["integration", "release"]
         }
         def capturedDetails = null
-        handler.eachComponent { ComponentMetadataDetails details ->
+        handler.all { ComponentMetadataDetails details ->
             capturedDetails = details
         }
 
@@ -109,7 +86,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getBranch() >> "someBranch"
         }
         def capturedDescriptor = null
-        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
+        handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             capturedDescriptor = descriptor
         }
 
@@ -134,7 +111,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         def invoked = false
-        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
+        handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             invoked = true
         }
 
@@ -146,25 +123,25 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "complains if rule has no parameters"() {
-        handler.eachComponent { -> }
-
         when:
-        handler.processMetadata(Stub(MutableModuleComponentResolveMetaData))
+        handler.all { -> }
 
         then:
         InvalidUserCodeException e = thrown()
-        e.message == "A component metadata rule needs to have at least one parameter."
+        e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
+        e.cause instanceof RuleActionValidationException
+        e.cause.message == "Rule action closure must declare at least one parameter."
     }
 
     def "complains if first parameter type isn't assignment compatible with ComponentMetadataDetails"() {
-        handler.eachComponent { String s -> }
-
         when:
-        handler.processMetadata(Stub(MutableModuleComponentResolveMetaData))
+        handler.all { String s -> }
 
         then:
         InvalidUserCodeException e = thrown()
-        e.message == "First parameter of a component metadata rule needs to be of type 'ComponentMetadataDetails'."
+        e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
+        e.cause instanceof RuleActionValidationException
+        e.cause.message == "First parameter of rule action closure must be of type 'ComponentMetadataDetails'."
     }
 
     def "complains if rule has unsupported parameter type"() {
@@ -174,18 +151,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatusScheme() >> ["integration", "release"]
         }
 
-        def invoked = false
-        handler.eachComponent { details, String str ->
-            invoked = true
-        }
-
         when:
-        handler.processMetadata(metadata)
+        handler.all { ComponentMetadataDetails details, String str -> }
 
         then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "Unsupported parameter type for component metadata rule: java.lang.String"
-        !invoked
+        InvalidUserCodeException e = thrown()
+        e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
+        e.cause instanceof RuleActionValidationException
+        e.cause.message == "Unsupported parameter type: java.lang.String"
     }
 
     def "supports rule with multiple inputs in arbitrary order"() {
@@ -202,7 +175,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def capturedDescriptor1 = null
         def capturedDescriptor2 = null
 
-        handler.eachComponent { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
+        handler.all { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
             capturedDetails1 = details1
             capturedDescriptor1 = descriptor1
             capturedDescriptor2 = descriptor2

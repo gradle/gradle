@@ -54,7 +54,7 @@ task resolve {
 """
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             assert details.id.group == "org.test"
             assert details.id.name == "projectA"
             assert details.id.version == "1.0"
@@ -77,12 +77,12 @@ dependencies {
                 """
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             details.status "integration.changed" // verify that 'details' is enhanced
             details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
             details.changing = true
         }
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             assert details.status == "integration.changed"
             assert details.statusScheme == ["integration.changed", "milestone.changed", "release.changed"]
             assert details.changing
@@ -102,7 +102,7 @@ dependencies {
                 """
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             assert !details.changing
             assert details.status == "$defaultStatus"
             assert details.statusScheme == ["integration", "milestone", "release"]

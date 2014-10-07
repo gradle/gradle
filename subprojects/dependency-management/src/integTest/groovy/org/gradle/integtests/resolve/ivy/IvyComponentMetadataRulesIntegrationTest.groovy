@@ -58,7 +58,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.extraInfo.get('foo') == 'fooValue'
@@ -90,7 +90,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             descriptor.extraInfo.get('foo')
         }
@@ -127,7 +127,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.branch == '${sq(branch)}'
             details.statusScheme = [ '${sq(status)}' ]
@@ -164,7 +164,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             ruleInvoked = true
         }
     }
@@ -183,7 +183,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -217,7 +217,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -253,7 +253,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             file("metadata").delete()
             file("metadata") << descriptor.extraInfo.asMap().toString()

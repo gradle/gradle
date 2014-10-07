@@ -30,7 +30,7 @@ configurations { compile }
 dependencies {
     compile 'org.test:projectA:latest.$status'
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             details.statusScheme = ["bronze", "silver", "gold", "platin"]
         }
     }
@@ -72,7 +72,7 @@ configurations { compile }
 dependencies {
     compile 'org.test:projectA:latest.release'
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             if (details.id.version == project.properties['releaseVersion']) {
                 details.status = 'release'
             }

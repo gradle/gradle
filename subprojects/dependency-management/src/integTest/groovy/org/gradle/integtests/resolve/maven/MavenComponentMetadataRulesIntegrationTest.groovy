@@ -52,10 +52,10 @@ def ivyRuleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             plainRuleInvoked = true
         }
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ivyRuleInvoked = true
         }
     }

@@ -132,7 +132,7 @@ repositories {
         buildFile << """
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { ComponentMetadataDetails details ->
             details.changing = true
         }
     }
@@ -180,7 +180,7 @@ if (project.hasProperty('nocache')) {
         buildFile << """
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { ComponentMetadataDetails details ->
             details.changing = true
         }
     }
