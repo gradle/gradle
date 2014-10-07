@@ -94,23 +94,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private void processAllRules(ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
-        List<SpecRuleAction<? super ComponentMetadataDetails>> noInputRules = Lists.newArrayList();
-        List<SpecRuleAction<? super ComponentMetadataDetails>> inputRules = Lists.newArrayList();
-
         for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
-            if (rule.getAction().getInputTypes().isEmpty()) {
-                noInputRules.add(rule);
-            } else {
-                inputRules.add(rule);
-            }
-        }
-
-        processRules(noInputRules, metadata, details);
-        processRules(inputRules, metadata, details);
-    }
-
-    private void processRules(List<SpecRuleAction<? super ComponentMetadataDetails>> specRules, ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
-        for (SpecRuleAction<? super ComponentMetadataDetails> rule : specRules) {
             processRule(rule, metadata, details);
         }
     }
