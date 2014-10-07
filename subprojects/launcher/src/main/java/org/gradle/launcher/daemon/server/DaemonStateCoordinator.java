@@ -217,12 +217,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                                 return;
                             }
                             // fall-through
-                        case Broken:
-                            // fall-through
                         case StopRequested:
                             LOGGER.debug("Cancel processing: daemon is busy, sleeping until state changes.");
                             condition.awaitUntil(expiry);
                             break;
+                        case Broken:
+                            throw new IllegalStateException("This daemon is in a broken state.");
                         case Stopped:
                             LOGGER.info("Cancel processing: daemon has stopped.");
                             return;

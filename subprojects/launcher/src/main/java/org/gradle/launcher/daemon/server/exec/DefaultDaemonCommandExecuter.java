@@ -62,6 +62,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
+            new HandleCancel(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
             hygieneAction,
             new EstablishBuildEnvironment(processEnvironment),
@@ -70,7 +71,6 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ReturnResult(),
             new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),
-            new HandleCancel(),
             new WatchForDisconnection(),
             new ExecuteBuild(actionExecuter)
         ));
