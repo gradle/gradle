@@ -16,21 +16,39 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
 
+    private List<Platform> searchOrder = new ArrayList<Platform>();
+
     public DefaultPlatformContainer(Class<? extends Platform> type, Instantiator instantiator) {
         super(type, instantiator);
+        whenObjectAdded(new Action<Platform>() {
+            public void execute(Platform platform) {
+                searchOrder.add(platform);
+            }
+        });
+        whenObjectRemoved(new Action<Platform>() {
+            public void execute(Platform platform) {
+                searchOrder.remove(platform);
+            }
+        });
     }
 
     public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
-        return new NamedElementSelector<T>(type, targets).transform(this);
+        T defaultElement = null;
+        if (searchOrder.size() > 1) {
+            defaultElement = searchOrder.get(0);
+        }
+        return new NamedElementSelector<T>(type, targets, defaultElement).transform(this);
     }
 
 }
