@@ -24,6 +24,10 @@ import spock.lang.Specification;
 public class NamedElementSelectorTest extends Specification {
     def elements = Mock(NamedDomainObjectContainer)
 
+    def defaultPlatform = Stub(Platform) {
+        getName() >> "default"
+    }
+
     def platform1 = Stub(Platform) {
         getName() >> "name1"
     }
@@ -50,7 +54,7 @@ public class NamedElementSelectorTest extends Specification {
     }
 
     def "selecting one element returns the correct element"() {
-        def selector = new NamedElementSelector(Platform, ["name2"])
+        def selector = new NamedElementSelector(Platform, ["name2"], defaultPlatform)
 
         when:
         def res = selector.transform(elements)
@@ -59,18 +63,18 @@ public class NamedElementSelectorTest extends Specification {
         res == [platform2]
     }
 
-    def "when selecting no elements, the first one is returned"() {
-        def selector = new NamedElementSelector(Platform, [])
+    def "when selecting no elements, the default is returned"() {
+        def selector = new NamedElementSelector(Platform, [], defaultPlatform)
 
         when:
         def res = selector.transform(elements)
 
         then:
-        res == [platform2]
+        res == [defaultPlatform]
     }
 
     def "selecting multiple elements returns elements in the defined order"() {
-        def selector = new NamedElementSelector(Platform, ["name1", "name2", "name3"])
+        def selector = new NamedElementSelector(Platform, ["name1", "name2", "name3"], defaultPlatform)
 
         when:
         def res = selector.transform(elements)
@@ -80,7 +84,7 @@ public class NamedElementSelectorTest extends Specification {
     }
 
     def "selecting an element that does not exists fails"() {
-        def selector = new NamedElementSelector(Platform, ["blah"])
+        def selector = new NamedElementSelector(Platform, ["blah"], defaultPlatform)
 
         when:
         selector.transform(elements)
@@ -91,7 +95,7 @@ public class NamedElementSelectorTest extends Specification {
     }
 
     def "selecting multiple elements where one does not exist fails"() {
-        def selector = new NamedElementSelector(Platform, ["name1", "foo", "name2"])
+        def selector = new NamedElementSelector(Platform, ["name1", "foo", "name2"], defaultPlatform)
 
         when:
         selector.transform(elements)
