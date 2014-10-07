@@ -17,6 +17,10 @@
                 <td><literal>project.pmd.ruleSets</literal></td>
             </tr>
             <tr>
+                <td>ruleSetConfig</td>
+                <td><literal>project.pmd.ruleSetConfig</literal></td>
+            </tr>
+            <tr>
                 <td>ruleSetFiles</td>
                 <td><literal>project.pmd.ruleSetFiles</literal></td>
             </tr>

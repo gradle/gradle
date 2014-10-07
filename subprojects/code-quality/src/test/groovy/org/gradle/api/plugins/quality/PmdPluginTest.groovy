@@ -52,6 +52,7 @@ class PmdPluginTest extends Specification {
         expect:
         PmdExtension extension = project.extensions.pmd
         extension.ruleSets == ["basic"]
+        extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
         !extension.ignoreFailures
@@ -102,6 +103,7 @@ class PmdPluginTest extends Specification {
             source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["basic"]
+            assert ruleSetConfig == null
             assert ruleSetFiles.empty
             assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
@@ -117,6 +119,7 @@ class PmdPluginTest extends Specification {
         task.source.empty
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["basic"]
+        task.ruleSetConfig == null
         task.ruleSetFiles.empty
         task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
@@ -146,6 +149,7 @@ class PmdPluginTest extends Specification {
         project.pmd {
             sourceSets = [project.sourceSets.main]
             ruleSets = ["braces", "unusedcode"]
+            ruleSetConfig = project.resources.text("ruleset contents")
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
@@ -167,6 +171,7 @@ class PmdPluginTest extends Specification {
             source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["braces", "unusedcode"]
+            assert ruleSetConfig.asString() == "ruleset contents"
             assert ruleSetFiles.files == project.files("my-ruleset.xml").files
             assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
@@ -178,6 +183,7 @@ class PmdPluginTest extends Specification {
         def task = project.tasks.create("pmdCustom", Pmd)
         project.pmd {
             ruleSets = ["braces", "unusedcode"]
+            ruleSetConfig = project.resources.text("ruleset contents")
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
@@ -188,6 +194,7 @@ class PmdPluginTest extends Specification {
         task.source.empty
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["braces", "unusedcode"]
+        task.ruleSetConfig.asString() == "ruleset contents"
         task.ruleSetFiles.files == project.files("my-ruleset.xml").files
         task.reports.xml.destination == project.file("pmd-reports/custom.xml")
         task.reports.html.destination == project.file("pmd-reports/custom.html")
