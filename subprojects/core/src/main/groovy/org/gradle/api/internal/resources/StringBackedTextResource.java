@@ -46,7 +46,7 @@ public class StringBackedTextResource implements TextResource {
     }
 
     public File asFile() {
-        File file = tempFileProvider.createTemporaryFile(null, ".txt", "resource", "text");
+        File file = tempFileProvider.createTemporaryFile("string", ".txt", "resource");
         try {
             Files.write(string, file, Charset.defaultCharset());
         } catch (IOException e) {
