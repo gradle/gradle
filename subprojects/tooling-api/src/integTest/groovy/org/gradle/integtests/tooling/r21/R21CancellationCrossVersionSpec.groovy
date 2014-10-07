@@ -121,7 +121,7 @@ task notExecuted(dependsOn: hang) << {
         }
         then:
         resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
+        resultHandler.failure.cause.message.contains('Build cancelled.')
     }
 
     def "does not fail when build completes within the cancellation timeout"() {

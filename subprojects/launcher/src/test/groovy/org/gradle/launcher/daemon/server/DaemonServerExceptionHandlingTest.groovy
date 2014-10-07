@@ -34,6 +34,7 @@ import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -64,8 +65,9 @@ class DaemonServerExceptionHandlingTest extends Specification {
         client.execute(action, cancellationToken, parameters)
 
         then:
-        def ex = thrown(Exception)
-        ex.message.contains("Unable to receive command from connection")
+        def ex = thrown(MessageIOException)
+        ex.message.contains("Could not read message from")
+        ex.cause instanceof ClassNotFoundException
     }
 
     EmbeddedDaemonClientServices servicesWith(Closure configureDeamonActions) {
@@ -115,7 +117,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.cause.message.contains 'Buy more ram'
+        def ex = thrown(OutOfMemoryError)
+        ex.message.contains 'Buy more ram'
     }
 }
