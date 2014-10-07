@@ -161,6 +161,8 @@ This can be improved later.
 - It feels that the `resources.text()`/`resources.archiveText()` methods compensate for limitations in Gradle's file APIs. For example, 
   it would be more natural to select an archive entry using a file (tree) API and pass the result to `resources.text()`, rather than 
   using `resources.archiveText()`.
+- Should there be a way to query the character encoding of the file returned by `TextResource#asFile`? (As long as we return the 
+  original file that the resource was created from (if any), we can't standardize on one particular encoding.)
 
 
 
