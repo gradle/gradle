@@ -105,8 +105,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             model {
                 platforms {
-                    x86_64 {
-                        architecture "x86_64"
+                    x86 {
+                        architecture "x86"
                     }
                 }
             }
@@ -118,8 +118,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86_64"
-        executable("build/binaries/mainExecutable/main").exec().out == "amd64 ${os.familyName}" * 2
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
     // TODO:DAZ This isn't doing what it appears: is actually selecting the first platform alphabetically...
