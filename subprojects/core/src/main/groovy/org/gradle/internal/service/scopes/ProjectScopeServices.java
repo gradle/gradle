@@ -32,10 +32,7 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.DefaultPluginContainer;
-import org.gradle.api.internal.plugins.PluginApplicationAction;
-import org.gradle.api.internal.plugins.PluginModelRuleExtractor;
-import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
@@ -125,9 +122,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginApplicationAction createPluginModelRuleExtractor() {
+        return new AppliedPluginsApplicationAction();
+    }
+
+    protected AppliedPluginsInternal createAppliedPlugins() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
-        return new PluginModelRuleExtractor(inspector);
+        return new ProjectAppliedPlugins(project, get(PluginRegistry.class), inspector);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

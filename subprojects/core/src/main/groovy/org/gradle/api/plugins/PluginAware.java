@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 
 import java.util.Map;
 
@@ -59,4 +60,6 @@ public interface PluginAware {
      * @param options The options to use to configure the {@link ObjectConfigurationAction}.
      */
     void apply(Map<String, ?> options);
+
+    AppliedPluginsInternal getAppliedPlugins();
 }

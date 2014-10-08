@@ -24,6 +24,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -37,7 +38,6 @@ import java.io.File;
 
 public class BaseSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
-
     private ScriptSource settingsScript;
 
     private StartParameter startParameter;
@@ -61,6 +61,8 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
 
+    private final AppliedPluginsInternal appliedPlugins;
+
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
                         ScriptSource settingsScript, StartParameter startParameter) {
@@ -77,6 +79,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
         this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        appliedPlugins = services.get(AppliedPluginsInternal.class);
     }
 
     @Override
@@ -224,4 +227,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         return classLoaderScope;
     }
 
+    public AppliedPluginsInternal getAppliedPlugins() {
+        return this.appliedPlugins;
+    }
 }

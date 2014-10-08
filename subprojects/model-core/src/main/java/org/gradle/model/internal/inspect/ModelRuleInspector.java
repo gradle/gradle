@@ -17,10 +17,8 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -31,9 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Set;
 
 public class ModelRuleInspector {
 
@@ -66,23 +62,6 @@ public class ModelRuleInspector {
         rule.describeTo(sb);
         sb.append(" is not a valid ").append(description).append(": ").append(reason);
         return new InvalidModelRuleDeclarationException(sb.toString());
-    }
-
-    // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
-    public Set<Class<?>> getDeclaredSources(Class<?> container) {
-        Class<?>[] declaredClasses = container.getDeclaredClasses();
-        if (declaredClasses.length == 0) {
-            return Collections.emptySet();
-        } else {
-            ImmutableSet.Builder<Class<?>> found = ImmutableSet.builder();
-            for (Class<?> declaredClass : declaredClasses) {
-                if (declaredClass.isAnnotationPresent(RuleSource.class)) {
-                    found.add(declaredClass);
-                }
-            }
-
-            return found.build();
-        }
     }
 
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)

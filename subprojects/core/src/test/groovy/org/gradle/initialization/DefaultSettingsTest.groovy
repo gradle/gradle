@@ -26,6 +26,7 @@ import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.plugins.AppliedPluginsInternal
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -57,6 +58,7 @@ class DefaultSettingsTest {
     FileResolver fileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
+    AppliedPluginsInternal appliedPlugins
 
     @Before
     public void setUp() {
@@ -90,6 +92,8 @@ class DefaultSettingsTest {
                 will(returnValue(scriptHandlerFactory));
                 one(settingsServices).get(ProjectDescriptorRegistry.class);
                 will(returnValue(projectDescriptorRegistry));
+                one(settingsServices).get(AppliedPluginsInternal.class);
+                will(returnValue(appliedPlugins))
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
                     gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);

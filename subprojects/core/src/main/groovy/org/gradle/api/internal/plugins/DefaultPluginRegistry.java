@@ -16,22 +16,24 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GUtil;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultPluginRegistry implements PluginRegistry {
-    private final Map<String, Class<? extends Plugin<?>>> idMappings = new HashMap<String, Class<? extends Plugin<?>>>();
+    private final Map<String, Class<?>> idMappings = Maps.newHashMap();
     private final DefaultPluginRegistry parent;
     private final Factory<? extends ClassLoader> classLoaderFactory;
     private final Instantiator instantiator;
@@ -73,17 +75,20 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
     }
 
-    public Class<? extends Plugin<?>> getTypeForId(String pluginId) {
+    protected Class<?> getTypeForId(String pluginId, Spec<Class<?>> classSpec, String exceptionMessageFormat) {
         if (parent != null) {
             try {
-                return parent.getTypeForId(pluginId);
+                return parent.getTypeForId(pluginId, classSpec, exceptionMessageFormat);
             } catch (UnknownPluginException e) {
                 // Ignore
             }
         }
 
-        Class<? extends Plugin<?>> implClass = idMappings.get(pluginId);
+        Class<?> implClass = idMappings.get(pluginId);
         if (implClass != null) {
+            if (!classSpec.isSatisfiedBy(implClass)) {
+                throw new PluginInstantiationException(String.format(exceptionMessageFormat, implClass.getName(), pluginId));
+            }
             return implClass;
         }
 
@@ -101,13 +106,11 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         try {
-            Class<?> rawClass = classLoader.loadClass(implClassName);
-            if (!Plugin.class.isAssignableFrom(rawClass)) {
-                throw new PluginInstantiationException(String.format("Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface. Specified in %s.",
-                        implClassName, pluginId, pluginDescriptor));
+            implClass = classLoader.loadClass(implClassName);
+            if (!classSpec.isSatisfiedBy(implClass)) {
+                throw new PluginInstantiationException(String.format("%s Specified in %s.",
+                        String.format(exceptionMessageFormat, implClassName, pluginId), pluginDescriptor));
             }
-            @SuppressWarnings("unchecked") Class<Plugin<?>> cast = (Class<Plugin<?>>) rawClass.asSubclass(Plugin.class);
-            implClass = cast;
         } catch (ClassNotFoundException e) {
             throw new PluginInstantiationException(String.format(
                     "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,
@@ -116,6 +119,24 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         idMappings.put(pluginId, implClass);
         return implClass;
+    }
+
+    public Class<? extends Plugin<?>> getPluginTypeForId(String pluginId) {
+        @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginType = (Class<? extends Plugin<?>>) getTypeForId(pluginId, new Spec<Class<?>>() {
+            public boolean isSatisfiedBy(Class<?> rawClass) {
+                return Plugin.class.isAssignableFrom(rawClass);
+            }
+        }, "Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface.");
+        return pluginType;
+    }
+
+    public Class<?> getTypeForId(String pluginId) {
+        return getTypeForId(pluginId, new Spec<Class<?>>() {
+            public boolean isSatisfiedBy(Class<?> rawClass) {
+                ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
+                return Plugin.class.isAssignableFrom(rawClass) || detector.getDeclaredSources(rawClass).size() > 0;
+            }
+        }, "Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface and does not define any rule sources.");
     }
 
     protected PluginDescriptor findPluginDescriptor(String pluginId, ClassLoader classLoader) {

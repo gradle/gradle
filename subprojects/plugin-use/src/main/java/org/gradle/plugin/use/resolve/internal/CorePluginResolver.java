@@ -40,7 +40,7 @@ public class CorePluginResolver implements PluginResolver {
 
         if (!id.isQualified() || id.inNamespace(CorePluginRegistry.CORE_PLUGIN_NAMESPACE)) {
             try {
-                Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(id.getName());
+                Class<? extends Plugin> typeForId = pluginRegistry.getPluginTypeForId(id.getName());
                 if (pluginRequest.getVersion() != null) {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "

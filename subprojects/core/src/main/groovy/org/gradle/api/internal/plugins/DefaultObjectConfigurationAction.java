@@ -77,7 +77,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     public ObjectConfigurationAction plugin(final String pluginId) {
         actions.add(new Runnable() {
             public void run() {
-                applyPlugin(pluginId);
+                applyType(pluginId);
             }
         });
         return this;
@@ -108,11 +108,11 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         }
     }
 
-    private void applyPlugin(String pluginId) {
+    private void applyType(String pluginId) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 try {
-                    ((PluginAware) target).getPlugins().apply(pluginId);
+                    ((PluginAware) target).getAppliedPlugins().apply(pluginId);
                 } catch (Exception e) {
                     throw new PluginApplicationException("id '" + pluginId + "'", e);
                 }

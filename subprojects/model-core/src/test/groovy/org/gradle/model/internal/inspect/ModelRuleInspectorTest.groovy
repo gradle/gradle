@@ -16,13 +16,15 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.model.*
+import org.gradle.model.Finalize
+import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.model.Model
+import org.gradle.model.Mutate
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ModelRuleInspectorTest extends Specification {
 
@@ -100,35 +102,6 @@ class ModelRuleInspectorTest extends Specification {
         registry.element(ModelPath.path("superStrings")).promise.asReadOnly(new ModelType<List<? super String>>() {})
         registry.element(ModelPath.path("extendsStrings")).promise.asReadOnly(new ModelType<List<? extends String>>() {})
         registry.element(ModelPath.path("wildcard")).promise.asReadOnly(new ModelType<List<?>>() {})
-    }
-
-    static class HasOneSource {
-        @RuleSource
-        static class Source {}
-
-        static class NotSource {}
-    }
-
-    static class HasTwoSources {
-        @RuleSource
-        static class SourceOne {}
-
-        @RuleSource
-        static class SourceTwo {}
-
-        static class NotSource {}
-    }
-
-    @Unroll
-    def "find model rule sources - #clazz"() {
-        expect:
-        new ModelRuleInspector(handlers).getDeclaredSources(clazz) == expected.toSet()
-
-        where:
-        clazz         | expected
-        String        | []
-        HasOneSource  | [HasOneSource.Source]
-        HasTwoSources | [HasTwoSources.SourceOne, HasTwoSources.SourceTwo]
     }
 
     static class HasGenericModelRule {

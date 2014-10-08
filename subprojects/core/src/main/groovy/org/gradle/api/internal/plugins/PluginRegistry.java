@@ -25,7 +25,9 @@ import org.gradle.internal.reflect.Instantiator;
 public interface PluginRegistry {
     <T extends Plugin<?>> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;
 
-    Class<? extends Plugin<?>> getTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
+    Class<? extends Plugin<?>> getPluginTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
+
+    Class<?> getTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
 
     /**
      * Creates a child registry which uses the plugins declared in the given script scope.

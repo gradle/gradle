@@ -21,6 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestPlugin2
+import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.PluginInstantiationException
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.Instantiator
@@ -47,7 +48,7 @@ class DefaultPluginRegistryTest extends Specification {
         result == plugin
 
         and:
-        1* instantiator.newInstance(TestPlugin2.class, new Object[0]) >> plugin
+        1 * instantiator.newInstance(TestPlugin2.class, new Object[0]) >> plugin
     }
 
     public void canLookupPluginTypeById() {
@@ -58,15 +59,56 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
+        pluginRegistry.getPluginTypeForId("somePlugin") == TestPlugin1
+    }
+
+    public void canLookupTypesById() {
+        def ruleUrl = writePluginProperties("someRuleSource", TestRuleSource)
+        def pluginUrl = writePluginProperties("somePlugin", TestPlugin1)
+
+        when:
+        classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> ruleUrl
+        classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
+
+        then:
+        pluginRegistry.getTypeForId("someRuleSource") == TestRuleSource
+
+        when:
+        classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> pluginUrl
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
+        then:
         pluginRegistry.getTypeForId("somePlugin") == TestPlugin1
+    }
+
+    public void failsForRuleSourceWhenLookingForAPlugin() {
+        def url = writePluginProperties("someRuleSource", TestRuleSource)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> url
+        classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
+
+        when:
+        pluginRegistry.getPluginTypeForId("someRuleSource") == TestRuleSource
+
+        then:
+        PluginInstantiationException e = thrown()
+        e.message == "Implementation class 'org.gradle.api.internal.project.TestRuleSource' specified for plugin 'someRuleSource' does not implement the Plugin interface. Specified in $url."
     }
 
     public void failsForUnknownId() {
         when:
-        pluginRegistry.getTypeForId("unknownId")
+        pluginRegistry.getPluginTypeForId("unknownId")
 
         then:
         UnknownPluginException e = thrown()
+        e.message == "Plugin with id 'unknownId' not found."
+
+        when:
+        pluginRegistry.getTypeForId("unknownId")
+
+        then:
+        e = thrown()
         e.message == "Plugin with id 'unknownId' not found."
     }
 
@@ -89,30 +131,48 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.getResource("META-INF/gradle-plugins/noImpl.properties") >> url
 
         when:
-        pluginRegistry.getTypeForId("noImpl")
+        pluginRegistry.getPluginTypeForId("noImpl")
 
         then:
         PluginInstantiationException e = thrown()
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
+
+        when:
+        pluginRegistry.getTypeForId("noImpl")
+
+        then:
+        e = thrown()
+        e.message == "No implementation class specified for plugin 'noImpl' in $url."
     }
 
     public void failsWhenImplementationClassSpecifiedInPropertiesFileDoesNotImplementPlugin() {
-        def properties = new Properties()
-        def propertiesFile = testDir.file("prop")
-        properties.setProperty("implementation-class", "java.lang.String")
-        GUtil.saveProperties(properties, propertiesFile)
-        def url = propertiesFile.toURI().toURL()
+        def url = writePluginProperties("brokenImpl", String)
 
         given:
-        _ * classLoader.getResource("META-INF/gradle-plugins/brokenImpl.properties") >> url
-        _ * classLoader.loadClass("java.lang.String") >> String
+        classLoader.getResource("META-INF/gradle-plugins/brokenImpl.properties") >> url
+        classLoader.loadClass("java.lang.String") >> String
+
+        when:
+        pluginRegistry.getPluginTypeForId("brokenImpl")
+
+        then:
+        PluginInstantiationException e = thrown()
+        e.message == "Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface. Specified in $url."
+    }
+
+    public void failsWhenImplementationClassSpecifiedInPropertiesFileDoesNotImplementPluginAndDoesNotProvideRuleSources() {
+        def url = writePluginProperties("brokenImpl", String)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/brokenImpl.properties") >> url
+        classLoader.loadClass("java.lang.String") >> String
 
         when:
         pluginRegistry.getTypeForId("brokenImpl")
 
         then:
         PluginInstantiationException e = thrown()
-        e.message == "Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface. Specified in $url."
+        e.message == "Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface and does not define any rule sources. Specified in $url."
     }
 
     public void wrapsPluginInstantiationFailure() {

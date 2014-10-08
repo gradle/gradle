@@ -27,6 +27,7 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -79,6 +80,7 @@ public class DefaultGradleTest {
     private final ScriptHandlerFactory scriptHandlerFactory = context.mock(ScriptHandlerFactory.class);
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry = context.mock(ClassLoaderScopeRegistry.class);
     private final ClassLoaderScope classLoaderScope = context.mock(ClassLoaderScope.class);
+    private final AppliedPluginsInternal appliedPlugins = context.mock(AppliedPluginsInternal.class);
 
     private DefaultGradle gradle;
 
@@ -115,6 +117,8 @@ public class DefaultGradleTest {
             will(returnValue(buildListenerBroadcast));
             allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);
             will(returnValue(projectEvaluationListenerBroadcast));
+            allowing(gradleServiceRegistryMock).get(AppliedPluginsInternal.class);
+            will(returnValue(appliedPlugins));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }

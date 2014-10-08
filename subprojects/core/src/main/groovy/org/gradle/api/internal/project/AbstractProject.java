@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -909,6 +910,12 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     @Inject
     protected ScriptHandlerFactory getScriptHandlerFactory() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public AppliedPluginsInternal getAppliedPlugins() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

@@ -28,6 +28,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -66,6 +67,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ClassLoaderScope classLoaderScope;
     private final ScriptHandlerFactory scriptHandlerFactory;
 
+    private final AppliedPluginsInternal appliedPlugins;
+
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;
@@ -87,6 +90,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                 rootProjectActions = null;
             }
         });
+        appliedPlugins = services.get(AppliedPluginsInternal.class);
     }
 
     @Override
@@ -240,4 +244,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return classLoaderScope;
     }
 
+    public AppliedPluginsInternal getAppliedPlugins() {
+        return appliedPlugins;
+    }
 }

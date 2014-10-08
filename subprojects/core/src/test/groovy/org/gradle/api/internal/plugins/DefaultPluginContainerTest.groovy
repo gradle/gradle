@@ -40,7 +40,7 @@ public class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin id"() {
         def plugin = new TestPlugin1()
-        pluginRegistry.getTypeForId("plugin") >> TestPlugin1
+        pluginRegistry.getPluginTypeForId("plugin") >> TestPlugin1
         pluginRegistry.loadPlugin(TestPlugin1) >> plugin
         pluginRegistry.loadPlugin(TestPlugin2) >> new TestPlugin2()
 
@@ -86,7 +86,7 @@ public class DefaultPluginContainerTest extends Specification {
     }
 
     def "does not find plugin by unknown id"() {
-        pluginRegistry.getTypeForId("x") >> { throw new UnknownPluginException("x") }
+        pluginRegistry.getPluginTypeForId("x") >> { throw new UnknownPluginException("x") }
 
         expect:
         !container.hasPlugin("x")
@@ -109,7 +109,7 @@ public class DefaultPluginContainerTest extends Specification {
 
     def "executes action for plugin with given id"() {
         def plugin = new TestPlugin1()
-        pluginRegistry.getTypeForId("plugin") >> TestPlugin1
+        pluginRegistry.getPluginTypeForId("plugin") >> TestPlugin1
         def plugins = []
         container.add(plugin)
 

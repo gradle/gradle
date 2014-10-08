@@ -71,7 +71,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
 
             // Plugin registry will have the mapping cached in memory for most plugins, try first
             try {
-                Class<? extends Plugin<?>> typeForId = pluginRegistry.getTypeForId(key.id);
+                Class<? extends Plugin<?>> typeForId = pluginRegistry.getPluginTypeForId(key.id);
                 if (typeForId.equals(pluginClass)) {
                     return true;
                 }
@@ -180,7 +180,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     }
 
     protected Class<? extends Plugin> getTypeForId(String id) {
-        return pluginRegistry.getTypeForId(id);
+        return pluginRegistry.getPluginTypeForId(id);
     }
 
     private Plugin<T> providePlugin(Class<? extends Plugin<?>> type) {
