@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.resources;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -26,7 +25,6 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResource;
 
-import java.io.File;
 import java.nio.charset.Charset;
 
 public class DefaultResourceHandler implements ResourceHandler {
@@ -59,35 +57,19 @@ public class DefaultResourceHandler implements ResourceHandler {
         return new StringBackedTextResource(tempFileProvider, string);
     }
 
-    public TextResource fileText(File file) {
+    public TextResource fileText(Object file) {
         return fileText(file, Charset.defaultCharset().name());
     }
 
-    public TextResource fileText(File file, String charset) {
-        return fileText(fileOperations.files(file), charset);
+    public TextResource fileText(Object file, String charset) {
+        return new FileCollectionBackedTextResource(fileOperations.files(file), Charset.forName(charset));
     }
 
-    public TextResource fileText(FileCollection file) {
-        return fileText(file, Charset.defaultCharset().name());
-    }
-
-    public TextResource fileText(FileCollection file, String charset) {
-        return new FileCollectionBackedTextResource(file, Charset.forName(charset));
-    }
-
-    public TextResource archiveEntryText(File archive, String entryPath) {
+    public TextResource archiveEntryText(Object archive, String entryPath) {
         return archiveEntryText(archive, entryPath, Charset.defaultCharset().name());
     }
 
-    public TextResource archiveEntryText(File archive, String entryPath, String charset) {
-        return archiveEntryText(fileOperations.files(archive), entryPath, charset);
-    }
-
-    public TextResource archiveEntryText(FileCollection archive, String entryPath) {
-        return archiveEntryText(archive, entryPath, Charset.defaultCharset().name());
-    }
-
-    public TextResource archiveEntryText(FileCollection archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, archive, entryPath, Charset.forName(charset));
+    public TextResource archiveEntryText(Object archive, String entryPath, String charset) {
+        return new FileCollectionBackedArchiveTextResource(fileOperations, fileOperations.files(archive), entryPath, Charset.forName(charset));
     }
 }

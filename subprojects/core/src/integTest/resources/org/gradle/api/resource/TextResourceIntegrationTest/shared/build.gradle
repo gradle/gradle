@@ -38,12 +38,12 @@ task stringText(type: MyTask) {
 }
 
 task fileText(type: MyTask) {
-    config = resources.fileText(file("config.txt"))
+    config = resources.fileText("config.txt")
     output = project.file("output.txt")
 }
 
 task fileCollectionText(type: MyTask) {
-    config = resources.fileText(generateConfigFile.outputs.files)
+    config = resources.fileText(generateConfigFile)
     output = project.file("output.txt")
 }
 
