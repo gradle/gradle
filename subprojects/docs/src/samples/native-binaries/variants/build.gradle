@@ -57,7 +57,7 @@ binaries.all {
 
 // Apply custom arguments for different target platforms
 binaries.all {
-    if (toolChain in Gcc && targetPlatforms == platforms.x86) {
+    if (toolChain in Gcc && targetPlatform == platforms.x86) {
         cppCompiler.args '-O3'
     }
 }
