@@ -120,6 +120,88 @@ dependencies {
         succeeds 'resolve'
     }
 
+    def "can apply all rule types to all modules" () {
+        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        buildFile << """
+            ext.rulesInvoked = []
+            dependencies {
+                components {
+                    all { ComponentMetadataDetails details ->
+                        rulesInvoked << 1
+                    }
+                    all(new ActionRule('rulesInvoked': rulesInvoked))
+                    all(new RuleObject('rulesInvoked': rulesInvoked))
+                }
+            }
+
+            class ActionRule implements Action<ComponentMetadataDetails> {
+                List rulesInvoked
+
+                void execute(ComponentMetadataDetails details) {
+                    rulesInvoked << 2
+                }
+            }
+
+            class RuleObject {
+                List rulesInvoked
+
+                @org.gradle.model.Mutate
+                void execute(ComponentMetadataDetails details) {
+                    rulesInvoked << 3
+                }
+            }
+
+            resolve.doLast { assert rulesInvoked.sort() == [ 1, 2, 3 ] }
+        """
+
+        expect:
+        succeeds 'resolve'
+    }
+
+    def "can apply all rule types by module" () {
+        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        buildFile << """
+            ext.rulesInvoked = []
+            dependencies {
+                components {
+                    withModule('org.test:projectA') { ComponentMetadataDetails details ->
+                        assert details.id.group == 'org.test'
+                        assert details.id.name == 'projectA'
+                        rulesInvoked << 1
+                    }
+                    withModule('org.test:projectA', new ActionRule('rulesInvoked': rulesInvoked))
+                    withModule('org.test:projectA', new RuleObject('rulesInvoked': rulesInvoked))
+
+                    withModule('org.test:projectB') { ComponentMetadataDetails details ->
+                        throw new Exception('This rule should never fire!')
+                    }
+                }
+            }
+
+            class ActionRule implements Action<ComponentMetadataDetails> {
+                List rulesInvoked
+
+                void execute(ComponentMetadataDetails details) {
+                    rulesInvoked << 2
+                }
+            }
+
+            class RuleObject {
+                List rulesInvoked
+
+                @org.gradle.model.Mutate
+                void execute(ComponentMetadataDetails details) {
+                    rulesInvoked << 3
+                }
+            }
+
+            resolve.doLast { assert rulesInvoked.sort() == [ 1, 2, 3 ] }
+        """
+
+        expect:
+        succeeds 'resolve'
+    }
+
     String sq(String input) {
         return escapeForSingleQuoting(input)
     }

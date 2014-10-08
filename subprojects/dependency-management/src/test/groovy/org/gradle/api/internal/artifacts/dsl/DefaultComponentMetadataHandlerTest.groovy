@@ -17,10 +17,13 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.specs.Specs
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
+import org.gradle.internal.typeconversion.NotationParser
 
 import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserCodeException
@@ -35,12 +38,16 @@ import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class DefaultComponentMetadataHandlerTest extends Specification {
+    private static final String GROUP = "group"
+    private static final String MODULE = "module"
+
     // For testing ModuleMetadataProcessor capabilities
     def processor = new DefaultComponentMetadataHandler(new DirectInstantiator())
 
     // For testing ComponentMetadataHandler capabilities
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
-    def handler = new DefaultComponentMetadataHandler(new DirectInstantiator(), adapter)
+    NotationParser<Object, String> notationParser = Mock(NotationParser)
+    def handler = new DefaultComponentMetadataHandler(new DirectInstantiator(), adapter, notationParser)
     def ruleAction = Stub(RuleAction)
 
     def "add action rule that applies to all components" () {
@@ -89,6 +96,60 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.rules.size() == 1
         handler.rules[0].action == (ruleAction)
         handler.rules[0].spec == Specs.satisfyAll()
+    }
+
+    def "add action rule that applies to module" () {
+        def action = new Action<ComponentMetadataDetails>() {
+            @Override
+            void execute(ComponentMetadataDetails componentMetadataDetails) { }
+        }
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        handler.withModule(notation, action)
+
+        then:
+        1 * adapter.createFromAction(action) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        handler.rules.size() == 1
+        handler.rules[0].action == (ruleAction)
+        handler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "add closure rule that applies to module" () {
+        def closure = { ComponentMetadataDetails cmd -> }
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        handler.withModule(notation, closure)
+
+        then:
+        1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        handler.rules.size() == 1
+        handler.rules[0].action == (ruleAction)
+        handler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "add rule source rule that applies to module" () {
+        def ruleSource = new Object()
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        handler.withModule(notation, ruleSource)
+
+        then:
+        1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        handler.rules.size() == 1
+        handler.rules[0].action == (ruleAction)
+        handler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "propagates error creating rule for closure" () {
@@ -317,6 +378,26 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         with(capturedDescriptor2) {
             extraInfo.asMap() == [(new QName(id1.namespace, id1.name)): "info1 value", (new QName(id2.namespace, id2.name)): "info2 value"]
         }
+    }
+
+    def "ComponentMetadataDetailsSpec matches on group and name" () {
+        def spec = new DefaultComponentMetadataHandler.ComponentMetadataDetailsMatchingSpec(DefaultModuleIdentifier.newId(group, name))
+        def id = Mock(ModuleVersionIdentifier) {
+            1 * getGroup() >> { "org.gradle" }
+            (0..1) * getName() >> { "api" }
+        }
+        def details = Stub(ComponentMetadataDetails) {
+            getId() >> id
+        }
+
+        expect:
+        spec.isSatisfiedBy(details) == matches
+
+        where:
+        group        | name  | matches
+        "org.gradle" | "api" | true
+        "com.gradle" | "api" | false
+        "org.gradle" | "lib" | false
     }
 
     interface TestIvyMetaData extends IvyModuleResolveMetaData, MutableModuleComponentResolveMetaData {}

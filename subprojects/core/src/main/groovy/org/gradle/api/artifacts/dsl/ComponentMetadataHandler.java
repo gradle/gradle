@@ -106,6 +106,60 @@ public interface ComponentMetadataHandler {
     ComponentMetadataHandler all(Object ruleSource);
 
     /**
+     * Adds a rule to modify the metadata of the specified module.
+     * For example, this allows to set a component's status and status scheme
+     * from within the build script, overriding any value specified in the
+     * component descriptor.
+     *
+     * @param rule the rule to be added
+     * @return this
+     */
+    ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule);
+
+    /**
+     * Adds a rule to modify the metadata of the specified module.
+     * For example, this allows setting a component's status and status scheme
+     * from within the build script, overriding any value specified in the
+     * component descriptor.
+     *
+     * <p>The rule must declare a {@link ComponentMetadataDetails} as it's first parameter,
+     * allowing the component metadata to be modified.
+     *
+     * <p>In addition, the rule can declare additional (read-only) parameters, which may provide extra details
+     * about the component. The order of these additional parameters is irrelevant.
+     *
+     * <p>Presently, the following additional parameter types are supported:
+     * <ul>
+     *     <li>{@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} Additional Ivy-specific
+     *     metadata. Rules declaring this parameter will only be invoked for components packaged as an Ivy module.</li>
+     * </ul>
+     *
+     * @param rule the rule to be added
+     * @return this
+     */
+    ComponentMetadataHandler withModule(Object id, Closure<?> rule);
+
+    /**
+     * Adds a rule source object to modify the metadata of the specified module.
+     * For example, this allows setting a component's status and status scheme
+     * from within the build script, overriding any value specified in the
+     * component descriptor.
+     *
+     * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
+     *
+     * This rule method:
+     * <ul>
+     *     <li>must return void.</li>
+     *     <li>must have {@link ComponentMetadataDetails} as the first parameter.</li>
+     *     <li>may have an additional parameter of type {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
+     * </ul>
+     *
+     * @param ruleSource  the rule source object to be added
+     * @return this
+     */
+    ComponentMetadataHandler withModule(Object id, Object ruleSource);
+
+    /**
      * Enables configuring component module metadata.
      * This metadata applies to the entire component module (e.g. "group:name", like "org.gradle:gradle-core") regardless of the component version.
      *
