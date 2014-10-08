@@ -58,12 +58,13 @@ public interface ComponentMetadataHandler {
      * component descriptor.
      *
      * @param rule the rule to be added
+     * @return this
      */
     ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
     /**
      * Adds a rule to modify the metadata of depended-on software components.
-     * For example, this allows to set a component's status and status scheme
+     * For example, this allows setting a component's status and status scheme
      * from within the build script, overriding any value specified in the
      * component descriptor.
      *
@@ -80,8 +81,29 @@ public interface ComponentMetadataHandler {
      * </ul>
      *
      * @param rule the rule to be added
+     * @return this
      */
     ComponentMetadataHandler all(Closure<?> rule);
+
+    /**
+     * Adds a rule source object to modify the metadata of depended-on software components.
+     * For example, this allows setting a component's status and status scheme
+     * from within the build script, overriding any value specified in the
+     * component descriptor.
+     *
+     * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
+     *
+     * This rule method:
+     * <ul>
+     *     <li>must return void.</li>
+     *     <li>must have {@link ComponentMetadataDetails} as the first parameter.</li>
+     *     <li>may have an additional parameter of type {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
+     * </ul>
+     *
+     * @param ruleSource  the rule source object to be added
+     * @return this
+     */
+    ComponentMetadataHandler all(Object ruleSource);
 
     /**
      * Enables configuring component module metadata.

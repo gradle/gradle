@@ -85,6 +85,10 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
+    public ComponentMetadataHandler all(Object ruleSource) {
+        return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
+    }
+
     public void processMetadata(MutableModuleComponentResolveMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         processAllRules(metadata, details);

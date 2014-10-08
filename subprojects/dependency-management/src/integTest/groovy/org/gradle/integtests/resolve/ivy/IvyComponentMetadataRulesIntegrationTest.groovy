@@ -282,6 +282,29 @@ resolve.doLast { assert ruleInvoked }
         assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 
+    def "produces sensible error when @Mutate method does not have ComponentMetadata as first parameter" () {
+        buildFile << """
+            dependencies {
+                components {
+                    all(new BadRuleSource())
+                }
+            }
+
+            class BadRuleSource {
+                @org.gradle.model.Mutate
+                void doSomething(String s) { }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasCause("Type BadRuleSource is not a valid model rule source: first parameter of rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails")
+    }
+
     def ns(String name) {
         return new NamespaceId("http://my.extra.info/${name}", name)
     }
