@@ -125,7 +125,7 @@ class CheckstylePluginTest extends Specification {
         
         project.checkstyle {
             sourceSets = [project.sourceSets.main]
-            config = project.resources.text(project.file("checkstyle-config"))
+            config = project.resources.fileText(project.file("checkstyle-config"))
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
@@ -159,7 +159,7 @@ class CheckstylePluginTest extends Specification {
     def "can customize any additional checkstyle tasks via extension"() {
         def task = project.tasks.create("checkstyleCustom", Checkstyle)
         project.checkstyle {
-            config = project.resources.text(project.file("checkstyle-config"))
+            config = project.resources.fileText(project.file("checkstyle-config"))
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true

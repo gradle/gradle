@@ -42,7 +42,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         extension = project.extensions.create("codenarc", CodeNarcExtension, project)
         extension.with {
             toolVersion = "0.21"
-            config = project.resources.text(project.rootProject.file("config/codenarc/codenarc.xml"))
+            config = project.resources.fileText(project.rootProject.file("config/codenarc/codenarc.xml"))
             maxPriority1Violations = 0
             maxPriority2Violations = 0
             maxPriority3Violations = 0

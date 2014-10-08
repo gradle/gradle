@@ -66,7 +66,7 @@ class CodeNarcExtension extends CodeQualityExtension {
      * The CodeNarc configuration file to use.
      */
     void setConfigFile(File file) {
-        setConfig(prj.resources.text(file))
+        setConfig(prj.resources.fileText(file))
     }
 
     void setReportFormat(String reportFormat) {

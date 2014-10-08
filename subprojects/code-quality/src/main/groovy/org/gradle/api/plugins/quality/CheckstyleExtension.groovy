@@ -45,7 +45,7 @@ class CheckstyleExtension extends CodeQualityExtension {
      * The Checkstyle configuration file to use.
      */
     void setConfigFile(File configFile) {
-        setConfig(prj.resources.text(configFile))
+        setConfig(prj.resources.fileText(configFile))
     }
 
     /**

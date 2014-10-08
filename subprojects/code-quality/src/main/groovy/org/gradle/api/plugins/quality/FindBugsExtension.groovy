@@ -106,7 +106,7 @@ class FindBugsExtension extends CodeQualityExtension {
      * The filename of a filter specifying which bugs are reported.
      */
     void setIncludeFilter(File filter) {
-        setIncludeFilterConfig(prj.resources.text(filter))
+        setIncludeFilterConfig(prj.resources.fileText(filter))
     }
 
     /**
@@ -120,6 +120,6 @@ class FindBugsExtension extends CodeQualityExtension {
      * The filename of a filter specifying bugs to exclude from being reported.
      */
     void setExcludeFilter(File filter) {
-        setExcludeFilterConfig(prj.resources.text(filter))
+        setExcludeFilterConfig(prj.resources.fileText(filter))
     }
 }

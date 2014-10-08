@@ -63,7 +63,7 @@ public interface ResourceHandler {
      * @since 2.2
      */
     @Incubating
-    TextResource text(File file, String charset);
+    TextResource fileText(File file, String charset);
 
     /**
      * Same as {@code text(file, Charset.defaultCharset())}.
@@ -71,7 +71,7 @@ public interface ResourceHandler {
      * @since 2.2
      */
     @Incubating
-    TextResource text(File file);
+    TextResource fileText(File file);
 
     /**
      * Same as {@code text(fileCollection.singleFile, charset)}, except that the file collection
@@ -80,7 +80,7 @@ public interface ResourceHandler {
      * @since 2.2
      */
     @Incubating
-    TextResource text(FileCollection file, String charset);
+    TextResource fileText(FileCollection file, String charset);
 
     /**
      * Same as {@code text(fileCollection, Charset.defaultCharset().name())}.
@@ -88,7 +88,7 @@ public interface ResourceHandler {
      * @since 2.2
      */
     @Incubating
-    TextResource text(FileCollection file);
+    TextResource fileText(FileCollection file);
 
     /**
      * Creates a text resource backed by the archive entry at the given path within the given archive.
@@ -104,30 +104,30 @@ public interface ResourceHandler {
      * @since 2.2
      */
     @Incubating
-    TextResource archiveText(File archive, String entryPath, String charset);
+    TextResource archiveEntryText(File archive, String entryPath, String charset);
 
     /**
-     * Same as {@code archiveText(archive, path, Charset.defaultCharset().name())}.
+     * Same as {@code archiveEntryText(archive, path, Charset.defaultCharset().name())}.
      *
      * @since 2.2
      */
     @Incubating
-    TextResource archiveText(File archive, String path);
+    TextResource archiveEntryText(File archive, String path);
 
     /**
-     * Same as {@code archiveText(fileCollection.singleFile, path, charset)}, except that the file
+     * Same as {@code archiveEntryText(fileCollection.singleFile, path, charset)}, except that the file
      * collection will be evaluated lazily and its {@link org.gradle.api.Buildable} information preserved.
      *
      * @since 2.2
      */
     @Incubating
-    TextResource archiveText(FileCollection archive, String entryPath, String charset);
+    TextResource archiveEntryText(FileCollection archive, String entryPath, String charset);
 
     /**
-     * Same as {@code archiveText(fileCollection, path, Charset.defaultCharset().name())}.
+     * Same as {@code archiveEntryText(fileCollection, path, Charset.defaultCharset().name())}.
      *
      * @since 2.2
      */
     @Incubating
-    TextResource archiveText(FileCollection archive, String entryPath);
+    TextResource archiveEntryText(FileCollection archive, String entryPath);
 }

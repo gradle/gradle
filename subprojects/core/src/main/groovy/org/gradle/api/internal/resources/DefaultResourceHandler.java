@@ -59,35 +59,35 @@ public class DefaultResourceHandler implements ResourceHandler {
         return new StringBackedTextResource(tempFileProvider, string);
     }
 
-    public TextResource text(File file) {
-        return text(file, Charset.defaultCharset().name());
+    public TextResource fileText(File file) {
+        return fileText(file, Charset.defaultCharset().name());
     }
 
-    public TextResource text(File file, String charset) {
-        return text(fileOperations.files(file), charset);
+    public TextResource fileText(File file, String charset) {
+        return fileText(fileOperations.files(file), charset);
     }
 
-    public TextResource text(FileCollection file) {
-        return text(file, Charset.defaultCharset().name());
+    public TextResource fileText(FileCollection file) {
+        return fileText(file, Charset.defaultCharset().name());
     }
 
-    public TextResource text(FileCollection file, String charset) {
+    public TextResource fileText(FileCollection file, String charset) {
         return new FileCollectionBackedTextResource(file, Charset.forName(charset));
     }
 
-    public TextResource archiveText(File archive, String entryPath) {
-        return archiveText(archive, entryPath, Charset.defaultCharset().name());
+    public TextResource archiveEntryText(File archive, String entryPath) {
+        return archiveEntryText(archive, entryPath, Charset.defaultCharset().name());
     }
 
-    public TextResource archiveText(File archive, String entryPath, String charset) {
-        return archiveText(fileOperations.files(archive), entryPath, charset);
+    public TextResource archiveEntryText(File archive, String entryPath, String charset) {
+        return archiveEntryText(fileOperations.files(archive), entryPath, charset);
     }
 
-    public TextResource archiveText(FileCollection archive, String entryPath) {
-        return archiveText(archive, entryPath, Charset.defaultCharset().name());
+    public TextResource archiveEntryText(FileCollection archive, String entryPath) {
+        return archiveEntryText(archive, entryPath, Charset.defaultCharset().name());
     }
 
-    public TextResource archiveText(FileCollection archive, String entryPath, String charset) {
+    public TextResource archiveEntryText(FileCollection archive, String entryPath, String charset) {
         return new FileCollectionBackedArchiveTextResource(fileOperations, archive, entryPath, Charset.forName(charset));
     }
 }

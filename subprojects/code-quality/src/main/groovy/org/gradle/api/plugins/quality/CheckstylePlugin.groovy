@@ -37,7 +37,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
         extension.with {
             toolVersion = "5.7"
-            config = project.resources.text(project.file("config/checkstyle/checkstyle.xml"))
+            config = project.resources.fileText(project.file("config/checkstyle/checkstyle.xml"))
         }
 
         return extension
