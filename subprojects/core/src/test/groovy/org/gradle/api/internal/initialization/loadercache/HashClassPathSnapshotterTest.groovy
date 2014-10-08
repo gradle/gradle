@@ -91,4 +91,13 @@ class HashClassPathSnapshotterTest extends Specification {
         a != b
         a.hashCode() != b.hashCode()
     }
+
+    def "classpaths are the same for 2 empty dirs"() {
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir2")))
+
+        expect:
+        a == b
+        a.hashCode() == b.hashCode()
+    }
 }

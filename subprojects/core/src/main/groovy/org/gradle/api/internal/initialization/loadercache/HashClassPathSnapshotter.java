@@ -20,11 +20,10 @@ import com.google.common.primitives.Bytes;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
@@ -32,16 +31,22 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
     public ClassPathSnapshot snapshot(ClassPath classPath) {
         List<String> visitedFilePaths = new LinkedList<String>();
+        Set<File> visitedDirs = new LinkedHashSet<File>();
         byte[] combinedHash = new byte[0];
         List<File> cpFiles = classPath.getAsFiles();
-        combinedHash = hash(visitedFilePaths, combinedHash, cpFiles.toArray(new File[cpFiles.size()]));
+        combinedHash = hash(visitedFilePaths, visitedDirs, combinedHash, cpFiles.toArray(new File[cpFiles.size()]));
         return new ClassPathSnapshotImpl(visitedFilePaths, combinedHash);
     }
 
-    private byte[] hash(List<String> visitedFilePaths, byte[] combinedHash, File[] toHash) {
+    private byte[] hash(List<String> visitedFilePaths, Set<File> visitedDirs, byte[] combinedHash, File[] toHash) {
         for (File file : toHash) {
+            file = GFileUtils.canonicalise(file);
             if (file.isDirectory()) {
-                combinedHash = hash(visitedFilePaths, combinedHash, file.listFiles());
+                if (visitedDirs.add(file)) {
+                    //in theory, awkward symbolic links can lead to recursion problems.
+                    //TODO - figure out a way to test it. I only tested it 'manually' and the feature is needed.
+                    combinedHash = hash(visitedFilePaths, visitedDirs, combinedHash, file.listFiles());
+                }
             } else {
                 visitedFilePaths.add(file.getAbsolutePath());
                 combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
