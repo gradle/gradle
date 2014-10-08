@@ -16,8 +16,14 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+
+import static com.google.common.cache.CacheBuilder.newBuilder;
+import static org.gradle.api.internal.initialization.DefaultClassLoaderCache.Key;
 
 public class ClassLoaderCacheFactory {
 
@@ -30,13 +36,17 @@ public class ClassLoaderCacheFactory {
             maybeInit();
             return instance;
         }
-        return new DefaultClassLoaderCache();
+        return newCache(new FileClassPathSnapshotter());
+    }
+
+    private DefaultClassLoaderCache newCache(ClassPathSnapshotter snapshotter) {
+        return new DefaultClassLoaderCache(newBuilder().<Key, ClassLoader>build(), snapshotter);
     }
 
     private void maybeInit() {
         if (instance == null) {
             LOGGER.lifecycle("Initializing global ClassLoader cache.");
-            instance = new DefaultClassLoaderCache();
+            instance = newCache(new HashClassPathSnapshotter());
         }
     }
 }

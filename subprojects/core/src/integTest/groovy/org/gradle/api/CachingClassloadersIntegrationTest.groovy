@@ -18,7 +18,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 //classloaders are cached in process so the test only makes sense if gradle invocations share the process
@@ -56,7 +55,6 @@ class CachingClassLoadersIntegrationTest extends AbstractIntegrationSpec {
         then: output.contains("build count: 1")
     }
 
-    @Ignore //in progress
     def "refreshes classloader when buildscript changes"() {
         run()
         buildFile << """

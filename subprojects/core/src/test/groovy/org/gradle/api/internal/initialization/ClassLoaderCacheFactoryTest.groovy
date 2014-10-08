@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.initialization
 
+import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,16 +34,19 @@ class ClassLoaderCacheFactoryTest extends Specification {
         System.setProperty(TOGGLE_CACHING_PROPERTY, "not true")
         expect:
         factory.create() != factory.create()
+        factory.create().snapshotter instanceof FileClassPathSnapshotter
     }
 
     def "creates new instance if property is not configured"() {
         expect:
         factory.create() != factory.create()
+        factory.create().snapshotter instanceof FileClassPathSnapshotter
     }
 
     def "reuses instance if property is on"() {
         System.setProperty(TOGGLE_CACHING_PROPERTY, "True")
         expect:
         factory.create() == factory.create()
+        factory.create().snapshotter instanceof HashClassPathSnapshotter
     }
 }

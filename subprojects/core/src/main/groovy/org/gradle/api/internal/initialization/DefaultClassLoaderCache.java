@@ -75,7 +75,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     private final Cache<Key, ClassLoader> cache;
-    private final ClassPathSnapshotter snapshotter;
+    final ClassPathSnapshotter snapshotter;
 
     public DefaultClassLoaderCache() {
         this(CacheBuilder.newBuilder().<Key, ClassLoader>build());
