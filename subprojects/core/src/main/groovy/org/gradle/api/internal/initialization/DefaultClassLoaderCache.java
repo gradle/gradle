@@ -21,7 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshot;
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
-import org.gradle.api.internal.initialization.loadercache.FilePathsSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -82,7 +82,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache) {
-        this(cache, new FilePathsSnapshotter());
+        this(cache, new FileClassPathSnapshotter());
     }
 
     public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache, ClassPathSnapshotter snapshotter) {

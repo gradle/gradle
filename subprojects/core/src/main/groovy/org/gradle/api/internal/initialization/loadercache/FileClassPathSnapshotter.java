@@ -21,7 +21,7 @@ import org.gradle.internal.classpath.ClassPath;
 /**
  * Creates snapshot based on file paths.
  */
-public class FilePathsSnapshotter implements ClassPathSnapshotter {
+public class FileClassPathSnapshotter implements ClassPathSnapshotter {
     public ClassPathSnapshot snapshot(final ClassPath classPath) {
         return new ClassPathSnapshotImpl(classPath);
     }
