@@ -407,7 +407,7 @@ model {
 jvm {
     libraries {
         jvmLib {
-            targetPlatforms "$currentJava"
+            targetPlatform "$currentJava"
         }
     }
 }
@@ -476,7 +476,7 @@ Binaries
     jvm {
         libraries {
             myLib {
-                targetPlatforms "java5", "java6", "java7"
+                targetPlatform "java5", "java6", "java7"
             }
         }
     }
