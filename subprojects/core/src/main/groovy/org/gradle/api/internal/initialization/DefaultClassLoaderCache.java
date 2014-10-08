@@ -19,6 +19,9 @@ package org.gradle.api.internal.initialization;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshot;
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.FilePathsSnapshotter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -31,16 +34,15 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     public static class Key {
         private final ClassLoader parent;
-        private final ClassPath classPath;
+        private final ClassPathSnapshot classPathSnapshot;
         private final FilteringClassLoader.Spec filterSpec;
 
-        private Key(ClassLoader parent, ClassPath classPath, FilteringClassLoader.Spec filterSpec) {
+        private Key(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec) {
             this.parent = parent;
-            this.classPath = classPath;
+            this.classPathSnapshot = classPathSnapshot;
             this.filterSpec = filterSpec;
         }
 
-        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -51,7 +53,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
             Key key = (Key) o;
 
-            if (!classPath.equals(key.classPath)) {
+            if (!classPathSnapshot.equals(key.classPathSnapshot)) {
                 return false;
             }
             if (filterSpec != null ? !filterSpec.equals(key.filterSpec) : key.filterSpec != null) {
@@ -64,28 +66,35 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             return true;
         }
 
-        @Override
         public int hashCode() {
             int result = parent.hashCode();
-            result = 31 * result + classPath.hashCode();
+            result = 31 * result + classPathSnapshot.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             return result;
         }
     }
 
     private final Cache<Key, ClassLoader> cache;
+    private final ClassPathSnapshotter snapshotter;
 
     public DefaultClassLoaderCache() {
         this(CacheBuilder.newBuilder().<Key, ClassLoader>build());
     }
 
     public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache) {
+        this(cache, new FilePathsSnapshotter());
+    }
+
+    public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache, ClassPathSnapshotter snapshotter) {
         this.cache = cache;
+        this.snapshotter = snapshotter;
     }
 
     public ClassLoader get(final ClassLoader parent, final ClassPath classPath, @Nullable final FilteringClassLoader.Spec filterSpec) {
         try {
-            return cache.get(new Key(parent, classPath, filterSpec), new Callable<ClassLoader>() {
+            ClassPathSnapshot s = snapshotter.snapshot(classPath);
+            Key key = new Key(parent, s, filterSpec);
+            return cache.get(key, new Callable<ClassLoader>() {
                 public ClassLoader call() throws Exception {
                     if (filterSpec == null) {
                         return new URLClassLoader(classPath.getAsURLArray(), parent);
@@ -98,5 +107,4 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
-
 }

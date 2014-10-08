@@ -18,6 +18,7 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 //classloaders are cached in process so the test only makes sense if gradle invocations share the process
@@ -25,6 +26,7 @@ import spock.lang.IgnoreIf
 class CachingClassLoadersIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.requireIsolatedDaemons()
         executer.withClassLoaderCaching(true)
         buildFile << """
             class BuildCounter {
@@ -41,8 +43,7 @@ class CachingClassLoadersIntegrationTest extends AbstractIntegrationSpec {
         run("counterInit")
         run("buildCount")
 
-        then:
-        output.contains("build count: 2")
+        then: output.contains("build count: 2")
     }
 
     def "no caching when property is off"() {
@@ -52,7 +53,17 @@ class CachingClassLoadersIntegrationTest extends AbstractIntegrationSpec {
         run("counterInit")
         run("buildCount")
 
-        then:
-        output.contains("build count: 1")
+        then: output.contains("build count: 1")
+    }
+
+    @Ignore //in progress
+    def "refreshes classloader when buildscript changes"() {
+        run()
+        buildFile << """
+            task newTask
+        """
+
+        expect:
+        run "newTask" //knows new task
     }
 }
