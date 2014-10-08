@@ -148,7 +148,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             }
             libraries {
                 hello {
-                    targetPlatforms "x86"
+                    targetPlatforms "x86", "x86_64"
                 }
             }
             sources {
@@ -224,29 +224,18 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def "can configure binary for multiple target operating systems"() {
-        String currentOs
-        if (os.windows) {
-            currentOs = "windows"
-        } else if (os.linux) {
-            currentOs = "linux"
-        } else if (os.macOsX) {
-            currentOs = "osx"
-        } else {
-            throw new AssertionError("Unexpected operating system")
-        }
-
         when:
         buildFile << """
             model {
                 platforms {
-                    osx {
-                        operatingSystem "osx"
-                    }
                     windows {
                         operatingSystem "windows"
                     }
                     linux {
                         operatingSystem "linux"
+                    }
+                    osx {
+                        operatingSystem "osx"
                     }
                 }
             }
@@ -254,19 +243,18 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
                 cppCompiler.define "FRENCH"
             }
-
-            executables.main.targetPlatforms "$currentOs"
         """
+
         and:
         succeeds "assemble"
 
         then:
         if (os.windows) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 windows" * 2
+            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows" * 2
         } else if (os.linux) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 linux" * 2
+            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux" * 2
         } else if (os.macOsX) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 os x" * 2
+            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x" * 2
         } else {
             throw new AssertionError("Unexpected operating system")
         }
