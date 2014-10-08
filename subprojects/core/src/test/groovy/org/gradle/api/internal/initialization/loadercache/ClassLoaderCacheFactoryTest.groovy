@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory
-import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter
-import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification

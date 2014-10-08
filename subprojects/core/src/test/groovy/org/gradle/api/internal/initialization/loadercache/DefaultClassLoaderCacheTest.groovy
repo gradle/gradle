@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization.loadercache
 
 import com.google.common.cache.CacheBuilder
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
