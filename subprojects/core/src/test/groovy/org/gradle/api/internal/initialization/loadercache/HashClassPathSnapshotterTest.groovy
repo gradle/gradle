@@ -71,4 +71,24 @@ class HashClassPathSnapshotterTest extends Specification {
         a == b
         a.hashCode() == b.hashCode()
     }
+
+    def "classpaths are equal if dirs are the same"() {
+        temp.file("dir/a.txt") << "a"; temp.file("dir/b.txt") << "b"; temp.file("dir/dir2/c.txt") << "c"
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir")))
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir")))
+
+        expect:
+        a == b
+        a.hashCode() == b.hashCode()
+    }
+
+    def "classpaths are different if dir names are different"() {
+        temp.file("dir1/a.txt") << "a"; temp.file("dir2/a.txt") << "a"
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir2")))
+
+        expect:
+        a != b
+        a.hashCode() != b.hashCode()
+    }
 }

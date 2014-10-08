@@ -31,13 +31,23 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
     private final Hasher hasher = new DefaultHasher();
 
     public ClassPathSnapshot snapshot(ClassPath classPath) {
-        List<String> files = new LinkedList<String>();
+        List<String> visitedFilePaths = new LinkedList<String>();
         byte[] combinedHash = new byte[0];
-        for (File file : classPath.getAsFiles()) {
-            files.add(file.getAbsolutePath());
-            combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
+        List<File> cpFiles = classPath.getAsFiles();
+        combinedHash = hash(visitedFilePaths, combinedHash, cpFiles.toArray(new File[cpFiles.size()]));
+        return new ClassPathSnapshotImpl(visitedFilePaths, combinedHash);
+    }
+
+    private byte[] hash(List<String> visitedFilePaths, byte[] combinedHash, File[] toHash) {
+        for (File file : toHash) {
+            if (file.isDirectory()) {
+                combinedHash = hash(visitedFilePaths, combinedHash, file.listFiles());
+            } else {
+                visitedFilePaths.add(file.getAbsolutePath());
+                combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
+            }
         }
-        return new ClassPathSnapshotImpl(files, combinedHash);
+        return combinedHash;
     }
 
     private class ClassPathSnapshotImpl implements ClassPathSnapshot {
