@@ -121,46 +121,29 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
-    def "produces sensible error when @Mutate method provides invalid arguments" () {
+    def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
         buildFile << """
             $baseBuildFile
-
-            dependencies {
-                conf "org.utils:api:1.2"
-            }
-
-            def ruleSource = new Select11()
-
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all ruleSource
+                        all(new BadRuleSource())
                     }
                 }
             }
 
-            class Select11 {
+            class BadRuleSource {
                 def candidates = []
 
                 @org.gradle.model.Mutate
-                void select(${parameters}) {
-                    if (selection.candidate.version != '1.1') {
-                        selection.reject("not 1.1")
-                    }
-                    candidates << selection.candidate.version
-                }
+                void select(String s) { }
             }
         """
 
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failureHasCause(message)
-
-        where:
-        parameters                               | message
-        "String selection"                       | "Type Select11 is not a valid model rule source: first parameter of rule method must be of type org.gradle.api.artifacts.ComponentSelection"
-        "ComponentSelection selection, String s" | "The rule source provided does not provide a valid rule for 'ComponentSelectionRules'."
+        failureHasCause("Type BadRuleSource is not a valid model rule source: first parameter of rule method must be of type org.gradle.api.artifacts.ComponentSelection")
     }
 
     def "produces sensible error when rule source throws an exception" () {
