@@ -22,7 +22,7 @@ import spock.lang.IgnoreIf
 
 //classloaders are cached in process so the test only makes sense if gradle invocations share the process
 @IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
-class CachingClassLoadersIntegrationTest extends AbstractIntegrationSpec {
+class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireIsolatedDaemons()
