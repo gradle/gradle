@@ -28,7 +28,7 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -82,7 +82,7 @@ public class DefaultScriptCompilationHandlerTest {
     public void setUp() throws IOException, ClassNotFoundException {
         File testProjectDir = tmpDir.createDir("projectDir");
         classLoader = getClass().getClassLoader();
-        scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DefaultClassLoaderCache());
+        scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache());
         scriptCacheDir = new File(testProjectDir, "cache");
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE
                 + "')";

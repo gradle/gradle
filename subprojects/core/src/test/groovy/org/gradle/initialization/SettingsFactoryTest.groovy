@@ -20,9 +20,9 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -60,7 +60,7 @@ class SettingsFactoryTest extends Specification {
         GradleInternal gradle = Mock(GradleInternal)
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
-                settingsDir, scriptSource, expectedGradleProperties, startParameter, new RootClassLoaderScope(getClass().classLoader, new DefaultClassLoaderCache()));
+                settingsDir, scriptSource, expectedGradleProperties, startParameter, new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache()));
 
         then:
         gradle.is(settings.gradle)

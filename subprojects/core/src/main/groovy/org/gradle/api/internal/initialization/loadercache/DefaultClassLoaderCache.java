@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -73,10 +72,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     private final Cache<Key, ClassLoader> cache;
     final ClassPathSnapshotter snapshotter;
-
-    public DefaultClassLoaderCache() {
-        this(CacheBuilder.newBuilder().<Key, ClassLoader>build());
-    }
 
     public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache) {
         this(cache, new FileClassPathSnapshotter());

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project
 
+import groovy.lang.MissingMethodException
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -32,9 +33,10 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
+import org.gradle.api.internal.project.TestConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
@@ -105,7 +107,7 @@ class DefaultProjectTest {
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
 
-    ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DefaultClassLoaderCache())
+    ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild()
 
     @Before
