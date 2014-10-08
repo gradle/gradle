@@ -721,7 +721,7 @@ Infrastructure automatically wires up the correct transformation rule for each b
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
 
-## Feature: Plugin implements custom language support
+## Feature: Build multiple platform variants of Java libraries
 
 ### Story: Build author declares target Java version for a Java library
 
@@ -758,18 +758,6 @@ Target platform should be reachable from the `JvmBinarySpec`.
 - Reasonable error message when the current JDK cannot build for the target Java version.
 - Target JVM runtime appears in the output of the components report.
 
-#### Open issues/considerations
-
-- Strict vs lenient: If I declare I want to build for Java 6 and I'm running on Java 8, is that ok or a problem? (Lenient)
-- DSL should (later) allow declaration of a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc). (Later)
-- DSL should (later) allow a customised JVM-based platform to be declared, for example, to build things that are to run in some Web container. (Later)
-- DSL should (later) allow platforms to be composed, for example, Scala 2.11.0 on Java 1.8 vs Scala 2.11.0 on Java 1.6.
-    - A Java platform is really a composite made up of Java-the-language + JVM-the-platform. (Later)
-- Plugin declares a custom Java platform. (Later)
-- Plugin declares a custom platform. (Later)
-- Target platform should be visible in the dependencies reports (Later)
-- Split out configurable 'platform spec' out from consumable 'platform' definition. (Later)
-
 ### Story: Build author declares that JVM library should be built for multiple JVM versions
 
 For example:
@@ -796,105 +784,57 @@ Add a sample to show a JVM library built for multiple Java versions.
 - A Jar binary is defined for each target platform.
 - Running `gradle assemble` will build the Jars, and the bytecode in each Jar uses the correct bytecode version.
 - Binaries with correct target JVM runtime appear in the output of the components report.
-
-#### Open issues
-
-- Discover or configure the JDK installations (Later)
-- Need some convention or mechanism for source that is conditionally included based on the target platform. (Later)
-
-### Story: Use a consistent approach for native and JVM platforms
-
-- Replace `org.gradle.nativeplatform.platform.Platform` with:
-    - `org.gradle.nativeplatform.platform.NativePlatform` (it's really a 'hosted C environment' as per the ISO C spec)
-    - `org.gradle.platform.base.platform.Platform`
-- Replace `org.gradle.nativeplatform.toolchain.ToolChain` with:
-    - `org.gradle.nativeplatform.toolchain.NativeToolChain`
-    - `org.gradle.platform.base.toolchain.ToolChain`
-- Change `JavaToolChain` to extend `ToolChain`.
-- Change `JvmPlatform` to extend `Platform`.
-- Convert `PlatformContainer` into a PolymorphicNamedDomainContainer of `Platform`s and move into 'platform-base'
-    - native plugin registers factory for `NativePlatform`, and makes this the default type as well
-    - JVM plugin registers factory for `JvmPlatform`, and adds instance for every known JVM.
-- Add `PlatformAwareComponentSpec`
-    - Common superclass of `JvmLibrary` and `TargetedNativeComponent`
-    - Add `PlatformAwareComponentSpec.targetPlatform(String[])`
-- Remove `JvmLibrary.target()` (replaced by this method)
-         - Remove `TargetedNativeComponent.targetPlatforms()` (replaced by this method)
-    - Add `List<String> PlatformAwareComponentSpec.getTargetPlatforms()`
-         - (Later this will return a list of 'platform requirement' instances, so we don't need to rely on platform name)
-         - Should return an empty list if no target platforms are explicitly configured.
-         - Replace `TargetedNativeComponentInternal.choosePlatforms()` with code that uses this new method
-         - In `JvmComponentPlugin.Rules.createBinaries()` need to select matching `JvmPlatform`s from the `PlatformContainer`
-               - `PlatformContainer` will be a rule input
-- Use a consistent DSL for declaring the target platforms of all platform aware component types.
-- Change `NativeComponentSpecInitializer` to build binaries only for targeted platforms
-    - If `getTargetPlatforms()` is empty, choose the 'current' platform from the `PlatformContainer` and create binary for that platform
-    - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
-    - Fix tests that build for multiple platforms by explicitly targeting those platforms
-- Introduce `JvmComponentSpecInitializer` to mirror `NativeComponentSpecInitializer`
-    - Extracted out of `JvmComponentPlugin.Rules.createBinaries()`
-    - If `JvmLibrary.getTargetPlatforms()` is empty, select the 'current' platform from PlatformContainer and create binary for that platform.
-    - If one or more platforms is targeted, get each from the PlatformContainer and create a binary for that platform.
-- Rename the canned `JvmPlatform` instances: use 'java6', 'java7', etc
-    - Add `JvmPlatform.targetCompatibility(String)` to configure the target compatibility
-    - When creating JvmPlatforms for each JavaVersion, add an action to configure the target compatibility.
-- Mention breaking changes in release notes.
-
-#### Test coverage
-
+- `BinarySpec.buildable` is correctly reported for each JVM binary in the components report
+    - Must be able to report both buildable and non-buildable binaries
 - For both JVM and native
     - Fails gracefully when attempting to target an unknown platform
     - Fails gracefully when any one of a set of a target platforms is not known: reports the name of the invalid platform
     - Fails gracefully when attempting to target a JVM platform for a native component, and vice-versa
-- When multiple native platforms are defined but none are targeted, attempts to build for sensible default platform
 - When no JVM platform is targeted, attempts to build for current JVM
+- Where some variants are not buildable on the current machine, `gradle assemble` will build only the buildable variants
+- Useful error message from compilation task when attempting to build a binary that is not buildable
 
-#### Open issues
+### Story: Build author chooses targetPlatform for NativeComponent from common set of Platforms
 
-- Add factory methods for common platforms to match those used for the Java runtime.
-- Add infrastructure to coerce string to platform, architecture or operating system types.
-- Populate the platform container with `NativePlatform` instances for all known OS/arch combinations
-- Remove the 'default' platform/os/arch combinations: instead we should determine the current architecture to use for default.
-
-### Story: Use a consistent approach for native and JVM tool chains
-
-Given a binary for a platform, Gradle requires a `ToolChain`, that can produce a `ToolProvider` to provide any tools
-required to compile the sources and link them into a binary.
-In the native domain, the `ToolProvider` obtained for a platform is already configured to build for the target platform, so additional tool arguments
-are not required.
-
-This story will extract common infrastructure for defining tool chains and obtaining a tool provider to build a binary.
+This story makes the production of native platform variants more consistent with the approach used for Java libraries,
+by providing a common set of 'pre-defined' `NativePlatform` instances.
 
 #### User visible changes
 
-- Verify the java version of the tool chain, rather than assuming current
+- A set of "sensible" platforms will always be available for a component to target, even if not defined in a `platforms` block.
+- User-provided platforms may have arbitrary names for Architecture and Operating System
+- Each defined `NativePlatform` must have a value specified for `OperatingSystem` and `Architecture`
+    - There will be no special value available for "Tool chain default"
+- When a NativeComponentSpec has no 'targetPlatform' defined, then only a single NativeVariantSpec will be produced
+    - The `Platform` that best matches the os/arch of the build machine will be used by default
 
-#### Implementation
+#### Test coverage
 
-- Extract `ToolChainRegistry` and `ToolChainRegistryInternal` into 'platform-base'
-    - Will provide a `ToolChain` given a `Platform`, or an 'unavailable' tool chain if none can target the platform
-- Extract `ToolChainInternal` out of `NativeToolChainInternal`: `NativeToolChainInternal` and `JavaToolChainInternal` extend this
-    - Will produce a `ToolProvider` given a `Platform`, or throws an exception for 'unavailable' tool chain.
-- Delegate to the JavaToolChain to determine if a binary is buildable.
+- Native component with no targetPlatform will be have one variant produced, for pre-defined platform that matches current
+- Native component can target multiple pre-defined platforms, producing multiple variants
+- NativeExecutable can link to NativeLibrary where neither defines target platform
+- NativeExecutable can link to NativeLibrary where both define identical sets of targetPlatforms
+- Error reported when defining platform:
+    - with same name as built-in platform
+    - with no value specified for architecture or operatingSystem
+- Error reported when resolving libs for NativeExecutable
+    - where Executable and Library define different target platforms
+    - where Executable defines targets non-default platform and Library (implicitly) targets default platform
 
-#### Test cases
+#### Open issues / Options
 
-- The 'current' JDK will be available as a tool chain in `ToolChainRegistry`
-- The `BinarySpec.buildable` flag should be `false` when a particular JVM binary cannot be built by any available JVM.
-- Configuration of the build should not fail when a JVM binary cannot be built. Instead the appropriate compilation task should fail.
-- Running `gradle components` on a build which cannot be built with the current JVM should not fail, and should indicate that
-the binary is not buildable.
+- Add infrastructure to coerce string to architecture or operating system types.
+- Rename `targetPlatforms` to `platform` or `platforms` for both JVM and Native components
+- Rename `PlatformContainer` and methods so it's clear we're 'resolving' a `Platform` based on requirements
 
-#### Open issues
+### Story: Assemble task fails when no variants are buildable
 
-- Turn what is `ToolChain` into a tool chain locator or factory.
-- Turn what is `PlatformToolChain` into an immutable tool chain. Resolve the tool chain during configuration, and use this as input for incremental build.
-- Treat Java tool chain as input for incremental build.
-- Link using `g++` or `clang++` only when a c++ runtime is required.
-- Link with correct flags for a windows resource only binary (ie when neither c nor c++ runtime is required).
-- Provide the correct flags to compile and link against Foundation framework when using objective-c
-- Use mingw under cygwin when target is windows, gcc under cygwin when target is posix
-- Should there be metadata-information about each `ToolChain` (`NativeToolChain`, `JavaToolChain`) so that a platform can know what capabilities it has.
+When a user attempts to build a specific binary and no tool-chain is available, the user is given an informative message,
+but `gradle assemble` will silently do nothing where no binaries are buildable.
+
+This story changes this so that if _no_ binaries can be built, Gradle will report the reason for each binary (variant).
+
+## Feature: Plugin implements custom language support
 
 ### Story: Plugin declares custom language source set
 
@@ -941,6 +881,9 @@ language.
  'a way to configure an arbitrary set of source files of this language` (the source set). The plugin should only have to declare the things it
  needs to compile. A plugin might still be able to additionally declare a source set type, when some custom implementation is required.
 - Platform should be attached to source set as well.
+- Need to be able to register additional tools with a Tool Chain as well
+    - E.g. Adding Objective-C language adds the objective-c compiler to GCC and Visual Studio
+    - E.g. Addigin Scala language registers the Scala tools
 
 ### Story: Plugin declares custom language implementation
 
@@ -1000,6 +943,7 @@ custom language.
 #### Open issues
 
 - Need to be able to apply a naming scheme for tasks, and some way to inject an output location for each transformation.
+- Plugin needs to be able to contribute to the `PlatformToolChain` for the target platform.
 
 ### Story: Core plugins declare language implementations
 
@@ -1498,6 +1442,33 @@ Should be possible to declare stand-alone test suite with custom variants.
             cpp(CppSourceSet)
         }
     }
+
+- Need some convention or mechanism for source that is conditionally included based on the target platform.
+
+## Platform support
+
+- Build author defines a Java platform with a custom bootstrap classpath (for cross compilation, Android, etc).
+- Plugin declares a custom platform type
+- Plugin declares a custom platform type that includes another platform: e.g.
+    - AndroidJvm platform includes a JavaPlatform and adds Android APIs
+    - Scala platform includes a Java platform
+    - Java platform includes a JVM platform
+    - Web container platform includes a Java platform
+- Target platform should be visible in the dependencies reports
+
+## Tool Chain support
+
+- Turn what is `ToolChain` into a tool chain locator or factory.
+- Turn what is `PlatformToolChain` into an immutable tool chain. Resolve the tool chain during configuration, and use this as input for incremental build.
+- Treat Java tool chain as input for incremental build.
+- Link using `g++` or `clang++` only when a c++ runtime is required.
+- Link with correct flags for a windows resource only binary (ie when neither c nor c++ runtime is required).
+- Provide the correct flags to compile and link against Foundation framework when using objective-c
+- Use mingw under cygwin when target is windows, gcc under cygwin when target is posix
+- Should there be metadata-information about each `ToolChain` (`NativeToolChain`, `JavaToolChain`) so that a platform can know what capabilities it has.
+- Discover or configure the JDK installations
+- When using JDK to cross-compile for an earlier Java version, need to provide correct Java API in classpath
+- Verify the java version of the tool chain, rather than assuming current
 
 ## Misc
 
