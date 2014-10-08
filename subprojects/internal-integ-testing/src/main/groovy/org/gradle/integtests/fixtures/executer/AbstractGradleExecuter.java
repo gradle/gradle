@@ -446,8 +446,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
-    public GradleExecuter withClassLoaderCaching(boolean ClassLoaderCaching) {
-        this.classLoaderCaching = ClassLoaderCaching;
+    public GradleExecuter withClassLoaderCaching(boolean classLoaderCaching) {
+        this.classLoaderCaching = classLoaderCaching;
         return this;
     }
 
