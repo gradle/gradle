@@ -68,7 +68,7 @@ class ProjectBuilderTest extends Specification {
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 
-    def canApplyACustomPluginByType() {
+    def canApplyACustomPluginUsingClass() {
         when:
         def project = buildProject()
         project.apply plugin: CustomPlugin
@@ -86,10 +86,28 @@ class ProjectBuilderTest extends Specification {
         project.tasks.hello instanceof DefaultTask
     }
 
+    def canApplyACustomPluginByType() {
+        when:
+        def project = buildProject()
+        project.apply type: CustomPlugin
+
+        then:
+        project.tasks.hello instanceof DefaultTask
+    }
+
     def canApplyARuleSourceById() {
         when:
         def project = buildProject()
         project.apply plugin: 'custom-rule-source'
+
+        then:
+        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+    }
+
+    def canApplyARuleSourceByType() {
+        when:
+        def project = buildProject()
+        project.apply type: CustomRuleSource
 
         then:
         project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"

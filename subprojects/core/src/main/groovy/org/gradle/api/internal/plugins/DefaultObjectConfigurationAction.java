@@ -83,6 +83,15 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
+    public ObjectConfigurationAction type(final Class<?> pluginClass) {
+        actions.add(new Runnable() {
+            public void run() {
+                applyType(pluginClass);
+            }
+        });
+        return this;
+    }
+
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         UriScriptSource scriptSource = new UriScriptSource("script", scriptUri);
@@ -118,6 +127,25 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
                 }
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
+            }
+        }
+    }
+
+    private void applyType(Class<?> pluginClass) {
+        if (Plugin.class.isAssignableFrom(pluginClass)) {
+            @SuppressWarnings("unchecked") Class<? extends Plugin> pluginImplementingClass = (Class<? extends Plugin>) pluginClass;
+            applyPlugin(pluginImplementingClass);
+        } else {
+            for (Object target : targets) {
+                if (target instanceof PluginAwareInternal) {
+                    try {
+                        ((PluginAwareInternal) target).getAppliedPlugins().apply(pluginClass);
+                    } catch (Exception e) {
+                        throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
+                    }
+                } else {
+                    throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
+                }
             }
         }
     }

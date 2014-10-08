@@ -401,10 +401,10 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 
 ### Test Coverage
 
-- Rule source plugin can be applied to Project via `apply()` using an id or type
-- `Plugin` implementing classes can be applied to Project via `apply(type: ... )`
+- ~~Rule source plugin can be applied to Project via `apply()` using an id or type~~
+- ~~`Plugin` implementing classes can be applied to Project via `apply(type: ... )`~~
 - Rule source plugin can be applied to Project via `plugins {}`
-- Rule source plugin can be applied in ProjectBuilder based unit test
+- ~~Rule source plugin can be applied in ProjectBuilder based unit test~~
 - Rule source plugin cannot be applied to `PluginAware` that is not model rule compatible (e.g. Gradle)
 - Reasonable error message is provided when the `RulePlugin` implementation violates the rules for rule sources
 - `Plugin` impl can include nested rule source class
