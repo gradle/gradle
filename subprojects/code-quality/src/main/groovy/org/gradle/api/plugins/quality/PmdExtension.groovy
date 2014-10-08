@@ -73,7 +73,7 @@ class PmdExtension extends CodeQualityExtension {
      * <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a>
      * for how to author a rule set.
      *
-     * Example: ruleSetConfig = resources.fileText(file("config/pmd/myRuleSet.xml"))
+     * Example: ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
      *
      * @since 2.2
      */

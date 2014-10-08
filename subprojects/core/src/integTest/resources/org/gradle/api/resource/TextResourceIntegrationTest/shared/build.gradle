@@ -33,21 +33,21 @@ dependencies {
 }
 
 task stringText(type: MyTask) {
-    config = resources.text("my config")
+    config = resources.text.fromString("my config")
     output = project.file("output.txt")
 }
 
 task fileText(type: MyTask) {
-    config = resources.fileText("config.txt")
+    config = resources.text.fromFile("config.txt")
     output = project.file("output.txt")
 }
 
 task fileCollectionText(type: MyTask) {
-    config = resources.fileText(generateConfigFile)
+    config = resources.text.fromFile(generateConfigFile)
     output = project.file("output.txt")
 }
 
 task archiveEntryText(type: MyTask) {
-    config = resources.archiveEntryText(configurations.sharedConfig, "config.txt")
+    config = resources.text.fromArchiveEntry(configurations.sharedConfig, "config.txt")
     output = project.file("output.txt")
 }

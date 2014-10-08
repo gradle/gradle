@@ -149,7 +149,7 @@ class PmdPluginTest extends Specification {
         project.pmd {
             sourceSets = [project.sourceSets.main]
             ruleSets = ["braces", "unusedcode"]
-            ruleSetConfig = project.resources.text("ruleset contents")
+            ruleSetConfig = project.resources.text.fromString("ruleset contents")
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
@@ -183,7 +183,7 @@ class PmdPluginTest extends Specification {
         def task = project.tasks.create("pmdCustom", Pmd)
         project.pmd {
             ruleSets = ["braces", "unusedcode"]
-            ruleSetConfig = project.resources.text("ruleset contents")
+            ruleSetConfig = project.resources.text.fromString("ruleset contents")
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true

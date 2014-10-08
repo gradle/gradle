@@ -156,7 +156,7 @@ class CodeNarcPluginTest extends Specification {
         def task = project.tasks.create("codenarcCustom", CodeNarc)
 
         project.codenarc {
-            config = project.resources.fileText(project.file("codenarc-config"))
+            config = project.resources.text.fromFile("codenarc-config")
             maxPriority1Violations = 10
             maxPriority2Violations = 50
             maxPriority3Violations = 200

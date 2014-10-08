@@ -142,7 +142,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             pmd {
                 ruleSets = []
-                ruleSetConfig = resources.text('''${customRuleSetText()}''')
+                ruleSetConfig = resources.text.fromString('''${customRuleSetText()}''')
             }
         """
 

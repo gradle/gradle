@@ -23,17 +23,15 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.resources.TextResource;
-
-import java.nio.charset.Charset;
+import org.gradle.api.resources.TextResourceFactory;
 
 public class DefaultResourceHandler implements ResourceHandler {
     private final FileOperations fileOperations;
-    private final TemporaryFileProvider tempFileProvider;
+    private final TextResourceFactory textResourceFactory;
 
     public DefaultResourceHandler(FileOperations fileOperations, TemporaryFileProvider tempFileProvider) {
         this.fileOperations = fileOperations;
-        this.tempFileProvider = tempFileProvider;
+        textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider);
     }
 
     public ReadableResource gzip(Object path) {
@@ -53,23 +51,7 @@ public class DefaultResourceHandler implements ResourceHandler {
         }
     }
 
-    public TextResource text(String string) {
-        return new StringBackedTextResource(tempFileProvider, string);
-    }
-
-    public TextResource fileText(Object file) {
-        return fileText(file, Charset.defaultCharset().name());
-    }
-
-    public TextResource fileText(Object file, String charset) {
-        return new FileCollectionBackedTextResource(fileOperations.files(file), Charset.forName(charset));
-    }
-
-    public TextResource archiveEntryText(Object archive, String entryPath) {
-        return archiveEntryText(archive, entryPath, Charset.defaultCharset().name());
-    }
-
-    public TextResource archiveEntryText(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, fileOperations.files(archive), entryPath, Charset.forName(charset));
+    public TextResourceFactory getText() {
+        return textResourceFactory;
     }
 }

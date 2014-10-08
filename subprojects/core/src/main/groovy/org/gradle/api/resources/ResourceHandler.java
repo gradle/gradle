@@ -40,57 +40,13 @@ public interface ResourceHandler {
     ReadableResource bzip2(Object path);
 
     /**
-     * Creates a text resource backed by the given string.
-     *
-     * @param string a string
-     * @return a text resource backed by the given string
+     * Returns a factory for creating {@code TextResource}s from various sources such as
+     * strings, files, and archive entries.
      *
      * @since 2.2
+     *
+     * @return a factory for creating {@code TextResource}s
      */
     @Incubating
-    TextResource text(String string);
-
-    /**
-     * Creates a text resource backed by the given file.
-     *
-     * @param file a text file evaluated as per {@link org.gradle.api.Project#files(Object...)}
-     * @param charset the file's character encoding (e.g. {@code "utf-8"})
-     * @return a text resource backed by the given file
-     *
-     * @since 2.2
-     */
-    @Incubating
-    TextResource fileText(Object file, String charset);
-
-    /**
-     * Same as {@code text(file, Charset.defaultCharset())}.
-     *
-     * @since 2.2
-     */
-    @Incubating
-    TextResource fileText(Object file);
-
-    /**
-     * Creates a text resource backed by the archive entry at the given path within the given archive.
-     * The archive format is determined based on the archive's file extension. If the archive format
-     * is not supported or cannot be determined, any attempt to access the resource will fail with an exception.
-     *
-     * @param archive an archive file evaluated as per {@link org.gradle.api.Project#files(Object...)}
-     * @param entryPath the path to an archive entry
-     * @param charset the archive entry's character encoding (e.g. {@code "utf-8"})
-     *
-     * @return a text resource backed by the archive entry at the given path within the given archive
-     *
-     * @since 2.2
-     */
-    @Incubating
-    TextResource archiveEntryText(Object archive, String entryPath, String charset);
-
-    /**
-     * Same as {@code archiveEntryText(archive, path, Charset.defaultCharset().name())}.
-     *
-     * @since 2.2
-     */
-    @Incubating
-    TextResource archiveEntryText(Object archive, String path);
+    TextResourceFactory getText();
 }

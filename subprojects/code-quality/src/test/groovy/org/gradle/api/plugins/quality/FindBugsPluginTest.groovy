@@ -191,8 +191,8 @@ class FindBugsPluginTest extends Specification {
             reportLevel = 'high'
             visitors = ['org.gradle.Class']
             omitVisitors = ['org.gradle.Interface']
-            includeFilterConfig = project.resources.fileText(project.file("include.txt"))
-            excludeFilterConfig = project.resources.fileText(project.file("exclude.txt"))
+            includeFilterConfig = project.resources.text.fromFile("include.txt")
+            excludeFilterConfig = project.resources.text.fromFile("exclude.txt")
         }
 
         expect:
