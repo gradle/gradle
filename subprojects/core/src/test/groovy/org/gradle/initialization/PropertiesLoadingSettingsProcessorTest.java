@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

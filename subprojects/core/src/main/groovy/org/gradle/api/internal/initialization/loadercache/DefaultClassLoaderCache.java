@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization;
+package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshot;
-import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
-import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;

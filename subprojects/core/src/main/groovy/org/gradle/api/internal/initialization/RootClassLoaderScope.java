@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
 
 public class RootClassLoaderScope implements ClassLoaderScope {

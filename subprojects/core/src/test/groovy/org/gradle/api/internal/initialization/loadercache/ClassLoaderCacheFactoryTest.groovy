@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization
+package org.gradle.api.internal.initialization.loadercache
 
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory
 import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter
 import org.gradle.util.SetSystemProperties
@@ -23,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.initialization.ClassLoaderCacheFactory.TOGGLE_CACHING_PROPERTY
+import static org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory.TOGGLE_CACHING_PROPERTY
 
 class ClassLoaderCacheFactoryTest extends Specification {
 

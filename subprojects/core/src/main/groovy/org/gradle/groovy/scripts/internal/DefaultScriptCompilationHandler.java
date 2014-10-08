@@ -29,7 +29,7 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.initialization.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;

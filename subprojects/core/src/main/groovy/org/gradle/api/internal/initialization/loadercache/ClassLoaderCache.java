@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization;
+package org.gradle.api.internal.initialization.loadercache;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;

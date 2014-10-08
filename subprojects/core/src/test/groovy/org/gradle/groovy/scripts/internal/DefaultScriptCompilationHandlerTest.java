@@ -28,7 +28,7 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.initialization.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;

@@ -24,7 +24,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.ClassLoaderCacheFactory
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory
 import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
