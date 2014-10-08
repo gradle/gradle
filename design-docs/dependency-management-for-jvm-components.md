@@ -794,7 +794,7 @@ Add a sample to show a JVM library built for multiple Java versions.
 - Where some variants are not buildable on the current machine, `gradle assemble` will build only the buildable variants
 - Useful error message from compilation task when attempting to build a binary that is not buildable
 
-### Story: Build author chooses targetPlatform for NativeComponent from common set of Platforms
+### Story: Build author chooses NativePlatform from pre-defined set
 
 This story makes the production of native platform variants more consistent with the approach used for Java libraries,
 by providing a common set of 'pre-defined' `NativePlatform` instances.
