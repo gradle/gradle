@@ -30,6 +30,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ClassLoaderCache;
 import org.gradle.api.internal.initialization.ClassLoaderCacheFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -195,7 +196,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
             CacheRepository cacheRepository, EmptyScriptGenerator emptyScriptGenerator, final StartParameter startParameter,
-            ProgressLoggerFactory progressLoggerFactory, ClassLoaderCacheFactory cacheFactory) {
+            ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -204,7 +205,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new FileCacheBackedScriptClassCompiler(
                 cacheRepository,
                 scriptCacheInvalidator,
-                new DefaultScriptCompilationHandler(emptyScriptGenerator, cacheFactory.create()),
+                new DefaultScriptCompilationHandler(emptyScriptGenerator, classLoaderCache),
                 progressLoggerFactory
         );
     }
@@ -292,8 +293,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new BuildScopeServiceRegistryFactory(services);
     }
 
-    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCacheFactory cacheFactory) {
-        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, cacheFactory.create());
+    protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCache classLoaderCache) {
+        return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache);
+    }
+
+    protected ClassLoaderCache createClassLoaderCache(ClassLoaderCacheFactory cacheFactory) {
+        //the factory is global and makes decision whether classloader cache is shared between builds in given daemon process
+        return cacheFactory.create();
     }
 
     protected ProjectTaskLister createProjectTaskLister() {
