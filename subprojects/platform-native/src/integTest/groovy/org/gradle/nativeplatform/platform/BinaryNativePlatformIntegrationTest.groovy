@@ -86,7 +86,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     }
                 }
             }
-            executables.main.targetPlatform "x86"
+            executables.main.targetPlatforms "x86"
 """
 
         and:
@@ -107,32 +107,6 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                 platforms {
                     x86 {
                         architecture "x86"
-                    }
-                }
-            }
-"""
-
-        and:
-        succeeds "assemble"
-
-        then:
-        // Platform dimension is flattened since there is only one possible value
-        executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
-    }
-
-    // TODO:DAZ This isn't doing what it appears: is actually selecting the first platform alphabetically...
-    def "defaults to first platform if no target platforms are defined"() {
-        when:
-        buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
                     }
                 }
             }
@@ -169,12 +143,12 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             }
             executables {
                 exe {
-                    targetPlatform "x86"
+                    targetPlatforms "x86"
                 }
             }
             libraries {
                 hello {
-                    targetPlatform "x86"
+                    targetPlatforms "x86"
                 }
             }
             sources {
@@ -212,7 +186,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                 }
             }
 
-            executables.main.targetPlatform "x86", "x86_64", "itanium", "arm"
+            executables.main.targetPlatforms "x86", "x86_64", "itanium", "arm"
 """
 
         and:
@@ -281,7 +255,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                 cppCompiler.define "FRENCH"
             }
 
-            executables.main.targetPlatform "$currentOs"
+            executables.main.targetPlatforms "$currentOs"
         """
         and:
         succeeds "assemble"
@@ -361,7 +335,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     main
                 }
             }
-            executables.main.targetPlatform "unknown"
+            executables.main.targetPlatforms "unknown"
 """
 
         and:
@@ -385,7 +359,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             }
             libraries {
                 hello {
-                    targetPlatform "two"
+                    targetPlatforms "two"
                 }
             }
 
@@ -395,7 +369,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 """
 
         and:
-        fails "mainExecutable" //TODO freekh: changed from oneMainExecutable because we target the first platform and choose it as default now if none is described. Unsure whether that is good.
+        fails "oneMainExecutable"
 
         then:
         //TODO freekh: This error message is not particularly descriptive: it is hard to understand what to do and how to fix it.

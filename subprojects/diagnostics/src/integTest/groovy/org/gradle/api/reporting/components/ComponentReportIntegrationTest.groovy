@@ -307,7 +307,7 @@ model {
 nativeRuntime {
     libraries {
         someLib {
-            targetPlatform "i386", "amd64"
+            targetPlatforms "i386", "amd64"
         }
     }
 }
@@ -407,7 +407,7 @@ model {
 jvm {
     libraries {
         jvmLib {
-            targetPlatform "$currentJava"
+            targetPlatforms "$currentJava"
         }
     }
 }
@@ -416,7 +416,7 @@ nativeRuntime {
         nativeLib
     }
 }
-""" //TODO freekh: should not really need to specify targetPlatform for jvmLib here
+""" //TODO freekh: should not really need to specify targetPlatforms for jvmLib here
         when:
         succeeds "components"
 
@@ -476,7 +476,7 @@ Binaries
     jvm {
         libraries {
             myLib {
-                targetPlatform "java5", "java6", "java7"
+                targetPlatforms "java5", "java6", "java7"
             }
         }
     }

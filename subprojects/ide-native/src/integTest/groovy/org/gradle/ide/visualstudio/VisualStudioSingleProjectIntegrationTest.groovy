@@ -59,7 +59,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     binaries.all {
@@ -96,7 +96,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
 """
@@ -128,7 +128,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
 """
@@ -156,7 +156,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         both {
-             targetPlatform "win32", "x64"
+             targetPlatforms "win32", "x64"
         }
         staticOnly {
             binaries.withType(SharedLibraryBinarySpec) {
@@ -182,7 +182,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable = false
             }
@@ -214,12 +214,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         hello {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     sources {
@@ -255,12 +255,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         hello {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     sources {
@@ -298,15 +298,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             apply plugin: "cpp"
             libraries {
                 greetings {
-                   targetPlatform "win32", "x64"
+                   targetPlatforms "win32", "x64"
                 }
                 hello {
-                   targetPlatform "win32", "x64"
+                   targetPlatforms "win32", "x64"
                 }
             }
             executables {
                 main {
-                   targetPlatform "win32", "x64"
+                   targetPlatforms "win32", "x64"
                 }
             }
             sources {
@@ -350,15 +350,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         hello {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
         mainStatic {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     sources {
@@ -395,15 +395,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         hello {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
         mainRelease {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
             targetBuildTypes "release"
         }
     }
@@ -449,7 +449,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
     executables {
         main {
-            targetPlatform "win32", "otherWin32"
+            targetPlatforms "win32", "otherWin32"
         }
     }
 """
@@ -468,15 +468,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             libraries {
                 hello {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
                 greetings {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             sources {
@@ -516,15 +516,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             libraries {
                 hello {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
                 greetings {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             sources {
@@ -573,7 +573,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             apply plugin: 'assembler'
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
         """
@@ -604,7 +604,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             apply plugin: 'windows-resources'
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             binaries.all {
@@ -639,7 +639,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
         """
@@ -669,7 +669,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     executables {
         main {
-           targetPlatform "win32", "x64"
+           targetPlatforms "win32", "x64"
         }
     }
     sources {
@@ -700,15 +700,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             libraries {
                 helloApi {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
                 hello {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             sources {
@@ -751,7 +751,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
 
@@ -797,7 +797,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
     executables {
         main {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     sources {
@@ -835,15 +835,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             libraries {
                 hello {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
                 greetings {
-                    targetPlatform "win32", "x64"
+                    targetPlatforms "win32", "x64"
                 }
             }
             sources {
@@ -886,12 +886,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     libraries {
         hello {
-            targetPlatform "win32", "x64"
+            targetPlatforms "win32", "x64"
         }
     }
     executables {
         main {
-            targetPlatform "win32"
+            targetPlatforms "win32"
             targetBuildTypes "release"
         }
     }

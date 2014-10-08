@@ -21,7 +21,6 @@ import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,15 +43,7 @@ class NamedElementSelector<T extends Named> implements Transformer<List<T>, Name
         NamedDomainObjectSet<T> allWithType = ts.withType(type);
 
         if (names.isEmpty()) {
-            if (allWithType.size() == 1) {
-                return Lists.newArrayList(allWithType);
-            } else if (allWithType.size() > 1) {
-                //TODO freekh: for now, we pick the first one defined, but we could pick the best based on the toolchains we have?
-                // TODO:DAZ This actually selects the first alphabetically
-                return Collections.singletonList(allWithType.iterator().next());
-            }
-
-            throw new GradleException(String.format("No element is registered for type: '%s'", type));
+            return Lists.newArrayList(allWithType);
         }
 
         List<T> matching = Lists.newArrayList();

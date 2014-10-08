@@ -48,7 +48,10 @@ public class NamedElementSelectorTest extends Specification {
         (_..1) * iterator.next() >> platform3
         (_..1) * iterator.hasNext() >> false
 
+        (_..1) * elements.toArray() >> elements
+
         _ * elements.size() >> 3
+        _ * elements.length >> 3
     }
 
     def "selecting one element returns the correct element"() {
@@ -61,14 +64,14 @@ public class NamedElementSelectorTest extends Specification {
         res == [platform2]
     }
 
-    def "when selecting no elements, the first one is returned"() {
+    def "when selecting no elements, all are returned"() {
         def selector = new NamedElementSelector(Platform, [])
 
         when:
         def res = selector.transform(elements)
 
         then:
-        res == [platform2]
+        res == [platform2, platform1, platform3]
     }
 
     def "selecting multiple elements returns elements in the defined order"() {
