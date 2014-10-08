@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface AppliedPluginsInternal {
+import org.gradle.api.plugins.AppliedPlugins;
+
+public interface AppliedPluginsInternal extends AppliedPlugins {
 
     void apply(Class<?> pluginClass);
 

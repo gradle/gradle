@@ -48,7 +48,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginContainer createPluginContainer() {
-        return new DefaultPluginContainer(get(PluginRegistry.class), settings);
+        return new DefaultPluginContainer<SettingsInternal>(get(PluginRegistry.class), settings);
     }
 
     protected AppliedPluginsInternal createAppliedPlugins() {

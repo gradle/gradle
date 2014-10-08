@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 
 import java.util.Map;
 
@@ -61,5 +60,5 @@ public interface PluginAware {
      */
     void apply(Map<String, ?> options);
 
-    AppliedPluginsInternal getAppliedPlugins();
+    AppliedPlugins getAppliedPlugins();
 }

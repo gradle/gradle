@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.plugins;
 
-import org.gradle.api.Plugin;
-
-public class PluginApplication {
-
-    private final Plugin plugin;
-    private final PluginAwareInternal target;
-
-    public PluginApplication(Plugin plugin, PluginAwareInternal target) {
-        this.plugin = plugin;
-        this.target = target;
-    }
-
-    public Plugin getPlugin() {
-        return plugin;
-    }
-
-    public PluginAwareInternal getTarget() {
-        return target;
-    }
-
+/**
+ * Allows to query for applied plugins
+ */
+public interface AppliedPlugins {
 }

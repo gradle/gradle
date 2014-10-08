@@ -110,9 +110,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyType(String pluginId) {
         for (Object target : targets) {
-            if (target instanceof PluginAware) {
+            if (target instanceof PluginAwareInternal) {
                 try {
-                    ((PluginAware) target).getAppliedPlugins().apply(pluginId);
+                    ((PluginAwareInternal) target).getAppliedPlugins().apply(pluginId);
                 } catch (Exception e) {
                     throw new PluginApplicationException("id '" + pluginId + "'", e);
                 }

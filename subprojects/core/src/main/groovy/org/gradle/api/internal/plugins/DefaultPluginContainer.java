@@ -20,7 +20,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
@@ -30,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class DefaultPluginContainer<T extends PluginAware> extends DefaultPluginCollection<Plugin> implements PluginContainer {
+public class DefaultPluginContainer<T extends PluginAwareInternal> extends DefaultPluginCollection<Plugin> implements PluginContainer {
     private PluginRegistry pluginRegistry;
 
     private static class IdLookupCacheKey {

@@ -19,7 +19,6 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
@@ -118,7 +117,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginContainer createPluginContainer() {
         List<PluginApplicationAction> allPluginApplyActions = getAll(PluginApplicationAction.class);
-        return new DefaultPluginContainer<Project>(get(PluginRegistry.class), project, allPluginApplyActions);
+        return new DefaultPluginContainer<ProjectInternal>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
     protected PluginApplicationAction createPluginModelRuleExtractor() {
