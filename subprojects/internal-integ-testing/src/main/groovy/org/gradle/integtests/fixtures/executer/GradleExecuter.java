@@ -265,6 +265,13 @@ public interface GradleExecuter {
     GradleExecuter requireIsolatedDaemons();
 
     /**
+     * Enables classloader caching.
+     *
+     * This value is persistent across executions in the same test.
+     */
+    GradleExecuter withClassLoaderCaching(boolean classLoaderCaching);
+
+    /**
      * Configures a unique gradle user home dir for the test.
      *
      * The gradle user home dir used will be underneath the {@link #getTestDirectoryProvider()} directory.

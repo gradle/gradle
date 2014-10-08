@@ -21,13 +21,15 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.gradle.api.internal.initialization.ClassLoaderCacheFactory.TOGGLE_CACHING_PROPERTY
+
 class ClassLoaderCacheFactoryTest extends Specification {
 
     @Subject factory = new ClassLoaderCacheFactory()
     @Rule SetSystemProperties s = new SetSystemProperties()
 
     def "creates new instance if property is off"() {
-        System.setProperty("org.gradle.caching.classloaders", "not true")
+        System.setProperty(TOGGLE_CACHING_PROPERTY, "not true")
         expect:
         factory.create() != factory.create()
     }
@@ -38,7 +40,7 @@ class ClassLoaderCacheFactoryTest extends Specification {
     }
 
     def "reuses instance if property is on"() {
-        System.setProperty("org.gradle.caching.classloaders", "True")
+        System.setProperty(TOGGLE_CACHING_PROPERTY, "True")
         expect:
         factory.create() == factory.create()
     }

@@ -21,11 +21,12 @@ import org.gradle.api.logging.Logging;
 
 public class ClassLoaderCacheFactory {
 
+    public final static String TOGGLE_CACHING_PROPERTY = "org.gradle.caching.classloaders";
     private final static Logger LOGGER = Logging.getLogger(ClassLoaderCacheFactory.class);
     private DefaultClassLoaderCache instance;
 
     public ClassLoaderCache create() {
-        if ("true".equalsIgnoreCase(System.getProperty("org.gradle.caching.classloaders"))) {
+        if ("true".equalsIgnoreCase(System.getProperty(TOGGLE_CACHING_PROPERTY))) {
             maybeInit();
             return instance;
         }

@@ -18,18 +18,14 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.IgnoreIf
 
 //classloaders are cached in process so the test only makes sense if gradle invocations share the process
 @IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
 class CachingClassloadersIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
-
     def setup() {
-        caching("true")
+        executer.withClassLoaderCaching(true)
         buildFile << """
             class BuildCounter {
                 static int x = 0
@@ -38,11 +34,6 @@ class CachingClassloadersIntegrationTest extends AbstractIntegrationSpec {
             task counterInit << { BuildCounter.x = 1 }
             task buildCount << { println "build count: " + BuildCounter.x }
         """
-    }
-
-    private caching(String cachingEnabled) {
-        System.setProperty("org.gradle.caching.classloaders", cachingEnabled) //for embedded
-        executer.beforeExecute { executer.withArgument("-Dorg.gradle.caching.classloaders=$cachingEnabled") } //for daemon
     }
 
     def "classloader is cached"() {
@@ -55,7 +46,7 @@ class CachingClassloadersIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "no caching when property is off"() {
-        caching("false")
+        executer.withClassLoaderCaching(false)
 
         when:
         run("counterInit")
