@@ -164,6 +164,42 @@ See the [section on importing Ant builds in the Gradle Userguide](userguide/ant.
 
 This feature was contributed by [Paul Watson](https://github.com/w4tson).
 
+### Sharing configuration files across builds (i)
+
+In previous Gradle versions, sharing external configuration files across builds (e.g. to enforce code quality standards) was difficult. 
+To support this use case, a new `TextResource` abstraction was introduced. `TextResource`s are created using factory methods
+provided by `project.resources.text`. They can be backed by various sources such as inline strings, local text files, or
+archives containing text files. A `TextResource` backed by an archive can then be shared across builds by publishing and resolving 
+the archive from a binary repository, benefiting from Gradle's standard dependency management features (e.g. dependency caching).
+
+Gradle's code quality plugins and tasks are the first to support `TextResource`. The following example shows how
+a Checkstyle configuration file can be sourced from different locations:
+
+    apply plugin: "checkstyle"
+    
+    configurations {
+        checkstyleConfig
+    }
+    
+    dependencies {
+        // a Jar/Zip/Tar archive containing one or more Checkstyle configuration files,
+        // shared via a binary repository
+        checkstyleConfig "com.company:checkstyle-config:1.0@zip" 
+    }
+    
+    checkstyle { // affects all Checkstyle tasks
+        // sourced from inline string
+        config = resources.text.fromString("""<module name="Checker">...</module>""")
+        // sourced from local text file
+        config = resources.text.fromFile("path/to/config.txt")
+        // sourced from a task that produces a text file and declares it as output
+        config = resources.text.fromFile(someTask)
+        // sourced from shared archive
+        config = resources.text.fromArchiveEntry(configurations.checkstyleConfig, "path/to/config/entry.txt")
+    }
+    
+Over time, `TextResource` will be leveraged by more existing and new Gradle APIs.
+    
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -281,6 +317,36 @@ Upon first use of the CodeNarc plugin with Gradle 2.1, you may see Gradle downlo
 The classes of the (incubating) [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) have moved from the package `org.gradle.api.sonar.runner` to `org.gradle.sonar.runner`.
 
 If you were depending on these classes explicitly, you will need to update the reference.
+
+### Using convention mapping for code quality tasks/extensions 
+
+Using the internal convention mapping feature for one of the following properties will no longer have an effect:
+
+* org.gradle.api.plugins.quality.CheckstyleExtension#configFile
+* org.gradle.api.plugins.quality.Checkstyle#configFile
+* org.gradle.api.plugins.quality.CodeNarcExtension#configFile
+* org.gradle.api.plugins.quality.CodeNarc#configFile
+* org.gradle.api.plugins.quality.FindBugsExtension#includeFilter
+* org.gradle.api.plugins.quality.FindBugsExtension#excludeFilter
+* org.gradle.api.plugins.quality.FindBugs#includeFilter
+* org.gradle.api.plugins.quality.FindBugs#excludeFilter
+
+### Configuring code quality tasks/extensions with `File` objects representing relative paths
+
+A `File` object that represents a relative path and is used to configure one of the following properties will now be 
+interpreted relative to the current project, rather than relative to the current working directory of the Gradle process:
+
+* org.gradle.api.plugins.quality.CheckstyleExtension#configFile
+* org.gradle.api.plugins.quality.Checkstyle#configFile
+* org.gradle.api.plugins.quality.CodeNarcExtension#configFile
+* org.gradle.api.plugins.quality.CodeNarc#configFile
+* org.gradle.api.plugins.quality.FindBugsExtension#includeFilter
+* org.gradle.api.plugins.quality.FindBugsExtension#excludeFilter
+* org.gradle.api.plugins.quality.FindBugs#includeFilter
+* org.gradle.api.plugins.quality.FindBugs#excludeFilter
+
+Note that this only affects files created with `new File("relative/path")` (which is not recommended), 
+but not files created with `project.file("relative/path")`.
 
 ## External contributions
 
