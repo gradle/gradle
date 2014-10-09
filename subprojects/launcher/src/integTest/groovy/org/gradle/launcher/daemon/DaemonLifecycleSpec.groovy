@@ -19,11 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -111,6 +108,10 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
+    @Override
+    protected void cleanupWhileTestFilesExist() {
+    }
+
     void stopDaemons() {
         run { stopDaemonsNow() }
     }
@@ -176,14 +177,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void failed(GradleHandle handle) {
         assert handle.waitForFailure()
-    }
-
-    void buildFailedWithDaemonDisappearedMessage(num = 0) {
-        run {
-            def build = builds[num]
-            failed build
-            assert build.errorOutput.contains(DaemonDisappearedException.MESSAGE)
-        }
     }
 
     void daemonContext(num = 0, Closure assertions) {
@@ -289,120 +282,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         stopped()
-    }
-
-    def "sending stop to busy daemons causes them to disappear from the registry"() {
-        when:
-        startBuild()
-
-        then:
-        busy()
-
-        when:
-        stopDaemons()
-
-        then:
-        stopped()
-    }
-
-    def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
-        when:
-        startForegroundDaemon()
-
-        then:
-        idle()
-
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-
-        when:
-        stopDaemons()
-
-        then:
-        stopped() // just means the daemon has disappeared from the registry
-
-        then:
-        buildFailedWithDaemonDisappearedMessage()
-
-        and:
-        foregroundDaemonCompleted()
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    //(SF) On windows at the moment, we cannot reliably kill the client without waiting for the daemon to complete
-    //It's because of the way windows handles pipes for child processes.
-    //basically, process.waitFor() completes and you can get hold of the exit value,
-    //however, the process still sits there blocked on reading the child process' outputs.
-    //Next steps:
-    // 1. We can revisit this problem once we solve the daemon feedback story and we have a jna process starter that is able to consume the inputs
-    // 2. We can make this test working on java7 (because processbuilder in jre7 is more powerful)
-    def "tearing down client while daemon is building tears down daemon"() {
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-
-        when:
-        killBuild()
-
-        then:
-        stopped()
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    //See the comment in the previous test
-    def "tearing down client while daemon is building tears down daemon _process_"() {
-        when:
-        startForegroundDaemon()
-
-        then:
-        idle()
-
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-
-        when:
-        killBuild()
-
-        then:
-        stopped() // just means the daemon has disappeared from the registry
-
-        and:
-        foregroundDaemonCompleted()
-    }
-
-    def "tearing down daemon process produces nice error message for client"() {
-        when:
-        startForegroundDaemon()
-
-        then:
-        idle()
-
-        when:
-        startBuild()
-
-        then:
-        busy()
-
-        when:
-        disappearDaemon()
-
-        then:
-        buildFailedWithDaemonDisappearedMessage()
-
-        and:
-        // The daemon attempts to remove its address on shutdown
-        run { assert executer.daemonRegistry.all.empty }
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null})

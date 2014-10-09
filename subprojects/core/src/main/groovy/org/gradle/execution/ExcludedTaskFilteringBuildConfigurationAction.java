@@ -26,15 +26,19 @@ import java.util.Set;
  * A {@link BuildConfigurationAction} which filters excluded tasks.
  */
 public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfigurationAction {
+    private final TaskSelector taskSelector;
+
+    public ExcludedTaskFilteringBuildConfigurationAction(TaskSelector taskSelector) {
+        this.taskSelector = taskSelector;
+    }
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
-            TaskSelector selector = gradle.getServices().get(TaskSelector.class);
             final Set<Task> excludedTasks = new HashSet<Task>();
             for (String taskName : excludedTaskNames) {
-                excludedTasks.addAll(selector.getSelection(taskName).getTasks());
+                excludedTasks.addAll(taskSelector.getSelection(taskName).getTasks());
             }
             gradle.getTaskGraph().useFilter(new Spec<Task>() {
                 public boolean isSatisfiedBy(Task task) {

@@ -128,7 +128,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
-                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries()) {
+                for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getNativeBinaries()) {
 
                     DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary);
 

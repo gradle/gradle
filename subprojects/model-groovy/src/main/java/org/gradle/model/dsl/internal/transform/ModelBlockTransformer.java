@@ -31,6 +31,11 @@ import java.util.List;
 
 public class ModelBlockTransformer extends AbstractScriptTransformer {
 
+    private static boolean isEnabled() {
+        return Boolean.getBoolean("org.gradle.model.dsl");
+    }
+
+
     @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
@@ -63,6 +68,10 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
 
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
+        if (!isEnabled()) {
+            return;
+        }
+
         List<Statement> statements = source.getAST().getStatementBlock().getStatements();
         for (Statement statement : statements) {
             ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, SCRIPT_BLOCK_NAMES);

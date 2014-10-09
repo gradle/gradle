@@ -29,7 +29,6 @@ import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
 import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
-// TODO:DAZ Improve test names, at the very least
 class ProjectLibraryBinaryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
     def projectLocator = Mock(ProjectLocator)
@@ -41,7 +40,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
-        library.binaries >> binaries
+        library.nativeBinaries >> binaries
     }
 
     def "locates binaries for library in same project"() {

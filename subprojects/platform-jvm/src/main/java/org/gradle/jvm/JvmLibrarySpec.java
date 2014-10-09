@@ -16,7 +16,6 @@
 
 package org.gradle.jvm;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.platform.base.LibrarySpec;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
@@ -25,9 +24,5 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  * Definition of a JVM library component that is to be built by Gradle.
  */
 @Incubating
-public interface JvmLibrarySpec extends LibrarySpec<JvmLibraryBinarySpec>, PlatformAwareComponentSpec {
-    /**
-     * {@inheritDoc}
-     */
-    DomainObjectSet<JvmLibraryBinarySpec> getBinaries();
+public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformAwareComponentSpec {
 }

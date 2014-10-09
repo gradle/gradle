@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
+import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
 
 /**
@@ -40,16 +41,18 @@ public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
         try {
             Runnable command = new Runnable() {
                 public void run() {
-                    LOGGER.info("Daemon is about to start building: " + build + ". Dispatching build started information...");
+                    LOGGER.info("Daemon is about to start building {}. Dispatching build started information...", build);
                     execution.getConnection().buildStarted(new BuildStarted(diagnostics));
                     execution.proceed();
                 }
             };
 
-            stateCoordinator.runCommand(command, execution.toString(), execution.getCommandAbandonedHandler());
+            stateCoordinator.runCommand(command, execution.toString());
         } catch (DaemonUnavailableException e) {
-            LOGGER.info("Daemon will not handle the request: {} because is unavailable: {}", build, e.getMessage());
+            LOGGER.info("Daemon will not handle the command {} because is unavailable: {}", build, e.getMessage());
             execution.getConnection().daemonUnavailable(new DaemonUnavailable(e.getMessage()));
+        } catch (DaemonStoppedException e) {
+            execution.getConnection().completed(new CommandFailure(e));
         }
     }
 }

@@ -17,12 +17,14 @@ package org.gradle.api.plugins.quality
 
 import groovy.transform.PackageScope
 import org.gradle.api.GradleException
+import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
 import org.gradle.api.plugins.quality.internal.findbugs.*
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
@@ -110,18 +112,24 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     Collection<String> omitVisitors = []
 
     /**
-     * The filename of a filter specifying which bugs are reported.
+     * A filter specifying which bugs are reported. Replaces the {@code includeFilter} property.
+     *
+     * @since 2.2
      */
-    @InputFile
+    @Incubating
+    @Nested
     @Optional
-    File includeFilter
+    TextResource includeFilterConfig
 
     /**
-     * The filename of a filter specifying bugs to exclude from being reported.
+     * A filter specifying bugs to exclude from being reported. Replaces the {@code excludeFilter} property.
+     *
+     * @since 2.2
      */
-    @InputFile
+    @Incubating
+    @Nested
     @Optional
-    File excludeFilter
+    TextResource excludeFilterConfig
 
     @Nested
     private final FindBugsReportsImpl reports
@@ -169,6 +177,34 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      */
     FindBugsReports reports(Closure closure) {
         reports.configure(closure)
+    }
+
+    /**
+     * The filename of a filter specifying which bugs are reported.
+     */
+    File getIncludeFilter() {
+        getIncludeFilterConfig()?.asFile()
+    }
+
+    /**
+     * The filename of a filter specifying which bugs are reported.
+     */
+    void setIncludeFilter(File filter) {
+        setIncludeFilterConfig(project.resources.text(filter))
+    }
+
+    /**
+     * The filename of a filter specifying bugs to exclude from being reported.
+     */
+    File getExcludeFilter() {
+        getExcludeFilterConfig()?.asFile()
+    }
+
+    /**
+     * The filename of a filter specifying bugs to exclude from being reported.
+     */
+    void setExcludeFilter(File filter) {
+        setExcludeFilterConfig(project.resources.text(filter))
     }
 
     @TaskAction

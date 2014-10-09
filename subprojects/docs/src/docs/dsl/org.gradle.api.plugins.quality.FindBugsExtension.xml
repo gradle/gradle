@@ -33,6 +33,14 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>includeFilterConfig</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>excludeFilterConfig</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>includeFilter</td>
                 <td><literal>null</literal></td>
             </tr>

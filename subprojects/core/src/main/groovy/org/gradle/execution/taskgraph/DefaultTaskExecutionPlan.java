@@ -63,6 +63,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
     private final List<String> runningProjects = new ArrayList<String>();
+    private boolean tasksCancelled;
 
     public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
         this.cancellationToken = cancellationToken;
@@ -75,7 +76,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
             TaskInfo node = graph.addNode(task);
-            if (node.getMustNotRun()) {
+            if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {
                 node.require();
@@ -172,7 +173,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 visiting.remove(task);
                 task.mustNotRun();
                 for (TaskInfo predecessor : task.getDependencyPredecessors()) {
-                    assert predecessor.isRequired() || predecessor.getMustNotRun();
+                    assert predecessor.isRequired() || predecessor.isMustNotRun();
                     if (predecessor.isRequired()) {
                         task.require();
                         break;
@@ -199,7 +200,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void requireWithDependencies(TaskInfo taskInfo) {
-        if (taskInfo.getMustNotRun() && filter.isSatisfiedBy(taskInfo.getTask())) {
+        if (taskInfo.isMustNotRun() && filter.isSatisfiedBy(taskInfo.getTask())) {
             taskInfo.require();
             for (TaskInfo dependency : taskInfo.getDependencySuccessors()) {
                 requireWithDependencies(dependency);
@@ -421,7 +422,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             while (true) {
                 if (cancellationToken.isCancellationRequested()) {
-                    abortExecution();
+                    if (abortExecution()) {
+                        tasksCancelled = true;
+                    }
                 }
                 TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
@@ -475,7 +478,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void enforceFinalizerTasks(TaskInfo taskInfo) {
         for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
-            if (finalizerNode.isRequired() || finalizerNode.getMustNotRun()) {
+            if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode);
             }
         }
@@ -485,7 +488,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         for (TaskInfo dependencyNode : node.getDependencySuccessors()) {
             enforceWithDependencies(dependencyNode);
         }
-        if (node.getMustNotRun() || node.isRequired()) {
+        if (node.isMustNotRun() || node.isRequired()) {
             node.enforceRun();
         }
     }
@@ -510,13 +513,16 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void abortExecution() {
+    private boolean abortExecution() {
         // Allow currently executing and enforced tasks to complete, but skip everything else.
+        boolean aborted = false;
         for (TaskInfo taskInfo : executionPlan.values()) {
             if (taskInfo.isRequired()) {
                 taskInfo.skipExecution();
+                aborted = true;
             }
         }
+        return aborted;
     }
 
     public void awaitCompletion() {
@@ -536,7 +542,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void rethrowFailures() {
-        if (cancellationToken.isCancellationRequested()) {
+        if (tasksCancelled) {
             failures.add(new BuildCancelledException());
         }
         if (failures.isEmpty()) {

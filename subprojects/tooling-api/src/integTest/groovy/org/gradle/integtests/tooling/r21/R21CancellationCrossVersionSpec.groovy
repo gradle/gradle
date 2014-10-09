@@ -36,6 +36,9 @@ rootProject.name = 'cancelling'
 
     @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
+        toolingApi.requireIsolatedDaemons()
+        def daemons = toolingApi.daemons
+
         settingsFile << '''
 include 'sub'
 rootProject.name = 'cancelling'
@@ -72,6 +75,7 @@ throw new RuntimeException("should not run")
                     .setStandardError(error)
             build.run(resultHandler)
             server.sync()
+            daemons.daemon.assertBusy()
             cancel.cancel()
             resultHandler.finished()
         }
@@ -79,9 +83,15 @@ throw new RuntimeException("should not run")
         then:
         resultHandler.failure instanceof GradleConnectionException
         resultHandler.failure.cause.message.contains('Build cancelled.')
+
+        and:
+        daemons.daemon.assertIdle()
     }
 
     def "can cancel build and skip some tasks"() {
+        toolingApi.requireIsolatedDaemons()
+        def daemons = toolingApi.daemons
+
         buildFile << """
 import org.gradle.initialization.BuildCancellationToken
 import java.util.concurrent.CountDownLatch
@@ -116,15 +126,23 @@ task notExecuted(dependsOn: hang) << {
                     .setStandardError(error)
             build.run(resultHandler)
             server.sync()
+            daemons.daemon.assertBusy()
             cancel.cancel()
             resultHandler.finished()
         }
+
         then:
         resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.message.contains('Build cancelled.')
+        resultHandler.failure.cause.message.contains('Build cancelled.')
+
+        and:
+        daemons.daemon.assertIdle()
     }
 
-    def "can cancel build"() {
+    def "does not fail when build completes within the cancellation timeout"() {
+        toolingApi.requireIsolatedDaemons()
+        def daemons = toolingApi.daemons
+
         buildFile << """
 import org.gradle.initialization.BuildCancellationToken
 import java.util.concurrent.CountDownLatch
@@ -155,16 +173,22 @@ task hang << {
                     .setStandardError(error)
             build.run(resultHandler)
             server.sync()
+            daemons.daemon.assertBusy()
             cancel.cancel()
             resultHandler.finished()
         }
+
         then:
-        resultHandler.failure instanceof GradleConnectionException
-        resultHandler.failure.cause.cause.cause.class.name == 'org.gradle.api.BuildCancelledException'
-        resultHandler.failure.cause.cause.cause.message.contains('Build cancelled.')
+        noExceptionThrown()
+
+        and:
+        daemons.daemon.assertIdle()
     }
 
     def "can cancel build through forced stop"() {
+        toolingApi.requireIsolatedDaemons()
+        def daemons = toolingApi.daemons
+
         // in-process call does not support forced stop
         toolingApi.isEmbedded = false
 
@@ -185,16 +209,24 @@ task hang << {
                     .setStandardOutput(output)
             build.run(resultHandler)
             server.waitFor()
+            daemons.daemon.assertBusy()
             cancel.cancel()
-            resultHandler.finished(20)
+            resultHandler.finished()
         }
+
         then:
         resultHandler.failure instanceof GradleConnectionException
         resultHandler.failure.cause.class.name == 'org.gradle.api.BuildCancelledException'
         resultHandler.failure.cause.message == 'Build cancelled.'
+
+        and:
+        daemons.daemon.assertStopped()
     }
 
     def "can cancel action"() {
+        toolingApi.requireIsolatedDaemons()
+        def daemons = toolingApi.daemons
+
         def cancel = GradleConnector.newCancellationTokenSource()
         def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
@@ -220,13 +252,16 @@ latch.await()
             build.withCancellationToken(cancel.token())
                     .setStandardOutput(output)
             build.run(resultHandler)
-            server.waitFor()
+            server.sync()
+            daemons.daemon.assertBusy()
             cancel.cancel()
-            server.release()
             resultHandler.finished()
         }
 
         then:
         resultHandler.failure instanceof GradleConnectionException
+
+        and:
+        daemons.daemon.assertIdle()
     }
 }

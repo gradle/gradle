@@ -21,11 +21,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
@@ -36,12 +35,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetaDa
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.rules.DefaultRuleActionAdapter;
-import org.gradle.internal.rules.DefaultRuleActionValidator;
-import org.gradle.internal.rules.RuleAction;
-import org.gradle.internal.rules.RuleActionAdapter;
-import org.gradle.internal.rules.RuleActionValidator;
-import org.gradle.internal.rules.SpecRuleAction;
+import org.gradle.internal.rules.*;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -49,7 +43,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataHandler {
+public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor {
     private final Instantiator instantiator;
 
     private static final String USER_CODE_ERROR = "Could not apply component metadata rule.";
@@ -57,8 +51,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules = Sets.newLinkedHashSet();
     private final RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
-
-    private final ComponentModuleMetadataContainer moduleMetadataContainer = new ComponentModuleMetadataContainer();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator, RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter, NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser) {
         this.instantiator = instantiator;
@@ -171,14 +163,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         } catch (Exception e) {
             throw new InvalidUserCodeException(USER_CODE_ERROR, e);
         }
-    }
-
-    public ComponentModuleMetadataDetails module(Object moduleNotation) {
-        return moduleMetadataContainer.module(moduleNotation);
-    }
-
-    public ModuleReplacementsData getModuleReplacements() {
-        return moduleMetadataContainer;
     }
 
     static class ComponentMetadataDetailsMatchingSpec implements Spec<ComponentMetadataDetails> {

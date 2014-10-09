@@ -117,7 +117,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.needModuleMetadata("1.+") >> false
+        2 * versionMatcher.needModuleMetadata("1.+") >> false
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.+", "2.0") >> false
@@ -145,7 +145,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.needModuleMetadata("latest.milestone") >> true
+        2 * versionMatcher.needModuleMetadata("latest.milestone") >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("latest.milestone", {ModuleComponentResolveMetaData md -> md.componentId.version == "2.0"}) >> false
@@ -167,7 +167,8 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.needModuleMetadata("1.+") >> false
+        3 * versionMatcher.needModuleMetadata("1.+") >> false
+        1 * versionMatcher.matchesUniqueVersion('1.+') >> false
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         _ * versionMatcher.accept("1.+", _) >> { pattern, version ->
@@ -206,7 +207,8 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.needModuleMetadata("latest.release") >> true
+        2 * versionMatcher.needModuleMetadata("latest.release") >> true
+        1 * versionMatcher.matchesUniqueVersion('latest.release') >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         _ * versionMatcher.accept("latest.release", _) >> { pattern, MutableModuleComponentResolveMetaData metadata ->
@@ -226,7 +228,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
+        // Since 1.3 is "latest.release" but it's rejected by rule, we should fail to resolve
+        chooser.choose(listing, dependency, repo) == null
 
     }
 
@@ -240,12 +243,12 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.needModuleMetadata("1.3") >> false
+        2 * versionMatcher.needModuleMetadata("1.3") >> false
+        1 * versionMatcher.matchesUniqueVersion('1.3') >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.3", "2.0") >> false
         1 * versionMatcher.accept("1.3", "1.3") >> true
-        1 * versionMatcher.accept("1.3", "1.2") >> false
         1 * componentSelectionRules.rules >> rules({ ComponentSelection cs ->
             cs.reject("reason")
         })
@@ -265,7 +268,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.needModuleMetadata("1.3") >> false
+        3 * versionMatcher.needModuleMetadata("1.3") >> false
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         3 * versionMatcher.accept("1.3", _) >> false
@@ -292,7 +295,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.needModuleMetadata("latest.release") >> true
+        3 * versionMatcher.needModuleMetadata("latest.release") >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         3 * versionMatcher.accept("latest.release", _) >> false
@@ -314,9 +317,10 @@ class NewestVersionComponentChooserTest extends Specification {
         when:
         _ * dependency.getRequested() >> selector
         1 * versionMatcher.needModuleMetadata("latest.integration") >> false
+        1 * versionMatcher.matchesUniqueVersion('latest.integration') >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        3 * versionMatcher.accept("latest.integration", _) >> true
+        1 * versionMatcher.accept("latest.integration", _) >> true
         1 * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
         })

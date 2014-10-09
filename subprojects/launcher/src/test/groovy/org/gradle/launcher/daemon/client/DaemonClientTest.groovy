@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
+import org.gradle.launcher.daemon.server.exec.DaemonStoppedException
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.ConcurrentSpecification
@@ -124,7 +125,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * _
     }
 
-    def "throws an exception when build is cancelled and breaks connection"() {
+    def "throws an exception when build is cancelled and daemon is forcefully stopped"() {
         BuildCancellationToken cancellationToken = Mock()
 
         when:
@@ -139,10 +140,11 @@ class DaemonClientTest extends ConcurrentSpecification {
         }
 
         1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [ Stub(BuildStarted), null]
+        2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(new DaemonStoppedException())]
         1 * connection.dispatch({it instanceof Cancel})
         1 * connection.dispatch({it instanceof CloseInput})
-        1 * cancellationToken.isCancellationRequested() >> true
+        1 * connection.dispatch({it instanceof Finished})
+        1 * cancellationToken.cancellationRequested >> true
         1 * cancellationToken.removeCallback(_)
         1 * connection.stop()
         0 * _

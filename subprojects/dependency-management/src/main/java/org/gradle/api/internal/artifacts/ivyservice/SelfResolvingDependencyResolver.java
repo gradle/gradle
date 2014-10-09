@@ -19,7 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -40,7 +40,7 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
 
     public void resolve(ConfigurationInternal configuration,
                         List<? extends ResolutionAwareRepository> repositories,
-                        ModuleMetadataHandler metadataHandler,
+                        GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
         resolver.resolve(configuration, repositories, metadataHandler, results);
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();

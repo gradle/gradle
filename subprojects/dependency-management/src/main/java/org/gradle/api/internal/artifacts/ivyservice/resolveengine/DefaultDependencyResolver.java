@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -82,12 +82,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     public void resolve(final ConfigurationInternal configuration,
                         final List<? extends ResolutionAwareRepository> repositories,
-                        final ModuleMetadataHandler metadataHandler,
+                        final GlobalDependencyResolutionRules metadataHandler,
                         final ResolverResults results) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler);
+                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler.getComponentMetadataProcessor());
 
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentMetaDataResolver(), dependencyDescriptorFactory);
 
@@ -104,7 +104,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     conflictResolver = new LatestModuleConflictResolver(latestStrategy);
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
-                ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleReplacements());
+                ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, metaDataResolver, projectDependencyResolver, artifactResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
 

@@ -71,19 +71,11 @@ completes, then do not exit. If the build does not complete in this time, exit t
     - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is still running.
     - Should use fixture to probe the daemon logs to determine that it has seen the request and terminated the build cleanly.
     - Client continues to get build output during this time.
+    - Verify for cancellation of project configuration and task graph execution.
 - Command-line client runs a short build and is killed.
     - Some time after this the daemon finishes the build and continues to run.
     - Should use fixture to probe the daemon logs to determine that it has seen the event and terminated the build cleanly.
 - Extend the existing daemon termination tests to use fixture to probe the daemon logs to determine that the daemon has decided to exit.
-
-### Story: Task graph execution is aborted when operation is cancelled
-
-In this story, task graph executor no longer starts executing new tasks when operation is cancelled.
-
-#### Test cases
-
-- Client cancels a build before the start of some task(s) execution
-    - Some time after requesting, the client receives a 'build cancelled' exception and the daemon is still running and the task is not executed.
 
 ### Story: Gradle distribution download is aborted when operation is cancelled
 
@@ -94,14 +86,6 @@ In this story, the Gradle distribution download is stopped when operation is can
 - Client requests to execute an operation (build, model) using a distribution that needs to be downloaded and cancels the operation during the download
     - Some time after requesting, the client receives a 'build cancelled' exception and download is terminated and partial downloads are removed
     - Verify this behavior for regularly processed downloads and for stalled downloads waiting on blocking I/O.
-
-### Story: Project configuration is aborted when operation is cancelled
-
-In this story, no further projects should be configured after the operation is cancelled. Any project configuration
-action that is currently executing should continue, similar to the task graph exececution.
-
-Implementation-wise, change `DefaultBuildConfigurer` to stop configuring projects once the cancellation
-token has been activated.
 
 ### Story: Tooling API client receives BuildCancelledException as the result of a cancelled operation
 

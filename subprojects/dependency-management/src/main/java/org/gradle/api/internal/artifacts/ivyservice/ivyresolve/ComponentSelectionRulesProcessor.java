@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
@@ -29,6 +28,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.rules.SpecRuleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
     private static final String USER_CODE_ERROR = "Could not apply component selection rule with all().";
 
-    public void apply(ComponentSelection selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
+    public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
         MetadataProvider metadataProvider = new MetadataProvider(metaDataSupplier);
 
         List<SpecRuleAction<? super ComponentSelection>> noInputRules = Lists.newArrayList();
@@ -57,11 +57,11 @@ public class ComponentSelectionRulesProcessor {
         }
     }
 
-    private boolean processRules(List<SpecRuleAction<? super ComponentSelection>> specRuleActions, ComponentSelection selection, MetadataProvider metadataProvider) {
+    private boolean processRules(List<SpecRuleAction<? super ComponentSelection>> specRuleActions, ComponentSelectionInternal selection, MetadataProvider metadataProvider) {
         for (SpecRuleAction<? super ComponentSelection> rule : specRuleActions) {
             processRule(selection, metadataProvider, rule);
 
-            if (((ComponentSelectionInternal) selection).isRejected()) {
+            if (selection.isRejected()) {
                 LOGGER.info(String.format("Selection of '%s' rejected by component selection rule: %s", selection.getCandidate(), ((ComponentSelectionInternal) selection).getRejectionReason()));
                 return false;
             }

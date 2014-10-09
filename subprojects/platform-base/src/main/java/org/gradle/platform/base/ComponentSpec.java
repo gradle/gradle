@@ -24,13 +24,10 @@ import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A software component that is built by a Gradle project.
- *
- * @param <T> The type of the {@link org.gradle.platform.base.BinarySpec} associated with
- * the ComponentSpec.
  */
 @Incubating
 @HasInternalProtocol
-public interface ComponentSpec<T extends BinarySpec> extends Named {
+public interface ComponentSpec extends Named {
     /**
      * The path the the project containing this component.
      */
@@ -62,5 +59,5 @@ public interface ComponentSpec<T extends BinarySpec> extends Named {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    DomainObjectSet<T> getBinaries();
+    DomainObjectSet<BinarySpec> getBinaries();
 }

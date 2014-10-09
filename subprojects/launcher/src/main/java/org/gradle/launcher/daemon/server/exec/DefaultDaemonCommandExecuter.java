@@ -35,7 +35,7 @@ import java.util.List;
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     private final LoggingOutputInternal loggingOutput;
     private final BuildActionExecuter<BuildActionParameters> actionExecuter;
-    private DaemonCommandAction hygieneAction;
+    private final DaemonCommandAction hygieneAction;
     private final ProcessEnvironment processEnvironment;
     private final File daemonLog;
 
@@ -48,13 +48,12 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         this.hygieneAction = hygieneAction;
     }
 
-    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
+    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
         new DaemonCommandExecution(
             connection,
             command,
             daemonContext,
             daemonStateControl,
-            commandAbandoned,
             createActions(daemonContext)
         ).proceed();
     }
@@ -62,11 +61,9 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
-            new CatchAndForwardDaemonFailure(),
-            hygieneAction,
-            new HandleStop(),
             new HandleCancel(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
+            hygieneAction,
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
             new ForwardClientInput(),

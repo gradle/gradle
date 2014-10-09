@@ -86,7 +86,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     }
                 }
             }
-            executables.main.targetPlatform "x86"
+            executables.main.targetPlatforms "x86"
 """
 
         and:
@@ -168,12 +168,12 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             }
             executables {
                 exe {
-                    targetPlatform "x86"
+                    targetPlatforms "x86"
                 }
             }
             libraries {
                 hello {
-                    targetPlatform "x86"
+                    targetPlatforms "x86", "x86_64"
                 }
             }
             sources {
@@ -211,7 +211,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                 }
             }
 
-            executables.main.targetPlatform "x86", "x86_64", "itanium", "arm"
+            executables.main.targetPlatforms "x86", "x86_64", "itanium", "arm"
 """
 
         and:
@@ -249,29 +249,18 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def "can configure binary for multiple target operating systems"() {
-        String currentOs
-        if (os.windows) {
-            currentOs = "windows"
-        } else if (os.linux) {
-            currentOs = "linux"
-        } else if (os.macOsX) {
-            currentOs = "osx"
-        } else {
-            throw new AssertionError("Unexpected operating system")
-        }
-
         when:
         buildFile << """
             model {
                 platforms {
-                    osx {
-                        operatingSystem "osx"
-                    }
                     windows {
                         operatingSystem "windows"
                     }
                     linux {
                         operatingSystem "linux"
+                    }
+                    osx {
+                        operatingSystem "osx"
                     }
                 }
             }
@@ -279,19 +268,18 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
                 cppCompiler.define "FRENCH"
             }
-
-            executables.main.targetPlatform "$currentOs"
         """
+
         and:
         succeeds "assemble"
 
         then:
         if (os.windows) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 windows" * 2
+            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows" * 2
         } else if (os.linux) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 linux" * 2
+            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux" * 2
         } else if (os.macOsX) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 os x" * 2
+            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x" * 2
         } else {
             throw new AssertionError("Unexpected operating system")
         }
@@ -360,7 +348,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     main
                 }
             }
-            executables.main.targetPlatform "unknown"
+            executables.main.targetPlatforms "unknown"
 """
 
         and:
@@ -384,7 +372,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             }
             libraries {
                 hello {
-                    targetPlatform "two"
+                    targetPlatforms "two"
                 }
             }
 
@@ -394,7 +382,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 """
 
         and:
-        fails "mainExecutable" //TODO freekh: changed from oneMainExecutable because we target the first platform and choose it as default now if none is described. Unsure whether that is good.
+        fails "oneMainExecutable"
 
         then:
         //TODO freekh: This error message is not particularly descriptive: it is hard to understand what to do and how to fix it.

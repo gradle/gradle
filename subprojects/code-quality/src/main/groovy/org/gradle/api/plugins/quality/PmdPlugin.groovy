@@ -86,6 +86,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.conventionMapping.with {
             pmdClasspath = { config }
             ruleSets = { extension.ruleSets }
+            ruleSetConfig = { extension.ruleSetConfig }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
             consoleOutput = { extension.consoleOutput }

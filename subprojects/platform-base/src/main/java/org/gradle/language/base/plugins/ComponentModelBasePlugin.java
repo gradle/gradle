@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.plugins;
 
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -75,11 +74,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
-        @SuppressWarnings("unchecked") Class<ComponentSpec<?>> componentSpecClass = (Class<ComponentSpec<?>>) new TypeToken<ComponentSpec<?>>(){}.getRawType();
         modelRegistry.create(
                 ModelCreators.of(ModelReference.of("componentSpecs", DefaultComponentSpecContainer.class), components)
                         .simpleDescriptor("Project.<init>.componentSpecs()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec<?>>(components, componentSpecClass))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
                         .build()
                         );
 
@@ -96,7 +94,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    @SuppressWarnings("rawtypes")
     private <U extends LanguageSourceSet> void createDefaultSourceSetForComponents(final LanguageRegistration<U> languageRegistration, ComponentSpecContainer components) {
         components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
             public void execute(final ComponentSpecInternal componentSpecInternal) {

@@ -53,6 +53,7 @@ class CheckstylePluginTest extends Specification {
         expect:
         CheckstyleExtension extension = project.extensions.checkstyle
         extension.configFile == project.file("config/checkstyle/checkstyle.xml")
+        extension.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         extension.configProperties == [:]
         extension.reportsDir == project.file("build/reports/checkstyle")
         !extension.ignoreFailures
@@ -80,6 +81,7 @@ class CheckstylePluginTest extends Specification {
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert classpath == sourceSet.output
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
+            assert config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
             assert reports.xml.destination == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert !ignoreFailures
@@ -95,6 +97,7 @@ class CheckstylePluginTest extends Specification {
         task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
+        task.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties == [:]
         task.reports.xml.destination == project.file("build/reports/checkstyle/custom.xml")
         !task.ignoreFailures
@@ -122,7 +125,7 @@ class CheckstylePluginTest extends Specification {
         
         project.checkstyle {
             sourceSets = [project.sourceSets.main]
-            configFile = project.file("checkstyle-config")
+            config = project.resources.text.fromFile("checkstyle-config")
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
@@ -145,17 +148,18 @@ class CheckstylePluginTest extends Specification {
             assert source as List == sourceSet.allJava as List
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert configFile == project.file("checkstyle-config")
+            assert config.inputFiles.singleFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
             assert reports.xml.destination == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert ignoreFailures
             assert showViolations
         }
     }
-    
+
     def "can customize any additional checkstyle tasks via extension"() {
         def task = project.tasks.create("checkstyleCustom", Checkstyle)
         project.checkstyle {
-            configFile = project.file("checkstyle-config")
+            config = project.resources.text.fromFile("checkstyle-config")
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
@@ -166,6 +170,7 @@ class CheckstylePluginTest extends Specification {
         task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("checkstyle-config")
+        task.config.inputFiles.singleFile == project.file("checkstyle-config")
         task.configProperties == [foo: "foo"]
         task.reports.xml.destination == project.file("checkstyle-reports/custom.xml")
         task.ignoreFailures

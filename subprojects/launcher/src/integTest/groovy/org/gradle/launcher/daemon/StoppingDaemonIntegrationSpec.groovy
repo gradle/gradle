@@ -17,19 +17,43 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.launcher.daemon.server.exec.DaemonStoppedException
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.TextUtil
+import org.junit.Rule
+
 class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
-    def "can handle multiple concurrent stop requests"() {
-        given:
-        file('build.gradle') << '''
-file('marker.txt') << 'waiting'
-Thread.sleep(60000)
-'''
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+
+    def "daemon process stops and client logs nice error message when daemon stopped"() {
+        buildFile << """
+task block << {
+    new URL("$server.uri").text
+}
+"""
 
         when:
-        def build = executer.start()
-        ConcurrentTestUtil.poll(20) { assert file('marker.txt').file }
+        def build = executer.withTasks("block").start()
+        server.waitFor()
+        daemons.daemon.assertBusy()
+        executer.withArguments("--stop").run()
+        def failure = build.waitForFailure()
+
+        then:
+        daemons.daemon.assertStops()
+        failure.assertHasDescription(DaemonStoppedException.MESSAGE)
+    }
+
+    def "can handle multiple concurrent stop requests"() {
+        buildFile << """
+task block << {
+    new URL("$server.uri").text
+}
+"""
+
+        when:
+        def build = executer.withTasks("block").start()
+        server.waitFor()
 
         def stopExecutions = []
         5.times { idx ->
@@ -40,6 +64,7 @@ Thread.sleep(60000)
         def out = executer.withArguments("--stop").run().output
 
         then:
+        daemons.daemon.assertStops()
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
     }
 

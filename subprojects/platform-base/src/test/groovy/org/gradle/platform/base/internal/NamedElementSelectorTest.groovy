@@ -50,11 +50,14 @@ public class NamedElementSelectorTest extends Specification {
         (_..1) * iterator.next() >> platform3
         (_..1) * iterator.hasNext() >> false
 
+        (_..1) * elements.toArray() >> elements
+
         _ * elements.size() >> 3
+        _ * elements.length >> 3
     }
 
     def "selecting one element returns the correct element"() {
-        def selector = new NamedElementSelector(Platform, ["name2"], defaultPlatform)
+        def selector = new NamedElementSelector(Platform, ["name2"])
 
         when:
         def res = selector.transform(elements)
@@ -63,18 +66,18 @@ public class NamedElementSelectorTest extends Specification {
         res == [platform2]
     }
 
-    def "when selecting no elements, the default is returned"() {
-        def selector = new NamedElementSelector(Platform, [], defaultPlatform)
+    def "when selecting no elements, all are returned"() {
+        def selector = new NamedElementSelector(Platform, [])
 
         when:
         def res = selector.transform(elements)
 
         then:
-        res == [defaultPlatform]
+        res == [platform2, platform1, platform3]
     }
 
     def "selecting multiple elements returns elements in the defined order"() {
-        def selector = new NamedElementSelector(Platform, ["name1", "name2", "name3"], defaultPlatform)
+        def selector = new NamedElementSelector(Platform, ["name1", "name2", "name3"])
 
         when:
         def res = selector.transform(elements)
@@ -84,7 +87,7 @@ public class NamedElementSelectorTest extends Specification {
     }
 
     def "selecting an element that does not exists fails"() {
-        def selector = new NamedElementSelector(Platform, ["blah"], defaultPlatform)
+        def selector = new NamedElementSelector(Platform, ["blah"])
 
         when:
         selector.transform(elements)
@@ -95,7 +98,7 @@ public class NamedElementSelectorTest extends Specification {
     }
 
     def "selecting multiple elements where one does not exist fails"() {
-        def selector = new NamedElementSelector(Platform, ["name1", "foo", "name2"], defaultPlatform)
+        def selector = new NamedElementSelector(Platform, ["name1", "foo", "name2"])
 
         when:
         selector.transform(elements)

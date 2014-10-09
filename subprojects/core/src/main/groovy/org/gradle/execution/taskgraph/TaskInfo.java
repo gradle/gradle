@@ -50,7 +50,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return state == TaskExecutionState.SHOULD_RUN;
     }
 
-    public boolean getMustNotRun() {
+    public boolean isMustNotRun() {
         return state == TaskExecutionState.MUST_NOT_RUN;
     }
 

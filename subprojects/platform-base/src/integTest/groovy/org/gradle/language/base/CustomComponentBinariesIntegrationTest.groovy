@@ -32,7 +32,7 @@ interface SampleBinary extends BinarySpec {}
 interface OtherSampleBinary extends SampleBinary {}
 class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
 class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {}
-interface SampleLibrary extends ComponentSpec<SampleBinary> {}
+interface SampleLibrary extends ComponentSpec {}
 class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
             class MyBinaryDeclarationModel implements Plugin<Project> {
@@ -134,7 +134,7 @@ Binaries
         succeeds "tellTaskName"
     }
 
-    def "@ComponentBinaries supports additional parameters as rule inputs"() {
+    def "ComponentBinaries rule supports additional parameters as rule inputs"() {
         given:
         buildFile << """
         class CustomModel {

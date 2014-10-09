@@ -27,6 +27,7 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
+import org.gradle.execution.ProjectConfigurer
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
@@ -59,6 +60,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         parent.get(ExecutorFactory) >> Stub(ExecutorFactory)
         parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
+        parent.get(ProjectConfigurer) >> Stub(ProjectConfigurer)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }

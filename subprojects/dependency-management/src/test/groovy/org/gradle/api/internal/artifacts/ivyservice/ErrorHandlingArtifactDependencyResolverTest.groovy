@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -35,7 +35,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
     private resolutionResult = Mock(ResolutionResult)
     private configuration = Mock(ConfigurationInternal.class, name: 'coolConf')
     private repositories = [Mock(ResolutionAwareRepository)]
-    private metadataHandler = Stub(ModuleMetadataHandler)
+    private metadataHandler = Stub(GlobalDependencyResolutionRules)
     private results = new ResolverResults()
     private resolver = new ErrorHandlingArtifactDependencyResolver(delegate);
 

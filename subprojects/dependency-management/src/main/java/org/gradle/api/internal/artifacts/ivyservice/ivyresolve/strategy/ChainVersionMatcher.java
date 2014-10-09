@@ -40,6 +40,10 @@ public class ChainVersionMatcher implements VersionMatcher {
         return getCompatibleMatcher(selector).needModuleMetadata(selector);
     }
 
+    public boolean matchesUniqueVersion(String selector) {
+        return getCompatibleMatcher(selector).matchesUniqueVersion(selector);
+    }
+
     public boolean accept(String selector, String candidate) {
         return getCompatibleMatcher(selector).accept(selector, candidate);
     }

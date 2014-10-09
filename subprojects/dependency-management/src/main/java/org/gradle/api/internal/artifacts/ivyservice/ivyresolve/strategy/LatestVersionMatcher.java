@@ -30,6 +30,10 @@ public class LatestVersionMatcher implements VersionMatcher {
         return true;
     }
 
+    public boolean matchesUniqueVersion(String selector) {
+        return true;
+    }
+
     public boolean accept(String selector, String candidate) {
         throw new UnsupportedOperationException("accept(String, String)");
     }

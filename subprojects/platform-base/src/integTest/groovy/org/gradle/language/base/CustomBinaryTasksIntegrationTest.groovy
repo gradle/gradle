@@ -27,7 +27,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
         interface SampleBinary extends BinarySpec {}
         class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
-        interface SampleLibrary extends ComponentSpec<SampleBinary> {}
+        interface SampleLibrary extends ComponentSpec {}
         class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
         class MyComponentBasePlugin implements Plugin<Project> {
@@ -77,7 +77,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         "assemble"        | "assemble task"
     }
 
-    def "@BinaryTasks adds task to binary model"() {
+    def "BinaryTasks rule adds task to binary model"() {
         given:
         buildFile << taskCreationRuleFromBinary()
         when:
@@ -93,7 +93,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "checkModel"
     }
 
-    def "@BinaryTasks only applies to matching BinarySpec"() {
+    def "BinaryTasks rule only applies to matching BinarySpec"() {
         when:
         buildFile << withOtherBinaryPlugin()
         buildFile << """
@@ -108,7 +108,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "checkModel"
     }
 
-    def "@BinaryTasks supports additional parameters as rule inputs"() {
+    def "BinaryTasks rule supports additional parameters as rule inputs"() {
         when:
         buildFile << """
         class CustomModel {
@@ -176,7 +176,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         """
         interface OtherBinary extends BinarySpec {}
         class DefaultOtherBinary extends BaseBinarySpec implements OtherBinary {}
-        interface OtherLibrary extends ComponentSpec<OtherBinary> {}
+        interface OtherLibrary extends ComponentSpec {}
         class DefaultOtherLibrary extends BaseComponentSpec implements OtherLibrary{}
 
         class MyOtherBinariesPlugin implements Plugin<Project> {

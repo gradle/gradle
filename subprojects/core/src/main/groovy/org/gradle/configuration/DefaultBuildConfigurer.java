@@ -16,31 +16,23 @@
 package org.gradle.configuration;
 
 import org.gradle.StartParameter;
-import org.gradle.api.BuildCancelledException;
-import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.execution.ProjectConfigurer;
 import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private final BuildCancellationToken cancellationToken;
+    private final ProjectConfigurer projectConfigurer;
 
-    public DefaultBuildConfigurer(BuildCancellationToken cancellationToken) {
-        this.cancellationToken = cancellationToken;
+    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer) {
+        this.projectConfigurer = projectConfigurer;
     }
 
     public void configure(GradleInternal gradle) {
         maybeInformAboutIncubatingMode(gradle.getStartParameter());
         if (gradle.getStartParameter().isConfigureOnDemand()) {
-            gradle.getRootProject().evaluate();
+            projectConfigurer.configure(gradle.getRootProject());
         } else {
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                if (cancellationToken.isCancellationRequested()) {
-                    throw new BuildCancelledException();
-                }
-                ((ProjectInternal) project).evaluate();
-            }
+            projectConfigurer.configureHierarchy(gradle.getRootProject());
         }
     }
 

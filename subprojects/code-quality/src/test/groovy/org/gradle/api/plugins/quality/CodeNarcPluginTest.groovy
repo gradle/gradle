@@ -50,6 +50,7 @@ class CodeNarcPluginTest extends Specification {
     def "adds codenarc extension"() {
         expect:
         CodeNarcExtension codenarc = project.extensions.codenarc
+        codenarc.config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
         codenarc.maxPriority1Violations == 0
         codenarc.maxPriority2Violations == 0
@@ -81,6 +82,7 @@ class CodeNarcPluginTest extends Specification {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
             assert source as List == sourceSet.allGroovy  as List
             assert codenarcClasspath == project.configurations.codenarc
+            assert config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
             assert configFile == project.file("config/codenarc/codenarc.xml")
             assert maxPriority1Violations == 0
             assert maxPriority2Violations == 0
@@ -122,6 +124,7 @@ class CodeNarcPluginTest extends Specification {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
             assert source as List == sourceSet.allGroovy as List
             assert codenarcClasspath == project.configurations.codenarc
+            assert config.inputFiles.singleFile == project.file("codenarc-config")
             assert configFile == project.file("codenarc-config")
             assert maxPriority1Violations == 10
             assert maxPriority2Violations == 50
@@ -139,6 +142,7 @@ class CodeNarcPluginTest extends Specification {
         task.description == null
         task.source.isEmpty()
         task.codenarcClasspath == project.configurations.codenarc
+        task.config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
         task.configFile == project.file("config/codenarc/codenarc.xml")
         task.maxPriority1Violations == 0
         task.maxPriority2Violations == 0
@@ -152,7 +156,7 @@ class CodeNarcPluginTest extends Specification {
         def task = project.tasks.create("codenarcCustom", CodeNarc)
 
         project.codenarc {
-            configFile = project.file("codenarc-config")
+            config = project.resources.text.fromFile("codenarc-config")
             maxPriority1Violations = 10
             maxPriority2Violations = 50
             maxPriority3Violations = 200
@@ -165,6 +169,7 @@ class CodeNarcPluginTest extends Specification {
         task.description == null
         task.source.isEmpty()
         task.codenarcClasspath == project.configurations.codenarc
+        task.config.inputFiles.singleFile == project.file("codenarc-config")
         task.configFile == project.file("codenarc-config")
         task.maxPriority1Violations == 10
         task.maxPriority2Violations == 50

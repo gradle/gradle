@@ -15,12 +15,39 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.Incubating
+import org.gradle.api.Project
+import org.gradle.api.resources.TextResource
+
 class CheckstyleExtension extends CodeQualityExtension {
+    private final Project prj
+
+    CheckstyleExtension(Project project) {
+        prj = project
+    }
+
+    /**
+     * The Checkstyle configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource config
+
     /**
      * The Checkstyle configuration file to use.
      */
-    File configFile
-    
+    File getConfigFile() {
+        getConfig().asFile()
+    }
+
+    /**
+     * The Checkstyle configuration file to use.
+     */
+    void setConfigFile(File configFile) {
+        setConfig(prj.resources.text.fromFile(configFile))
+    }
+
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
      * file.

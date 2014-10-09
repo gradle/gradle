@@ -20,7 +20,7 @@ import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.model.collection.CollectionBuilder
 
-interface SampleLibrary extends LibrarySpec<SampleBinary> { }
+interface SampleLibrary extends LibrarySpec { }
 class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
 interface SampleBinary extends BinarySpec { }

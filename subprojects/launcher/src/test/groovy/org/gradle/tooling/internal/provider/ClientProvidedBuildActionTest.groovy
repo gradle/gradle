@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
+import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
@@ -28,10 +29,12 @@ import spock.lang.Specification
 class ClientProvidedBuildActionTest extends Specification {
     def action = Mock(SerializedPayload)
     def payloadSerializer = Mock(PayloadSerializer)
+    def projectConfigurer = Mock(ProjectConfigurer)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getServices() >> Stub(ServiceRegistry) {
                 get(PayloadSerializer) >> payloadSerializer
+                get(ProjectConfigurer) >> projectConfigurer
             }
         }
     }

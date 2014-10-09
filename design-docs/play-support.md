@@ -32,61 +32,7 @@ Performance should be comparable to SBT:
 
 # Milestone 1
 
-## Feature: Developer compiles Java and Scala source for Play application
-
-Developer uses the standard build lifecycle, such as `gradle assemble` or `gradle build` to compile the Java and Scala source for a Play application.
-
-- Introduce a 'play' plugin.
-- Adapt language plugins conventions to Play conventions
-    - need to include unmanaged dependencies from `lib/` as compile dependencies
-    - sub-projects have a slightly different layout to root project
-
-### Implementation
-
-Play plugin:
-
-- Defines a Play application component and an associated Jar binary.
-- Wires in the main source set as input, and hooks up the appropriate dependencies.
-
-### Open issues
-
-- Should use the new language plugins instead. Will require test execution and joint Java - Scala compilation.
-
-### Story: Jvm Library is built from Scala source files
-
-Add a `scala-lang` plugin that provides Scala language support for Jvm components:
-
-    plugins {
-        id 'jvm-component'
-        id 'scala-lang'
-    }
-
-    jvm {
-        libraries {
-            mylib
-        }
-    }
-
-- Running `gradle assemble` builds the Jar
-- No dependencies, other than Scala version
-- No joint compilation with Java
-- Can build a library from both Java and Scala
-- Uses a hard-coded Scala version.
-
-### Story: Build author declares target Scala platform
-
-- Provide a DSL to declare the target Scala platform for Scala source files.
-- Implies Java version?
-- Visible to Java source for that component as well?
-- Scala version should be visible in components report and dependencies reports.
-
-#### Test cases
-
-- Test against multiple versions of Scala.
-
-#### Open issues
-
-- Replace `ScalaRuntime` with Scala platform and some kind of toolchain.
+## Feature: Developer builds a Play application from Java and Scala source
 
 ### Story: Build author declares a Play application
 
@@ -103,11 +49,82 @@ Add a `play-application` plugin that provides Play application component:
         }
     }
 
-- Running `gradle assemble` builds the Jars.
-- No dependencies, other than Scala version and Play version.
-- Can build from Java or Scala or both.
-- App is not usable without routes provided by later story.
-- Uses a hard-coded Play version.
+- Running `gradle assemble` builds an executable Jar.
+- Each Play application produces a single binary.
+- Running `gradle components` shows some basic details about the Play application.
+- In this story, no source files are supported.
+
+## Story: Developer compiles template source for Play application
+
+Extend the Play support so that template source files for a Play application are compiled to byte code.
+
+- Running `gradle assemble` generates Scala and Java source files from the templates source files and compiles these to byte code.
+- The byte code is included in the executable Jar.
+- Uses hard-coded Play and Scala versions.
+- Templates source files are assumed to be in a hard-coded location. This won't be configurable for this story.
+- No dependencies other than Scala and Play.
+- Source generation and compilation should be incremental and remove stale outputs.
+
+## Story: Developer compiles routes for Play application
+
+Extend the Play support so that routes for a Play application are compiled to byte code.
+
+- Running `gradle assemble` generates Scala and Java source files from the routes source file and compiles these to byte code.
+- The byte code is included in the executable Jar.
+- Routes source files are assumed to be in a hard-coded location. This won't be configurable for this story.
+- Source generation and compilation should be incremental and remove stale outputs.
+
+## Story: Developer runs Play application
+
+Extend the Play support to allow the Play application to be executed.
+
+- Running `gradle assemble` produces an executable Jar that, when executed, runs the Play application.
+- Running `gradle run<ComponentName>` builds and executes the Play application.
+
+At this stage, only templates and routes are included, with a hard-coded version of Scala and Play.
+
+## Story: Developer implements a Play application using Java
+
+Extend the Play support to compile Java source for a Play application.
+
+- Java source files are assumed to be in a hard-coded location. This won't be configurable for this story.
+- No dependencies other than Scala and Play.
+
+## Story: Developer implements a Play application using Scala
+
+Extend the Play support to compile Scala source for a Play application.
+
+- Scala source files are assumed to be in a hard-coded location. This won't be configurable for this story.
+- No dependencies other than Scala and Play.
+- No joint compilation.
+
+## Further features
+
+- Build author declares Scala and Play platforms (below).
+- Model routes and templates as languages.
+- Source sets for input languages for a Play application.
+- Register Scala as a language, and change Play support to allow a Play application to take any language as input.
+- Joint compilation of Java and Scala source.
+- Can build multiple variants of a Play application.
+- Generate an application install, eg with launcher scripts and so on.
+- Build author runs unit and functional tests for a Play application.
+
+## Feature: Developer declares target Scala and Play versions for a Play application
+
+### Story: Build author declares target Scala platform
+
+- Provide a DSL to declare the target Scala platform for Scala source files.
+- Implies Java version?
+- Visible to Java source for that component as well?
+- Scala version should be visible in components report and dependencies reports.
+
+#### Test cases
+
+- Test against multiple versions of Scala.
+
+#### Open issues
+
+- Replace `ScalaRuntime` with Scala platform and some kind of toolchain.
 
 ### Story: Build author declares target Play platform
 
@@ -119,34 +136,6 @@ Add a `play-application` plugin that provides Play application component:
 #### Test cases
 
 - Test against multiple versions of Play. Should include version 2.2.3
-
-## Feature: Developer compiles route and template source for Play application
-
-Extend the standard build lifecycle to compile the route and template source files to bytecode.
-
-- Compile routes and templates
-- Define source sets for each type of source file
-- Compilation should be incremental and remove stale outputs
-
-### Implementation
-
-Play plugin:
-
-- Defines Play template file source set type.
-- Invokes route source generator and includes the resulting Scala source for joint compilation.
-- Invokes template source generator and includes the resulting Scala source for joint compilation.
-- Cleans stale outputs.
-
-### Test cases
-
-- Route depends on Java class.
-- Template depends on Java class that depends on the template.
-- Template depends on Scala class that depends on the template.
-
-### Open issues
-
-- Can generate template source in parallel?
-- Will need to cross compile the route and template compiler integrations against multiple Play versions.
 
 ## Feature: Developer compiles assets for Play application
 

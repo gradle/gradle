@@ -136,6 +136,25 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
+    def "use custom rule set"() {
+        customCode()
+
+        buildFile << """
+            pmd {
+                ruleSets = []
+                ruleSetConfig = resources.text.fromString('''${customRuleSetText()}''')
+            }
+        """
+
+        expect:
+        fails("pmdMain")
+        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
+
+    }
+
     def "can enable console output"() {
         buildFile << """
             pmd {
@@ -190,7 +209,11 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private customRuleSet() {
-        file("customRuleSet.xml") << """
+        file("customRuleSet.xml") << customRuleSetText()
+    }
+
+    private customRuleSetText() {
+        """
             <ruleset name="custom"
                 xmlns="http://pmd.sf.net/ruleset/1.0.0"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

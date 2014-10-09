@@ -9,6 +9,10 @@
                 </tr>
             </thead>
             <tr>
+                <td>config</td>
+                <td><literal>project.codenarc.config</literal></td>
+            </tr>
+            <tr>
                 <td>configFile</td>
                 <td><literal>project.codenarc.configFile</literal></td>
             </tr>

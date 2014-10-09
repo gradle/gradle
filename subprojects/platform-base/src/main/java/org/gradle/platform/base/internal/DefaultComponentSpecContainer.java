@@ -16,16 +16,14 @@
 
 package org.gradle.platform.base.internal;
 
-import com.google.common.reflect.TypeToken;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 
-public class DefaultComponentSpecContainer extends RuleAwarePolymorphicDomainObjectContainer<ComponentSpec<?>> implements ComponentSpecContainer {
+public class DefaultComponentSpecContainer extends RuleAwarePolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
 
-    @SuppressWarnings("unchecked")
     public DefaultComponentSpecContainer(Instantiator instantiator) {
-        super((Class<ComponentSpec<?>>)new TypeToken<ComponentSpec<?>>(){}.getRawType(), instantiator);
+        super(ComponentSpec.class, instantiator);
     }
 }

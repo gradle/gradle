@@ -21,6 +21,10 @@
                 <td><literal>["basic"]</literal></td>
             </tr>
             <tr>
+                <td>ruleSetConfig</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>ruleSetFiles</td>
                 <td><literal>[]</literal></td>
             </tr>

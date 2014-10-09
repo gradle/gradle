@@ -20,10 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * A specification of a {@link org.gradle.platform.base.Application}.
- *
- * @param <T> The type of the {@link org.gradle.platform.base.BinarySpec} associated to
- * the ApplicationSpec.
  */
 @Incubating
-public interface ApplicationSpec<T extends BinarySpec> extends ComponentSpec<T> {
+public interface ApplicationSpec extends ComponentSpec {
 }

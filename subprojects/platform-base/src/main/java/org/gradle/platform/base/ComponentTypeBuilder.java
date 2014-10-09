@@ -20,6 +20,5 @@ package org.gradle.platform.base;
  * Allows a plugin to register a custom component type.
  * @param <C> The component type.
  */
-@SuppressWarnings("rawtypes")
 public interface ComponentTypeBuilder<C extends ComponentSpec> extends TypeBuilder<C> {
 }

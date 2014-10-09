@@ -72,6 +72,20 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractHt
                 candidates << selection.candidate.version
             }
             """,
+            "select 2.0": """{ ComponentSelection selection ->
+                if (selection.candidate.version != '2.0') {
+                    selection.reject("not 2.0")
+                }
+                candidates << selection.candidate.version
+            }
+            """,
+            "select 2.1": """{ ComponentSelection selection ->
+                if (selection.candidate.version != '2.1') {
+                    selection.reject("not 2.1")
+                }
+                candidates << selection.candidate.version
+            }
+            """,
             "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
                 if (ivy.branch != 'test') {
                     selection.reject("not branch")

@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext
-import org.gradle.api.internal.artifacts.ModuleMetadataHandler
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -39,7 +39,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
     private configuration = Mock(ConfigurationInternal)
     private repositories = [Mock(ResolutionAwareRepository)]
     private dependencies = Mock(DependencySet)
-    private metadataHandler = Stub(ModuleMetadataHandler)
+    private metadataHandler = Stub(GlobalDependencyResolutionRules)
     private results = new ResolverResults()
     private resolver = new SelfResolvingDependencyResolver(delegate);
 

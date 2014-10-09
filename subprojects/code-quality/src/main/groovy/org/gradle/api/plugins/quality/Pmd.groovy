@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.nativeintegration.console.ConsoleDetector
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
@@ -56,6 +57,23 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     @Input
     TargetJdk targetJdk
+
+    /**
+     * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that
+     * it does not currently support multiple rule sets.
+     *
+     * See the
+     * <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a>
+     * for how to author a rule set.
+     *
+     * Example: ruleSetConfig = resources.text(resources.file("config/pmd/myRuleSets.xml"))
+     *
+     * @since 2.2
+     */
+    @Incubating
+    @Nested
+    @Optional
+    TextResource ruleSetConfig
 
     /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for
@@ -123,6 +141,10 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                 }
                 getRuleSetFiles().each {
                     ruleset(it)
+                }
+                def ruleSetConfig = getRuleSetConfig()
+                if (ruleSetConfig != null) {
+                    ruleset(ruleSetConfig.asFile())
                 }
 
                 if (reports.html.enabled) {

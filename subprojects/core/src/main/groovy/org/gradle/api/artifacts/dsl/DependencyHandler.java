@@ -333,7 +333,7 @@ public interface DependencyHandler {
     ComponentMetadataHandler getComponents();
 
     /**
-     * Configures module metadata for this project.
+     * Configures component metadata for this project.
      *
      * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project.
      *
@@ -342,6 +342,27 @@ public interface DependencyHandler {
      */
     @Incubating
     void components(Action<? super ComponentMetadataHandler> configureAction);
+
+    /**
+     * Returns the component module metadata handler for this project. The returned handler can be used for adding rules
+     * that modify the metadata of depended-on software components.
+     *
+     * @return the component module metadata handler for this project
+     * @since 2.2
+     */
+    @Incubating
+    ComponentModuleMetadataHandler getModules();
+
+    /**
+     * Configures module metadata for this project.
+     *
+     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler} for this project.
+     *
+     * @param configureAction the action to use to configure module metadata
+     * @since 2.2
+     */
+    @Incubating
+    void modules(Action<? super ComponentModuleMetadataHandler> configureAction);
 
     /**
      * Creates an artifact resolution query.

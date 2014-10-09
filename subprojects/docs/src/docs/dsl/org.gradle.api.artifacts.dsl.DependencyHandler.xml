@@ -10,6 +10,9 @@
             <tr>
                 <td>components</td>
             </tr>
+            <tr>
+                <td>modules</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -40,6 +43,9 @@
             </tr>
             <tr>
                 <td>components</td>
+            </tr>
+            <tr>
+                <td>modules</td>
             </tr>
             <tr>
                 <td>createArtifactResolutionQuery</td>

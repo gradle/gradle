@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -37,16 +38,18 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
-    private final ComponentMetadataHandler metadataHandler;
+    private final ComponentMetadataHandler componentMetadataHandler;
+    private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
-                                    ProjectFinder projectFinder, ComponentMetadataHandler metadataHandler,
+                                    ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                     ArtifactResolutionQueryFactory resolutionQueryFactory) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
-        this.metadataHandler = metadataHandler;
+        this.componentMetadataHandler = componentMetadataHandler;
+        this.componentModuleMetadataHandler = componentModuleMetadataHandler;
         this.resolutionQueryFactory = resolutionQueryFactory;
     }
 
@@ -127,7 +130,15 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     public ComponentMetadataHandler getComponents() {
-        return metadataHandler;
+        return componentMetadataHandler;
+    }
+
+    public void modules(Action<? super ComponentModuleMetadataHandler> configureAction) {
+        configureAction.execute(getModules());
+    }
+
+    public ComponentModuleMetadataHandler getModules() {
+        return componentModuleMetadataHandler;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {

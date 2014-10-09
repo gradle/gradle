@@ -41,6 +41,10 @@ public class ExactVersionMatcher implements VersionMatcher {
         return false;
     }
 
+    public boolean matchesUniqueVersion(String selector) {
+        return true;
+    }
+
     public boolean accept(String selector, String candidate) {
         return selector.equals(candidate);
     }

@@ -16,10 +16,12 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
+import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
@@ -43,10 +45,27 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     FileCollection classpath
 
     /**
+     * The Checkstyle configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    @Nested
+    TextResource config
+
+    /**
      * The Checkstyle configuration file to use.
      */
-    @InputFile
-    File configFile
+    File getConfigFile() {
+        getConfig()?.asFile()
+    }
+
+    /**
+     * The Checkstyle configuration file to use.
+     */
+    void setConfigFile(File configFile) {
+        setConfig(project.resources.text(configFile))
+    }
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
@@ -120,7 +139,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
         antBuilder.withClasspath(getCheckstyleClasspath()).execute {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
 
-            ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
+            ant.checkstyle(config: getConfig().asFile(), failOnViolation: false, failureProperty: propertyName) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getClasspath().addToAntBuilder(ant, 'classpath')
                 if (showViolations) {

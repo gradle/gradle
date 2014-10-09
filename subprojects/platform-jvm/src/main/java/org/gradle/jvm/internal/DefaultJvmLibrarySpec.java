@@ -19,24 +19,23 @@ package org.gradle.jvm.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.JvmLibraryBinarySpec;
-import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.JvmResources;
+import org.gradle.jvm.*;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.*;
 
-public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal<JvmLibraryBinarySpec> {
+public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final FunctionalSourceSet mainSourceSet;
     private final ComponentSpecIdentifier identifier;
-    private final DomainObjectSet<JvmLibraryBinarySpec> binaries = new DefaultDomainObjectSet<JvmLibraryBinarySpec>(JvmLibraryBinarySpec.class);
+    private final DomainObjectSet<BinarySpec> binaries;
+    private final DomainObjectSet<JvmBinarySpec> jvmBinaries;
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<String> targets = new ArrayList<String>();
 
@@ -46,6 +45,8 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         sourceSets.addMainSources(mainSourceSet);
         this.languageOutputs.add(JvmResources.class);
         this.languageOutputs.add(JvmByteCode.class);
+        this.binaries = new DefaultDomainObjectSet<BinarySpec>(JvmBinarySpec.class);
+        this.jvmBinaries = this.binaries.withType(JvmBinarySpec.class);
 
     }
 
@@ -74,7 +75,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
         sourceSets.source(source);
     }
 
-    public DomainObjectSet<JvmLibraryBinarySpec> getBinaries() {
+    public DomainObjectSet<BinarySpec> getBinaries() {
         return binaries;
     }
 

@@ -122,7 +122,7 @@ public class Daemon implements Stoppable {
             // 3. start accepting incoming connections
             // 4. advertise presence in registry
 
-            stateCoordinator = new DaemonStateCoordinator(onStartCommand, onFinishCommand);
+            stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
             connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
             connectorAddress = connector.start(connectionHandler);
             LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);

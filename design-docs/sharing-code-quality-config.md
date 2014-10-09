@@ -152,10 +152,18 @@ This can be improved later.
 
 ### Open Questions
 
-- Should `TextResource` methods throw `IOException` - (I don't think there's a point - LD)
+- Should `TextResource` methods throw `IOException` - (I don't think there's a point - LD) Currently throw UncheckedIOException
 - Should `TextResource.as*()` throw if called when the `getTaskDependencies()` are unsatisfied (e.g. can't call this at config time)
-- For the to-be deprecated `File` properties (e.g. `Checkstyle.configFile`), do we support calling the getter if the `TextResource` property was set?
-
+- For the to-be deprecated `File` properties (e.g. `Checkstyle.configFile`), do we support calling the getter if the `TextResource` property was set? Yes
+- It might be better to have separate methods rather than overloads (e.g. `resources.text()`, `resources.fileText()`, `resources.archiveEntryText()`, or 
+  `resources.text.fromString()`, `resources.text.fromFile()`, `resources.text.fromArchiveEntry()`). This way we could support the usual coercions (e.g. `String`->`File`), 
+  although we'd still have to deal with the fact that the same method needs to accept both files and single-element file collections.  
+- It feels that the `resources.text()`/`resources.archiveText()` methods compensate for limitations in Gradle's file APIs. For example, 
+  it would be more natural to select an archive entry using a file (tree) API and pass the result to `resources.text()`, rather than 
+  using `resources.archiveText()`.
+- Should there be a way to query the character encoding of the file returned by `TextResource#asFile`? (As long as we return the 
+  original file that the resource was created from (if any), we can't standardize on one particular encoding.)
+- Should we leverage the existing ReadableResource/ResourceException/MissingResourceException types?
 
 
 

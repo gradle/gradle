@@ -15,6 +15,10 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.Incubating
+import org.gradle.api.Project
+import org.gradle.api.resources.TextResource
+
 /**
  * Configuration options for the FindBugs plugin. All options have sensible defaults.
  * See the <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
@@ -44,6 +48,12 @@ package org.gradle.api.plugins.quality
  * @see FindBugsPlugin
  */
 class FindBugsExtension extends CodeQualityExtension {
+    private final Project prj
+
+    FindBugsExtension(Project project) {
+        prj = project
+    }
+
     /**
      * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}.
      * Higher levels increase precision and find more bugs at the expense of running time and memory consumption.
@@ -70,12 +80,46 @@ class FindBugsExtension extends CodeQualityExtension {
     Collection<String> omitVisitors
 
     /**
+     * A filter specifying which bugs are reported. Replaces the {@code includeFilter} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource includeFilterConfig
+
+    /**
+     * A filter specifying bugs to exclude from being reported. Replaces the {@code excludeFilter} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
+    TextResource excludeFilterConfig
+
+    /**
      * The filename of a filter specifying which bugs are reported.
      */
-    File includeFilter
+    File getIncludeFilter() {
+        getIncludeFilterConfig()?.asFile()
+    }
+
+    /**
+     * The filename of a filter specifying which bugs are reported.
+     */
+    void setIncludeFilter(File filter) {
+        setIncludeFilterConfig(prj.resources.text.fromFile(filter))
+    }
 
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
-    File excludeFilter
+    File getExcludeFilter() {
+        getExcludeFilterConfig()?.asFile()
+    }
+
+    /**
+     * The filename of a filter specifying bugs to exclude from being reported.
+     */
+    void setExcludeFilter(File filter) {
+        setExcludeFilterConfig(prj.resources.text.fromFile(filter))
+    }
 }

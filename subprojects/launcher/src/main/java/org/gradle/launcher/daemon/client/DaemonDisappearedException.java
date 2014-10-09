@@ -22,7 +22,7 @@ import org.gradle.api.GradleException;
  */
 public class DaemonDisappearedException extends GradleException {
 
-    public static final String MESSAGE = "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)";
+    public static final String MESSAGE = "Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)";
 
     public DaemonDisappearedException() {
         super(MESSAGE);

@@ -13,10 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+package org.gradle.execution;
 
-public interface ModuleMetadataProcessor {
-    void processMetadata(MutableModuleComponentResolveMetaData metadata);
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.taskpath.ResolvedTaskPath;
+
+public interface ProjectConfigurer {
+    /**
+     * Configures the given project.
+     */
+    void configure(ProjectInternal project);
+
+    /**
+     * Configures the given project and all its sub-projects.
+     */
+    void configureHierarchy(ProjectInternal project);
+
+    /**
+     * Configures the projects required for the given task path.
+     */
+    void configureForPath(ResolvedTaskPath taskPath);
 }

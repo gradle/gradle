@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import org.gradle.model.internal.report.unbound.UnboundRule
@@ -26,6 +27,10 @@ import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
 
     def "unbound rules are reported"() {
         given:
@@ -127,7 +132,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertThatCause(unbound(
                 UnboundRule.descriptor("model.tasks.foonar", buildFile, 21, 17)
-                    .mutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar"))
+                        .mutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar"))
         ))
     }
 

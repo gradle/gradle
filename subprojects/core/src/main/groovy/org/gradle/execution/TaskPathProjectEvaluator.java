@@ -16,32 +16,45 @@
 
 package org.gradle.execution;
 
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
-import org.gradle.execution.taskpath.TaskPathResolver;
+import org.gradle.initialization.BuildCancellationToken;
 
-public class TaskPathProjectEvaluator {
+public class TaskPathProjectEvaluator implements ProjectConfigurer {
+    private final BuildCancellationToken cancellationToken;
 
-    private final TaskPathResolver taskPathResolver;
-
-    public TaskPathProjectEvaluator() {
-        this(new TaskPathResolver());
+    public TaskPathProjectEvaluator(BuildCancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
     }
 
-    TaskPathProjectEvaluator(TaskPathResolver taskPathResolver) {
-        this.taskPathResolver = taskPathResolver;
+    public void configure(ProjectInternal project) {
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException();
+        }
+        project.evaluate();
     }
 
-    public void evaluateByPath(ProjectInternal project, String path) {
-        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
-        if (taskPath.isQualified()) {
-            taskPath.getProject().evaluate();
-        } else {
-            project.evaluate();
-            for (Project sub : project.getSubprojects()) {
-                ((ProjectInternal) sub).evaluate();
+    public void configureHierarchy(ProjectInternal project) {
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException();
+        }
+        project.evaluate();
+        for (Project sub : project.getSubprojects()) {
+            if (cancellationToken.isCancellationRequested()) {
+                throw new BuildCancelledException();
             }
+            ((ProjectInternal) sub).evaluate();
+        }
+    }
+
+    public void configureForPath(ResolvedTaskPath taskPath) {
+        ProjectInternal targetProject = taskPath.getProject();
+        if (taskPath.isQualified()) {
+            configure(targetProject);
+        } else {
+            configureHierarchy(targetProject);
         }
     }
 }

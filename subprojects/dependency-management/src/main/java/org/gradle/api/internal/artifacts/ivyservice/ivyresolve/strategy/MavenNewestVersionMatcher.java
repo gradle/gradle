@@ -39,6 +39,11 @@ public class MavenNewestVersionMatcher implements VersionMatcher {
         return false;
     }
 
+    // TODO:DAZ Maybe this is true?
+    public boolean matchesUniqueVersion(String selector) {
+        return false;
+    }
+
     public boolean accept(String selector, String candidate) {
         if (selector.equals(RELEASE)) {
             return !isSnapshot(candidate);

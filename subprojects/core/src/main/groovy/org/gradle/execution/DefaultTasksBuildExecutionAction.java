@@ -30,6 +30,11 @@ import java.util.List;
  */
 public class DefaultTasksBuildExecutionAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildExecutionAction.class);
+    private final ProjectConfigurer projectConfigurer;
+
+    public DefaultTasksBuildExecutionAction(ProjectConfigurer projectConfigurer) {
+        this.projectConfigurer = projectConfigurer;
+    }
 
     public void configure(BuildExecutionContext context) {
         StartParameter startParameter = context.getGradle().getStartParameter();
@@ -43,6 +48,10 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
 
         // Gather the default tasks from this first group project
         ProjectInternal project = context.getGradle().getDefaultProject();
+
+        //so that we don't miss out default tasks
+        projectConfigurer.configure(project);
+
         List<String> defaultTasks = project.getDefaultTasks();
         if (defaultTasks.size() == 0) {
             defaultTasks = Arrays.asList(ProjectInternal.HELP_TASK);

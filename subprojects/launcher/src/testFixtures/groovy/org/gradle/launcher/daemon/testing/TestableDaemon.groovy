@@ -26,9 +26,8 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 class TestableDaemon {
-
-    final DaemonContext context
-    final String logContent
+    private final DaemonContext context
+    private final String logContent
     private final DaemonRegistry registry
 
     TestableDaemon(File daemonLog, DaemonRegistry registry) {
@@ -48,6 +47,24 @@ class TestableDaemon {
         throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to become idle.")
     }
 
+    /**
+     * Asserts that this daemon stops and is no longer visible to any clients, within a short timeout.
+     * Blocks until this has happened.
+     */
+    void assertStops() {
+        def expiry = System.currentTimeMillis() + 20000
+        while (expiry > System.currentTimeMillis()) {
+            if (registry.all.find { it.context.pid == context.pid } == null) {
+                return
+            }
+            Thread.sleep(200)
+        }
+        throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to stop.")
+    }
+
+    /**
+     * Forcefully kills this daemon.
+     */
     void kill() {
         println "Killing daemon with pid: $context.pid"
         def output = new ByteArrayOutputStream()
@@ -70,35 +87,58 @@ class TestableDaemon {
             return ["kill", "-9", pid]
         } else if (OperatingSystem.current().isWindows()) {
             return ["taskkill.exe", "/F", "/T", "/PID", pid]
-        }
-        else {
+        } else {
             throw new RuntimeException("This implementation does not know how to forcefully kill the daemon on os: " + OperatingSystem.current())
         }
     }
 
     @SuppressWarnings("FieldName")
     enum State {
-        busy, idle
+        busy, idle, stopped
     }
 
-    boolean isIdle() {
-        getStates()[-1] == State.idle
+    /**
+     * Asserts that this daemon is currently running and idle.
+     */
+    void assertIdle() {
+        assert getCurrentState() == State.idle
     }
 
-    boolean isBusy() {
-        !isIdle()
+    State getCurrentState() {
+        getStates().last()
+    }
+
+    /**
+     * Asserts that this daemon is currently running and busy.
+     */
+    void assertBusy() {
+        assert getCurrentState() == State.busy
+    }
+
+    /**
+     * Asserts that this daemon has stopped.
+     */
+    void assertStopped() {
+        assert getCurrentState() == State.stopped
     }
 
     List<State> getStates() {
         def states = new LinkedList<State>()
+        states << State.idle
         logContent.eachLine {
-            if (it.contains(DaemonMessages.DAEMON_IDLE)) {
-                states << State.idle
-            } else if (it.contains(DaemonMessages.DAEMON_BUSY)) {
+            if (it.contains(DaemonMessages.STARTED_BUILD)) {
                 states << State.busy
+            } else if (it.contains(DaemonMessages.FINISHED_BUILD)) {
+                states << State.idle
+            } else if (it.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)) {
+                states << State.stopped
             }
         }
         states
+    }
+
+    String getLog() {
+        return logContent
     }
 
     int getPort() {

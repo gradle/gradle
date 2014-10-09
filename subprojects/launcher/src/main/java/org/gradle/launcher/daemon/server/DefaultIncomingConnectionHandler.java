@@ -141,9 +141,8 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 LOGGER.info("Received command: {}.", command);
                 return command;
             } catch (Throwable e) {
-                String message = String.format("Unable to receive command from connection: '%s'", connection);
-                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
+                LOGGER.warn(String.format("Unable to receive command from %s. Dispatching the failure to the daemon client", connection), e);
+                daemonConnection.completed(new DaemonFailure(e));
                 return null;
             }
         }
@@ -151,15 +150,10 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         private void handleCommand(Command command, DaemonConnection daemonConnection) {
             LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
             try {
-                commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl, new Runnable() {
-                    public void run() {
-                        onFinishHandling(connection);
-                    }
-                });
+                commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
-                String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
-                LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
-                daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
+                LOGGER.warn(String.format("Unable to execute command %s from %s. Dispatching the failure to the daemon client", command, connection), e);
+                daemonConnection.completed(new DaemonFailure(e));
             } finally {
                 LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
             }

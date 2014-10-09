@@ -34,7 +34,7 @@ public interface TemporaryFileProvider {
      * Allocates and creates a new temporary file with the given prefix, suffix,
      * and path, relative to the temporary file directory.
      */
-    File createTemporaryFile(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
+    File createTemporaryFile(String prefix, @Nullable String suffix, @Nullable String... path);
     
     File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
 }
