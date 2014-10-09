@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
  * <pre autoTested=''>
  * dependencies {
  *     components {
- *         //triggered during dependency resolution, for each component:
+ *         //triggered during dependency resolution, for every module:
  *         all { ComponentMetadataDetails details ->
  *             if (details.id.group == "org.foo") {
  *                 def version = details.id.version
@@ -36,6 +36,11 @@ import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
  *                 details.status = version.substring(version.lastIndexOf("-") + 1)
  *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
  *             }
+ *         }
+ *
+ *         // triggered during dependency resolution for only the "org.foo:bar" module:
+ *         withModule("org.foo:bar") { ComponentMetadataDetails details ->
+ *             details.changing = true
  *         }
  *
  *         //Configuring component module metadata for the entire "google-collections" module,

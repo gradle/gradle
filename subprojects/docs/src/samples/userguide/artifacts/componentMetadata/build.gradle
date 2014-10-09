@@ -1,3 +1,5 @@
+import org.gradle.model.Mutate
+
 repositories {
     ivy {
         url "$projectDir/repo"
@@ -8,6 +10,7 @@ configurations {
     config1
     config2
     config3
+    config4
 }
 
 // START SNIPPET latest-selector
@@ -35,10 +38,25 @@ dependencies {
     }
 }
 
-task listBirds << {
+task listAlbatross << {
     configurations.config3.each { println it.name }
 }
 // END SNIPPET custom-status-scheme
+
+// START SNIPPET custom-status-scheme-module
+dependencies {
+    config4 "sea.fish:marlin:latest.rc"
+    components {
+        withModule('sea.fish:marlin') { ComponentMetadataDetails details ->
+            details.statusScheme = ["int", "rc", "prod"]
+        }
+    }
+}
+
+task listMarlin << {
+    configurations.config4.each { println it.name }
+}
+// END SNIPPET custom-status-scheme-module
 
 // START SNIPPET ivy-component-metadata-rule
 dependencies {
@@ -51,3 +69,18 @@ dependencies {
     }
 }
 // END SNIPPET ivy-component-metadata-rule
+
+// START SNIPPET rule-source-component-metadata-rule
+dependencies {
+    components {
+        withModule('my.org:testing', new CustomStatusRule())
+    }
+}
+
+class CustomStatusRule {
+    @Mutate
+    void setStatusScheme(ComponentMetadataDetails details) {
+        details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+    }
+}
+// END SNIPPET rule-source-component-metadata-rule

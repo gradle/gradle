@@ -1155,11 +1155,18 @@ someroot/[artifact]-[revision].[ext]
                 <output args="-q listFish"/>
             </sample>
             <para>
-                The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a module metadata rule:
+                The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
             </para>
             <sample id="customStatusScheme" dir="userguide/artifacts/componentMetadata" title="Custom status scheme">
                 <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
-                <output args="-q listBirds"/>
+                <output args="-q listAlbatross"/>
+            </sample>
+            <para>
+                Component metadata rules can be applied to a specified module.  Modules must be specified in the form of "group:module".
+            </para>
+            <sample id="customStatusSchemeModule" dir="userguide/artifacts/componentMetadata" title="Custom status scheme by module">
+                <sourcefile file="build.gradle" snippet="custom-status-scheme-module"/>
+                <output args="-q listMarlin"/>
             </sample>
             <para>
                 Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository.
@@ -1167,6 +1174,25 @@ someroot/[artifact]-[revision].[ext]
             </para>
             <sample id="ivyComponentMetadataRule" dir="userguide/artifacts/componentMetadata" title="Ivy component metadata rule">
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
+            </sample>
+            <para>
+                Note that a <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails"/> argument is <emphasis>always</emphasis> required when
+                declaring a component metadata rule but the Ivy metadata argument is optional.
+            </para>
+            <para>
+                Lastly, component metadata rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
+                is any object that contains exactly one method that defines the rule action and is annotated with <literal>@Mutate</literal>.
+            </para>
+            <para>
+                This method:
+            </para>
+            <itemizedlist>
+                <listitem>must return void.</listitem>
+                <listitem>must have <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails" /> as the first argument.</listitem>
+                <listitem>may have an additional parameter of type <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.</listitem>
+            </itemizedlist>
+            <sample id="ivyComponentMetadataRule" dir="userguide/artifacts/componentMetadata" title="Rule source component metadata rule">
+                <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule" />
             </sample>
         </section>
         <section id="component_selection_rules">

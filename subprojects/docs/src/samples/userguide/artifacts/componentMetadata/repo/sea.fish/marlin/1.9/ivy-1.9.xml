@@ -14,31 +14,12 @@
   ~ limitations under the License.
   -->
 
-<section>
-    <section>
-        <title>Properties</title>
-        <table>
-            <thead>
-                <tr>
-                    <td>Name</td>
-                </tr>
-            </thead>
-        </table>
-    </section>
-    <section>
-        <title>Methods</title>
-        <table>
-            <thead>
-                <tr>
-                    <td>Name</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>all</td>
-            </tr>
-            <tr>
-                <td>withModule</td>
-            </tr>
-        </table>
-    </section>
-</section>
+<ivy-module version="2.0">
+    <info organisation="sea.fish"
+          module="marlin"
+          revision="1.9"
+          status="prod"/>
+    <publications>
+        <artifact />
+    </publications>
+</ivy-module>

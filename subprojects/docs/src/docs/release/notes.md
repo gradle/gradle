@@ -2,9 +2,42 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Component metadata rule enhancements
+
+The interface for defining component metadata rules has been enhanced so that it now supports defining rules on a per module basis
+as well as for all modules.  Furthermore, rules can now also be specified as `rule source` objects.
+
+    dependencies {
+        components {
+            // This rule applies to all modules
+            all { ComponentMetadataDetails details ->
+                if (details.group == "my.org" && details.status == "integration") {
+                    details.changing = true
+                }
+            }
+
+            // This rule applies to only the "my.org:api" module
+            withModule("my.org:api") { ComponentMetadetails details ->
+                details.statusScheme = [ "testing", "candidate", "release" ]
+            }
+
+            // This rule uses a rule source object to define another rule for "my.org:api"
+            withModule("my.org:api", new CustomStatusRule()) // See class definition below
+        }
+    }
+
+    class CustomStatusRule {
+        @org.gradle.model.Mutate
+        void setComponentStatus(ComponentMetadataDetails details) {
+            if (details.status == "integration") {
+                details.status = "testing"
+            }
+        }
+    }
+
+Note that a typed `ComponentMetadataDetails` parameter is required for every rule.
+
+See the [userguide section](userguide/dependency_management.html#component_metadata_rules) on component metadata rules for further information.
 
 ## Promoted features
 
@@ -32,9 +65,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to incubating component metadata rules
+
+- The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been replaced with `all`.
+- Arguments to metadata rules must now have a typed `ComponentMetadataDetails` argument as the first argument.
 
 ## External contributions
 
