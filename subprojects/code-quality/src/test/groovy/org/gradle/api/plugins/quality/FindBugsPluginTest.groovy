@@ -175,8 +175,8 @@ class FindBugsPluginTest extends Specification {
             reportLevel == 'high'
             visitors == ['org.gradle.Class']
             omitVisitors == ['org.gradle.Interface']
-            includeFilterConfig.inputFiles.files == project.files("include.txt").files
-            excludeFilterConfig.inputFiles.files == project.files("exclude.txt").files
+            includeFilterConfig.inputFiles.singleFile == project.file("include.txt")
+            excludeFilterConfig.inputFiles.singleFile == project.file("exclude.txt")
             includeFilter == project.file("include.txt")
             excludeFilter == project.file("exclude.txt")
         }
@@ -209,8 +209,8 @@ class FindBugsPluginTest extends Specification {
             reportLevel == 'high'
             visitors == ['org.gradle.Class']
             omitVisitors == ['org.gradle.Interface']
-            includeFilterConfig.inputFiles.files == project.files("include.txt").files
-            excludeFilterConfig.inputFiles.files == project.files("exclude.txt").files
+            includeFilterConfig.inputFiles.singleFile == project.file("include.txt")
+            excludeFilterConfig.inputFiles.singleFile == project.file("exclude.txt")
             includeFilter == project.file("include.txt")
             excludeFilter == project.file("exclude.txt")
         }

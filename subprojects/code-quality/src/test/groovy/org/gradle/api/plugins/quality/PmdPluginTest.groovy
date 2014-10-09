@@ -172,7 +172,7 @@ class PmdPluginTest extends Specification {
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["braces", "unusedcode"]
             assert ruleSetConfig.asString() == "ruleset contents"
-            assert ruleSetFiles.files == project.files("my-ruleset.xml").files
+            assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
             assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
             assert ignoreFailures == true
@@ -195,7 +195,7 @@ class PmdPluginTest extends Specification {
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["braces", "unusedcode"]
         task.ruleSetConfig.asString() == "ruleset contents"
-        task.ruleSetFiles.files == project.files("my-ruleset.xml").files
+        task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")
         task.reports.xml.destination == project.file("pmd-reports/custom.xml")
         task.reports.html.destination == project.file("pmd-reports/custom.html")
         task.outputs.files.files == task.reports.enabled*.destination as Set
