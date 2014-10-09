@@ -43,7 +43,7 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
         });
     }
 
-    public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
+    public <T extends Platform> List<T> select(Class<T> type, List<String> targets) {
         T defaultElement = null;
         for (Platform platform : searchOrder) {
             if (type.isInstance(platform)) {
