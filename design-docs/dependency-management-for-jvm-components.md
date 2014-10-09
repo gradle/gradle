@@ -17,17 +17,17 @@ linked into more than one binaries.
 This spec describes some work to allow plugins to define the kinds of JVM components that they produce and consume,
 and to allow plugins to define their own custom JVM based components.
 
-# Use cases
+## Use cases
 
-## Multiple build types for Android applications
+### Multiple build types for Android applications
 
 An Android application is assembled in to multiple _build types_, such as 'debug' or 'release'.
 
-## Build a library for multiple Scala or Groovy runtimes
+### Build a library for multiple Scala or Groovy runtimes
 
 A library is compiled and published for multiple Scala or Groovy runtimes, or for multiple JVM runtimes.
 
-# Build different variants of an application
+### Build different variants of an application
 
 An application is tailored for various purposes, with each purpose represented as a separate variant. For
 each variant, some common source files and some variant specific source files are jointly compiled to
@@ -35,22 +35,22 @@ produce the application.
 
 For example, when building against the Java 5 APIs do not include the Java 6 or Java 7 specific source files.
 
-# Compose a library from source files compiled in different ways
+### Compose a library from source files compiled in different ways
 
 For example, some source files are compiled using the aspectj compiler and some source files are
 compiled using the javac compiler. The resulting class files are assembled into the library.
 
-# Implement a library using multiple languages
+### Implement a library using multiple languages
 
 A library is implemented using a mix of Java, Scala and Groovy and these source files are jointly compiled
 to produce the library.
 
-## Package a library in multiple ways
+### Package a library in multiple ways
 
 A library may be packaged as a classes directory, or a set of directories, or a single jar file, or a
 far jar, or an API jar and an implementation jar.
 
-## A note on terminology
+### A note on terminology
 
 There is currently a disconnect in the terminology used for the dependency management component model, and that used
 for the component model provided by the native plugins.
@@ -143,42 +143,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Can combine old and new JVM plugins in the same project
     - `gradle assemble` builds both jars
 
-### Open issues
-
-- `BinarySpec` hierarchy
-    - No general way to navigate to the owning component (if any).
-    - `BinarySpec` assumes binary is built from source.
-    - `NativeBinarySpec` assumes the binary belongs to a component.
-    - `StaticLibraryBinarySpec` has no way to read the additional link files.
-    - `SharedLibraryBinarySpec` declares separate link and runtime files for binaries that don't have separate files.
-    - Compiler tools for `NativeBinarySpec` are not statically typed.
-    - No general way to navigate to the component under test for a test suite (if any).
-    - `NativeTestSuiteBinarySpec` assumes a single binary under test. In the case of a library, this isn't the case.
-    - `JvmBinarySpec` assumes binary is built from intermediate classes and resources.
-    - `JarBinarySpec` assumes binary belongs to a library.
-    - `ClassDirectoryBinarySpec` assumes binary belongs to a library.
-- `ComponentSpec` hierarchy
-    - `ComponentSpec` assumes component is built from source.
-    - `ComponentSpec` assumes component produces binaries.
-    - `TestSuiteSpec` assumes a single component under test. In the case of an integration test, this may not be the case.
-    - Binaries of a component are not strongly typed.
-    - `TargetedNativeComponent` should have `spec` in its name
-    - `TargetedNativeComponent` provides write-only access to targets, and only as strings.
-    - `JvmLibrarySpec` models target platforms as `JavaVersion`.
-    - There's no JVM component type.
-- `Component` hierarchy
-    - `Component` is in `org.gradle.api.component` package.
-    - `PrebuiltLibrary` is actually a prebuilt native library.
-- Java lang plugin is called `JavaLanguagePlugin`, other language plugins are called, for example, `CLangPlugin`.
-- Java compilation options per binary.
-- `LanguageRegistration.applyToBinary()` should be replaced, instead use the output file types for the language and input file types for the binary.
-- Use this to handle windows resources:
-    - For windows binaries, add window `res` files as a candidate input file type.
-    - For windows resources source files, the output type is `res`.
-    - Fail if windows resources are input to a component for which there are no windows binaries.
-- `PolymorphicDomainObjectContainer.containerWithType()` should instead override `withType()`.
-
-## Feature: Plugin defines a custom library type
+## Feature: Plugin defines a custom component model
 
 This features allows the development of a custom plugin that can contribute Library, Binary and Task instances to the language domain.
 
@@ -369,8 +334,9 @@ A custom binary implementation:
 
 #### Open issues
 
-- `BaseBinarySpec` leaks `BinarySpecInternal`
+- `BaseBinarySpec` and `BaseComponentSpec` leak internal APIs
 - Existing JVM and native binary implementations should extend `BaseBinarySpec`
+- Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
 
 ### Story: Plugin defines binaries for each custom component
 
@@ -433,16 +399,6 @@ Running `gradle assemble` will execute lifecycle task for each binary.
 
 #### Open issues
 
-- Could use a single `@ComponentModel` annotation for all methods, and inspect signature to determine type
-- DefaultLibraryBinarySpec will expose internal api. Need a mechanism to provide binary implementation without subclassing.
-- Add 'plugin declares custom platform' story.
-- General mechanism to register a model collection and have rules that apply to each element of that collection.
-- Migrate the JVM and natives plugins to use this.
-    - Need to be able to declare the target platform for the component type.
-    - Need to expose general DSL for defining components of a given type.
-    - Need to attach source sets to components.
-- Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
-
 ### Story: Plugin defines tasks from binaries
 
 Add a rule to the sample plugin:
@@ -469,7 +425,6 @@ Running `gradle assemble` will execute tasks for each library binary.
 - The task-creation rule will be executed for each binary when closing the TaskContainer.
 - Document in the user guide how to define a component, binaries and tasks for a custom model. Include some samples.
 
-#### Tests
 #### Test cases
 
 - Friendly error message when annotated binary rule method:
@@ -484,8 +439,10 @@ Running `gradle assemble` will execute tasks for each library binary.
 #### Open issues
 
 - Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
+- Could use a single `@ComponentModel` annotation for all methods, and inspect signature to determine type
+- General mechanism to register a model collection and have rules that apply to each element of that collection.
 
-## Feature: Declare the roles of component model elements
+## Feature: Build author uses model DSL for all component model configuration
 
 ### Story: Build author defines top level source set using model DSL
 
@@ -645,6 +602,8 @@ plugin.
 - Add the concept of 'convention' that rules can apply. The configure rules declared in the model DSL should run after the convention
 rules have been applied to each binary.
 
+## Feature: Plugin declares the roles of component model elements
+
 ### Story: Plugin statically declares roles for the binaries of a component
 
     interface JarBinarySpec extends BinarySpec { }
@@ -701,10 +660,6 @@ Running `gradle assemble` should build all of these binaries.
 
 ## Feature: Component model improvements
 
-### Story: Running `gradle assemble` informs user when no binaries are buildable
-
-Currently, running `gradle assemble` does nothing when nothing is buildable.
-
 ### Story: Validate the input source sets for a binary
 
 1. Fail when an unsupported language is used as input to a binary. eg Can't use a Java source set as input to a native binary.
@@ -720,6 +675,41 @@ For example, class files to Jar binary or object files to a executable binary.
 Infrastructure automatically wires up the correct transformation rule for each binary.
 
 ### Story: Component, Binary and SourceSet names are limited to valid Java identifiers
+
+### Open issues
+
+- `BinarySpec` hierarchy
+    - No general way to navigate to the owning component (if any).
+    - `BinarySpec` assumes binary is built from source.
+    - `NativeBinarySpec` assumes the binary belongs to a component.
+    - `StaticLibraryBinarySpec` has no way to read the additional link files.
+    - `SharedLibraryBinarySpec` declares separate link and runtime files for binaries that don't have separate files.
+    - Compiler tools for `NativeBinarySpec` are not statically typed.
+    - No general way to navigate to the component under test for a test suite (if any).
+    - `NativeTestSuiteBinarySpec` assumes a single binary under test. In the case of a library, this isn't the case.
+    - `JvmBinarySpec` assumes binary is built from intermediate classes and resources.
+    - `JarBinarySpec` assumes binary belongs to a library.
+    - `ClassDirectoryBinarySpec` assumes binary belongs to a library.
+- `ComponentSpec` hierarchy
+    - `ComponentSpec` assumes component is built from source.
+    - `ComponentSpec` assumes component produces binaries.
+    - `TestSuiteSpec` assumes a single component under test. In the case of an integration test, this may not be the case.
+    - Binaries of a component are not strongly typed.
+    - `TargetedNativeComponent` should have `spec` in its name
+    - `TargetedNativeComponent` provides write-only access to targets, and only as strings.
+    - `JvmLibrarySpec` models target platforms as `JavaVersion`.
+    - There's no JVM component type.
+- `Component` hierarchy
+    - `Component` is in `org.gradle.api.component` package.
+    - `PrebuiltLibrary` is actually a prebuilt native library.
+- Java lang plugin is called `JavaLanguagePlugin`, other language plugins are called, for example, `CLangPlugin`.
+- Java compilation options per binary.
+- `LanguageRegistration.applyToBinary()` should be replaced, instead use the output file types for the language and input file types for the binary.
+- Use this to handle windows resources:
+    - For windows binaries, add window `res` files as a candidate input file type.
+    - For windows resources source files, the output type is `res`.
+    - Fail if windows resources are input to a component for which there are no windows binaries.
+- `PolymorphicDomainObjectContainer.containerWithType()` should instead override `withType()`.
 
 ## Feature: Build multiple platform variants of Java libraries
 
@@ -843,7 +833,7 @@ For example:
     interface CustomLanguageSourceSet extends LanguageSourceSet {
         String someProperty
     }
-    class DefaultCustomLanguageSourceSet extends DefaultLanguageSourceSet implements CustomLanguageSourceSet {
+    class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
         ...
     }
 
@@ -883,7 +873,7 @@ language.
 - Platform should be attached to source set as well.
 - Need to be able to register additional tools with a Tool Chain as well
     - E.g. Adding Objective-C language adds the objective-c compiler to GCC and Visual Studio
-    - E.g. Addigin Scala language registers the Scala tools
+    - E.g. Adding Scala language registers the Scala tools
 
 ### Story: Plugin declares custom language implementation
 
@@ -943,7 +933,8 @@ custom language.
 #### Open issues
 
 - Need to be able to apply a naming scheme for tasks, and some way to inject an output location for each transformation.
-- Plugin needs to be able to contribute to the `PlatformToolChain` for the target platform.
+
+### Story: Jvm component is built from Scala sources
 
 ### Story: Core plugins declare language implementations
 
@@ -953,7 +944,7 @@ Change the native, Java and classpath resource language plugins to replace usage
 
 - Probably don't need `TransformationFileType` any more.
 
-### Feature: Build author describes target platform and language dialect for source set
+## Feature: Build author describes target platform and language dialect for source set
 
 TODO
 
