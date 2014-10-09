@@ -192,12 +192,12 @@ a Checkstyle configuration file can be sourced from different locations:
     checkstyle { // affects all Checkstyle tasks
         // sourced from inline string
         config = resources.text.fromString("""<module name="Checker">...</module>""")
-        // sourced from local text file
-        config = resources.text.fromFile("path/to/config.txt")
-        // sourced from a task that produces a text file (and declares it as output)
+        // sourced from local file
+        config = resources.text.fromFile("path/to/file.txt")
+        // sourced from a task that produces a single file (and declares it as output)
         config = resources.text.fromFile(someTask)
         // sourced from shared archive
-        config = resources.text.fromArchiveEntry(configurations.checkstyleConfig, "path/to/config/entry.txt")
+        config = resources.text.fromArchiveEntry(configurations.checkstyleConfig, "path/to/archive/entry.txt")
     }
     
 Over time, `TextResource` will be leveraged by more existing and new Gradle APIs.
