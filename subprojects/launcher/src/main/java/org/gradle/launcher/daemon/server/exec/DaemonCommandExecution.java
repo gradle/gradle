@@ -35,18 +35,16 @@ public class DaemonCommandExecution {
     final private Command command;
     final private DaemonContext daemonContext;
     final private DaemonStateControl daemonStateControl;
-    final private Runnable commandAbandoned;
     final private List<DaemonCommandAction> actions;
 
     private Throwable exception;
     private Object result;
 
-    public DaemonCommandExecution(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned, List<DaemonCommandAction> actions) {
+    public DaemonCommandExecution(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
         this.connection = connection;
         this.command = command;
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
-        this.commandAbandoned = commandAbandoned;
 
         this.actions = new LinkedList<DaemonCommandAction>(actions);
     }
@@ -70,10 +68,6 @@ public class DaemonCommandExecution {
 
     public DaemonStateControl getDaemonStateControl() {
         return daemonStateControl;
-    }
-
-    public Runnable getCommandAbandonedHandler() {
-        return commandAbandoned;
     }
 
     /**

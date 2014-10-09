@@ -20,9 +20,12 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
+import org.gradle.launcher.daemon.server.exec.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
 import org.slf4j.Logger;
 
@@ -51,17 +54,19 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private State state = State.Running;
     private long lastActivityAt = -1;
     private String currentCommandExecution;
+    private Object result;
     private volatile DefaultBuildCancellationToken cancellationToken;
 
+    private final StoppableExecutor executor;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
-    private Runnable onDisconnect;
 
-    public DaemonStateCoordinator(Runnable onStartCommand, Runnable onFinishCommand) {
-        this(onStartCommand, onFinishCommand, 10 * 1000L);
+    public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand) {
+        this(executorFactory, onStartCommand, onFinishCommand, 10 * 1000L);
     }
 
-    DaemonStateCoordinator(Runnable onStartCommand, Runnable onFinishCommand, long cancelTimeoutMs) {
+    DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, long cancelTimeoutMs) {
+        executor = executorFactory.create("Daemon worker");
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
@@ -174,18 +179,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     public void requestForcefulStop() {
-        lock.lock();
-        try {
-            try {
-                if (onDisconnect != null) {
-                    onDisconnect.run();
-                }
-            } finally {
-                stop();
-            }
-        } finally {
-            lock.unlock();
-        }
+        stop();
     }
 
     public BuildCancellationToken getCancellationToken() {
@@ -238,16 +232,68 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public void runCommand(Runnable command, String commandDisplayName, Runnable onCommandAbandoned) throws DaemonUnavailableException {
-        onStartCommand(commandDisplayName, onCommandAbandoned);
+    public void runCommand(final Runnable command, String commandDisplayName) throws DaemonUnavailableException {
+        onStartCommand(commandDisplayName);
         try {
-            command.run();
+            executor.execute(new Runnable() {
+                public void run() {
+                    try {
+                        command.run();
+                        onCommandSuccessful();
+                    } catch (Throwable t) {
+                        onCommandFailed(t);
+                    }
+                }
+            });
+            waitForCommandCompletion();
         } finally {
             onFinishCommand();
         }
     }
 
-    private void onStartCommand(String commandDisplayName, Runnable onDisconnect) {
+    private void waitForCommandCompletion() {
+        lock.lock();
+        try {
+            while ((state == State.Running || state == State.StopRequested) && result == null) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            if (result instanceof Throwable) {
+                throw UncheckedException.throwAsUncheckedException((Throwable) result);
+            }
+            if (result != null) {
+                return;
+            }
+            throw new DaemonStoppedException();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void onCommandFailed(Throwable failure) {
+        lock.lock();
+        try {
+            result = failure;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void onCommandSuccessful() {
+        lock.lock();
+        try {
+            result = this;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void onStartCommand(String commandDisplayName) {
         lock.lock();
         try {
             switch (state) {
@@ -266,7 +312,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             try {
                 onStartCommand.run();
                 currentCommandExecution = commandDisplayName;
-                this.onDisconnect = onDisconnect;
+                result = null;
                 updateActivityTimestamp();
                 updateCancellationToken();
                 condition.signalAll();
@@ -285,7 +331,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             String execution = currentCommandExecution;
             LOGGER.debug("onFinishCommand() called while execution = {}", execution);
             currentCommandExecution = null;
-            onDisconnect = null;
+            result = null;
             updateActivityTimestamp();
             switch (state) {
                 case Running:

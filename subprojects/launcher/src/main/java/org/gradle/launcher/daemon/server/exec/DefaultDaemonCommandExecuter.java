@@ -48,13 +48,12 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         this.hygieneAction = hygieneAction;
     }
 
-    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
+    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
         new DaemonCommandExecution(
             connection,
             command,
             daemonContext,
             daemonStateControl,
-            commandAbandoned,
             createActions(daemonContext)
         ).proceed();
     }

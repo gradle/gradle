@@ -23,7 +23,7 @@ import spock.lang.Timeout
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
-    def "daemon keeps logging to the file even if the build is started"() {
+    def "daemon keeps logging to the file even if the build is stopped"() {
         given:
         file("build.gradle") << """
 task sleep << {

@@ -47,6 +47,20 @@ class TestableDaemon {
         throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to become idle.")
     }
 
+    /**
+     * Asserts that this daemon stops soon. Blocks until this has happened.
+     */
+    void assertStops() {
+        def expiry = System.currentTimeMillis() + 20000
+        while (expiry > System.currentTimeMillis()) {
+            if (registry.all.find { it.context.pid == context.pid } == null) {
+                return
+            }
+            Thread.sleep(200)
+        }
+        throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to stop.")
+    }
+
     void kill() {
         println "Killing daemon with pid: $context.pid"
         def output = new ByteArrayOutputStream()
@@ -69,8 +83,7 @@ class TestableDaemon {
             return ["kill", "-9", pid]
         } else if (OperatingSystem.current().isWindows()) {
             return ["taskkill.exe", "/F", "/T", "/PID", pid]
-        }
-        else {
+        } else {
             throw new RuntimeException("This implementation does not know how to forcefully kill the daemon on os: " + OperatingSystem.current())
         }
     }

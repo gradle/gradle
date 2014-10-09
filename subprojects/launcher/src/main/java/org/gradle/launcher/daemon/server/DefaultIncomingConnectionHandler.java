@@ -150,11 +150,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         private void handleCommand(Command command, DaemonConnection daemonConnection) {
             LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
             try {
-                commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl, new Runnable() {
-                    public void run() {
-                        onFinishHandling(connection);
-                    }
-                });
+                commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
                 LOGGER.warn(String.format("Unable to execute command %s from %s. Dispatching the failure to the daemon client", command, connection), e);
                 daemonConnection.completed(new DaemonFailure(e));

@@ -28,12 +28,12 @@ public class StopHandlingCommandExecuter implements DaemonCommandExecuter {
         this.executer = executer;
     }
 
-    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
+    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
         if (command instanceof Stop) {
             daemonStateControl.requestForcefulStop();
             connection.completed(new Success(null));
         } else {
-            executer.executeCommand(connection, command, daemonContext, daemonStateControl, commandAbandoned);
+            executer.executeCommand(connection, command, daemonContext, daemonStateControl);
         }
     }
 }

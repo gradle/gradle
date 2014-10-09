@@ -29,7 +29,7 @@ public interface DaemonStateControl {
     /**
      * Requests a forceful stops of the daemon. Does not wait until the daemon is idle to begin stopping. The stop will happen asynchronously, and this method does not block.
      *
-     * <p>If any long running command is currently running, the operation's abandoned command handler will be executed.</p>
+     * <p>If any long running command is currently running, the blocked call to {@link #runCommand} will fail with {@link DaemonStoppedException}.</p>
      *
      * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
      */
@@ -55,9 +55,11 @@ public interface DaemonStateControl {
      *
      * @param command The command to run
      * @param commandDisplayName The command's display name, used for logging and error messages.
-     * @param onCommandAbandoned An action to run with a forceful stop is requested using {@link #requestForcefulStop()}, to notify the caller that the operation is being abandoned.
      *
-     * @throws DaemonUnavailableException If this daemon is currently executing another command or a stop has been requested.
+     * @throws DaemonUnavailableException When this daemon is unable to run the command, either because it is currently executing another command
+     * or is currently stopping.
+     * @throws DaemonStoppedException When this daemon started executing the command but was unable to complete it because the daemon is about to stop.
+     * The caller should note that the command may still be running at the time the method returns but should consider the command as abandoned.
      */
-    void runCommand(Runnable command, String commandDisplayName, Runnable onCommandAbandoned) throws DaemonUnavailableException;
+    void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException, DaemonStoppedException;
 }
