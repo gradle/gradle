@@ -19,27 +19,38 @@ package org.gradle.logging.internal;
 import org.gradle.api.Action;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
+    private static boolean useAnsiOutput = "true".equalsIgnoreCase(System.getProperty("org.gradle.ansi", "false"));
+
     public void execute(OutputEventRenderer renderer) {
+        ConsoleMetaData consoleMetaData = null;
+        if(useAnsiOutput) {
+            consoleMetaData = new FallbackConsoleMetaData();
+        } else {
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+            consoleMetaData = consoleDetector.getConsole();
+        }
         if (consoleMetaData == null) {
             return;
         }
         boolean stdOutIsTerminal = consoleMetaData.isStdOut();
         boolean stdErrIsTerminal = consoleMetaData.isStdErr();
         if (stdOutIsTerminal) {
-            PrintStream outStr = new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdOut()));
-            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap());
+            OutputStream originalStdOut = renderer.getOriginalStdOut();
+            PrintStream outStr = new PrintStream(useAnsiOutput ? originalStdOut : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdOut));
+            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), useAnsiOutput);
             renderer.addConsole(console, true, stdErrIsTerminal, consoleMetaData);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
-            PrintStream errStr = new PrintStream(org.fusesource.jansi.AnsiConsole.wrapOutputStream(renderer.getOriginalStdErr()));
-            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap());
+            OutputStream originalStdErr = renderer.getOriginalStdErr();
+            PrintStream errStr = new PrintStream(useAnsiOutput ? originalStdErr : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdErr));
+            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), useAnsiOutput);
             renderer.addConsole(console, false, true, consoleMetaData);
         }
     }
