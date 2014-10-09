@@ -17,6 +17,7 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.dsl.internal.transform.RulesVisitor
 
 import static org.hamcrest.Matchers.containsString
@@ -27,6 +28,10 @@ import static org.hamcrest.Matchers.containsString
  * Boundary tests for the transform and specialised cases should go in other dedicated test classes.
  */
 class ModelDslIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
 
     def "rule inputs can be referenced in closures that are not executed during rule execution"() {
         when:

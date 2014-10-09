@@ -17,8 +17,13 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 
 class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
 
     def "plugin class can expose model rules"() {
         when:

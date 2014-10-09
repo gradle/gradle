@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.internal.report.unbound.UnboundRule
 import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import spock.lang.Unroll
@@ -28,6 +29,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
+        EnableModelDsl.enable(executer)
     }
 
     @Unroll
