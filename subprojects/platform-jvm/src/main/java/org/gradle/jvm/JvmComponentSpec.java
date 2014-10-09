@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.jvm;
+
+import org.gradle.platform.base.ComponentSpec;
 
 /**
- * Allows a plugin to register a custom component type.
- * @param <C> The component type.
+ * Definition of a software component that is to be built by Gradle to run a on JVM platform.
  */
-public interface ComponentTypeBuilder<C extends ComponentSpec> extends TypeBuilder<C> {
+public interface JvmComponentSpec extends ComponentSpec {
 }

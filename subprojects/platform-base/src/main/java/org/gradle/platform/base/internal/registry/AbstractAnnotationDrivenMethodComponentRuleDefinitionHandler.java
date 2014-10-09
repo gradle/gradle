@@ -73,6 +73,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
     }
 
     protected <R, S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, ModelType<S> expectedDependency) {
+        // TODO:DAZ Use ModelType.toString instead of getSimpleName()
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelType<? extends S> dependency = null;
         for (ModelReference<?> reference : references) {

@@ -17,13 +17,12 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.TransformationFileType;
 
 import java.util.Set;
 
-public interface ComponentSpecInternal<T extends BinarySpec> extends ComponentSpec<T> {
+public interface ComponentSpecInternal extends ComponentSpec {
 
     FunctionalSourceSet getMainSource();
 

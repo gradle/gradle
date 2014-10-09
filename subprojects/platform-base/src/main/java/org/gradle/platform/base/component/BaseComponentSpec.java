@@ -34,7 +34,6 @@ import org.gradle.platform.base.ModelInstantiationException;
  * A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-@SuppressWarnings("rawtypes")
 public abstract class BaseComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
@@ -100,7 +99,7 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         sourceSets.source(sources);
     }
 
-    public DomainObjectSet<? extends BinarySpec> getBinaries() {
+    public DomainObjectSet<BinarySpec> getBinaries() {
         return binaries;
     }
 

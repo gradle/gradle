@@ -19,10 +19,10 @@ import org.gradle.api.Incubating;
 import org.gradle.platform.base.LibrarySpec;
 
 /**
- * A library component that is built by a gradle project.
+ * Definition of a native library component that is to be built by Gradle.
  */
 @Incubating
-public interface NativeLibrarySpec extends LibrarySpec<NativeBinarySpec>, NativeComponentSpec, TargetedNativeComponent {
+public interface NativeLibrarySpec extends LibrarySpec, NativeComponentSpec, TargetedNativeComponent {
     /**
      * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */

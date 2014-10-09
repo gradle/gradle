@@ -17,25 +17,27 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.ObjectFile;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal<NativeBinarySpec> {
+public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
     private final FunctionalSourceSet mainSourceSet;
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;
-    private final DefaultDomainObjectSet<NativeBinarySpec> binaries;
+    private final DomainObjectSet<BinarySpec> binaries;
+    private final DomainObjectSet<NativeBinarySpec> nativeBinaries;
     private final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
 
     private String baseName;
@@ -44,7 +46,8 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
         this.mainSourceSet = mainSourceSet;
         sourceSets.addMainSources(mainSourceSet);
         this.id = id;
-        this.binaries = new DefaultDomainObjectSet<NativeBinarySpec>(NativeBinarySpec.class);
+        this.binaries = new DefaultDomainObjectSet<BinarySpec>(NativeBinarySpec.class);
+        this.nativeBinaries = this.binaries.withType(NativeBinarySpec.class);
         this.inputTypes.add(ObjectFile.class);
     }
 
@@ -73,8 +76,12 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
         sourceSets.source(sources);
     }
 
-    public DomainObjectSet<NativeBinarySpec> getBinaries() {
+    public DomainObjectSet<BinarySpec> getBinaries() {
         return binaries;
+    }
+
+    public DomainObjectSet<NativeBinarySpec> getNativeBinaries() {
+        return nativeBinaries;
     }
 
     public String getBaseName() {

@@ -30,7 +30,6 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
-@SuppressWarnings(value={"rawtypes"})
 public class ComponentTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
 
     public ComponentTypeRuleDefinitionHandler(final Instantiator instantiator) {

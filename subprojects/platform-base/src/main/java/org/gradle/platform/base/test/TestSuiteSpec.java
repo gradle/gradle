@@ -17,19 +17,15 @@
 package org.gradle.platform.base.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 
 /**
  * A component representing a suite of tests that will be executed together.
- *
- * @param <T> The type of the {@link org.gradle.platform.base.BinarySpec} associated with
- * the TestSuiteSpec.
  */
 @Incubating
-public interface TestSuiteSpec<T extends BinarySpec> extends ComponentSpec<T> {
+public interface TestSuiteSpec extends ComponentSpec {
     /**
      * The tested component.
      */
-    ComponentSpec<T> getTestedComponent();
+    ComponentSpec getTestedComponent();
 }
