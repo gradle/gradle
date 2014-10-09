@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.rules.RuleAction;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -29,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionM
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -79,13 +77,21 @@ class NewestVersionComponentChooser implements ComponentChooser {
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
         ModuleVersionSelector requested = dependency.getRequested();
-        List<SpecRuleAction<? super ComponentSelection>> rules = buildRulesForSelector(requested);
+        Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (Versioned candidate : sortLatestFirst(versions)) {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
+            MetaDataSupplier metaDataSupplier = new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess);
 
-            if (isRejectedByRules(candidateIdentifier, rules, new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess))) {
+            if (!versionMatches(requested, candidateIdentifier, metaDataSupplier)) {
                 continue;
+            }
+            if (isRejectedByRules(candidateIdentifier, rules, metaDataSupplier)) {
+                if (versionMatcher.matchesUniqueVersion(requested.getVersion())) {
+                    break;
+                } else {
+                    continue;
+                }
             }
 
             return candidateIdentifier;
@@ -93,15 +99,12 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return null;
     }
 
-    private List<SpecRuleAction<? super ComponentSelection>> buildRulesForSelector(ModuleVersionSelector requested) {
-        List<SpecRuleAction<? super ComponentSelection>> rules = Lists.newArrayList();
+    private boolean versionMatches(ModuleVersionSelector requested, ModuleComponentIdentifier candidateIdentifier, MetaDataSupplier metaDataSupplier) {
         if (versionMatcher.needModuleMetadata(requested.getVersion())) {
-            rules.add(createAllSpecRulesAction(new MetadataVersionMatchingRule(requested.getVersion())));
+            return versionMatcher.accept(requested.getVersion(), metaDataSupplier.create());
         } else {
-            rules.add(createAllSpecRulesAction(new SimpleVersionMatchingRule(requested.getVersion())));
+            return versionMatcher.accept(requested.getVersion(), candidateIdentifier.getVersion());
         }
-        rules.addAll(componentSelectionRules.getRules());
-        return rules;
     }
 
     public boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
@@ -139,43 +142,6 @@ class NewestVersionComponentChooser implements ComponentChooser {
             DefaultBuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult();
             repository.resolveComponentMetaData(dependency.withRequestedVersion(id.getVersion()), id, result);
             return result.getMetaData();
-        }
-    }
-
-    private final class SimpleVersionMatchingRule implements RuleAction<ComponentSelection> {
-        private final String requestedVersion;
-
-        private SimpleVersionMatchingRule(String requestedVersion) {
-            this.requestedVersion = requestedVersion;
-        }
-
-        public List<Class<?>> getInputTypes() {
-            return Collections.emptyList();
-        }
-
-        public void execute(ComponentSelection selection, List<?> inputs) {
-            if (!versionMatcher.accept(requestedVersion, selection.getCandidate().getVersion())) {
-                selection.reject("Incorrect version");
-            }
-        }
-    }
-
-    private final class MetadataVersionMatchingRule implements RuleAction<ComponentSelection> {
-        private final String requestedVersion;
-
-        private MetadataVersionMatchingRule(String requestedVersion) {
-            this.requestedVersion = requestedVersion;
-        }
-
-        public List<Class<?>> getInputTypes() {
-            return Collections.<Class<?>>singletonList(ModuleComponentResolveMetaData.class);
-        }
-
-        public void execute(ComponentSelection selection, List<?> inputs) {
-            ModuleComponentResolveMetaData metadata = (ModuleComponentResolveMetaData) inputs.get(0);
-            if (!versionMatcher.accept(requestedVersion, metadata)) {
-                selection.reject("Does not match requested version or status");
-            }
         }
     }
 }

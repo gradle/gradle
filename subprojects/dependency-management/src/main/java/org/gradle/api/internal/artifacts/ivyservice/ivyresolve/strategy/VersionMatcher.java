@@ -44,6 +44,11 @@ public interface VersionMatcher extends Comparator<String> {
     public boolean needModuleMetadata(String selector);
 
     /**
+     * Indicates if the given selector implies that it matches only a single version.
+     */
+    public boolean matchesUniqueVersion(String selector);
+
+    /**
      * Indicates if the given version selector matches the given candidate version.
      * Only called if {@link #needModuleMetadata} returned {@code false} for the given selector.
      */

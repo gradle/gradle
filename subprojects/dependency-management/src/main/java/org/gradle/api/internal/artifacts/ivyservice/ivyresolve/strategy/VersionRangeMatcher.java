@@ -109,6 +109,10 @@ public class VersionRangeMatcher implements VersionMatcher {
         return false;
     }
 
+    public boolean matchesUniqueVersion(String selector) {
+        return false;
+    }
+
     public boolean accept(String selector, String candidate) {
         Matcher matcher;
         matcher = FINITE_RANGE.matcher(selector);

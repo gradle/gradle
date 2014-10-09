@@ -41,6 +41,10 @@ public class SubVersionMatcher implements VersionMatcher {
         return false;
     }
 
+    public boolean matchesUniqueVersion(String selector) {
+        return false;
+    }
+
     public boolean accept(String selector, String candidate) {
         String prefix = selector.substring(0, selector.length() - 1);
         return candidate.startsWith(prefix);
