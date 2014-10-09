@@ -54,7 +54,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         assert dummyJdk.isDirectory()
 
         when:
-        file("gradle.properties") << "org.gradle.java.home=$dummyJdk.absolutePath"
+        file("gradle.properties").writeProperties(["org.gradle.java.home": dummyJdk.absolutePath])
 
         then:
         fails()
