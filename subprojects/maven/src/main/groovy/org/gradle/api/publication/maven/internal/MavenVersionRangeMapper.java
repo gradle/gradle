@@ -25,11 +25,25 @@ public class MavenVersionRangeMapper implements VersionRangeMapper{
     private static final String DYN_VERSION_NUMBER = "(\\d+)";
     public static final String PLUS_OPER = "[\\.]?\\+";
     private static final String PLUS_NOTATION_PATTERN = FIXED_PREFIX + DYN_VERSION_NUMBER + PLUS_OPER;
+    private static final String PLUS = "+";
+    public static final String LATEST = "LATEST";
+    public static final String RELEASE = "RELEASE";
+    private static final String LATEST_INTEGRATION = "latest.integration";
+    private static final String LATEST_RELEASE = "latest.release";
 
     public final Pattern plusNotationPattern = Pattern.compile(PLUS_NOTATION_PATTERN);
 
     public String map(String version) {
         Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
+        if(version.equals(PLUS)){
+            return LATEST;
+        }
+        if(version.equals(LATEST_INTEGRATION)){
+            return LATEST;
+        }
+        if(version.equals(LATEST_RELEASE)){
+            return RELEASE;
+        }
         if(plusNotationMatcher.matches()){
             String prefix = plusNotationMatcher.group(1);
             int dynVersionPart = Integer.parseInt(plusNotationMatcher.group(2));

@@ -27,17 +27,16 @@ class MavenVersionRangeMapperSpec extends Specification {
         expect:
         mapper.map(input) == output
         where:
-        input    | output
-        "1.0"    | "1.0"
-        "1+"     | "[1,2)"
-        "1.+"    | "[1,2)"
-        "1.5.+"  | "[1.5,1.6)"
-        "1.5+"   | "[1.5,1.6)"
-        "1.100+" | "[1.100,1.101)"
-        "10.1+"  | "[10.1,10.2)"
-
-// TODO map LATEST & RELEASE (first support on our pom parsing must be added)
-//        "latest.integration"       |       "LATEST"
-//        "latest.release"           |       "RELEASE"
+        input                | output
+        "1.0"                | "1.0"
+        "1+"                 | "[1,2)"
+        "1.+"                | "[1,2)"
+        "1.5.+"              | "[1.5,1.6)"
+        "1.5+"               | "[1.5,1.6)"
+        "1.100+"             | "[1.100,1.101)"
+        "10.1+"              | "[10.1,10.2)"
+        "+"                  | "LATEST"
+        "latest.integration" | "LATEST"
+        "latest.release"     | "RELEASE"
     }
 }
