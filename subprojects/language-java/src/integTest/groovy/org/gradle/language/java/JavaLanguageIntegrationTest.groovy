@@ -17,6 +17,7 @@
 package org.gradle.language.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.fixtures.BadJavaLibrary
 import org.gradle.language.fixtures.TestJavaLibrary
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -312,6 +313,33 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         and:
         assert failure.assertHasCause("Invalid JavaPlatform: $badName")
     }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "builds all buildable and skips non-buildable platforms when assembling"() {
+        def current = new DefaultJavaPlatform(JavaVersion.current())
+        when:
+        app.sources*.writeToDir(file("src/myLib/java"))
+
+        and:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib {
+                targetPlatform "${current.name}", "java9"
+            }
+        }
+    }
+"""
+        then:
+        succeeds "assemble"
+
+        and:
+        jarFile("build/jars/myLibJar/${current.name}/myLib.jar").javaVersion == current.targetCompatibility
+    }
+
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "too high JDK target should produce reasonable error message"() {

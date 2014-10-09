@@ -562,6 +562,57 @@ Binaries
 """
     }
 
+    def "shows an error when targeting a native platform from a jvm component"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'native-component'
+    apply plugin: 'java-lang'
+
+    model {
+        platforms {
+            i386 { architecture 'i386' }
+        }
+    }
+
+    jvm {
+        libraries {
+            myLib {
+                targetPlatform "i386"
+            }
+        }
+    }
+"""
+        when:
+        fails "components"
+
+        then:
+        failure.assertHasCause("Invalid JavaPlatform: i386")
+    }
+
+
+    def "shows an error when targeting a jvm platform from a native component"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'native-component'
+    apply plugin: 'java-lang'
+
+    nativeRuntime {
+        libraries {
+            myLib {
+                targetPlatform "java8"
+            }
+        }
+    }
+"""
+        when:
+        fails "components"
+
+        then:
+        failure.assertHasCause("Invalid NativePlatform: java8")
+    }
+
     private boolean outputMatches(String actualOutput, String expectedOutput) {
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
         assert cleaned == expected(expectedOutput)
