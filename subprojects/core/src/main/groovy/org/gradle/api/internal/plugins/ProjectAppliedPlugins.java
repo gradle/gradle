@@ -22,6 +22,8 @@ import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 
+import java.util.Set;
+
 public class ProjectAppliedPlugins implements AppliedPluginsInternal {
 
     private final ModelRuleInspector inspector;
@@ -34,9 +36,13 @@ public class ProjectAppliedPlugins implements AppliedPluginsInternal {
         this.inspector = inspector;
     }
 
-    public void extractModelRulesAndAdd(final Class<?> pluginClass) {
+    private Set<Class<?>> getDeclaredSources(Class<?> pluginClass) {
         ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
-        for (Class<?> source : detector.getDeclaredSources(pluginClass)) {
+        return detector.getDeclaredSources(pluginClass);
+    }
+
+    private void extractModelRules(Set<Class<?>> declaredSources) {
+        for (Class<?> source : declaredSources) {
             inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
                 public void add(Class<?> source) {
                     if (!Plugin.class.isAssignableFrom(source)) {
@@ -49,12 +55,20 @@ public class ProjectAppliedPlugins implements AppliedPluginsInternal {
         }
     }
 
+    public void extractModelRulesAndAdd(final Class<?> pluginClass) {
+        extractModelRules(getDeclaredSources(pluginClass));
+    }
+
     public void apply(Class<?> pluginClass) {
         if (Plugin.class.isAssignableFrom(pluginClass)) {
             @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginImplementingClass = (Class<? extends Plugin<?>>) pluginClass;
             target.getPlugins().apply(pluginImplementingClass);
         } else {
-            extractModelRulesAndAdd(pluginClass);
+            Set<Class<?>> declaredSources = getDeclaredSources(pluginClass);
+            if (declaredSources.size() == 0) {
+                throw new IllegalArgumentException(String.format("%s is neither a plugin or a rule source and cannot be applied.", pluginClass.getName()));
+            }
+            extractModelRules(declaredSources);
         }
     }
 

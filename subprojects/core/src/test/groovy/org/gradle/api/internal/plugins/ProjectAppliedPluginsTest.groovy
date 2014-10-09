@@ -163,4 +163,13 @@ class ProjectAppliedPluginsTest extends Specification {
         then:
         1 * handler.register({ it.methodName == "thing" }, registry, _ as RuleSourceDependencies)
     }
+
+    def "applying a class that is neither a plugin nor a rule source"() {
+        when:
+        appliedPlugins.apply(String)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "${String.name} is neither a plugin or a rule source and cannot be applied."
+    }
 }

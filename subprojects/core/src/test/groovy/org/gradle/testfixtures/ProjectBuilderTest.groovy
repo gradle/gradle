@@ -19,6 +19,7 @@ package org.gradle.testfixtures
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.plugins.PluginApplicationException
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskAction
 import org.gradle.model.Model
@@ -111,6 +112,28 @@ class ProjectBuilderTest extends Specification {
 
         then:
         project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+    }
+
+    def cannotApplyATypeThatIsNeitherAPluginNorARuleSource() {
+        when:
+        def project = buildProject()
+        project.apply type: String
+
+        then:
+        PluginApplicationException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "${String.name} is neither a plugin or a rule source and cannot be applied."
+    }
+
+    def cannotApplyARuleSourceToANonModelRuleScopeElement() {
+        when:
+        def project = buildProject()
+        project.gradle.apply plugin: "custom-rule-source"
+
+        then:
+        PluginApplicationException e = thrown()
+        e.cause instanceof UnsupportedOperationException
+        e.cause.message == "'${CustomRuleSource.name}' does not implement the Plugin interface and only classes that implement it can be applied to 'build 'test''"
     }
 
     def canCreateAndExecuteACustomTask() {
