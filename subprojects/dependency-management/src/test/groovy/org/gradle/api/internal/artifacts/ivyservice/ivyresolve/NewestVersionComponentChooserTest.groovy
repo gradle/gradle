@@ -243,13 +243,12 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        3 * versionMatcher.needModuleMetadata("1.3") >> false
-        1 * versionMatcher.matchesUniqueVersion('1.3') >> false
+        2 * versionMatcher.needModuleMetadata("1.3") >> false
+        1 * versionMatcher.matchesUniqueVersion('1.3') >> true
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
         1 * versionMatcher.accept("1.3", "2.0") >> false
         1 * versionMatcher.accept("1.3", "1.3") >> true
-        1 * versionMatcher.accept("1.3", "1.2") >> false
         1 * componentSelectionRules.rules >> rules({ ComponentSelection cs ->
             cs.reject("reason")
         })
