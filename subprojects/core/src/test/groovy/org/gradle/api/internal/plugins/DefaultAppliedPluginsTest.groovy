@@ -78,7 +78,7 @@ class DefaultAppliedPluginsTest extends Specification {
         appliedPlugins.apply("not-a-plugin")
 
         then:
-        UnsupportedOperationException e = thrown()
+        IllegalArgumentException e = thrown()
         e.message == "'${NotAPlugin.name}' does not implement the Plugin interface and only classes that implement it can be applied to 'PluginAwareMock'"
     }
 
@@ -87,7 +87,7 @@ class DefaultAppliedPluginsTest extends Specification {
         appliedPlugins.apply(NotAPlugin)
 
         then:
-        UnsupportedOperationException e = thrown()
+        IllegalArgumentException e = thrown()
         e.message == "'${NotAPlugin.name}' does not implement the Plugin interface and only classes that implement it can be applied to 'PluginAwareMock'"
     }
 

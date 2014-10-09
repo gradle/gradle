@@ -132,8 +132,18 @@ class ProjectBuilderTest extends Specification {
 
         then:
         PluginApplicationException e = thrown()
-        e.cause instanceof UnsupportedOperationException
+        e.cause instanceof IllegalArgumentException
         e.cause.message == "'${CustomRuleSource.name}' does not implement the Plugin interface and only classes that implement it can be applied to 'build 'test''"
+    }
+
+    def usefulMessageIsPresentedWhenApplyingRuleSourceOnlyTypeAsAPlugin() {
+        when:
+        def project = buildProject()
+        project.apply plugin: CustomRuleSource
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "'${CustomRuleSource.name}' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()"
     }
 
     def canCreateAndExecuteACustomTask() {

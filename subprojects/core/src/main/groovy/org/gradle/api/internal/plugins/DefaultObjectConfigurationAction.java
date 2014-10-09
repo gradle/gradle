@@ -27,6 +27,7 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -104,6 +105,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
+        if (!Plugin.class.isAssignableFrom(pluginClass) && new ModelRuleSourceDetector().getDeclaredSources(pluginClass).size() > 0) {
+            throw new IllegalArgumentException(String.format("'%s' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()", pluginClass.getName()));
+        }
         for (Object target : targets) {
             if (target instanceof PluginAware) {
                 try {

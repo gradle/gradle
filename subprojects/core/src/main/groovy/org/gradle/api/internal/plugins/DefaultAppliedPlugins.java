@@ -39,7 +39,7 @@ public class DefaultAppliedPlugins implements AppliedPluginsInternal {
 
     public void apply(Class<?> pluginClass) {
         if (!Plugin.class.isAssignableFrom(pluginClass)) {
-            throw new UnsupportedOperationException(String.format("'%s' does not implement the Plugin interface and only classes that implement it can be applied to '%s'", pluginClass.getName(), target));
+            throw new IllegalArgumentException(String.format("'%s' does not implement the Plugin interface and only classes that implement it can be applied to '%s'", pluginClass.getName(), target));
         }
         @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginImplementingClass = (Class<? extends Plugin<?>>) pluginClass;
         target.getPlugins().apply(pluginImplementingClass);
