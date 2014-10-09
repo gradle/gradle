@@ -28,7 +28,7 @@ import org.gradle.api.Incubating;
  *
  * def sourcedFromFile = resources.text.fromFile("path/to/file.txt")
  *
- * task someTask {} // assumption: produces a text file and declares it as an output
+ * task someTask {} // assumption: produces a text file and declares it as output
  * def sourcedFromTask = resources.text.fromFile(someTask)
  *
  * def sourcedFromArchiveEntry =
