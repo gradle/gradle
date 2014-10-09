@@ -41,7 +41,7 @@
                 <td>targetBuildTypes</td>
             </tr>
             <tr>
-                <td>targetPlatform</td>
+                <td>targetPlatforms</td>
             </tr>
         </table>
     </section>

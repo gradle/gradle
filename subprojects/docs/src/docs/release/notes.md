@@ -245,23 +245,6 @@ executing the first block.
         }
     }
 
-### Native language support
-
-- Replaced `TargetedPlatformToolChain` with `GccPlatformToolChain` and `VisualCppPlatformToolChain`.
-- Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
-- Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
-- Removed deprecated `ExecutableBinary`: use `NativeExecutableBinary` instead.
-- Renamed `org.gradle.language.jvm.ResourceSet` to `JvmResourceSet`
-- Moved `org.gradle.api.jvm.ClassDirectoryBinarySpec` to `org.gradle.jvm.ClassDirectoryBinarySpec`
-- Renamed package `org.gradle.nativeplatform.sourceset` to `org.gradle.language.nativeplatform`
-- Renamed package `org.gradle.language.nativebase` to `org.gradle.language.nativeplatform`
-- Added binary type parameter to `ComponentSpec`
-- Renamed `ToolChainRegistry` to `NativeToolChainRegistry` and `PlatformToolChain` to `NativePlatformToolChain`
-
-### JVM language support
-
-- Moved `org.gradle.language.jvm.artifact.JavadocArtifact` to `org.gradle.language.java.artifact.JavadocArtifact`.
-
 ### Manually added AntTarget tasks no longer respect target dependencies
 
 The `org.gradle.api.tasks.ant.AntTarget` task implementation adapts a target from an Ant build to a Gradle task 
@@ -319,6 +302,23 @@ Upon first use of the CodeNarc plugin with Gradle 2.1, you may see Gradle downlo
 The classes of the (incubating) [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) have moved from the package `org.gradle.api.sonar.runner` to `org.gradle.sonar.runner`.
 
 If you were depending on these classes explicitly, you will need to update the reference.
+
+### Changes to incubating native language support
+
+- Replaced `TargetedPlatformToolChain` with `GccPlatformToolChain` and `VisualCppPlatformToolChain`.
+- Renamed `PlatformConfigurableToolChain` to `GccCompatibleToolChain`.
+- Removed tool properties from tool chains. `target()` or `eachPlatform()` should be used instead.
+- Removed deprecated `ExecutableBinary`: use `NativeExecutableBinary` instead.
+- Renamed package `org.gradle.nativeplatform.sourceset` to `org.gradle.language.nativeplatform`
+- Renamed package `org.gradle.language.nativebase` to `org.gradle.language.nativeplatform`
+- Added binary type parameter to `ComponentSpec`
+- Added `Native` prefix to existing `Platform`, `ToolChain`, `ToolChainRegistry` and `PlatformToolChain` types
+
+### Changes to incubating JVM-component plugins and language support
+
+- Renamed `org.gradle.language.jvm.ResourceSet` to `JvmResourceSet`
+- Moved `org.gradle.api.jvm.ClassDirectoryBinarySpec` to `org.gradle.jvm.ClassDirectoryBinarySpec`
+- Moved `org.gradle.language.jvm.artifact.JavadocArtifact` to `org.gradle.language.java.artifact.JavadocArtifact`.
 
 ### Using convention mapping for code quality tasks/extensions 
 
