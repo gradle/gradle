@@ -23,14 +23,17 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
 import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
+import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 
 import java.util.*;
 
 public class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     private ExcludeRuleConverter excludeRuleConverter;
+    private VersionRangeMapper versionRangeMapper;
 
-    public DefaultPomDependenciesConverter(ExcludeRuleConverter excludeRuleConverter) {
+    public DefaultPomDependenciesConverter(ExcludeRuleConverter excludeRuleConverter, VersionRangeMapper versionRangeMapper) {
         this.excludeRuleConverter = excludeRuleConverter;
+        this.versionRangeMapper = versionRangeMapper;
     }
 
     public List<org.apache.maven.model.Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
@@ -119,13 +122,17 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         } else {
             mavenDependency.setArtifactId(name);
         }
-        mavenDependency.setVersion(dependency.getVersion());
+        mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
         mavenDependency.setOptional(false);
         mavenDependency.setClassifier(classifier);
         mavenDependency.setExclusions(getExclusions(dependency, configurations));
         return mavenDependency;
+    }
+
+    private String mapToMavenSyntax(String version) {
+       return versionRangeMapper.map(version);
     }
 
     protected String determineProjectDependencyArtifactId(ProjectDependency dependency) {

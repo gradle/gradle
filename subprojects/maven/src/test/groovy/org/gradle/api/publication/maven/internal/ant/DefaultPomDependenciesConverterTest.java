@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
+import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -48,6 +49,7 @@ public class DefaultPomDependenciesConverterTest {
     private DefaultPomDependenciesConverter dependenciesConverter;
     private Conf2ScopeMappingContainer conf2ScopeMappingContainerMock = context.mock(Conf2ScopeMappingContainer.class);
     private ExcludeRuleConverter excludeRuleConverterMock = context.mock(ExcludeRuleConverter.class);
+    private VersionRangeMapper versionRangeMapper = context.mock(VersionRangeMapper.class);
 
     private ModuleDependency dependency1;
     private ModuleDependency dependency2;
@@ -59,7 +61,8 @@ public class DefaultPomDependenciesConverterTest {
     @Before
     public void setUp() {
         setUpCommonDependenciesAndConfigurations();
-        dependenciesConverter = new DefaultPomDependenciesConverter(excludeRuleConverterMock);
+        dependenciesConverter = new DefaultPomDependenciesConverter(excludeRuleConverterMock, versionRangeMapper);
+
     }
 
     private void setUpCommonDependenciesAndConfigurations() {
@@ -76,6 +79,9 @@ public class DefaultPomDependenciesConverterTest {
             allowing(conf2ScopeMappingContainerMock).getMapping(toSet(compileConfStub, testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
             allowing(conf2ScopeMappingContainerMock).getMapping(toSet(testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
             allowing(conf2ScopeMappingContainerMock).getMapping(toSet(compileConfStub)); will(returnValue(createMapping(compileConfStub, "compile")));
+            allowing(versionRangeMapper).map("rev1"); will(returnValue("rev1"));
+            allowing(versionRangeMapper).map("rev2"); will(returnValue("rev2"));
+            allowing(versionRangeMapper).map("rev3"); will(returnValue("rev3"));
         }});
     }
 
@@ -149,6 +155,7 @@ public class DefaultPomDependenciesConverterTest {
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
             allowing(conf2ScopeMappingContainerMock).getMapping(toSet(unmappedConfigurationStub)); will(returnValue(new Conf2ScopeMapping(null, unmappedConfigurationStub, null)));
+            allowing(versionRangeMapper).map("rev4"); will(returnValue("rev4"));
         }});
         List<org.apache.maven.model.Dependency> actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));

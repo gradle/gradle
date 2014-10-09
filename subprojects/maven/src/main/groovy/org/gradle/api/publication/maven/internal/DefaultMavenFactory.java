@@ -36,7 +36,7 @@ public class DefaultMavenFactory implements MavenFactory {
     }
 
     private PomDependenciesConverter createPomDependenciesConverter() {
-        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter());
+        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter(), new MavenVersionRangeMapper());
     }
 
     public Conf2ScopeMappingContainer createConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {
