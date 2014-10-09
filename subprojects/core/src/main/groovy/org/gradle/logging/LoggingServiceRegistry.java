@@ -168,6 +168,11 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     private static class NestedLogging extends LoggingServiceRegistry {
+        protected OutputEventRenderer createOutputEventRenderer() {
+            OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
+            return renderer;
+        }
+
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
             // Don't configure anything
