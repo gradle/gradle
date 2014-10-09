@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.CorePluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -40,7 +39,7 @@ public class CorePluginResolver implements PluginResolver {
 
         if (!id.isQualified() || id.inNamespace(CorePluginRegistry.CORE_PLUGIN_NAMESPACE)) {
             try {
-                Class<? extends Plugin> typeForId = pluginRegistry.getPluginTypeForId(id.getName());
+                Class<?> typeForId = pluginRegistry.getTypeForId(id.getName());
                 if (pluginRequest.getVersion() != null) {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "

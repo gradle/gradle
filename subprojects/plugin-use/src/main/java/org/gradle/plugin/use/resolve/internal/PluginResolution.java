@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Plugin;
 import org.gradle.plugin.internal.PluginId;
 
 /**
@@ -26,6 +25,6 @@ public interface PluginResolution {
 
     PluginId getPluginId();
 
-    Class<? extends Plugin> resolve();
+    Class<?> resolve();
 
 }

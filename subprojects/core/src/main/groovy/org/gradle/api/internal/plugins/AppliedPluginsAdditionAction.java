@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
-public class AppliedPluginsApplicationAction implements PluginApplicationAction {
+public class AppliedPluginsAdditionAction implements PluginApplicationAction {
 
     public void execute(PluginApplication pluginApplication) {
-        pluginApplication.getTarget().getAppliedPlugins().apply(pluginApplication.getPlugin().getClass());
+        pluginApplication.getTarget().getAppliedPlugins().extractModelRulesAndAdd(pluginApplication.getPlugin().getClass());
     }
 }

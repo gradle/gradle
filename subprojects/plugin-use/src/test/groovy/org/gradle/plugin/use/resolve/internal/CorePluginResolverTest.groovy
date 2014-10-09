@@ -58,7 +58,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo"), result)
 
         then:
-        1 * pluginRegistry.getPluginTypeForId("foo") >> MyPlugin
+        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
         1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.resolve() == MyPlugin })
     }
 
@@ -67,7 +67,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("${CorePluginRegistry.CORE_PLUGIN_NAMESPACE}.foo"), result)
 
         then:
-        1 * pluginRegistry.getPluginTypeForId("foo") >> MyPlugin
+        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
         1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.resolve() == MyPlugin })
     }
 
@@ -76,7 +76,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.getPluginTypeForId("foo") >> MyPlugin
+        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
 
         and:
         thrown InvalidPluginRequestException
@@ -87,7 +87,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("org.gradle.foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.getPluginTypeForId("foo") >> { throw new UnknownPluginException("foo") }
+        1 * pluginRegistry.getTypeForId("foo") >> { throw new UnknownPluginException("foo") }
         1 * result.notFound(resolver.getDescription(), { it.contains("not a core plugin") })
     }
 

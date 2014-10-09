@@ -52,7 +52,7 @@ public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginRes
 
     private boolean isCorePlugin(PluginId pluginId) {
         try {
-            corePluginRegistry.getPluginTypeForId(pluginId.toString());
+            corePluginRegistry.getTypeForId(pluginId.toString());
             return true;
         } catch (UnknownPluginException ignore) {
             return false;

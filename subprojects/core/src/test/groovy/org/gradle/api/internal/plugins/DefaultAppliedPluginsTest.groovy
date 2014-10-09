@@ -58,6 +58,17 @@ class DefaultAppliedPluginsTest extends Specification {
         1 * pluginContainer.apply(PluginWithoutSources)
     }
 
+    def "delegates to plugin container if applied class implements Plugin"() {
+        when:
+        target.getPlugins() >> pluginContainer
+
+        and:
+        appliedPlugins.apply(PluginWithoutSources)
+
+        then:
+        1 * pluginContainer.apply(PluginWithoutSources)
+    }
+
     def "classes applied by id have to implement Plugin"() {
         when:
         target.getPlugins() >> pluginContainer
@@ -71,9 +82,18 @@ class DefaultAppliedPluginsTest extends Specification {
         e.message == "'${NotAPlugin.name}' does not implement the Plugin interface and only classes that implement it can be applied to 'PluginAwareMock'"
     }
 
+    def "applied classes have to implement Plugin"() {
+        when:
+        appliedPlugins.apply(NotAPlugin)
+
+        then:
+        UnsupportedOperationException e = thrown()
+        e.message == "'${NotAPlugin.name}' does not implement the Plugin interface and only classes that implement it can be applied to 'PluginAwareMock'"
+    }
+
     def "does not support rule applying source classes"() {
         when:
-        appliedPlugins.apply(HasSource)
+        appliedPlugins.extractModelRulesAndAdd(HasSource)
 
         then:
         UnsupportedOperationException e = thrown()

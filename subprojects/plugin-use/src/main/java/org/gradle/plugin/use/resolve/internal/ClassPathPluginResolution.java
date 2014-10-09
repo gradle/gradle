@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -43,12 +42,12 @@ public class ClassPathPluginResolution implements PluginResolution {
         return pluginId;
     }
 
-    public Class<? extends Plugin> resolve() {
+    public Class<?> resolve() {
         ClassPath classPath = classPathFactory.create();
         ClassLoaderScope loaderScope = parent.createChild();
         loaderScope.local(classPath);
         loaderScope.lock();
         PluginRegistry pluginRegistry = new DefaultPluginRegistry(loaderScope.getLocalClassLoader(), instantiator);
-        return pluginRegistry.getPluginTypeForId(pluginId.toString());
+        return pluginRegistry.getTypeForId(pluginId.toString());
     }
 }

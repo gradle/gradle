@@ -20,6 +20,8 @@ import org.gradle.api.plugins.AppliedPlugins;
 
 public interface AppliedPluginsInternal extends AppliedPlugins {
 
+    void extractModelRulesAndAdd(Class<?> pluginClass);
+
     void apply(Class<?> pluginClass);
 
     void apply(String pluginId);

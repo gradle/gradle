@@ -34,7 +34,7 @@ public class ProjectAppliedPlugins implements AppliedPluginsInternal {
         this.inspector = inspector;
     }
 
-    private void extractModelRules(final Class<?> pluginClass) {
+    public void extractModelRulesAndAdd(final Class<?> pluginClass) {
         ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
         for (Class<?> source : detector.getDeclaredSources(pluginClass)) {
             inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
@@ -50,16 +50,15 @@ public class ProjectAppliedPlugins implements AppliedPluginsInternal {
     }
 
     public void apply(Class<?> pluginClass) {
-        extractModelRules(pluginClass);
-    }
-
-    public void apply(String pluginId) {
-        Class<?> pluginClass = pluginRegistry.getTypeForId(pluginId);
         if (Plugin.class.isAssignableFrom(pluginClass)) {
             @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginImplementingClass = (Class<? extends Plugin<?>>) pluginClass;
             target.getPlugins().apply(pluginImplementingClass);
         } else {
-            extractModelRules(pluginClass);
+            extractModelRulesAndAdd(pluginClass);
         }
+    }
+
+    public void apply(String pluginId) {
+        apply(pluginRegistry.getTypeForId(pluginId));
     }
 }

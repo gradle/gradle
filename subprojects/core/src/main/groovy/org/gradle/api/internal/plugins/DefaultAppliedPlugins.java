@@ -30,19 +30,22 @@ public class DefaultAppliedPlugins implements AppliedPluginsInternal {
         this.target = target;
     }
 
-    public void apply(Class<?> pluginClass) {
+    public void extractModelRulesAndAdd(Class<?> pluginClass) {
         ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
         if (detector.getDeclaredSources(pluginClass).size() > 0) {
             throw new UnsupportedOperationException(String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware", pluginClass.getName(), target));
         }
     }
 
-    public void apply(String pluginId) {
-        Class<?> pluginClass = pluginRegistry.getTypeForId(pluginId);
+    public void apply(Class<?> pluginClass) {
         if (!Plugin.class.isAssignableFrom(pluginClass)) {
             throw new UnsupportedOperationException(String.format("'%s' does not implement the Plugin interface and only classes that implement it can be applied to '%s'", pluginClass.getName(), target));
         }
         @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginImplementingClass = (Class<? extends Plugin<?>>) pluginClass;
         target.getPlugins().apply(pluginImplementingClass);
+    }
+
+    public void apply(String pluginId) {
+        apply(pluginRegistry.getTypeForId(pluginId));
     }
 }

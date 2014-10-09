@@ -121,7 +121,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginApplicationAction createPluginModelRuleExtractor() {
-        return new AppliedPluginsApplicationAction();
+        return new AppliedPluginsAdditionAction();
     }
 
     protected AppliedPluginsInternal createAppliedPlugins() {

@@ -75,6 +75,7 @@ class ProjectAppliedPluginsTest extends Specification {
     def "applying #scenario class"() {
         when:
         handler.spec >> spec
+        project.plugins >> pluginContainer
         project.modelRegistry >> registry
 
         and:
@@ -83,13 +84,17 @@ class ProjectAppliedPluginsTest extends Specification {
         then:
         modelRegistrations * handler.register({ it.methodName == "thing" }, registry, _ as RuleSourceDependencies)
 
+        and:
+        pluginContainerApplications * pluginContainer.apply(pluginClass)
+
         where:
-        scenario                   | pluginClass          | modelRegistration
-        "rule source only"         | HasSource            | true
-        "plugin"                   | PluginWithoutSources | false
-        "plugin with rule sources" | PluginWithSources    | true
+        scenario                   | pluginClass          | modelRegistration | pluginContainerApplication
+        "rule source only"         | HasSource            | true              | false
+        "plugin"                   | PluginWithoutSources | false             | true
+        "plugin with rule sources" | PluginWithSources    | false             | true
 
         modelRegistrations = modelRegistration ? 1 : 0
+        pluginContainerApplications = pluginContainerApplication ? 1 : 0
     }
 
     @Unroll
@@ -145,5 +150,17 @@ class ProjectAppliedPluginsTest extends Specification {
 
         then:
         thrown(InvalidModelRuleDeclarationException)
+    }
+
+    def "extracting rules"() {
+        when:
+        handler.spec >> spec
+        project.modelRegistry >> registry
+
+        and:
+        appliedPlugins.extractModelRulesAndAdd(HasSource)
+
+        then:
+        1 * handler.register({ it.methodName == "thing" }, registry, _ as RuleSourceDependencies)
     }
 }
