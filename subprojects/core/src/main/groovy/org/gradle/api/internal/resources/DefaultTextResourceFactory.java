@@ -37,7 +37,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
     }
 
     public TextResource fromFile(Object file, String charset) {
-        return new FileCollectionBackedTextResource(fileOperations.files(file), Charset.forName(charset));
+        return new FileCollectionBackedTextResource(tempFileProvider, fileOperations.files(file), Charset.forName(charset));
     }
 
     public TextResource fromFile(Object file) {
@@ -46,7 +46,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
     }
 
     public TextResource fromArchiveEntry(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, fileOperations.files(archive), entryPath, Charset.forName(charset));
+        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.files(archive), entryPath, Charset.forName(charset));
     }
 
     public TextResource fromArchiveEntry(Object archive, String entryPath) {

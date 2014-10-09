@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.resources
 
+import com.google.common.base.Charsets
+
 import org.gradle.api.resources.TextResource
+
 import spock.lang.Specification
 
 abstract class AbstractTextResourceTest extends Specification {
@@ -35,5 +38,10 @@ abstract class AbstractTextResourceTest extends Specification {
     def "read as file"() {
         expect:
         resource.asFile().text == "contents"
+    }
+
+    def "read as file with different encoding"() {
+        expect:
+        resource.asFile(Charsets.UTF_16.name()).getText(Charsets.UTF_16.name()) == "contents"
     }
 }

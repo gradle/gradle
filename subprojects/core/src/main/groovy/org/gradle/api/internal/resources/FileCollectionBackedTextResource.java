@@ -16,8 +16,10 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
+
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -25,10 +27,12 @@ import java.io.*;
 import java.nio.charset.Charset;
 
 public class FileCollectionBackedTextResource implements TextResource {
+    private final TemporaryFileProvider tempFileProvider;
     private final FileCollection fileCollection;
     private final Charset charset;
 
-    public FileCollectionBackedTextResource(FileCollection fileCollection, Charset charset) {
+    public FileCollectionBackedTextResource(TemporaryFileProvider tempFileProvider, FileCollection fileCollection, Charset charset) {
+        this.tempFileProvider = tempFileProvider;
         this.fileCollection = fileCollection;
         this.charset = charset;
     }
@@ -49,8 +53,24 @@ public class FileCollectionBackedTextResource implements TextResource {
         }
     }
 
+    public File asFile(String targetCharset) {
+        Charset targetCharsetObj = Charset.forName(targetCharset);
+
+        if (targetCharsetObj.equals(charset)) {
+            return fileCollection.getSingleFile();
+        }
+
+        File targetFile = tempFileProvider.createTemporaryFile("fileCollection", ".txt", "resource");
+        try {
+            Files.asCharSource(fileCollection.getSingleFile(), charset).copyTo(Files.asCharSink(targetFile, targetCharsetObj));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return targetFile;
+    }
+
     public File asFile() {
-        return fileCollection.getSingleFile();
+        return asFile(Charset.defaultCharset().name());
     }
 
     public TaskDependency getBuildDependencies() {

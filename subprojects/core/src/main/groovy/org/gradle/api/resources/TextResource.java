@@ -48,14 +48,19 @@ public interface TextResource extends Buildable {
      */
     Reader asReader();
 
+    /**
+     * Returns a file containing the resource's text and using the given character encoding.
+     * If this resource is backed by a file with a matching encoding, that file may be
+     * returned. Otherwise, a temporary file will be created and returned.
+     *
+     * @param charset a character encoding (e.g. {@code "utf-8"})
+     *
+     * @return a file containing the resource's text and using the given character encoding
+     */
+    File asFile(String charset);
 
     /**
-     * Returns a file containing the resource's text. If this resource is backed by a file,
-     * that file will be returned. If this resource is backed by an archive entry, a
-     * temporary file created by extracting the entry will be returned. Otherwise,
-     * a temporary file using the platform's default character encoding will be returned.
-     *
-     * @return a file containing the resource's text
+     * Same as {@code asFile(Charset.defaultCharset().name())}.
      */
     File asFile();
 

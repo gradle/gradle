@@ -46,14 +46,18 @@ public class StringBackedTextResource implements TextResource {
         return new StringReader(string);
     }
 
-    public File asFile() {
+    public File asFile(String charset) {
         File file = tempFileProvider.createTemporaryFile("string", ".txt", "resource");
         try {
-            Files.write(string, file, Charset.defaultCharset());
+            Files.write(string, file, Charset.forName(charset));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         return file;
+    }
+
+    public File asFile() {
+        return asFile(Charset.defaultCharset().name());
     }
 
     public TaskDependency getBuildDependencies() {
@@ -61,7 +65,7 @@ public class StringBackedTextResource implements TextResource {
     }
 
     public Object getInputProperties() {
-        return asString();
+        return string;
     }
 
     public FileCollection getInputFiles() {

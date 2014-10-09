@@ -17,31 +17,23 @@ package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileTree;
-import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
 import java.nio.charset.Charset;
 
-public class FileCollectionBackedArchiveTextResource implements TextResource {
-    private final Charset charset;
-    private final FileTree archiveTree;
-
+public class FileCollectionBackedArchiveTextResource extends FileCollectionBackedTextResource {
     public FileCollectionBackedArchiveTextResource(final FileOperations fileOperations,
+                                                   final TemporaryFileProvider tempFileProvider,
                                                    final FileCollection fileCollection,
                                                    final String path, Charset charset) {
-        this.charset = charset;
-
-        archiveTree = new LazilyInitializedFileTree() {
+        super(tempFileProvider, new LazilyInitializedFileTree() {
             @Override
             public FileTree createDelegate() {
                 File archiveFile = fileCollection.getSingleFile();
@@ -55,38 +47,6 @@ public class FileCollectionBackedArchiveTextResource implements TextResource {
             public TaskDependency getBuildDependencies() {
                 return fileCollection.getBuildDependencies();
             }
-        };
-    }
-
-    public String asString() {
-        try {
-            return Files.toString(asFile(), charset);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    public Reader asReader() {
-        try {
-            return Files.newReader(asFile(), charset);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    public File asFile() {
-        return archiveTree.getSingleFile();
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return archiveTree.getBuildDependencies();
-    }
-
-    public Object getInputProperties() {
-        return charset.name();
-    }
-
-    public FileCollection getInputFiles() {
-        return archiveTree;
+        }, charset);
     }
 }
