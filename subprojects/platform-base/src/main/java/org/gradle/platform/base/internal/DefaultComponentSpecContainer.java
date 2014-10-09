@@ -17,7 +17,6 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
@@ -25,6 +24,6 @@ import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectC
 public class DefaultComponentSpecContainer extends RuleAwarePolymorphicDomainObjectContainer<ComponentSpec> implements ComponentSpecContainer {
 
     public DefaultComponentSpecContainer(Instantiator instantiator) {
-        super(new ModelType<ComponentSpec>(){}.getConcreteClass(), instantiator);
+        super(ComponentSpec.class, instantiator);
     }
 }

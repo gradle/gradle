@@ -36,7 +36,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
@@ -75,11 +74,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
-        Class<ComponentSpec> componentSpecClass = new ModelType<ComponentSpec>(){}.getConcreteClass();
         modelRegistry.create(
                 ModelCreators.of(ModelReference.of("componentSpecs", DefaultComponentSpecContainer.class), components)
                         .simpleDescriptor("Project.<init>.componentSpecs()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, componentSpecClass))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
                         .build()
                         );
 
