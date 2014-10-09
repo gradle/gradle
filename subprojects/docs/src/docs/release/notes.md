@@ -194,7 +194,7 @@ a Checkstyle configuration file can be sourced from different locations:
         config = resources.text.fromString("""<module name="Checker">...</module>""")
         // sourced from local text file
         config = resources.text.fromFile("path/to/config.txt")
-        // sourced from a task that produces a text file and declares it as output
+        // sourced from a task that produces a text file (and declares it as output)
         config = resources.text.fromFile(someTask)
         // sourced from shared archive
         config = resources.text.fromArchiveEntry(configurations.checkstyleConfig, "path/to/config/entry.txt")
