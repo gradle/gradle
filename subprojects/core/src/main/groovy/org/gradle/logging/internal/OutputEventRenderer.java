@@ -30,6 +30,7 @@ import java.io.OutputStream;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutputInternal {
+    private final ListenerBroadcast<OutputEventListener> stdOutAndErrorFormatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -44,9 +45,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
-        formatters.add(stdOutChain);
+        stdOutAndErrorFormatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
-        formatters.add(stdErrChain);
+        stdOutAndErrorFormatters.add(stdErrChain);
         this.consoleConfigureAction = consoleConfigureAction;
     }
 
@@ -70,22 +71,71 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public void addStandardOutputAndError() {
+        addStandardOutputListener();
+        addStandardErrorListener();
+    }
+
+    private void addStandardOutputListener() {
         synchronized (lock) {
             originalStdOut = System.out;
-            originalStdErr = System.err;
+            if (stdOutListener != null) {
+                stdoutListeners.remove(stdOutListener);
+            }
             stdOutListener = new StreamBackedStandardOutputListener((Appendable) System.out);
-            stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
             addStandardOutputListener(stdOutListener);
+        }
+    }
+
+    private void addStandardErrorListener() {
+        synchronized (lock) {
+            originalStdErr = System.err;
+            if(stdErrListener != null) {
+                stderrListeners.remove(stdErrListener);
+            }
+            stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
             addStandardErrorListener(stdErrListener);
         }
     }
 
+    public void removeStandardOutputAndError() {
+        removeStandardOutputListener();
+        removeStandardErrorListener();
+    }
+
+    private void removeStandardOutputListener() {
+        synchronized (lock) {
+            if (stdOutListener != null) {
+                stdoutListeners.remove(stdOutListener);
+                stdOutListener = null;
+            }
+        }
+    }
+
+    private void removeStandardErrorListener() {
+        synchronized (lock) {
+            if(stdErrListener != null) {
+                stderrListeners.remove(stdErrListener);
+                stdErrListener = null;
+            }
+        }
+    }
+
     public void addOutputEventListener(OutputEventListener listener) {
-        formatters.add(listener);
+        synchronized (lock) {
+            formatters.add(listener);
+        }
     }
 
     public void removeOutputEventListener(OutputEventListener listener) {
-        formatters.remove(listener);
+        synchronized (lock) {
+            formatters.remove(listener);
+        }
+    }
+
+    public void removeAllOutputEventListeners() {
+        synchronized (lock) {
+            formatters.removeAll();
+        }
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
@@ -97,14 +147,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         synchronized (lock) {
             if (stdout && stderr) {
                 formatters.add(consoleChain);
-                stdoutListeners.remove(this.stdOutListener);
-                stderrListeners.remove(this.stdErrListener);
+                removeStandardOutputAndError();
             } else if (stdout) {
                 formatters.add(onNonError(consoleChain));
-                stdoutListeners.remove(this.stdOutListener);
+                removeStandardOutputListener();
             } else {
                 formatters.add(onError(consoleChain));
-                stderrListeners.remove(this.stdErrListener);
+                removeStandardErrorListener();
             }
             consoleChain.onOutput(new LogLevelChangeEvent(logLevel));
         }
@@ -172,6 +221,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
                 }
                 this.logLevel = newLogLevel;
             }
+            stdOutAndErrorFormatters.getSource().onOutput(event);
             formatters.getSource().onOutput(event);
         }
     }

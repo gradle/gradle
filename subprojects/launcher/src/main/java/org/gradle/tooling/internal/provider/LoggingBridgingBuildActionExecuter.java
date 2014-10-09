@@ -39,11 +39,16 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
 
     public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
-        if (actionParameters.getStandardOutput() != null) {
-            loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));
-        }
-        if (actionParameters.getStandardError() != null) {
-            loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(actionParameters.getStandardError()));
+        loggingManager.removeAllOutputEventListeners();
+        if(actionParameters.isColorOutput() != null && actionParameters.isColorOutput()) {
+            loggingManager.attachConsole(true);
+        } else {
+            if (actionParameters.getStandardOutput() != null) {
+                loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));
+            }
+            if (actionParameters.getStandardError() != null) {
+                loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(actionParameters.getStandardError()));
+            }
         }
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
@@ -53,6 +58,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         try {
             return executer.execute(action, cancellationToken, actionParameters);
         } finally {
+            loggingManager.removeAllOutputEventListeners();
             loggingManager.stop();
         }
     }

@@ -30,6 +30,9 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.AnsiConsole;
+import org.gradle.logging.internal.Console;
+import org.gradle.logging.internal.DefaultColorMap;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
@@ -44,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +119,15 @@ public class ProviderConnection {
             loggingServices = this.loggingServices;
             executer = embeddedExecutor;
         } else {
-            loggingServices = this.loggingServices.newLogging();
+            if(operationParameters.isColorOutput() != null && operationParameters.isColorOutput() && operationParameters.getStandardOutput() != null) {
+                PrintStream outStr = new PrintStream(operationParameters.getStandardOutput());
+                DefaultColorMap colourMap = new DefaultColorMap();
+                colourMap.setUseColor(true);
+                Console console = new AnsiConsole(outStr, outStr, colourMap, true);
+                loggingServices = this.loggingServices.newColoredLogging(console);
+            } else {
+                loggingServices = this.loggingServices.newLogging();
+            }
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);
