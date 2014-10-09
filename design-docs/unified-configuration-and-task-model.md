@@ -410,7 +410,7 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - ~~`Plugin` impl can include nested rule source class~~
 - ~~A useful error message is presented to the user if they try to apply a rule source plugin as a regular plugin, i. e. `apply plugin: RuleSourcePlugin` or `apply { plugin RuleSourcePlugin }`~~
 - Can use `PluginRegistry` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project
-- A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied   
+- ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
 
 
 ## Story: Model DSL rule uses a typed model element as input via name

@@ -24,6 +24,7 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 import java.util.Collections;
 import java.util.List;
@@ -99,7 +100,7 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
     }
 
     public Plugin apply(String id) {
-        return addPluginInternal(getTypeForId(id));
+        return addPluginInternal(getPluginTypeForId(id));
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
@@ -116,7 +117,7 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
 
     public Plugin findPlugin(String id) {
         try {
-            return findPlugin(getTypeForId(id));
+            return findPlugin(getPluginTypeForId(id));
         } catch (UnknownPluginException e) {
             return null;
         }
@@ -167,6 +168,15 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
     }
 
     public void withId(final String pluginId, Action<? super Plugin> action) {
+        try {
+            Class<?> typeForId = pluginRegistry.getTypeForId(pluginId);
+            if (!Plugin.class.isAssignableFrom(typeForId) && !new ModelRuleSourceDetector().getDeclaredSources(typeForId).isEmpty()) {
+                String message = String.format("The type for id '%s' (class: '%s') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.", pluginId, typeForId.getName());
+                throw new IllegalArgumentException(message);
+            }
+        } catch (UnknownPluginException e) {
+            //just continue if it's impossible to see if the id points to a plain rule source
+        }
         matching(new Spec<Plugin>() {
             public boolean isSatisfiedBy(Plugin element) {
                 try {
@@ -178,7 +188,7 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
         }).all(action);
     }
 
-    protected Class<? extends Plugin> getTypeForId(String id) {
+    protected Class<? extends Plugin> getPluginTypeForId(String id) {
         return pluginRegistry.getPluginTypeForId(id);
     }
 

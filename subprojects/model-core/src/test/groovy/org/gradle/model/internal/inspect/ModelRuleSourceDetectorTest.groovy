@@ -22,6 +22,8 @@ import spock.lang.Unroll
 
 class ModelRuleSourceDetectorTest extends Specification {
 
+    private ModelRuleSourceDetector detector = new ModelRuleSourceDetector()
+
     static class HasOneSource {
         @RuleSource
         static class Source {}
@@ -46,7 +48,7 @@ class ModelRuleSourceDetectorTest extends Specification {
     @Unroll
     def "find model rule sources - #clazz"() {
         expect:
-        new ModelRuleSourceDetector().getDeclaredSources(clazz) == expected.toSet()
+        detector.getDeclaredSources(clazz) == expected.toSet()
 
         where:
         clazz         | expected

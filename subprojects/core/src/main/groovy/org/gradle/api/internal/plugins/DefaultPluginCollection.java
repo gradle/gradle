@@ -23,6 +23,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
 
@@ -39,6 +40,10 @@ public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObje
     }
 
     public <S extends T> PluginCollection<S> withType(Class<S> type) {
+        if (!Plugin.class.isAssignableFrom(type) && !new ModelRuleSourceDetector().getDeclaredSources(type).isEmpty()) {
+            String message = String.format("'%s' is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.", type.getName());
+            throw new IllegalArgumentException(message);
+        }
         return filtered(createFilter(type));
     }
 

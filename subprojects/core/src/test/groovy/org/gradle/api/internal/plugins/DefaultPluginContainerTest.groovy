@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestPlugin2
+import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -109,6 +110,7 @@ public class DefaultPluginContainerTest extends Specification {
 
     def "executes action for plugin with given id"() {
         def plugin = new TestPlugin1()
+        pluginRegistry.getTypeForId("plugin") >> TestPlugin1
         pluginRegistry.getPluginTypeForId("plugin") >> TestPlugin1
         def plugins = []
         container.add(plugin)
@@ -255,5 +257,26 @@ public class DefaultPluginContainerTest extends Specification {
         then:
         1 * applicationAction1.execute({ it.plugin == plugin && it.target == project })
         1 * applicationAction2.execute({ it.plugin == plugin && it.target == project })
+    }
+
+    def "a useful error message is set when a plain rule source type is passed to withType"() {
+        when:
+        container.withType(TestRuleSource)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "'$TestRuleSource.name' is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied."
+    }
+
+    def "a useful error message is set when an id for plain rule source type is passed to withId"() {
+        given:
+        pluginRegistry.getTypeForId("custom-rule-source") >> TestRuleSource
+
+        when:
+        container.withId("custom-rule-source") {}
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "The type for id 'custom-rule-source' (class: '$TestRuleSource.name') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied."
     }
 }

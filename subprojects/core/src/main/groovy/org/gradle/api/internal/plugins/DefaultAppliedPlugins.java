@@ -32,7 +32,7 @@ public class DefaultAppliedPlugins implements AppliedPluginsInternal {
 
     public void extractModelRulesAndAdd(Class<?> pluginClass) {
         ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
-        if (detector.getDeclaredSources(pluginClass).size() > 0) {
+        if (!detector.getDeclaredSources(pluginClass).isEmpty()) {
             throw new UnsupportedOperationException(String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware", pluginClass.getName(), target));
         }
     }

@@ -105,7 +105,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
-        if (!Plugin.class.isAssignableFrom(pluginClass) && new ModelRuleSourceDetector().getDeclaredSources(pluginClass).size() > 0) {
+        if (!Plugin.class.isAssignableFrom(pluginClass) && !new ModelRuleSourceDetector().getDeclaredSources(pluginClass).isEmpty()) {
             throw new IllegalArgumentException(String.format("'%s' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()", pluginClass.getName()));
         }
         for (Object target : targets) {

@@ -134,7 +134,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return getTypeForId(pluginId, new Spec<Class<?>>() {
             public boolean isSatisfiedBy(Class<?> rawClass) {
                 ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
-                return Plugin.class.isAssignableFrom(rawClass) || detector.getDeclaredSources(rawClass).size() > 0;
+                return Plugin.class.isAssignableFrom(rawClass) || !detector.getDeclaredSources(rawClass).isEmpty();
             }
         }, "Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface and does not define any rule sources.");
     }
