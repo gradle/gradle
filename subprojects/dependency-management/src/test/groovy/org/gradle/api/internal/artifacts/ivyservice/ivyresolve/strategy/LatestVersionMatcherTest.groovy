@@ -53,7 +53,7 @@ class LatestVersionMatcherTest extends Specification {
         e.message.contains("accept")
     }
 
-    def "accepts a candidate version iff its status is equal to or higher than the selector's status"() {
+    def "accepts a candidate version if its status is equal to or higher than the selector's status"() {
         def metadata = Stub(ModuleComponentResolveMetaData) {
             getStatus() >> "silver"
             getStatusScheme() >> ["bronze", "silver", "gold"]
