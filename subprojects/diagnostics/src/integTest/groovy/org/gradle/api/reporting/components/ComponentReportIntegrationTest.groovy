@@ -514,6 +514,54 @@ Binaries
 """
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "shows which jvm libraries are buildable"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    jvm {
+        libraries {
+            myLib {
+                targetPlatform "java5", "java6", "java9"
+            }
+        }
+    }
+"""
+        when:
+        succeeds "components"
+
+        then:
+        outputMatches output, """
+JVM library 'myLib'
+-------------------
+
+Source sets
+    JVM resources 'myLib:resources'
+        src/myLib/resources
+    Java source 'myLib:java'
+        src/myLib/java
+
+Binaries
+    Jar 'myLib:java5:jar'
+        build using task: :java5MyLibJar
+        platform: java5
+        tool chain: $currentJdk
+        Jar file: build/jars/myLibJar/java5/myLib.jar
+    Jar 'myLib:java6:jar'
+        build using task: :java6MyLibJar
+        platform: java6
+        tool chain: $currentJdk
+        Jar file: build/jars/myLibJar/java6/myLib.jar
+    Jar 'myLib:java9:jar' (not buildable)
+        build using task: :java9MyLibJar
+        platform: java9
+        tool chain: $currentJdk
+        Jar file: build/jars/myLibJar/java9/myLib.jar
+"""
+    }
+
     private boolean outputMatches(String actualOutput, String expectedOutput) {
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
         assert cleaned == expected(expectedOutput)
