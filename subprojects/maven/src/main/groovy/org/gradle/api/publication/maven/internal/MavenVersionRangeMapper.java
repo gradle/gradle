@@ -35,10 +35,7 @@ public class MavenVersionRangeMapper implements VersionRangeMapper{
 
     public String map(String version) {
         Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
-        if(version.equals(PLUS)){
-            return LATEST;
-        }
-        if(version.equals(LATEST_INTEGRATION)){
+        if(version.equals(PLUS) || version.equals(LATEST_INTEGRATION)){
             return LATEST;
         }
         if(version.equals(LATEST_RELEASE)){
