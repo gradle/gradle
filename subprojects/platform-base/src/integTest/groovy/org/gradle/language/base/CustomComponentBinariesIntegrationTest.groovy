@@ -134,7 +134,7 @@ Binaries
         succeeds "tellTaskName"
     }
 
-    def "@ComponentBinaries supports additional parameters as rule inputs"() {
+    def "ComponentBinaries rule supports additional parameters as rule inputs"() {
         given:
         buildFile << """
         class CustomModel {

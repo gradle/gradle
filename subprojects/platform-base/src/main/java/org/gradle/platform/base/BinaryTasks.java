@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * import org.gradle.model.*
  * import org.gradle.model.collection.*
  *
- * interface SampleComponent extends ComponentSpec<SampleBinary> {}
+ * interface SampleComponent extends ComponentSpec {}
  * interface SampleBinary extends BinarySpec {}
  * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
  *
