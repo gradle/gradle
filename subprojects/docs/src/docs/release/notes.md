@@ -311,8 +311,9 @@ If you were depending on these classes explicitly, you will need to update the r
 - Removed deprecated `ExecutableBinary`: use `NativeExecutableBinary` instead.
 - Renamed package `org.gradle.nativeplatform.sourceset` to `org.gradle.language.nativeplatform`
 - Renamed package `org.gradle.language.nativebase` to `org.gradle.language.nativeplatform`
-- Added binary type parameter to `ComponentSpec`
 - Added `Native` prefix to existing `Platform`, `ToolChain`, `ToolChainRegistry` and `PlatformToolChain` types
+- Changed `NativeComponentSpec.getBinaries()` to return `DomainObjectSet<BinarySpec>`
+- Added `NativeComponentSpec.getNativeBinaries()` to return `DomainObjectSet<NativeBinarySpec>`
 
 ### Changes to incubating JVM-component plugins and language support
 
