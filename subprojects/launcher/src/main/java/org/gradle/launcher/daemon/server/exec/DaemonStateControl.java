@@ -36,7 +36,7 @@ public interface DaemonStateControl {
     void requestForcefulStop();
 
     /**
-     * Communicates a request for build cancellation.
+     * Communicates a request for build cancellation. Note that this method blocks until the operation has been cancelled.
      *
      * <p>If any long running command is currently running, this method does block for certain time to give chance to perform cancellation, and if the command
      * doesn't finnish in a timely manner a request for forceful stop will be issued ({@link #requestForcefulStop()}.</p>

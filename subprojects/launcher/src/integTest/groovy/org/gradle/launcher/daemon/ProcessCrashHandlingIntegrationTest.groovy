@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
 
@@ -36,6 +38,40 @@ task block << {
         build.abort()
 
         then:
+        daemons.daemon.assertStops()
+    }
+
+    def "client logs useful information when daemon crashes"() {
+        buildFile << """
+task block << {
+    new URL("$server.uri").text
+}
+"""
+
+        when:
+        def build = executer.withTasks("block").start()
+        server.waitFor()
+        daemons.daemon.kill()
+        def failure = build.waitForFailure()
+
+        then:
+        failure.error.contains("----- Last  20 lines from daemon log file")
+        failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
+    }
+
+    def "client logs useful information when daemon exits"() {
+        given:
+        file("build.gradle") << "System.exit(0)"
+
+        when:
+        def failure = executer.runWithFailure()
+
+        then:
+        failure.error.contains("----- Last  20 lines from daemon log file")
+        failure.error.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
+        failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
+
+        and:
         daemons.daemon.assertStops()
     }
 }

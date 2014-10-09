@@ -220,7 +220,7 @@ task hang << {
         resultHandler.failure.cause.message == 'Build cancelled.'
 
         and:
-        daemons.daemon.assertNotRunning()
+        daemons.daemon.assertStopped()
     }
 
     def "can cancel action"() {

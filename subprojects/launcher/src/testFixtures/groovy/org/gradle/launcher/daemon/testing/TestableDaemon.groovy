@@ -48,7 +48,8 @@ class TestableDaemon {
     }
 
     /**
-     * Asserts that this daemon stops soon. Blocks until this has happened.
+     * Asserts that this daemon stops and is no longer visible to any clients, within a short timeout.
+     * Blocks until this has happened.
      */
     void assertStops() {
         def expiry = System.currentTimeMillis() + 20000
@@ -61,6 +62,9 @@ class TestableDaemon {
         throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to stop.")
     }
 
+    /**
+     * Forcefully kills this daemon.
+     */
     void kill() {
         println "Killing daemon with pid: $context.pid"
         def output = new ByteArrayOutputStream()
@@ -93,6 +97,9 @@ class TestableDaemon {
         busy, idle, stopped
     }
 
+    /**
+     * Asserts that this daemon is currently running and idle.
+     */
     void assertIdle() {
         assert getCurrentState() == State.idle
     }
@@ -101,11 +108,17 @@ class TestableDaemon {
         getStates().last()
     }
 
+    /**
+     * Asserts that this daemon is currently running and busy.
+     */
     void assertBusy() {
         assert getCurrentState() == State.busy
     }
 
-    void assertNotRunning() {
+    /**
+     * Asserts that this daemon has stopped.
+     */
+    void assertStopped() {
         assert getCurrentState() == State.stopped
     }
 
