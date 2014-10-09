@@ -27,8 +27,8 @@ import java.io.Reader;
 
 /**
  * A read-only body of text backed by a string, file, archive entry, or other source.
- * To create a text resource, use one of the factory methods in {@link ResourceHandler}
- * (e.g. {@code project.resources.text(myFile)}).
+ * To create a text resource, use one of the factory methods in {@link TextResourceFactory}
+ * (e.g. {@code project.resources.text.fromFile(myFile)}).
  *
  * @since 2.2
  */
