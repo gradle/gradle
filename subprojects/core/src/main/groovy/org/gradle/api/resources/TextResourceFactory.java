@@ -21,6 +21,27 @@ import org.gradle.api.Incubating;
 /**
  * Creates {@code TextResource}s backed by sources such as strings, files, and archive entries.
  *
+ * <p>Example usages:
+ *
+ * <pre autoTested=''>
+ * def sourcedFromString = resources.text.fromString("some text content")
+ *
+ * def sourcedFromFile = resources.text.fromFile("path/to/file.txt")
+ *
+ * task someTask {} // assumption: produces a text file and declares it as an output
+ * def sourcedFromTask = resources.text.fromFile(someTask)
+ *
+ * def sourcedFromArchiveEntry =
+ *   resources.text.fromArchiveEntry("path/to/archive.zip", "path/to/archive/entry.txt")
+ *
+ * configurations { someConfig } // assumption: contains a single archive
+ * def sourcedFromConfiguration =
+ *   resources.text.fromArchiveEntry(configurations.someConfig, "path/to/archive/entry.txt")
+ * </pre>
+ *
+ * File based factory methods optionally accept a character encoding. If no encoding is specified,
+ * the platform's default encoding is used.
+ *
  * @since 2.2
  */
 @Incubating
