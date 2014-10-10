@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Actions;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
@@ -84,20 +85,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
+        VetoContainerChangeAction veto = new VetoContainerChangeAction();
+
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        ownDependencies.beforeChange(new VetoContainerChangeAction());
+        ownDependencies.beforeChange(veto);
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
-        inheritedDependencies = new CompositeDomainObjectSet<Dependency>(Dependency.class)
-                .beforeChange(new VetoContainerChangeAction())
-                .addCollection(ownDependencies);
+        inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
+        inheritedDependencies.all(Actions.<Dependency>toAction(veto));
+        inheritedDependencies.whenObjectRemoved(Actions.<Dependency>toAction(veto));
 
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        ownArtifacts.beforeChange(new VetoContainerChangeAction());
+        ownArtifacts.beforeChange(veto);
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
-        inheritedArtifacts = new CompositeDomainObjectSet<PublishArtifact>(PublishArtifact.class, ownArtifacts);
+        inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
     }
 

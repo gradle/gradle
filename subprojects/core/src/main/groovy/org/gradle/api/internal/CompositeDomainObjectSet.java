@@ -21,28 +21,34 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
  *
  * @param <T> The type of domain objects in the component collections of this collection.
  */
-public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
+public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
-    private Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
-    private Spec<T> notInSpec = new ItemNotInCompositeSpec();
+    private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
+    private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
+    private final DefaultDomainObjectSet<T> backingSet;
 
-    public CompositeDomainObjectSet(Class<T> type) {
+    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
         //noinspection unchecked
-        super(type, new CompositeCollection());
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new CompositeCollection());
+        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
+        for (DomainObjectCollection<? extends T> c : collections) {
+            out.addCollection(c);
+        }
+        return out;
     }
 
-    public CompositeDomainObjectSet(Class<T> type, DomainObjectCollection<? extends T>... collections) {
-        this(type);
-        for (DomainObjectCollection<? extends T> collection : collections) {
-            addCollection(collection);
-        }
+    CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet) {
+        super(backingSet);
+        this.backingSet = backingSet; //TODO SF try avoiding keeping this state here
     }
 
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
@@ -68,7 +74,7 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
 
     @SuppressWarnings("unchecked")
     protected CompositeCollection getStore() {
-        return (CompositeCollection)super.getStore();
+        return (CompositeCollection) this.backingSet.getStore();
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
@@ -82,47 +88,39 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
     public CompositeDomainObjectSet<T> addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().getCollections().contains(collection)) {
             getStore().addComposited(collection);
-            collection.all(getEventRegister().getAddAction());
-            collection.whenObjectRemoved(getEventRegister().getRemoveAction());
+            collection.all(backingSet.getEventRegister().getAddAction());
+            collection.whenObjectRemoved(backingSet.getEventRegister().getRemoveAction());
         }
         return this;
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
         getStore().removeComposited(collection);
-        Action<? super T> action = getEventRegister().getRemoveAction();
+        Action<? super T> action = this.backingSet.getEventRegister().getRemoveAction();
         for (T item : collection) {
             action.execute(item);
         }
     }
 
     public Iterator<T> iterator() {
+        //TODO SF - this is not right, we don't detect iterator.remove() this way
+        //avoiding duplicates in the results
         //noinspection unchecked
         return new LinkedHashSet<T>(getStore()).iterator();
     }
 
     public int size() {
+        //avoiding duplicates in the results
         //noinspection unchecked
         return new LinkedHashSet<T>(getStore()).size();
     }
-    
+
     public void all(Action<? super T> action) {
+        //calling overloaded method with extra behavior:
         whenObjectAdded(action);
 
         for (T t : this) {
             action.execute(t);
         }
-    }
-
-    /**
-     * Only allows adding beforeChange actions before any collections are composited.
-     * It can be improved in future but for now it is sufficient.
-     */
-    public CompositeDomainObjectSet<T> beforeChange(Runnable action) {
-        if(!getStore().getCollections().isEmpty()) {
-            throw new IllegalStateException("beforeChange action can only be added before any collections are composited.");
-        }
-        whenObjectAdded(Actions.toAction(action));
-        return this;
     }
 }

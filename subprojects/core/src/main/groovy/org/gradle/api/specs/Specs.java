@@ -49,6 +49,7 @@ public class Specs {
         return (Spec<T>)SATISFIES_NONE;
     }
 
+    //TODO SF rename for consistency with Actions.toAction
     public static <T> Spec<T> convertClosureToSpec(final Closure closure) {
         return new ClosureSpec<T>(closure);
     }

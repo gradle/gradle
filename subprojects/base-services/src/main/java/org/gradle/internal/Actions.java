@@ -153,6 +153,7 @@ public abstract class Actions {
      * @return An action that runs the given runnable, ignoring the argument.
      */
     public static <T> Action<T> toAction(Runnable runnable) {
+        //TODO SF this method accepts Closure instance as parameter but does not work correctly for it
         if (runnable == null) {
             return Actions.doNothing();
         } else {

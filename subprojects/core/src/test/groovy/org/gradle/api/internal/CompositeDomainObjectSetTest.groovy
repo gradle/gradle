@@ -16,8 +16,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.DomainObjectCollection
-
-import spock.lang.*
+import spock.lang.Specification
 
 class CompositeDomainObjectSetTest extends Specification {
 
@@ -30,7 +29,7 @@ class CompositeDomainObjectSetTest extends Specification {
     }
 
     protected composite(DomainObjectCollection... collections) {
-        new CompositeDomainObjectSet(type, *collections)
+        CompositeDomainObjectSet.create(type, *collections)
     }
 
     def "empty composite contains no elements"() {
@@ -422,31 +421,5 @@ class CompositeDomainObjectSetTest extends Specification {
 
         then:
         composite.toList() == []
-    }
-
-    def "supports before change actions"() {
-        def a = collection("a1", "a2")
-        def b = collection("b1", "b2")
-        def action = Mock(Runnable)
-        def composite = new CompositeDomainObjectSet(type)
-                .beforeChange(action)
-                .addCollection(a).addCollection(b)
-
-        when: a.add "a3"
-        then: action.run()
-
-        when: b.remove "b1"
-        then: action.run()
-
-        when: composite.removeCollection(b)
-        then: action.run()
-
-        0 * action._
-    }
-
-    def "before change action must be added before collection is composited"() {
-        def composite = composite(collection("1"))
-        when: composite.beforeChange {}
-        then: thrown(IllegalStateException)
     }
 }
