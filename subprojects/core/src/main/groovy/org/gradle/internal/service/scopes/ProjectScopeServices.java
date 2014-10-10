@@ -124,10 +124,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new AppliedPluginsAdditionAction();
     }
 
-    protected AppliedPluginsInternal createAppliedPlugins() {
+    protected PluginApplicationHandler createPluginApplicationHandler() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
-        return new ProjectAppliedPlugins(project, get(PluginRegistry.class), inspector);
+        return new ProjectAppliedPluginsContainer(project, get(PluginRegistry.class), inspector);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

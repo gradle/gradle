@@ -125,7 +125,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof PluginAwareInternal) {
                 try {
-                    ((PluginAwareInternal) target).getAppliedPlugins().apply(pluginId);
+                    ((PluginAwareInternal) target).getPluginApplicationHandler().apply(pluginId);
                 } catch (Exception e) {
                     throw new PluginApplicationException("id '" + pluginId + "'", e);
                 }
@@ -143,7 +143,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             for (Object target : targets) {
                 if (target instanceof PluginAwareInternal) {
                     try {
-                        ((PluginAwareInternal) target).getAppliedPlugins().apply(pluginClass);
+                        ((PluginAwareInternal) target).getPluginApplicationHandler().apply(pluginClass);
                     } catch (Exception e) {
                         throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
                     }

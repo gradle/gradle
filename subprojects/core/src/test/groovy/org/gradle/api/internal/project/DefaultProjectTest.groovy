@@ -34,8 +34,8 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.plugins.AppliedPluginsInternal
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
+import org.gradle.api.internal.plugins.PluginApplicationHandler
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
@@ -105,7 +105,7 @@ class DefaultProjectTest {
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
-    AppliedPluginsInternal appliedPluginsMock = context.mock(AppliedPluginsInternal.class)
+    PluginApplicationHandler pluginApplicationHandler = context.mock(PluginApplicationHandler.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild()
@@ -157,7 +157,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
-            allowing(serviceRegistryMock).get((Type) AppliedPluginsInternal); will(returnValue(appliedPluginsMock))
+            allowing(serviceRegistryMock).get((Type) PluginApplicationHandler); will(returnValue(pluginApplicationHandler))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)
             allowing(serviceRegistryMock).get((Type) ModelRegistry); will(returnValue(modelRegistry))
@@ -304,7 +304,7 @@ class DefaultProjectTest {
     @Test
     void testUsePluginWithString() {
         context.checking {
-            one(appliedPluginsMock).apply('someplugin');
+            one(pluginApplicationHandler).apply('someplugin');
         }
         project.apply(plugin: 'someplugin')
     }

@@ -24,24 +24,20 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies;
 
 import java.util.Set;
 
-public class ProjectAppliedPlugins implements AppliedPluginsInternal {
+public class ProjectAppliedPluginsContainer extends AbstractAppliedPluginsContainer {
 
-    private final ModelRuleInspector inspector;
-    private final PluginRegistry pluginRegistry;
     private final ProjectInternal target;
+    private final ModelRuleInspector inspector;
 
-    public ProjectAppliedPlugins(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector) {
-        this.pluginRegistry = pluginRegistry;
+    public ProjectAppliedPluginsContainer(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector) {
+        super(target, pluginRegistry);
         this.target = target;
         this.inspector = inspector;
     }
 
-    private Set<Class<?>> getDeclaredSources(Class<?> pluginClass) {
-        ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
-        return detector.getDeclaredSources(pluginClass);
-    }
-
-    private void extractModelRules(Set<Class<?>> declaredSources) {
+    @Override
+    protected void extractModelRules(Class<?> pluginClass) {
+        Set<Class<?>> declaredSources = new ModelRuleSourceDetector().getDeclaredSources(pluginClass);
         for (Class<?> source : declaredSources) {
             inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
                 public void add(Class<?> source) {
@@ -49,30 +45,9 @@ public class ProjectAppliedPlugins implements AppliedPluginsInternal {
                         throw new IllegalArgumentException("Only plugin classes are valid as rule source dependencies.");
                     }
                     @SuppressWarnings("unchecked") Class<? extends Plugin> pluginImplementingClass = (Class<? extends Plugin>) source;
-                    target.getPlugins().apply(pluginImplementingClass);
+                    apply(pluginImplementingClass);
                 }
             });
         }
-    }
-
-    public void extractModelRulesAndAdd(final Class<?> pluginClass) {
-        extractModelRules(getDeclaredSources(pluginClass));
-    }
-
-    public void apply(Class<?> pluginClass) {
-        if (Plugin.class.isAssignableFrom(pluginClass)) {
-            @SuppressWarnings("unchecked") Class<? extends Plugin<?>> pluginImplementingClass = (Class<? extends Plugin<?>>) pluginClass;
-            target.getPlugins().apply(pluginImplementingClass);
-        } else {
-            Set<Class<?>> declaredSources = getDeclaredSources(pluginClass);
-            if (declaredSources.size() == 0) {
-                throw new IllegalArgumentException(String.format("%s is neither a plugin or a rule source and cannot be applied.", pluginClass.getName()));
-            }
-            extractModelRules(declaredSources);
-        }
-    }
-
-    public void apply(String pluginId) {
-        apply(pluginRegistry.getTypeForId(pluginId));
     }
 }

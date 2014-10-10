@@ -18,10 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.plugins.AppliedPluginsInternal;
-import org.gradle.api.internal.plugins.DefaultAppliedPlugins;
-import org.gradle.api.internal.plugins.DefaultPluginContainer;
-import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.plugins.PluginContainer;
@@ -107,12 +104,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope(), new DependencyInjectingInstantiator(this));
     }
 
-    AppliedPluginsInternal createAppliedPlugins(PluginRegistry pluginRegistry, GradleInternal gradle) {
-        return new DefaultAppliedPlugins(gradle, pluginRegistry);
-    }
-
     PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {
         return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle);
+    }
+
+    PluginApplicationHandler createPluginApplicationHandler(GradleInternal gradle, PluginRegistry pluginRegistry) {
+        return new DefaultAppliedPluginsContainer(gradle, pluginRegistry);
     }
 
     @Override

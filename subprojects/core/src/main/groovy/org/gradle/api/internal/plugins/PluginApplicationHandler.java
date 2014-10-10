@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.AppliedPlugins;
-
-public interface AppliedPluginsInternal extends AppliedPlugins {
-
-    void extractModelRulesAndAdd(Class<?> pluginClass);
+public interface PluginApplicationHandler {
 
     void apply(Class<?> pluginClass);
 

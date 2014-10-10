@@ -36,9 +36,9 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.AppliedPluginsInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.api.internal.plugins.PluginApplicationHandler;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -915,7 +915,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     @Inject
-    public AppliedPluginsInternal getAppliedPlugins() {
+    public PluginApplicationHandler getPluginApplicationHandler() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

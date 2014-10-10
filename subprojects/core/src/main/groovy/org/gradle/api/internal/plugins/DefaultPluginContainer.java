@@ -135,10 +135,10 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
     private <P extends Plugin<?>> P addPluginInternal(Class<P> type) {
         if (findPlugin(type) == null) {
             Plugin plugin = providePlugin(type);
+            add(plugin);
             for (PluginApplicationAction onApplyAction : pluginApplicationActions) {
                 onApplyAction.execute(new PluginApplication(plugin, pluginAware));
             }
-            add(plugin);
         }
         return type.cast(findPlugin(type));
     }
