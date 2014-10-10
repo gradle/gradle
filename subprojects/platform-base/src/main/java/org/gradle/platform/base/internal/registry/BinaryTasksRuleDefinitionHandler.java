@@ -117,13 +117,12 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
         public Task create(String name) {
             Task task = container.create(name);
             binarySpec.builtBy(task);
-            binarySpec.getTasks().add(task);
             return task;
         }
 
         public <U extends Task> U create(String name, Class<U> type) {
             U task = container.create(name, type);
-            binarySpec.getTasks().add(task);
+            binarySpec.builtBy(task);
             return task;
         }
     }
