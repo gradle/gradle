@@ -18,20 +18,16 @@ package org.gradle.platform.base.binary;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-
-import java.util.Collections;
-import java.util.Set;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 /**
  * Base class for custom binary implementations.
@@ -42,13 +38,13 @@ import java.util.Set;
  *
  */
 @Incubating
-public abstract class BaseBinarySpec implements BinarySpecInternal {
-    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
+    private final BinaryTasksCollection tasks = new DefaultBinaryTasksCollection(this);
+
     private final BinaryNamingScheme namingScheme;
     private final String typeName;
-    private Task lifecycleTask;
 
     public static <T extends BaseBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
         if (type.equals(BaseBinarySpec.class)) {
@@ -94,38 +90,8 @@ public abstract class BaseBinarySpec implements BinarySpecInternal {
         sourceSets.source(source);
     }
 
-    public DomainObjectSet<Task> getTasks() {
-        DomainObjectSet<Task> tasks = new DefaultDomainObjectSet<Task>(Task.class);
-        tasks.addAll(buildDependencies.getDependencies(lifecycleTask));
-        return tasks;
-    }
-
-    public Task getBuildTask() {
-        return lifecycleTask;
-    }
-
-    public void setBuildTask(Task lifecycleTask) {
-        this.lifecycleTask = lifecycleTask;
-        lifecycleTask.dependsOn(buildDependencies);
-    }
-
-    public void builtBy(Object... tasks) {
-        buildDependencies.add(tasks);
-    }
-
-    public boolean hasBuildDependencies() {
-        return  buildDependencies.getDependencies(lifecycleTask).size() > 0;
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task other) {
-                if (lifecycleTask == null) {
-                    return buildDependencies.getDependencies(other);
-                }
-                return Collections.singleton(lifecycleTask);
-            }
-        };
+    public BinaryTasksCollection getTasks() {
+       return tasks;
     }
 
     public String getName() {

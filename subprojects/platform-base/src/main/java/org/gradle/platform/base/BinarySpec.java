@@ -56,5 +56,5 @@ public interface BinarySpec extends BuildableModelElement, Named {
     /**
      * The set of tasks associated with this binary.
      */
-    DomainObjectSet<Task> getTasks();
+    BinaryTasksCollection getTasks();
 }

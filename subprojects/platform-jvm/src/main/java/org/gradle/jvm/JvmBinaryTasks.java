@@ -16,21 +16,15 @@
 
 package org.gradle.jvm;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.platform.base.BinaryTasksCollection;
 
 /**
  * Provides access to key tasks used for building the binary.
  */
 @Incubating
-public interface JvmBinaryTasks extends DomainObjectSet<Task> {
-    /**
-     * The 'lifecycle' task, that can be used to construct this binary.
-     */
-    Task getBuild();
-
+public interface JvmBinaryTasks extends BinaryTasksCollection {
     /**
      * The jar task used to create an archive for this binary.
      */

@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.binary
 
-import org.gradle.api.Task
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.BinaryNamingScheme
@@ -65,20 +64,6 @@ class BaseBinarySpecTest extends Specification {
         e.message == "Could not create binary of type MyConstructedBinary"
         e.cause instanceof IllegalArgumentException
         e.cause.message.startsWith "Could not find any public constructor for class"
-    }
-
-    def "getTasks returns tasks binary depends on"() {
-        given:
-        def binary = BaseBinarySpec.create(MySampleBinary, binaryNamingScheme, instantiator)
-        def lifecycleTask = Mock(Task)
-        def customTask= Mock(Task)
-
-        when:
-        binary.buildTask = lifecycleTask
-        and:
-        binary.builtBy(customTask)
-        then:
-        binary.tasks as Set == [customTask] as Set
     }
 
     static class MySampleBinary extends BaseBinarySpec {
