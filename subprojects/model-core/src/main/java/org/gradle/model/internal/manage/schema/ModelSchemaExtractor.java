@@ -55,7 +55,7 @@ public class ModelSchemaExtractor {
 
             Method method = methods.get(methodName);
             if (methodName.startsWith("get") && !methodName.equals("get")) {
-                if (method.getParameterCount() != 0) {
+                if (method.getParameterTypes().length != 0) {
                     throw invalidMethod(type, methodName, "getter methods cannot take parameters");
                 }
 
