@@ -223,6 +223,12 @@
             <tr>
                 <td>org.gradle.plugin.use.PluginDependencySpec</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.resources.ResourceHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.resources.TextResourceFactory</td>
+            </tr>
         </table>
     </section>
 

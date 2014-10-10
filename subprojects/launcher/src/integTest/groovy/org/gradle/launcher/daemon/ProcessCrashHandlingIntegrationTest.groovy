@@ -19,11 +19,14 @@ package org.gradle.launcher.daemon
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "tears down the daemon process when the client disconnects"() {
         buildFile << """
 task block << {

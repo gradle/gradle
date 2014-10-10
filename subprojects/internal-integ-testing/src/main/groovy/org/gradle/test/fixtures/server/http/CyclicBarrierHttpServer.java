@@ -106,7 +106,7 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                     connected = true;
                     lock.notifyAll();
 
-                    long expiry = System.currentTimeMillis() + 15000;
+                    long expiry = System.currentTimeMillis() + 30000;
                     while (!released && !stopped) {
                         long delay = expiry - System.currentTimeMillis();
                         if (delay <= 0) {
