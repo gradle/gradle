@@ -18,12 +18,13 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
     @Rule Sample customComponent = new Sample(temporaryFolder, "customComponent")
 
-    def "can create custom component"() {
+    def "can create custom component with binaries"() {
         given:
         sample customComponent
         customComponent.dir.file("build.gradle") << """
@@ -49,6 +50,22 @@ task checkModel << {
         when:
         succeeds "assemble"
         then:
+        output.contains(TextUtil.toPlatformLineSeparators(""":coreOsxBinaryCreationTask
+:coreOsxBinary
+:coreUnixBinaryCreationTask
+:coreUnixBinary
+:coreWindowsBinaryCreationTask
+:coreWindowsBinary
+:featureOsxBinaryCreationTask
+:featureOsxBinary
+:featureUnixBinaryCreationTask
+:featureUnixBinary
+:featureWindowsBinaryCreationTask
+:featureWindowsBinary
+:assemble
+
+BUILD SUCCESSFUL"""))
+        and:
         customComponent.dir.file("build/binaries").assertHasDescendants("coreOsxBinary.svg", "coreUnixBinary.svg", "coreWindowsBinary.svg", "featureOsxBinary.svg",
                                                                         "featureUnixBinary.svg", "featureWindowsBinary.svg")
     }
