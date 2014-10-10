@@ -20,7 +20,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 
 /**
- * Some javadoc TODO
+ * A collection of tasks associated to a binary
  * */
 public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     /**
