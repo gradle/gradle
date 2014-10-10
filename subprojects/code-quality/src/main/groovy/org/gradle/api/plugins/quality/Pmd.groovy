@@ -66,7 +66,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      * <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a>
      * for how to author a rule set.
      *
-     * Example: ruleSetConfig = resources.text(resources.file("config/pmd/myRuleSets.xml"))
+     * Example: ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
      *
      * @since 2.2
      */

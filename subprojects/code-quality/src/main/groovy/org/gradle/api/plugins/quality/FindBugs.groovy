@@ -190,7 +190,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      * The filename of a filter specifying which bugs are reported.
      */
     void setIncludeFilter(File filter) {
-        setIncludeFilterConfig(project.resources.text(filter))
+        setIncludeFilterConfig(project.resources.text.fromFile(filter))
     }
 
     /**
@@ -204,7 +204,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      * The filename of a filter specifying bugs to exclude from being reported.
      */
     void setExcludeFilter(File filter) {
-        setExcludeFilterConfig(project.resources.text(filter))
+        setExcludeFilterConfig(project.resources.text.fromFile(filter))
     }
 
     @TaskAction

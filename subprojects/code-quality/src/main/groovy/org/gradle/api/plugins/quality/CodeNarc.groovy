@@ -91,7 +91,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
      * The CodeNarc configuration file to use.
      */
     void setConfigFile(File configFile) {
-        setConfig(project.resources.text(configFile))
+        setConfig(project.resources.text.fromFile(configFile))
     }
 
     @Inject
