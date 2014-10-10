@@ -18,6 +18,8 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -166,6 +168,52 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         ruleInputs << ["SampleBinary binary, CustomModel model",  "CustomModel model, SampleBinary binary"]
     }
 
+    def "can add multiple tasks to multiple binariers from same component"() {
+        given:
+        buildFile << multipleDefaultTaskCreationWithRuleFromBinary()
+        buildFile << """
+        class TestBinariesPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+           @RuleSource
+            static class Rules {
+                @ComponentBinaries
+                void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
+                    binaries.create("\${library.name}TestBinary")
+                }
+
+            }
+        }
+
+        apply plugin: TestBinariesPlugin
+         task checkModel << {
+            assert project.binaries.size() == 2
+            assert project.binaries.sampleLibBinary != null
+            assert project.binaries.sampleLibBinary.tasks.collect{it.name}.sort() == ['someCustomSampleLibBinaryTask', 'someOtherCustomSampleLibBinaryTask']
+        }"""
+        expect:
+        succeeds "checkModel"
+
+
+        when:
+        succeeds "assemble"
+        then:
+        output.contains(toPlatformLineSeparators(""":someCustomSampleLibBinaryTask
+running someCustomSampleLibBinaryTask
+:someOtherCustomSampleLibBinaryTask
+running someOtherCustomSampleLibBinaryTask
+:sampleLibBinary
+:someCustomSampleLibTestBinaryTask
+running someCustomSampleLibTestBinaryTask
+:someOtherCustomSampleLibTestBinaryTask
+running someOtherCustomSampleLibTestBinaryTask
+:sampleLibTestBinary
+:assemble
+
+BUILD SUCCESSFUL"""))
+    }
+
+
     String defaultTaskCreationWithRuleFromBinary() {
 
         """
@@ -181,6 +229,35 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
                         it.doLast{
                             println "Building \${binary.getName()} via \${it.getName()} of type DefaultTask"
                         }
+                    }
+                }
+            }
+        }
+        apply plugin:BinaryTasksPlugin
+"""
+    }
+
+    String multipleDefaultTaskCreationWithRuleFromBinary() {
+
+        """
+        class BinaryTasksPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @BinaryTasks
+                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
+                    tasks.create("someCustom\${binary.getName().capitalize()}Task"){
+                        it.doLast{
+                            println "running \${it.name}"
+                        }
+                    }
+                    tasks.create("someOtherCustom\${binary.getName().capitalize()}Task"){
+                        it.doLast{
+                            println "running \${it.name}"
+                        }
+                        it.dependsOn "someCustom\${binary.getName().capitalize()}Task"
+
                     }
                 }
             }
