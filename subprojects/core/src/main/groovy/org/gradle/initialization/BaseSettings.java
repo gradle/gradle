@@ -28,6 +28,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginApplicationHandler;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -62,6 +63,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     private final ClassLoaderScope rootClassLoaderScope;
 
     private final PluginApplicationHandler pluginApplicationHandler;
+    private final AppliedPlugins appliedPlugins;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -80,6 +82,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         pluginApplicationHandler = services.get(PluginApplicationHandler.class);
+        appliedPlugins = services.get(AppliedPlugins.class);
     }
 
     @Override
@@ -229,5 +232,9 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     public PluginApplicationHandler getPluginApplicationHandler() {
         return pluginApplicationHandler;
+    }
+
+    public AppliedPlugins getAppliedPlugins() {
+        return appliedPlugins;
     }
 }

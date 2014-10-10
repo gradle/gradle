@@ -38,6 +38,7 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -120,14 +121,18 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginContainer<ProjectInternal>(get(PluginRegistry.class), project, allPluginApplyActions);
     }
 
-    protected PluginApplicationAction createPluginModelRuleExtractor() {
+    protected PluginApplicationAction createAppliedPluginsAdditionAction() {
         return new AppliedPluginsAdditionAction();
     }
 
-    protected PluginApplicationHandler createPluginApplicationHandler() {
+    protected ProjectAppliedPluginContainer createPluginApplicationHandler() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
-        return new ProjectAppliedPluginsContainer(project, get(PluginRegistry.class), inspector);
+        return new ProjectAppliedPluginContainer(project, get(PluginRegistry.class), inspector);
+    }
+
+    protected AppliedPlugins createAppliedPlugins() {
+        return new DefaultAppliedPlugins(get(AppliedPluginContainer.class), get(PluginRegistry.class));
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

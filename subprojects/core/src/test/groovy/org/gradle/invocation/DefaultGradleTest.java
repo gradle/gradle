@@ -31,6 +31,7 @@ import org.gradle.api.internal.plugins.PluginApplicationHandler;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
@@ -81,6 +82,7 @@ public class DefaultGradleTest {
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry = context.mock(ClassLoaderScopeRegistry.class);
     private final ClassLoaderScope classLoaderScope = context.mock(ClassLoaderScope.class);
     private final PluginApplicationHandler pluginApplicationHandler = context.mock(PluginApplicationHandler.class);
+    private final AppliedPlugins appliedPlugins = context.mock(AppliedPlugins.class);
 
     private DefaultGradle gradle;
 
@@ -119,6 +121,8 @@ public class DefaultGradleTest {
             will(returnValue(projectEvaluationListenerBroadcast));
             allowing(gradleServiceRegistryMock).get(PluginApplicationHandler.class);
             will(returnValue(pluginApplicationHandler));
+            allowing(gradleServiceRegistryMock).get(AppliedPlugins.class);
+            will(returnValue(appliedPlugins));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }

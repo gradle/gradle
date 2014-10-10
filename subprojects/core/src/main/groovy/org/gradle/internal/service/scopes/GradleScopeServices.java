@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
@@ -108,8 +109,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle);
     }
 
-    PluginApplicationHandler createPluginApplicationHandler(GradleInternal gradle, PluginRegistry pluginRegistry) {
-        return new DefaultAppliedPluginsContainer(gradle, pluginRegistry);
+    DefaultAppliedPluginContainer createPluginApplicationHandler(GradleInternal gradle, PluginRegistry pluginRegistry) {
+        return new DefaultAppliedPluginContainer(gradle, pluginRegistry);
+    }
+
+    protected AppliedPlugins createAppliedPlugins() {
+        return new DefaultAppliedPlugins(get(AppliedPluginContainer.class), get(PluginRegistry.class));
     }
 
     @Override

@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins;
+package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Nullable;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.specs.Spec;
 
-/**
- * Allows to query for applied plugins by id
- */
-public interface AppliedPlugins {
+public interface AppliedPluginContainer {
 
-    @Nullable
-    Class<?> findPlugin(String id);
+    public boolean contains(Class<?> pluginClass);
 
-    boolean contains(String id);
-
-    void withPlugin(String id, Action<? super Class<?>> action);
+    public DomainObjectCollection<Class<?>> matching(Spec<? super Class<?>> spec);
 }

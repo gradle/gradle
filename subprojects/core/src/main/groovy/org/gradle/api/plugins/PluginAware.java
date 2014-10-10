@@ -59,4 +59,6 @@ public interface PluginAware {
      * @param options The options to use to configure the {@link ObjectConfigurationAction}.
      */
     void apply(Map<String, ?> options);
+
+    AppliedPlugins getAppliedPlugins();
 }

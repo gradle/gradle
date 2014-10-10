@@ -21,6 +21,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.*;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
@@ -48,8 +49,12 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginContainer<SettingsInternal>(get(PluginRegistry.class), settings);
     }
 
-    protected PluginApplicationHandler createPluginApplicationHandler() {
-        return new DefaultAppliedPluginsContainer(settings, get(PluginRegistry.class));
+    protected DefaultAppliedPluginContainer createPluginApplicationHandler() {
+        return new DefaultAppliedPluginContainer(settings, get(PluginRegistry.class));
+    }
+
+    protected AppliedPlugins createAppliedPlugins() {
+        return new DefaultAppliedPlugins(get(AppliedPluginContainer.class), get(PluginRegistry.class));
     }
 
     protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {

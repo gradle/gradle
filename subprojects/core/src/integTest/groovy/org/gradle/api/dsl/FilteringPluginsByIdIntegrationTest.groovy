@@ -26,11 +26,14 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
             plugins.withId("java") {
                 operations << 'withId for ' + it.class.simpleName
             }
+            appliedPlugins.withPlugin("java") {
+                operations << 'withPlugin'
+            }
             operations << "applying"
             apply plugin: 'java'
             operations << "applied"
 
-            task verify << { assert operations == ['applying', 'withId for JavaPlugin', 'applied'] }
+            task verify << { assert operations == ['applying', 'withPlugin', 'withId for JavaPlugin', 'applied'] }
         """
 
         expect:
@@ -40,6 +43,7 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
     def "filters plugins by id when descriptor not on registry classpath"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
+        pluginBuilder.addRuleSource("test-rule-source")
         pluginBuilder.publishTo(executer, file("plugin.jar"))
 
         buildFile << """
@@ -47,6 +51,7 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
 
             def loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
             def pluginClass = loader.loadClass("${pluginBuilder.packageName}.TestPlugin")
+            def ruleSourceClass = loader.loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
             plugins.withType(pluginClass) {
                 operations << 'withType'
@@ -56,11 +61,16 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId'
             }
 
+            appliedPlugins.withPlugin("test-rule-source") {
+                operations << 'withPlugin'
+            }
+
             operations << "applying"
             apply plugin: pluginClass
+            apply type: ruleSourceClass
             operations << "applied"
 
-            task verify << { assert operations == ['applying', 'withType', 'withId', 'applied'] }
+            task verify << { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] }
         """
 
         expect:

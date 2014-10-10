@@ -28,14 +28,14 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
-class ProjectAppliedPluginsContainerTest extends Specification {
+class ProjectAppliedPluginContainerTest extends Specification {
 
     def handler = Mock(MethodRuleDefinitionHandler)
     def inspector = new ModelRuleInspector([handler])
     def registry = Mock(ModelRegistry)
     def project = Mock(ProjectInternal)
 
-    ProjectAppliedPluginsContainer container = new ProjectAppliedPluginsContainer(project, null, inspector)
+    ProjectAppliedPluginContainer container = new ProjectAppliedPluginContainer(project, null, inspector)
 
     static class HasSource {
         @RuleSource

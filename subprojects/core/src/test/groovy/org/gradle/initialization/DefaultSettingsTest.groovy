@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.PluginApplicationHandler
+import org.gradle.api.plugins.AppliedPlugins
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -59,6 +60,7 @@ class DefaultSettingsTest {
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
     PluginApplicationHandler pluginApplicationHandler
+    AppliedPlugins appliedPlugins
 
     @Before
     public void setUp() {
@@ -77,6 +79,8 @@ class DefaultSettingsTest {
         scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+        pluginApplicationHandler = context.mock(PluginApplicationHandler.class)
+        appliedPlugins = context.mock(AppliedPlugins.class);
 
         def settingsServices = context.mock(ServiceRegistry.class)
         context.checking{
@@ -93,7 +97,9 @@ class DefaultSettingsTest {
                 one(settingsServices).get(ProjectDescriptorRegistry.class);
                 will(returnValue(projectDescriptorRegistry));
                 one(settingsServices).get(PluginApplicationHandler.class);
-                will(returnValue(pluginApplicationHandler))
+                will(returnValue(pluginApplicationHandler));
+                one(settingsServices).get(AppliedPlugins.class);
+                will(returnValue(appliedPlugins));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
                     gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);

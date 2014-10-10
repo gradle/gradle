@@ -16,24 +16,27 @@
 
 package org.gradle.api.internal.plugins;
 
-import com.google.common.collect.Sets;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
-import java.util.Set;
+public abstract class AbstractAppliedPluginContainer implements PluginApplicationHandler, AppliedPluginContainer {
 
-public abstract class AbstractAppliedPluginsContainer implements PluginApplicationHandler {
-
-    private final Set<Class<?>> appliedPlugins = Sets.newHashSet();
+    private final DomainObjectSet<Class<? extends Object>> appliedPlugins;
     private final PluginRegistry pluginRegistry;
     protected final PluginAware target;
 
     abstract protected void extractModelRules(Class<?> pluginClass);
 
-    public AbstractAppliedPluginsContainer(PluginAware target, PluginRegistry pluginRegistry) {
+    public AbstractAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry) {
         this.target = target;
         this.pluginRegistry = pluginRegistry;
+        @SuppressWarnings("unchecked") Class<? extends Class<?>> type = (Class<? extends Class<?>>) Class.class.getClass();
+        appliedPlugins = new DefaultDomainObjectSet<Class<?>>(type);
     }
 
     private void applyValidType(Class<?> pluginClass) {
@@ -60,5 +63,9 @@ public abstract class AbstractAppliedPluginsContainer implements PluginApplicati
 
     public boolean contains(Class<?> pluginClass) {
         return appliedPlugins.contains(pluginClass);
+    }
+
+    public DomainObjectCollection<Class<?>> matching(Spec<? super Class<?>> spec) {
+        return appliedPlugins.matching(spec);
     }
 }

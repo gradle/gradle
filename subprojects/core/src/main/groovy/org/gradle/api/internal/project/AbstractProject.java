@@ -42,6 +42,7 @@ import org.gradle.api.internal.plugins.PluginApplicationHandler;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
@@ -916,6 +917,12 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     @Inject
     public PluginApplicationHandler getPluginApplicationHandler() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public AppliedPlugins getAppliedPlugins() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

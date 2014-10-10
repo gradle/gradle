@@ -383,20 +383,15 @@ The `@RuleSource` annotation can still be used on a nested class in a `Plugin` i
 
 A new API for querying applied plugins that supports both `Plugin` implementing classes and rule source classes will be introduced:
 
-    interface AppliedPlugin {
+    interface AppliedPlugins {
         @Nullable
-        String getVersion();
-    }
-        
-    interface PluginRegistry {
-        @Nullable
-        AppliedPlugin findPlugin(String id);
+        Class<?> findPlugin(String id);
         boolean contains(String id);
-        void withPlugin(String id, Action<? super AppliedPlugin> action);
+        void withPlugin(String id, Action<? super Class<?>> action);
     }
     
     interface PluginAware {
-        PluginRegistry getPluginRegistry();
+        AppliedPlugins getAppliedPlugins();
     }
 
 ### Test Coverage
@@ -409,7 +404,7 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - ~~Reasonable error message is provided when the `RulePlugin` implementation violates the rules for rule sources~~
 - ~~`Plugin` impl can include nested rule source class~~
 - ~~A useful error message is presented to the user if they try to apply a rule source plugin as a regular plugin, i. e. `apply plugin: RuleSourcePlugin` or `apply { plugin RuleSourcePlugin }`~~
-- Can use `PluginRegistry` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project
+- ~~Can use `AppliedPlugins` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project~~
 - ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
 
 

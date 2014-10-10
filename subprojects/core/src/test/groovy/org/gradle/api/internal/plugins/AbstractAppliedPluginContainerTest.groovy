@@ -25,18 +25,18 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.model.RuleSource
 import spock.lang.Specification
 
-class AbstractAppliedPluginsContainerTest extends Specification {
+class AbstractAppliedPluginContainerTest extends Specification {
 
     PluginAware target = Mock(PluginAware)
     PluginRegistry pluginRegistry = Mock(PluginRegistry)
     PluginContainer pluginContainer = Mock(PluginContainer)
 
-    TestAppliedPluginsContainer container = new TestAppliedPluginsContainer(target, pluginRegistry)
+    TestAppliedPluginContainer container = new TestAppliedPluginContainer(target, pluginRegistry)
 
-    static class TestAppliedPluginsContainer extends AbstractAppliedPluginsContainer {
+    static class TestAppliedPluginContainer extends AbstractAppliedPluginContainer {
         Multiset<Class<?>> processedRuleContainers = HashMultiset.create()
 
-        TestAppliedPluginsContainer(PluginAware target, PluginRegistry pluginRegistry) {
+        TestAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry) {
             super(target, pluginRegistry)
         }
 

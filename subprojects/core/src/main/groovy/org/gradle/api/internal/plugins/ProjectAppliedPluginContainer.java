@@ -24,12 +24,12 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies;
 
 import java.util.Set;
 
-public class ProjectAppliedPluginsContainer extends AbstractAppliedPluginsContainer {
+public class ProjectAppliedPluginContainer extends AbstractAppliedPluginContainer {
 
     private final ProjectInternal target;
     private final ModelRuleInspector inspector;
 
-    public ProjectAppliedPluginsContainer(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector) {
+    public ProjectAppliedPluginContainer(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector) {
         super(target, pluginRegistry);
         this.target = target;
         this.inspector = inspector;

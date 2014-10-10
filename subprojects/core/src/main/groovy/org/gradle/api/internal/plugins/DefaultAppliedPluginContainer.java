@@ -19,9 +19,9 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
-public class DefaultAppliedPluginsContainer extends AbstractAppliedPluginsContainer {
+public class DefaultAppliedPluginContainer extends AbstractAppliedPluginContainer {
 
-    public DefaultAppliedPluginsContainer(PluginAware target, PluginRegistry pluginRegistry) {
+    public DefaultAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry) {
         super(target, pluginRegistry);
     }
 

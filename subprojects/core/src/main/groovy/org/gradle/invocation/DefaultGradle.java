@@ -33,6 +33,7 @@ import org.gradle.api.internal.plugins.PluginApplicationHandler;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
@@ -59,15 +60,16 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private ActionBroadcast<Project> rootProjectActions = new ActionBroadcast<Project>();
-
     private PluginContainer pluginContainer;
-    private FileResolver fileResolver;
 
+    private FileResolver fileResolver;
     private final ScriptPluginFactory scriptPluginFactory;
+
     private final ClassLoaderScope classLoaderScope;
     private final ScriptHandlerFactory scriptHandlerFactory;
 
     private final PluginApplicationHandler pluginApplicationHandler;
+    private final AppliedPlugins appliedPlugins;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -91,6 +93,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             }
         });
         pluginApplicationHandler = services.get(PluginApplicationHandler.class);
+        appliedPlugins = services.get(AppliedPlugins.class);
     }
 
     @Override
@@ -246,5 +249,9 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     public PluginApplicationHandler getPluginApplicationHandler() {
         return pluginApplicationHandler;
+    }
+
+    public AppliedPlugins getAppliedPlugins() {
+        return appliedPlugins;
     }
 }

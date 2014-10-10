@@ -20,13 +20,13 @@ import org.gradle.api.plugins.PluginAware
 import org.gradle.model.RuleSource
 import spock.lang.Specification
 
-class DefaultAppliedPluginsContainerTest extends Specification {
+class DefaultAppliedPluginContainerTest extends Specification {
 
     PluginAware target = Mock(PluginAware) {
         toString() >> "PluginAwareMock"
     }
 
-    DefaultAppliedPluginsContainer container = new DefaultAppliedPluginsContainer(target, null)
+    DefaultAppliedPluginContainer container = new DefaultAppliedPluginContainer(target, null)
 
     @RuleSource
     static class TestRuleSource {}

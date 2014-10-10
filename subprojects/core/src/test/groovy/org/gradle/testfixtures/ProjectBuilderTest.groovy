@@ -19,13 +19,10 @@ package org.gradle.testfixtures
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.PluginApplicationException
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskAction
 import org.gradle.model.Model
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -94,56 +91,6 @@ class ProjectBuilderTest extends Specification {
 
         then:
         project.tasks.hello instanceof DefaultTask
-    }
-
-    def canApplyARuleSourceById() {
-        when:
-        def project = buildProject()
-        project.apply plugin: 'custom-rule-source'
-
-        then:
-        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
-    }
-
-    def canApplyARuleSourceByType() {
-        when:
-        def project = buildProject()
-        project.apply type: CustomRuleSource
-
-        then:
-        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
-    }
-
-    def cannotApplyATypeThatIsNeitherAPluginNorARuleSource() {
-        when:
-        def project = buildProject()
-        project.apply type: String
-
-        then:
-        PluginApplicationException e = thrown()
-        e.cause instanceof IllegalArgumentException
-        e.cause.message == "'${String.name}' is neither a plugin or a rule source and cannot be applied."
-    }
-
-    def cannotApplyARuleSourceToANonModelRuleScopeElement() {
-        when:
-        def project = buildProject()
-        project.gradle.apply plugin: "custom-rule-source"
-
-        then:
-        PluginApplicationException e = thrown()
-        e.cause instanceof UnsupportedOperationException
-        e.cause.message == "Cannot apply model rules of plugin '${CustomRuleSource.name}' as the target 'build 'test'' is not model rule aware"
-    }
-
-    def usefulMessageIsPresentedWhenApplyingRuleSourceOnlyTypeAsAPlugin() {
-        when:
-        def project = buildProject()
-        project.apply plugin: CustomRuleSource
-
-        then:
-        IllegalArgumentException e = thrown()
-        e.message == "'${CustomRuleSource.name}' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()"
     }
 
     def canCreateAndExecuteACustomTask() {
