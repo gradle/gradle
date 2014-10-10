@@ -30,7 +30,6 @@ public class ResolverStrategy {
         chain.add(new VersionRangeMatcher(new ExactVersionMatcher()));
         chain.add(new SubVersionMatcher(new ExactVersionMatcher()));
         chain.add(new LatestVersionMatcher());
-        chain.add(new MavenNewestVersionMatcher());
         chain.add(new ExactVersionMatcher());
         versionMatcher = chain;
 

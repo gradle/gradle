@@ -83,6 +83,10 @@ public class GradlePomModuleDescriptorBuilder {
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
     private static final String EXTRA_ATTRIBUTE_CLASSIFIER = "m:classifier";
+    private static final String RELEASE = "RELEASE";
+    private static final String LATEST = "LATEST";
+    private static final String LATEST_RELEASE = "latest.release";
+    private static final String LATEST_INTEGRATION = "latest.integration";
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -211,7 +215,8 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         String version = determineVersion(dep);
-        ModuleRevisionId moduleRevId = IvyUtil.createModuleRevisionId(dep.getGroupId(), dep.getArtifactId(), version);
+        String mappedVersion = mapReleaseAndLatestVersion(version);
+        ModuleRevisionId moduleRevId = IvyUtil.createModuleRevisionId(dep.getGroupId(), dep.getArtifactId(), mappedVersion);
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
@@ -268,6 +273,16 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         ivyModuleDescriptor.addDependency(dd);
+    }
+
+    private String mapReleaseAndLatestVersion(String version) {
+        if(version.equals(RELEASE)) {
+            return LATEST_RELEASE;
+        }else if(version.equals(LATEST)){
+            return LATEST_INTEGRATION;
+        }else{
+            return version;
+        }
     }
 
     /**
