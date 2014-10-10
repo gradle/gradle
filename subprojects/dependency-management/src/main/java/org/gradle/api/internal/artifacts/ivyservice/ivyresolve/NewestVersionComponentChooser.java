@@ -83,18 +83,15 @@ class NewestVersionComponentChooser implements ComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
             MetaDataSupplier metaDataSupplier = new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess);
 
-            if (!versionMatches(requested, candidateIdentifier, metaDataSupplier)) {
-                continue;
-            }
-            if (isRejectedByRules(candidateIdentifier, rules, metaDataSupplier)) {
+            if (versionMatches(requested, candidateIdentifier, metaDataSupplier)) {
+                if (!isRejectedByRules(candidateIdentifier, rules, metaDataSupplier)) {
+                    return candidateIdentifier;
+                }
+
                 if (versionMatcher.matchesUniqueVersion(requested.getVersion())) {
                     break;
-                } else {
-                    continue;
                 }
             }
-
-            return candidateIdentifier;
         }
         return null;
     }
