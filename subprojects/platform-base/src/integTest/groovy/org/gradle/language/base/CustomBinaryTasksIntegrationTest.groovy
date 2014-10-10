@@ -66,20 +66,21 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "executing #taskdescr triggers custom task"() {
         given:
-        buildFile << taskCreationRuleFromBinary()
+        buildFile << defaultTaskCreationWithRuleFromBinary()
         when:
         succeeds taskName
         then:
-        output.contains(":customSampleLibBinaryTask UP-TO-DATE")
+        output.contains(":customSampleLibBinaryTask")
+        output.contains("Building sampleLibBinary via customSampleLibBinaryTask of type DefaultTask")
         where:
         taskName          | taskdescr
-        "sampleLibBinary" | "lifecycle task"
         "assemble"        | "assemble task"
+        "sampleLibBinary" | "lifecycle task"
     }
 
-    def "BinaryTasks rule adds task to binary model"() {
+    def "BinaryTasks rule add default task to binary model"() {
         given:
-        buildFile << taskCreationRuleFromBinary()
+        buildFile << defaultTaskCreationWithRuleFromBinary()
         when:
         buildFile << """
 
@@ -91,6 +92,17 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 """
         then:
         succeeds "checkModel"
+    }
+
+    def "BinaryTasks rule can declare typed task"() {
+        given:
+        buildFile << typedTaskCreationWithRuleFromBinary()
+        when:
+        succeeds "assemble"
+        then:
+        output.contains(":customSampleLibBinaryTask")
+        output.contains("Building sampleLibBinary via customSampleLibBinaryTask of type BinaryCreationTask")
+
     }
 
     def "BinaryTasks rule only applies to matching BinarySpec"() {
@@ -154,7 +166,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         ruleInputs << ["SampleBinary binary, CustomModel model",  "CustomModel model, SampleBinary binary"]
     }
 
-    String taskCreationRuleFromBinary() {
+    String defaultTaskCreationWithRuleFromBinary() {
 
         """
         class BinaryTasksPlugin implements Plugin<Project> {
@@ -164,7 +176,40 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
             static class Rules {
                 @BinaryTasks
                 void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
-                    tasks.create("custom\${binary.getName().capitalize()}Task")
+                    tasks.create("custom\${binary.getName().capitalize()}Task"){
+                        //TODO this should delegate to Task. currently referencing 'it' explicitly is needed
+                        it.doLast{
+                            println "Building \${binary.getName()} via \${it.getName()} of type DefaultTask"
+                        }
+                    }
+                }
+            }
+        }
+        apply plugin:BinaryTasksPlugin
+"""
+    }
+
+    String typedTaskCreationWithRuleFromBinary() {
+
+        """
+        class BinaryCreationTask extends DefaultTask {
+            BinarySpec binary
+            @TaskAction void create(){
+                println "Building \${binary.getName()} via \${getName()} of type BinaryCreationTask"
+
+            }
+        }
+        class BinaryTasksPlugin implements Plugin<Project> {
+            void apply(final Project project) {}
+
+            @RuleSource
+            static class Rules {
+                @BinaryTasks
+                void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
+                    tasks.create("custom\${binary.getName().capitalize()}Task", BinaryCreationTask){
+                        println "configuring \${binary.getName()}"
+                        it.binary = binary
+                    }
                 }
             }
         }
