@@ -85,13 +85,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         return super.whenObjectRemoved(Actions.<T>filter(action, notInSpec));
     }
     
-    public CompositeDomainObjectSet<T> addCollection(DomainObjectCollection<? extends T> collection) {
+    public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().getCollections().contains(collection)) {
             getStore().addComposited(collection);
             collection.all(backingSet.getEventRegister().getAddAction());
             collection.whenObjectRemoved(backingSet.getEventRegister().getRemoveAction());
         }
-        return this;
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
