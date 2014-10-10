@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
+package org.gradle.platform.base.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.Task;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryTasksCollection;
 
-import java.io.File;
+public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> implements BinaryTasksCollection {
+    private BinarySpec binary;
 
-/**
- * Definition of a Jar file binary that is to be built by Gradle.
- */
-@Incubating @HasInternalProtocol
-public interface
-        JarBinarySpec extends JvmLibraryBinarySpec {
-    /**
-     * The ProjectJvmLibrary that this binary belongs to.
-     */
-    JvmLibrarySpec getLibrary();
+    public DefaultBinaryTasksCollection(BinarySpec binarySpecInternal) {
+        super(Task.class);
+        this.binary = binarySpecInternal;
+    }
 
-    /**
-     * The jar file output for this binary.
-     */
-    File getJarFile();
-
-    /**
-     * Sets the jar file output for this binary.
-     */
-    void setJarFile(File jarFile);
+    public Task getBuild() {
+        return binary.getBuildTask();
+    }
 }

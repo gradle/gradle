@@ -16,21 +16,16 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
+import org.gradle.platform.base.BinaryTasksCollection;
 
 /**
  * Provides access to key tasks used for building the binary.
  */
 @Incubating
-public interface NativeBinaryTasks extends DomainObjectSet<Task> {
-    /**
-     * The 'lifecycle' task, that can be used to construct this native binary.
-     */
-    Task getBuild();
-
+public interface NativeBinaryTasks extends BinaryTasksCollection {
     /**
      * The link task, if one is present. Null otherwise.
      */
