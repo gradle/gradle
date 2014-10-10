@@ -43,4 +43,8 @@ public abstract class Cast {
         }
     }
 
+    public static <T> T uncheckedCast(Object object) {
+        @SuppressWarnings("unchecked") T cast = (T) object;
+        return cast;
+    }
 }

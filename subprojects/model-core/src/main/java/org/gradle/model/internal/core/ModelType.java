@@ -171,6 +171,16 @@ public abstract class ModelType<T> {
         }
     }
 
+    public boolean isHasWildcardTypeVariables() {
+        for (ModelType<?> typeVariable : getTypeVariables()) {
+            if (typeVariable.isWildcard()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public String toString() {
         return typeToken.toString();
