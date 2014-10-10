@@ -42,4 +42,14 @@ task checkModel << {
         expect:
         succeeds "checkModel"
     }
+
+    def "can create all binaries"() {
+        given:
+        sample customComponent
+        when:
+        succeeds "assemble"
+        then:
+        customComponent.dir.file("build/binaries").assertHasDescendants("coreOsxBinary.svg", "coreUnixBinary.svg", "coreWindowsBinary.svg", "featureOsxBinary.svg",
+                                                                        "featureUnixBinary.svg", "featureWindowsBinary.svg")
+    }
 }
