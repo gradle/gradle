@@ -16,34 +16,18 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.GradleException;
-import org.gradle.api.Task;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
-public class DefaultJvmBinaryTasks extends DefaultDomainObjectSet<Task> implements JvmBinaryTasks {
-    private final JvmBinarySpec binary;
+public class DefaultJvmBinaryTasks extends DefaultBinaryTasksCollection implements JvmBinaryTasks {
 
     public DefaultJvmBinaryTasks(JvmBinarySpec binary) {
-        super(Task.class);
-        this.binary = binary;
-    }
-
-    public Task getBuild() {
-        return binary.getBuildTask();
+        super(binary);
     }
 
     public Jar getJar() {
-        DomainObjectSet<Jar> tasks = withType(Jar.class);
-        if (tasks.size() == 0) {
-            return null;
-        }
-        if (tasks.size() > 1) {
-            throw new GradleException("Multiple task with type 'Jar' found.");
-        }
-        return tasks.iterator().next();
+        return findSingleTaskWithType(Jar.class);
     }
 }

@@ -16,9 +16,6 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.nativeplatform.NativeBinaryTasks;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -31,26 +28,15 @@ public class DefaultNativeBinaryTasks extends DefaultBinaryTasksCollection imple
     }
 
     public AbstractLinkTask getLink() {
-        return findOnlyWithType(AbstractLinkTask.class);
+        return findSingleTaskWithType(AbstractLinkTask.class);
     }
 
     public CreateStaticLibrary getCreateStaticLib() {
-        return findOnlyWithType(CreateStaticLibrary.class);
+        return findSingleTaskWithType(CreateStaticLibrary.class);
     }
 
     public ObjectFilesToBinary getCreateOrLink() {
         ObjectFilesToBinary link = getLink();
         return link == null ? getCreateStaticLib() : link;
-    }
-
-    private <T extends Task> T findOnlyWithType(Class<T> type) {
-        DomainObjectSet<T> tasks = withType(type);
-        if (tasks.size() == 0) {
-            return null;
-        }
-        if (tasks.size() > 1) {
-            throw new UnknownDomainObjectException(String.format("Multiple task with type '%s' found", type.getSimpleName()));
-        }
-        return tasks.iterator().next();
     }
 }

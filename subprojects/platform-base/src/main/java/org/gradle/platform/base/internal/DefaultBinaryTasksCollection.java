@@ -16,7 +16,9 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
@@ -31,5 +33,16 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
 
     public Task getBuild() {
         return binary.getBuildTask();
+    }
+
+    protected <T extends Task> T findSingleTaskWithType(Class<T> type) {
+        DomainObjectSet<T> tasks = withType(type);
+        if (tasks.size() == 0) {
+            return null;
+        }
+        if (tasks.size() > 1) {
+            throw new UnknownDomainObjectException(String.format("Multiple tasks with type '%s' found.", type.getSimpleName()));
+        }
+        return tasks.iterator().next();
     }
 }
