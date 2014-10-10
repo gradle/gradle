@@ -32,6 +32,6 @@ class StringBuildOutcomeComparisonResult extends BuildOutcomeComparisonResultSup
     }
 
     boolean isOutcomesAreIdentical() {
-        distance != 0
+        distance == 0
     }
 }

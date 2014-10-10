@@ -119,7 +119,7 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         tables.size() == 3
         tables[0].select("th").text() == "Source Target Distance"
         tables[0].select("td")[0].text() == "a"
-        tables[2].select("td")[2].text() == comparisons.last.distance.toString()
+        tables[1].select("td")[2].text() == comparisons.last.distance.toString()
         html.select(".build-outcome.source").find { it.id() == "foo" }
         html.select(".build-outcome.target").find { it.id() == "bar" }
     }
@@ -149,9 +149,9 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
         then:
         def tables = html.select(".build-outcome-comparison table")
-        tables[0].select("td")[0].text() == "a"
-        tables[1].select("td")[0].text() == "b"
-        tables[2].select("td")[0].text() == "c"
+        tables[0].select("td")[0].text() == "b"
+        tables[1].select("td")[0].text() == "c"
+        tables[2].select("td")[0].text() == "a"
 
         and:
         def uncomparedFroms = html.select(".build-outcome.source p")
@@ -183,10 +183,10 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
         then:
         def tables = html.select(".build-outcome-comparison table")
-        tables[0].select("td")[0].text() == "a"
-        tables[1].select("td")[0].text() == "d"
-        tables[2].select("td")[0].text() == "e"
-        tables[3].select("td")[0].text() == "b"
-        tables[4].select("td")[0].text() == "c"
+        tables[0].select("td")[0].text() == "b"
+        tables[1].select("td")[0].text() == "c"
+        tables[2].select("td")[0].text() == "a"
+        tables[3].select("td")[0].text() == "d"
+        tables[4].select("td")[0].text() == "e"
     }
 }
