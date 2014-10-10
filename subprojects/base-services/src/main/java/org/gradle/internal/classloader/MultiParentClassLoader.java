@@ -123,4 +123,27 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
             return getClass().getName().hashCode();
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MultiParentClassLoader)) {
+            return false;
+        }
+
+        MultiParentClassLoader that = (MultiParentClassLoader) o;
+
+        if (!parents.equals(that.parents)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return parents.hashCode();
+    }
 }

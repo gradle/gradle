@@ -23,9 +23,11 @@ import java.util.concurrent.ConcurrentMap;
 public class CachingClassLoader extends ClassLoader implements ClassLoaderHierarchy {
     private static final Object MISSING_CLASS = new Object();
     private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
+    private final ClassLoader parent;
 
     public CachingClassLoader(ClassLoader parent) {
         super(parent);
+        this.parent = parent;
     }
 
     @Override
@@ -62,5 +64,21 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
         public int hashCode() {
             return getClass().getName().hashCode();
         }
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CachingClassLoader)) {
+            return false;
+        }
+
+        CachingClassLoader that = (CachingClassLoader) o;
+        return parent.equals(that.parent);
+    }
+
+    public int hashCode() {
+        return parent.hashCode();
     }
 }

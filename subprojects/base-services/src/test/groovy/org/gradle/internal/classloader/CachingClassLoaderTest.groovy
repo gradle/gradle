@@ -75,4 +75,16 @@ class CachingClassLoaderTest extends Specification {
         1 * visitor.visitParent(parent)
         0 * visitor._
     }
+
+    def "equals and hashcode"() {
+        def c1 = new URLClassLoader()
+        def c2 = new URLClassLoader()
+
+        expect:
+        new CachingClassLoader(c1) == new CachingClassLoader(c1)
+        new CachingClassLoader(c1).hashCode() == new CachingClassLoader(c1).hashCode()
+
+        new CachingClassLoader(c1) != new CachingClassLoader(c2)
+        new CachingClassLoader(c1).hashCode() != new CachingClassLoader(c2).hashCode()
+    }
 }
