@@ -41,7 +41,7 @@ task block << {
         build.abort()
 
         then:
-        daemons.daemon.assertStops()
+        daemons.daemon.stops()
     }
 
     def "client logs useful information when daemon crashes"() {
@@ -75,6 +75,6 @@ task block << {
         failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
 
         and:
-        daemons.daemon.assertStops()
+        daemons.daemon.stops()
     }
 }

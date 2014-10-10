@@ -40,7 +40,7 @@ task block << {
         def failure = build.waitForFailure()
 
         then:
-        daemons.daemon.assertStops()
+        daemons.daemon.stops()
         failure.assertHasDescription(DaemonStoppedException.MESSAGE)
     }
 
@@ -64,7 +64,7 @@ task block << {
         def out = executer.withArguments("--stop").run().output
 
         then:
-        daemons.daemon.assertStops()
+        daemons.daemon.stops()
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
     }
 

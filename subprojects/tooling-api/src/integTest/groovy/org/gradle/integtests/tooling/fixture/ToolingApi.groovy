@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.launcher.daemon.testing.DaemonsFixture
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -54,7 +55,7 @@ class ToolingApi {
         userHomeDir = new File(testWorkDirProvider.testDirectory, "user-home-dir")
     }
 
-    DaemonLogsAnalyzer getDaemons() {
+    DaemonsFixture getDaemons() {
         return new DaemonLogsAnalyzer(new File(userHomeDir, "daemon"))
     }
 

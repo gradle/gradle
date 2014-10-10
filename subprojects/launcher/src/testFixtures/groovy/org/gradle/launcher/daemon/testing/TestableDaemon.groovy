@@ -25,21 +25,22 @@ import org.gradle.process.internal.ExecHandleBuilder
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class TestableDaemon {
+class TestableDaemon implements DaemonFixture {
     private final DaemonContext context
-    private final String logContent
     private final DaemonRegistry registry
+    private final File log
 
     TestableDaemon(File daemonLog, DaemonRegistry registry) {
-        this.logContent = daemonLog.text
-        this.context = DaemonContextParser.parseFrom(logContent)
+        this.log = daemonLog
+        this.context = DaemonContextParser.parseFrom(log.text)
         this.registry = registry
     }
 
-    void waitUntilIdle() {
+    void becomesIdle() {
         def expiry = System.currentTimeMillis() + 20000
         while (expiry > System.currentTimeMillis()) {
             if (registry.idle.find { it.context.pid == context.pid } != null) {
+                assertIdle()
                 return
             }
             Thread.sleep(200)
@@ -47,14 +48,11 @@ class TestableDaemon {
         throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to become idle.")
     }
 
-    /**
-     * Asserts that this daemon stops and is no longer visible to any clients, within a short timeout.
-     * Blocks until this has happened.
-     */
-    void assertStops() {
+    void stops() {
         def expiry = System.currentTimeMillis() + 20000
         while (expiry > System.currentTimeMillis()) {
             if (registry.all.find { it.context.pid == context.pid } == null) {
+                assertStopped()
                 return
             }
             Thread.sleep(200)
@@ -97,9 +95,6 @@ class TestableDaemon {
         busy, idle, stopped
     }
 
-    /**
-     * Asserts that this daemon is currently running and idle.
-     */
     void assertIdle() {
         assert getCurrentState() == State.idle
     }
@@ -108,16 +103,10 @@ class TestableDaemon {
         getStates().last()
     }
 
-    /**
-     * Asserts that this daemon is currently running and busy.
-     */
     void assertBusy() {
         assert getCurrentState() == State.busy
     }
 
-    /**
-     * Asserts that this daemon has stopped.
-     */
     void assertStopped() {
         assert getCurrentState() == State.stopped
     }
@@ -125,7 +114,7 @@ class TestableDaemon {
     List<State> getStates() {
         def states = new LinkedList<State>()
         states << State.idle
-        logContent.eachLine {
+        log.eachLine {
             if (it.contains(DaemonMessages.STARTED_BUILD)) {
                 states << State.busy
             } else if (it.contains(DaemonMessages.FINISHED_BUILD)) {
@@ -138,14 +127,14 @@ class TestableDaemon {
     }
 
     String getLog() {
-        return logContent
+        return log.text
     }
 
     int getPort() {
         Pattern pattern = Pattern.compile("^.*" + DaemonMessages.ADVERTISING_DAEMON + ".*port:(\\d+).*",
                 Pattern.MULTILINE + Pattern.DOTALL);
 
-        Matcher matcher = pattern.matcher(logContent);
+        Matcher matcher = pattern.matcher(log.text);
         assert matcher.matches(): "Unable to find daemon address in the daemon log. Daemon: $context"
 
         try {
