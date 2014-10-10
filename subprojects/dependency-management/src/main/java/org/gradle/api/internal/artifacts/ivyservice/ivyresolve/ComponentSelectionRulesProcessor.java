@@ -22,12 +22,7 @@ import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +34,7 @@ public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
     private static final String USER_CODE_ERROR = "Could not apply component selection rule with all().";
 
-    public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
-        MetadataProvider metadataProvider = new MetadataProvider(metaDataSupplier);
-
+    public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
         List<SpecRuleAction<? super ComponentSelection>> noInputRules = Lists.newArrayList();
         List<SpecRuleAction<? super ComponentSelection>> inputRules = Lists.newArrayList();
         for (SpecRuleAction<? super ComponentSelection> specRuleAction : specRuleActions) {
@@ -101,35 +94,6 @@ public class ComponentSelectionRulesProcessor {
             specRuleAction.getAction().execute(selection, inputs);
         } catch (Exception e) {
             throw new InvalidUserCodeException(USER_CODE_ERROR, e);
-        }
-    }
-
-    private static class MetadataProvider {
-        private final Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier;
-        private MutableModuleComponentResolveMetaData cachedMetaData;
-
-        private MetadataProvider(Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
-            this.metaDataSupplier = metaDataSupplier;
-        }
-
-        public ComponentMetadata getComponentMetadata() {
-            return new ComponentMetadataDetailsAdapter(getMetaData());
-        }
-
-        public IvyModuleDescriptor getIvyModuleDescriptor() {
-            ModuleComponentResolveMetaData metaData = getMetaData();
-            if (metaData instanceof IvyModuleResolveMetaData) {
-                IvyModuleResolveMetaData ivyMetadata = (IvyModuleResolveMetaData) metaData;
-                return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
-            }
-            return null;
-        }
-
-        public MutableModuleComponentResolveMetaData getMetaData() {
-            if (cachedMetaData == null) {
-                cachedMetaData = metaDataSupplier.create();
-            }
-            return cachedMetaData;
         }
     }
 }

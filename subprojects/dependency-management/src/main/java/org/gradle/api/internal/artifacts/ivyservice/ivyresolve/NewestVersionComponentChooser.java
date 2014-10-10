@@ -81,10 +81,10 @@ class NewestVersionComponentChooser implements ComponentChooser {
 
         for (Versioned candidate : sortLatestFirst(versions)) {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
-            MetaDataSupplier metaDataSupplier = new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess);
+            MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
 
-            if (versionMatches(requested, candidateIdentifier, metaDataSupplier)) {
-                if (!isRejectedByRules(candidateIdentifier, rules, metaDataSupplier)) {
+            if (versionMatches(requested, candidateIdentifier, metadataProvider)) {
+                if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                     return candidateIdentifier;
                 }
 
@@ -96,21 +96,21 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return null;
     }
 
-    private boolean versionMatches(ModuleVersionSelector requested, ModuleComponentIdentifier candidateIdentifier, MetaDataSupplier metaDataSupplier) {
+    private boolean versionMatches(ModuleVersionSelector requested, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
         if (versionMatcher.needModuleMetadata(requested.getVersion())) {
-            return versionMatcher.accept(requested.getVersion(), metaDataSupplier.create());
+            return versionMatcher.accept(requested.getVersion(), metadataProvider.getMetaData());
         } else {
             return versionMatcher.accept(requested.getVersion(), candidateIdentifier.getVersion());
         }
     }
 
     public boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
-        return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), metaDataSupplier);
+        return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), new MetadataProvider(metaDataSupplier));
     }
 
-    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier) {
+    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
-        rulesProcessor.apply(selection, rules, metaDataSupplier);
+        rulesProcessor.apply(selection, rules, metadataProvider);
         return selection.isRejected();
     }
 
