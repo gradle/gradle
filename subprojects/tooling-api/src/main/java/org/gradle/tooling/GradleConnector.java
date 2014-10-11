@@ -16,7 +16,6 @@
 package org.gradle.tooling;
 
 import org.gradle.tooling.internal.consumer.ConnectorServices;
-import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 
 import java.io.File;
 import java.net.URI;

@@ -16,57 +16,45 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.ProgressListener;
 
 /**
- * Thread safe logging provider that needs to be initialized before use.
+ * Provides logging services per thread.
  */
 public class SynchronizedLogging implements LoggingProvider {
-
-    private final ThreadLocal<ListenerManager> listenerManager = new ThreadLocal<ListenerManager>();
-    private final ThreadLocal<DefaultProgressLoggerFactory> progressLoggerFactory = new ThreadLocal<DefaultProgressLoggerFactory>();
-
-    //even though we use thread locals we need to synchronize a bit
-    //to avoid partial initialization / race conditions like listenerManager initialized but not yet progressLoggerFactory
-    private final Synchronizer synchronizer = new Synchronizer();
+    private final ThreadLocal<ThreadLoggingServices> services = new ThreadLocal<ThreadLoggingServices>();
 
     public ListenerManager getListenerManager() {
-        return synchronizer.synchronize(new Factory<ListenerManager>() {
-            public ListenerManager create() {
-                assertInitialized();
-                return listenerManager.get();
-            }
-        });
+        return services().listenerManager;
     }
 
-    public DefaultProgressLoggerFactory getProgressLoggerFactory() {
-        return synchronizer.synchronize(new Factory<DefaultProgressLoggerFactory>() {
-            public DefaultProgressLoggerFactory create() {
-                assertInitialized();
-                return progressLoggerFactory.get();
-            }
-        });
+    public ProgressLoggerFactory getProgressLoggerFactory() {
+        return services().progressLoggerFactory;
     }
 
-    public void init() {
-        synchronizer.synchronize(new Runnable() {
-            public void run() {
-                DefaultListenerManager manager = new DefaultListenerManager();
-                listenerManager.set(manager);
-                progressLoggerFactory.set(new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), new TrueTimeProvider()));
-            }
-        });
+    private ThreadLoggingServices services() {
+        ThreadLoggingServices threadServices = services.get();
+        if (threadServices == null) {
+            DefaultListenerManager manager = new DefaultListenerManager();
+            DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), new TrueTimeProvider());
+            threadServices = new ThreadLoggingServices(manager, progressLoggerFactory);
+            services.set(threadServices);
+        }
+        return threadServices;
     }
 
-    private void assertInitialized() {
-        if (listenerManager.get() == null) {
-            throw new IllegalStateException("Internal problem. Logging has not yet been initialized for this thread.");
+    private static class ThreadLoggingServices {
+        final ListenerManager listenerManager;
+        final ProgressLoggerFactory progressLoggerFactory;
+
+        private ThreadLoggingServices(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
+            this.listenerManager = listenerManager;
+            this.progressLoggerFactory = progressLoggerFactory;
         }
     }
 }

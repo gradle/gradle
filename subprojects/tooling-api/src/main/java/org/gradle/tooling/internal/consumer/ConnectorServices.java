@@ -50,6 +50,7 @@ public class ConnectorServices {
      * Resets the state of connector services. Meant to be used only for testing!
      */
     public static void reset() {
+        singletonRegistry.close();
         singletonRegistry = new ConnectorServiceRegistry();
     }
 
@@ -85,8 +86,12 @@ public class ConnectorServices {
             return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
-        protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory) {
-            return new ConnectionFactory(toolingImplementationLoader, executorFactory);
+        protected LoggingProvider createLoggingProvider() {
+            return new SynchronizedLogging();
+        }
+
+        protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
+            return new ConnectionFactory(toolingImplementationLoader, executorFactory, loggingProvider);
         }
     }
 }
