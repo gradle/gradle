@@ -122,10 +122,6 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         return tasks;
     }
 
-    public NativeBinaryTasks getNativeBinaryTasks() {
-        return getTasks();
-    }
-
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
     }

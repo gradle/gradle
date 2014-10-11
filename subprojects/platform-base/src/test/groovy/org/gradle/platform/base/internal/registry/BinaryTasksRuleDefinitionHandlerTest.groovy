@@ -32,7 +32,7 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
-class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
+class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
     def ruleDependencies = Mock(RuleSourceDependencies)
 
