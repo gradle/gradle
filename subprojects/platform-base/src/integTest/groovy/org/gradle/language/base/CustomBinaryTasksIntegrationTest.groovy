@@ -18,8 +18,6 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -72,7 +70,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds taskName
         then:
-        output.contains(":customSampleLibBinaryTask")
+        executedAndNotSkipped(":customSampleLibBinaryTask")
         output.contains("Building sampleLibBinary via customSampleLibBinaryTask of type DefaultTask")
         where:
         taskName          | taskdescr
@@ -102,7 +100,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "assemble"
         then:
-        output.contains(":customSampleLibBinaryTask")
+        executedAndNotSkipped ":customSampleLibBinaryTask"
         output.contains("Building sampleLibBinary via customSampleLibBinaryTask of type BinaryCreationTask")
 
     }
@@ -198,19 +196,12 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "assemble"
         then:
-        output.contains(toPlatformLineSeparators(""":someCustomSampleLibBinaryTask
-running someCustomSampleLibBinaryTask
-:someOtherCustomSampleLibBinaryTask
-running someOtherCustomSampleLibBinaryTask
-:sampleLibBinary
-:someCustomSampleLibTestBinaryTask
-running someCustomSampleLibTestBinaryTask
-:someOtherCustomSampleLibTestBinaryTask
-running someOtherCustomSampleLibTestBinaryTask
-:sampleLibTestBinary
-:assemble
+        executedAndNotSkipped ":someOtherCustomSampleLibBinaryTask", ":sampleLibBinary", ":someCustomSampleLibTestBinaryTask", ":someOtherCustomSampleLibTestBinaryTask",
+                              ":sampleLibTestBinary",":assemble"
 
-BUILD SUCCESSFUL"""))
+        output.contains "running someOtherCustomSampleLibTestBinaryTask"
+        output.contains "running someCustomSampleLibTestBinaryTask"
+        output.contains "running someOtherCustomSampleLibBinaryTask"
     }
 
 
