@@ -48,7 +48,7 @@ public class RepositoryChainAdapter implements DependencyToComponentIdResolver, 
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        if (versionMatcher.isDynamic(requested.getVersion())) {
+        if (versionMatcher.createSelector(requested.getVersion()).isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());

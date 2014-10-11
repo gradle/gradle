@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import org.gradle.api.artifacts.ComponentMetadata;
+
 import java.util.Comparator;
 
-/**
- * Compares version selectors against candidate versions, indicating whether they match or not.
- *
- */
-public interface VersionMatcher extends Comparator<String> {
-    public VersionSelector createSelector(String selectorString);
+public interface VersionSelector extends Comparator<String> {
+    public boolean isDynamic();
+
+    public boolean requiresMetadata();
+
+    public boolean matchesUniqueVersion();
+
+    public boolean accept(String candidate);
+
+    public boolean accept(ComponentMetadata candidate);
 }

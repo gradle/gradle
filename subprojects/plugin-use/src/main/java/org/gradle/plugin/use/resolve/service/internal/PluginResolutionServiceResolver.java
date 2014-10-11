@@ -115,7 +115,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private boolean isDynamicVersion(String version) {
-        return versionMatcher.isDynamic(version);
+        return versionMatcher.createSelector(version).isDynamic();
     }
 
     private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {

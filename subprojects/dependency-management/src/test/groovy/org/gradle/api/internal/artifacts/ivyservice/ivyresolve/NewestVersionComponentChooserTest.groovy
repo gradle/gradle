@@ -15,8 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
+
+import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
@@ -28,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestSt
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
@@ -45,14 +47,22 @@ class NewestVersionComponentChooserTest extends Specification {
         def selector = Mock(ModuleVersionSelector)
         when:
         1 * selector.version >> "foo"
-        versionMatcher.isDynamic("foo") >> false
+        versionMatcher.createSelector("foo") >> {
+            Stub(VersionSelector) {
+                isDynamic() >> false
+            }
+        }
 
         then:
         !chooser.canSelectMultipleComponents(selector)
 
         when:
         1 * selector.version >> "bar"
-        versionMatcher.isDynamic("bar") >> true
+        versionMatcher.createSelector("bar") >> {
+            Stub(VersionSelector) {
+                isDynamic() >> true
+            }
+        }
 
         then:
         chooser.canSelectMultipleComponents(selector)
@@ -117,11 +127,15 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        2 * versionMatcher.needModuleMetadata("1.+") >> false
+        1 * versionMatcher.createSelector("1.+") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> false
+                accept("2.0") >> false
+                accept("1.3") >> true
+            }
+        }
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        1 * versionMatcher.accept("1.+", "2.0") >> false
-        1 * versionMatcher.accept("1.+", "1.3") >> true
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -142,14 +156,18 @@ class NewestVersionComponentChooserTest extends Specification {
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetaData)
         _ * repo.resolveComponentMetaData(_, _, _) >> { moduleVersionDep, candidateId, DefaultBuildableModuleComponentMetaDataResolveResult result ->
             result.resolved(Stub(MutableModuleComponentResolveMetaData) {
-                getComponentId() >> { candidateId }
+                getId() >> { DefaultModuleVersionIdentifier.newId(candidateId) }
             })
         }
-        2 * versionMatcher.needModuleMetadata("latest.milestone") >> true
+        1 * versionMatcher.createSelector("latest.milestone") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> true
+                accept({ComponentMetadata md -> md.id.version == "2.0"}) >> false
+                accept({ComponentMetadata md -> md.id.version == "1.3"}) >> true
+            }
+        }
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        1 * versionMatcher.accept("latest.milestone", {ModuleComponentResolveMetaData md -> md.componentId.version == "2.0"}) >> false
-        1 * versionMatcher.accept("latest.milestone", {ModuleComponentResolveMetaData md -> md.componentId.version == "1.3"}) >> true
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -167,19 +185,23 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        3 * versionMatcher.needModuleMetadata("1.+") >> false
-        1 * versionMatcher.matchesUniqueVersion('1.+') >> false
-        1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
-        _ * versionMatcher.accept("1.+", _) >> { pattern, version ->
-            // 1.+ should return 1.3 according to this version matcher
-            switch(version) {
-                case "2.0": return false
-                case "1.3": return true
-                case "1.2": return true
-                default: return false
+        1 * versionMatcher.createSelector("1.+") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> false
+                matchesUniqueVersion() >> false
+                accept(_) >> { String version ->
+                    // 1.+ should return 1.3 according to this version matcher
+                    switch(version) {
+                        case "2.0": return false
+                        case "1.3": return true
+                        case "1.2": return true
+                        default: return false
+                    }
+                }
             }
         }
+        1 * listing.versions >> (versions as Set)
+        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version == '1.3') {
                 selection.reject("rejected")
@@ -207,19 +229,23 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        2 * versionMatcher.needModuleMetadata("latest.release") >> true
-        1 * versionMatcher.matchesUniqueVersion('latest.release') >> true
-        1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
-        _ * versionMatcher.accept("latest.release", _) >> { pattern, MutableModuleComponentResolveMetaData metadata ->
-            // latest.integration should return 1.3 according to this version matcher
-            switch(metadata.componentId.version) {
-                case "2.0": return false
-                case "1.3": return true
-                case "1.2": return true
-                default: return false
+        1 * versionMatcher.createSelector("latest.release") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> true
+                matchesUniqueVersion() >> true
+                accept(_) >> { ComponentMetadata metadata ->
+                    // latest.integration should return 1.3 according to this version matcher
+                    switch(metadata.id.version) {
+                        case "2.0": return false
+                        case "1.3": return true
+                        case "1.2": return true
+                        default: return false
+                    }
+                }
             }
         }
+        1 * listing.versions >> (versions as Set)
+        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version == '1.3') {
                 selection.reject("rejected")
@@ -243,12 +269,16 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        2 * versionMatcher.needModuleMetadata("1.3") >> false
-        1 * versionMatcher.matchesUniqueVersion('1.3') >> true
+        1 * versionMatcher.createSelector("1.3") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> false
+                matchesUniqueVersion() >> true
+                accept("2.0") >> false
+                accept("1.3") >> true
+            }
+        }
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        1 * versionMatcher.accept("1.3", "2.0") >> false
-        1 * versionMatcher.accept("1.3", "1.3") >> true
         1 * componentSelectionRules.rules >> rules({ ComponentSelection cs ->
             cs.reject("reason")
         })
@@ -268,10 +298,14 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        3 * versionMatcher.needModuleMetadata("1.3") >> false
+        1 * versionMatcher.createSelector("1.3") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> false
+                accept(_) >> false
+            }
+        }
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        3 * versionMatcher.accept("1.3", _) >> false
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -295,10 +329,14 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        3 * versionMatcher.needModuleMetadata("latest.release") >> true
+        1 * versionMatcher.createSelector("latest.release") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> true
+                accept(_) >> false
+            }
+        }
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        3 * versionMatcher.accept("latest.release", _) >> false
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -316,11 +354,15 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.needModuleMetadata("latest.integration") >> false
-        1 * versionMatcher.matchesUniqueVersion('latest.integration') >> true
+        1 * versionMatcher.createSelector("latest.integration") >> {
+            Stub(VersionSelector) {
+                requiresMetadata() >> false
+                matchesUniqueVersion() >> true
+                accept(_) >> true
+            }
+        }
         1 * listing.versions >> (versions as Set)
         1 * latestStrategy.sort(_) >> versions
-        1 * versionMatcher.accept("latest.integration", _) >> true
         1 * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
         })

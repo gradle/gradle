@@ -15,73 +15,62 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
+import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 
-import spock.lang.Specification
-
-class ExactVersionMatcherTest extends Specification {
-    def matcher = new ExactVersionMatcher()
-
-    def "can handle any version selector"() {
-        expect:
-        matcher.canHandle("1.0")
-        matcher.canHandle("[1.0,2.0]")
-        matcher.canHandle("!@#%")
-    }
-
+class ExactVersionSelectorTest extends AbstractVersionSelectorTest {
     def "considers selector as static"() {
         expect:
-        !matcher.isDynamic("1.0")
-        !matcher.isDynamic("[1.0,2.0]")
+        !isDynamic("1.0")
+        !isDynamic("[1.0,2.0]")
     }
 
     def "doesn't need metadata"() {
         expect:
-        !matcher.needModuleMetadata("1.0")
-        !matcher.needModuleMetadata("[1.0,2.0]")
+        !requiresMetadata("1.0")
+        !requiresMetadata("[1.0,2.0]")
     }
 
     def "accepts candidate version iff it literally matches the selector"() {
         expect:
-        matcher.accept("", "")
-        matcher.accept("1.0", "1.0")
-        matcher.accept("2.0", "2.0")
-        matcher.accept("!@#%", "!@#%")
-        matcher.accept("hey joe", "hey joe")
-        !matcher.accept("1.0", "1.1")
-        !matcher.accept("2.0", "3.0")
-        !matcher.accept("!@#%", "%#@!")
-        !matcher.accept("hey joe", "hoe hey")
+        accept("", "")
+        accept("1.0", "1.0")
+        accept("2.0", "2.0")
+        accept("!@#%", "!@#%")
+        accept("hey joe", "hey joe")
+        !accept("1.0", "1.1")
+        !accept("2.0", "3.0")
+        !accept("!@#%", "%#@!")
+        !accept("hey joe", "hoe hey")
     }
 
     def "does not accept candidate version that differs in separator"() {
         expect:
-        !matcher.accept("1.0", "1_0")
-        !matcher.accept("1_0", "1-0")
-        !matcher.accept("1-0", "1+0")
-        !matcher.accept("1.a.2", "1a2")
+        !accept("1.0", "1_0")
+        !accept("1_0", "1-0")
+        !accept("1-0", "1+0")
+        !accept("1.a.2", "1a2")
     }
 
     def "does not accept candidate version that has different number of trailing .0's"() {
         expect:
-        !matcher.accept("1.0.0", "1.0")
-        !matcher.accept("1", "1.0.0")
+        !accept("1.0.0", "1.0")
+        !accept("1", "1.0.0")
     }
 
     def "does not accept candidate version that has different capitalization"() {
-        !matcher.accept("1.0-alpha", "1.0-ALPHA")
+        !accept("1.0-alpha", "1.0-ALPHA")
     }
 
     def "supports metadata-aware accept method (with same result)"() {
-        def metadata = Stub(ModuleComponentResolveMetaData) {
+        def metadata = Stub(ComponentMetadata) {
             getId() >> Stub(ModuleVersionIdentifier) {
                 getVersion() >> metadataVersion
             }
         }
 
         expect:
-        matcher.accept("1.0", metadata) == result
+        accept("1.0", metadata) == result
 
         where:
         metadataVersion | result
@@ -91,10 +80,10 @@ class ExactVersionMatcherTest extends Specification {
 
     def "compares versions lexicographically"() {
         expect:
-        matcher.compare(v1, v2) < 0
-        matcher.compare(v2, v1) > 0
-        matcher.compare(v1, v1) == 0
-        matcher.compare(v2, v2) == 0
+        compare(v1, v2) < 0
+        compare(v2, v1) > 0
+        compare(v1, v1) == 0
+        compare(v2, v2) == 0
 
         where:
         v1          | v2
@@ -112,10 +101,10 @@ class ExactVersionMatcherTest extends Specification {
 
     def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
         expect:
-        matcher.compare(v1, v2) < 0
-        matcher.compare(v2, v1) > 0
-        matcher.compare(v1, v1) == 0
-        matcher.compare(v2, v2) == 0
+        compare(v1, v2) < 0
+        compare(v2, v1) > 0
+        compare(v1, v1) == 0
+        compare(v2, v2) == 0
 
         where:
         v1          | v2
@@ -133,8 +122,8 @@ class ExactVersionMatcherTest extends Specification {
 
     def "compares identical versions equal"() {
         expect:
-        matcher.compare(v1, v2) == 0
-        matcher.compare(v2, v1) == 0
+        compare(v1, v2) == 0
+        compare(v2, v1) == 0
 
         where:
         v1        | v2
@@ -147,24 +136,24 @@ class ExactVersionMatcherTest extends Specification {
 
     def "compares versions that differ only in separators equal"() {
         expect:
-        matcher.compare("1.0", "1_0") == 0
-        matcher.compare("1_0", "1-0") == 0
-        matcher.compare("1-0", "1+0") == 0
-        matcher.compare("1.a.2", "1a2") == 0 // number-word and word-number boundaries are considered separators
+        compare("1.0", "1_0") == 0
+        compare("1_0", "1-0") == 0
+        compare("1-0", "1+0") == 0
+        compare("1.a.2", "1a2") == 0 // number-word and word-number boundaries are considered separators
     }
 
     def "compares unrelated versions unequal"() {
         expect:
-        matcher.compare("1.0", "") != 0
-        matcher.compare("1.0", "!@#%") != 0
-        matcher.compare("1.0", "hey joe") != 0
+        compare("1.0", "") != 0
+        compare("1.0", "!@#%") != 0
+        compare("1.0", "hey joe") != 0
     }
 
     // original Ivy behavior - should we change it?
     def "does not compare versions with different number of trailing .0's equal"() {
         expect:
-        matcher.compare(v1, v2) > 0
-        matcher.compare(v2, v1) < 0
+        compare(v1, v2) > 0
+        compare(v2, v1) < 0
 
         where:
         v1          | v2
@@ -174,11 +163,16 @@ class ExactVersionMatcherTest extends Specification {
 
     def "does not compare versions with different capitalization equal"() {
         expect:
-        matcher.compare(v1, v2) > 0
-        matcher.compare(v2, v1) < 0
+        compare(v1, v2) > 0
+        compare(v2, v1) < 0
 
         where:
         v1          | v2
         "1.0-alpha" | "1.0-ALPHA"
+    }
+
+    @Override
+    VersionSelector getSelector(String selector) {
+        return new ExactVersionSelector(selector)
     }
 }

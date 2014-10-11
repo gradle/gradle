@@ -123,8 +123,8 @@ public class DependencyResultSorter {
             }
 
             //order dynamic selectors after static selectors
-            boolean leftDynamic = matcher.isDynamic(leftRequested.getVersion());
-            boolean rightDynamic = matcher.isDynamic(rightRequested.getVersion());
+            boolean leftDynamic = matcher.createSelector(leftRequested.getVersion()).isDynamic();
+            boolean rightDynamic = matcher.createSelector(rightRequested.getVersion()).isDynamic();
             if (leftDynamic && !rightDynamic) {
                 return 1;
             } else if (!leftDynamic && rightDynamic) {

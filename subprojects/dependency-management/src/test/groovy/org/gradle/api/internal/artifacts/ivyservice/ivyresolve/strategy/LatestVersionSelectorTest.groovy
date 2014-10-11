@@ -15,38 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import spock.lang.Specification
+import org.gradle.api.artifacts.ComponentMetadata
 
-class LatestVersionMatcherTest extends Specification {
-    def matcher = new LatestVersionMatcher()
-
-    def "handles selectors starting with 'latest.'"() {
-        expect:
-        matcher.canHandle("latest.integration")
-        matcher.canHandle("latest.foo")
-        matcher.canHandle("latest.123")
-        !matcher.canHandle("1.0")
-        !matcher.canHandle("[1.0,2.0]")
-    }
+class LatestVersionSelectorTest extends AbstractVersionSelectorTest {
 
     def "all handled selectors are dynamic"() {
         expect:
-        matcher.isDynamic("latest.integration")
-        matcher.isDynamic("latest.foo")
-        matcher.isDynamic("latest.123")
+        isDynamic("latest.integration")
+        isDynamic("latest.foo")
+        isDynamic("latest.123")
     }
 
     def "always needs metadata"() {
         expect:
-        matcher.needModuleMetadata("latest.integration")
-        matcher.needModuleMetadata("latest.foo")
-        matcher.needModuleMetadata("latest.123")
+        requiresMetadata("latest.integration")
+        requiresMetadata("latest.foo")
+        requiresMetadata("latest.123")
     }
 
     def "only supports metadata-aware accept method"() {
         when:
-        matcher.accept("latest.integration", "1.0")
+        accept("latest.integration", "1.0")
 
         then:
         UnsupportedOperationException e = thrown()
@@ -54,30 +43,35 @@ class LatestVersionMatcherTest extends Specification {
     }
 
     def "accepts a candidate version if its status is equal to or higher than the selector's status"() {
-        def metadata = Stub(ModuleComponentResolveMetaData) {
+        def metadata = Stub(ComponentMetadata) {
             getStatus() >> "silver"
             getStatusScheme() >> ["bronze", "silver", "gold"]
         }
 
         expect:
-        matcher.accept("latest.bronze", metadata)
-        matcher.accept("latest.silver", metadata)
-        !matcher.accept("latest.gold", metadata)
+        accept("latest.bronze", metadata)
+        accept("latest.silver", metadata)
+        !accept("latest.gold", metadata)
     }
 
     def "rejects a candidate version if selector's status is not contained in candidate's status scheme"() {
-        def metadata = Stub(ModuleComponentResolveMetaData) {
+        def metadata = Stub(ComponentMetadata) {
             getStatus() >> "silver"
             getStatusScheme() >> ["bronze", "silver", "gold"]
         }
 
         expect:
-        !matcher.accept("latest.other", metadata)
+        !accept("latest.other", metadata)
     }
 
     def "cannot tell which of version selector and candidate version is greater"() {
         expect:
-        matcher.compare("latest.integration", "1.0") == 0
-        matcher.compare("latest.release", "2.0") == 0
+        compare("latest.integration", "1.0") == 0
+        compare("latest.release", "2.0") == 0
+    }
+
+    @Override
+    VersionSelector getSelector(String selector) {
+        return new LatestVersionSelector(selector)
     }
 }

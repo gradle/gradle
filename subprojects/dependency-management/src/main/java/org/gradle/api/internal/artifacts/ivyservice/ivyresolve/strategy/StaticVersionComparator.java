@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,45 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
- */
-public class ExactVersionMatcher implements VersionMatcher {
+
+public class StaticVersionComparator implements Comparator<String> {
     private static final Map<String, Integer> SPECIAL_MEANINGS =
             ImmutableMap.of("dev", new Integer(-1), "rc", new Integer(1), "final", new Integer(2));
-
-    public boolean canHandle(String selector) {
-        return true;
-    }
-
-    public boolean isDynamic(String selector) {
-        return false;
-    }
-
-    public boolean needModuleMetadata(String selector) {
-        return false;
-    }
-
-    public boolean matchesUniqueVersion(String selector) {
-        return true;
-    }
-
-    public boolean accept(String selector, String candidate) {
-        return selector.equals(candidate);
-    }
-
-    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
-        return accept(selector, candidate.getId().getVersion());
-    }
 
     /**
      * Compares a static selector with a candidate version. Algorithm is inspired

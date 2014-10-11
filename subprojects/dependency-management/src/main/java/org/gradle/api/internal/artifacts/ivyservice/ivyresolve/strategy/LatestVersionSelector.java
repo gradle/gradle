@@ -15,31 +15,35 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.api.artifacts.ComponentMetadata;
 
-public class LatestVersionMatcher implements VersionMatcher {
+public class LatestVersionSelector extends AbstractVersionSelector {
+    public LatestVersionSelector(String selector) {
+        super(selector);
+    }
+
     public boolean canHandle(String selector) {
         return selector.startsWith("latest.");
     }
 
-    public boolean isDynamic(String selector) {
+    public boolean isDynamic() {
         return true;
     }
 
-    public boolean needModuleMetadata(String selector) {
+    public boolean requiresMetadata() {
         return true;
     }
 
-    public boolean matchesUniqueVersion(String selector) {
+    public boolean matchesUniqueVersion() {
         return true;
     }
 
-    public boolean accept(String selector, String candidate) {
+    public boolean accept(String candidate) {
         throw new UnsupportedOperationException("accept(String, String)");
     }
 
-    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
-        String selectorStatus = selector.substring("latest.".length());
+    public boolean accept(ComponentMetadata candidate) {
+        String selectorStatus = getSelector().substring("latest.".length());
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
         return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;

@@ -15,33 +15,33 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.api.artifacts.ComponentMetadata;
 
 import java.util.Comparator;
 
 /**
  * Version matcher for dynamic version selectors ending in '+'.
  */
-public class SubVersionMatcher implements VersionMatcher {
-    private final Comparator<String> staticVersionComparator;
+public class SubVersionSelector extends AbstractVersionSelector {
+    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
 
-    public SubVersionMatcher(VersionMatcher staticVersionComparator) {
-        this.staticVersionComparator = staticVersionComparator;
+    public SubVersionSelector(String selector) {
+        super(selector);
     }
 
     public boolean canHandle(String selector) {
         return selector.endsWith("+");
     }
 
-    public boolean isDynamic(String selector) {
+    public boolean isDynamic() {
         return true;
     }
 
-    public boolean needModuleMetadata(String selector) {
+    public boolean requiresMetadata() {
         return false;
     }
 
-    public boolean matchesUniqueVersion(String selector) {
+    public boolean matchesUniqueVersion() {
         return false;
     }
 
@@ -50,14 +50,18 @@ public class SubVersionMatcher implements VersionMatcher {
         return candidate.startsWith(prefix);
     }
 
-    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
-        return accept(selector, candidate.getId().getVersion());
+    public boolean accept(String candidate) {
+        return accept(getSelector(), candidate);
+    }
+
+    public boolean accept(ComponentMetadata candidate) {
+        return accept(candidate.getId().getVersion());
     }
 
     public int compare(String selector, String candidate) {
         if (accept(selector, candidate)) {
             return 1;
         }
-        return staticVersionComparator.compare(selector, candidate);
+        return STATIC_VERSION_COMPARATOR.compare(selector, candidate);
     }
 }

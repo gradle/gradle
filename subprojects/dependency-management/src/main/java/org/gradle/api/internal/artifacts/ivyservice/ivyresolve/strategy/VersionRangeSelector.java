@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.api.artifacts.ComponentMetadata;
 
 import java.util.Comparator;
 import java.util.regex.Matcher;
@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * accept(). Note that it can't work with latest time strategy, cause no time is known for the
  * limits of the range. Therefore only purely revision based LatestStrategy can be used.
  */
-public class VersionRangeMatcher implements VersionMatcher {
+public class VersionRangeSelector extends AbstractVersionSelector {
     private static final String OPEN_INC = "[";
 
     private static final String OPEN_EXC = "]";
@@ -88,32 +88,29 @@ public class VersionRangeMatcher implements VersionMatcher {
 
     private static final Pattern UPPER_INFINITE_RANGE = Pattern.compile(UPPER_INFINITE_PATTERN);
 
-    private static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
+    public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
             + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN);
 
-    private final Comparator<String> staticVersionComparator;
+    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
 
-    public VersionRangeMatcher(VersionMatcher staticVersionComparator) {
-        this.staticVersionComparator = staticVersionComparator;
+    public VersionRangeSelector(String selector) {
+        super(selector);
     }
 
-    public boolean canHandle(String selector) {
-        return ALL_RANGE.matcher(selector).matches();
-    }
-
-    public boolean isDynamic(String selector) {
+    public boolean isDynamic() {
         return true;
     }
 
-    public boolean needModuleMetadata(String selector) {
+    public boolean requiresMetadata() {
         return false;
     }
 
-    public boolean matchesUniqueVersion(String selector) {
+    public boolean matchesUniqueVersion() {
         return false;
     }
 
-    public boolean accept(String selector, String candidate) {
+    public boolean accept(String candidate) {
+        String selector = getSelector();
         Matcher matcher;
         matcher = FINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
@@ -135,8 +132,8 @@ public class VersionRangeMatcher implements VersionMatcher {
         throw new IllegalArgumentException("Not a version range selector: " + selector);
     }
 
-    public boolean accept(String selector, ModuleComponentResolveMetaData candidate) {
-        return accept(selector, candidate.getId().getVersion());
+    public boolean accept(ComponentMetadata candidate) {
+        return accept(candidate.getId().getVersion());
     }
 
     // doesn't seem to be quite in sync with accept() (e.g. open/close is not distinguished here)
@@ -159,7 +156,7 @@ public class VersionRangeMatcher implements VersionMatcher {
                 throw new IllegalArgumentException("Not a version range selector: " + selector);
             }
         }
-        int c = staticVersionComparator.compare(upper, candidate);
+        int c = STATIC_VERSION_COMPARATOR.compare(upper, candidate);
         // If the comparison considers them equal, we must return -1, because we can't consider the
         // dynamic version selector to be greater. Otherwise we can safely return the result of the static
         // comparison.
@@ -170,7 +167,7 @@ public class VersionRangeMatcher implements VersionMatcher {
      * Tells if version1 is lower than version2.
      */
     private boolean isLower(String version1, String version2, boolean inclusive) {
-        int result = staticVersionComparator.compare(version1, version2);
+        int result = STATIC_VERSION_COMPARATOR.compare(version1, version2);
         return result <= (inclusive ? 0 : -1);
     }
 
@@ -178,7 +175,7 @@ public class VersionRangeMatcher implements VersionMatcher {
      * Tells if version1 is higher than version2.
      */
     private boolean isHigher(String version1, String version2, boolean inclusive) {
-        int result = staticVersionComparator.compare(version1, version2);
+        int result = STATIC_VERSION_COMPARATOR.compare(version1, version2);
         return result >= (inclusive ? 0 : 1);
     }
 }

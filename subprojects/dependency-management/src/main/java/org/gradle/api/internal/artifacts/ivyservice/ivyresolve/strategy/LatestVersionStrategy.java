@@ -52,11 +52,13 @@ public class LatestVersionStrategy implements LatestStrategy {
          * consider the dynamic one to be greater, because most of the time it will then be
          * actually resolved and a real comparison will occur.
          */
-        if (versionMatcher.isDynamic(version1)) {
-            int c = versionMatcher.compare(version1, version2);
+        VersionSelector version1Selector = versionMatcher.createSelector(version1);
+        VersionSelector version2Selector = versionMatcher.createSelector(version2);
+        if (version1Selector.isDynamic()) {
+            int c = version1Selector.compare(version1, version2);
             return c >= 0 ? 1 : -1;
-        } else if (versionMatcher.isDynamic(version2)) {
-            int c = versionMatcher.compare(version2, version1);
+        } else if (version2Selector.isDynamic()) {
+            int c = version2Selector.compare(version2, version1);
             return c >= 0 ? -1 : 1;
         }
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.rules.RuleAction;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -51,7 +52,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     public boolean canSelectMultipleComponents(ModuleVersionSelector selector) {
-        return versionMatcher.isDynamic(selector.getVersion());
+        return versionMatcher.createSelector(selector.getVersion()).isDynamic();
     }
 
     public ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two) {
@@ -76,19 +77,20 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
-        ModuleVersionSelector requested = dependency.getRequested();
+        ModuleVersionSelector requestedModule = dependency.getRequested();
+        VersionSelector requestedVersion = versionMatcher.createSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (Versioned candidate : sortLatestFirst(versions)) {
-            ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), candidate.getVersion());
+            ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(), requestedModule.getName(), candidate.getVersion());
             MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
 
-            if (versionMatches(requested, candidateIdentifier, metadataProvider)) {
+            if (versionMatches(requestedVersion, candidateIdentifier, metadataProvider)) {
                 if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                     return candidateIdentifier;
                 }
 
-                if (versionMatcher.matchesUniqueVersion(requested.getVersion())) {
+                if (requestedVersion.matchesUniqueVersion()) {
                     break;
                 }
             }
@@ -96,11 +98,11 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return null;
     }
 
-    private boolean versionMatches(ModuleVersionSelector requested, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
-        if (versionMatcher.needModuleMetadata(requested.getVersion())) {
-            return versionMatcher.accept(requested.getVersion(), metadataProvider.getMetaData());
+    private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
+        if (selector.requiresMetadata()) {
+            return selector.accept(metadataProvider.getComponentMetadata());
         } else {
-            return versionMatcher.accept(requested.getVersion(), candidateIdentifier.getVersion());
+            return selector.accept(candidateIdentifier.getVersion());
         }
     }
 
