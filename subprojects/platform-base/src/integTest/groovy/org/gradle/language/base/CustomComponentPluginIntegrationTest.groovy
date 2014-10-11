@@ -221,7 +221,7 @@ BUILD SUCCESSFUL"""))
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
         failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid component model rule method."
-        failure.assertHasCause "ComponentType method must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
+        failure.assertHasCause "Method annotated with @ComponentType must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
     }
 
     def "cannot register same component type multiple times"(){

@@ -31,19 +31,19 @@ import java.util.List;
 public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
     protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition) {
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
-            throw new InvalidComponentModelException(String.format("%s method must not have a return value.", annotationType.getSimpleName()));
+            throw new InvalidComponentModelException(String.format("Method %s must not have a return value.", getDescription()));
         }
     }
 
     protected <R, V> void visitCollectionBuilderSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<V> typeParameter) {
         if (ruleDefinition.getReferences().size() == 0) {
-            throw new InvalidComponentModelException(String.format("%s method must have a parameter of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
+            throw new InvalidComponentModelException(String.format("Method %s must have a parameter of type '%s'.", getDescription(), CollectionBuilder.class.getName()));
         }
 
         ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
 
         if (!ModelType.of(CollectionBuilder.class).isAssignableFrom(builder)) {
-            throw new InvalidComponentModelException(String.format("%s method first parameter must be of type '%s'.", annotationType.getSimpleName(), CollectionBuilder.class.getName()));
+            throw new InvalidComponentModelException(String.format("Method %s first parameter must be of type '%s'.", getDescription(), CollectionBuilder.class.getName()));
         }
         if (builder.getTypeVariables().size() != 1) {
             throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", CollectionBuilder.class.getSimpleName(), typeParameter.getSimpleName()));
@@ -80,7 +80,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
             ModelType<? extends S> newDependency = expectedDependency.asSubclass(reference.getType());
             if (newDependency != null) {
                 if (dependency != null) {
-                    throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found multiple parameter extending %s.", annotationType.getSimpleName(),
+                    throw new InvalidComponentModelException(String.format("Method %s must have one parameter extending %s. Found multiple parameter extending %s.", getDescription(),
                             expectedDependency.getConcreteClass().getSimpleName(),
                             expectedDependency.getConcreteClass().getSimpleName()));
 
@@ -90,7 +90,7 @@ public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandl
         }
 
         if (dependency == null) {
-            throw new InvalidComponentModelException(String.format("%s method must have one parameter extending %s. Found no parameter extending %s.", annotationType.getSimpleName(),
+            throw new InvalidComponentModelException(String.format("Method %s must have one parameter extending %s. Found no parameter extending %s.", getDescription(),
                     expectedDependency.getConcreteClass().getSimpleName(),
                     expectedDependency.getConcreteClass().getSimpleName()));
         }

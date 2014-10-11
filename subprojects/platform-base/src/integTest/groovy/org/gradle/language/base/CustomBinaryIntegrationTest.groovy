@@ -200,7 +200,7 @@ task checkModel << {
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
         failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>, java.lang.String) is not a valid binary model rule method."
-        failure.assertHasCause "BinaryType method must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
+        failure.assertHasCause "Method annotated with @BinaryType must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
     }
 
     def "cannot register same binary type multiple times"(){

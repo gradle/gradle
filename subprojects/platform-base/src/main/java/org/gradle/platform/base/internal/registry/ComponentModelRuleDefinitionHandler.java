@@ -77,11 +77,11 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
     protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.", annotationClass.getSimpleName(), builderInterface.toString()));
+            throw new InvalidComponentModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
         }
         ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
         if (!builderInterface.isAssignableFrom(builder)) {
-            throw new InvalidComponentModelException(String.format("%s method must have a single parameter of type '%s'.", annotationClass.getSimpleName(), builderInterface.toString()));
+            throw new InvalidComponentModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
         }
         if (builder.getTypeVariables().size() != 1) {
             throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));

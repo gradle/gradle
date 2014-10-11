@@ -68,11 +68,11 @@ class BinaryTaskRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
         where:
         methodName               | expectedMessage                                                                                             | descr
-        "returnValue"            | "BinaryTasks method must not have a return value."                                                           | "non void method"
-        "noParams"               | "BinaryTasks method must have a parameter of type '${CollectionBuilder.name}'."                              | "no CollectionBuilder subject"
-        "wrongSubject"           | "BinaryTasks method first parameter must be of type '${CollectionBuilder.name}'."                            | "wrong rule subject type"
+        "returnValue"            | "Method annotated with @BinaryTasks must not have a return value."                                                           | "non void method"
+        "noParams"               | "Method annotated with @BinaryTasks must have a parameter of type '${CollectionBuilder.name}'."                              | "no CollectionBuilder subject"
+        "wrongSubject"           | "Method annotated with @BinaryTasks first parameter must be of type '${CollectionBuilder.name}'."                            | "wrong rule subject type"
+        "noBinaryParameter"      | "Method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."  | "no component spec parameter"
         "rawCollectionBuilder"   | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."                     | "non typed CollectionBuilder parameter"
-        "noBinaryParameter"      | "BinaryTasks method must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."  | "no component spec parameter"
     }
 
     @Unroll
