@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner,
-        ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection {
+        ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ProtocolToModelAdapter adapter;
     private final ServiceRegistry services;
@@ -67,7 +67,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     /**
-     * This method was used by consumers 1.0-rc-1 through to 1.1. Later consumers use {@link #configure(org.gradle.tooling.internal.protocol.ConnectionParameters)} instead.
+     * This method was used by consumers 1.0-rc-1 through to 1.1. Later consumers use {@link #configure(ConnectionParameters)} instead.
      */
     public void configureLogging(final boolean verboseLogging) {
         // Ignore - we don't support these consumer versions any more
@@ -83,8 +83,16 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     /**
      * This is used by consumers 1.0-milestone-3 and later
      */
+    @Deprecated
     public void stop() {
-        // TODO:ADAM - switch this on again. Need to add a new protocol method, as older consumers call `stop()` at the end of every operation.
+        // We don't do anything here, as older consumers call this method when the project connection is closed but then later attempt to reuse the connection
+    }
+
+    /**
+     * This is used by consumers 2.2-rc-1 and later
+     */
+    public void shutdown(ShutdownParameters parameters) {
+        System.out.println("--> SHUTDOWN");
 //        services.close();
     }
 
