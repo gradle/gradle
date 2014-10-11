@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -207,8 +208,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, BuildCancellationToken cancellationToken) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, cancellationToken, executorFactory, idGenerator);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
+        DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken, idGenerator);
         try {
+            cancelForwarder.start();
             inputForwarder.start();
             int objectsReceived = 0;
 
@@ -225,7 +228,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 }
             }
         } finally {
-            inputForwarder.stop();
+            // Stop cancelling before sending end-of-input
+            CompositeStoppable.stoppable(cancelForwarder, inputForwarder).stop();
         }
     }
 

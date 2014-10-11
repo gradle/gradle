@@ -15,10 +15,9 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.io.TextStream;
 import org.gradle.util.DisconnectableInputStream;
@@ -42,24 +41,21 @@ public class InputForwarder implements Stoppable {
     private final TextStream handler;
     private final ExecutorFactory executorFactory;
     private final int bufferSize;
-    private final BuildCancellationToken cancellationToken;
     private StoppableExecutor forwardingExecuter;
     private DisconnectableInputStream disconnectableInput;
     private LineBufferingOutputStream outputBuffer;
     private final Lock lifecycleLock = new ReentrantLock();
     private boolean started;
     private boolean stopped;
-    private Runnable cancellationCallback;
 
-    public InputForwarder(InputStream input, TextStream handler, BuildCancellationToken cancellationToken, ExecutorFactory executerFactory, int bufferSize) {
+    public InputForwarder(InputStream input, TextStream handler, ExecutorFactory executerFactory, int bufferSize) {
         this.input = input;
         this.handler = handler;
-        this.cancellationToken = cancellationToken;
         this.executorFactory = executerFactory;
         this.bufferSize = bufferSize;
     }
 
-    public InputForwarder start(Runnable cancellationCallback) {
+    public InputForwarder start() {
         lifecycleLock.lock();
         try {
             if (started) {
@@ -68,9 +64,6 @@ public class InputForwarder implements Stoppable {
 
             disconnectableInput = new DisconnectableInputStream(input, bufferSize);
             outputBuffer = new LineBufferingOutputStream(handler, bufferSize);
-
-            cancellationToken.addCallback(cancellationCallback);
-            this.cancellationCallback = cancellationCallback;
 
             forwardingExecuter = executorFactory.create("forward input");
             forwardingExecuter.execute(new Runnable() {
@@ -124,8 +117,6 @@ public class InputForwarder implements Stoppable {
                 
                 forwardingExecuter.stop();
                 stopped = true;
-
-                cancellationToken.removeCallback(cancellationCallback);
             }
         } finally {
             lifecycleLock.unlock();

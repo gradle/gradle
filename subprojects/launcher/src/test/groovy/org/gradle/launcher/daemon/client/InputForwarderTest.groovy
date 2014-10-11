@@ -52,7 +52,7 @@ class InputForwarderTest extends Specification {
     def forwarder
 
     def createForwarder() {
-        forwarder = new InputForwarder(inputStream, action, cancellationToken, executerFactory, bufferSize)
+        forwarder = new InputForwarder(inputStream, action, executerFactory, bufferSize)
         forwarder.start()
     }
 
