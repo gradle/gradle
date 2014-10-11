@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=2.2")
-class CleanupCrossVersionSpec extends ToolingApiSpecification {
+class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     def cleanup() {
         reset()
     }
