@@ -17,15 +17,17 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
+import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CachingToolingImplementationLoader implements ToolingImplementationLoader {
+public class CachingToolingImplementationLoader implements ToolingImplementationLoader, Closeable {
     private final ToolingImplementationLoader loader;
     private final Map<ClassPath, ConsumerConnection> connections = new HashMap<ClassPath, ConsumerConnection>();
 
@@ -43,5 +45,13 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         }
 
         return connection;
+    }
+
+    public void close() {
+        try {
+            CompositeStoppable.stoppable(connections.values()).stop();
+        } finally {
+            connections.clear();
+        }
     }
 }

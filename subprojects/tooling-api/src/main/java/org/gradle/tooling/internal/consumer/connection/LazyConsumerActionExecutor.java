@@ -53,7 +53,6 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     }
 
     public void stop() {
-        ConsumerConnection connection = null;
         lock.lock();
         try {
             stopped = true;
@@ -64,13 +63,9 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            connection = this.connection;
             this.connection = null;
         } finally {
             lock.unlock();
-        }
-        if (connection != null) {
-            connection.stop();
         }
     }
 

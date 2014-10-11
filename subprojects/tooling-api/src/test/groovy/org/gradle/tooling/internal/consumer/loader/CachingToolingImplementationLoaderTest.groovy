@@ -31,9 +31,9 @@ class CachingToolingImplementationLoaderTest extends Specification {
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
 
     def delegatesToTargetLoaderToCreateImplementation() {
-        final Distribution distribution = Mock()
-        final ConsumerConnection connection = Mock()
-        final File userHomeDir = Mock()
+        def distribution = Mock(Distribution)
+        def connection = Mock(ConsumerConnection)
+        def userHomeDir = new File("user-home")
 
         when:
         def impl = loader.create(distribution, loggerFactory, params, cancellationToken)
@@ -47,9 +47,9 @@ class CachingToolingImplementationLoaderTest extends Specification {
     }
 
     def reusesImplementationWithSameClasspath() {
-        final Distribution distribution = Mock()
-        final ConsumerConnection connection = Mock()
-        final File userHomeDir = Mock()
+        def distribution = Mock(Distribution)
+        def connection = Mock(ConsumerConnection)
+        def userHomeDir = new File("user-home")
 
         when:
         def impl = loader.create(distribution, loggerFactory, params, cancellationToken)
@@ -65,10 +65,10 @@ class CachingToolingImplementationLoaderTest extends Specification {
     }
 
     def createsNewImplementationWhenClasspathNotSeenBefore() {
-        ConsumerConnection connection1 = Mock()
-        ConsumerConnection connection2 = Mock()
-        Distribution distribution1 = Mock()
-        Distribution distribution2 = Mock()
+        def connection1 = Mock(ConsumerConnection)
+        def connection2 = Mock(ConsumerConnection)
+        def distribution1 = Mock(Distribution)
+        def distribution2 = Mock(Distribution)
 
         when:
         def impl = loader.create(distribution1, loggerFactory, params, cancellationToken)
@@ -83,5 +83,31 @@ class CachingToolingImplementationLoaderTest extends Specification {
         _ * distribution1.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
         _ * distribution2.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('b.jar'))
         0 * _._
+    }
+
+    def closesConnectionsWhenClosed() {
+        def connection1 = Mock(ConsumerConnection)
+        def connection2 = Mock(ConsumerConnection)
+        def distribution1 = Mock(Distribution)
+        def distribution2 = Mock(Distribution)
+
+        given:
+        loader.create(distribution1, loggerFactory, params, cancellationToken)
+        loader.create(distribution2, loggerFactory, params, cancellationToken)
+        loader.create(distribution1, loggerFactory, params, cancellationToken)
+
+        _ * target.create(distribution1, loggerFactory, params, cancellationToken) >> connection1
+        _ * target.create(distribution2, loggerFactory, params, cancellationToken) >> connection2
+        _ * params.getGradleUserHomeDir() >> null
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('b.jar'))
+
+        when:
+        loader.close()
+
+        then:
+        connection1.stop()
+        connection2.stop()
+        0 * _
     }
 }

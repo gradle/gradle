@@ -32,7 +32,6 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
     }
 
     public void stop() {
-        delegate.stop();
     }
 
     public String getDisplayName() {

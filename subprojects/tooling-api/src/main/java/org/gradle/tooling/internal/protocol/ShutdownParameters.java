@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
-
-import org.gradle.internal.concurrent.Stoppable;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * Implementations must be thread-safe.
+ * The parameters for shutting down a provider connection.
+ *
+ * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support.
+ *
+ * @since 2.2-rc-1
  */
-public interface ConsumerActionExecutor extends Stoppable {
-    /**
-     * Blocks until all actions have completed.
-     */
-    void stop();
-    
-    String getDisplayName();
-
-    <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException;
+public interface ShutdownParameters extends InternalProtocolInterface {
 }
