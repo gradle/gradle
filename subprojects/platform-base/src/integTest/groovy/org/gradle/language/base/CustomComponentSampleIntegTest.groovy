@@ -27,14 +27,13 @@ class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
         sample customComponent
         customComponent.dir.file("build.gradle") << """
 
-
 task checkModel << {
     assert project.componentSpecs.size() == 2
-    def coreLib = project.componentSpecs.core
-    assert coreLib instanceof SampleLibrary
-    assert coreLib.projectPath == project.path
-    assert coreLib.displayName == "DefaultSampleLibrary 'core'"
-    assert coreLib.binaries.collect{it.name}.sort() == ['coreOsxBinary', 'coreUnixBinary', 'coreWindowsBinary']
+    def titleAImage = project.componentSpecs.TitleA
+    assert titleAImage instanceof ImageComponent
+    assert titleAImage.projectPath == project.path
+    assert titleAImage.displayName == "DefaultImageComponent 'TitleA'"
+    assert titleAImage.binaries.collect{it.name}.sort() == ['titleA14pxBinary', 'titleA28pxBinary', 'titleA40pxBinary']
 }
 
 """
@@ -48,11 +47,12 @@ task checkModel << {
         when:
         succeeds "assemble"
         then:
-        executedAndNotSkipped ":coreOsxBinaryCreationTask" ,":coreOsxBinary", ":coreUnixBinaryCreationTask", ":coreUnixBinary", ":coreWindowsBinaryCreationTask",
-                              ":coreWindowsBinary", ":featureOsxBinaryCreationTask", ":featureOsxBinary", ":featureUnixBinaryCreationTask", ":featureUnixBinary",
-                              ":featureWindowsBinaryCreationTask", ":featureWindowsBinary", ":assemble"
+        executedAndNotSkipped ":renderTitleA14pxSvg", ":titleA14pxBinary", ":renderTitleA28pxSvg", ":titleA28pxBinary", ":renderTitleA40pxSvg",
+                              ":titleA40pxBinary", ":renderTitleB14pxSvg", ":titleB14pxBinary", ":renderTitleB28pxSvg", ":titleB28pxBinary",
+                              ":renderTitleB40pxSvg", ":titleB40pxBinary", ":assemble"
+
         and:
-        customComponent.dir.file("build/binaries").assertHasDescendants("coreOsxBinary.svg", "coreUnixBinary.svg", "coreWindowsBinary.svg", "featureOsxBinary.svg",
-                                                                        "featureUnixBinary.svg", "featureWindowsBinary.svg")
+        customComponent.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",
+                                                                         "TitleB_28px.svg", "TitleB_40px.svg")
     }
 }
