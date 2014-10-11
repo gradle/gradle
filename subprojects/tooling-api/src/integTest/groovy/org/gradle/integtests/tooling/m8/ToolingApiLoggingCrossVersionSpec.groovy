@@ -25,11 +25,11 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         //for embedded tests we don't mess with global logging. Run with forks only.
         toolingApi.isEmbedded = false
-        new ConnectorServices().reset()
+        reset()
     }
 
     def cleanup() {
-        new ConnectorServices().reset()
+        reset()
     }
 
     def "client receives same stdout and stderr when in verbose mode as if running from the command-line in debug mode"() {

@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor
@@ -29,8 +30,9 @@ class ConnectionFactoryTest extends Specification {
     final ListenerManager listenerManager = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final Distribution distribution = Mock()
+    final ExecutorFactory executorFactory = Mock()
     final ConnectionParameters parameters = DefaultConnectionParameters.builder().build()
-    final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
+    final ConnectionFactory factory = new ConnectionFactory(implementationLoader, executorFactory)
 
     def usesImplementationLoaderToLoadConnectionFactory() {
         when:
@@ -43,6 +45,7 @@ class ConnectionFactoryTest extends Specification {
         result.connection.actionExecutor.actionExecutor instanceof ProgressLoggingConsumerActionExecutor
         result.connection.actionExecutor.actionExecutor.actionExecutor instanceof LazyConsumerActionExecutor
         _ * distribution.displayName >> "[some distribution]"
+        _ * executorFactory.create("Connection worker")
         0 * _._
     }
 }

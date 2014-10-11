@@ -62,7 +62,7 @@ public abstract class GradleConnector {
      * @since 1.0-milestone-3
      */
     public static GradleConnector newConnector() {
-        return new ConnectorServices().createConnector();
+        return ConnectorServices.createConnector();
     }
 
     /**
@@ -72,7 +72,7 @@ public abstract class GradleConnector {
      * @since 2.1
      */
     public static CancellationTokenSource newCancellationTokenSource() {
-        return new DefaultCancellationTokenSource();
+        return ConnectorServices.createCancellationTokenSource();
     }
 
     /**

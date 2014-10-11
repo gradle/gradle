@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.integtests.tooling.r22
 
-import org.gradle.internal.Factory;
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
-import java.util.concurrent.ExecutorService;
+@ToolingApiVersion(">=2.2")
+class CleanupCrossVersionSpec extends ToolingApiSpecification {
+    def cleanup() {
+        reset()
+    }
 
-public interface ExecutorServiceFactory extends Factory<ExecutorService> {
-    ExecutorService create();
+    def "can close tooling API session"() {
+        when:
+        DefaultGradleConnector.close()
+        GradleConnector.newConnector()
+
+        then:
+        IllegalStateException e = thrown()
+    }
 }

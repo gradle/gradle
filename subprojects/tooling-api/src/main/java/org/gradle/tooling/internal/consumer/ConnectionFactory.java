@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor;
@@ -27,10 +27,11 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class ConnectionFactory {
     private final ToolingImplementationLoader toolingImplementationLoader;
-    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+    private final ExecutorFactory executorFactory;
 
-    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader) {
+    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory) {
         this.toolingImplementationLoader = toolingImplementationLoader;
+        this.executorFactory = executorFactory;
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {

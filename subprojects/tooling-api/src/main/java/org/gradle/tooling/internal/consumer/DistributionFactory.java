@@ -20,6 +20,7 @@ import org.gradle.api.internal.classpath.EffectiveClassPath;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -39,9 +40,9 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 public class DistributionFactory {
-    private final ExecutorServiceFactory executorFactory;
+    private final Factory<? extends ExecutorService> executorFactory;
 
-    public DistributionFactory(ExecutorServiceFactory executorFactory) {
+    public DistributionFactory(Factory<? extends ExecutorService> executorFactory) {
         this.executorFactory = Preconditions.checkNotNull(executorFactory);
     }
 
@@ -96,9 +97,9 @@ public class DistributionFactory {
     private static class ZippedDistribution implements Distribution {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
-        private final ExecutorServiceFactory executorFactory;
+        private final Factory<? extends ExecutorService> executorFactory;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, ExecutorServiceFactory executorFactory) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.executorFactory = executorFactory;
         }
