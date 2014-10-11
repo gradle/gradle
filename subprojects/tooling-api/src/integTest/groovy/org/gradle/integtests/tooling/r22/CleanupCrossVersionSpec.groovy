@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=2.2")
 class CleanupCrossVersionSpec extends ToolingApiSpecification {
@@ -27,9 +28,25 @@ class CleanupCrossVersionSpec extends ToolingApiSpecification {
         reset()
     }
 
-    def "can close tooling API session"() {
-        when:
+    def "can close tooling API session when no operations have been executed"() {
+        given:
         DefaultGradleConnector.close()
+
+        when:
+        GradleConnector.newConnector()
+
+        then:
+        IllegalStateException e = thrown()
+    }
+
+    def "can close tooling API session after completing an operation"() {
+        given:
+        withConnection { connection ->
+            connection.getModel(GradleBuild)
+        }
+        DefaultGradleConnector.close()
+
+        when:
         GradleConnector.newConnector()
 
         then:
