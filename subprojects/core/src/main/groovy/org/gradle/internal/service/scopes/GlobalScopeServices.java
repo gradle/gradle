@@ -127,7 +127,7 @@ public class GlobalScopeServices {
     }
 
     MessagingServices createMessagingServices(ClassLoaderRegistry classLoaderRegistry) {
-        return new MessagingServices(classLoaderRegistry.getPluginsClassLoader());
+        return new MessagingServices(getClass().getClassLoader());
     }
 
     MessagingServer createMessagingServer(MessagingServices messagingServices) {
