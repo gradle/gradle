@@ -41,6 +41,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
     def "can close tooling API session after completing an operation"() {
         given:
+        toolingApi.isEmbedded = false
         withConnection { connection ->
             connection.getModel(GradleBuild)
         }
