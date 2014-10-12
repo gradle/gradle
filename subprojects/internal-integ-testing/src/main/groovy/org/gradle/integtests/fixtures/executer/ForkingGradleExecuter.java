@@ -17,19 +17,13 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,12 +36,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
-    }
-
-    public DaemonRegistry getDaemonRegistry() {
-        DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters());
-        parameters.setBaseDir(getDaemonBaseDir());
-        return new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, new ByteArrayInputStream(new byte[0])).get(DaemonRegistry.class);
     }
 
     public void assertCanExecute() throws AssertionError {

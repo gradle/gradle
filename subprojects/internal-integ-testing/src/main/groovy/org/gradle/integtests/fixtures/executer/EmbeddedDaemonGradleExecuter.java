@@ -23,7 +23,6 @@ import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
@@ -38,10 +37,6 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     EmbeddedDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
-    }
-
-    public DaemonRegistry getDaemonRegistry() {
-        return daemonClientServices.get(DaemonRegistry.class);
     }
 
     public void assertCanExecute() throws AssertionError {
