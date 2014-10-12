@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
@@ -41,7 +42,13 @@ public class ConnectionScopeServices {
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
-    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory) {
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager) {
+        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator();
+        listenerManager.addListener(shutdownCoordinator);
+        return shutdownCoordinator;
+    }
+
+    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory, ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 loggingServices,
                 daemonClientFactory,
