@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.JavaVersion;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.FixedBuildCancellationToken;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -92,8 +93,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 2.2-rc-1 and later
      */
     public void shutdown(ShutdownParameters parameters) {
-        System.out.println("--> SHUTDOWN");
-//        services.close();
+        CompositeStoppable.stoppable(services).stop();
     }
 
     /**
