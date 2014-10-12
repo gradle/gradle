@@ -52,7 +52,6 @@ class ApplicationPlugin implements Plugin<Project> {
         addRunTask()
         addCreateScriptsTask()
 
-        configureDistSpec(pluginConvention.applicationDistribution)
         def distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
         distribution.conventionMapping.baseName = {pluginConvention.applicationName}
         configureDistSpec(distribution.contents)
@@ -122,6 +121,7 @@ class ApplicationPlugin implements Plugin<Project> {
                 fileMode = 0755
             }
         }
+        distSpec.with(pluginConvention.applicationDistribution)
 
         distSpec
     }

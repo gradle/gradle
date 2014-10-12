@@ -59,7 +59,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "installApp"
+        succeeds "installDist"
 
         and:
         def distBase = file("build/install/app")
@@ -89,7 +89,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "installApp"
+        succeeds "installDist"
 
         and:
         ":createDocs" in nonSkippedTasks

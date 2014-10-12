@@ -50,7 +50,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -93,7 +93,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -131,7 +131,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -174,7 +174,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -230,7 +230,7 @@ class Main {
 '''
 
         when:
-        run 'install', 'distZip', 'distTar'
+        run 'installApp', 'distZip', 'distTar'
 
         then:
         def installDir = file('build/install/mega-app')
@@ -268,7 +268,7 @@ class Main {
 '''
 
         when:
-        run 'install', 'distZip', 'distTar'
+        run 'installApp', 'distZip', 'distTar'
 
         then:
         def installDir = file('build/install/application')
