@@ -28,7 +28,7 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface StoppableConnection extends InternalProtocolInterface {
     /**
-     * Cleanup any resources used by this connection. Blocks until complete.
+     * Shuts down this connection. Blocks until complete. The connection should not be used after calling this method.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 2.2-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 2.2-rc-1.</p>

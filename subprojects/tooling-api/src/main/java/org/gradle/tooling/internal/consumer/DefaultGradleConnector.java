@@ -44,11 +44,11 @@ public class DefaultGradleConnector extends GradleConnector {
      *
      * Note: this is not on the public GradleConnector API yet.
      *
-     * TODO - need to model this as a long running operation.
+     * TODO - need to model this as a long running operation, and allow stdout, stderr and progress listener to be supplied.
      * TODO - need to define exceptions.
      * TODO - no further operations are allowed after this has been called
-     * TODO - cancel current operations or block until complete?
-     * TODO - need to model session type.
+     * TODO - cancel current operations or block until complete
+     * TODO - introduce a 'tooling API client' interface and move this method there
      */
     public static void close() {
         ConnectorServices.close();
