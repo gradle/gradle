@@ -20,9 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
-import org.spockframework.runtime.SpockAssertionError
-import org.spockframework.runtime.SpockTimeoutError
 import spock.lang.IgnoreIf
 import spock.util.concurrent.PollingConditions
 
@@ -51,20 +50,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         wasForked()
 
         and:
-        noDaemonsRunning()
-    }
-
-    protected void noDaemonsRunning() {
-        // Because of GRADLE-2630, we need to use a spin assert here
-        // This should be removed when this bug is fixed.
-        try {
-            pollingConditions.eventually {
-                executer.getDaemonRegistry().all.empty
-            }
-        } catch (SpockTimeoutError e) {
-            // Spock swallows the inner exception, this is just to give a more helpful error message
-            throw new SpockAssertionError("The daemon registry is not empty after timeout (means daemons are still running)", e)
-        }
+        daemons.daemon.stops()
     }
 
     def "stops single use daemon when build fails"() {
@@ -80,7 +66,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause "bad"
 
         and:
-        noDaemonsRunning()
+        daemons.daemon.stops()
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
@@ -96,7 +82,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
 
         then:
-        !wasForked();
+        wasNotForked()
     }
 
     def "forks build to run when immutable jvm args set regardless of the environment"() {
@@ -129,7 +115,7 @@ assert System.getProperty('some-prop') == 'some-value'
         succeeds()
 
         and:
-        !wasForked()
+        wasNotForked()
     }
 
     @IgnoreIf({ AvailableJavaHomes.java5 == null })
@@ -161,7 +147,7 @@ assert System.getProperty('some-prop') == 'some-value'
         output.contains "encoding = $encoding"
 
         and:
-        !wasForked()
+        wasNotForked()
     }
 
     private def requireJvmArg(String jvmArg) {
@@ -172,7 +158,17 @@ assert System.getProperty('some-prop') == 'some-value'
         executer.withEnvironmentVars(["JAVA_OPTS": "$jvmArg -ea"])
     }
 
-    private def wasForked() {
-        result.output.contains(SingleUseDaemonClient.MESSAGE)
+    private void wasForked() {
+        assert result.output.contains(SingleUseDaemonClient.MESSAGE)
+        assert daemons.daemons.size() == 1
+    }
+
+    private void wasNotForked() {
+        assert !result.output.contains(SingleUseDaemonClient.MESSAGE)
+        assert daemons.daemons.size() == 0
+    }
+
+    private def getDaemons() {
+        return new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }
