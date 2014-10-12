@@ -33,7 +33,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         embedded(false),
         forking(true),
         daemon(true),
-        embeddedDaemon(false),
         parallel(true, true);
 
         final public boolean forks;
@@ -97,8 +96,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private GradleExecuter createExecuter(Executer executerType) {
         switch (executerType) {
-            case embeddedDaemon:
-                return new EmbeddedDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
             case embedded:
                 return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider());
             case daemon:
