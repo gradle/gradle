@@ -24,8 +24,8 @@ interface ImageComponent extends LibrarySpec { }
 class DefaultImageComponent extends BaseComponentSpec implements ImageComponent {}
 
 interface ImageBinary extends BinarySpec {
-    public String getTitle()
-    public String getSize()
+    String getTitle()
+    String getSize()
 }
 
 class DefaultImageBinary extends BaseBinarySpec implements ImageBinary {
