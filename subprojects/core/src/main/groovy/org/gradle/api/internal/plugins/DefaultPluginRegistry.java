@@ -37,28 +37,30 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final DefaultPluginRegistry parent;
     private final Factory<? extends ClassLoader> classLoaderFactory;
     private final Instantiator instantiator;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
-    public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
-        this(Factories.constant(classLoader), instantiator);
+    public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector) {
+        this(Factories.constant(classLoader), instantiator, modelRuleSourceDetector);
     }
 
-    public DefaultPluginRegistry(Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator) {
-        this(null, classLoaderFactory, instantiator);
+    public DefaultPluginRegistry(Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector) {
+        this(null, classLoaderFactory, instantiator, modelRuleSourceDetector);
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator) {
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<? extends ClassLoader> classLoaderFactory, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector) {
         this.parent = parent;
         this.classLoaderFactory = classLoaderFactory;
         this.instantiator = instantiator;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
-    public PluginRegistry createChild(final ClassLoaderScope lookupScope, Instantiator instantiator) {
+    public PluginRegistry createChild(final ClassLoaderScope lookupScope, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector) {
         Factory<ClassLoader> classLoaderFactory = new Factory<ClassLoader>() {
             public ClassLoader create() {
                 return lookupScope.getLocalClassLoader();
             }
         };
-        return new DefaultPluginRegistry(this, classLoaderFactory, instantiator);
+        return new DefaultPluginRegistry(this, classLoaderFactory, instantiator, modelRuleSourceDetector);
     }
 
     public <T extends Plugin<?>> T loadPlugin(Class<T> pluginClass) {
@@ -133,8 +135,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     public Class<?> getTypeForId(String pluginId) {
         return getTypeForId(pluginId, new Spec<Class<?>>() {
             public boolean isSatisfiedBy(Class<?> rawClass) {
-                ModelRuleSourceDetector detector = new ModelRuleSourceDetector();
-                return Plugin.class.isAssignableFrom(rawClass) || !detector.getDeclaredSources(rawClass).isEmpty();
+                return Plugin.class.isAssignableFrom(rawClass) || modelRuleSourceDetector.hasModelSources(rawClass);
             }
         }, "Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface and does not define any rule sources.");
     }

@@ -42,6 +42,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -85,7 +86,12 @@ public abstract class DefaultScript extends BasicScript {
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
         ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class);
         return new DefaultObjectConfigurationAction(
-                getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), __scriptServices.get(ScriptHandlerFactory.class), classLoaderScope, getScriptTarget()
+                getFileResolver(),
+                __scriptServices.get(ScriptPluginFactory.class),
+                __scriptServices.get(ScriptHandlerFactory.class),
+                classLoaderScope,
+                __scriptServices.get(ModelRuleSourceDetector.class),
+                getScriptTarget()
         );
     }
 

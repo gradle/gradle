@@ -35,6 +35,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.resolve.internal.*;
@@ -53,12 +54,13 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     private final StartParameter startParameter;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final ClassLoaderScope parentScope;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
     public PluginResolutionServiceResolver(
             PluginResolutionServiceClient portalClient,
             Instantiator instantiator,
             VersionMatcher versionMatcher, StartParameter startParameter,
-            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
+            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, ModelRuleSourceDetector modelRuleSourceDetector
     ) {
         this.portalClient = portalClient;
         this.instantiator = instantiator;
@@ -66,6 +68,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         this.startParameter = startParameter;
         this.parentScope = parentScope;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
     private static String getUrl() {
@@ -95,7 +98,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
                         handleLegacy(metaData, result);
                     } else {
                         ClassPath classPath = resolvePluginDependencies(metaData);
-                        PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
+                        PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath), modelRuleSourceDetector);
                         result.found(getDescription(), resolution);
                     }
                 }

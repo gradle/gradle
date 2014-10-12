@@ -22,23 +22,20 @@ import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 
-import java.util.Set;
-
 public class ProjectAppliedPluginContainer extends AbstractAppliedPluginContainer {
 
     private final ProjectInternal target;
     private final ModelRuleInspector inspector;
 
-    public ProjectAppliedPluginContainer(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector) {
-        super(target, pluginRegistry);
+    public ProjectAppliedPluginContainer(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector, ModelRuleSourceDetector modelRuleSourceDetector) {
+        super(target, pluginRegistry, modelRuleSourceDetector);
         this.target = target;
         this.inspector = inspector;
     }
 
     @Override
     protected void extractModelRules(Class<?> pluginClass) {
-        Set<Class<?>> declaredSources = new ModelRuleSourceDetector().getDeclaredSources(pluginClass);
-        for (Class<?> source : declaredSources) {
+        for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(pluginClass)) {
             inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
                 public void add(Class<?> source) {
                     if (!Plugin.class.isAssignableFrom(source)) {

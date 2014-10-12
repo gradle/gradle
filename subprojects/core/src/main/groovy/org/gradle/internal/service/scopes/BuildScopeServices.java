@@ -74,6 +74,7 @@ import org.gradle.logging.ShowStacktrace;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -221,7 +222,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(ScriptHandlerFactory.class),
                 get(PluginRequestApplicator.class),
                 get(FileLookup.class),
-                get(DocumentationRegistry.class)
+                get(DocumentationRegistry.class),
+                get(ModelRuleSourceDetector.class)
         );
     }
 
@@ -292,7 +294,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry() {
-        return new CorePluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this));
+        return new CorePluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this), get(ModelRuleSourceDetector.class));
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -318,6 +320,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ComponentTypeRegistry createComponentTypeRegistry() {
         return new DefaultComponentTypeRegistry();
+    }
+
+    protected ModelRuleSourceDetector createModelRuleSourceDetector() {
+        return new ModelRuleSourceDetector();
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {

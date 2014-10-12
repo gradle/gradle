@@ -40,6 +40,7 @@ import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.resolve.service.internal.*;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -77,7 +78,10 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
-        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, VersionMatcher versionMatcher, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
+        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, VersionMatcher versionMatcher,
+                                                                              StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
+                                                                              final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                                              ClassLoaderScopeRegistry classLoaderScopeRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
             final ProjectFinder projectFinder = new ProjectFinder() {
                 public ProjectInternal getProject(String path) {
                     throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
@@ -88,7 +92,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                 public DependencyResolutionServices create() {
                     return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
                 }
-            });
+            }, modelRuleSourceDetector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver) {

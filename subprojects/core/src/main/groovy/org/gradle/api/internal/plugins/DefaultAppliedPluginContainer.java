@@ -21,12 +21,12 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 public class DefaultAppliedPluginContainer extends AbstractAppliedPluginContainer {
 
-    public DefaultAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry) {
-        super(target, pluginRegistry);
+    public DefaultAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
+        super(target, pluginRegistry, modelRuleSourceDetector);
     }
 
     protected void extractModelRules(Class<?> pluginClass) {
-        if(!new ModelRuleSourceDetector().getDeclaredSources(pluginClass).isEmpty()) {
+        if(modelRuleSourceDetector.hasModelSources(pluginClass)) {
             String message = String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware", pluginClass.getName(), target.toString());
             throw new UnsupportedOperationException(message);
         }

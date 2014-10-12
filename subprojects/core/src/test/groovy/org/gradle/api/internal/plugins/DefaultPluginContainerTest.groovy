@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.TestPlugin2
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -32,10 +33,10 @@ public class DefaultPluginContainerTest extends Specification {
 
     def project = TestUtil.createRootProject()
     def pluginRegistry = Mock(PluginRegistry)
+    def modelRuleSourceDetector = new ModelRuleSourceDetector()
 
     @Subject
-            container = new DefaultPluginContainer(pluginRegistry, project)
-
+    container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
@@ -141,8 +142,8 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(groovyLoader, new DirectInstantiator())
-        def container = new DefaultPluginContainer(pluginRegistry, project)
+        def pluginRegistry = new DefaultPluginRegistry(groovyLoader, new DirectInstantiator(), modelRuleSourceDetector)
+        def container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -179,8 +180,8 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(groovyLoader.parent, new DirectInstantiator())
-        def container = new DefaultPluginContainer(pluginRegistry, project)
+        def pluginRegistry = new DefaultPluginRegistry(groovyLoader.parent, new DirectInstantiator(), modelRuleSourceDetector)
+        def container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -220,8 +221,8 @@ public class DefaultPluginContainerTest extends Specification {
             }
         """
 
-        def pluginRegistry = new DefaultPluginRegistry(groovyLoader.parent, new DirectInstantiator())
-        def container = new DefaultPluginContainer(pluginRegistry, project)
+        def pluginRegistry = new DefaultPluginRegistry(groovyLoader.parent, new DirectInstantiator(), modelRuleSourceDetector)
+        def container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -250,7 +251,7 @@ public class DefaultPluginContainerTest extends Specification {
         pluginRegistry.loadPlugin(TestPlugin1) >> plugin
         def applicationAction1 = Mock(PluginApplicationAction)
         def applicationAction2 = Mock(PluginApplicationAction)
-        def container = new DefaultPluginContainer(pluginRegistry, project, Arrays.asList(applicationAction1, applicationAction2))
+        def container = new DefaultPluginContainer(pluginRegistry, project, Arrays.asList(applicationAction1, applicationAction2), modelRuleSourceDetector)
 
         when:
         container.apply(TestPlugin1)

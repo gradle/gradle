@@ -28,13 +28,15 @@ public abstract class AbstractAppliedPluginContainer implements PluginApplicatio
 
     private final DomainObjectSet<Class<? extends Object>> appliedPlugins;
     private final PluginRegistry pluginRegistry;
+    protected final ModelRuleSourceDetector modelRuleSourceDetector;
     protected final PluginAware target;
 
     abstract protected void extractModelRules(Class<?> pluginClass);
 
-    public AbstractAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry) {
+    public AbstractAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
         this.target = target;
         this.pluginRegistry = pluginRegistry;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
         @SuppressWarnings("unchecked") Class<? extends Class<?>> type = (Class<? extends Class<?>>) Class.class.getClass();
         appliedPlugins = new DefaultDomainObjectSet<Class<?>>(type);
     }
@@ -51,7 +53,7 @@ public abstract class AbstractAppliedPluginContainer implements PluginApplicatio
     }
 
     public void apply(Class<?> pluginClass) {
-        if (!Plugin.class.isAssignableFrom(pluginClass) && new ModelRuleSourceDetector().getDeclaredSources(pluginClass).isEmpty()) {
+        if (!Plugin.class.isAssignableFrom(pluginClass) && !modelRuleSourceDetector.hasModelSources(pluginClass)) {
             throw new IllegalArgumentException(String.format("'%s' is neither a plugin or a rule source and cannot be applied.", pluginClass.getName()));
         }
         applyValidType(pluginClass);

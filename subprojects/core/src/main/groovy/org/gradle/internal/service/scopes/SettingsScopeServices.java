@@ -28,6 +28,7 @@ import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 public class SettingsScopeServices extends DefaultServiceRegistry {
     private final SettingsInternal settings;
@@ -42,15 +43,15 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(settings.getClassLoaderScope(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(settings.getClassLoaderScope(), new DependencyInjectingInstantiator(this), get(ModelRuleSourceDetector.class));
     }
 
     protected PluginContainer createPluginContainer() {
-        return new DefaultPluginContainer<SettingsInternal>(get(PluginRegistry.class), settings);
+        return new DefaultPluginContainer<SettingsInternal>(get(PluginRegistry.class), settings, get(ModelRuleSourceDetector.class));
     }
 
     protected DefaultAppliedPluginContainer createPluginApplicationHandler() {
-        return new DefaultAppliedPluginContainer(settings, get(PluginRegistry.class));
+        return new DefaultAppliedPluginContainer(settings, get(PluginRegistry.class), get(ModelRuleSourceDetector.class));
     }
 
     protected AppliedPlugins createAppliedPlugins() {

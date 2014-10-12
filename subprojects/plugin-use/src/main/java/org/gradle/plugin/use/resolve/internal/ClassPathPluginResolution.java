@@ -22,6 +22,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.internal.PluginId;
 
 public class ClassPathPluginResolution implements PluginResolution {
@@ -30,12 +31,15 @@ public class ClassPathPluginResolution implements PluginResolution {
     private final Instantiator instantiator;
     private final ClassLoaderScope parent;
     private final Factory<? extends ClassPath> classPathFactory;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
-    public ClassPathPluginResolution(Instantiator instantiator, PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory) {
+    public ClassPathPluginResolution(Instantiator instantiator, PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory,
+                                     ModelRuleSourceDetector modelRuleSourceDetector) {
         this.pluginId = pluginId;
         this.instantiator = instantiator;
         this.parent = parent;
         this.classPathFactory = classPathFactory;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
     public PluginId getPluginId() {
@@ -47,7 +51,7 @@ public class ClassPathPluginResolution implements PluginResolution {
         ClassLoaderScope loaderScope = parent.createChild();
         loaderScope.local(classPath);
         loaderScope.lock();
-        PluginRegistry pluginRegistry = new DefaultPluginRegistry(loaderScope.getLocalClassLoader(), instantiator);
+        PluginRegistry pluginRegistry = new DefaultPluginRegistry(loaderScope.getLocalClassLoader(), instantiator, modelRuleSourceDetector);
         return pluginRegistry.getTypeForId(pluginId.toString());
     }
 }

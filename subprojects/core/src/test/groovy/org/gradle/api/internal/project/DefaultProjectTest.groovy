@@ -50,6 +50,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
@@ -108,6 +109,7 @@ class DefaultProjectTest {
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
     PluginApplicationHandler pluginApplicationHandler = context.mock(PluginApplicationHandler.class)
     AppliedPlugins appliedPlugins = context.mock(AppliedPlugins.class)
+    ModelRuleSourceDetector modelRuleSourceDetector = context.mock(ModelRuleSourceDetector.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild()
@@ -160,7 +162,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginApplicationHandler); will(returnValue(pluginApplicationHandler))
-            allowing(serviceRegistryMock).get((Type)AppliedPlugins); will(returnValue(appliedPlugins))
+            allowing(serviceRegistryMock).get((Type) AppliedPlugins); will(returnValue(appliedPlugins))
+            allowing(serviceRegistryMock).get((Type) ModelRuleSourceDetector); will(returnValue(modelRuleSourceDetector))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)
             allowing(serviceRegistryMock).get((Type) ModelRegistry); will(returnValue(modelRegistry))

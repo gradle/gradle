@@ -36,6 +36,7 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
@@ -61,8 +62,9 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ExecutorFactory) >> Stub(ExecutorFactory)
         parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
         parent.get(ProjectConfigurer) >> Stub(ProjectConfigurer)
+        parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
         gradle.getStartParameter() >> startParameter
-        pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
+        pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
 
     def "can create services for a project instance"() {

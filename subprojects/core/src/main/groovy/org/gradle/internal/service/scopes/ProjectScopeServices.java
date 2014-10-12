@@ -52,6 +52,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -81,7 +82,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock(), new DependencyInjectingInstantiator(this), get(ModelRuleSourceDetector.class));
     }
 
     protected FileResolver createFileResolver() {
@@ -118,7 +119,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginContainer createPluginContainer() {
         List<PluginApplicationAction> allPluginApplyActions = getAll(PluginApplicationAction.class);
-        return new DefaultPluginContainer<ProjectInternal>(get(PluginRegistry.class), project, allPluginApplyActions);
+        return new DefaultPluginContainer<ProjectInternal>(get(PluginRegistry.class), project, allPluginApplyActions, get(ModelRuleSourceDetector.class));
     }
 
     protected PluginApplicationAction createAppliedPluginsAdditionAction() {
@@ -128,7 +129,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected ProjectAppliedPluginContainer createPluginApplicationHandler() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
-        return new ProjectAppliedPluginContainer(project, get(PluginRegistry.class), inspector);
+        return new ProjectAppliedPluginContainer(project, get(PluginRegistry.class), inspector, get(ModelRuleSourceDetector.class));
     }
 
     protected AppliedPlugins createAppliedPlugins() {

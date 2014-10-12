@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
@@ -38,7 +39,8 @@ class SettingsScopeServicesTest extends Specification {
         settings.getSettingsDir() >> new File("settings-dir").absoluteFile
         parent.get(org.gradle.internal.nativeintegration.filesystem.FileSystem) >> Stub(org.gradle.internal.nativeintegration.filesystem.FileSystem)
         parent.get(PluginRegistry) >> pluginRegistryParent
-        pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
+        parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
+        pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
 
 

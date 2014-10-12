@@ -28,6 +28,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import spock.lang.Specification
 
@@ -56,7 +57,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def fileLookup = Mock(FileLookup)
     def documentationRegistry = Mock(DocumentationRegistry)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup, documentationRegistry)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
+            documentationRegistry, new ModelRuleSourceDetector())
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

@@ -47,6 +47,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -63,6 +64,7 @@ class ProjectScopeServicesTest extends Specification {
     ServiceRegistry parent = Stub()
     ProjectScopeServices registry
     PluginRegistry pluginRegistry = Mock()
+    ModelRuleSourceDetector modelRuleSourceDetector = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
 
@@ -85,6 +87,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
+        parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         registry = new ProjectScopeServices(parent, project)
     }
 
@@ -116,7 +119,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a PluginContainer"() {
-        1 * pluginRegistry.createChild(classLoaderScope, _ as DependencyInjectingInstantiator) >> Stub(PluginRegistry)
+        1 * pluginRegistry.createChild(classLoaderScope, _ as DependencyInjectingInstantiator, modelRuleSourceDetector) >> Stub(PluginRegistry)
 
         expect:
         provides(PluginContainer, DefaultPluginContainer)

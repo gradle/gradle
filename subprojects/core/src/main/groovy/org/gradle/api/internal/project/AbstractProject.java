@@ -64,6 +64,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -900,7 +901,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getModelRuleSourceDetector(), this);
     }
 
     @Inject
@@ -923,6 +924,12 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     @Inject
     public AppliedPlugins getAppliedPlugins() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ModelRuleSourceDetector getModelRuleSourceDetector() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

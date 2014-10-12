@@ -19,6 +19,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
+import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
@@ -36,17 +37,19 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
 
     private final T pluginAware;
     private final List<PluginApplicationAction> pluginApplicationActions;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware) {
-        this(pluginRegistry, pluginAware, Collections.<PluginApplicationAction>emptyList());
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, ModelRuleSourceDetector modelRuleSourceDetector) {
+        this(pluginRegistry, pluginAware, Collections.<PluginApplicationAction>emptyList(), modelRuleSourceDetector);
     }
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginApplicationAction> pluginApplicationActions) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginApplicationAction> pluginApplicationActions, ModelRuleSourceDetector modelRuleSourceDetector) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginAware = pluginAware;
         this.pluginApplicationActions = pluginApplicationActions;
         idLookupCache = CacheBuilder.newBuilder().build(new PluginIdLookupCacheLoader(pluginRegistry));
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
     public Plugin apply(String id) {
@@ -120,7 +123,7 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
     public void withId(final String pluginId, Action<? super Plugin> action) {
         try {
             Class<?> typeForId = pluginRegistry.getTypeForId(pluginId);
-            if (!Plugin.class.isAssignableFrom(typeForId) && !new ModelRuleSourceDetector().getDeclaredSources(typeForId).isEmpty()) {
+            if (!Plugin.class.isAssignableFrom(typeForId) && modelRuleSourceDetector.hasModelSources(typeForId)) {
                 String message = String.format("The type for id '%s' (class: '%s') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.", pluginId, typeForId.getName());
                 throw new IllegalArgumentException(message);
             }
@@ -148,4 +151,12 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
         return plugin;
     }
 
+    @Override
+    public <S extends Plugin> PluginCollection<S> withType(Class<S> type) {
+        if (!Plugin.class.isAssignableFrom(type) && modelRuleSourceDetector.hasModelSources(type)) {
+            String message = String.format("'%s' is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.", type.getName());
+            throw new IllegalArgumentException(message);
+        }
+        return super.withType(type);
+    }
 }

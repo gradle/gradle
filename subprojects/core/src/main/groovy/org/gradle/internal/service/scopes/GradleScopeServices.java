@@ -33,6 +33,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -102,15 +103,15 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope(), new DependencyInjectingInstantiator(this), get(ModelRuleSourceDetector.class));
     }
 
-    PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {
-        return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle);
+    PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
+        return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle, modelRuleSourceDetector);
     }
 
-    DefaultAppliedPluginContainer createPluginApplicationHandler(GradleInternal gradle, PluginRegistry pluginRegistry) {
-        return new DefaultAppliedPluginContainer(gradle, pluginRegistry);
+    DefaultAppliedPluginContainer createPluginApplicationHandler(GradleInternal gradle, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
+        return new DefaultAppliedPluginContainer(gradle, pluginRegistry, modelRuleSourceDetector);
     }
 
     protected AppliedPlugins createAppliedPlugins() {

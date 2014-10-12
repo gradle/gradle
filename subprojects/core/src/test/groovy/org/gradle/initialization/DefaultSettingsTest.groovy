@@ -33,6 +33,7 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
@@ -61,6 +62,7 @@ class DefaultSettingsTest {
     ScriptHandlerFactory scriptHandlerFactory
     PluginApplicationHandler pluginApplicationHandler
     AppliedPlugins appliedPlugins
+    ModelRuleSourceDetector modelRuleSourceDetector
 
     @Before
     public void setUp() {
@@ -81,6 +83,7 @@ class DefaultSettingsTest {
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         pluginApplicationHandler = context.mock(PluginApplicationHandler.class)
         appliedPlugins = context.mock(AppliedPlugins.class);
+        modelRuleSourceDetector = context.mock(ModelRuleSourceDetector.class);
 
         def settingsServices = context.mock(ServiceRegistry.class)
         context.checking{
@@ -98,6 +101,8 @@ class DefaultSettingsTest {
                 will(returnValue(projectDescriptorRegistry));
                 one(settingsServices).get(PluginApplicationHandler.class);
                 will(returnValue(pluginApplicationHandler));
+                one(settingsServices).get(ModelRuleSourceDetector.class);
+                will(returnValue(modelRuleSourceDetector));
                 one(settingsServices).get(AppliedPlugins.class);
                 will(returnValue(appliedPlugins));
         }

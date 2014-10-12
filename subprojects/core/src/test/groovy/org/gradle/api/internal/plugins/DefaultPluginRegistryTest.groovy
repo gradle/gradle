@@ -26,6 +26,7 @@ import org.gradle.api.plugins.PluginInstantiationException
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.junit.Rule
@@ -36,7 +37,8 @@ class DefaultPluginRegistryTest extends Specification {
     final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     final Instantiator instantiator = Mock()
     final ClassLoader classLoader = Mock()
-    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator)
+    private ModelRuleSourceDetector modelRuleSourceDetector = new ModelRuleSourceDetector()
+    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator, modelRuleSourceDetector)
 
     public void canLoadPluginByType() {
         def plugin = new TestPlugin2()
@@ -212,7 +214,7 @@ class DefaultPluginRegistryTest extends Specification {
         def plugin = new TestPlugin1()
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator, modelRuleSourceDetector)
 
         when:
         def result = child.loadPlugin(TestPlugin1)
@@ -231,7 +233,7 @@ class DefaultPluginRegistryTest extends Specification {
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator, modelRuleSourceDetector)
         _ * classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
@@ -252,7 +254,7 @@ class DefaultPluginRegistryTest extends Specification {
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator, modelRuleSourceDetector)
         _ * lookupScope.localClassLoader >> childClassLoader
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1

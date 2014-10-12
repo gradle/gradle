@@ -23,6 +23,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.model.RuleSource
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
 class AbstractAppliedPluginContainerTest extends Specification {
@@ -31,13 +32,13 @@ class AbstractAppliedPluginContainerTest extends Specification {
     PluginRegistry pluginRegistry = Mock(PluginRegistry)
     PluginContainer pluginContainer = Mock(PluginContainer)
 
-    TestAppliedPluginContainer container = new TestAppliedPluginContainer(target, pluginRegistry)
+    TestAppliedPluginContainer container = new TestAppliedPluginContainer(target, pluginRegistry, new ModelRuleSourceDetector())
 
     static class TestAppliedPluginContainer extends AbstractAppliedPluginContainer {
         Multiset<Class<?>> processedRuleContainers = HashMultiset.create()
 
-        TestAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry) {
-            super(target, pluginRegistry)
+        TestAppliedPluginContainer(PluginAware target, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
+            super(target, pluginRegistry, modelRuleSourceDetector)
         }
 
         @Override

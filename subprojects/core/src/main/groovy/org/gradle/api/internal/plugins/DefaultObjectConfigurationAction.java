@@ -43,13 +43,16 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final ClassLoaderScope classLoaderScope;
     private final Object[] defaultTargets;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope, Object... defaultTargets) {
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
+                                            ModelRuleSourceDetector modelRuleSourceDetector, Object... defaultTargets) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.classLoaderScope = classLoaderScope;
         this.defaultTargets = defaultTargets;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
     public ObjectConfigurationAction to(Object... targets) {
@@ -105,7 +108,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
-        if (!Plugin.class.isAssignableFrom(pluginClass) && !new ModelRuleSourceDetector().getDeclaredSources(pluginClass).isEmpty()) {
+        if (!Plugin.class.isAssignableFrom(pluginClass) && modelRuleSourceDetector.hasModelSources(pluginClass)) {
             throw new IllegalArgumentException(String.format("'%s' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()", pluginClass.getName()));
         }
         for (Object target : targets) {

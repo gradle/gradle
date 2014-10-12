@@ -44,6 +44,7 @@ import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -70,6 +71,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     private final PluginApplicationHandler pluginApplicationHandler;
     private final AppliedPlugins appliedPlugins;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -94,6 +96,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         });
         pluginApplicationHandler = services.get(PluginApplicationHandler.class);
         appliedPlugins = services.get(AppliedPlugins.class);
+        modelRuleSourceDetector = services.get(ModelRuleSourceDetector.class);
     }
 
     @Override
@@ -240,7 +243,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), modelRuleSourceDetector, this);
     }
 
     public ClassLoaderScope getClassLoaderScope() {

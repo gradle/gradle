@@ -57,4 +57,16 @@ class ModelRuleSourceDetectorTest extends Specification {
         HasTwoSources | [HasTwoSources.SourceOne, HasTwoSources.SourceTwo]
         IsASource     | [IsASource]
     }
+
+    @Unroll
+    def "has model sources - #clazz"() {
+        expect:
+        detector.hasModelSources(clazz) == expected
+
+        where:
+        clazz         | expected
+        String        | false
+        HasOneSource  | true
+        IsASource     | true
+    }
 }

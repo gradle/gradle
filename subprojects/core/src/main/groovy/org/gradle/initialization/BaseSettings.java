@@ -34,6 +34,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 import java.io.File;
 
@@ -64,6 +65,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private final PluginApplicationHandler pluginApplicationHandler;
     private final AppliedPlugins appliedPlugins;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -83,6 +85,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         pluginApplicationHandler = services.get(PluginApplicationHandler.class);
         appliedPlugins = services.get(AppliedPlugins.class);
+        modelRuleSourceDetector = services.get(ModelRuleSourceDetector.class);
     }
 
     @Override
@@ -219,7 +222,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getRootClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getRootClassLoaderScope(), modelRuleSourceDetector, this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {

@@ -42,6 +42,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
@@ -83,6 +84,7 @@ public class DefaultGradleTest {
     private final ClassLoaderScope classLoaderScope = context.mock(ClassLoaderScope.class);
     private final PluginApplicationHandler pluginApplicationHandler = context.mock(PluginApplicationHandler.class);
     private final AppliedPlugins appliedPlugins = context.mock(AppliedPlugins.class);
+    private final ModelRuleSourceDetector modelRuleSourceDetector = context.mock(ModelRuleSourceDetector.class);
 
     private DefaultGradle gradle;
 
@@ -123,6 +125,8 @@ public class DefaultGradleTest {
             will(returnValue(pluginApplicationHandler));
             allowing(gradleServiceRegistryMock).get(AppliedPlugins.class);
             will(returnValue(appliedPlugins));
+            allowing(gradleServiceRegistryMock).get(ModelRuleSourceDetector.class);
+            will(returnValue(modelRuleSourceDetector));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }

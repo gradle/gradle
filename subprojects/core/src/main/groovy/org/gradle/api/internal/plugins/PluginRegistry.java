@@ -21,6 +21,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 public interface PluginRegistry {
     <T extends Plugin<?>> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;
@@ -32,5 +33,5 @@ public interface PluginRegistry {
     /**
      * Creates a child registry which uses the plugins declared in the given script scope.
      */
-    PluginRegistry createChild(ClassLoaderScope lookupScope, Instantiator instantiator);
+    PluginRegistry createChild(ClassLoaderScope lookupScope, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector);
 }
