@@ -22,6 +22,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.listener.ListenerManager;
 
 import java.io.InputStream;
 
@@ -31,18 +32,18 @@ import java.io.InputStream;
 public class DaemonClientServices extends DaemonClientServicesSupport {
     private final DaemonParameters daemonParameters;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
-        super(loggingServices, buildStandardInput);
+    public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, InputStream buildStandardInput) {
+        super(parent, buildStandardInput);
         this.daemonParameters = daemonParameters;
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
-    public DaemonStarter createDaemonStarter() {
-        return new DefaultDaemonStarter(get(DaemonDir.class), daemonParameters, get(DaemonGreeter.class));
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, ListenerManager listenerManager, DaemonGreeter daemonGreeter) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, listenerManager.getBroadcaster(DaemonStartListener.class));
     }
 
-    protected DaemonGreeter createDaemonGreeter() {
-        return new DaemonGreeter(get(DocumentationRegistry.class));
+    DaemonGreeter createDaemonGreeter(DocumentationRegistry documentationRegistry) {
+        return new DaemonGreeter(documentationRegistry);
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
@@ -50,7 +51,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         builder.useDaemonParameters(daemonParameters);
     }
 
-    public DaemonParameters getDaemonParameters() {
+    DaemonParameters createDaemonParameters() {
         return daemonParameters;
     }
 }

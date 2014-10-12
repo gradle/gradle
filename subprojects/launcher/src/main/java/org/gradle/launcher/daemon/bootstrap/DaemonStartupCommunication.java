@@ -19,7 +19,10 @@ package org.gradle.launcher.daemon.bootstrap;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -29,8 +32,19 @@ public class DaemonStartupCommunication {
     private static final String DELIM = ";:"; //this very simple delim should be safe for any kind of path.
     private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
-    public void printDaemonStarted(PrintStream target, Long pid, File daemonLog) {
-        target.println(daemonStartedMessage(pid, daemonLog));
+    public void printDaemonStarted(PrintStream target, Long pid, String uid, Address address, File daemonLog) {
+        target.print(daemonGreeting());
+        target.print(DELIM);
+        target.print(pid);
+        target.print(DELIM);
+        target.print(uid);
+        target.print(DELIM);
+        MultiChoiceAddress multiChoiceAddress = (MultiChoiceAddress) address;
+        target.print(multiChoiceAddress.getPort());
+        target.print(DELIM);
+        target.print(daemonLog.getPath());
+        target.println();
+
         //ibm vm 1.6 + windows XP gotchas:
         //we need to print something else to the stream after we print the daemon greeting.
         //without it, the parent hangs without receiving the message above (flushing does not help).
@@ -38,17 +52,15 @@ public class DaemonStartupCommunication {
         //btw. the ibm vm+winXP also has some issues detecting closed streams by the child but we handle this problem differently.
     }
 
-    String daemonStartedMessage(Long pid, File daemonLog) {
-        return daemonGreeting() + DELIM + pid + DELIM + daemonLog;
-    }
-
-    public DaemonDiagnostics readDiagnostics(String message) {
+    public DaemonStartupInfo readDiagnostics(String message) {
         //Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
-        String[] split = message.split(DELIM);
+        String[] split = message.trim().split(DELIM);
         String pidString = split[1];
         Long pid = pidString.equals("null")? null : Long.valueOf(pidString);
-        File daemonLog = new File(split[2]);
-        return new DaemonDiagnostics(daemonLog, pid);
+        String uid = split[2];
+        int port = Integer.parseInt(split[3]);
+        File daemonLog = new File(split[4]);
+        return new DaemonStartupInfo(uid, port, new DaemonDiagnostics(daemonLog, pid));
     }
 
     public boolean containsGreeting(String message) {

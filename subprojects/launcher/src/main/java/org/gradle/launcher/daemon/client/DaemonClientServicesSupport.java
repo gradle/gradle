@@ -21,7 +21,6 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
@@ -43,8 +42,8 @@ import java.io.InputStream;
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream buildStandardInput) {
-        super(NativeServices.getInstance(), loggingServices);
+    public DaemonClientServicesSupport(ServiceRegistry parent, InputStream buildStandardInput) {
+        super(parent);
         this.buildStandardInput = buildStandardInput;
     }
 
@@ -63,8 +62,8 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
                 get(IdGenerator.class));
     }
 
-    protected DaemonContext createDaemonContext() {
-        DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
+    DaemonContext createDaemonContext(ProcessEnvironment processEnvironment) {
+        DaemonContextBuilder builder = new DaemonContextBuilder(processEnvironment);
         configureDaemonContextBuilder(builder);
         return builder.create();
     }
@@ -74,15 +73,15 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         
     }
 
-    protected IdGenerator<?> createIdGenerator() {
+    IdGenerator<?> createIdGenerator() {
         return new CompositeIdGenerator(new UUIDGenerator().generateId(), new LongIdGenerator());
     }
 
-    protected OutgoingConnector createOutgoingConnector() {
+    OutgoingConnector createOutgoingConnector() {
         return new TcpOutgoingConnector();
     }
 
-    protected DaemonConnector createDaemonConnector() {
-        return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), get(DaemonStarter.class));
+    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter) {
+        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter);
     }
 }

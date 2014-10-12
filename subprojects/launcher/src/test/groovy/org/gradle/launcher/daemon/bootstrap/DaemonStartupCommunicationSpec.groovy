@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.bootstrap
 
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
 import spock.lang.Specification
 
 class DaemonStartupCommunicationSpec extends Specification {
@@ -27,12 +28,14 @@ class DaemonStartupCommunicationSpec extends Specification {
         def dummyFile = new File("C:\\foo;;\\daemon-123.log")
 
         when:
-        def message = comm.daemonStartedMessage(123, dummyFile)
-        def diagnostics = comm.readDiagnostics(message)
+        def message = message(123, "1234", 123, dummyFile)
+        def startupInfo = comm.readDiagnostics(message)
 
         then:
-        diagnostics.pid == 123
-        diagnostics.daemonLog == dummyFile
+        startupInfo.uid == "1234"
+        startupInfo.port == 123
+        startupInfo.diagnostics.pid == 123
+        startupInfo.diagnostics.daemonLog == dummyFile
     }
 
     def "null pid is supported"() {
@@ -40,22 +43,30 @@ class DaemonStartupCommunicationSpec extends Specification {
         def dummyFile = new File("C:\\foo;;\\daemon-123.log")
 
         when:
-        def message = comm.daemonStartedMessage(null, dummyFile)
-        def diagnostics = comm.readDiagnostics(message)
+        def message = message(null, "1234", 123, dummyFile)
+        def startupInfo = comm.readDiagnostics(message)
 
         then:
-        diagnostics.pid == null
-        diagnostics.daemonLog == dummyFile
+        startupInfo.diagnostics.pid == null
     }
 
     def "knows if a message contains a greeting"() {
         expect:
         !comm.containsGreeting("foo")
-        comm.containsGreeting(comm.daemonStartedMessage(null, new File("foo")))
+        comm.containsGreeting(message(null, "id", 123, new File("foo")))
 
         when:
         comm.containsGreeting(null)
+
         then:
         thrown(IllegalArgumentException)
+    }
+
+    def message(Long pid, String uid, int port, File logFile) {
+        def outputStream = new ByteArrayOutputStream()
+        def printStream = new PrintStream(outputStream)
+        def address = new MultiChoiceAddress("id", port, [])
+        comm.printDaemonStarted(printStream, pid, uid, address, logFile)
+        return new String(outputStream.toByteArray())
     }
 }

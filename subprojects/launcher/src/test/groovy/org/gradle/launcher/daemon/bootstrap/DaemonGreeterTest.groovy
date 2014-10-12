@@ -19,25 +19,32 @@ package org.gradle.launcher.daemon.bootstrap
 import org.gradle.api.GradleException
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
 import org.gradle.process.ExecResult
 import spock.lang.Specification
 
 class DaemonGreeterTest extends Specification {
 
-    DocumentationRegistry registry = Mock()
+    def registry = Mock(DocumentationRegistry)
 
     def "parses the process output"() {
         given:
-        def output = """hey joe!
+        def outputStream = new ByteArrayOutputStream()
+        def printStream = new PrintStream(outputStream)
+        printStream.print("""hey joe!
 another line of output...
-${new DaemonStartupCommunication().daemonStartedMessage(12, new File("12.log"))}"""
+""")
+        new DaemonStartupCommunication().printDaemonStarted(printStream, 12, "uid", new MultiChoiceAddress("id", 123, []), new File("12.log"))
+        def output = new String(outputStream.toByteArray())
 
         when:
-        def diagnostics = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(ExecResult))
+        def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(ExecResult))
 
         then:
-        diagnostics.pid == 12
-        diagnostics.daemonLog == new File("12.log")
+        daemonStartupInfo.port == 123
+        daemonStartupInfo.uid == "uid"
+        daemonStartupInfo.diagnostics.pid == 12
+        daemonStartupInfo.diagnostics.daemonLog == new File("12.log")
     }
 
     def "shouts if daemon did not start"() {

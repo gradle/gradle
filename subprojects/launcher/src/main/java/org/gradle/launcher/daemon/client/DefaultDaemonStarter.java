@@ -24,7 +24,6 @@ import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.ExecResult;
@@ -46,12 +45,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
     private final DaemonDir daemonDir;
     private final DaemonParameters daemonParameters;
-    private DaemonGreeter daemonGreeter;
+    private final DaemonGreeter daemonGreeter;
+    private final DaemonStartListener listener;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, DaemonStartListener listener) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonGreeter = daemonGreeter;
+        this.listener = listener;
     }
 
     public DaemonStartupInfo startDaemon() {
@@ -89,12 +90,12 @@ public class DefaultDaemonStarter implements DaemonStarter {
         //we need to pass them as *program* arguments to avoid problems with getInputArguments().
         daemonArgs.addAll(daemonOpts);
 
-        DaemonDiagnostics diagnostics = startProcess(daemonArgs, daemonDir.getVersionedDir());
-
-        return new DaemonStartupInfo(daemonParameters.getUid(), diagnostics);
+        DaemonStartupInfo daemonInfo = startProcess(daemonArgs, daemonDir.getVersionedDir());
+        listener.daemonStarted(daemonInfo);
+        return daemonInfo;
     }
 
-    private DaemonDiagnostics startProcess(final List<String> args, final File workingDir) {
+    private DaemonStartupInfo startProcess(final List<String> args, final File workingDir) {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Clock clock = new Clock();
         try {

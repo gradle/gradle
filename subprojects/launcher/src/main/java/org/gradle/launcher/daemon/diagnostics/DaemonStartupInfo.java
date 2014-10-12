@@ -17,12 +17,13 @@
 package org.gradle.launcher.daemon.diagnostics;
 
 public class DaemonStartupInfo {
+    private final String uid;
+    private final int port;
+    private final DaemonDiagnostics diagnostics;
 
-    private String uid;
-    private DaemonDiagnostics diagnostics;
-
-    public DaemonStartupInfo(String uid, DaemonDiagnostics diagnostics) {
+    public DaemonStartupInfo(String uid, int port, DaemonDiagnostics diagnostics) {
         this.uid = uid;
+        this.port = port;
         this.diagnostics = diagnostics;
     }
 
@@ -41,6 +42,7 @@ public class DaemonStartupInfo {
     public String toString() {
         return "{"
                 + "uid='" + uid + '\''
+                + ", port=" + port
                 + ", diagnostics=" + diagnostics
                 + '}';
     }
