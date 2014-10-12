@@ -53,7 +53,7 @@ import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import java.util.List;
 
 /**
- * Defines the services shared by all builds in a given process.
+ * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
  */
 public class GlobalScopeServices {
 
