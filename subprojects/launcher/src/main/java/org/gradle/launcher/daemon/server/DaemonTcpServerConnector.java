@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectionAcceptor;
@@ -40,10 +40,10 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
     private final Lock lifecycleLock = new ReentrantLock();
     private ConnectionAcceptor acceptor;
 
-    public DaemonTcpServerConnector() {
+    public DaemonTcpServerConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         this.incomingConnector = new TcpIncomingConnector(
-                new DefaultExecutorFactory(),
-                new InetAddressFactory(),
+                executorFactory,
+                inetAddressFactory,
                 new UUIDGenerator()
         );
     }

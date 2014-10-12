@@ -16,11 +16,13 @@
 
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.service.ServiceRegistry;
+
 /**
  * Global services shared by all Gradle daemon clients in a given process.
  */
 public class DaemonClientGlobalServices {
-    DaemonClientFactory createClientFactory() {
-        return new DaemonClientFactory();
+    DaemonClientFactory createClientFactory(ServiceRegistry sharedServices) {
+        return new DaemonClientFactory(sharedServices);
     }
 }

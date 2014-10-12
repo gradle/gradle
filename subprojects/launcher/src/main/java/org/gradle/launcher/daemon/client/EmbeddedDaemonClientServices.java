@@ -40,6 +40,8 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;
@@ -98,7 +100,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected DaemonServerConnector createDaemonServerConnector() {
-        return new DaemonTcpServerConnector();
+        return new DaemonTcpServerConnector(get(ExecutorFactory.class), get(MessagingServices.class).get(InetAddressFactory.class));
     }
 
     protected DaemonStarter createDaemonStarter() {

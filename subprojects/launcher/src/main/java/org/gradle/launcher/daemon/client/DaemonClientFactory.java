@@ -25,11 +25,17 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 public class DaemonClientFactory {
+    private final ServiceRegistry sharedServices;
+
+    public DaemonClientFactory(ServiceRegistry sharedServices) {
+        this.sharedServices = sharedServices;
+    }
+
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run builds.
      */
     public ServiceRegistry createBuildClientServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters, InputStream stdin) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry();
+        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
         return new DaemonClientServices(loggingServices, daemonParameters, stdin);
     }
@@ -38,7 +44,7 @@ public class DaemonClientFactory {
      * Creates the services for a {@link DaemonClient} that can be used to run a build in a single-use daemon.
      */
     public ServiceRegistry createSingleUseDaemonClientServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters, InputStream stdin) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry();
+        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
         return new SingleUseDaemonClientServices(loggingServices, daemonParameters, stdin);
     }
@@ -47,7 +53,7 @@ public class DaemonClientFactory {
      * Creates the services for a {@link DaemonClient} that can be used to stop builds.
      */
     public ServiceRegistry createStopDaemonServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry();
+        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
         loggingServices.add(OutputEventListener.class, loggingReceiver);
         return new StopDaemonClientServices(loggingServices, daemonParameters, new ByteArrayInputStream(new byte[0]));
     }

@@ -16,10 +16,12 @@
 
 package org.gradle.launcher.daemon.testing
 
-import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.launcher.daemon.client.DaemonClientServices
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.util.GradleVersion
 
@@ -31,10 +33,18 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     DaemonLogsAnalyzer(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir
         daemonLogsDir = new File(daemonBaseDir, GradleVersion.current().version)
-        DaemonParameters daemonParameters = new DaemonParameters(new BuildLayoutParameters())
-        daemonParameters.setBaseDir(daemonBaseDir)
-        def services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), daemonParameters, new ByteArrayInputStream(new byte[0]))
+        def services = ServiceRegistryBuilder.builder()
+                .parent(LoggingServiceRegistry.newEmbeddableLogging())
+                .parent(NativeServices.instance)
+                .provider(new GlobalScopeServices(false))
+                .provider(new DaemonClientGlobalServices())
+                .provider(new DaemonRegistryServices(daemonBaseDir))
+                .build()
         registry = services.get(DaemonRegistry)
+    }
+
+    DaemonRegistry getRegistry() {
+        return registry
     }
 
     void killAll() {
