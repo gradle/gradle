@@ -34,64 +34,6 @@ class DaemonClientTest extends ConcurrentSpecification {
     final IdGenerator<?> idGenerator = {12} as IdGenerator
     final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
 
-    def stopsTheDaemonWhenRunning() {
-        when:
-        client.stop()
-
-        then:
-        _ * connection.uid >> '1'
-        2 * connector.maybeConnect(compatibilitySpec) >>> [connection, null]
-        1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
-        1 * connection.stop()
-        0 * _
-    }
-
-    def stopsTheDaemonWhenNotRunning() {
-        when:
-        client.stop()
-
-        then:
-        1 * connector.maybeConnect(compatibilitySpec) >> null
-        0 * _
-    }
-
-    def "stops all compatible daemons"() {
-        DaemonClientConnection connection2 = Mock()
-
-        when:
-        client.stop()
-
-        then:
-        _ * connection.uid >> '1'
-        _ * connection2.uid >> '2'
-        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection2, null]
-        1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
-        1 * connection.stop()
-        1 * connection2.dispatch({it instanceof Stop})
-        1 * connection2.receive() >> new Success(null)
-        1 * connection2.dispatch({it instanceof Finished})
-        1 * connection2.stop()
-        0 * _
-    }
-
-    def "stops each connection at most once"() {
-        when:
-        client.stop()
-
-        then:
-        _ * connection.uid >> '1'
-        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
-        1 * connection.dispatch({it instanceof Stop})
-        1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
-        2 * connection.stop()
-        0 * _
-    }
-
     def executesAction() {
         when:
         def result = client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))

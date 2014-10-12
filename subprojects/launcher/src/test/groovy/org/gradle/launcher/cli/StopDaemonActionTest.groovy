@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.cli
 
+import org.gradle.launcher.daemon.client.DaemonStopClient
 import spock.lang.Specification
-import org.gradle.launcher.daemon.client.DaemonClient
 
 class StopDaemonActionTest extends Specification {
-    final DaemonClient client = Mock()
+    final DaemonStopClient client = Mock()
     final StopDaemonAction action = new StopDaemonAction(client)
 
     def executesStopCommand() {

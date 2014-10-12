@@ -51,6 +51,10 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return buildStandardInput;
     }
 
+    DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator idGenerator) {
+        return new DaemonStopClient(connector, idGenerator);
+    }
+
     protected DaemonClient createDaemonClient() {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonContext.class));
         return new DaemonClient(
