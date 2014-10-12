@@ -38,7 +38,7 @@ class EmbeddedDaemonStarter implements DaemonStarter, Stoppable {
     public DaemonStartupInfo startDaemon() {
         Daemon daemon = daemonFactory.create();
         startDaemon(daemon);
-        return new DaemonStartupInfo(daemon.getUid(), -1, null);
+        return new DaemonStartupInfo(daemon.getUid(), daemon.getAddress(), null);
     }
 
     public void startDaemon(Daemon daemon) {

@@ -67,7 +67,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def address = createAddress(daemonNum)
         registry.store(address, context, "password", false)
         registry.markBusy(address)
-        return new DaemonStartupInfo(daemonNum.toString(), 123, null);
+        return new DaemonStartupInfo(daemonNum.toString(), null, null);
     }
 
     def startIdleDaemon() {

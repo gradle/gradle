@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.bootstrap;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
@@ -23,26 +24,46 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.FlushableEncoder;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
+import org.gradle.process.internal.child.EncodedStream;
 
-import java.io.File;
-import java.io.PrintStream;
+import java.io.*;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class DaemonStartupCommunication {
 
-    private static final String DELIM = ";:"; //this very simple delim should be safe for any kind of path.
     private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
     public void printDaemonStarted(PrintStream target, Long pid, String uid, Address address, File daemonLog) {
         target.print(daemonGreeting());
-        target.print(DELIM);
-        target.print(pid);
-        target.print(DELIM);
-        target.print(uid);
-        target.print(DELIM);
-        MultiChoiceAddress multiChoiceAddress = (MultiChoiceAddress) address;
-        target.print(multiChoiceAddress.getPort());
-        target.print(DELIM);
-        target.print(daemonLog.getPath());
+
+        // Encode as ascii
+        try {
+            OutputStream outputStream = new EncodedStream.EncodedOutput(target);
+            FlushableEncoder encoder = new OutputStreamBackedEncoder(outputStream);
+            encoder.writeNullableString(pid == null ? null : pid.toString());
+            encoder.writeString(uid);
+            MultiChoiceAddress multiChoiceAddress = (MultiChoiceAddress) address;
+            UUID canonicalAddress = (UUID) multiChoiceAddress.getCanonicalAddress();
+            encoder.writeLong(canonicalAddress.getMostSignificantBits());
+            encoder.writeLong(canonicalAddress.getLeastSignificantBits());
+            encoder.writeInt(multiChoiceAddress.getPort());
+            encoder.writeSmallInt(multiChoiceAddress.getCandidates().size());
+            for (InetAddress inetAddress : multiChoiceAddress.getCandidates()) {
+                encoder.writeBinary(inetAddress.getAddress());
+            }
+            encoder.writeString(daemonLog.getPath());
+            encoder.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
         target.println();
 
         //ibm vm 1.6 + windows XP gotchas:
@@ -54,13 +75,30 @@ public class DaemonStartupCommunication {
 
     public DaemonStartupInfo readDiagnostics(String message) {
         //Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
-        String[] split = message.trim().split(DELIM);
-        String pidString = split[1];
-        Long pid = pidString.equals("null")? null : Long.valueOf(pidString);
-        String uid = split[2];
-        int port = Integer.parseInt(split[3]);
-        File daemonLog = new File(split[4]);
-        return new DaemonStartupInfo(uid, port, new DaemonDiagnostics(daemonLog, pid));
+        if (!message.startsWith(daemonGreeting())) {
+            throw new IllegalArgumentException(String.format("Unexpected daemon startup message: %s", message));
+        }
+        try {
+            String encoded = message.substring(daemonGreeting().length()).trim();
+            InputStream inputStream = new EncodedStream.EncodedInput(new ByteArrayInputStream(encoded.getBytes()));
+            Decoder decoder = new InputStreamBackedDecoder(inputStream);
+            String pidString = decoder.readNullableString();
+            String uid = decoder.readString();
+            Long pid = pidString == null ? null : Long.valueOf(pidString);
+            UUID canonicalAddress = new UUID(decoder.readLong(), decoder.readLong());
+            int port = decoder.readInt();
+            int addressCount = decoder.readSmallInt();
+            List<InetAddress> addresses = new ArrayList<InetAddress>(addressCount);
+            for (int i = 0; i < addressCount; i++) {
+                InetAddress address = InetAddress.getByAddress(decoder.readBinary());
+                addresses.add(address);
+            }
+            Address address = new MultiChoiceAddress(canonicalAddress, port, addresses);
+            File daemonLog = new File(decoder.readString());
+            return new DaemonStartupInfo(uid, address, new DaemonDiagnostics(daemonLog, pid));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public boolean containsGreeting(String message) {

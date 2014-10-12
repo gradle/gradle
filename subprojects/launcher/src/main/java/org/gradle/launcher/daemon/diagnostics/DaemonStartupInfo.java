@@ -16,14 +16,16 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
+import org.gradle.messaging.remote.Address;
+
 public class DaemonStartupInfo {
     private final String uid;
-    private final int port;
+    private final Address address;
     private final DaemonDiagnostics diagnostics;
 
-    public DaemonStartupInfo(String uid, int port, DaemonDiagnostics diagnostics) {
+    public DaemonStartupInfo(String uid, Address address, DaemonDiagnostics diagnostics) {
         this.uid = uid;
-        this.port = port;
+        this.address = address;
         this.diagnostics = diagnostics;
     }
 
@@ -42,7 +44,7 @@ public class DaemonStartupInfo {
     public String toString() {
         return "{"
                 + "uid='" + uid + '\''
-                + ", port=" + port
+                + ", address=" + address
                 + ", diagnostics=" + diagnostics
                 + '}';
     }

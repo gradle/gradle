@@ -34,14 +34,14 @@ class DaemonGreeterTest extends Specification {
         printStream.print("""hey joe!
 another line of output...
 """)
-        new DaemonStartupCommunication().printDaemonStarted(printStream, 12, "uid", new MultiChoiceAddress("id", 123, []), new File("12.log"))
+        new DaemonStartupCommunication().printDaemonStarted(printStream, 12, "uid", new MultiChoiceAddress(UUID.randomUUID(), 123, []), new File("12.log"))
         def output = new String(outputStream.toByteArray())
 
         when:
         def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(ExecResult))
 
         then:
-        daemonStartupInfo.port == 123
+        daemonStartupInfo.address.port == 123
         daemonStartupInfo.uid == "uid"
         daemonStartupInfo.diagnostics.pid == 12
         daemonStartupInfo.diagnostics.daemonLog == new File("12.log")
