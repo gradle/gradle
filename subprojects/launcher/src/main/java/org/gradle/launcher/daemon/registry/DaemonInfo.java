@@ -16,8 +16,9 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.launcher.daemon.context.DaemonAddress;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.messaging.remote.Address;
 
 import java.io.Serializable;
 
@@ -43,8 +44,8 @@ public class DaemonInfo implements Serializable {
         return this;
     }
 
-    public Address getAddress() {
-        return address;
+    public DaemonAddress getAddress() {
+        return new DaemonAddress(context.getUid(), address);
     }
 
     public DaemonContext getContext() {

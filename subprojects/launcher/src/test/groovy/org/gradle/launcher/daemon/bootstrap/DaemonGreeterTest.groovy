@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.bootstrap
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.launcher.daemon.context.DaemonAddress
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
 import org.gradle.process.ExecResult
@@ -29,19 +30,22 @@ class DaemonGreeterTest extends Specification {
 
     def "parses the process output"() {
         given:
+        def address = new MultiChoiceAddress(UUID.randomUUID(), 123, [])
+
         def outputStream = new ByteArrayOutputStream()
         def printStream = new PrintStream(outputStream)
         printStream.print("""hey joe!
 another line of output...
 """)
-        new DaemonStartupCommunication().printDaemonStarted(printStream, 12, "uid", new MultiChoiceAddress(UUID.randomUUID(), 123, []), new File("12.log"))
+
+        new DaemonStartupCommunication().printDaemonStarted(printStream, 12, "uid", address, new File("12.log"))
         def output = new String(outputStream.toByteArray())
 
         when:
         def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(ExecResult))
 
         then:
-        daemonStartupInfo.address.port == 123
+        daemonStartupInfo.address == new DaemonAddress("uid", address)
         daemonStartupInfo.uid == "uid"
         daemonStartupInfo.diagnostics.pid == 12
         daemonStartupInfo.diagnostics.daemonLog == new File("12.log")

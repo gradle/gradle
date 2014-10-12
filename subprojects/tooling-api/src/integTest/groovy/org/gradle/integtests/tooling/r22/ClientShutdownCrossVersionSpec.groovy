@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r22
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnector
@@ -28,7 +29,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         reset()
     }
 
-    def "can close tooling API session when no operations have been executed"() {
+    def "can shutdown tooling API session when no operations have been executed"() {
         given:
         DefaultGradleConnector.close()
 
@@ -39,13 +40,22 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         IllegalStateException e = thrown()
     }
 
-    def "can close tooling API session after completing an operation"() {
+    @TargetGradleVersion(">=2.2")
+    def "cleans up daemons when tooling API session is shutdown"() {
         given:
+        toolingApi.requireIsolatedDaemons()
         toolingApi.isEmbedded = false
+
         withConnection { connection ->
             connection.getModel(GradleBuild)
         }
+        toolingApi.daemons.daemon.assertIdle()
+
+        when:
         DefaultGradleConnector.close()
+
+        then:
+        toolingApi.daemons.daemon.stops()
 
         when:
         GradleConnector.newConnector()

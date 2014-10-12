@@ -22,9 +22,11 @@ import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.launcher.daemon.context.DaemonAddress;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,7 +56,21 @@ public class DaemonStopClient {
     }
 
     /**
-     * Stops all daemons, if any is running.
+     * Stops the daemons at the given addresses.
+     */
+    public void stop(Collection<DaemonAddress> addresses) {
+        for (DaemonAddress address : addresses) {
+            DaemonClientConnection connection = connector.maybeConnect(address);
+            if (connection == null) {
+                continue;
+            }
+            new StopDispatcher(idGenerator).dispatch(connection);
+            LOGGER.lifecycle("Gradle daemon stopped.");
+        }
+    }
+
+    /**
+     * Stops all daemons, blocking until all have completed.
      */
     public void stop() {
         long start = System.currentTimeMillis();

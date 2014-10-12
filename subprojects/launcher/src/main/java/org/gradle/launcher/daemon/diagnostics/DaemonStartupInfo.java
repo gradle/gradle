@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
+import org.gradle.launcher.daemon.context.DaemonAddress;
 import org.gradle.messaging.remote.Address;
 
 public class DaemonStartupInfo {
@@ -31,6 +32,10 @@ public class DaemonStartupInfo {
 
     public String getUid() {
         return uid;
+    }
+
+    public DaemonAddress getAddress() {
+        return new DaemonAddress(uid, address);
     }
 
     /**
