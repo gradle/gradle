@@ -16,16 +16,18 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.server.exec.DaemonStoppedException
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-    def "daemon process stops and client logs nice error message when daemon stopped"() {
+    def "daemon process exits and client logs nice error message when daemon stopped"() {
         buildFile << """
 task block << {
     new URL("$server.uri").text
@@ -66,6 +68,20 @@ task block << {
         then:
         daemons.daemon.stops()
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
+    def "can stop a daemon that is using a different java home"() {
+        given:
+        succeeds()
+        daemons.daemon.becomesIdle()
+
+        when:
+        executer.withJavaHome(AvailableJavaHomes.differentJdk.javaHome)
+        executer.withArguments("--stop").run()
+
+        then:
+        daemons.daemon.stops()
     }
 
     def "reports exact number of daemons stopped and keeps console output clean"() {
