@@ -19,11 +19,14 @@ package org.gradle.execution;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.initialization.BuildCancellationToken;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
     private final BuildCancellationToken cancellationToken;
+    private static final Logger LOG = Logging.getLogger(Logger.class);
 
     public TaskPathProjectEvaluator(BuildCancellationToken cancellationToken) {
         this.cancellationToken = cancellationToken;
@@ -51,6 +54,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     public void configureForPath(ResolvedTaskPath taskPath) {
         ProjectInternal targetProject = taskPath.getProject();
+        LOG.debug("Configuring project(s) based on task path: {}.", taskPath);
         if (taskPath.isQualified()) {
             configure(targetProject);
         } else {
