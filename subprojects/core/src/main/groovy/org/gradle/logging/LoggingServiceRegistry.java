@@ -93,6 +93,14 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     /**
+     * Creates a set of logging services to set up a new logging scope without attaching the output event renderer to
+     * standard streams.
+     */
+    public static LoggingServiceRegistry newToolingApiLogging() {
+        return new NestedToolingLogging();
+    }
+
+    /**
      * Creates a set of logging services to set up a new logging scope. Does not configure any static state.
      */
     public LoggingServiceRegistry newLogging() {
@@ -168,11 +176,6 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     private static class NestedLogging extends LoggingServiceRegistry {
-        protected OutputEventRenderer createOutputEventRenderer() {
-            OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
-            return renderer;
-        }
-
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
             // Don't configure anything
@@ -180,6 +183,13 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
                     renderer,
                     new NoOpLoggingSystem(),
                     new NoOpLoggingSystem());
+        }
+    }
+
+    private static class NestedToolingLogging extends NestedLogging {
+        protected OutputEventRenderer createOutputEventRenderer() {
+            OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
+            return renderer;
         }
     }
 }
