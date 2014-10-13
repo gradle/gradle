@@ -17,14 +17,20 @@
 package org.gradle.model.internal.manage.state;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Nullable;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 public class ManagedModelElement<T> {
 
     private final Class<T> type;
     private final ImmutableSortedMap<String, ModelPropertyInstance<?>> properties;
+    private final T instance;
 
     public ManagedModelElement(ModelSchema<T> schema) {
         this.type = schema.getType();
@@ -33,19 +39,55 @@ public class ManagedModelElement<T> {
             builder.put(property.getName(), ModelPropertyInstance.of(property));
         }
         this.properties = builder.build();
+        this.instance = createInstance();
     }
 
     public Class<T> getType() {
         return type;
     }
 
-    @Nullable
-    public ModelPropertyInstance<?> get(String propertyName) {
-        return properties.get(propertyName);
+    public <U> ModelPropertyInstance<U> get(Class<U> classType, String propertyName) {
+        ModelPropertyInstance<?> modelPropertyInstance = properties.get(propertyName);
+        Class<?> modelPropertyType = modelPropertyInstance.getMeta().getType().getRawClass();
+        if (!modelPropertyType.equals(classType)) {
+            throw new UnexpectedModelPropertyTypeException(propertyName, type, classType, modelPropertyType);
+        }
+        @SuppressWarnings("unchecked") ModelPropertyInstance<U> cast = (ModelPropertyInstance<U>) modelPropertyInstance;
+        return cast;
     }
 
     ImmutableSortedMap<String, ModelPropertyInstance<?>> getProperties() {
         return properties;
     }
 
+    public T getInstance() {
+        return instance;
+    }
+
+    private T createInstance() {
+        @SuppressWarnings("unchecked") T createdInstance = (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{type}, new ManagedModelElementInvocationHandler());
+        return createdInstance;
+    }
+
+    private class ManagedModelElementInvocationHandler implements InvocationHandler {
+
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            String methodName = method.getName();
+            String propertyName = StringUtils.uncapitalize(methodName.substring(3));
+            if (methodName.startsWith("get")) {
+                return getInstanceProperty(method.getReturnType(), propertyName);
+            } else {
+                setInstanceProperty(method.getParameterTypes()[0], propertyName, args[0]);
+                return null;
+            }
+        }
+
+        private <U> void setInstanceProperty(Class<U> classType, String propertyName, Object value) {
+            get(classType, propertyName).set(Cast.cast(classType, value));
+        }
+
+        private <U> U getInstanceProperty(Class<U> classType, String propertyName) {
+            return get(classType, propertyName).get();
+        }
+    }
 }

@@ -137,6 +137,17 @@ class ModelSchemaExtractorTest extends Specification {
         fail SetterOnly, "only paired getter/setter methods are supported"
     }
 
+    static interface NonStringProperty {
+        Object getName()
+
+        void setName(Object name)
+    }
+
+    def "only String properties are allowed"() {
+        expect:
+        fail NonStringProperty, /only String properties are supported \(method: getName\)/
+    }
+
     static interface MultipleProps {
         String getProp1();
         void setProp1(String string);
