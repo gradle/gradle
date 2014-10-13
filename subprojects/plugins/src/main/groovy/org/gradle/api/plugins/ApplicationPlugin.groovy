@@ -18,16 +18,18 @@ package org.gradle.api.plugins
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.distribution.Distribution
+import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.api.tasks.bundling.Tar
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.util.DeprecationLogger
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
+ *
  */
 class ApplicationPlugin implements Plugin<Project> {
     static final String APPLICATION_PLUGIN_NAME = "application"
@@ -45,16 +47,32 @@ class ApplicationPlugin implements Plugin<Project> {
     void apply(final Project project) {
         this.project = project
         project.plugins.apply(JavaPlugin)
+        project.plugins.apply(DistributionPlugin)
 
         addPluginConvention()
         addRunTask()
         addCreateScriptsTask()
 
-        configureDistSpec(pluginConvention.applicationDistribution)
+        def distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
+        distribution.conventionMapping.baseName = {pluginConvention.applicationName}
+        configureDistSpec(distribution.contents)
+        Task installAppTask = addInstallAppTask(distribution)
+        configureInstallTasks(installAppTask, project.tasks[DistributionPlugin.TASK_INSTALL_NAME])
+    }
 
-        addInstallTask()
-        addDistZipTask()
-        addDistTarTask()
+    void configureInstallTasks(Task... installTasks) {
+        installTasks.each { installTask ->
+            installTask.doFirst {
+                if (destinationDir.directory) {
+                    if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
+                        throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${pluginConvention.applicationName}'.\n" +
+                                "If you really want to install to this directory, delete it and run the install task again.\n" +
+                                "Alternatively, choose a different installation directory."
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private void addPluginConvention() {
@@ -83,44 +101,16 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.conventionMapping.defaultJvmOpts = { pluginConvention.applicationDefaultJvmArgs }
     }
 
-    private void addInstallTask() {
+    private Task addInstallAppTask(Distribution distribution) {
         def installTask = project.tasks.create(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
-        installTask.with pluginConvention.applicationDistribution
+        installTask.with distribution.contents
         installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
-        installTask.doFirst {
-            if (destinationDir.directory) {
-                if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
-                    throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${pluginConvention.applicationName}'.\n" +
-                            "If you really want to install to this directory, delete it and run the install task again.\n" +
-                            "Alternatively, choose a different installation directory."
-                    )
-                }
-            }
+        installTask.doFirst{
+            DeprecationLogger.nagUserOfReplacedTask(ApplicationPlugin.TASK_INSTALL_NAME, DistributionPlugin.TASK_INSTALL_NAME);
         }
-        installTask.doLast {
-            project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
-        }
-    }
-
-    private void addDistZipTask() {
-        addArchiveTask(TASK_DIST_ZIP_NAME, Zip)
-    }
-
-	private void addDistTarTask() {
-        addArchiveTask(TASK_DIST_TAR_NAME, Tar)
-	}
-
-    private <T extends AbstractArchiveTask> void addArchiveTask(String name, Class<T> type) {
-        def archiveTask = project.tasks.create(name, type)
-        archiveTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
-        archiveTask.group = APPLICATION_GROUP
-        archiveTask.conventionMapping.baseName = { pluginConvention.applicationName }
-        def baseDir = { archiveTask.archiveName - ".${archiveTask.extension}" }
-        archiveTask.into(baseDir) {
-            with(pluginConvention.applicationDistribution)
-        }
+        installTask
     }
 
     private CopySpec configureDistSpec(CopySpec distSpec) {
@@ -139,6 +129,7 @@ class ApplicationPlugin implements Plugin<Project> {
                 fileMode = 0755
             }
         }
+        distSpec.with(pluginConvention.applicationDistribution)
 
         distSpec
     }

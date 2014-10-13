@@ -16,13 +16,17 @@
 
 package org.gradle.api.distribution.plugins
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.util.Matchers.dependsOn
 
 class DistributionPluginTest extends Specification {
     private final Project project = TestUtil.builder().withName("test-project").build()
@@ -89,6 +93,17 @@ class DistributionPluginTest extends Specification {
         def task = project.tasks.customDistTar
         task instanceof Tar
         task.archivePath == project.file("build/distributions/test-project-custom.tar")
+    }
+
+    def "adds assembleDist task for custom distribution"() {
+        when:
+        project.apply(plugin: DistributionPlugin)
+        project.distributions.create('custom')
+
+        then:
+        def task = project.tasks.assembleCustomDist
+        task instanceof DefaultTask
+        task TaskDependencyMatchers.dependsOn ("customDistZip","customDistTar")
     }
 
     def "distribution names include project version when specified"() {
