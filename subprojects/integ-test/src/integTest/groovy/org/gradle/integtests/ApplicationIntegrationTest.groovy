@@ -50,7 +50,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -93,7 +93,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -131,7 +131,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -174,7 +174,7 @@ class Main {
 '''
 
         when:
-        run 'install'
+        run 'installApp'
 
         def builder = new ScriptExecuter()
         builder.workingDir file('build/install/application/bin')
@@ -230,7 +230,7 @@ class Main {
 '''
 
         when:
-        run 'install', 'distZip', 'distTar'
+        run 'installApp', 'distZip', 'distTar'
 
         then:
         def installDir = file('build/install/mega-app')
@@ -268,7 +268,7 @@ class Main {
 '''
 
         when:
-        run 'install', 'distZip', 'distTar'
+        run 'installApp', 'distZip', 'distTar'
 
         then:
         def installDir = file('build/install/application')
@@ -326,6 +326,43 @@ installApp.destinationDir = buildDir
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/mega-app").exists()
+    }
+
+    def "application packages are built when running the assemble task"() {
+        file('settings.gradle') << 'rootProject.name = "application"'
+        file('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+    }
+}
+'''
+
+        when:
+        run 'assemble'
+
+        then:
+        def distributionsDir = file('build/distributions')
+        distributionsDir.assertIsDir()
+
+        def distZipFile = file('build/distributions/application.zip')
+        distZipFile.assertIsFile()
+
+        def distZipDir = file('build/unzip')
+        distZipFile.usingNativeTools().unzipTo(distZipDir)
+        checkApplicationImage('application', distZipDir.file('application'))
+
+        def distTarFile = file('build/distributions/application.tar')
+        distTarFile.assertIsFile()
+
+        def distTarDir = file('build/untar')
+        distTarFile.usingNativeTools().untarTo(distTarDir)
+        checkApplicationImage('application', distTarDir.file('application'))
     }
 
     private void checkApplicationImage(String applicationName, TestFile installDir) {
