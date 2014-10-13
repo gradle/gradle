@@ -65,11 +65,15 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
         // Entry comparisons
         def rows = html.select("table")[2].select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }
-        rows.size() == 4
+        rows.size() == 8
         rows["org/gradle/Changed.class"] == "entry in the source build is 394 bytes - in the target build it is 471 bytes (+77)"
         rows["org/gradle/DifferentCrc.class"] == "entries are of identical size but have different content"
         rows["org/gradle/SourceBuildOnly.class"] == "entry does not exist in target build archive"
         rows["org/gradle/TargetBuildOnly.class"] == "entry does not exist in source build archive"
+        rows["sourceSub.zip"] == "entry does not exist in target build archive"
+        rows["targetSub.zip"] == "entry does not exist in source build archive"
+        rows["differentSub.zip"] == "entry in the source build is 688 bytes - in the target build it is 689 bytes (+1)"
+        rows["jar:differentSub.zip!/a.txt"] == "entry in the source build is 0 bytes - in the target build it is 1 bytes (+1)"
 
         and:
         storedFile("source").exists()

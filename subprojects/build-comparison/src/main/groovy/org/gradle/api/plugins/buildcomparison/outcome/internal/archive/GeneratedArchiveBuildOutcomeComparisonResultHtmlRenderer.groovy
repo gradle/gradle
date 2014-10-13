@@ -99,11 +99,23 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
                 }
 
                 entryComparisons.each { entryComparison ->
-                    if (entryComparison.comparisonResultType != EQUAL) {
-                        tr {
-                            td entryComparison.path
-                            td toDifferenceDescription(entryComparison)
-                        }
+                    if (entryComparison.comparisonResultType == EQUAL) {
+                        return
+                    }
+
+                    if ((entryComparison.comparisonResultType == SOURCE_ONLY)
+                            && entryComparisons.find { (it.comparisonResultType == SOURCE_ONLY) && (it.source.subEntries.contains(entryComparison.source)) }) {
+                        return
+                    }
+
+                    if ((entryComparison.comparisonResultType == TARGET_ONLY)
+                            && entryComparisons.find { (it.comparisonResultType == TARGET_ONLY) && (it.target.subEntries.contains(entryComparison.target)) }) {
+                        return
+                    }
+
+                    tr {
+                        td entryComparison.path
+                        td toDifferenceDescription(entryComparison)
                     }
                 }
             }
