@@ -72,6 +72,9 @@ class ApplicationPlugin implements Plugin<Project> {
                     }
                 }
             }
+            installTask.doLast {
+                project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
+            }
         }
     }
 
