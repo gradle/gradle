@@ -74,6 +74,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Lari Hotari](https://github.com/lhotari) - improvements to output handling in Tooling API (GRADLE-2687)
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
