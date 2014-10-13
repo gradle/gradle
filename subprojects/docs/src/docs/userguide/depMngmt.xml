@@ -1184,28 +1184,27 @@ someroot/[artifact]-[revision].[ext]
                 in which case the candidate will not be considered for the selector.
             </para>
             <para>
-                The following example shows a rule that disallows a particular version of a module but allows the default version selection rules to
-                choose the next best candidate.  If the version requested was <literal>1.+</literal>, and versions 1.1, 1.0.1 and 1.0 were
-                available, it would reject 1.1 and select the next newest version available (1.0.1).
+                The following example shows a rule that disallows a particular version of a module but allows the dynamic version to
+                choose the next best candidate.
             </para>
-            <sample id="componentSelectionRule" dir="componentSelectionRules" title="Component selection rule">
+            <sample id="componentSelectionRulesReject" dir="componentSelectionRules" title="Component selection rule">
                 <sourcefile file="build.gradle" snippet="reject-version-1.1" />
             </sample>
             <para>
                 Note that version selection is applied starting with the highest version first.  The version selected will be the first version
-                found that all component selection rules accept.  A version is considered accepted if a rule does not explicitly reject it.
+                found that all component selection rules accept.  A version is considered accepted no rule explicitly rejects it.
             </para>
             <para>
                 Similarly, rules can be targeted at specific modules.  Modules must be specified in the form of "group:module".
             </para>
-            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule with module target">
+            <sample id="componentSelectionRulesTarget" dir="componentSelectionRules" title="Component selection rule with module target">
                 <sourcefile file="build.gradle" snippet="targeted-component-selection" />
             </sample>
             <para>
                 Component selection rules can also consider component metadata when selecting a version.  Possible metadata arguments that can be considered are
                 <apilink class="org.gradle.api.artifacts.ComponentMetadata"/> and <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/>.
             </para>
-            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule with metadata">
+            <sample id="componentSelectionRulesMetadata" dir="componentSelectionRules" title="Component selection rule with metadata">
                 <sourcefile file="build.gradle" snippet="component-selection-with-metadata" />
             </sample>
             <para>
@@ -1224,7 +1223,7 @@ someroot/[artifact]-[revision].[ext]
                 <listitem>must have <apilink class="org.gradle.api.artifacts.ComponentSelection" /> as the first argument.</listitem>
                 <listitem>may have additional parameters of type <apilink class="org.gradle.api.artifacts.ComponentMetadata" /> and/or <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.</listitem>
             </itemizedlist>
-            <sample id="componentSelectionRuleMetadata" dir="componentSelectionRules" title="Component selection rule using a rule source object">
+            <sample id="componentSelectionRulesRuleSource" dir="componentSelectionRules" title="Component selection rule using a rule source object">
                 <sourcefile file="build.gradle" snippet="api-component-selection" />
             </sample>
         </section>
