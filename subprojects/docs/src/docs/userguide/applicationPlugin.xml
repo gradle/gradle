@@ -16,7 +16,7 @@
 <chapter id='application_plugin'>
     <title>The Application Plugin</title>
     <para>The Gradle application plugin extends the language plugins with common application related tasks.
-    It allows running and bundling applications for the jvm.
+    It allows running and bundling applications for the jvm by creating a jvm application <apilink class="org.gradle.api.distribution.Distribution" />.
     </para>
 
     <section>
@@ -35,9 +35,9 @@
             You can launch the application in debug mode with <userinput>gradle run --debug-jvm</userinput> (see <apilink class="org.gradle.api.tasks.JavaExec" method="setDebug(boolean)" />).
         </para>
 
-        <para>The plugin can also build a distribution for your application. The distribution will package up the runtime dependencies of the application
+        <para>The plugin can also build a distribution for your application. The <apilink class="org.gradle.api.distribution.Distribution" /> will package up the runtime dependencies of the application
             along with some OS specific start scripts. All files stored in <filename>src/dist</filename> will be added to the root of the
-            distribution. You can run <userinput>gradle installApp</userinput> to create an image of the application in
+            distribution. You can run <userinput>gradle installDist</userinput> to create an image of the application in
             <filename>build/install/<replaceable>projectName</replaceable></filename>. You can run <userinput>gradle distZip</userinput> to create a
             ZIP containing the distribution.
         </para>
@@ -87,7 +87,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>installApp</literal>
+                    <literal>installDist</literal>
                 </td>
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
@@ -129,7 +129,7 @@
             <title>Including other resources in the distribution</title>
             <para>
                 One of the convention properties added by the plugin is <literal>applicationDistribution</literal> which is a <apilink class="org.gradle.api.file.CopySpec"/>.
-                This specification is used by the <literal>installApp</literal> and <literal>distZip</literal> tasks as the specification of what is to be 
+                This specification is used by the <literal>installDist</literal> and <literal>distZip</literal> tasks as the specification of what is to be
                 included in the distribution. In addition to copying the start scripts to the <filename>bin</filename> dir and necessary jars to <filename>lib</filename> 
                 in the distribution, all of the files from the <filename>src/dist</filename> directory are also copied. To include any static files in the 
                 distribution, simply arrange them in the <filename>src/dist</filename> directory.
