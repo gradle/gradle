@@ -74,7 +74,7 @@ class ComponentModelBasePluginTest extends Specification {
 
         def componentFunctionalSourceSet = Mock(FunctionalSourceSet)
         _ * componentFunctionalSourceSet.name >> "testComponentSources"
-        _ * componentSpecInternal.mainSource >> componentFunctionalSourceSet
+        _ * componentSpecInternal.sources >> componentFunctionalSourceSet
 
         when:
         project.componentSpecs.add(componentSpecInternal)

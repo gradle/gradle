@@ -34,15 +34,15 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     task check << {
-        assert sources.size() == 1
-        assert sources.myLib instanceof FunctionalSourceSet
-        assert sources.myLib.size() == 2
-        assert sources.myLib.java instanceof JavaSourceSet
-        assert sources.myLib.resources instanceof JvmResourceSet
-
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrarySpec
-        assert myLib.source as Set == [sources.myLib.java, sources.myLib.resources] as Set
+
+        assert myLib.sources.size() == 2
+        assert myLib.sources.java instanceof JavaSourceSet
+        assert myLib.sources.resources instanceof JvmResourceSet
+        assert myLib.sources as Set == [sources.myLib.java, sources.myLib.resources] as Set
+
+        assert sources.myLib == myLib.sources
 
         binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source
@@ -62,79 +62,27 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    sources {
-        myLib {
-            extraJava(JavaSourceSet)
-            extraResources(JvmResourceSet)
-        }
-    }
-
-    jvm {
-        libraries {
-            myLib
-        }
-    }
-
-    task check << {
-        assert sources.size() == 1
-        assert sources.myLib instanceof FunctionalSourceSet
-        assert sources.myLib.size() == 4
-        assert sources.myLib.java instanceof JavaSourceSet
-        assert sources.myLib.extraJava instanceof JavaSourceSet
-        assert sources.myLib.resources instanceof JvmResourceSet
-        assert sources.myLib.extraResources instanceof JvmResourceSet
-
-        def myLib = jvm.libraries.myLib
-        assert myLib instanceof JvmLibrarySpec
-        assert myLib.source as Set == [sources.myLib.java, sources.myLib.extraJava, sources.myLib.resources, sources.myLib.extraResources] as Set
-
-        binaries.withType(JarBinarySpec) { jvmBinary ->
-            assert jvmBinary.source == myLib.source
-        }
-    }
-"""
-        then:
-        succeeds "check"
-
-        and:
-        !file("build").exists()
-    }
-
-    def "can configure additional functional source set for java library"() {
-        when:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    sources {
-        myExtraSources {
-            java(JavaSourceSet)
-            resources(JvmResourceSet)
-        }
-    }
-
-
     jvm {
         libraries {
             myLib {
-                source sources.myExtraSources
+                sources {
+                    extraJava(JavaSourceSet)
+                    extraResources(JvmResourceSet)
+                }
             }
         }
     }
 
     task check << {
-        assert sources.size() == 2
-
-        [sources.myLib, sources.myExtraSources].each {
-            assert it instanceof FunctionalSourceSet
-            assert it.size() == 2
-            assert it.java instanceof JavaSourceSet
-            assert it.resources instanceof JvmResourceSet
-        }
-
         def myLib = jvm.libraries.myLib
         assert myLib instanceof JvmLibrarySpec
-        assert myLib.source as Set == [sources.myLib.java, sources.myExtraSources.java, sources.myLib.resources, sources.myExtraSources.resources] as Set
+
+        assert myLib.sources == sources.myLib
+        assert myLib.sources.size() == 4
+        assert myLib.sources.java instanceof JavaSourceSet
+        assert myLib.sources.extraJava instanceof JavaSourceSet
+        assert myLib.sources.resources instanceof JvmResourceSet
+        assert myLib.sources.extraResources instanceof JvmResourceSet
 
         binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source

@@ -97,7 +97,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private <U extends LanguageSourceSet> void createDefaultSourceSetForComponents(final LanguageRegistration<U> languageRegistration, ComponentSpecContainer components) {
         components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
             public void execute(final ComponentSpecInternal componentSpecInternal) {
-                final FunctionalSourceSet functionalSourceSet = componentSpecInternal.getMainSource();
+                final FunctionalSourceSet functionalSourceSet = componentSpecInternal.getSources();
                 if (componentSpecInternal.getInputTypes().contains(languageRegistration.getOutputType())) {
                     functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());
                 }

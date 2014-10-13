@@ -20,6 +20,36 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ResourceOnlyJvmLibraryIntegrationTest extends AbstractIntegrationSpec {
+    def "can define a library containing resources only"() {
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'jvm-resources'
+}
+jvm {
+    libraries {
+        myLib
+    }
+}
+
+task check << {
+    def myLib = jvm.libraries.myLib
+    assert myLib instanceof JvmLibrarySpec
+
+    assert myLib.sources.size() == 1
+    assert myLib.sources.resources instanceof JvmResourceSet
+    assert myLib.sources as Set == [sources.myLib.resources] as Set
+
+    binaries.withType(JarBinarySpec) { jvmBinary ->
+        assert jvmBinary.source == myLib.source
+    }
+}
+"""
+
+        expect:
+        run 'check'
+    }
+
     def "can build a library containing resources only"() {
         file("src/myLib/resources/org/gradle/thing.txt") << "hi"
 
@@ -55,12 +85,11 @@ plugins {
 }
 jvm {
     libraries {
-        myLib
-    }
-}
-sources {
-    myLib {
-        other(JvmResourceSet)
+        myLib {
+            sources {
+                other(JvmResourceSet)
+            }
+        }
     }
 }
 """

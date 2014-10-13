@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -27,6 +28,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
@@ -64,8 +66,12 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
         return id.getProjectPath();
     }
 
-    public FunctionalSourceSet getMainSource() {
+    public FunctionalSourceSet getSources() {
         return mainSourceSet;
+    }
+
+    public void sources(Closure<?> action) {
+        ConfigureUtil.configure(action, mainSourceSet, true);
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {

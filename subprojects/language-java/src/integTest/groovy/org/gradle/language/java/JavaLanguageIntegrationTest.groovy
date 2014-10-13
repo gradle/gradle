@@ -69,15 +69,14 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     jvm {
         libraries {
-            myLib
+            myLib {
+                sources {
+                    extraJava(JavaSourceSet)
+                }
+            }
         }
     }
 
-    sources {
-        myLib {
-            extraJava(JavaSourceSet)
-        }
-    }
 """
         and:
         succeeds "assemble"
@@ -108,17 +107,15 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     jvm {
         libraries {
-            myLib
-        }
-    }
-
-    sources {
-        myLib {
-            java {
-                source.srcDir "src/myLib/myJava"
-            }
-            resources {
-                source.srcDir "src/myLib/myResources"
+            myLib {
+                sources {
+                    java {
+                        source.srcDir "src/myLib/myJava"
+                    }
+                    resources {
+                        source.srcDir "src/myLib/myResources"
+                    }
+                }
             }
         }
     }
@@ -130,6 +127,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/myLibJar").assertHasDescendants(app.expectedOutputs*.fullPath as String[])
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
+
     }
 
     def "can combine resources and sources in a single source directory"() {
@@ -144,18 +142,16 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     jvm {
         libraries {
-            myLib
-        }
-    }
-
-    sources {
-        myLib {
-            java {
-                source.srcDir "src/myLib"
-            }
-            resources.source {
-                srcDir "src/myLib"
-                exclude "**/*.java"
+            myLib {
+                sources {
+                    java {
+                        source.srcDir "src/myLib"
+                    }
+                    resources.source {
+                        srcDir "src/myLib"
+                        exclude "**/*.java"
+                    }
+                }
             }
         }
     }

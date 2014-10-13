@@ -16,10 +16,12 @@
 
 package org.gradle.platform.base;
 
+import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
@@ -41,8 +43,20 @@ public interface ComponentSpec extends Named {
     /**
      * The source sets that are used to build this component.
      */
+    FunctionalSourceSet getSources();
+
+    /**
+     * Configure the source sets used to build this component.
+     */
+    void sources(Closure<?> action);
+
+    // TODO:DAZ Remove this
+    /**
+     * The source sets that are used to build this component.
+     */
     DomainObjectSet<LanguageSourceSet> getSource();
 
+    // TODO:DAZ Remove this
     /**
      * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
      * <p/>
