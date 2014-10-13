@@ -53,11 +53,11 @@ public class ResolvedTaskPath {
 
     @Override
     public String toString() {
-        return "ResolvedTaskPath{" +
-                "prefix='" + prefix + '\'' +
-                ", taskName='" + taskName + '\'' +
-                ", project=" + project.getPath() +
-                ", isQualified=" + isQualified +
-                '}';
+        return "ResolvedTaskPath{"
+                + "prefix='" + prefix + '\''
+                + ", taskName='" + taskName + '\''
+                + ", project=" + project.getPath()
+                + ", isQualified=" + isQualified
+                + '}';
     }
 }
