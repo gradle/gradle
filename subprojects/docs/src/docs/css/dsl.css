@@ -1,6 +1,6 @@
 
 .caution {
-  font-size: 13px;
+  font-size: 14px;
   color: #AF5252;
   background-color: pink;
   text-transform: lowercase;
@@ -58,7 +58,7 @@ table .caution {
     margin-bottom: 0.4em;
     font-weight: bold;
     color: #505050;
-    font-size: 15px
+    font-size: 16px
 }
 
 .sidebar li.selected {

@@ -30,10 +30,6 @@ section.minor-detail {
   padding: 0 10px;
 }
 
-ul.toc {
-  font-size: 15px
-}
-
 ul.toc-sub {
   margin-bottom: 0px;
 }
@@ -118,7 +114,7 @@ section.footer {
 }
 
 #tiptip_content {
-    font-size: 13px;
+    font-size: 14px;
     color: #717171;
     padding: 6px 10px;
     border: 1px solid #8B8B8B;
