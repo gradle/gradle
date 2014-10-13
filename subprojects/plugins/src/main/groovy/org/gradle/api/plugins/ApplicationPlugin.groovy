@@ -15,15 +15,17 @@
  */
 package org.gradle.api.plugins
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.GradleException
+import org.gradle.util.DeprecationLogger
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
@@ -42,7 +44,6 @@ class ApplicationPlugin implements Plugin<Project> {
     private Project project
     private ApplicationPluginConvention pluginConvention
 
-
     void apply(final Project project) {
         this.project = project
         project.plugins.apply(JavaPlugin)
@@ -55,7 +56,23 @@ class ApplicationPlugin implements Plugin<Project> {
         def distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
         distribution.conventionMapping.baseName = {pluginConvention.applicationName}
         configureDistSpec(distribution.contents)
-        addInstallTask(distribution)
+        Task installAppTask = addInstallAppTask(distribution)
+        configureInstallTasks(installAppTask, project.tasks[DistributionPlugin.TASK_INSTALL_NAME])
+    }
+
+    void configureInstallTasks(Task... installTasks) {
+        installTasks.each { installTask ->
+            installTask.doFirst {
+                if (destinationDir.directory) {
+                    if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
+                        throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${pluginConvention.applicationName}'.\n" +
+                                "If you really want to install to this directory, delete it and run the install task again.\n" +
+                                "Alternatively, choose a different installation directory."
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private void addPluginConvention() {
@@ -84,25 +101,16 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.conventionMapping.defaultJvmOpts = { pluginConvention.applicationDefaultJvmArgs }
     }
 
-    private void addInstallTask(Distribution distribution) {
+    private Task addInstallAppTask(Distribution distribution) {
         def installTask = project.tasks.create(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
         installTask.with distribution.contents
         installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
-        installTask.doFirst {
-            if (destinationDir.directory) {
-                if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
-                    throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for '${pluginConvention.applicationName}'.\n" +
-                            "If you really want to install to this directory, delete it and run the install task again.\n" +
-                            "Alternatively, choose a different installation directory."
-                    )
-                }
-            }
+        installTask.doFirst{
+            DeprecationLogger.nagUserOfReplacedTask(ApplicationPlugin.TASK_INSTALL_NAME, DistributionPlugin.TASK_INSTALL_NAME);
         }
-        installTask.doLast {
-            project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${pluginConvention.applicationName}", perm: 'ugo+x')
-        }
+        installTask
     }
 
     private CopySpec configureDistSpec(CopySpec distSpec) {

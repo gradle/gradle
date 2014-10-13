@@ -91,6 +91,12 @@ public class SingleMessageLogger {
                 pluginName, getDeprecationMessage(), replacement));
     }
 
+    public static void nagUserOfReplacedTask(String taskName, String replacement) {
+        nagUserWith(String.format(
+                "The %s task %s. Please use the %s task instead.",
+                taskName, getDeprecationMessage(), replacement));
+    }
+
     public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
         nagUserWith(String.format(
                 "The %s task type %s. Please use the %s instead.",
