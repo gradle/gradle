@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
@@ -74,6 +75,18 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    @Override
+    public GradleConnector setStandardOutput(OutputStream outputStream) {
+        connectionParamsBuilder.setStdout(outputStream);
+        return this;
+    }
+
+    @Override
+    public GradleConnector setStandardError(OutputStream outputStream) {
+        connectionParamsBuilder.setStderr(outputStream);
+        return this;
+    }
+
     public GradleConnector searchUpwards(boolean searchUpwards) {
         connectionParamsBuilder.setSearchUpwards(searchUpwards);
         return this;
@@ -100,6 +113,8 @@ public class DefaultGradleConnector extends GradleConnector {
         connectionParamsBuilder.setVerboseLogging(verboseLogging);
         return this;
     }
+
+
 
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());

@@ -24,11 +24,22 @@ public interface LoggingOutputInternal extends LoggingOutput {
     void addStandardOutputAndError();
 
     /**
+     * Removes standard output and error from logging destinations.
+     */
+    void removeStandardOutputAndError();
+
+    /**
      * Adds the console as logging destination, if available.
+     * removes standard output and/or error as a side-effect
      */
     void attachConsole(boolean colorOutput);
 
     void addOutputEventListener(OutputEventListener listener);
 
     void removeOutputEventListener(OutputEventListener listener);
+
+    /**
+     * Removes all non-standard output event listeners (also the ones attached with attachConsole)
+     */
+    void removeAllOutputEventListeners();
 }

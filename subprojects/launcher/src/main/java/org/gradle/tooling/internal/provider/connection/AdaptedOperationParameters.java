@@ -33,7 +33,7 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
 
     private final BuildOperationParametersVersion1 delegate;
     private final List<String> tasks;
-    
+
     CompatibleIntrospector introspector;
 
     public AdaptedOperationParameters(BuildOperationParametersVersion1 operationParameters) {
@@ -117,7 +117,7 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
     public List<String> getArguments(List<String> defaultArguments) {
         return maybeGet(defaultArguments, "getArguments");
     }
-    
+
     public List<String> getTasks() {
         return tasks;
     }
@@ -125,5 +125,7 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
     public List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables) {
         return maybeGet(defaultLaunchables, "getLaunchables");
     }
+
+    public Boolean isColorOutput() { return delegate.isColorOutput(); }
 
 }

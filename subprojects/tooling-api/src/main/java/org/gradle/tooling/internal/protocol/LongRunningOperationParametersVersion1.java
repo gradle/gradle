@@ -43,6 +43,11 @@ public interface LongRunningOperationParametersVersion1 {
     OutputStream getStandardError();
 
     /**
+     * Specifies whether to use colored (ansi encoded) output for logging, or null to use default.
+     */
+    Boolean isColorOutput();
+
+    /**
      * Returns the listener to receive progress events.
      *
      * @return The listener. Must not be null.

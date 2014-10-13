@@ -63,6 +63,11 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
         return getThis();
     }
 
+    public T setColorOutput(boolean colorOutput) {
+        operationParamsBuilder.setColorOutput(colorOutput);
+        return getThis();
+    }
+
     public T setJavaHome(File javaHome) {
         operationParamsBuilder.setJavaHome(javaHome);
         return getThis();
