@@ -121,5 +121,6 @@ project.logger.debug("debug logging");
     void shouldNotContainProviderLogging(String output) {
         assert !output.contains("Provider implementation created.")
         assert !output.contains("Tooling API uses target gradle version:")
+        assert !output.contains("Tooling API is using target Gradle version:")
     }
 }
