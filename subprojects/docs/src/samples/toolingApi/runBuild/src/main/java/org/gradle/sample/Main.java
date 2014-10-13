@@ -27,11 +27,16 @@ public class Main {
             BuildLauncher launcher = connection.newBuild();
             launcher.forTasks("help");
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
             launcher.setStandardOutput(outputStream);
-            launcher.setStandardError(outputStream);
+            launcher.setStandardError(errorStream);
 
             // Run the build
             launcher.run();
+
+            // Process the outputs
+            System.out.println(outputStream.toString());
+            System.err.println(errorStream.toString());
         } finally {
             // Clean up
             connection.close();

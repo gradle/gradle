@@ -115,7 +115,7 @@ public class ProviderConnection {
             loggingServices = this.loggingServices;
             executer = embeddedExecutor;
         } else {
-            loggingServices = this.loggingServices.newLogging();
+            loggingServices = this.loggingServices.newToolingApiLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);
