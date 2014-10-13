@@ -126,6 +126,8 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         return maybeGet(defaultLaunchables, "getLaunchables");
     }
 
-    public Boolean isColorOutput() { return delegate.isColorOutput(); }
+    public Boolean isColorOutput() {
+        return maybeGet(Boolean.FALSE, "isColorOutput");
+    }
 
 }

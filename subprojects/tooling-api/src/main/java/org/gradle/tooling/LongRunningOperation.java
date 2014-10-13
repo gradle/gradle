@@ -61,7 +61,12 @@ public interface LongRunningOperation {
 
     /**
      * Specifies whether to use colored (ansi encoded) output for logging
+     *
+     * @param colorOutput {@code true} to request color output (using ANSI encoding).
+     * @return this
+     * @since 2.3
      */
+    @Incubating
     LongRunningOperation setColorOutput(boolean colorOutput);
 
     /**

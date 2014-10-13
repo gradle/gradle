@@ -119,7 +119,7 @@ public class ProviderConnection {
             loggingServices = this.loggingServices;
             executer = embeddedExecutor;
         } else {
-            if(operationParameters.isColorOutput() != null && operationParameters.isColorOutput() && operationParameters.getStandardOutput() != null) {
+            if (Boolean.TRUE.equals(operationParameters.isColorOutput()) && operationParameters.getStandardOutput() != null) {
                 PrintStream outStr = new PrintStream(operationParameters.getStandardOutput());
                 DefaultColorMap colourMap = new DefaultColorMap();
                 colourMap.setUseColor(true);

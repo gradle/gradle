@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 
@@ -130,7 +131,9 @@ public abstract class GradleConnector {
      *
      * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
      * @return this
+     * @since 2.3
      */
+    @Incubating
     public abstract GradleConnector setStandardOutput(OutputStream outputStream);
 
     /**
@@ -138,8 +141,9 @@ public abstract class GradleConnector {
      * The default is to discard the output.
      *
      * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
-     * @return this
+     * @since 2.3
      */
+    @Incubating
     public abstract GradleConnector setStandardError(OutputStream outputStream);
 
     /**
