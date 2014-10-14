@@ -57,10 +57,6 @@ strategy.
                             selection.reject("known bad version")
                         }
                     }
-
-                    // Rules can be specified as "rule source" objects
-                    // Reject any version without a branch of "master" (see class definition below)
-                    withModule("org.sample:api", new RejectNotMasterRule())
                 }
             }
         }
@@ -68,16 +64,6 @@ strategy.
 
     dependencies {
         conf "org.sample:api:1.+"
-    }
-
-    class RejectNotMasterRule {
-        // Rule source objects must have exactly one method annotated with @Mutate
-        @org.gradle.module.Mutate
-        void rejectNotMaster(ComponentSelection selection, IvyModuleDescriptor descriptor) {
-            if (descriptor.branch != "master") {
-                selection.reject("branch is not master")
-            }
-        }
     }
 
 See the [User Guide section](userguide/dependency_management.html#component_selection_rules) on component selection rules for further information.
