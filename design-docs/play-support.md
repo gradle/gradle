@@ -32,7 +32,16 @@ Performance should be comparable to SBT:
 
 # Milestone 1
 
-## Feature: Developer builds a Play application from Java and Scala source
+For the first milestone, a developer will be able to define, build and run a simple play application that consists
+of routes and templates, Java and Scala sources, as well as Javascript, CSS, CoffeeScript and LESSCSS sources.
+
+In this milestone we are not dealing with:
+- Automatically rebuilding the play application when sources change
+- 3rd party dependencies for Java, Scala or Javascript. (This may change).
+
+The goal is to get something working pretty quickly, and work to improve the configurability and discoverability over time.
+
+## Feature: Developer builds and runs a trivial Play application with templates and routes
 
 ### Story: Build author declares a Play application
 
@@ -54,7 +63,7 @@ Add a `play-application` plugin that provides Play application component:
 - Running `gradle components` shows some basic details about the Play application.
 - In this story, no source files are supported.
 
-## Story: Developer compiles template source for Play application
+### Story: Developer includes template sources in Play application
 
 Extend the Play support so that template source files for a Play application are compiled to byte code.
 
@@ -65,7 +74,7 @@ Extend the Play support so that template source files for a Play application are
 - No dependencies other than Scala and Play.
 - Source generation and compilation should be incremental and remove stale outputs.
 
-## Story: Developer compiles routes for Play application
+### Story: Developer defines routes for Play application
 
 Extend the Play support so that routes for a Play application are compiled to byte code.
 
@@ -74,7 +83,7 @@ Extend the Play support so that routes for a Play application are compiled to by
 - Routes source files are assumed to be in a hard-coded location. This won't be configurable for this story.
 - Source generation and compilation should be incremental and remove stale outputs.
 
-## Story: Developer runs Play application
+### Story: Developer runs Play application
 
 Extend the Play support to allow the Play application to be executed.
 
@@ -83,40 +92,23 @@ Extend the Play support to allow the Play application to be executed.
 
 At this stage, only templates and routes are included, with a hard-coded version of Scala and Play.
 
-## Story: Developer implements a Play application using Java
+## Feature: Developer builds a Play application from Java and Scala sources
+
+### Story: Developer implements a Play application using Java
 
 Extend the Play support to compile Java source for a Play application.
 
 - Java source files are assumed to be in a hard-coded location. This won't be configurable for this story.
 - No dependencies other than Scala and Play.
 
-## Story: Developer implements a Play application using Scala
+### Story: Developer implements a Play application using Scala
 
 Extend the Play support to compile Scala source for a Play application.
 
 - Scala source files are assumed to be in a hard-coded location. This won't be configurable for this story.
 - No dependencies other than Scala and Play.
 - No joint compilation.
-
-## Further features
-
-- Build author declares Scala and Play platforms (below).
-- Model routes and templates as languages.
-- Source sets for input languages for a Play application.
-- Register Scala as a language, and change Play support to allow a Play application to take any language as input.
-- Joint compilation of Java and Scala source.
-- Can build multiple variants of a Play application.
-- Generate an application install, eg with launcher scripts and so on.
-- Build author runs unit and functional tests for a Play application.
-
-## Feature: Developer declares target Scala and Play versions for a Play application
-
-### Story: Build author declares target Scala platform
-
-- Provide a DSL to declare the target Scala platform for Scala source files.
-- Implies Java version?
-- Visible to Java source for that component as well?
-- Scala version should be visible in components report and dependencies reports.
+Play support will be built using the new software component model, and we will extend and improve this model as we go. 
 
 #### Test cases
 
@@ -225,6 +217,17 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 Play plugin:
 
 - Defines a distribution that bundles a Play server and Play application.
+
+## Further features
+
+- Model routes and templates as languages.
+- Source sets for input languages for a Play application.
+- Register Scala as a language, and change Play support to allow a Play application to take any language as input.
+- Declare dependencies on other Java/Scala libraries
+- Joint compilation of Java and Scala source.
+- Can build multiple variants of a Play application.
+- Generate an application install, eg with launcher scripts and so on.
+- Build author runs unit and functional tests for a Play application.
 
 # Milestone 2
 
