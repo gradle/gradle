@@ -59,7 +59,7 @@ strategy.
         }
     }
 
-See the [userguide section](userguide/dependency_management.html#component_selection_rules) on component selection rules for further information.
+See the [User Guide section](userguide/dependency_management.html#component_selection_rules) on component selection rules for further information.
 
 ### Declaring module replacements (i)
 
