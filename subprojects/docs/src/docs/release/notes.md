@@ -115,7 +115,7 @@ This feature was contributed by [Andrea Panattoni](https://github.com/zeeke).
 Previous versions of Gradle have supported building x86 binaries using GCC on Windows. This Gradle release adds initial support for building
 x64 binaries using GCC on Windows.
 
-### Specify VCS integration with IDEA support
+### Specify version control system for IntelliJ IDEA
 
 When using the `idea` plugin, it is now possible to specify the version control system to configure IDEA to use when importing the project.
 
