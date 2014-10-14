@@ -148,7 +148,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    def "library with matching platform is chosen by dependency resolution"() {
+    def "library with matching platform is enforced by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
         testApp.library.writeSources(file("src/hello"))
@@ -190,6 +190,34 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executedAndNotSkipped(":exeExecutable")
         executable("build/binaries/exeExecutable/exe").binaryInfo.arch.name == "x86"
         executable("build/binaries/exeExecutable/exe").exec().out == "i386 ${os.familyName}" * 2
+    }
+
+    def "library with no platform defined is correctly chosen by dependency resolution"() {
+        def arch = currentArch();
+
+        given:
+        testApp.executable.writeSources(file("src/exe"))
+        testApp.library.writeSources(file("src/hello"))
+        when:
+        buildFile << """
+            executables {
+                exe
+            }
+            libraries {
+                hello
+            }
+            sources {
+                exe.cpp.lib libraries.hello.static
+            }
+"""
+
+        and:
+        succeeds "exeExecutable"
+
+        then:
+        executedAndNotSkipped(":exeExecutable")
+        executable("build/binaries/exeExecutable/exe").binaryInfo.arch.name == arch.name
+        executable("build/binaries/exeExecutable/exe").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
     def "build binary for multiple target architectures"() {
