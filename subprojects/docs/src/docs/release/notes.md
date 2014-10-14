@@ -1,12 +1,12 @@
 Gradle 2.2 delivers some nice general features and improvements, as well as profound new capabilities for dependency management.
 
-The new support for arbitrary Component Selection Rules and modelling of module “replacement” brings powerful new dependency management capabilities.
-Component Selection Rules allow extremely fine grained, custom, conflict resolution strategies.
+The addition of arbitrary “Component Selection Rules” and the modelling of module “replacement” continues to push the state of the art in JVM dependency management.
+Selection rules allow extremely fine grained, custom, conflict resolution strategies.
 Support for declaring module replacements allows Gradle to consider modules that have different identities but that conflict in some way during conflict resolution.
-This can be used to avoid have duplicate copies of libraries at different versions that changed their published coordinates over time or that transitioned into other libraries entirely.
+This can be used to avoid ending up with duplicate copies of libraries at different versions due to their published coordinates changing over time or due to merging into other libraries entirely.
 
-Support for the [SonarQube](http://www.sonarqube.org) code quality management platform has significantly improved in this release through support for 
-controlling the Sonar Runner process (e.g. memory settings) and to use arbitrary versions of the Sonar Runner.
+Support for the [SonarQube](http://www.sonarqube.org) code quality management platform has significantly improved in this release. 
+The Sonar Runner no longer runs in the build process, which allows more control over its execution (e.g. memory settings) and the use of arbitrary versions of the Sonar Runner.
 This will allow leveraging of new Sonar features without updates to the plugin and more control over how Gradle integrates with Sonar.
 
 The new support for “text resources”, added to the code quality plugins (e.g. the Checkstyle plugin), opens up new possibilities for sharing configuration/settings for code quality checks.
