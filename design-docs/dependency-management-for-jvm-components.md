@@ -332,12 +332,6 @@ A custom binary implementation:
     - Does not extend `BaseBinarySpec`
 - Friendly error message when attempting to register the same binary type with different implementations
 
-#### Open issues
-
-- `BaseBinarySpec` and `BaseComponentSpec` leak internal APIs
-- Existing JVM and native binary implementations should extend `BaseBinarySpec`
-- Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
-
 ### Story: Plugin defines binaries for each custom component
 
 This story introduces a mechanism by this a developer can define the binaries that should be built for a custom library.
@@ -397,8 +391,6 @@ Running `gradle assemble` will execute lifecycle task for each binary.
     - ~~Parameter does not have a generic type~~
     - ~~Has a non-void return value~~
 
-#### Open issues
-
 ### Story: Plugin defines tasks from binaries
 
 Add a rule to the sample plugin:
@@ -438,8 +430,6 @@ Running `gradle assemble` will execute tasks for each library binary.
 
 #### Open issues
 
-- Needs to be easy to construct a task graph. The binary is 'builtBy' some assembling task, which then depend on a bunch of compile tasks.
-- Could use a single `@ComponentModel` annotation for all methods, and inspect signature to determine type
 - General mechanism to register a model collection and have rules that apply to each element of that collection.
 
 ## Feature: Build author uses model DSL for all component model configuration
@@ -690,6 +680,7 @@ Infrastructure automatically wires up the correct transformation rule for each b
     - `JvmBinarySpec` assumes binary is built from intermediate classes and resources.
     - `JarBinarySpec` assumes binary belongs to a library.
     - `ClassDirectoryBinarySpec` assumes binary belongs to a library.
+    - Existing JVM and native binary implementations should extend `BaseBinarySpec`
 - `ComponentSpec` hierarchy
     - `ComponentSpec` assumes component is built from source.
     - `ComponentSpec` assumes component produces binaries.
@@ -697,8 +688,7 @@ Infrastructure automatically wires up the correct transformation rule for each b
     - Binaries of a component are not strongly typed.
     - `TargetedNativeComponent` should have `spec` in its name
     - `TargetedNativeComponent` provides write-only access to targets, and only as strings.
-    - `JvmLibrarySpec` models target platforms as `JavaVersion`.
-    - There's no JVM component type.
+    - Need to be able to specialise the `languages` and `binaries` collections in a subtype of `ComponentSpec`.
 - `Component` hierarchy
     - `Component` is in `org.gradle.api.component` package.
     - `PrebuiltLibrary` is actually a prebuilt native library.
