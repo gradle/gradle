@@ -68,16 +68,17 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
             }
 
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp(CppSourceSet)
+                        cpp1(CppSourceSet)
+                    }
+                }
             }
 
             sources {
                 other {
                     cpp(CppSourceSet)
-                }
-                main {
-                    cpp(CppSourceSet)
-                    cpp1(CppSourceSet)
                 }
             }
 """
@@ -88,7 +89,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    source sources.other
+                    source project.sources.other
                     binaries.all {
                         lib library: 'lib1', linkage: 'static'
                     }
@@ -108,7 +109,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {
-                    source sources.other
+                    source project.sources.other
                 }
             }
             sources.other.cpp.lib library: 'lib1', linkage: 'static'
@@ -127,7 +128,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {
                     binaries.all {
-                        source sources.other
+                        source project.sources.other
                     }
                 }
             }

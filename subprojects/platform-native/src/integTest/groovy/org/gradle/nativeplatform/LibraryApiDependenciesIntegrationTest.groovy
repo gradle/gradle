@@ -47,17 +47,21 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
             libraries {
                 helloApi {}
-                hello {}
+                hello {
+                    sources {
+                        cpp.lib ${notation}
+                    }
+                }
             }
-            sources {
-                main.cpp.lib ${notation}
-                main.cpp.lib library: 'hello'
-                hello.cpp.lib ${notation}
+            executables {
+                main {
+                    sources {
+                        cpp.lib ${notation}
+                        cpp.lib library: 'hello'
+                    }
+                }
             }
         """
 
@@ -89,13 +93,14 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 """
         buildFile << """
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: 'util'
+                    }
+                }
             }
             libraries {
                 util {}
-            }
-            sources {
-                main.cpp.lib library: 'util'
             }
 """
         when:
@@ -130,17 +135,20 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
                 }
             }
             executables {
-                main
+                main {
+                    sources {
+                        cpp.lib library: 'util'
+                    }
+                }
             }
             libraries {
                 util {
                     binaries.all { binary ->
-                        binary.source sources[binary.buildType.name]
+                        binary.source project.sources[binary.buildType.name]
                     }
                 }
             }
             sources {
-                main.cpp.lib library: 'util'
                 debug {
                     cpp(CppSourceSet) {
                         exportedHeaders.srcDir "src/util/debug"
@@ -172,16 +180,20 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
         and:
         buildFile << """
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'api'
+                        cpp.lib library: 'hello2'
+                    }
+                }
             }
             libraries {
                 hello {}
-                hello2 {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'api'
-                main.cpp.lib library: 'hello2'
-                hello2.cpp.lib library: 'hello', linkage: 'api'
+                hello2 {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'api'
+                    }
+                }
             }
         """
 
@@ -203,16 +215,23 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
         and:
         buildFile << """
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: 'hello'
+                    }
+                }
             }
             libraries {
-                hello {}
-                greetings {}
-            }
-            sources {
-                main.cpp.lib library: 'hello'
-                hello.cpp.lib library: 'greetings', linkage: 'static'
-                greetings.cpp.lib library: 'hello', linkage: 'api'
+                hello {
+                    sources {
+                        cpp.lib library: 'greetings', linkage: 'static'
+                    }
+                }
+                greetings {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'api'
+                    }
+                }
             }
         """
 
@@ -232,13 +251,14 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
         and:
         buildFile << """
             executables {
-                main
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'api'
+                    }
+                }
             }
             libraries {
                 hello {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'api'
             }
         """
 

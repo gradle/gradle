@@ -30,16 +30,17 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             apply plugin: "cpp"
-            executables {
-                main {}
-            }
             libraries {
                 helloStatic {}
                 helloShared {}
             }
-            sources {
-                main.cpp.lib libraries.helloStatic.static
-                main.cpp.lib libraries.helloShared
+            executables {
+                main {
+                    sources {
+                        cpp.lib libraries.helloStatic.static
+                        cpp.lib libraries.helloShared
+                    }
+                }
             }
         """
 
@@ -117,16 +118,17 @@ include 'exe', 'lib'
                 evaluationDependsOn(":lib")
                 apply plugin: "cpp"
                 executables {
-                    main {}
+                    main {
+                        sources {
+                            cpp {
+                                lib library: "helloMain"
+                                lib project: ":lib", library: "helloLib"
+                            }
+                        }
+                    }
                 }
                 libraries {
                     helloMain {}
-                }
-                sources {
-                    main.cpp {
-                        lib libraries.helloMain
-                        lib project(":lib").libraries.helloLib
-                    }
                 }
             }
         """
@@ -283,18 +285,19 @@ include 'exe', 'lib'
             }
 
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "hello"
+                    }
+                }
             }
 
             libraries {
                 hello {
                     binaries.all {
-                        source sources.helloLib.cpp
+                        source project.sources.helloLib.cpp
                     }
                 }
-            }
-            sources {
-                main.cpp.lib libraries.hello
             }
         """
 

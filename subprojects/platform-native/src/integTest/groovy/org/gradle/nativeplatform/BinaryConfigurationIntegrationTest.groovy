@@ -162,29 +162,28 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
             apply plugin: "cpp"
 
             libraries {
-                util {}
+                util {
+                    sources {
+                        cpp {
+                            exportedHeaders.srcDir "src/shared/headers"
+                        }
+                    }
+                }
             }
 
             executables {
                 main {
+                    sources {
+                        cpp {
+                            exportedHeaders.srcDir "src/shared/headers"
+                        }
+                    }
                     binaries.all {
-                        source sources.util.cpp
+                        source libraries.util.sources.cpp
                     }
                 }
             }
 
-            sources {
-                main {
-                    cpp {
-                        exportedHeaders.srcDir "src/shared/headers"
-                    }
-                }
-                util {
-                    cpp {
-                        exportedHeaders.srcDir "src/shared/headers"
-                    }
-                }
-            }
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -343,7 +342,11 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
         buildFile << """
             apply plugin: 'cpp'
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "hello", linkage: "${linkage}"
+                    }
+                }
             }
             libraries {
                 hello {
@@ -355,9 +358,6 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
                         staticLibraryFile = modPath(staticLibraryFile)
                     }
                 }
-            }
-            sources {
-                main.cpp.lib libraries.hello.${linkage}
             }
 
             def modPath(File file) {

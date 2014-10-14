@@ -52,13 +52,14 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         buildFile << """
         project(":exe") {
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib ${dependencyNotation}
+                    }
+                }
             }
             libraries {
                 hello {}
-            }
-            sources {
-                main.cpp.lib ${dependencyNotation}
             }
         }
         project(":other") {
@@ -91,14 +92,15 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
             libraries {
                 hello {}
             }
-            sources {
-                main.cpp.lib ${notation}
+            executables {
+                main {
+                    sources {
+                        cpp.lib ${notation}
+                    }
+                }
             }
         """
 
@@ -156,10 +158,11 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         and:
         buildFile << """
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'static'
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'static'
+                    }
+                }
             }
             libraries {
                 hello {}
@@ -186,10 +189,11 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         project(":exe") {
             ${explicitEvaluation}
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib project: ':lib', library: 'hello'
+                main {
+                    sources {
+                        cpp.lib project: ':lib', library: 'hello'
+                    }
+                }
             }
         }
         project(":lib") {
@@ -230,18 +234,20 @@ project.afterEvaluate {
         buildFile << """
         project(":exe") {
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib project: ':lib', library: 'hello'
+                main {
+                    sources {
+                        cpp.lib project: ':lib', library: 'hello'
+                    }
+                }
             }
         }
         project(":lib") {
             libraries {
-                hello {}
-            }
-            sources {
-                hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+                hello {
+                    sources {
+                        cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+                    }
+                }
             }
         }
         project(":greet") {
@@ -269,22 +275,24 @@ project.afterEvaluate {
         project(":exe") {
             apply plugin: "cpp"
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib project: ':lib', library: 'hello'
+                    }
+                }
             }
             libraries {
                 greetings {}
-            }
-            sources {
-                main.cpp.lib project: ':lib', library: 'hello'
             }
         }
         project(":lib") {
             apply plugin: "cpp"
             libraries {
-                hello {}
-            }
-            sources {
-                hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+                hello {
+                    sources {
+                        cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+                    }
+                }
             }
         }
         """
@@ -305,16 +313,20 @@ project.afterEvaluate {
         buildFile << """
             apply plugin: "cpp"
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "hello"
+                        cpp.lib library: "greetings", linkage: "static"
+                    }
+                }
             }
             libraries {
-                hello {}
+                hello {
+                    sources {
+                        cpp.lib library: "greetings", linkage: "static"
+                    }
+                }
                 greetings {}
-            }
-            sources {
-                main.cpp.lib libraries.hello.shared
-                main.cpp.lib libraries.greetings.static
-                hello.cpp.lib libraries.greetings.static
             }
         """
 
@@ -338,16 +350,20 @@ project.afterEvaluate {
         buildFile << """
             apply plugin: "cpp"
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "hello", linkage: "shared"
+                        cpp.lib library: "greetings", linkage: "shared"
+                    }
+                }
             }
             libraries {
-                hello {}
+                hello {
+                    sources {
+                        cpp.lib library: "greetings", linkage: "static"
+                    }
+                }
                 greetings {}
-            }
-            sources {
-                main.cpp.lib libraries.hello.shared
-                main.cpp.lib libraries.greetings.shared
-                hello.cpp.lib libraries.greetings.static
             }
         """
 

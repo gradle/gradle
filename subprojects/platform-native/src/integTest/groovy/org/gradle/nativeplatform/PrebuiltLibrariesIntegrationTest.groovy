@@ -68,10 +68,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'api'
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'api'
+                    }
+                }
             }
         """
 
@@ -118,16 +119,18 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-                mainStatic {}
-            }
-            sources {
-                main.cpp {
-                    lib library: 'hello'
+                main {
+                    sources {
+                        cpp.lib library: 'hello'
+                    }
                 }
-                mainStatic.cpp {
-                    source.srcDir "src/main/cpp"
-                    lib library: 'hello', linkage: 'static'
+                mainStatic {
+                    sources {
+                        cpp {
+                            source.srcDir "src/main/cpp"
+                            lib library: 'hello', linkage: 'static'
+                        }
+                    }
                 }
             }
         """
@@ -166,10 +169,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'static'
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'static'
+                    }
+                }
             }
         """
 
@@ -192,10 +196,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             project(':projectA') {
                 apply plugin: 'cpp'
                 executables {
-                    main {}
-                }
-                sources {
-                    main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                    main {
+                        sources {
+                            cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                        }
+                    }
                 }
             }
         """
@@ -235,10 +240,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'static'
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'static'
+                    }
+                }
             }
         """
 
@@ -266,10 +272,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib library: 'hello', linkage: 'static'
+                main {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'static'
+                    }
+                }
             }
         """
 
@@ -296,10 +303,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib library: 'other'
+                main {
+                    sources {
+                        cpp.lib library: 'other'
+                    }
+                }
             }
         """
 
@@ -327,10 +335,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                 }
             }
             executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                main {
+                    sources {
+                        cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+                    }
+                }
             }
         """
 

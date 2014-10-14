@@ -170,15 +170,15 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
             executables {
                 exe {
                     targetPlatform "x86"
+                    sources {
+                        cpp.lib library: "hello", linkage: "static"
+                    }
                 }
             }
             libraries {
                 hello {
                     targetPlatform "x86"
                 }
-            }
-            sources {
-                exe.cpp.lib libraries.hello.static
             }
 """
 
@@ -417,8 +417,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                 }
             }
 
-            sources {
-                main.cpp.lib libraries.hello
+            executables.main.sources {
+                cpp.lib libraries.hello
             }
 """
 

@@ -136,13 +136,14 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                 }
             }
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "hello", linkage: "static"
+                    }
+                }
             }
             libraries {
                 hello {}
-            }
-            sources {
-                main.cpp.lib libraries.hello.static
             }
         """
         and:
@@ -189,15 +190,16 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                 }
             }
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "hello", linkage: "static"
+                    }
+                }
             }
             libraries {
                 hello {
                     targetBuildTypes "debug"
                 }
-            }
-            sources {
-                main.cpp.lib libraries.hello.static
             }
 """
 

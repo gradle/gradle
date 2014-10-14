@@ -72,10 +72,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'c'
 
     executables {
-        main {}
-    }
-    sources {
-        main.c.generatedBy tasks.generateCSources
+        main {
+            sources {
+                c.generatedBy tasks.generateCSources
+            }
+        }
     }
 """
 
@@ -106,8 +107,8 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
         }
     }
-    sources {
-        main.c.lib sources.generated.cHeaders
+    executables.main.sources {
+        c.lib project.sources.generated.cHeaders
     }
 """
 
@@ -127,19 +128,15 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'c'
 
     executables {
-        main {}
-    }
-    sources {
-        generated {
-            c(CSourceSet) {
-                generatedBy tasks.generateCSources
+        main {
+            sources {
+                generatedC(CSourceSet) {
+                    generatedBy tasks.generateCSources
+                }
+                c.lib generatedC
             }
         }
     }
-    sources {
-        main.c.lib sources.generated.c
-    }
-    executables.main.source sources.generated.c
 """
 
         then:
@@ -158,20 +155,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'c'
 
     executables {
-        main {}
-    }
-    libraries {
-        hello {}
-    }
-    sources {
-        hello {
-            c {
-                generatedBy tasks.generateCSources
+        main {
+            sources {
+                c.lib library: 'hello', linkage: 'static'
             }
         }
     }
-    sources {
-        main.c.lib library: 'hello', linkage: 'static'
+    libraries {
+        hello {
+            sources {
+                c {
+                    generatedBy tasks.generateCSources
+                }
+            }
+        }
     }
 """
 
@@ -193,20 +190,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'c'
 
     executables {
-        main {}
-    }
-    libraries {
-        hello {}
-    }
-    sources {
-        hello {
-            c {
-                generatedBy tasks.generateCSources
+        main {
+            sources {
+                c.lib library: 'hello', linkage: 'api'
             }
         }
     }
-    sources {
-        main.c.lib library: 'hello', linkage: 'api'
+    libraries {
+        hello {
+            sources {
+                c {
+                    generatedBy tasks.generateCSources
+                }
+            }
+        }
     }
 """
 
@@ -231,10 +228,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     }
 
     executables {
-        main {}
-    }
-    sources {
-        main.cpp.generatedBy tasks.generateCppSources
+        main {
+            sources {
+                cpp.generatedBy tasks.generateCppSources
+            }
+        }
     }
 """
 
@@ -262,10 +260,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     }
 
     executables {
-        main {}
-    }
-    sources {
-        main.asm.generatedBy tasks.generateAsmSources
+        main {
+            sources {
+                asm.generatedBy tasks.generateAsmSources
+            }
+        }
     }
 """
 
@@ -293,10 +292,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     }
 
     executables {
-        main {}
-    }
-    sources {
-        main.rc.generatedBy tasks.generateRcSources
+        main {
+            sources {
+                rc.generatedBy tasks.generateRcSources
+            }
+        }
     }
 """
 
@@ -313,10 +313,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     }
 
     executables {
-        main {}
-    }
-    sources {
-        main.c.generatedBy tasks.generateSources
+        main {
+            sources {
+                c.generatedBy tasks.generateSources
+            }
+        }
     }
 """
 
@@ -339,17 +340,16 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'c'
 
     executables {
-        main {}
-    }
-    sources {
         main {
-            c {
-                builtBy tasks.generateCSources
-                source {
-                    srcDirs tasks.generateCSources.sourceDir
-                }
-                exportedHeaders {
-                    srcDirs tasks.generateCSources.headerDir
+            sources {
+                c {
+                    builtBy tasks.generateCSources
+                    source {
+                        srcDirs tasks.generateCSources.sourceDir
+                    }
+                    exportedHeaders {
+                        srcDirs tasks.generateCSources.headerDir
+                    }
                 }
             }
         }
@@ -373,10 +373,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     task lateConfiguredGenerator(type: GenerateSources)
 
     executables {
-        main {}
-    }
-    sources {
-        main.c.generatedBy tasks.lateConfiguredGenerator
+        main {
+            sources {
+                c.generatedBy tasks.lateConfiguredGenerator
+            }
+        }
     }
 
     lateConfiguredGenerator {
@@ -402,10 +403,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'c'
 
     executables {
-        main {}
-    }
-    sources {
-        main.c.generatedBy tasks.generateCSources
+        main {
+            sources {
+                c.generatedBy tasks.generateCSources
+            }
+        }
     }
 """
 

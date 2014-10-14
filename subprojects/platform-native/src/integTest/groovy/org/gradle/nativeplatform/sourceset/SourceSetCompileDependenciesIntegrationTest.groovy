@@ -40,7 +40,7 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
                 return LIB_ID;
             }
 """
-        file("src/other/cpp/func2.cpp") << """
+        file("src/main/otherCpp/func2.cpp") << """
             #include "lib.h"
 
             int func2() {
@@ -61,19 +61,6 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
                 lib1
                 lib2
             }
-            sources {
-                main {
-                    cpp(CppSourceSet)
-                }
-                other {
-                    cpp(CppSourceSet)
-                }
-            }
-            executables {
-                main {
-                    source sources.main
-                }
-            }
 """
     }
 
@@ -82,11 +69,16 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
         buildFile << """
             executables {
                 main {
-                    source sources.other
+                    sources {
+                        cpp {
+                            lib library: 'lib1', linkage: 'api'
+                        }
+                        otherCpp(CppSourceSet) {
+                            lib library: 'lib2', linkage: 'api'
+                        }
+                    }
                 }
             }
-            sources.main.cpp.lib library: 'lib1', linkage: 'api'
-            sources.other.cpp.lib library: 'lib2', linkage: 'api'
 """
 
         when:
@@ -99,15 +91,24 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of language source set added to binary are not shared when compiling"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    binaries.all {
-                        source sources.other
+            sources {
+                other {
+                    cpp(CppSourceSet) {
+                        source.srcDir "src/main/otherCpp"
+                        lib library: 'lib2', linkage: 'api'
                     }
                 }
             }
-            sources.main.cpp.lib library: 'lib1', linkage: 'api'
-            sources.other.cpp.lib library: 'lib2', linkage: 'api'
+            executables {
+                main {
+                    sources {
+                        cpp.lib library: 'lib1', linkage: 'api'
+                    }
+                    binaries.all {
+                        source project.sources.other
+                    }
+                }
+            }
 """
 
         when:
@@ -122,7 +123,9 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
         buildFile << """
             executables {
                 main {
-                    source sources.other
+                    sources {
+                        otherCpp(CppSourceSet)
+                    }
                     binaries.all {
                         lib library: 'lib1', linkage: 'api'
                     }

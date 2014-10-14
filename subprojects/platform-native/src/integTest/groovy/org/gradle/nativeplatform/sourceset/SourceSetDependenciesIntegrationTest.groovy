@@ -35,20 +35,19 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'c'
 
-    sources{
-        library{
+    sources {
+        library {
             c(CSourceSet)
         }
     }
 
     executables {
         main {
-            source sources.library
+            sources {
+                c.lib project.sources.library.c
+            }
+            source project.sources.library
         }
-    }
-
-    sources {
-        main.c.lib sources.library.c
     }
 """
         when:
@@ -68,18 +67,18 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     apply plugin: 'c'
     // library not required in executable: only headers are used
 
-    sources{
-        library{
+    sources {
+        library {
             c(CSourceSet)
         }
     }
 
     executables {
-        main {}
-    }
-
-    sources {
-        main.c.lib sources.library.c
+        main {
+            sources {
+                c.lib project.sources.library.c
+            }
+        }
     }
 """
         when:
@@ -106,12 +105,11 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 
     executables {
         main {
-            source sources.library
+            sources {
+                cpp.lib project.sources.library.c
+            }
+            source project.sources.library
         }
-    }
-
-    sources {
-        main.cpp.lib sources.library.c
     }
 
 """
@@ -133,18 +131,19 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 
         buildFile << """
     apply plugin: 'cpp'
-    executables {
-        main {}
-    }
 
-    sources{
-        extra{
+    sources {
+        extra {
             cpp(CppSourceSet)
         }
     }
 
-    sources {
-        main.cpp.lib sources.extra.cpp
+    executables {
+        main {
+            sources {
+                cpp.lib project.sources.extra.cpp
+            }
+        }
     }
 """
         expect:
@@ -172,7 +171,7 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     executables {
         main {
             binaries.all {
-                lib sources.extra.cpp
+                lib project.sources.extra.cpp
             }
         }
     }

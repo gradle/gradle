@@ -95,14 +95,15 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     nativeRuntime {
         executables {
-            main
+            main {
+                sources {
+                    cpp.lib library: "hello"
+                }
+            }
         }
 
         libraries {
             hello
-        }
-        sources {
-            main.cpp.lib libraries.hello
         }
     }
 """
@@ -126,13 +127,14 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     apply plugin: 'c'
 
     executables {
-        main
+        main {
+            sources {
+                cpp.lib library: "hello"
+            }
+        }
     }
     libraries {
         hello
-    }
-    sources {
-        main.cpp.lib libraries.hello
     }
     task buildAllExecutables {
         dependsOn binaries.withType(NativeExecutableBinary).matching {
@@ -162,15 +164,15 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: "c"
             apply plugin: "cpp"
             sources {
-                test{
+                test {
                     c(CSourceSet)
                     cpp(CppSourceSet)
                 }
             }
             executables {
                 main {
-                    source sources.test.cpp
-                    source sources.test.c
+                    source project.sources.test.cpp
+                    source project.sources.test.c
                 }
             }
         """
@@ -203,8 +205,8 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             }
 
             binaries.all {
-                source sources.test.cpp
-                source sources.test.c
+                source project.sources.test.cpp
+                source project.sources.test.c
             }
         """
 
@@ -260,9 +262,9 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
             executables {
                 main {
-                    source sources.test.cpp
-                    source sources.test.c
-                    source sources.test.java
+                    source project.sources.test.cpp
+                    source project.sources.test.c
+                    source project.sources.test.java
                 }
             }
          """
