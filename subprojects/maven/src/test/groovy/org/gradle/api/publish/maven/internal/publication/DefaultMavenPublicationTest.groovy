@@ -113,6 +113,42 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.pom.packaging == "ext"
     }
 
+    def "packaging determines main artifact"() {
+        when:
+        def mavenArtifact = Mock(MavenArtifact)
+        notationParser.parseNotation("artifact") >> mavenArtifact
+        mavenArtifact.extension >> "ext"
+        def attachedMavenArtifact = Mock(MavenArtifact)
+        notationParser.parseNotation("attached") >> attachedMavenArtifact
+        attachedMavenArtifact.extension >> "jar"
+
+        and:
+        def publication = createPublication()
+        publication.artifact("artifact")
+        publication.artifact("attached")
+        publication.pom.packaging = "ext"
+
+        then:
+        publication.asNormalisedPublication().mainArtifact.extension == "ext"
+        publication.pom.packaging == "ext"
+    }
+
+    def 'if there is only one artifact it is the main artifact even if packaging is different'() {
+        when:
+        def mavenArtifact = Mock(MavenArtifact)
+        notationParser.parseNotation("artifact") >> mavenArtifact
+        mavenArtifact.extension >> "ext"
+
+        and:
+        def publication = createPublication()
+        publication.artifact("artifact")
+        publication.pom.packaging = "otherext"
+
+        then:
+        publication.asNormalisedPublication().mainArtifact.extension == "ext"
+        publication.pom.packaging == "otherext"
+    }
+
     def "empty publishableFiles and artifacts when no component is added"() {
         when:
         def publication = createPublication()
