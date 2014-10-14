@@ -29,19 +29,16 @@ import org.gradle.language.base.LanguageSourceSet;
  * apply plugin: "windows-resources"
  *
  * executables {
- *     main {}
- * }
- *
- * sources {
  *     main {
- *         // Configure an existing WindowsResourceSet
- *         rc {
- *             source {
- *                 srcDirs "src/main/rc"
- *                 include "**{@literal /}*.rc"
- *             }
- *             exportedHeaders {
- *                 srcDirs "src/main/include"
+ *         sources {
+ *             rc {
+ *                 source {
+ *                     srcDirs "src/main/rc"
+ *                     include "**{@literal /}*.rc"
+ *                 }
+ *                 exportedHeaders {
+ *                     srcDirs "src/main/include"
+ *                 }
  *             }
  *         }
  *     }

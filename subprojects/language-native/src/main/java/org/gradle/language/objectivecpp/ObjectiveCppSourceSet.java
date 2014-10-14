@@ -29,20 +29,18 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "objective-cpp"
  *
- * executables{
- *     main{}
- * }
- *
- * sources {
+ * executables {
  *     main {
- *         // Configure an existing ObjectiveCppSourceSet
- *         objcpp {
- *             source {
- *                 srcDirs "src/main/objectiveCpp", "src/shared/objectiveCpp"
- *                 include "**{@literal /}*.mm"
- *             }
- *             exportedHeaders {
- *                 srcDirs "src/main/include"
+ *         sources {
+ *             // Configure an existing ObjectiveCppSourceSet
+ *             objcpp {
+ *                 source {
+ *                     srcDirs "src/main/objectiveCpp", "src/shared/objectiveCpp"
+ *                     include "**{@literal /}*.mm"
+ *                 }
+ *                 exportedHeaders {
+ *                     srcDirs "src/main/include"
+ *                 }
  *             }
  *         }
  *     }

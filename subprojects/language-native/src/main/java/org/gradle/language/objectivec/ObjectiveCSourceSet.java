@@ -30,20 +30,18 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "objective-c"
  *
- * executables{
- *     main{}
- * }
- *
- * sources {
+ * executables {
  *     main {
- *         // Configure an existing ObjectiveCSourceSet
- *         objc {
- *             source {
- *                 srcDirs "src/main/objectiveC", "src/shared/objectiveC"
- *                 include "**{@literal /}*.m"
- *             }
- *             exportedHeaders {
- *                 srcDirs "src/main/include"
+ *         sources {
+ *             // Configure an existing ObjectiveCSourceSet
+ *             objc {
+ *                 source {
+ *                     srcDirs "src/main/objectiveC", "src/shared/objectiveC"
+ *                     include "**{@literal /}*.m"
+ *                 }
+ *                 exportedHeaders {
+ *                     srcDirs "src/main/include"
+ *                 }
  *             }
  *         }
  *     }
