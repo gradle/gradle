@@ -16,11 +16,14 @@
 
 package org.gradle.logging;
 
+import org.gradle.api.Action;
+import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
@@ -107,6 +110,10 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new NestedLogging();
     }
 
+    public LoggingServiceRegistry newColoredLogging(Console console) {
+        return new ColoredLogging(console);
+    }
+
     protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
         return new LoggingCommandLineConverter();
     }
@@ -189,6 +196,23 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private static class NestedToolingLogging extends NestedLogging {
         protected OutputEventRenderer createOutputEventRenderer() {
             OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
+            return renderer;
+        }
+    }
+
+    private static class ColoredLogging extends NestedLogging {
+        final Console console;
+
+        ColoredLogging(Console console) {
+            this.console = console;
+        }
+
+        protected OutputEventRenderer createOutputEventRenderer() {
+            OutputEventRenderer renderer = new OutputEventRenderer(new Action<OutputEventRenderer>() {
+                public void execute(OutputEventRenderer outputEventRenderer) {
+                    outputEventRenderer.addConsole(console, true, true, new FallbackConsoleMetaData());
+                }
+            });
             return renderer;
         }
     }

@@ -60,6 +60,16 @@ public interface LongRunningOperation {
     LongRunningOperation setStandardError(OutputStream outputStream);
 
     /**
+     * Specifies whether to use colored (ansi encoded) output for logging
+     *
+     * @param colorOutput {@code true} to request color output (using ANSI encoding).
+     * @return this
+     * @since 2.3
+     */
+    @Incubating
+    LongRunningOperation setColorOutput(boolean colorOutput);
+
+    /**
      * Sets the {@link java.io.InputStream} that will be used as standard input for this operation.
      * Defaults to an empty input stream.
      * <p>

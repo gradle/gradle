@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r22;
+package org.gradle.integtests.tooling.r23;
 
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
