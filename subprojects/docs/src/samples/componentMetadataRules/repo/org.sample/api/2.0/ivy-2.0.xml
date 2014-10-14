@@ -1,8 +1,8 @@
 <ivy-module version="2.0">
-    <info organisation="air.birds"
-          module="albatross"
+    <info organisation="org.sample"
+          module="api"
           revision="2.0"
-          status="gold"/>
+          status="silver"/>
     <publications>
         <artifact />
     </publications>

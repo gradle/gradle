@@ -15,10 +15,10 @@
   -->
 
 <ivy-module version="2.0">
-    <info organisation="sea.fish"
-          module="marlin"
-          revision="2.0"
-          status="int"/>
+    <info organisation="org.sample"
+          module="lib"
+          revision="1.9"
+          status="prod"/>
     <publications>
         <artifact />
     </publications>

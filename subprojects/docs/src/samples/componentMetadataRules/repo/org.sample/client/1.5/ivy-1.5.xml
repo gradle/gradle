@@ -1,6 +1,6 @@
 <ivy-module version="2.0">
-    <info organisation="sea.fish"
-          module="tuna"
+    <info organisation="org.sample"
+          module="client"
           revision="1.5"
           status="integration" />
     <publications>

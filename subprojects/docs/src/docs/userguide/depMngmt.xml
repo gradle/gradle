@@ -1150,29 +1150,27 @@ someroot/[artifact]-[revision].[ext]
                 <literal>latest.integration</literal> will select the highest module version regardless of its status (because <literal>integration</literal> is the least mature status),
                 whereas <literal>latest.release</literal> will select the highest module version with status <literal>release</literal>. Here is what this looks like in code:
             </para>
-            <sample id="latestSelector" dir="userguide/artifacts/componentMetadata" title="'Latest' version selector">
+            <sample id="latestSelector" dir="componentMetadataRules" title="'Latest' version selector">
                 <sourcefile file="build.gradle" snippet="latest-selector"/>
-                <output args="-q listFish"/>
+                <output args="-q listConfigs"/>
             </sample>
             <para>
                 The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
             </para>
-            <sample id="customStatusScheme" dir="userguide/artifacts/componentMetadata" title="Custom status scheme">
+            <sample id="customStatusScheme" dir="componentMetadataRules" title="Custom status scheme">
                 <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
-                <output args="-q listAlbatross"/>
             </sample>
             <para>
                 Component metadata rules can be applied to a specified module.  Modules must be specified in the form of "group:module".
             </para>
-            <sample id="customStatusSchemeModule" dir="userguide/artifacts/componentMetadata" title="Custom status scheme by module">
+            <sample id="customStatusSchemeModule" dir="componentMetadataRules" title="Custom status scheme by module">
                 <sourcefile file="build.gradle" snippet="custom-status-scheme-module"/>
-                <output args="-q listMarlin"/>
             </sample>
             <para>
                 Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository.
                 Values from the Ivy descriptor are made available via the <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/> interface.
             </para>
-            <sample id="ivyComponentMetadataRule" dir="userguide/artifacts/componentMetadata" title="Ivy component metadata rule">
+            <sample id="ivyComponentMetadataRule" dir="componentMetadataRules" title="Ivy component metadata rule">
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
             </sample>
             <para>
@@ -1191,7 +1189,7 @@ someroot/[artifact]-[revision].[ext]
                 <listitem>must have <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails" /> as the first argument.</listitem>
                 <listitem>may have an additional parameter of type <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.</listitem>
             </itemizedlist>
-            <sample id="ivyComponentMetadataRule" dir="userguide/artifacts/componentMetadata" title="Rule source component metadata rule">
+            <sample id="ruleSourceComponentMetadataRule" dir="componentMetadataRules" title="Rule source component metadata rule">
                 <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule" />
             </sample>
         </section>
