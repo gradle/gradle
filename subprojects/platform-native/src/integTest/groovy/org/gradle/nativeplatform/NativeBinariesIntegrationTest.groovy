@@ -163,16 +163,19 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            sources {
-                test {
-                    c(CSourceSet)
-                    cpp(CppSourceSet)
-                }
-            }
+
             executables {
                 main {
-                    source project.sources.test.cpp
-                    source project.sources.test.c
+                    sources {
+                        c {
+                            source.srcDir "src/test/c"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                        cpp {
+                            source.srcDir "src/test/cpp"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                    }
                 }
             }
         """
@@ -262,9 +265,19 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
             executables {
                 main {
-                    source project.sources.test.cpp
-                    source project.sources.test.c
-                    source project.sources.test.java
+                    sources {
+                        c {
+                            source.srcDir "src/test/c"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                        cpp {
+                            source.srcDir "src/test/cpp"
+                            exportedHeaders.srcDir "src/test/headers"
+                        }
+                        java(JavaSourceSet) {
+                            source.srcDir "src/test/java"
+                        }
+                    }
                 }
             }
          """

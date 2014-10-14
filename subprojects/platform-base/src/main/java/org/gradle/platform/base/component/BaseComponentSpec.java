@@ -24,7 +24,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
@@ -39,7 +38,6 @@ import org.gradle.util.ConfigureUtil;
 public abstract class BaseComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
@@ -73,7 +71,6 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
-        sourceSets.addMainSources(this.mainSourceSet);
     }
 
     public String getName() {
@@ -94,11 +91,7 @@ public abstract class BaseComponentSpec implements ComponentSpec {
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
-    }
-
-    public void source(Object sources) {
-        sourceSets.source(sources);
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
     }
 
     public DomainObjectSet<BinarySpec> getBinaries() {

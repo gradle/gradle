@@ -20,7 +20,6 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.ObjectFile;
@@ -36,7 +35,6 @@ import java.util.Set;
 
 public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
     private final FunctionalSourceSet mainSourceSet;
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final ComponentSpecIdentifier id;
     private final DomainObjectSet<BinarySpec> binaries;
     private final DomainObjectSet<NativeBinarySpec> nativeBinaries;
@@ -46,7 +44,6 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
 
     public AbstractNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
         this.mainSourceSet = mainSourceSet;
-        sourceSets.addMainSources(mainSourceSet);
         this.id = id;
         this.binaries = new DefaultDomainObjectSet<BinarySpec>(NativeBinarySpec.class);
         this.nativeBinaries = this.binaries.withType(NativeBinarySpec.class);
@@ -75,11 +72,7 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
-    }
-
-    public void source(Object sources) {
-        sourceSets.source(sources);
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
     }
 
     public DomainObjectSet<BinarySpec> getBinaries() {

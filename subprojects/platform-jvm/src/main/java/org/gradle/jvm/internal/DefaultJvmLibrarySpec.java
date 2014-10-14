@@ -26,7 +26,6 @@ import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.JvmResources;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.TransformationFileType;
@@ -36,7 +35,6 @@ import org.gradle.util.ConfigureUtil;
 import java.util.*;
 
 public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInternal {
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
     private final FunctionalSourceSet mainSourceSet;
     private final ComponentSpecIdentifier identifier;
     private final DomainObjectSet<BinarySpec> binaries;
@@ -47,12 +45,10 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     public DefaultJvmLibrarySpec(ComponentSpecIdentifier identifier, FunctionalSourceSet mainSourceSet) {
         this.identifier = identifier;
         this.mainSourceSet = mainSourceSet;
-        sourceSets.addMainSources(mainSourceSet);
         this.languageOutputs.add(JvmResources.class);
         this.languageOutputs.add(JvmByteCode.class);
         this.binaries = new DefaultDomainObjectSet<BinarySpec>(JvmBinarySpec.class);
         this.jvmBinaries = this.binaries.withType(JvmBinarySpec.class);
-
     }
 
     public String getName() {
@@ -73,11 +69,7 @@ public class DefaultJvmLibrarySpec implements JvmLibrarySpec, ComponentSpecInter
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
-    }
-
-    public void source(Object source) {
-        sourceSets.source(source);
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
     }
 
     public DomainObjectSet<BinarySpec> getBinaries() {

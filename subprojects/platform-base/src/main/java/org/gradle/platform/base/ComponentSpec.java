@@ -56,20 +56,6 @@ public interface ComponentSpec extends Named {
      */
     DomainObjectSet<LanguageSourceSet> getSource();
 
-    // TODO:DAZ Remove this
-    /**
-     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
-     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
-     * </ul>
-     */
-    void source(Object source);
-
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */

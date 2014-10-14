@@ -35,18 +35,15 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'c'
 
-    sources {
-        library {
-            c(CSourceSet)
-        }
-    }
-
     executables {
         main {
             sources {
-                c.lib project.sources.library.c
+                library(CSourceSet) {
+                    source.srcDir "src/library/c"
+                    exportedHeaders.srcDir "src/library/headers"
+                }
+                c.lib sources.library
             }
-            source project.sources.library
         }
     }
 """
@@ -65,18 +62,15 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 
         buildFile << """
     apply plugin: 'c'
-    // library not required in executable: only headers are used
 
-    sources {
-        library {
-            c(CSourceSet)
-        }
+    libraries {
+        library
     }
 
     executables {
         main {
             sources {
-                c.lib project.sources.library.c
+                c.lib libraries.library.sources.c
             }
         }
     }
@@ -97,18 +91,15 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     apply plugin: 'cpp'
     apply plugin: 'c'
 
-    sources{
-        library{
-            c(CSourceSet)
-        }
-    }
-
     executables {
         main {
             sources {
-                cpp.lib project.sources.library.c
+                library(CSourceSet) {
+                    exportedHeaders.srcDir "src/library/headers"
+                    source.srcDir "src/library/c"
+                }
+                cpp.lib sources.library
             }
-            source project.sources.library
         }
     }
 
@@ -132,16 +123,14 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'cpp'
 
-    sources {
-        extra {
-            cpp(CppSourceSet)
-        }
+    libraries {
+        extra
     }
 
     executables {
         main {
             sources {
-                cpp.lib project.sources.extra.cpp
+                cpp.lib libraries.extra.sources.cpp
             }
         }
     }
@@ -162,16 +151,14 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'cpp'
 
-    sources{
-        extra{
-            cpp(CppSourceSet)
-        }
+    libraries {
+        extra
     }
 
     executables {
         main {
             binaries.all {
-                lib project.sources.extra.cpp
+                lib libraries.extra.sources.cpp
             }
         }
     }

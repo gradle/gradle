@@ -97,18 +97,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    executables {
-        main {}
-    }
-    sources {
-        generated {
-            cHeaders(CSourceSet) {
-                generatedBy tasks.generateCSources
+    libraries {
+        headersOnly {
+            sources {
+                c.generatedBy tasks.generateCSources
             }
         }
     }
-    executables.main.sources {
-        c.lib project.sources.generated.cHeaders
+
+    executables {
+        main {
+            sources {
+                c.lib libraries.headersOnly.sources.c
+            }
+        }
     }
 """
 
