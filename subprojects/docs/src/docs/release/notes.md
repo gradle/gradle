@@ -170,15 +170,14 @@ This feature was contributed by [Paul Watson](https://github.com/w4tson).
 ### Sharing configuration files across builds (i)
 
 In previous Gradle versions, sharing external configuration files across builds (e.g. to enforce code quality standards) was difficult. 
-To support this use case, a new `TextResource` abstraction was introduced. 
+To support this use case, a new [`TextResource`](dsl/org.gradle.api.resources.TextResource.html) abstraction was introduced. 
 
-`TextResource`s are created using factory methods provided by `project.resources.text`. They can be backed by various sources such 
-as inline strings, local text files, or archives containing text files. A `TextResource` backed by an archive can then be shared 
-across builds by publishing and resolving the archive from a binary repository, benefiting from Gradle's standard dependency 
-management features (e.g. dependency caching).
+`TextResource`s are created using factory methods provided by [`project.resources.text`](dsl/org.gradle.api.resources.ResourceHandler.html#org.gradle.api.resources.ResourceHandler:text). 
+They can be backed by various sources such as inline strings, local text files, or archives containing text files. 
+A `TextResource` backed by an archive can then be shared across builds by publishing and resolving the archive from a binary repository, benefiting from Gradle's standard dependency management features (e.g. dependency caching).
 
-Gradle's code quality plugins and tasks are the first to support `TextResource`. The following example shows how
-a Checkstyle configuration file can be sourced from different locations:
+Gradle's code quality plugins and tasks are the first to support `TextResource`. 
+The following example shows how a Checkstyle configuration file can be sourced from different locations:
 
     apply plugin: "checkstyle"
     
