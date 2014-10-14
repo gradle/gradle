@@ -19,7 +19,6 @@ package org.gradle.execution;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.initialization.BuildCancellationToken;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
@@ -46,15 +45,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
                 throw new BuildCancelledException();
             }
             ((ProjectInternal) sub).evaluate();
-        }
-    }
-
-    public void configureForPath(ResolvedTaskPath taskPath) {
-        ProjectInternal targetProject = taskPath.getProject();
-        if (taskPath.isQualified()) {
-            configure(targetProject);
-        } else {
-            configureHierarchy(targetProject);
         }
     }
 }

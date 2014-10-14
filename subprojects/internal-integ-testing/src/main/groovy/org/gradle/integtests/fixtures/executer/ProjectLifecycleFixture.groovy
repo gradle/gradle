@@ -34,6 +34,7 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
     String initScriptContent() {
         fixtureData = testDir.testDirectory.file("lifecycle-fixture-data.txt")
         """File outputFile = file("${fixtureData.toURI()}")
+           outputFile.text = ''
            def listener = new ProjectEvaluationListener() {
                 void afterEvaluate(Project project, ProjectState state) {
                     outputFile << project.path + ";"
