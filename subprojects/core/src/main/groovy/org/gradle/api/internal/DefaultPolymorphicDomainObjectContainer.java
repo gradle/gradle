@@ -32,11 +32,11 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
 
-    public DefaultPolymorphicDomainObjectContainer(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
     }
 
-    public DefaultPolymorphicDomainObjectContainer(Class<? extends T> type, Instantiator instantiator) {
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type));
     }
 

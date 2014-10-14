@@ -29,8 +29,8 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
 
     private List<Platform> searchOrder = new ArrayList<Platform>();
 
-    public DefaultPlatformContainer(Class<? extends Platform> type, Instantiator instantiator) {
-        super(type, instantiator);
+    public DefaultPlatformContainer(Instantiator instantiator) {
+        super(Platform.class, instantiator);
         whenObjectAdded(new Action<Platform>() {
             public void execute(Platform platform) {
                 searchOrder.add(platform);
