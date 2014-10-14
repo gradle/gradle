@@ -32,7 +32,8 @@ public class ArchitectureNotationParser {
     private static final List<String> PPC_64_ALIASES = Arrays.asList("ppc64");
     private static final List<String> SPARC_32_ALIASES = Arrays.asList("sparc", "sparc32", "sparc-v7", "sparc-v8");
     private static final List<String> SPARC_64_ALIASES = Arrays.asList("sparc64", "ultrasparc", "sparc-v9");
-    private static final List<String> ARM_ALIASES = Arrays.asList("arm");
+    private static final List<String> ARM_32_ALIASES = Arrays.asList("arm", "armv7", "arm-v7", "arm32");
+    private static final List<String> ARM_64_ALIASES = Arrays.asList("armv8", "arm64");
 
     public static NotationParser<Object, ArchitectureInternal> parser() {
         return NotationParserBuilder
@@ -72,15 +73,18 @@ public class ArchitectureNotationParser {
             if (SPARC_64_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.SPARC, 64);
             }
-            if (ARM_ALIASES.contains(notation.toLowerCase())) {
+            if (ARM_32_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.ARM, 32);
+            }
+            if (ARM_64_ALIASES.contains(notation.toLowerCase())) {
+                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.ARM, 64);
             }
             return null;
         }
 
         public void describe(Collection<String> candidateFormats) {
             List<String> validList = CollectionUtils.flattenCollections(String.class,
-                    X86_ALIASES, X86_64_ALIASES, ITANIUM_ALIASES, PPC_32_ALIASES, PPC_64_ALIASES, SPARC_32_ALIASES, SPARC_64_ALIASES, ARM_ALIASES
+                    X86_ALIASES, X86_64_ALIASES, ITANIUM_ALIASES, PPC_32_ALIASES, PPC_64_ALIASES, SPARC_32_ALIASES, SPARC_64_ALIASES, ARM_32_ALIASES
             );
             candidateFormats.add("One of the following values: " + GUtil.toString(validList));
         }
