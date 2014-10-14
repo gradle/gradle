@@ -15,12 +15,10 @@
  */
 
 package org.gradle.nativeplatform.internal
-
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -35,28 +33,6 @@ class DefaultNativeComponentTest extends Specification {
     def setup(){
         mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
         component = new TestNativeComponentSpec(id, mainSourceSet)
-    }
-
-    def "can add additional functional source set"() {
-        given:
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator)
-        def sourceSet1 = Stub(LanguageSourceSet) {
-            getName() >> "ss1"
-        }
-        def sourceSet2 = Stub(LanguageSourceSet) {
-            getName() >> "ss2"
-        }
-
-        when:
-        functionalSourceSet.add(sourceSet1)
-        functionalSourceSet.add(sourceSet2)
-
-        and:
-        component.source functionalSourceSet
-
-        then:
-        component.source.contains(sourceSet1)
-        component.source.contains(sourceSet2)
     }
 
     def "flavors can be chosen and will replace default flavor"() {

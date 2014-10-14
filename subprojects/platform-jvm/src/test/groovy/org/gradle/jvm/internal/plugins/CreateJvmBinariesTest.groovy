@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal.plugins
 import org.gradle.api.JavaVersion
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.jvm.JvmLibraryBinarySpec
@@ -27,8 +28,8 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.jvm.toolchain.JavaToolChainRegistry
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.PlatformContainer
@@ -49,7 +50,7 @@ class CreateJvmBinariesTest extends Specification {
     def platforms = Mock(PlatformContainer)
     def binaries = Mock(BinaryContainer)
     def instantiator = Mock(Instantiator)
-    def mainSourceSet = Mock(FunctionalSourceSet)
+    def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator())
     def toolChainRegistry = Mock(JavaToolChainRegistry)
 
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
@@ -65,11 +66,11 @@ class CreateJvmBinariesTest extends Specification {
         def platform = new DefaultJavaPlatform("test")
         platform.setTargetCompatibility(JavaVersion.current())
         def binary = new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
-        def source1 = Mock(LanguageSourceSet)
-        def source2 = Mock(LanguageSourceSet)
+        def source1 = sourceSet("ss1")
+        def source2 = sourceSet("ss2")
 
         when:
-        library.source([source1, source2])
+        library.sources.addAll([source1, source2])
         rule.createBinaries(binaries, platforms, namingSchemeBuilder, toNamedDomainObjectSet(JvmLibrarySpec, library), buildDir, serviceRegistry, toolChainRegistry)
 
         then:
@@ -100,6 +101,12 @@ class CreateJvmBinariesTest extends Specification {
         Stub(ComponentSpecIdentifier) {
             getName() >> name
             getProjectPath() >> path
+        }
+    }
+
+    def sourceSet(def name) {
+        Stub(LanguageSourceSet) {
+            getName() >> name
         }
     }
 }

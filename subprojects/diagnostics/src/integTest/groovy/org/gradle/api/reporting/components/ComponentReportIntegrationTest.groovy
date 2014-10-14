@@ -105,10 +105,10 @@ JVM library 'someLib'
 ---------------------
 
 Source sets
-    JVM resources 'someLib:resources'
-        src/someLib/resources
     Java source 'someLib:java'
         src/someLib/java
+    JVM resources 'someLib:resources'
+        src/someLib/resources
 
 Binaries
     Jar 'someLib:jar'
@@ -265,10 +265,10 @@ Cunit test suite 'someExeTest'
 ------------------------------
 
 Source sets
-    C source 'someExeTest:cunitLauncher'
-        build/src/someExeTest/cunitLauncher/c
     C source 'someExeTest:c'
         src/someExeTest/c
+    C source 'someExeTest:cunitLauncher'
+        build/src/someExeTest/cunitLauncher/c
 
 Binaries
     C unit exe 'someExeTest:cUnitExe'
@@ -321,12 +321,12 @@ Native library 'someLib'
 ------------------------
 
 Source sets
+    Assembler source 'someLib:asm'
+        src/someLib/asm
     C source 'someLib:c'
         src/someLib/c
     C++ source 'someLib:cpp'
         src/someLib/cpp
-    Assembler source 'someLib:asm'
-        src/someLib/asm
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'
@@ -427,10 +427,10 @@ JVM library 'jvmLib'
 --------------------
 
 Source sets
-    JVM resources 'jvmLib:resources'
-        src/jvmLib/resources
     Java source 'jvmLib:java'
         src/jvmLib/java
+    JVM resources 'jvmLib:resources'
+        src/jvmLib/resources
 
 Binaries
     Jar 'jvmLib:jar'
@@ -443,10 +443,10 @@ Native library 'nativeLib'
 --------------------------
 
 Source sets
-    C++ source 'nativeLib:cpp'
-        src/nativeLib/cpp
     C source 'nativeLib:c'
         src/nativeLib/c
+    C++ source 'nativeLib:cpp'
+        src/nativeLib/cpp
 
 Binaries
     Shared library 'nativeLib:sharedLibrary'
@@ -490,10 +490,10 @@ JVM library 'myLib'
 -------------------
 
 Source sets
-    JVM resources 'myLib:resources'
-        src/myLib/resources
     Java source 'myLib:java'
         src/myLib/java
+    JVM resources 'myLib:resources'
+        src/myLib/resources
 
 Binaries
     Jar 'myLib:java5:jar'
@@ -538,10 +538,10 @@ JVM library 'myLib'
 -------------------
 
 Source sets
-    JVM resources 'myLib:resources'
-        src/myLib/resources
     Java source 'myLib:java'
         src/myLib/java
+    JVM resources 'myLib:resources'
+        src/myLib/resources
 
 Binaries
     Jar 'myLib:java5:jar'

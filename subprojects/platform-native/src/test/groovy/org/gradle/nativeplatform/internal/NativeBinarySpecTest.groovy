@@ -58,7 +58,7 @@ class NativeBinarySpecTest extends Specification {
         def sourceSet = Stub(LanguageSourceSet)
 
         when:
-        component.source(sourceSet)
+        component.sources.add(sourceSet)
 
         then:
         binary.source.contains(sourceSet)
