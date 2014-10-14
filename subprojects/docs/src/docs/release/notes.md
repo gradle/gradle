@@ -207,17 +207,6 @@ Over time, `TextResource` will be leveraged by more existing and new Gradle APIs
     
 ## Fixed issues
 
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
-
-<!--
-### Example deprecation
--->
-
 ## Potential breaking changes
 
 ### filesMatching used in CopySpec now matches against source path rather than destination path
