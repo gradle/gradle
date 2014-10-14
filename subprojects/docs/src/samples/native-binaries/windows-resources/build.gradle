@@ -8,13 +8,11 @@ libraries {
 }
 
 executables {
-    main {}
-}
-
-sources {
     main {
-        cpp {
-            lib libraries.hello
+        sources {
+            cpp {
+                lib libraries.hello
+            }
         }
     }
 }

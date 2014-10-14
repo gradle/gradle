@@ -56,12 +56,9 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
-
-            sources {
-                main {
+        executables {
+            main {
+                sources {
                     c {
                         exportedHeaders {
                             srcDirs "src/shared/headers"
@@ -82,6 +79,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
+        }
 """
 
         when:
@@ -101,10 +99,11 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         }
         buildFile << """
     executables {
-        main {}
-    }
-    sources {
-        main.c.source.include "**/*.c"
+        main {
+            sources {
+                c.source.include "**/*.c"
+            }
+        }
     }
 """
 

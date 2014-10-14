@@ -10,19 +10,17 @@ libraries {
 
 // START SNIPPET executables
 executables {
-    main {}
-}
-// END SNIPPET executables
-
-// START SNIPPET source-library
-sources {
     main {
-        cpp {
-            lib libraries.hello
+// START SNIPPET source-library
+        sources {
+            cpp {
+                lib library: "hello"
+            }
         }
+// END SNIPPET source-library
     }
 }
-// END SNIPPET source-library
+// END SNIPPET executables
 
 // START SNIPPET all-binaries
 binaries.all {

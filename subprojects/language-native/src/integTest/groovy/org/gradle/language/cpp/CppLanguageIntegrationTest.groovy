@@ -79,24 +79,26 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                 main {}
             }
 
-            sources {
+            executables {
                 main {
-                    cpp {
-                        exportedHeaders {
-                            srcDirs "src/shared/headers"
+                    sources {
+                        cpp {
+                            exportedHeaders {
+                                srcDirs "src/shared/headers"
+                            }
                         }
-                    }
-                    cpp2(CppSourceSet) {
-                        exportedHeaders {
-                            srcDirs "src/shared/headers"
+                        cpp2(CppSourceSet) {
+                            exportedHeaders {
+                                srcDirs "src/shared/headers"
+                            }
                         }
-                    }
-                    cpp3(CppSourceSet) {
-                        source {
-                            srcDir "src/main/sum-sources"
-                        }
-                        exportedHeaders {
-                            srcDirs "src/shared/headers"
+                        cpp3(CppSourceSet) {
+                            source {
+                                srcDir "src/main/sum-sources"
+                            }
+                            exportedHeaders {
+                                srcDirs "src/shared/headers"
+                            }
                         }
                     }
                 }

@@ -94,26 +94,29 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
             buildFile << "apply plugin: '$plugin'\n"
         }
 
-        buildFile << "executables { main {} }"
+        buildFile << """
+executables {
+    main {
+        sources {"""
 
         testApp.functionalSourceSets.each { name, filterPattern ->
                 buildFile << """
-                sources {
-                        main {
-                            $name {
-                                source {
-                                    include '$filterPattern'
-                                    srcDirs "src/main/all"
-                                }
-                            }
-                        }
+            $name {
+                source {
+                    include '$filterPattern'
+                    srcDirs "src/main/all"
                 }
-                """
+            }"""
         }
 
         buildFile << """
+        }
+    }
+}"""
 
-        binaries.all{
+        buildFile << """
+
+        binaries.all {
             linker.args "-v"
         }
 
@@ -124,7 +127,6 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
                 }
             }
         }
-
 
         """
         expect:

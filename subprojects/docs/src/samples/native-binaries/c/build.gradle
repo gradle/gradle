@@ -26,15 +26,13 @@ libraries {
 
 // START SNIPPET executables
 executables {
-    main {}
+    main {
+        sources {
+           c.lib library: "hello"
+        }
+    }
 }
 // END SNIPPET executables
-
-// START SNIPPET source-library
-sources {
-   main.c.lib libraries.hello
-}
-// END SNIPPET source-library
 
 // START SNIPPET compiler-args
 binaries.all {

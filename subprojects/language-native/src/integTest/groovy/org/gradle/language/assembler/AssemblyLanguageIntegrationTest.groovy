@@ -60,17 +60,16 @@ pushl
 
         and:
         buildFile << """
-            sources {
+            executables {
                 main {
-                    sumAsm(AssemblerSourceSet) {
-                        source {
-                            srcDir "src/main/sum-sources"
+                    sources {
+                        sumAsm(AssemblerSourceSet) {
+                            source {
+                                srcDir "src/main/sum-sources"
+                            }
                         }
                     }
                 }
-            }
-            executables {
-                main {}
             }
 """
 

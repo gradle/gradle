@@ -33,27 +33,29 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                 main {}
             }
 
-            sources {
+            executables {
                 main {
-                    cpp {
-                        source {
-                            srcDirs "src/main/flat"
-                            include "**/*.cpp"
+                    sources {
+                        cpp {
+                            source {
+                                srcDirs "src/main/flat"
+                                include "**/*.cpp"
+                            }
                         }
-                    }
-                    c {
-                        source {
-                            srcDirs "src/main/flat"
-                            include "**/*.c"
+                        c {
+                            source {
+                                srcDirs "src/main/flat"
+                                include "**/*.c"
+                            }
+                            exportedHeaders {
+                                srcDirs "src/main/flat"
+                            }
                         }
-                        exportedHeaders {
-                            srcDirs "src/main/flat"
-                        }
-                    }
-                    asm {
-                        source {
-                            srcDirs "src/main/flat"
-                            include "**/*.s"
+                        asm {
+                            source {
+                                srcDirs "src/main/flat"
+                                include "**/*.s"
+                            }
                         }
                     }
                 }
@@ -77,12 +79,9 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """
-            executables {
-                main {}
-            }
-
-                        sources {
-                main {
+        executables {
+            main {
+                sources {
                     cpp {
                         source {
                             srcDirs "source"
@@ -103,6 +102,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
+        }
         """
         settingsFile << "rootProject.name = 'test'"
 

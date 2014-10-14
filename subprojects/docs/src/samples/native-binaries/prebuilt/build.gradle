@@ -35,10 +35,11 @@ model {
     }
 }
 executables {
-    main {}
-}
-sources {
-    main.cpp.lib library: 'boost', linkage: 'api'
-    main.cpp.lib library: 'util', linkage: 'static'
+    main {
+        sources {
+            cpp.lib library: 'boost', linkage: 'api'
+            cpp.lib library: 'util', linkage: 'static'
+        }
+    }
 }
 

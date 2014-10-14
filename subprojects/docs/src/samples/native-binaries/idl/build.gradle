@@ -8,16 +8,13 @@ task idl(type: DummyIdlCompiler) {
 
 
 executables {
-    main {}
-}
-
-
-sources {
     main {
-        idlOutput(CSourceSet) {
-            generatedBy tasks.idl
+        sources {
+            idlOutput(CSourceSet) {
+                generatedBy tasks.idl
+            }
+            c.lib idlOutput
         }
-        c.lib sources.main.idlOutput
     }
 }
 

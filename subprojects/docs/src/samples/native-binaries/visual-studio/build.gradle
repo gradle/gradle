@@ -54,13 +54,14 @@ model {
 // END SNIPPET customize-solution-files
 
 executables {
-    main {}
+    main {
+        sources {
+            cpp.lib library: "hello"
+        }
+    }
 }
 libraries {
     hello {}
-}
-sources {
-    main.cpp.lib libraries.hello
 }
 
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro

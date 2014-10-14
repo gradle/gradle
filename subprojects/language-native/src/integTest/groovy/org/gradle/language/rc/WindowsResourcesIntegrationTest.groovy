@@ -55,7 +55,11 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
         given:
         buildFile << """
             executables {
-                main {}
+                main {
+                    sources {
+                        cpp.lib library: "resources"
+                    }
+                }
             }
             libraries {
                 resources {
@@ -63,9 +67,6 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
                         linker.args "/noentry", "/machine:x86"
                     }
                 }
-            }
-            sources {
-                main.cpp.lib libraries.resources
             }
 """
 

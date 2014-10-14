@@ -107,13 +107,14 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         given:
         buildFile << """
             executables {
-                main {}
+                main {
+                    sources {
+                        ${helloWorldApp.sourceType}.lib library: "hello"
+                    }
+                }
             }
             libraries {
                 hello {}
-            }
-            sources {
-                main.${helloWorldApp.sourceType}.lib libraries.hello
             }
         """
 
@@ -139,7 +140,11 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         given:
         buildFile << """
             executables {
-                main {}
+                main {
+                    sources {
+                        ${helloWorldApp.sourceType}.lib library: "hello", linkage: "static"
+                    }
+                }
             }
             libraries {
                 hello {
@@ -147,9 +152,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
                         ${helloWorldApp.compilerDefine("FRENCH")}
                     }
                 }
-            }
-            sources {
-                main.${helloWorldApp.sourceType}.lib libraries.hello.static
             }
         """
 
