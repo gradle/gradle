@@ -28,8 +28,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
+import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
@@ -38,8 +38,10 @@ import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.GUtil;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -172,7 +174,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        return new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getArtifacts());
+        return new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getArtifacts(), determineMainArtifact());
     }
 
     private File getPomFile() {
@@ -183,12 +185,44 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public String determinePackagingFromArtifacts() {
-        for (MavenArtifact mavenArtifact : mavenArtifacts) {
-            if (!GUtil.isTrue(mavenArtifact.getClassifier()) && GUtil.isTrue(mavenArtifact.getExtension())) {
-                return mavenArtifact.getExtension();
-            }
+        MavenArtifact mainArtifact = determineMainArtifact(null);
+        if (mainArtifact != null) {
+            return mainArtifact.getExtension();
         }
         return "pom";
+    }
+
+    private MavenArtifact determineMainArtifact() {
+        return determineMainArtifact(pom.getPackaging());
+    }
+
+    private MavenArtifact determineMainArtifact(final String packaging) {
+        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
+            public boolean isSatisfiedBy(MavenArtifact element) {
+                return hasNoClassifier(element) && artifactPossibleForPackaging(element, packaging);
+            }
+        });
+        if (candidateMainArtifacts.isEmpty()) {
+            if (packaging == null) {
+                return null;
+            }
+            // Try to find unique artifact even if packaging does not match
+            // This makes it possible to publish artifacts where the packaging is
+            // not equal to the extension of the main artifact
+            return determineMainArtifact(null);
+        }
+        if (candidateMainArtifacts.size() > 1) {
+            throw new InvalidMavenPublicationException(name, "Cannot determine main artifact - multiple artifacts found with empty classifier.");
+        }
+        return candidateMainArtifacts.iterator().next();
+    }
+
+    private boolean hasNoClassifier(MavenArtifact element) {
+        return element.getClassifier() == null || element.getClassifier().length() == 0;
+    }
+
+    private boolean artifactPossibleForPackaging(MavenArtifact element, String packaging) {
+        return packaging == null || packaging.equals(element.getExtension());
     }
 
     public ModuleVersionIdentifier getCoordinates() {
