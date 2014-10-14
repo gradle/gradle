@@ -63,26 +63,29 @@ See the [User Guide section](userguide/dependency_management.html#component_sele
 
 ### Declaring module replacements (i)
 
-It is now possible to declare that certain module is replaced by some other. For example "com.google.collections:google-collections" is replaced by "com.google.guava:guava".
-Such declaration enables Gradle's conflict resolution to be smarter and avoid having both conflicting modules (e.g. "google-collections" + "guava") in the same classpath / dependency tree.
-This feature makes Gradle much better tool in handling scenarios when "group":"name" coordinates of a library change. There are many examples of such migrations, e.g.
-org.jboss.netty->io.netty, spring->spring-core, etc. Module replacement declarations can ship with corporate Gradle plugins and enable stronger and smarter
-dependency resolution in all Gradle-powered projects in the enterprise. This new incubating feature is described in detail in the [User Guide](userguide/dependency_management.html#sec:module_replacement).
+It is now possible to declare that a certain module has been replaced by some other. 
+An example of this happening in the real world is the [replacement of the Google Collections project by Google Guava](https://code.google.com/p/google-collections).
+By making Gradle aware that this happened, Gradle can consider that these modules are the same thing when resolving conflicts in the dependency graph.
+Another common example of this phenomenon is when a module changes its group or name. 
+Examples of such changes are `org.jboss.netty -> io.netty`, `spring -> spring-core` and there are many more.
+ 
+Module replacement declarations can ship with as part of custom Gradle plugins and enable stronger and smarter dependency resolution for all Gradle-powered projects in the enterprise. 
+
+This new incubating feature is described in detail in the [User Guide](userguide/dependency_management.html#sec:module_replacement).
 
     dependencies {
-        modules {
-            module("com.google.collections:google-collections") {
-                replacedBy("com.google.guava:guava")
-            }
+      modules {
+        module("com.google.collections:google-collections") {
+          replacedBy("com.google.guava:guava")
         }
+      }
     }
 
 ### Sonar Runner plugin improvements
 
-The [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) has been improved to fork the Sonar Runner process.
-In previous Gradle versions the runner was executed within the build process.
-This was problematic is it made controlling the environment (e.g. JVM memory settings) for the runner difficult and mean the runner could destabilize the build process.
-Importantly, because the Sonar Runner process is now forked, the version of Sonar Runner to use can now be configured in the build.
+The [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) has been improved to fork the Sonar Runner process, whereas in previous Gradle versions the runner was executed within the build process.
+This was problematic is it made controlling the environment (e.g. JVM memory settings) for the runner difficult and meant the runner could destabilize the build process.
+Importantly, because the Sonar Runner process is now forked, the version of Sonar Runner to use can now be configured in the build allowing choice of the version of Sonar Runner to use.
 
 The `sonar-runner` plugin defaults to using version 2.3 of the runner.
 Upgrading to a later version is now simple:
