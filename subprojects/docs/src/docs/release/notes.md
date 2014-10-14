@@ -221,9 +221,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### filesMatching used in CopySpec now matches against source path rather than destination path
 
-In the example below, both `filesMatching` blocks will now match against the source path of the files under `from`. In
-previous versions of Gradle, the second `filesMatching` block would match against the destination path that was set by
-executing the first block.
+In the example below, both `filesMatching` blocks will now match against the source path of the files under `from`. 
+In previous versions of Gradle, the second `filesMatching` block would match against the destination path that was set by executing the first block.
 
     task copy(type: Copy) {
         from 'from'
