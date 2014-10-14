@@ -21,13 +21,37 @@ import org.gradle.api.artifacts.ComponentMetadata;
 import java.util.Comparator;
 
 public interface VersionSelector extends Comparator<String> {
+    /**
+     * Indicates if the given version selector is dynamic.
+     */
     public boolean isDynamic();
 
+    /**
+     * Indicates if module metadata is required to determine if the
+     * selector matches a candidate version.
+     */
     public boolean requiresMetadata();
 
+    /**
+     * Indicates if the selector implies that it matches only a single version.
+     */
     public boolean matchesUniqueVersion();
 
+    /**
+     * Indicates if the selector matches the given candidate version.
+     * Only called if {@link #requiresMetadata()} returned {@code false}.
+     *
+     * @param candidate the candidate version
+     */
     public boolean accept(String candidate);
 
+    /**
+     * Indicates if the selector matches the given candidate version
+     * (whose metadata is provided). May also be called if {@link #isDynamic} returned
+     * {@code false}, in which case it should return the same result as
+     * {@code accept(candidate.getId().getVersion()}.
+     *
+     * @param candidate the metadata for the candidate version
+     */
     public boolean accept(ComponentMetadata candidate);
 }

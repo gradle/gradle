@@ -23,5 +23,11 @@ import java.util.Comparator;
  *
  */
 public interface VersionMatcher extends Comparator<String> {
+    /**
+     * Returns an appropriate {@link VersionSelector} for the given selector string.
+     *
+     * @param selectorString - the string representation of the selector
+     * @return the {@link VersionSelector}
+     */
     public VersionSelector createSelector(String selectorString);
 }
