@@ -28,13 +28,13 @@ model {
 // START SNIPPET target-platforms
 executables {
     main {
-        targetPlatforms "x86", "x64"
+        targetPlatform "x86", "x64"
     }
 }
 // END SNIPPET target-platforms
 libraries {
     hello {
-        targetPlatforms "x86", "x64"
+        targetPlatform "x86", "x64"
     }
 }
 sources {

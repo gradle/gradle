@@ -89,12 +89,12 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
             executables {
                main {
-                   targetPlatforms "arm", "i386", "sparc"
+                   targetPlatform "arm", "i386", "sparc"
                }
             }
             libraries {
                hello {
-                   targetPlatforms "arm", "i386", "sparc"
+                   targetPlatform "arm", "i386", "sparc"
                }
             }
 """
@@ -164,15 +164,15 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 execTest {
-                    targetPlatforms "alwaysFrench", "alwaysCPlusPlus"
+                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
                 }
                 main {
-                    targetPlatforms "alwaysFrench", "alwaysCPlusPlus"
+                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
                 }
             }
             libraries {
                 hello {
-                    targetPlatforms "alwaysFrench", "alwaysCPlusPlus"
+                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
                 }
             }
             model {

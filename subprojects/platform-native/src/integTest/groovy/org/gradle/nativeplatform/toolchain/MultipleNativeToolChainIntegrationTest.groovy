@@ -68,7 +68,7 @@ class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
 
             executables {
                 main {
-                    targetPlatforms "i386", "sparc"
+                    targetPlatform "i386", "sparc"
                 }
             }
 """

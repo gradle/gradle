@@ -307,7 +307,7 @@ model {
 nativeRuntime {
     libraries {
         someLib {
-            targetPlatforms "i386", "amd64"
+            targetPlatform "i386", "amd64"
         }
     }
 }
@@ -416,7 +416,7 @@ nativeRuntime {
         nativeLib
     }
 }
-""" //TODO freekh: should not really need to specify targetPlatforms for jvmLib here
+""" //TODO freekh: should not really need to specify targetPlatform for jvmLib here
         when:
         succeeds "components"
 

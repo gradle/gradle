@@ -39,10 +39,6 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
         return Lists.newArrayList(targetPlatforms);
     }
 
-    public void targetPlatforms(String... platformSelectors) {
-        targetPlatform(platformSelectors);
-    }
-
     public void targetPlatform(String... platformSelectors) {
         Collections.addAll(targetPlatforms, platformSelectors);
     }

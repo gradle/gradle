@@ -44,6 +44,6 @@ model {
 
 executables {
     main {
-        targetPlatforms "arm", "sparc"
+        targetPlatform "arm", "sparc"
     }
 }
