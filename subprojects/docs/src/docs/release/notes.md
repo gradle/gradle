@@ -238,8 +238,7 @@ In previous versions of Gradle, the second `filesMatching` block would match aga
 
 ### Manually added AntTarget tasks no longer respect target dependencies
 
-The `org.gradle.api.tasks.ant.AntTarget` task implementation adapts a target from an Ant build to a Gradle task 
-and is used when Gradle [imports an Ant build](userguide/ant.html#N11485).
+The `org.gradle.api.tasks.ant.AntTarget` task implementation adapts a target from an Ant build to a Gradle task and is used when Gradle [imports an Ant build](userguide/ant.html#N11485).
 
 In previous Gradle versions, it was somewhat possible to manually add tasks of this type and wire them to Ant targets manually.
 However, this was not recommended and can produce surprising and incorrect behaviour.
