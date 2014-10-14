@@ -1,6 +1,6 @@
 
 .caution {
-  font-size: 14px;
+  font-size: 15px;
   color: #AF5252;
   background-color: pink;
   text-transform: lowercase;
@@ -17,7 +17,7 @@
 
 table .caution {
   float: left;
-  font-size: 12px;
+  font-size: 13px;
   margin-right: 6px;
   margin-top: 2px;
   margin-bottom: 0px;
