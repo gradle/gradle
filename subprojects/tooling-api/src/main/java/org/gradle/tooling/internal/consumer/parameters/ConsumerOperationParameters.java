@@ -235,7 +235,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return stderr;
     }
 
-    public Boolean isColorOutput() { return colorOutput != null ? colorOutput : parameters.isColorOutput(); }
+    public Boolean isColorOutput() {
+        return colorOutput;
+    }
 
     public ProgressListenerVersion1 getProgressListener() {
         return progressListener;

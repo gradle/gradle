@@ -28,7 +28,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
     private final boolean verboseLogging;
-    private final Boolean colorOutput;
 
     public static Builder builder() {
         return new Builder();
@@ -41,8 +40,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
                 setGradleUserHomeDir(connectionParameters.getGradleUserHomeDir()).
                 setProjectDir(connectionParameters.getProjectDir()).
                 setSearchUpwards(connectionParameters.isSearchUpwards()).
-                setVerboseLogging(connectionParameters.getVerboseLogging()).
-                setColorOutput(connectionParameters.isColorOutput());
+                setVerboseLogging(connectionParameters.getVerboseLogging());
     }
 
     public static class Builder {
@@ -53,7 +51,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private Integer daemonMaxIdleTimeValue;
         private TimeUnit daemonMaxIdleTimeUnits;
         private boolean verboseLogging;
-        private Boolean colorOutput;
 
         private Builder() {
         }
@@ -93,19 +90,14 @@ public class DefaultConnectionParameters implements ConnectionParameters {
             return this;
         }
 
-        public Builder setColorOutput(Boolean colorOutput) {
-            this.colorOutput = colorOutput;
-            return this;
-        }
-
         public DefaultConnectionParameters build() {
             return new DefaultConnectionParameters(gradleUserHomeDir, projectDir, searchUpwards, embedded,
-                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging, colorOutput);
+                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging);
         }
     }
 
     private DefaultConnectionParameters(File gradleUserHomeDir, File projectDir, Boolean searchUpwards, Boolean embedded,
-                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging, Boolean colorOutput) {
+                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.projectDir = projectDir;
         this.searchUpwards = searchUpwards;
@@ -113,7 +105,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
         this.verboseLogging = verboseLogging;
-        this.colorOutput = colorOutput;
     }
 
     public File getGradleUserHomeDir() {
@@ -147,6 +138,4 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     public boolean getVerboseLogging() {
         return verboseLogging;
     }
-
-    public Boolean isColorOutput() { return colorOutput; }
 }

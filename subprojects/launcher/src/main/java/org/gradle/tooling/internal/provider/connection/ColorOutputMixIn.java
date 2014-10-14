@@ -16,12 +16,30 @@
 
 package org.gradle.tooling.internal.provider.connection;
 
+import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
+import org.gradle.tooling.model.UnsupportedMethodException;
+
 public class ColorOutputMixIn {
 
-    public ColorOutputMixIn() {
+    private final CompatibleIntrospector introspector;
+
+    public ColorOutputMixIn(ProviderOperationParameters buildParameters) {
+        introspector = new CompatibleIntrospector(buildParameters);
+    }
+
+    private <T> T maybeGet(T defaultValue, String methodName) {
+        try {
+            T out = introspector.getSafely(defaultValue, methodName);
+            if (out != null) {
+                return out;
+            }
+            return defaultValue;
+        } catch (UnsupportedMethodException ex) {
+            return defaultValue;
+        }
     }
 
     public Boolean isColorOutput() {
-        return Boolean.FALSE;
+        return maybeGet(Boolean.FALSE, "isColorOutput");
     }
 }

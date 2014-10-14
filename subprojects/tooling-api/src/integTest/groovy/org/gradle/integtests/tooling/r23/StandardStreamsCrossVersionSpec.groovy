@@ -94,7 +94,6 @@ task log << {
             def build = connection.newBuild()
             build.standardOutput = output
             build.standardError = error
-            build.colorOutput = true
             build.forTasks("log")
             build.run(resultHandler)
             server.waitFor()
@@ -116,5 +115,49 @@ task log << {
         error.toString().contains("error logging-${uuid}")
         !stdOutAndErr.stdOut.contains("-" + uuid)
         !stdOutAndErr.stdErr.contains("-" + uuid)
+    }
+
+    @ToolingApiVersion(">=2.3")
+    def "can specify color output"() {
+        String uuid = UUID.randomUUID().toString()
+        file("build.gradle") << """
+task uptodate {
+    outputs.upToDateWhen { true }
+}
+task log(dependsOn: uptodate) << {
+    println "waiting-${uuid}"
+    println "connecting to ${server.uri}"
+    new URL("${server.uri}").text
+    println "finished-${uuid}"
+}
+"""
+        // def escapeHeader = "" + Ansi.FIRST_ESC_CHAR + Ansi.SECOND_ESC_CHAR
+        def escapeHeader = "" + (char) 27 + '['
+
+        when:
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.standardOutput = output
+            build.colorOutput = true
+            build.forTasks("log")
+            build.run(resultHandler)
+            server.waitFor()
+            ConcurrentTestUtil.poll {
+                // Need to poll, as logging output is delivered asynchronously to client
+                assert output.toString().contains("waiting-" + uuid)
+            }
+            assert !output.toString().contains("finished-" + uuid)
+            server.release()
+            resultHandler.finished()
+        }
+
+        then:
+        output.toString().contains("waiting-" + uuid)
+        output.toString().contains("finished-" + uuid)
+        output.toString().contains("UP-TO-DATE" + escapeHeader)
+        !stdOutAndErr.stdOut.contains(escapeHeader)
+        !stdOutAndErr.stdErr.contains(escapeHeader)
     }
 }

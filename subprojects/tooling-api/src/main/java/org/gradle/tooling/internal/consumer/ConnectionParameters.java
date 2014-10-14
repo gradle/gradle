@@ -41,6 +41,4 @@ public interface ConnectionParameters extends org.gradle.tooling.internal.protoc
      * Whether to log debug statements eagerly
      */
     boolean getVerboseLogging();
-
-    Boolean isColorOutput();
 }

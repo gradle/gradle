@@ -24,7 +24,7 @@ public class ProviderOperationParametersMixIn {
 
     public ProviderOperationParametersMixIn(ProviderOperationParameters parameters) {
         buildLogLevelMixIn = new BuildLogLevelMixIn(parameters);
-        colorOutputMixIn = new ColorOutputMixIn();
+        colorOutputMixIn = new ColorOutputMixIn(parameters);
     }
 
     public LogLevel getBuildLogLevel() {
@@ -32,6 +32,6 @@ public class ProviderOperationParametersMixIn {
     }
 
     public Boolean isColorOutput() {
-        return Boolean.FALSE;
+        return colorOutputMixIn.isColorOutput();
     }
 }
