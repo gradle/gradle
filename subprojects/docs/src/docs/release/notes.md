@@ -1,3 +1,24 @@
+Gradle 2.2 delivers some nice general features and improvements, as well as profound new capabilities for dependency management.
+
+The new support for arbitrary Component Selection Rules and modelling of module “replacement” brings powerful new dependency management capabilities.
+Component Selection Rules allow extremely fine grained, custom, conflict resolution strategies.
+Support for declaring module replacements allows Gradle to consider modules that have different identities but that conflict in some way during conflict resolution.
+This can be used to avoid have duplicate copies of libraries at different versions that changed their published coordinates over time or that transitioned into other libraries entirely.
+
+Support for the [SonarQube](http://www.sonarqube.org) code quality management platform has significantly improved in this release through support for 
+controlling the Sonar Runner process (e.g. memory settings) and to use arbitrary versions of the Sonar Runner.
+This will allow leveraging of new Sonar features without updates to the plugin and more control over how Gradle integrates with Sonar.
+
+The new support for “text resources”, added to the code quality plugins (e.g. the Checkstyle plugin), opens up new possibilities for sharing configuration/settings for code quality checks.
+More generally, support for “text resources” opens up new possibilities for obtaining and/or generating text to be used in the build process, typically as a file.
+While only in use by the code quality plugins at this release, this new mechanism will be leveraged by other tasks and plugins in future versions of Gradle.
+
+Gradle 2.1 previously set the high watermark for contributions to Gradle with contributions by 18 different contributors. 
+This release raises that high watermark to contributions by 23 different contributors.
+Thank you to all who have contributed and helped to make Gradle an even better build system.
+
+We hope you enjoy Gradle 2.2.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -358,7 +379,7 @@ We would like to thank the following community members for making contributions 
 * [Stuart Armitage](https://github.com/maiflai) - Fixed bug in AbstractTask.setActions
 * [Björn Kautler](https://github.com/Vampire) - improvements to `'sonar-runner'` plugin
 * [Andrii Liubimov](https://github.com/aliubimov) - enhancement to `IdeaModule` model to mark generated source directories
-* [Damien Coraboeuf](https://github.com/dcoraboeuf) - fix for IndexOutOfBoundsException thrown when determining task execution plan [GRADLE-2957]
+* [Damien Coraboeu  f](https://github.com/dcoraboeuf) - fix for IndexOutOfBoundsException thrown when determining task execution plan [GRADLE-2957]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
