@@ -72,31 +72,30 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         dsl {
             apply plugin: pluginClass
             libraries{
-                lib {}
-            }
-
-            executables {
-                exe {}
-            }
-
-            sources {
-                exe {
-                    "$pluginName" {
-                        source {
-                            srcDirs "d1", "d2"
-                        }
-                        exportedHeaders {
-                            srcDirs "h1", "h2"
+                lib {
+                    sources {
+                        "$pluginName" {
+                            source {
+                                srcDirs "d3"
+                            }
+                            exportedHeaders {
+                                srcDirs "h3"
+                            }
                         }
                     }
                 }
-                lib {
-                    "$pluginName" {
-                        source {
-                            srcDirs "d3"
-                        }
-                        exportedHeaders {
-                            srcDirs "h3"
+            }
+
+            executables {
+                exe {
+                    sources {
+                        "$pluginName" {
+                            source {
+                                srcDirs "d1", "d2"
+                            }
+                            exportedHeaders {
+                                srcDirs "h1", "h2"
+                            }
                         }
                     }
                 }
@@ -122,12 +121,6 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         touch("src/test/anotherOne/file.o")
         dsl {
             apply plugin: pluginClass
-            sources {
-                test {
-                    anotherOne(sourceSetClass) {}
-                    emptyOne(sourceSetClass) {}
-                }
-            }
             executables {
                 test {
                     binaries.all { NativeBinary binary ->
@@ -135,13 +128,17 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
                         binary."${pluginName}Compiler".define "LEVEL", "1"
                         binary."${pluginName}Compiler".args "ARG1", "ARG2"
                     }
+                    sources {
+                        anotherOne(sourceSetClass) {}
+                        emptyOne(sourceSetClass) {}
+                    }
                 }
             }
         }
 
         then:
         NativeExecutableBinarySpec binary = project.binaries.testExecutable
-        binary.tasks.withType(compileTaskClass)*.name == ["compileTestExecutableTestAnotherOne", "compileTestExecutableTest${StringUtils.capitalize(pluginName)}"]
+        binary.tasks.withType(compileTaskClass)*.name as Set == ["compileTestExecutableTestAnotherOne", "compileTestExecutableTest${StringUtils.capitalize(pluginName)}"] as Set
 
         and:
         binary.tasks.withType(compileTaskClass).each { compile ->
