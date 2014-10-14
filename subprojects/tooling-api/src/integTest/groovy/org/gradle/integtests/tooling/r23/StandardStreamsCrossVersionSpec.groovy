@@ -16,10 +16,7 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.ProjectConnection
@@ -68,5 +65,56 @@ task log << {
         output.toString().contains("finished-" + uuid)
         !stdOutAndErr.stdOut.contains("waiting-" + uuid)
         !stdOutAndErr.stdOut.contains("finished-" + uuid)
+    }
+
+    @ToolingApiVersion(">=2.3")
+    def "connector can redirect logging from System.out and err"() {
+        String uuid = UUID.randomUUID().toString()
+        file("build.gradle") << """
+project.logger.error("error logging-${uuid}");
+project.logger.warn("warn logging-${uuid}");
+project.logger.lifecycle("lifecycle logging-${uuid}");
+project.logger.quiet("quiet logging-${uuid}");
+project.logger.info ("info logging-${uuid}");
+project.logger.debug("debug logging-${uuid}");
+
+task log << {
+    println "waiting-${uuid}"
+    println "connecting to ${server.uri}"
+    new URL("${server.uri}").text
+    println "finished-${uuid}"
+}
+"""
+
+        when:
+        def resultHandler = new TestResultHandler()
+        def output = new TestOutputStream()
+        def error = new TestOutputStream()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.standardOutput = output
+            build.standardError = error
+            build.colorOutput = true
+            build.forTasks("log")
+            build.run(resultHandler)
+            server.waitFor()
+            ConcurrentTestUtil.poll {
+                // Need to poll, as logging output is delivered asynchronously to client
+                assert output.toString().contains("waiting-" + uuid)
+            }
+            assert !output.toString().contains("finished-" + uuid)
+            server.release()
+            resultHandler.finished()
+        }
+
+        then:
+        output.toString().contains("waiting-" + uuid)
+        output.toString().contains("finished-" + uuid)
+        output.toString().contains("warn logging-${uuid}")
+        output.toString().contains("lifecycle logging-${uuid}")
+        output.toString().contains("quiet logging-${uuid}")
+        error.toString().contains("error logging-${uuid}")
+        !stdOutAndErr.stdOut.contains("-" + uuid)
+        !stdOutAndErr.stdErr.contains("-" + uuid)
     }
 }
