@@ -407,7 +407,7 @@ model {
 jvm {
     libraries {
         jvmLib {
-            targetPlatforms "$currentJava"
+            targetPlatform "$currentJava"
         }
     }
 }
@@ -416,7 +416,7 @@ nativeRuntime {
         nativeLib
     }
 }
-""" //TODO freekh: should not really need to specify targetPlatform for jvmLib here
+"""
         when:
         succeeds "components"
 
@@ -476,7 +476,7 @@ Binaries
     jvm {
         libraries {
             myLib {
-                targetPlatforms "java5", "java6", "java7"
+                targetPlatform "java5", "java6", "java7"
             }
         }
     }
