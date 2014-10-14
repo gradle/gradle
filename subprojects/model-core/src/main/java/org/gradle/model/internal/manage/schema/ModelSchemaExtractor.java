@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
 
 import java.lang.reflect.Method;
@@ -115,6 +116,10 @@ public class ModelSchemaExtractor {
     public <T> void validateType(Class<T> type) {
         if (!type.isInterface()) {
             throw invalid(type, "must be defined as an interface");
+        }
+
+        if (!type.isAnnotationPresent(Managed.class)) {
+            throw invalid(type, String.format("must be annotated with %s", Managed.class.getName()));
         }
 
         if (type.getInterfaces().length != 0) {

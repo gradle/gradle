@@ -17,48 +17,42 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Transformer;
-import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.Model;
+import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public class ModelCreationRuleDefinitionHandler extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<Model> {
-    public <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+public class ModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-        // TODO validate model name
+    @Override
+    public Spec<MethodRuleDefinition<?>> getSpec() {
+        final Spec<MethodRuleDefinition<?>> superSpec = super.getSpec();
+        return new Spec<MethodRuleDefinition<?>>() {
+            public boolean isSatisfiedBy(MethodRuleDefinition<?> element) {
+                return superSpec.isSatisfiedBy(element) && !element.getReturnType().equals(ModelType.of(Void.TYPE));
+            }
+        };
+    }
+
+
+    public <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         String modelName = determineModelName(ruleDefinition);
 
-        try {
-            ModelPath.validatePath(modelName);
-        } catch (Exception e) {
-            throw new InvalidModelRuleDeclarationException(String.format("Path of declared model element created by rule %s is invalid.", ruleDefinition.getDescriptor()), e);
-        }
-
-        // TODO validate the return type (generics?)
         ModelType<T> returnType = ruleDefinition.getReturnType();
-        ModelPath path = ModelPath.path(modelName);
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         Transformer<T, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(ruleDefinition.getRuleInvoker(), descriptor, references);
-        modelRegistry.create(
-                ModelCreators.of(ModelReference.of(path, returnType), transformer)
-                        .descriptor(descriptor)
-                        .inputs(references)
-                        .build()
-        );
+        modelRegistry.create(ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
+                .descriptor(descriptor)
+                .inputs(references)
+                .build());
     }
 
-    private String determineModelName(MethodRuleDefinition<?> ruleDefinition) {
-        String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
-        if (annotationValue == null || annotationValue.isEmpty()) {
-            return ruleDefinition.getMethodName();
-        } else {
-            return annotationValue;
-        }
+    public String getDescription() {
+        return String.format("%s and returning a model element", super.getDescription());
     }
 
     private static class ModelRuleInvokerBackedTransformer<T> implements Transformer<T, Inputs> {

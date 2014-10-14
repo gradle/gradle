@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.state
 
+import org.gradle.model.Managed
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import spock.lang.Specification
 
@@ -25,6 +26,7 @@ class ManagedModelElementTest extends Specification {
 
     def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(MultipleProps))
 
+    @Managed
     static interface MultipleProps {
         String getProp1();
         void setProp1(String string);

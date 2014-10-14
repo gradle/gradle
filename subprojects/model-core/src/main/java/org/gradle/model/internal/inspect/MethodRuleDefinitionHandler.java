@@ -24,7 +24,7 @@ import java.util.List;
 
 public interface MethodRuleDefinitionHandler {
     List<MethodRuleDefinitionHandler> CORE_HANDLERS = ImmutableList.<MethodRuleDefinitionHandler>of(
-            new ModelCreationRuleDefinitionHandler(), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
+            new ModelCreationRuleDefinitionHandler(), new ManagedModelCreationRuleDefinitionHandler(), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
     );
 
     Spec<MethodRuleDefinition<?>> getSpec();

@@ -22,6 +22,7 @@ import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def handlers = [new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler(), new ModelCreationRuleDefinitionHandler()]
+    def handlers = MethodRuleDefinitionHandler.CORE_HANDLERS
     def inspector = new ModelRuleInspector(handlers)
     def dependencies = Mock(RuleSourceDependencies)
 
@@ -134,7 +135,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Mutate, annotated with @Finalize, annotated with @Model]"
+        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Mutate, annotated with @Finalize]"
     }
 
     static class ConcreteGenericModelType {
@@ -302,5 +303,38 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         thrown InvalidModelRuleDeclarationException
+    }
+
+    interface NonManaged {}
+
+    static class NonManagedVoidReturning {
+        @Model
+        void bar(NonManaged foo) {
+        }
+    }
+
+    def "type of the first argument of void returning model definition has to be @Managed annotated"() {
+        when:
+        inspector.inspect(NonManagedVoidReturning, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.message == "Invalid managed model type $NonManaged.name: must be annotated with org.gradle.model.Managed"
+    }
+
+    static class NoArgumentVoidReturning {
+        @Model
+        void bar() {
+        }
+    }
+
+    def "void returning model definition has to take at least one argument"() {
+        when:
+        inspector.inspect(NoArgumentVoidReturning, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.message == "$NoArgumentVoidReturning.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema
 
+import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
 import spock.lang.Specification
 
@@ -30,6 +31,14 @@ class ModelSchemaExtractorTest extends Specification {
         fail EmptyStaticClass, "must be defined as an interface"
     }
 
+    static interface NotAnnotatedInterface {}
+
+    def "has to be annotated with @Managed"() {
+        expect:
+        fail NotAnnotatedInterface, "must be annotated with $Managed.name"
+    }
+
+    @Managed
     static interface EmptyInterfaceWithParent extends Serializable {}
 
     def "cannot extend"() {
@@ -37,6 +46,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail EmptyInterfaceWithParent, "cannot extend other types"
     }
 
+    @Managed
     static interface ParameterizedEmptyInterface<T> {}
 
     def "cannot parameterize"() {
@@ -44,10 +54,12 @@ class ModelSchemaExtractorTest extends Specification {
         fail ParameterizedEmptyInterface, "cannot be a parameterized type"
     }
 
+    @Managed
     static interface NoGettersOrSetters {
         void foo(String bar)
     }
 
+    @Managed
     static interface HasExtraNonPropertyMethods {
         String getName()
 
@@ -62,6 +74,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail HasExtraNonPropertyMethods, "only paired getter/setter methods are supported \\(invalid methods: \\[foo\\]\\)"
     }
 
+    @Managed
     static interface OnlyGetter {
         String getName()
     }
@@ -71,6 +84,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail OnlyGetter, "no corresponding setter"
     }
 
+    @Managed
     static interface SingleProperty {
         String getName()
 
@@ -83,6 +97,7 @@ class ModelSchemaExtractorTest extends Specification {
         extract(SingleProperty).properties["name"].type == ModelType.of(String)
     }
 
+    @Managed
     static interface GetterWithParams {
         String getName(String name)
 
@@ -95,6 +110,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail GetterWithParams, "getter methods cannot take parameters"
     }
 
+    @Managed
     static interface NonVoidSetter {
         String getName()
 
@@ -106,6 +122,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail NonVoidSetter, "setter method must have void return type"
     }
 
+    @Managed
     static interface SetterWithExtraParams {
         String getName()
 
@@ -117,6 +134,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail SetterWithExtraParams, "setter method must have exactly one parameter"
     }
 
+    @Managed
     static interface MisalignedSetterType {
         String getName()
 
@@ -128,6 +146,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail MisalignedSetterType, "setter method param must be of exactly the same type"
     }
 
+    @Managed
     static interface SetterOnly {
         void setName(String name);
     }
@@ -137,6 +156,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail SetterOnly, "only paired getter/setter methods are supported"
     }
 
+    @Managed
     static interface NonStringProperty {
         Object getName()
 
@@ -148,6 +168,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail NonStringProperty, /only String properties are supported \(method: getName\)/
     }
 
+    @Managed
     static interface MultipleProps {
         String getProp1();
         void setProp1(String string);

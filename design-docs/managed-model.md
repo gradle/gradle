@@ -38,9 +38,9 @@ This story makes the following possible…
 
 #### Test Coverage
 
-- (something like snippet above)
-- (constraints mentioned above cause errors when violated, error message points to “what” caused the type to be considered)
-- `void` returning `@Model` method with non `@Managed` type as first arg causes error
+- ~~(something like snippet above)~~
+- ~~(constraints mentioned above cause errors when violated, error message points to “what” caused the type to be considered)~~
+- ~~`void` returning `@Model` method with non `@Managed` type as first arg causes error~~
 
 #### Open questions
 

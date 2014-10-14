@@ -65,7 +65,7 @@ public class ManagedModelElement<T> {
     }
 
     private T createInstance() {
-        @SuppressWarnings("unchecked") T createdInstance = (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{type}, new ManagedModelElementInvocationHandler());
+        @SuppressWarnings("unchecked") T createdInstance = (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new ManagedModelElementInvocationHandler());
         return createdInstance;
     }
 

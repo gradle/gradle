@@ -43,4 +43,8 @@ public class InvalidModelRuleDeclarationException extends GradleException {
         }
     }
 
+    public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, String message) {
+        super(String.format("%s is not a valid model rule method: %s", descriptor, message));
+    }
+
 }
