@@ -228,11 +228,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public OutputStream getStandardOutput() {
-        return stdout != null ? stdout : parameters.getStandardOutput();
+        return stdout;
     }
 
     public OutputStream getStandardError() {
-        return stderr != null ? stderr : parameters.getStandardError();
+        return stderr;
     }
 
     public Boolean isColorOutput() { return colorOutput != null ? colorOutput : parameters.isColorOutput(); }

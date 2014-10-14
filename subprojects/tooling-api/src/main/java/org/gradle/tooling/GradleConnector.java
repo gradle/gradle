@@ -15,12 +15,10 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.net.URI;
 
 /**
@@ -124,27 +122,6 @@ public abstract class GradleConnector {
      * @since 1.0-milestone-3
      */
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
-
-    /**
-     * Sets the {@link java.io.OutputStream} which should receive standard output logging generated while running the operation.
-     * The default is to discard the output.
-     *
-     * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
-     * @return this
-     * @since 2.3
-     */
-    @Incubating
-    public abstract GradleConnector setStandardOutput(OutputStream outputStream);
-
-    /**
-     * Sets the {@link OutputStream} which should receive standard error logging generated while running the operation.
-     * The default is to discard the output.
-     *
-     * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
-     * @since 2.3
-     */
-    @Incubating
-    public abstract GradleConnector setStandardError(OutputStream outputStream);
 
     /**
      * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.

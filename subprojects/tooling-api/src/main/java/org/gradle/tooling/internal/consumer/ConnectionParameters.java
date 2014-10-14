@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 public interface ConnectionParameters extends org.gradle.tooling.internal.protocol.ConnectionParameters {
@@ -42,20 +41,6 @@ public interface ConnectionParameters extends org.gradle.tooling.internal.protoc
      * Whether to log debug statements eagerly
      */
     boolean getVerboseLogging();
-
-    /**
-     * Returns the output stream to write stdout logging to.
-     *
-     * @return The output stream. May be null.
-     */
-    OutputStream getStandardOutput();
-
-    /**
-     * Returns the output stream to write stderr logging to.
-     *
-     * @return The output stream. May be null.
-     */
-    OutputStream getStandardError();
 
     Boolean isColorOutput();
 }

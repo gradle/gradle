@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
@@ -72,18 +71,6 @@ public class DefaultGradleConnector extends GradleConnector {
 
     public GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
         connectionParamsBuilder.setGradleUserHomeDir(gradleUserHomeDir);
-        return this;
-    }
-
-    @Override
-    public GradleConnector setStandardOutput(OutputStream outputStream) {
-        connectionParamsBuilder.setStdout(outputStream);
-        return this;
-    }
-
-    @Override
-    public GradleConnector setStandardError(OutputStream outputStream) {
-        connectionParamsBuilder.setStderr(outputStream);
         return this;
     }
 

@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultConnectionParameters implements ConnectionParameters {
@@ -29,8 +28,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
     private final boolean verboseLogging;
-    private final OutputStream stdout;
-    private final OutputStream stderr;
     private final Boolean colorOutput;
 
     public static Builder builder() {
@@ -45,8 +42,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
                 setProjectDir(connectionParameters.getProjectDir()).
                 setSearchUpwards(connectionParameters.isSearchUpwards()).
                 setVerboseLogging(connectionParameters.getVerboseLogging()).
-                setStdout(connectionParameters.getStandardOutput()).
-                setStderr(connectionParameters.getStandardError()).
                 setColorOutput(connectionParameters.isColorOutput());
     }
 
@@ -58,8 +53,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private Integer daemonMaxIdleTimeValue;
         private TimeUnit daemonMaxIdleTimeUnits;
         private boolean verboseLogging;
-        private OutputStream stdout;
-        private OutputStream stderr;
         private Boolean colorOutput;
 
         private Builder() {
@@ -100,16 +93,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
             return this;
         }
 
-        public Builder setStdout(OutputStream stdout) {
-            this.stdout = stdout;
-            return this;
-        }
-
-        public Builder setStderr(OutputStream stderr) {
-            this.stderr = stderr;
-            return this;
-        }
-
         public Builder setColorOutput(Boolean colorOutput) {
             this.colorOutput = colorOutput;
             return this;
@@ -117,12 +100,12 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
         public DefaultConnectionParameters build() {
             return new DefaultConnectionParameters(gradleUserHomeDir, projectDir, searchUpwards, embedded,
-                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging, stdout, stderr, colorOutput);
+                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging, colorOutput);
         }
     }
 
     private DefaultConnectionParameters(File gradleUserHomeDir, File projectDir, Boolean searchUpwards, Boolean embedded,
-                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging, OutputStream stdout, OutputStream stderr, Boolean colorOutput) {
+                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging, Boolean colorOutput) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.projectDir = projectDir;
         this.searchUpwards = searchUpwards;
@@ -130,8 +113,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
         this.verboseLogging = verboseLogging;
-        this.stdout = stdout;
-        this.stderr = stderr;
         this.colorOutput = colorOutput;
     }
 
@@ -165,14 +146,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     public boolean getVerboseLogging() {
         return verboseLogging;
-    }
-
-    public OutputStream getStandardOutput() {
-        return stdout;
-    }
-
-    public OutputStream getStandardError() {
-        return stderr;
     }
 
     public Boolean isColorOutput() { return colorOutput; }
