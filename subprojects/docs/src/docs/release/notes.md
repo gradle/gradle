@@ -249,15 +249,14 @@ Tasks created as a result of `ant.importBuild()` (i.e. the recommended practice)
 
 ### Sonar Runner Plugin changes
 
-The sonar runner plugin now forks a new jvm to analyze the project. 
+The sonar runner plugin now forks a new JVM to analyze the project. 
 Projects using the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) should consider setting explicitly the memory settings for the runner process. 
 
 Existing users of the `sonar-runner` plugin may have increased the memory allocation to the Gradle process to facilitate the Sonar Runner.
 This can now be reduced.
     
-The Sonar Runner version is now configurable.
-Previously the plugin enforced the use of version 2.0.
-The default version is now 2.3.
+Additionally, the plugin previously mandated the use of version 2.0 of the Sonar Runner.
+The default version is now 2.3 and it is configurable.
 If you require the previous default of 2.0, you can specify this version via the project extension.
     
     sonarRunner {
