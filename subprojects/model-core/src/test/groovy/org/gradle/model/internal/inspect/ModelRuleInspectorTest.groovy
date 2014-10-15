@@ -305,8 +305,6 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    interface NonManaged {}
-
     static class NonManagedVoidReturning {
         @Model
         void bar(NonManaged foo) {
