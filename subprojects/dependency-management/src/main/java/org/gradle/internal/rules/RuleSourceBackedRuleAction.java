@@ -16,7 +16,6 @@
 
 package org.gradle.internal.rules;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -32,10 +31,12 @@ import java.util.List;
 public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     private final R instance;
     private final JavaMethod<R, T> ruleMethod;
+    private final List<Class<?>> inputTypes;
 
     private RuleSourceBackedRuleAction(R instance, JavaMethod<R, T> ruleMethod) {
         this.instance = instance;
         this.ruleMethod = ruleMethod;
+        this.inputTypes = determineInputTypes(ruleMethod.getParameterTypes());
     }
 
     public static <R, T> RuleSourceBackedRuleAction<R, T> create(ModelType<T> subjectType, R ruleSourceInstance) {
@@ -66,15 +67,21 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         return new InvalidModelRuleDeclarationException("Type " + source + " is not a valid model rule source: " + reason);
     }
 
-    public List<Class<?>> getInputTypes() {
-        Class<?>[] parameterTypes = ruleMethod.getParameterTypes();
+    public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {
         return Arrays.asList(parameterTypes).subList(1, parameterTypes.length);
     }
 
+    public List<Class<?>> getInputTypes() {
+        return inputTypes;
+    }
+
     public void execute(T subject, List<?> inputs) {
-        List<Object> args = Lists.newArrayList();
-        args.add(subject);
-        args.addAll(inputs);
-        ruleMethod.invoke(instance, args.toArray());
+        Object[] args = new Object[inputs.size() + 1];
+        args[0] = subject;
+        for (int i = 0; i < inputs.size(); i++) {
+            Object input =  inputs.get(i);
+            args[i+1] = input;
+        }
+        ruleMethod.invoke(instance, args);
     }
 }

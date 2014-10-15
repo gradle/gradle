@@ -135,7 +135,6 @@ The primary changes are:
 
 ### Open issues
 
-- `ComponentSelectionRulesProcessor` generates a lot of garbage for each application. Should reuse the lists of rules and the list of inputs.
 - `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable. Might not be a problem.
 
 ## Story: Build script targets component selection rule to particular module

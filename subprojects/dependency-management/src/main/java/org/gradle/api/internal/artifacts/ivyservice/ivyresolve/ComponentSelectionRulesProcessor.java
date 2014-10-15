@@ -16,59 +16,80 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
     private static final String USER_CODE_ERROR = "Could not apply component selection rule with all().";
 
-    public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
-        List<SpecRuleAction<? super ComponentSelection>> noInputRules = Lists.newArrayList();
-        List<SpecRuleAction<? super ComponentSelection>> inputRules = Lists.newArrayList();
-        for (SpecRuleAction<? super ComponentSelection> specRuleAction : specRuleActions) {
-            if (specRuleAction.getAction().getInputTypes().isEmpty()) {
-                noInputRules.add(specRuleAction);
-            } else {
-                inputRules.add(specRuleAction);
-            }
+    private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs = new Spec<SpecRuleAction<? super ComponentSelection>>() {
+        public boolean isSatisfiedBy(SpecRuleAction<? super ComponentSelection> element) {
+            return element.getAction().getInputTypes().isEmpty();
         }
+    };
+    private final Spec<SpecRuleAction<? super ComponentSelection>> withInputs = Specs.not(withNoInputs);
 
-        if (processRules(noInputRules, selection, metadataProvider)) {
-            processRules(inputRules, selection, metadataProvider);
+    public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
+        if (processRules(specRuleActions, withNoInputs, selection, metadataProvider)) {
+            processRules(specRuleActions, withInputs, selection, metadataProvider);
         }
     }
 
-    private boolean processRules(List<SpecRuleAction<? super ComponentSelection>> specRuleActions, ComponentSelectionInternal selection, MetadataProvider metadataProvider) {
+    private boolean processRules(Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, Spec<SpecRuleAction<? super ComponentSelection>> filter, ComponentSelectionInternal selection, MetadataProvider metadataProvider) {
         for (SpecRuleAction<? super ComponentSelection> rule : specRuleActions) {
-            processRule(selection, metadataProvider, rule);
+            if (filter.isSatisfiedBy(rule)) {
+                processRule(rule, selection, metadataProvider);
 
-            if (selection.isRejected()) {
-                LOGGER.info(String.format("Selection of '%s' rejected by component selection rule: %s", selection.getCandidate(), ((ComponentSelectionInternal) selection).getRejectionReason()));
-                return false;
+                if (selection.isRejected()) {
+                    LOGGER.info(String.format("Selection of '%s' rejected by component selection rule: %s", selection.getCandidate(), selection.getRejectionReason()));
+                    return false;
+                }
             }
         }
         return true;
     }
 
-    private void processRule(ComponentSelection selection, MetadataProvider metadataProvider, SpecRuleAction<? super ComponentSelection> specRuleAction) {
-        if (!specRuleAction.getSpec().isSatisfiedBy(selection)) {
+    private void processRule(SpecRuleAction<? super ComponentSelection> rule, ComponentSelection selection, MetadataProvider metadataProvider) {
+        if (!rule.getSpec().isSatisfiedBy(selection)) {
             return;
         }
 
-        List<Object> inputs = Lists.newArrayList();
-        for (Class<?> inputType : specRuleAction.getAction().getInputTypes()) {
+        List<Object> inputValues = getInputValues(rule.getAction().getInputTypes(), metadataProvider);
+
+        if (inputValues.contains(null)) {
+            // If any of the input values are not available for this selection, ignore the rule
+            return;
+        }
+
+        try {
+            rule.getAction().execute(selection, inputValues);
+        } catch (Exception e) {
+            throw new InvalidUserCodeException(USER_CODE_ERROR, e);
+        }
+    }
+
+    private List<Object> getInputValues(List<Class<?>> inputTypes, MetadataProvider metadataProvider) {
+        if (inputTypes.size() == 0) {
+            return Collections.emptyList();
+        }
+
+        List<Object> inputs = new ArrayList<Object>(inputTypes.size());
+        for (Class<?> inputType : inputTypes) {
             if (inputType == ModuleComponentResolveMetaData.class) {
                 inputs.add(metadataProvider.getMetaData());
                 continue;
@@ -78,22 +99,12 @@ public class ComponentSelectionRulesProcessor {
                 continue;
             }
             if (inputType == IvyModuleDescriptor.class) {
-                IvyModuleDescriptor ivyModuleDescriptor = metadataProvider.getIvyModuleDescriptor();
-                if (ivyModuleDescriptor == null) {
-                    // Rules that require ivy module descriptor input are not fired for non-ivy modules
-                    return;
-                }
-                inputs.add(ivyModuleDescriptor);
+                inputs.add(metadataProvider.getIvyModuleDescriptor());
                 continue;
             }
             // We've already validated the inputs: should never get here.
             throw new IllegalStateException();
         }
-
-        try {
-            specRuleAction.getAction().execute(selection, inputs);
-        } catch (Exception e) {
-            throw new InvalidUserCodeException(USER_CODE_ERROR, e);
-        }
+        return inputs;
     }
 }
