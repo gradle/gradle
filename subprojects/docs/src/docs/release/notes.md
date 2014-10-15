@@ -112,10 +112,28 @@ This feature was contributed by [Andrea Panattoni](https://github.com/zeeke).
 
 ### Native language cross-compilation improvements (i)
 
-- Uses the file naming scheme of the target platform, rather than then host platform.
-- Uses compiler and linker arguments based on the target platform, rather than the host platform.
-- Added `eachPlatform()` method to each `ToolChain` type, to allow fine-grained customization of a particular tool chain on a per-platform basis.
-- Added `TargetedPlatformToolChain.getPlatform()` to allow tool chain customization logic access to the target platform.
+Various improvements were made to the ability to configure a native tool chain from cross-compilation. These improvements should
+make easier to use Gradle to compile for a target platform other than the host.
+
+These improvements include:
+
+- Tool chain creates binaries using the file naming scheme of the target platform, rather than then host platform.
+- Tool chain generates compiler and linker arguments based on the target platform, rather than the host platform.
+- Each `NativeToolChain` type now has an `eachPlatform(Action<NativePlatformToolChain>)` method, to allow fine-grained customization of a particular tool chain on a per-platform basis.
+    - `NativePlatformToolChain.getPlatform()` allows tool chain customization logic access to the target platform.
+
+
+        model {
+            toolChains {
+                gcc(Gcc) {
+                    eachPlatform { tc ->
+                        if (tc.platform.name == "arm") {
+                            cCompiler.executable = 'gcc-arm'
+                        }
+                    }
+                }
+            }
+        }
 
 ### Support for building x64 binaries on Windows using GCC (i)
 
