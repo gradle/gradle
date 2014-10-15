@@ -70,6 +70,11 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
         }
 
         @Override
+        public String toString() {
+            return String.format("[%s classpath:%s]", getClass().getSimpleName(), classpath);
+        }
+
+        @Override
         public boolean equals(Object obj) {
             if (obj == this) {
                 return true;
