@@ -321,13 +321,13 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         addAllReversed(dependsOnTasks, taskNode.getShouldSuccessors());
     }
 
-    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(HashMultimap<TaskInfo, Integer> visitingNodes, TaskInfoInVisitingSegment taskNodeWithVisitingSegment) {
+    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<TaskInfo, Integer> visitingNodes, final TaskInfoInVisitingSegment taskNodeWithVisitingSegment) {
         TaskInfo taskNode = taskNodeWithVisitingSegment.taskInfo;
-        for (TaskInfo shouldRunAfterSuccessor : Lists.newArrayList(taskNode.getShouldSuccessors())) {
-            if (visitingNodes.containsEntry(shouldRunAfterSuccessor, taskNodeWithVisitingSegment.visitingSegment)) {
-                taskNode.removeShouldRunAfterSuccessor(shouldRunAfterSuccessor);
+        Iterables.removeIf(taskNode.getShouldSuccessors(), new Predicate<TaskInfo>() {
+            public boolean apply(TaskInfo input) {
+                return visitingNodes.containsEntry(input, taskNodeWithVisitingSegment.visitingSegment);
             }
-        }
+        });
     }
 
     private void takePlanSnapshotIfCanBeRestoredToCurrentTask(HashMap<TaskInfo, Integer> planBeforeVisiting, TaskInfo taskNode) {
