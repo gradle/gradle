@@ -74,7 +74,7 @@ task block << {
     def "can stop a daemon that is using a different java home"() {
         given:
         succeeds()
-        daemons.daemon.becomesIdle()
+        daemons.daemon.assertIdle()
 
         when:
         executer.withJavaHome(AvailableJavaHomes.differentJdk.javaHome)
