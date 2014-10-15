@@ -128,18 +128,19 @@ class DefaultIsolatedAntBuilderTest {
         ClassLoader loader1 = null
         def classpath = [new File("no-existo.jar")]
         builder.withClasspath(classpath).execute {
-            loader1 = delegate.builder.getClass().classLoader
+            loader1 = delegate.antlibClassLoader
         }
         ClassLoader loader2 = null
         builder.withClasspath(classpath).execute {
-            loader2 = delegate.builder.getClass().classLoader
+            loader2 = delegate.antlibClassLoader
         }
 
         assertThat(loader1, sameInstance(loader2))
 
+
         ClassLoader loader3 = null
         builder.withClasspath(classpath + [new File("unknown.jar")]).execute {
-            loader3 = delegate.builder.getClass().classLoader
+            loader3 = delegate.antlibClassLoader
         }
 
         assertThat(loader1, not(sameInstance(loader3)))
