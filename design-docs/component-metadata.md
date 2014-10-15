@@ -49,10 +49,6 @@ This story makes available the component and Ivy meta-data as optional read only
     - No closure parameter
     - Rule action throws exception
 
-### Open issues
-
-- Should accept untyped subject parameter in rule closure?
-
 ## Story: Replace versionSelection rules with componentSelection rules
 
 This is an update to the previous 3 stories, based on some further analysis and design.
@@ -133,10 +129,6 @@ The primary changes are:
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
 - ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
-### Open issues
-
-- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable. Might not be a problem.
-
 ## Story: Build script targets component selection rule to particular module
 
 This story adds some convenience DSL to target a selection rule to a particular module:
@@ -211,10 +203,6 @@ Rule source class:
     - `@Mutate` method does not have `ComponentSelection` as first parameter (integration test)
     - Exception thrown by rule method
 
-### Open issues
-
-- DSL decoration should add Action and Closure overloads for a method that accepts a rule source.
-
 ## Story: Add Java API for component metadata rules
 
 This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and component metadata rules, and adds an API
@@ -251,6 +239,12 @@ consistent with component selection rules.
 - Add new method `ComponentMetadataHandler.all(Object)`
 - Deprecate `ComponentMetadataHandler.eachComponent()` methods, replacing them with `ComponentMetadataHandler.all()`
     - Update samples, Userguide, release notes etc.
+
+### Open issues
+
+- DSL decoration should add Action and Closure overloads for a method that accepts a rule source.
+- Should accept untyped subject parameter in rule closure?
+- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable. Might not be a problem.
 
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
