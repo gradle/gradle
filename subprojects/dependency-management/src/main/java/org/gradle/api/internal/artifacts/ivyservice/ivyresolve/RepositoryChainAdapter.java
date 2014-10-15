@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -38,17 +38,17 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 public class RepositoryChainAdapter implements DependencyToComponentIdResolver, ComponentMetaDataResolver {
     private final DependencyToComponentIdResolver dynamicRevisionResolver;
     private final DependencyToComponentResolver metaDataResolver;
-    private final VersionMatcher versionMatcher;
+    private final VersionSelectorScheme versionSelectorScheme;
 
-    public RepositoryChainAdapter(DependencyToComponentIdResolver dynamicRevisionResolver, DependencyToComponentResolver metaDataResolver, VersionMatcher versionMatcher) {
+    public RepositoryChainAdapter(DependencyToComponentIdResolver dynamicRevisionResolver, DependencyToComponentResolver metaDataResolver, VersionSelectorScheme versionSelectorScheme) {
         this.dynamicRevisionResolver = dynamicRevisionResolver;
         this.metaDataResolver = metaDataResolver;
-        this.versionMatcher = versionMatcher;
+        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        if (versionMatcher.parseSelector(requested.getVersion()).isDynamic()) {
+        if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());

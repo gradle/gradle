@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
@@ -163,8 +163,8 @@ class DependencyManagementBuildScopeServices {
         return new ResolverStrategy();
     }
 
-    VersionMatcher createVersionMatcher(ResolverStrategy resolverStrategy) {
-        return resolverStrategy.getVersionMatcher();
+    VersionSelectorScheme createVersionSelectorScheme(ResolverStrategy resolverStrategy) {
+        return resolverStrategy.getVersionSelectorScheme();
     }
 
     VersionComparator createVersionComparator(ResolverStrategy resolverStrategy) {
@@ -194,7 +194,7 @@ class DependencyManagementBuildScopeServices {
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
-                                              VersionMatcher versionMatcher, VersionComparator versionComparator) {
+                                              VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
                 moduleVersionsCache,
@@ -205,7 +205,7 @@ class DependencyManagementBuildScopeServices {
                 startParameterResolutionOverride,
                 buildCommencedTimeProvider,
                 inMemoryCachedRepositoryFactory,
-                versionMatcher,
+                versionSelectorScheme,
                 versionComparator);
     }
 

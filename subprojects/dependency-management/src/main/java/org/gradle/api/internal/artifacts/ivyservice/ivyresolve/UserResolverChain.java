@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -32,12 +32,12 @@ public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainAdapter adapter;
     private final DynamicVersionResolver dynamicVersionResolver;
 
-    public UserResolverChain(VersionMatcher versionMatcher, VersionComparator versionComparator, ComponentSelectionRulesInternal versionSelectionRules) {
-        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(versionComparator, versionMatcher, versionSelectionRules);
+    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal versionSelectionRules) {
+        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(versionComparator, versionSelectorScheme, versionSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
         dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
-        adapter = new RepositoryChainAdapter(dynamicVersionResolver, dependencyResolver, versionMatcher);
+        adapter = new RepositoryChainAdapter(dynamicVersionResolver, dependencyResolver, versionSelectorScheme);
     }
 
     public DependencyToComponentIdResolver getComponentIdResolver() {

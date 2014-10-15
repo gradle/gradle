@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult
@@ -94,9 +94,9 @@ import org.gradle.util.GradleVersion
  * </pre>
  */
 class JsonProjectDependencyRenderer {
-    private final VersionMatcher versionMatcher
+    private final VersionSelectorScheme versionMatcher
 
-    JsonProjectDependencyRenderer(VersionMatcher versionMatcher) {
+    JsonProjectDependencyRenderer(VersionSelectorScheme versionMatcher) {
         this.versionMatcher = versionMatcher
     }
 

@@ -27,9 +27,9 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
 import java.util.*;
@@ -156,8 +156,8 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
 
-    private final VersionMatcher defaultVersionMatcher = new DefaultVersionMatcher();
-    private final VersionMatcher mavenVersionMatcher = new MavenVersionMatcher(defaultVersionMatcher);
+    private final VersionSelectorScheme defaultVersionSelectorScheme = new DefaultVersionSelectorScheme();
+    private final VersionSelectorScheme mavenVersionSelectorScheme = new MavenVersionSelectorScheme(defaultVersionSelectorScheme);
     private final DefaultModuleDescriptor ivyModuleDescriptor;
 
     private ModuleRevisionId mrid;
@@ -282,8 +282,8 @@ public class GradlePomModuleDescriptorBuilder {
 
     // TODO:DAZ Would be better if we held onto the VersionSelector and only rendered it when required
     private String convertVersionFromMavenSyntax(String version) {
-        VersionSelector versionSelector = mavenVersionMatcher.parseSelector(version);
-        return defaultVersionMatcher.renderSelector(versionSelector);
+        VersionSelector versionSelector = mavenVersionSelectorScheme.parseSelector(version);
+        return defaultVersionSelectorScheme.renderSelector(versionSelector);
     }
 
     /**

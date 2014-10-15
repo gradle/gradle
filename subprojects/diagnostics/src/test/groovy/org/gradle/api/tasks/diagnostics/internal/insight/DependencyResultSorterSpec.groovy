@@ -28,7 +28,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyResultSorterSpec extends Specification {
-    def matcher = new ResolverStrategy().versionMatcher
+    def matcher = new ResolverStrategy().versionSelectorScheme
 
     @Unroll
     def "throws exception if dependencyt or requested component selector is null (#d1, #d2)"() {

@@ -16,15 +16,15 @@
 
 package org.gradle.api.publication.maven.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
 public class MavenVersionRangeMapper implements VersionRangeMapper {
-    private final VersionMatcher defaultVersionMatcher = new DefaultVersionMatcher();
-    private final VersionMatcher mavenVersionMatcher = new MavenVersionMatcher(defaultVersionMatcher);
+    private final VersionSelectorScheme defaultVersionSelectorScheme = new DefaultVersionSelectorScheme();
+    private final VersionSelectorScheme mavenVersionSelectorScheme = new MavenVersionSelectorScheme(defaultVersionSelectorScheme);
 
     public String map(String version) {
-        return mavenVersionMatcher.renderSelector(defaultVersionMatcher.parseSelector(version));
+        return mavenVersionSelectorScheme.renderSelector(defaultVersionSelectorScheme.parseSelector(version));
     }
 }

@@ -20,7 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
  * Compares version selectors against candidate versions, indicating whether they match or not.
  *
  */
-public interface VersionMatcher {
+public interface VersionSelectorScheme {
     /**
      * Returns an appropriate {@link VersionSelector} for the given selector string.
      *

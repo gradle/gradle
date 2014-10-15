@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
 
-class DefaultVersionMatcherTest extends Specification {
-    VersionMatcher matcher = new DefaultVersionMatcher()
+class DefaultVersionSelectorSchemeTest extends Specification {
+    VersionSelectorScheme matcher = new DefaultVersionSelectorScheme()
 
     def "creates version range selector" () {
         expect:

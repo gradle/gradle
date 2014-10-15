@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MavenVersionMatcher implements VersionMatcher {
+public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
     private static final String FIXED_PREFIX = "([\\d\\.]*)";
     private static final String DYN_VERSION_NUMBER = "(\\d+)";
@@ -33,18 +33,18 @@ public class MavenVersionMatcher implements VersionMatcher {
 
     public final Pattern plusNotationPattern = Pattern.compile(PLUS_NOTATION_PATTERN);
 
-    private final VersionMatcher defaultVersionMatcher;
+    private final VersionSelectorScheme defaultVersionSelectorScheme;
 
-    public MavenVersionMatcher(VersionMatcher defaultVersionMatcher) {
-        this.defaultVersionMatcher = defaultVersionMatcher;
+    public MavenVersionSelectorScheme(VersionSelectorScheme defaultVersionSelectorScheme) {
+        this.defaultVersionSelectorScheme = defaultVersionSelectorScheme;
     }
 
     public VersionSelector parseSelector(String selectorString) {
-        return defaultVersionMatcher.parseSelector(fromMavenSyntax(selectorString));
+        return defaultVersionSelectorScheme.parseSelector(fromMavenSyntax(selectorString));
     }
 
     public String renderSelector(VersionSelector selector) {
-        return toMavenSyntax(defaultVersionMatcher.renderSelector(selector));
+        return toMavenSyntax(defaultVersionSelectorScheme.renderSelector(selector));
     }
 
     // TODO:DAZ VersionSelector should be more descriptive, so it can be directly translated
