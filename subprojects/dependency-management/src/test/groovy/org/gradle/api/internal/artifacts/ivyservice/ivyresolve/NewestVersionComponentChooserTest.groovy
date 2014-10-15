@@ -15,33 +15,32 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
-import org.gradle.internal.rules.ClosureBackedRuleAction
-import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
-import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
+import org.gradle.internal.rules.ClosureBackedRuleAction
+import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 
 class NewestVersionComponentChooserTest extends Specification {
     def versionMatcher = Mock(VersionMatcher)
-    def latestStrategy = Mock(LatestStrategy)
+    def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
 
-    def chooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, componentSelectionRules)
+    def chooser = new NewestVersionComponentChooser(versionComparator, versionMatcher, componentSelectionRules)
 
     def "uses version matcher to determine if selector can select multiple components"() {
         def selector = Mock(ModuleVersionSelector)
@@ -75,20 +74,21 @@ class NewestVersionComponentChooserTest extends Specification {
         def two = Stub(ComponentResolveMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
+        def three = Stub(ComponentResolveMetaData) {
+            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
+        }
 
         when:
-        1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> -1
         0 * componentSelectionRules.apply(_,_)
 
         then:
         chooser.choose(one, two) == two
 
         when:
-        1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 1
         0 * componentSelectionRules.apply(_,_)
 
         then:
-        chooser.choose(one, two) == one
+        chooser.choose(two, three) == three
     }
 
     def "chooses non-generated descriptor over generated"() {
@@ -96,11 +96,10 @@ class NewestVersionComponentChooserTest extends Specification {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
         def two = Mock(ComponentResolveMetaData) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
+            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 
         when:
-        1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
         1 * one.generated >> true
         1 * two.generated >> false
         0 * componentSelectionRules.apply(_,_)
@@ -109,7 +108,6 @@ class NewestVersionComponentChooserTest extends Specification {
         chooser.choose(one, two) == two
 
         when:
-        1 * latestStrategy.compare({it.version == "1.0"} as Versioned, {it.version == "1.1"} as Versioned) >> 0
         1 * one.generated >> false
         0 * componentSelectionRules.apply(_,_)
 
@@ -135,7 +133,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -167,7 +164,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -201,7 +197,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version == '1.3') {
                 selection.reject("rejected")
@@ -245,7 +240,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version == '1.3') {
                 selection.reject("rejected")
@@ -278,7 +272,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> rules({ ComponentSelection cs ->
             cs.reject("reason")
         })
@@ -305,7 +298,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -336,7 +328,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> []
         0 * _
 
@@ -362,7 +353,6 @@ class NewestVersionComponentChooserTest extends Specification {
             }
         }
         1 * listing.versions >> (versions as Set)
-        1 * latestStrategy.sort(_) >> versions
         1 * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
         })

@@ -15,18 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.internal.rules.RuleAction;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DefaultComponentSelection;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.specs.Specs;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
@@ -34,6 +31,8 @@ import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
+import org.gradle.internal.rules.SpecRuleAction;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,11 +41,11 @@ import java.util.List;
 class NewestVersionComponentChooser implements ComponentChooser {
     private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
     private final VersionMatcher versionMatcher;
-    private final LatestStrategy latestStrategy;
+    private final VersionComparator versionComparator;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    NewestVersionComponentChooser(LatestStrategy latestStrategy, VersionMatcher versionMatcher, ComponentSelectionRulesInternal componentSelectionRules) {
-        this.latestStrategy = latestStrategy;
+    NewestVersionComponentChooser(VersionComparator versionComparator, VersionMatcher versionMatcher, ComponentSelectionRulesInternal componentSelectionRules) {
+        this.versionComparator = versionComparator;
         this.versionMatcher = versionMatcher;
         this.componentSelectionRules = componentSelectionRules;
     }
@@ -60,7 +59,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             return two == null ? one : two;
         }
 
-        int comparison = latestStrategy.compare(new VersionInfo(one.getId().getVersion()), new VersionInfo(two.getId().getVersion()));
+        int comparison = versionComparator.compare(new VersionInfo(one.getId().getVersion()), new VersionInfo(two.getId().getVersion()));
 
         if (comparison == 0) {
             if (isGeneratedModuleDescriptor(one) && !isGeneratedModuleDescriptor(two)) {
@@ -117,13 +116,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
     }
 
     private List<Versioned> sortLatestFirst(ModuleVersionListing listing) {
-        List<Versioned> sorted = latestStrategy.sort(listing.getVersions());
-        Collections.reverse(sorted);
-        return sorted;
-    }
-
-    private SpecRuleAction<? super ComponentSelection> createAllSpecRulesAction(RuleAction<? super ComponentSelection> ruleAction) {
-        return new SpecRuleAction<ComponentSelection>(ruleAction, Specs.<ComponentSelection>satisfyAll());
+        return CollectionUtils.sort(listing.getVersions(), Collections.reverseOrder(versionComparator));
     }
 
     private static class MetaDataSupplier implements Factory<MutableModuleComponentResolveMetaData> {

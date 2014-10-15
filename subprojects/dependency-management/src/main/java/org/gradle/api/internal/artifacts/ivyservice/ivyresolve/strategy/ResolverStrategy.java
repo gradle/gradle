@@ -24,7 +24,7 @@ import java.util.Map;
 public class ResolverStrategy {
     private final VersionMatcher versionMatcher;
     private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
-    private final LatestVersionStrategy latestStrategy = new LatestVersionStrategy();
+    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator();
 
     public ResolverStrategy() {
         versionMatcher = new DefaultVersionMatcher();
@@ -43,8 +43,8 @@ public class ResolverStrategy {
         return versionMatcher;
     }
 
-    public LatestStrategy getLatestStrategy() {
-        return latestStrategy;
+    public VersionComparator getVersionComparator() {
+        return versionComparator;
     }
 
     public PatternMatcher getPatternMatcher(String name) {

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -32,8 +32,8 @@ public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainAdapter adapter;
     private final DynamicVersionResolver dynamicVersionResolver;
 
-    public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy, ComponentSelectionRulesInternal versionSelectionRules) {
-        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules);
+    public UserResolverChain(VersionMatcher versionMatcher, VersionComparator versionComparator, ComponentSelectionRulesInternal versionSelectionRules) {
+        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(versionComparator, versionMatcher, versionSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
         dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);

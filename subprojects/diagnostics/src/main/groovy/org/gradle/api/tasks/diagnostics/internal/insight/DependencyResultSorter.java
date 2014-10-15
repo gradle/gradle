@@ -29,11 +29,11 @@ import java.util.Comparator;
  * Created: 17/08/2012
  */
 public class DependencyResultSorter {
-    // TODO:DAZ Should probably be using a LatestStrategy here
+    // TODO:DAZ Should probably be using a injected VersionComparator here
     private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
 
     /**
-     * sorts by group:name:version mostly.  
+     * sorts by group:name:version mostly.
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */

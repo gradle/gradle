@@ -15,18 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 
 import java.util.Collection;
+import java.util.Collections;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
-    private final LatestStrategy latestStrategy;
+    private final VersionComparator versionComparator;
 
-        LatestModuleConflictResolver(LatestStrategy latestStrategy) {
-        this.latestStrategy = latestStrategy;
+        LatestModuleConflictResolver(VersionComparator versionComparator) {
+        this.versionComparator = versionComparator;
     }
 
     public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
-        return latestStrategy.findLatest(candidates);
+        return Collections.max(candidates, versionComparator);
     }
 }

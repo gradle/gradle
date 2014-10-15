@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
@@ -167,8 +167,8 @@ class DependencyManagementBuildScopeServices {
         return resolverStrategy.getVersionMatcher();
     }
 
-    LatestStrategy createLatestStrategy(ResolverStrategy resolverStrategy) {
-        return resolverStrategy.getLatestStrategy();
+    VersionComparator createVersionComparator(ResolverStrategy resolverStrategy) {
+        return resolverStrategy.getVersionComparator();
     }
 
     SftpClientFactory createSftpClientFactory() {
@@ -194,7 +194,7 @@ class DependencyManagementBuildScopeServices {
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
-                                              VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                                              VersionMatcher versionMatcher, VersionComparator versionComparator) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
                 moduleVersionsCache,
@@ -206,12 +206,12 @@ class DependencyManagementBuildScopeServices {
                 buildCommencedTimeProvider,
                 inMemoryCachedRepositoryFactory,
                 versionMatcher,
-                latestStrategy);
+                versionComparator);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, LocalComponentFactory publishModuleDescriptorConverter, DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-                                                                LatestStrategy latestStrategy, ProjectRegistry<ProjectInternal> projectRegistry, ComponentIdentifierFactory componentIdentifierFactory) {
+                                                                VersionComparator versionComparator, ProjectRegistry<ProjectInternal> projectRegistry, ComponentIdentifierFactory componentIdentifierFactory) {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                 resolveIvyFactory,
                 publishModuleDescriptorConverter,
@@ -222,7 +222,8 @@ class DependencyManagementBuildScopeServices {
                 cacheLockingManager,
                 ivyContextManager,
                 resolutionResultsStoreFactory,
-                latestStrategy);
+                versionComparator
+        );
         return new ErrorHandlingArtifactDependencyResolver(
                 new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                         new SelfResolvingDependencyResolver(

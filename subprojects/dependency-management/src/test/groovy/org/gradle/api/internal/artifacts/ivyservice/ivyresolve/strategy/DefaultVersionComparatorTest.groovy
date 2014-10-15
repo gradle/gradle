@@ -19,8 +19,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo
 
 import spock.lang.Specification
 
-class LatestVersionStrategyTest extends Specification {
-    def strategy = new LatestVersionStrategy()
+class DefaultVersionComparatorTest extends Specification {
+    def strategy = new DefaultVersionComparator()
 
     def compare(String s1, String s2) {
         return strategy.compare(new VersionInfo(s1), new VersionInfo(s2))
