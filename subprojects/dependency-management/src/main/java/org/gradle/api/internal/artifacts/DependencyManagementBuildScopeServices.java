@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
@@ -168,8 +167,8 @@ class DependencyManagementBuildScopeServices {
         return resolverStrategy.getVersionMatcher();
     }
 
-    LatestStrategy createLatestStrategy(VersionMatcher versionMatcher) {
-        return new LatestVersionStrategy(versionMatcher);
+    LatestStrategy createLatestStrategy(ResolverStrategy resolverStrategy) {
+        return resolverStrategy.getLatestStrategy();
     }
 
     SftpClientFactory createSftpClientFactory() {

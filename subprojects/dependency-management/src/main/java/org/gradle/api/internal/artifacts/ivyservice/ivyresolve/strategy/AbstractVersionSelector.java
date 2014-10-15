@@ -23,7 +23,7 @@ public abstract class AbstractVersionSelector implements VersionSelector {
         this.selector = selector;
     }
 
-    public String getSelector() {
+    protected String getSelector() {
         return selector;
     }
 }

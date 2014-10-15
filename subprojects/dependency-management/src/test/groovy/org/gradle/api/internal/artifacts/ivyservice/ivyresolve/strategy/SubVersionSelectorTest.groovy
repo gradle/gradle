@@ -57,19 +57,6 @@ class SubVersionSelectorTest extends AbstractVersionSelectorTest {
         "2.5"           | false
     }
 
-    def "considers a '+' selector greater than any matching candidate version"() {
-        expect:
-        compare("1+", "11") > 0
-        compare("1.+", "1.2") > 0
-        compare("1.2.3+", "1.2.3.11") > 0
-    }
-
-    def "falls back to the provided comparator if selector doesn't match candidate version"() {
-        expect:
-        compare("1+", "2") < 0
-        compare("1+", "0.5") > 0
-    }
-
     @Override
     VersionSelector getSelector(String selector) {
         return new SubVersionSelector(selector)

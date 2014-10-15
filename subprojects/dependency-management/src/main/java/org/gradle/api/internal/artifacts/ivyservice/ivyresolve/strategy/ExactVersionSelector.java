@@ -17,14 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-import java.util.Comparator;
-
 /**
  * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
  */
 public class ExactVersionSelector extends AbstractVersionSelector {
-    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
-
     public ExactVersionSelector(String selector) {
         super(selector);
     }
@@ -47,16 +43,5 @@ public class ExactVersionSelector extends AbstractVersionSelector {
 
     public boolean accept(ComponentMetadata candidate) {
         return accept(candidate.getId().getVersion());
-    }
-
-    /**
-     * Compares a static selector with a candidate version. Algorithm is inspired
-     * by PHP version_compare one.
-     *
-     * TODO: compare() is inconsistent with accept(), because not everything
-     * that compares equal is accepted (e.g. 1.0 vs. 1_0). Can this cause problems?
-     */
-    public int compare(String selector, String candidate) {
-        return STATIC_VERSION_COMPARATOR.compare(selector, candidate);
     }
 }

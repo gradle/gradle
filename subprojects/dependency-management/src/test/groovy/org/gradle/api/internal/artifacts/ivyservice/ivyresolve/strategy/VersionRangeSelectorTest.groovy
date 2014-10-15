@@ -149,38 +149,6 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
         "2.5"           | false
     }
 
-    def "compares candidate versions against the selector's upper bound"() {
-        expect:
-        compare(range, "0.5") > 0
-        compare(range, "1.0") > 0
-        compare(range, "1.5") > 0
-        compare(range, "2.0") < 0 // unsure why [1.0,2.0] isn't considered equal to 2.0 (apparently never returns 0)
-        compare(range, "2.5") < 0
-
-        where:
-        range       | _
-        "[1.0,2.0]" | _
-        "[1.0,2.0[" | _
-        "]1.0,2.0]" | _
-        "]1.0,2.0[" | _
-        "(,2.0]"    | _
-        "(,2.0["    | _
-    }
-
-    def "selectors with infinite upper bound compare greater than any candidate version"() {
-        expect:
-        compare(range, "0.5") > 0
-        compare(range, "1.0") > 0
-        compare(range, "1.5") > 0
-        compare(range, "2.0") > 0
-        compare(range, "2.5") > 0
-
-        where:
-        range    | _
-        "[1.0,)" | _
-        "]1.0,)" | _
-    }
-
     @Override
     VersionSelector getSelector(String selector) {
         return new VersionRangeSelector(selector)

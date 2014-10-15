@@ -23,20 +23,17 @@ import java.util.List;
 
 public interface LatestStrategy extends Comparator<Versioned> {
     /**
-     * Finds the latest among the given versioned elements. The definition of 'latest'
-     * depends on the strategy itself.
+     * Finds the latest among the given versioned elements.
      */
     <T extends Versioned> T findLatest(Collection<T> elements);
 
     /**
-     * Sorts the given versioned elements from oldest to latest. The definition of
-     * 'latest' depends on the strategy itself.
+     * Sorts the given versioned elements from oldest to latest.
      */
     <T extends Versioned> List<T> sort(Collection<T> elements);
 
     /**
-     * Compares two versioned elements to see which is the 'latest'. The definition of
-     * 'latest' depends on the strategy itself.
+     * Compares two versioned elements to see which is the 'latest'.
      */
     int compare(Versioned element1, Versioned element2);
 }

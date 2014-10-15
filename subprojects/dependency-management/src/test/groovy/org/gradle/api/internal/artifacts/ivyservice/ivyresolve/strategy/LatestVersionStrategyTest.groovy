@@ -20,61 +20,104 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo
 import spock.lang.Specification
 
 class LatestVersionStrategyTest extends Specification {
-    def chain = new DefaultVersionMatcher()
-    def strategy = new LatestVersionStrategy(chain)
+    def strategy = new LatestVersionStrategy()
 
-    def "compares static versions according to version matcher"() {
-        expect:
-        strategy.compare(new VersionInfo("1.0"), new VersionInfo("2.0")) < 0
-        strategy.compare(new VersionInfo("1.0"), new VersionInfo("1.0")) == 0
-        strategy.compare(new VersionInfo("2.0"), new VersionInfo("1.0")) > 0
+    def compare(String s1, String s2) {
+        return strategy.compare(new VersionInfo(s1), new VersionInfo(s2))
     }
 
-    def "compares dynamic and static version according to version matcher"() {
+    def "compares versions lexicographically"() {
         expect:
-        strategy.compare(new VersionInfo("1.+"), new VersionInfo("2.0")) < 0
-        strategy.compare(new VersionInfo("2.0"), new VersionInfo("1.+")) > 0
-        strategy.compare(new VersionInfo("1.+"), new VersionInfo("1.11")) > 0
-        strategy.compare(new VersionInfo("1.11"), new VersionInfo("1.+")) < 0
+        compare(v1, v2) < 0
+        compare(v2, v1) > 0
+        compare(v1, v1) == 0
+        compare(v2, v2) == 0
+
+        where:
+        v1          | v2
+        "1.0"       | "2.0"
+        "1.0"       | "1.1"
+        "1.0.1"     | "1.1.0"
+        "1.2"       | "1.2.3"
+        "1.0-1"     | "1.0-2"
+        "1.0.a"     | "1.0.b"
+        "1.0-alpha" | "1.0"
+        "1.0-alpha" | "1.0-beta"
+        "1.0.alpha" | "1.0.b"
+        "1.0.a"     | "1.0.0"
     }
 
-    def "considers dynamic version greater if it compares equal according to version matcher"() {
-        def matcher = Mock(VersionMatcher)
-        matcher.createSelector("foo") >> {
-            Stub(VersionSelector) {
-                isDynamic() >> true
-            }
-        }
-        matcher.createSelector("1.0") >> {
-            Stub(VersionSelector) {
-                isDynamic() >> false
-            }
-        }
-        matcher.compare(_, _) >> 0
-        def strategy = new LatestVersionStrategy(matcher)
-
+    def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
         expect:
-        strategy.compare(new VersionInfo("foo"), new VersionInfo("1.0")) > 0
-        strategy.compare(new VersionInfo("1.0"), new VersionInfo("foo")) < 0
+        compare(v1, v2) < 0
+        compare(v2, v1) > 0
+        compare(v1, v1) == 0
+        compare(v2, v2) == 0
+
+        where:
+        v1          | v2
+        "1.0-dev-1" | "1.0"
+        "1.0-dev-1" | "1.0-dev-2"
+        "1.0-rc-1"  | "1.0"
+        "1.0-rc-1"  | "1.0-rc-2"
+        "1.0-dev-1" | "1.0-xx-1"
+        "1.0-xx-1"  | "1.0-rc-1"
+        "1.0-final" | "1.0"
+        "1.0-dev-1" | "1.0-rc-1"
+        "1.0-rc-1"  | "1.0-final"
+        "1.0-dev-1" | "1.0-final"
     }
 
-    def "sorts elements in ascending order according to version matcher"() {
-        def version1 = new VersionInfo("1.0")
-        def version2 = new VersionInfo("1.+")
-        def version3 = new VersionInfo("2.2")
-        def version4 = new VersionInfo("2.+")
-
+    def "compares identical versions equal"() {
         expect:
-        strategy.sort([version3, version1, version2, version4]) == [version1, version2, version3, version4]
+        compare(v1, v2) == 0
+        compare(v2, v1) == 0
+
+        where:
+        v1        | v2
+        ""        | ""
+        "1"       | "1"
+        "1.0.0"   | "1.0.0"
+        "!@#%"    | "!@#%"
+        "hey joe" | "hey joe"
     }
 
-    def "finds latest element according to version matcher"() {
-        def version1 = new VersionInfo("1.0")
-        def version2 = new VersionInfo("1.+")
-        def version3 = new VersionInfo("2.2")
-        def version4 = new VersionInfo("2.+")
-
+    def "compares versions that differ only in separators equal"() {
         expect:
-        strategy.findLatest([version3, version1, version2, version4]) == version4
+        compare("1.0", "1_0") == 0
+        compare("1_0", "1-0") == 0
+        compare("1-0", "1+0") == 0
+        compare("1.a.2", "1a2") == 0 // number-word and word-number boundaries are considered separators
     }
+
+    def "compares unrelated versions unequal"() {
+        expect:
+        compare("1.0", "") != 0
+        compare("1.0", "!@#%") != 0
+        compare("1.0", "hey joe") != 0
+    }
+
+    // original Ivy behavior - should we change it?
+    def "does not compare versions with different number of trailing .0's equal"() {
+        expect:
+        compare(v1, v2) > 0
+        compare(v2, v1) < 0
+
+        where:
+        v1          | v2
+        "1.0.0"     | "1.0"
+        "1.0.0"     | "1"
+    }
+
+    def "does not compare versions with different capitalization equal"() {
+        expect:
+        compare(v1, v2) > 0
+        compare(v2, v1) < 0
+
+        where:
+        v1          | v2
+        "1.0-alpha" | "1.0-ALPHA"
+    }
+
+
 }

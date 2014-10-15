@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.component.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.StaticVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.util.CollectionUtils;
@@ -28,9 +29,11 @@ import java.util.Comparator;
  * Created: 17/08/2012
  */
 public class DependencyResultSorter {
+    // TODO:DAZ Should probably be using a LatestStrategy here
+    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
 
     /**
-     * sorts by group:name:version mostly.
+     * sorts by group:name:version mostly.  
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
@@ -137,7 +140,7 @@ public class DependencyResultSorter {
                 byVersion = leftRequested.getVersion().compareTo(rightRequested.getVersion());
             } else {
                 // order static selectors semantically
-                byVersion = matcher.compare(leftRequested.getVersion(), rightRequested.getVersion());
+                byVersion = compareVersions(leftRequested.getVersion(), rightRequested.getVersion());
             }
             if (byVersion != 0) {
                 return byVersion;
@@ -183,7 +186,11 @@ public class DependencyResultSorter {
                 return byModule;
             }
 
-            return matcher.compare(leftFrom.getVersion(), rightFrom.getVersion());
+            return compareVersions(leftFrom.getVersion(), rightFrom.getVersion());
+        }
+
+        private int compareVersions(String left, String right) {
+            return STATIC_VERSION_COMPARATOR.compare(left, right);
         }
 
         private boolean isLeftAndRightFromProjectComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {

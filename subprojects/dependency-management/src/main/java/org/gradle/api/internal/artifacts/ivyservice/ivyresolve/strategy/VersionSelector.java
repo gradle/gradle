@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-import java.util.Comparator;
-
-public interface VersionSelector extends Comparator<String> {
+public interface VersionSelector {
     /**
      * Indicates if the given version selector is dynamic.
      */

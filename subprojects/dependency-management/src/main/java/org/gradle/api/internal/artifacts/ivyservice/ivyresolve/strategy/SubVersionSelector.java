@@ -17,20 +17,12 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-import java.util.Comparator;
-
 /**
  * Version matcher for dynamic version selectors ending in '+'.
  */
 public class SubVersionSelector extends AbstractVersionSelector {
-    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
-
     public SubVersionSelector(String selector) {
         super(selector);
-    }
-
-    public boolean canHandle(String selector) {
-        return selector.endsWith("+");
     }
 
     public boolean isDynamic() {
@@ -56,12 +48,5 @@ public class SubVersionSelector extends AbstractVersionSelector {
 
     public boolean accept(ComponentMetadata candidate) {
         return accept(candidate.getId().getVersion());
-    }
-
-    public int compare(String selector, String candidate) {
-        if (accept(selector, candidate)) {
-            return 1;
-        }
-        return STATIC_VERSION_COMPARATOR.compare(selector, candidate);
     }
 }

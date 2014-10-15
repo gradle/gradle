@@ -64,12 +64,6 @@ class LatestVersionSelectorTest extends AbstractVersionSelectorTest {
         !accept("latest.other", metadata)
     }
 
-    def "cannot tell which of version selector and candidate version is greater"() {
-        expect:
-        compare("latest.integration", "1.0") == 0
-        compare("latest.release", "2.0") == 0
-    }
-
     @Override
     VersionSelector getSelector(String selector) {
         return new LatestVersionSelector(selector)

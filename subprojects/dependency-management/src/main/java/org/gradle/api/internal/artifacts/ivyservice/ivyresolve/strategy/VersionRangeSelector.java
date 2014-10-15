@@ -136,33 +136,6 @@ public class VersionRangeSelector extends AbstractVersionSelector {
         return accept(candidate.getId().getVersion());
     }
 
-    // doesn't seem to be quite in sync with accept() (e.g. open/close is not distinguished here)
-    public int compare(String selector, String candidate) {
-        Matcher m;
-        m = UPPER_INFINITE_RANGE.matcher(selector);
-        if (m.matches()) {
-            // no upper limit, the selector can always be considered greater
-            return 1;
-        }
-        String upper;
-        m = FINITE_RANGE.matcher(selector);
-        if (m.matches()) {
-            upper = m.group(2);
-        } else {
-            m = LOWER_INFINITE_RANGE.matcher(selector);
-            if (m.matches()) {
-                upper = m.group(1);
-            } else {
-                throw new IllegalArgumentException("Not a version range selector: " + selector);
-            }
-        }
-        int c = STATIC_VERSION_COMPARATOR.compare(upper, candidate);
-        // If the comparison considers them equal, we must return -1, because we can't consider the
-        // dynamic version selector to be greater. Otherwise we can safely return the result of the static
-        // comparison.
-        return c == 0 ? -1 : c;
-    }
-
     /**
      * Tells if version1 is lower than version2.
      */

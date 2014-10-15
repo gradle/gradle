@@ -22,10 +22,6 @@ public class LatestVersionSelector extends AbstractVersionSelector {
         super(selector);
     }
 
-    public boolean canHandle(String selector) {
-        return selector.startsWith("latest.");
-    }
-
     public boolean isDynamic() {
         return true;
     }
@@ -47,9 +43,5 @@ public class LatestVersionSelector extends AbstractVersionSelector {
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
         return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
-    }
-
-    public int compare(String selector, String candidate) {
-        return 0;
     }
 }

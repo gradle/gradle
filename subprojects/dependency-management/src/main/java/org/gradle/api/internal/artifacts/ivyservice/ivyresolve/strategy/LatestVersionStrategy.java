@@ -20,14 +20,11 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class LatestVersionStrategy implements LatestStrategy {
-    private final VersionMatcher versionMatcher;
-
-    public LatestVersionStrategy(VersionMatcher versionMatcher) {
-        this.versionMatcher = versionMatcher;
-    }
+    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
 
     public <T extends Versioned> List<T> sort(Collection<T> versions) {
         return CollectionUtils.sort(versions, this);
@@ -37,31 +34,9 @@ public class LatestVersionStrategy implements LatestStrategy {
         return Collections.max(elements, this);
     }
 
-    // TODO: Compared to Ivy's LatestRevisionStrategy.compare(), this method doesn't do any
-    // equivalent of ModuleRevisionId.normalizeRevision(). Should we add this functionality
-    // back in, either here or (probably better) in (Chain)VersionMatcher?
     public int compare(Versioned element1, Versioned element2) {
         String version1 = element1.getVersion();
         String version2 = element2.getVersion();
-
-        /*
-         * The revisions can still be not resolved, so we use the current version matcher to
-         * know if one revision is dynamic, and in this case if it should be considered greater
-         * or lower than the other one. Note that if the version matcher compare method returns
-         * 0, it's because it's not possible to know which revision is greater. In this case we
-         * consider the dynamic one to be greater, because most of the time it will then be
-         * actually resolved and a real comparison will occur.
-         */
-        VersionSelector version1Selector = versionMatcher.createSelector(version1);
-        VersionSelector version2Selector = versionMatcher.createSelector(version2);
-        if (version1Selector.isDynamic()) {
-            int c = version1Selector.compare(version1, version2);
-            return c >= 0 ? 1 : -1;
-        } else if (version2Selector.isDynamic()) {
-            int c = version2Selector.compare(version2, version1);
-            return c >= 0 ? -1 : 1;
-        }
-
-        return versionMatcher.compare(version1, version2);
+        return STATIC_VERSION_COMPARATOR.compare(version1, version2);
     }
 }

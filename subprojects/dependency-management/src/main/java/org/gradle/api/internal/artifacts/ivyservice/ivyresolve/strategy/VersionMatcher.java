@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import java.util.Comparator;
-
 /**
  * Compares version selectors against candidate versions, indicating whether they match or not.
  *
  */
-public interface VersionMatcher extends Comparator<String> {
+public interface VersionMatcher {
     /**
      * Returns an appropriate {@link VersionSelector} for the given selector string.
      *

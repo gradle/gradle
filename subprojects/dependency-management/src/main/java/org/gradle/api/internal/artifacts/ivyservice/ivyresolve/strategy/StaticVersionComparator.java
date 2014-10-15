@@ -30,9 +30,6 @@ public class StaticVersionComparator implements Comparator<String> {
     /**
      * Compares a static selector with a candidate version. Algorithm is inspired
      * by PHP version_compare one.
-     *
-     * TODO: compare() is inconsistent with accept(), because not everything
-     * that compares equal is accepted (e.g. 1.0 vs. 1_0). Can this cause problems?
      */
     public int compare(String selector, String candidate) {
         if (selector.equals(candidate)) {

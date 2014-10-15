@@ -32,8 +32,4 @@ public class DefaultVersionMatcher implements VersionMatcher {
 
         return new ExactVersionSelector(selectorString);
     }
-
-    public int compare(String selector, String candidate) {
-        return createSelector(selector).compare(selector, candidate);
-    }
 }

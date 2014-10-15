@@ -30,10 +30,6 @@ abstract class AbstractVersionSelectorTest extends Specification {
         return getSelector(s1).accept(cmd)
     }
 
-    def compare(String s1, String s2) {
-        return getSelector(s1).compare(s1, s2)
-    }
-
     def isDynamic(String s1) {
         return getSelector(s1).isDynamic()
     }
