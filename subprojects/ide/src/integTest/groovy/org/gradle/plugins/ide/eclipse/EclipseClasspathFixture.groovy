@@ -75,6 +75,10 @@ class EclipseClasspathFixture {
             this.entry = entry
         }
 
+        String getJarPath() {
+            entry.@path
+        }
+
         void assertHasJar(File jar) {
             assert entry.@path == jar.absolutePath.replace(File.separator, '/')
         }
