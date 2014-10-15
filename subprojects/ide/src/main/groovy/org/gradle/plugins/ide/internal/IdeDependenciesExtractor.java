@@ -107,7 +107,7 @@ public class IdeDependenciesExtractor {
         query.withArtifacts(JvmLibrary.class, artifactTypes.toArray(artifactTypesArray));
         Set<ComponentArtifactsResult> componentResults = query.execute().getResolvedComponents();
 
-        AuxiliaryArtifactMatchStrategy auxiliaryArtifactMatchStrategy = new AuxiliaryArtifactMatchStrategy();
+        AuxiliaryArtifactMatchStrategy auxiliaryArtifactMatchStrategy = new ShortestNameAuxiliaryArtifactMatchStrategy();
 
         for (ComponentArtifactsResult componentResult : componentResults) {
             for (IdeExtendedRepoFileDependency dependency : dependencies.get(componentResult.getId())) {

@@ -23,9 +23,10 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import spock.lang.Specification
 
 
-class AuxiliaryArtifactMatchStrategyTest extends Specification {
+class ShortestNameAuxiliaryArtifactMatchStrategyTest extends Specification {
 
-    final AuxiliaryArtifactMatchStrategy auxiliaryArtifactMatchStrategy = new AuxiliaryArtifactMatchStrategy();
+    final ShortestNameAuxiliaryArtifactMatchStrategy strategy = new ShortestNameAuxiliaryArtifactMatchStrategy();
+
     def foo = new DefaultResolvedArtifactResult(SourcesArtifact.class, new File("foo-1.0.jar"))
     def fooSources = new DefaultResolvedArtifactResult(SourcesArtifact.class, new File("foo-sources-1.0.jar"))
     def fooApiSources = new DefaultResolvedArtifactResult(SourcesArtifact.class, new File("foo-api-sources-1.0.jar"))
@@ -35,70 +36,53 @@ class AuxiliaryArtifactMatchStrategyTest extends Specification {
     IdeExtendedRepoFileDependency dependency = Mock()
 
     def "return nothing when no auxiliary artifacts"() {
-        Set<ArtifactResult> artifacts = []
-
         when:
         dependency.getFile() >> new File("foo-1.0.jar")
-        def match = auxiliaryArtifactMatchStrategy.findBestMatch(artifacts, dependency)
-
-
         then:
-        match == null
+        strategy.findBestMatch([] as Set, dependency) == null
     }
 
     def "best match is single auxiliary artifact when there is only one auxiliary artifact"() {
-
-        Set<ArtifactResult> artifacts = [fooSources] as Set
-
         when:
+        Set<ArtifactResult> artifacts = [fooSources] as Set
         dependency.getFile() >> new File("foo-1.0.jar")
-        def match = auxiliaryArtifactMatchStrategy.findBestMatch(artifacts, dependency)
 
         then:
-        match == fooSources
+        strategy.findBestMatch(artifacts, dependency) == fooSources
     }
 
     def "best match is auxiliary artifact with shortest name that starts with artifact name"() {
-        Set<ArtifactResult> artifacts = [fooApiSources, fooSources] as Set
-
         when:
+        Set<ArtifactResult> artifacts = [fooApiSources, fooSources] as Set
         dependency.getFile() >> new File("foo-1.0.jar")
-        def match = auxiliaryArtifactMatchStrategy.findBestMatch(artifacts, dependency)
 
         then:
-        match == fooSources
+        strategy.findBestMatch(artifacts, dependency) == fooSources
     }
 
     def "best javadoc match is auxiliary artifact with shortest name that starts with artifact name"() {
-        Set<ArtifactResult> artifacts = [fooApiJavadoc, fooJavadoc] as Set
-
         when:
+        Set<ArtifactResult> artifacts = [fooApiJavadoc, fooJavadoc] as Set
         dependency.getFile() >> new File("foo-1.0.jar")
-        def match = auxiliaryArtifactMatchStrategy.findBestMatch(artifacts, dependency)
-
         then:
-        match == fooJavadoc
+        strategy.findBestMatch(artifacts, dependency) == fooJavadoc
     }
 
     def "best match when artifact name is longer"() {
-        Set<ArtifactResult> artifacts = [fooApiSources, fooSources] as Set
-
         when:
+        Set<ArtifactResult> artifacts = [fooApiSources, fooSources] as Set
         dependency.getFile() >> new File("foo-api-1.0.jar")
-        def match = auxiliaryArtifactMatchStrategy.findBestMatch(artifacts, dependency)
 
         then:
-        match == fooApiSources
+        strategy.findBestMatch(artifacts, dependency)  == fooApiSources
     }
 
     def "handle source artifact with same filename as main artifact"() {
-        Set<ArtifactResult> artifacts = [fooApiSources, foo] as Set
-
         when:
+        Set<ArtifactResult> artifacts = [fooApiSources, foo] as Set
         dependency.getFile() >> new File("foo-1.0.jar")
-        def match = auxiliaryArtifactMatchStrategy.findBestMatch(artifacts, dependency)
 
         then:
-        match == foo
+        strategy.findBestMatch(artifacts, dependency) == foo
     }
 }
