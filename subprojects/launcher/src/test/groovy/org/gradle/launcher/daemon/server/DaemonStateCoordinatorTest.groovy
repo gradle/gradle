@@ -319,7 +319,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
 
         then:
         coordinator.stopped
-        coordinator.stoppingOrStopped
+        coordinator.willRefuseNewCommands
     }
 
     def "requestStop stops after current command has completed"() {
@@ -333,7 +333,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
             assert coordinator.busy
             coordinator.requestStop()
             assert !coordinator.stopped
-            assert coordinator.stoppingOrStopped
+            assert coordinator.willRefuseNewCommands
         }
 
         and:
@@ -356,7 +356,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
             assert coordinator.busy
             coordinator.requestStop()
             assert !coordinator.stopped
-            assert coordinator.stoppingOrStopped
+            assert coordinator.willRefuseNewCommands
             throw failure
         }
 
@@ -408,7 +408,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.requestForcefulStop()
 
         then:
-        coordinator.stoppingOrStopped
+        coordinator.willRefuseNewCommands
         coordinator.stopped
         0 * _._
     }
@@ -429,7 +429,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         e.message == "Gradle build daemon has been stopped."
 
         and:
-        coordinator.stoppingOrStopped
+        coordinator.willRefuseNewCommands
         coordinator.stopped
 
         and:
@@ -487,7 +487,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
 
         then:
-        !coordinator.stoppingOrStopped
+        !coordinator.willRefuseNewCommands
         !coordinator.stopped
         coordinator.idle
 
@@ -515,7 +515,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
 
         then:
-        !coordinator.stoppingOrStopped
+        !coordinator.willRefuseNewCommands
         !coordinator.stopped
         coordinator.idle
 
@@ -546,7 +546,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         DaemonStoppedException e = thrown()
 
         and:
-        coordinator.stoppingOrStopped
+        coordinator.willRefuseNewCommands
         coordinator.stopped
 
         and:
@@ -576,7 +576,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command2, "command2")
 
         then:
-        !coordinator.stoppingOrStopped
+        !coordinator.willRefuseNewCommands
         !coordinator.stopped
         coordinator.idle
 
