@@ -39,7 +39,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasCause("Could not apply component selection rule.")
         failure.assertHasCause("Could not find method foo()")
     }
 
@@ -83,7 +83,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection cs -> throw new Exception("From test") }
+                        withModule("org.utils:api") { ComponentSelection cs -> throw new Exception("From test") }
                     }
                 }
             }
@@ -92,7 +92,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasCause("Could not apply component selection rule.")
         failure.assertHasCause("From test")
     }
 
@@ -177,7 +177,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasCause("Could not apply component selection rule.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 }

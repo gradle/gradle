@@ -162,10 +162,6 @@ This story adds some convenience DSL to target a selection rule to a particular 
     - 'module' value does not match `group:module` pattern
     - 'module' value contains invalid characters: '*', '+', '[', ']', '(', ')', ',' (others?)
 
-### Open issues
-
-- Exception thrown when targeted action fails complains about `all()`.
-
 ## Story: Java API for component selection rules
 
 This story adds a Java API for defining component selection rules that is closely modelled on configuration rules.
