@@ -122,17 +122,17 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    // TODO:DAZ This isn't doing what it appears: is actually selecting the first platform alphabetically...
-    def "defaults to first platform if no target platforms are defined"() {
+    def "defaults to current platform if platforms are ambiguous (no targets & more than one)"() {
+        def arch = currentArch()
         when:
         buildFile << """
             model {
                 platforms {
+                    sparc {
+                        architecture "sparc"
+                    }
                     x86 {
                         architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
                     }
                 }
             }
@@ -144,8 +144,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == arch.name
+        executable("build/binaries/mainExecutable/main").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
     def "library with matching platform is enforced by dependency resolution"() {
@@ -411,11 +411,13 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     two
                 }
             }
+
             libraries {
                 hello {
                     targetPlatform "two"
                 }
             }
+            executables.main.targetPlatform "one"
 
             executables.main.sources {
                 cpp.lib libraries.hello
@@ -423,10 +425,9 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 """
 
         and:
-        fails "mainExecutable" //TODO freekh: changed from oneMainExecutable because we target the first platform and choose it as default now if none is described. Unsure whether that is good.
+        fails "mainExecutable"
 
         then:
-        //TODO freekh: This error message is not particularly descriptive: it is hard to understand what to do and how to fix it.
         failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 

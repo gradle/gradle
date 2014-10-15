@@ -97,7 +97,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         } else if (currentOs.isLinux() && architecture.isArmv8()) {
             return "linux_armv8";
         } else if (currentOs.isMacOsX() && architecture.isAmd64()) { //MAX OS X
-            return "osx_amd64";
+            return "osx_x64";
         } else if (currentOs.isMacOsX() && architecture.isI386()) {
             return "osx_x86";
         } else if (currentOs.isSolaris() && architecture.isAmd64()) { //SOLARIS
@@ -115,13 +115,16 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public static DefaultNativePlatform getDefault() {
-        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
-        String archName = Native.get(SystemInfo.class).getArchitecture().toString();
-        ArchitectureInternal architecture = archParser.parseNotation(archName); //TODO freekh: find some other factory to do this?
-
+        ArchitectureInternal architecture = getCurrentArchitecture();
         OperatingSystem currentOs = OperatingSystem.current();
         OperatingSystemInternal operatingSystem = new DefaultOperatingSystem(currentOs.getName(), currentOs);
         return new DefaultNativePlatform(getDefaultName(architecture, operatingSystem), architecture, operatingSystem);
+    }
+
+    private static ArchitectureInternal getCurrentArchitecture() {
+        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+        String archName = Native.get(SystemInfo.class).getArchitecture().toString();
+        return archParser.parseNotation(archName);
     }
 
     public String getName() {
@@ -138,6 +141,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public ArchitectureInternal getArchitecture() {
+        if (architecture == null) return getCurrentArchitecture();
         return architecture;
     }
 
