@@ -43,8 +43,8 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
         });
     }
 
-    public <T extends Platform> List<T> select(Class<T> type, List<String> targets) {
-        return new NamedElementSelector<T>(type, targets).transform(this);
+    public <T extends Platform> List<T> select(Class<T> type, List<String> targets, T defaultPlatform) {
+        return new NamedElementSelector<T>(type, targets, defaultPlatform).transform(this);
     }
 
 }

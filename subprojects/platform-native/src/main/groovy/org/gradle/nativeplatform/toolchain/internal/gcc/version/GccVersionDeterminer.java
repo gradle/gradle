@@ -126,9 +126,15 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         }
         boolean i386 = defines.containsKey("__i386__");
         boolean amd64 = defines.containsKey("__amd64__");
-        ArchitectureInternal architecture = i386 ? new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 32)
-                : amd64 ? new DefaultArchitecture("amd64", ArchitectureInternal.InstructionSet.X86, 64)
-                : ArchitectureInternal.TOOL_CHAIN_DEFAULT;
+        ArchitectureInternal architecture;
+        if (i386) {
+            architecture = new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 32);
+        } else if (amd64) {
+            architecture = new DefaultArchitecture("amd64", ArchitectureInternal.InstructionSet.X86, 64);
+        } else {
+            throw new UnsupportedOperationException("Could not detect type of architecture (neither i386 nor amd64)");
+        }
+                  ;
         return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
     }
 

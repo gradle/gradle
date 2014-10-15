@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -55,7 +56,8 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        List<NativePlatform> targetPlatforms = platforms.select(NativePlatform.class, targetedComponent.getTargetPlatforms());
+        System.out.println(DefaultNativePlatform.getDefault());
+        List<NativePlatform> targetPlatforms = platforms.select(NativePlatform.class, targetedComponent.getTargetPlatforms(), DefaultNativePlatform.getDefault());
 
         for (NativePlatform platform: targetPlatforms) {
             NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChainRegistry.getForPlatform(platform);

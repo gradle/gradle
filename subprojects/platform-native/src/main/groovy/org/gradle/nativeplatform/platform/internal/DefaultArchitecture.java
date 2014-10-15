@@ -67,6 +67,22 @@ public class DefaultArchitecture implements ArchitectureInternal {
         return instructionSet == InstructionSet.ARM && registerSize == 64;
     }
 
+    public boolean isPpc() {
+        return instructionSet == InstructionSet.PPC && registerSize == 32;
+    }
+
+    public boolean isPpc64() {
+        return instructionSet == InstructionSet.PPC && registerSize == 64;
+    }
+
+    public boolean isSparc() {
+        return instructionSet == InstructionSet.SPARC && registerSize == 32;
+    }
+
+    public boolean isUltraSparc() {
+        return instructionSet == InstructionSet.SPARC && registerSize == 64;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

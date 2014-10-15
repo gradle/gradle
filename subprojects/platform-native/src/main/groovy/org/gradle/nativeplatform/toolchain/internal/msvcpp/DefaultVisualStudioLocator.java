@@ -301,8 +301,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
         }
 
-        // TODO:MPUT - use x64 as the default architecture on x64 systems (same for winsdk)? (isNativeAmd64 && binaryPaths.containsKey(amd64)) ? amd64 : x86
-        return new VisualCppInstall(name, version, x86, paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames, definitions);
+        return new VisualCppInstall(name, version, paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames, definitions);
     }
 
     private SearchResult determineDefaultInstall() {

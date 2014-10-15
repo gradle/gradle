@@ -19,7 +19,6 @@ import org.gradle.internal.os.OperatingSystem;
 
 public class DefaultOperatingSystem implements OperatingSystemInternal {
     private static final OperatingSystem CURRENT_OS = OperatingSystem.current();
-    public static final OperatingSystemInternal TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", CURRENT_OS);
 
     private final String name;
     private final OperatingSystem internalOs;

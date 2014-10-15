@@ -19,12 +19,13 @@ import org.gradle.api.Transformer
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 class ComponentReportOutputFormatter implements Transformer<String, String> {
     final AvailableToolChains.InstalledToolChain toolChain
 
     ComponentReportOutputFormatter() {
-        this.toolChain = AvailableToolChains.defaultToolChain
+        this.toolChain = AvailableToolChains.getDefaultToolChain(DefaultNativePlatform.GET)
     }
 
     ComponentReportOutputFormatter(AvailableToolChains.InstalledToolChain toolChain) {

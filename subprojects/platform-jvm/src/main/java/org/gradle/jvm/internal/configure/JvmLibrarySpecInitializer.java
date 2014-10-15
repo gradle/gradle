@@ -45,12 +45,7 @@ public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
 
     public void execute(JvmLibrarySpec jvmLibrary) {
         List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
-        // TODO:DAZ We should have a generic (JVM + Native) way to get the 'best' platform to build when no target is defined.
-        // This logic needs to inspect the available platforms and find the closest one matching the current platform
-        if (targetPlatforms.isEmpty()) {
-            targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
-        }
-        List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, targetPlatforms);
+        List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, targetPlatforms, new DefaultJavaPlatform(JavaVersion.current()));
         for (JavaPlatform platform: selectedPlatforms) {
             JavaToolChain toolChain = toolChains.getForPlatform(platform);
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder

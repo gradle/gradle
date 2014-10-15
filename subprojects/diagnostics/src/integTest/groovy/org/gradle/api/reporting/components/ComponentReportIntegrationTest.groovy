@@ -388,7 +388,7 @@ Binaries
 """
     }
 
-    def "shows details of multiple components"() {
+    def "shows details of multiple comptoolchain-defaultsonents"() {
         given:
         buildFile << """
 plugins {

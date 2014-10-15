@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.platform.internal;
 
+import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
@@ -25,16 +28,100 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
 
-    public DefaultNativePlatform(String name, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
+    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
         this.name = name;
-        this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
-        this.operatingSystem = DefaultOperatingSystem.TOOL_CHAIN_DEFAULT;
         this.archParser = archParser;
         this.osParser = osParser;
+        this.architecture = architecture;
+        this.operatingSystem = operatingSystem;
     }
 
     public DefaultNativePlatform(String name) {
-        this(name, ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+        this.name = name;
+        this.archParser = ArchitectureNotationParser.parser();
+        this.osParser = OperatingSystemNotationParser.parser();
+    }
+
+    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem) {
+        this(name);
+        this.architecture = architecture;
+        this.operatingSystem = operatingSystem;
+    }
+
+    public static DefaultNativePlatform create(String name) {
+        //TODO freekh: There is something weird about this code, but then again...
+        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+        ArchitectureInternal architecture;
+        //TODO freekh: parsing like this is not what we want
+        String[] parts = name.toLowerCase().split("_");
+        //TODO freekh: At least this part!
+        if (name.toLowerCase().contains("windows") && name.toLowerCase().contains("rt")) {
+            architecture = new DefaultArchitecture("armv7", ArchitectureInternal.InstructionSet.ARM, 32);
+        } else {
+            architecture = archParser.parseNotation(parts[parts.length - 1]);
+        }
+        String osPart = parts[0];
+        NotationParser<Object, OperatingSystemInternal> osParser = OperatingSystemNotationParser.parser();
+        return new DefaultNativePlatform(name, architecture, osParser.parseNotation(osPart));
+    }
+
+    public static String getDefaultName(ArchitectureInternal architecture, OperatingSystemInternal currentOs) {
+        //TODO freekh: create a mapping and a reverse mapping
+
+        //TODO freekh: add itanium? Who on earth uses it these days? It was discontinued in 2012 so...
+        //TODO freekh: add more ppc? xbox/playstation is based on Power arch (ppc/cell) I think?
+        if (currentOs.isWindows() && architecture.isAmd64()) { //WINDOWS
+            return "windows_x64";
+        } else if (currentOs.isWindows() && architecture.isI386()) {
+            return "windows_x86";
+        } else if (currentOs.isWindows() && architecture.isArm()) {
+            return "windows_rt_32";
+        } else if (currentOs.isFreeBSD() && architecture.isAmd64()) { //FREE BSD
+            return "freebsd_x86_64";
+        } else if (currentOs.isFreeBSD() && architecture.isI386()) {
+            return "freebsd_x86";
+        } else if (currentOs.isFreeBSD() && architecture.isArm()) {
+            return "freebsd_armv7";
+        } else if (currentOs.isFreeBSD() && architecture.isArmv8()) {
+            return "freebsd_armv8";
+        } else if (currentOs.isFreeBSD() && architecture.isPpc()) {
+            return "freebsd_ppc";
+        } else if (currentOs.isFreeBSD() && architecture.isPpc64()) {
+            return "freebsd_ppc64";
+        } else if (currentOs.isLinux() && architecture.isAmd64()) { //LINUX
+            return "linux_x86_64";
+        } else if (currentOs.isLinux() && architecture.isI386()) {
+            return "linux_x86";
+        } else if (currentOs.isLinux() && architecture.isArm()) {
+            return "linux_armv7";
+        } else if (currentOs.isLinux() && architecture.isArmv8()) {
+            return "linux_armv8";
+        } else if (currentOs.isMacOsX() && architecture.isAmd64()) { //MAX OS X
+            return "osx_x64";
+        } else if (currentOs.isMacOsX() && architecture.isI386()) {
+            return "osx_x86";
+        } else if (currentOs.isSolaris() && architecture.isAmd64()) { //SOLARIS
+            return "solaris_x64";
+        } else if (currentOs.isSolaris() && architecture.isI386()) {
+            return "solaris_x86";
+        } else if (currentOs.isSolaris() && architecture.isSparc()) {
+            return "solaris_sparc";
+        } else if (currentOs.isSolaris() && architecture.isUltraSparc()) {
+            return "solaris_ultrasparc";
+        } else {
+            //TODO freekh: create test case for this
+            throw new UnsupportedOperationException("Could not create a default native platform for os: " + currentOs.getName() + " and architecture: " + architecture.getDisplayName());
+        }
+    }
+
+    public static DefaultNativePlatform getDefault() {
+        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+        String archName = Native.get(SystemInfo.class).getArchitecture().toString();
+        ArchitectureInternal architecture = archParser.parseNotation(archName); //TODO freekh: find some other factory to do this?
+
+        OperatingSystem currentOs = OperatingSystem.current();
+        OperatingSystemInternal operatingSystem = new DefaultOperatingSystem(currentOs.getName(), currentOs);
+        return new DefaultNativePlatform(getDefaultName(architecture, operatingSystem), architecture, operatingSystem);
     }
 
     public String getName() {

@@ -38,7 +38,11 @@ import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.OperatingSystem;
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
+import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
@@ -166,10 +170,25 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
-            if (platforms.withType(NativePlatform.class).isEmpty()) {
-                // TODO:DAZ Create a set of known platforms, rather than a single 'default'
-                NativePlatform defaultPlatform = platforms.create(NativePlatform.DEFAULT_NAME, NativePlatform.class);
-            }
+            platforms.add(DefaultNativePlatform.create("windows_x64"));
+            platforms.add(DefaultNativePlatform.create("windows_x86"));
+            platforms.add(DefaultNativePlatform.create("windows_rt_32"));
+            platforms.add(DefaultNativePlatform.create("freebsd_x64"));
+            platforms.add(DefaultNativePlatform.create("freebsd_x86"));
+            platforms.add(DefaultNativePlatform.create("freebsd_armv7"));
+            platforms.add(DefaultNativePlatform.create("freebsd_armv8"));
+            platforms.add(DefaultNativePlatform.create("freebsd_ppc"));
+            platforms.add(DefaultNativePlatform.create("freebsd_ppc64"));
+            platforms.add(DefaultNativePlatform.create("linux_x64"));
+            platforms.add(DefaultNativePlatform.create("linux_x86"));
+            platforms.add(DefaultNativePlatform.create("linux_armv7"));
+            platforms.add(DefaultNativePlatform.create("linux_armv8"));
+            platforms.add(DefaultNativePlatform.create("osx_x86"));
+            platforms.add(DefaultNativePlatform.create("osx_x64"));
+            platforms.add(DefaultNativePlatform.create("solaris_x64"));
+            platforms.add(DefaultNativePlatform.create("solaris_x86"));
+            platforms.add(DefaultNativePlatform.create("solaris_sparc"));
+            platforms.add(DefaultNativePlatform.create("solaris_ultrasparc"));
         }
 
         @Finalize
