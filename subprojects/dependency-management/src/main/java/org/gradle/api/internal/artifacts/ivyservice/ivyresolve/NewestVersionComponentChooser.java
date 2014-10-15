@@ -73,7 +73,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
 
     public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
         ModuleVersionSelector requestedModule = dependency.getRequested();
-        VersionSelector requestedVersion = versionMatcher.createSelector(requestedModule.getVersion());
+        VersionSelector requestedVersion = versionMatcher.parseSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (Versioned candidate : sortLatestFirst(versions)) {

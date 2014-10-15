@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 public class DefaultVersionMatcher implements VersionMatcher {
-    public VersionSelector createSelector(String selectorString) {
+    public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
             return new VersionRangeSelector(selectorString);
         }
@@ -31,5 +31,9 @@ public class DefaultVersionMatcher implements VersionMatcher {
         }
 
         return new ExactVersionSelector(selectorString);
+    }
+
+    public String renderSelector(VersionSelector selector) {
+        return ((AbstractVersionSelector) selector).getSelector();
     }
 }

@@ -23,7 +23,7 @@ class DefaultVersionMatcherTest extends Specification {
 
     def "creates version range selector" () {
         expect:
-        matcher.createSelector(selector) instanceof VersionRangeSelector
+        matcher.parseSelector(selector) instanceof VersionRangeSelector
         
         where:
         selector << [
@@ -40,7 +40,7 @@ class DefaultVersionMatcherTest extends Specification {
     
     def "creates sub version selector" () {
         expect:
-        matcher.createSelector(selector) instanceof SubVersionSelector
+        matcher.parseSelector(selector) instanceof SubVersionSelector
 
         where:
         selector << [
@@ -51,7 +51,7 @@ class DefaultVersionMatcherTest extends Specification {
 
     def "creates latest version selector" () {
         expect:
-        matcher.createSelector(selector) instanceof LatestVersionSelector
+        matcher.parseSelector(selector) instanceof LatestVersionSelector
 
         where:
         selector << [
@@ -63,7 +63,7 @@ class DefaultVersionMatcherTest extends Specification {
 
     def "creates exact version selector as default" () {
         expect:
-        matcher.createSelector(selector) instanceof ExactVersionSelector
+        matcher.parseSelector(selector) instanceof ExactVersionSelector
 
         where:
         selector << [

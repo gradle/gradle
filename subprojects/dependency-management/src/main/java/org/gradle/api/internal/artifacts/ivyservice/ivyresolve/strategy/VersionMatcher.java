@@ -27,5 +27,10 @@ public interface VersionMatcher {
      * @param selectorString - the string representation of the selector
      * @return the {@link VersionSelector}
      */
-    public VersionSelector createSelector(String selectorString);
+    VersionSelector parseSelector(String selectorString);
+
+    /**
+     * Renders a {@link VersionSelector} to a selector string.
+     */
+    String renderSelector(VersionSelector selector);
 }

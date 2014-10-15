@@ -42,7 +42,7 @@ class RepositoryChainAdapterTest extends Specification {
 
     def "short-circuits static version resolution"() {
         given:
-        versionMatcher.createSelector("version") >> {
+        versionMatcher.parseSelector("version") >> {
             Stub(VersionSelector) {
                 isDynamic() >> false
             }
@@ -57,7 +57,7 @@ class RepositoryChainAdapterTest extends Specification {
 
     def "resolves dynamic version"() {
         given:
-        versionMatcher.createSelector("version") >> {
+        versionMatcher.parseSelector("version") >> {
             Stub(VersionSelector) {
                 isDynamic() >> true
             }

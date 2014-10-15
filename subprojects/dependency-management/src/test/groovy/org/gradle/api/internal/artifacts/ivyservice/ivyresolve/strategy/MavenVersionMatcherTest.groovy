@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
-class MavenVersionRangeMapperSpec extends Specification {
-    def mapper = new MavenVersionRangeMapper()
+class MavenVersionMatcherTest extends Specification {
+    def defaultMatcher = Mock(VersionMatcher)
+    def mapper = new MavenVersionMatcher(defaultMatcher)
+    def selector = Mock(VersionSelector)
 
-    @Unroll
-    def "maps '#input' to '#output'"() {
-        expect:
-        mapper.map(input) == output
+    def "translates to maven syntax"() {
+        when:
+        1 * defaultMatcher.renderSelector(selector) >> input
+
+        then:
+        mapper.renderSelector(selector) == output
+
         where:
         input                | output
         "1.0"                | "1.0"
@@ -36,6 +40,24 @@ class MavenVersionRangeMapperSpec extends Specification {
         "1.100+"             | "[1.100,1.101)"
         "10.1+"              | "[10.1,10.2)"
         "+"                  | "LATEST"
+        "latest.integration" | "LATEST"
+        "latest.release"     | "RELEASE"
+    }
+
+    def "translates from maven syntax"() {
+        when:
+        1 * defaultMatcher.parseSelector(output) >> selector
+
+        then:
+        mapper.parseSelector(input) == selector
+
+        where:
+        output               | input
+        "1.0"                | "1.0"
+        "[1,2)"              | "[1,2)"
+        "[1.5,1.6)"          | "[1.5,1.6)"
+        "1.5+"               | "1.5+"
+        "+"                  | "+"
         "latest.integration" | "LATEST"
         "latest.release"     | "RELEASE"
     }

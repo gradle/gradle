@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -100,7 +99,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.createSelector("1.+") >> {
+        1 * versionMatcher.parseSelector("1.+") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 accept("2.0") >> false
@@ -131,7 +130,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getId() >> { DefaultModuleVersionIdentifier.newId(candidateId) }
             })
         }
-        1 * versionMatcher.createSelector("latest.milestone") >> {
+        1 * versionMatcher.parseSelector("latest.milestone") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> true
                 accept({ComponentMetadata md -> md.id.version == "2.0"}) >> false
@@ -156,7 +155,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.createSelector("1.+") >> {
+        1 * versionMatcher.parseSelector("1.+") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 matchesUniqueVersion() >> false
@@ -199,7 +198,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.createSelector("latest.release") >> {
+        1 * versionMatcher.parseSelector("latest.release") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> true
                 matchesUniqueVersion() >> true
@@ -238,7 +237,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.createSelector("1.3") >> {
+        1 * versionMatcher.parseSelector("1.3") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 matchesUniqueVersion() >> true
@@ -266,7 +265,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.createSelector("1.3") >> {
+        1 * versionMatcher.parseSelector("1.3") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 accept(_) >> false
@@ -296,7 +295,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.createSelector("latest.release") >> {
+        1 * versionMatcher.parseSelector("latest.release") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> true
                 accept(_) >> false
@@ -320,7 +319,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.createSelector("latest.integration") >> {
+        1 * versionMatcher.parseSelector("latest.integration") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 matchesUniqueVersion() >> true

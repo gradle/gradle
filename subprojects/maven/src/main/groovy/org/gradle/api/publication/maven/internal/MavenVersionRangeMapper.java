@@ -16,40 +16,15 @@
 
 package org.gradle.api.publication.maven.internal;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 
-public class MavenVersionRangeMapper implements VersionRangeMapper{
-
-    private static final String FIXED_PREFIX = "([\\d\\.]*)";
-    private static final String DYN_VERSION_NUMBER = "(\\d+)";
-    public static final String PLUS_OPER = "[\\.]?\\+";
-    private static final String PLUS_NOTATION_PATTERN = FIXED_PREFIX + DYN_VERSION_NUMBER + PLUS_OPER;
-    private static final String PLUS = "+";
-    public static final String LATEST = "LATEST";
-    public static final String RELEASE = "RELEASE";
-    private static final String LATEST_INTEGRATION = "latest.integration";
-    private static final String LATEST_RELEASE = "latest.release";
-
-    public final Pattern plusNotationPattern = Pattern.compile(PLUS_NOTATION_PATTERN);
+public class MavenVersionRangeMapper implements VersionRangeMapper {
+    private final VersionMatcher defaultVersionMatcher = new DefaultVersionMatcher();
+    private final VersionMatcher mavenVersionMatcher = new MavenVersionMatcher(defaultVersionMatcher);
 
     public String map(String version) {
-        Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
-        if(version.equals(PLUS) || version.equals(LATEST_INTEGRATION)){
-            return LATEST;
-        }
-        if(version.equals(LATEST_RELEASE)){
-            return RELEASE;
-        }
-        if(plusNotationMatcher.matches()){
-            String prefix = plusNotationMatcher.group(1);
-            int dynVersionPart = Integer.parseInt(plusNotationMatcher.group(2));
-            if(prefix!=null){
-                return String.format("[%s%s,%s%s)", prefix, dynVersionPart, prefix, dynVersionPart+1);
-            } else{
-                return String.format("[%s,%s)", dynVersionPart, dynVersionPart+1);
-            }
-        }
-        return version;
+        return mavenVersionMatcher.renderSelector(defaultVersionMatcher.parseSelector(version));
     }
 }
