@@ -94,10 +94,10 @@ import org.gradle.util.GradleVersion
  * </pre>
  */
 class JsonProjectDependencyRenderer {
-    private final VersionSelectorScheme versionMatcher
+    private final VersionSelectorScheme versionSelectorScheme
 
-    JsonProjectDependencyRenderer(VersionSelectorScheme versionMatcher) {
-        this.versionMatcher = versionMatcher
+    JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme) {
+        this.versionSelectorScheme = versionSelectorScheme
     }
 
     /**
@@ -211,7 +211,7 @@ class JsonProjectDependencyRenderer {
             }
         }
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionMatcher)
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionSelectorScheme)
         return sortedDeps.collect { dependency ->
             String name = replaceArrow(dependency.name);
             [

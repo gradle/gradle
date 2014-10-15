@@ -35,11 +35,11 @@ import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 
 class NewestVersionComponentChooserTest extends Specification {
-    def versionMatcher = Mock(VersionSelectorScheme)
+    def versionSelectorScheme = Mock(VersionSelectorScheme)
     def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
 
-    def chooser = new NewestVersionComponentChooser(versionComparator, versionMatcher, componentSelectionRules)
+    def chooser = new NewestVersionComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules)
 
     def "chooses latest version for component meta data"() {
         def one = Stub(ComponentResolveMetaData) {
@@ -99,7 +99,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.parseSelector("1.+") >> {
+        1 * versionSelectorScheme.parseSelector("1.+") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 accept("2.0") >> false
@@ -130,7 +130,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getId() >> { DefaultModuleVersionIdentifier.newId(candidateId) }
             })
         }
-        1 * versionMatcher.parseSelector("latest.milestone") >> {
+        1 * versionSelectorScheme.parseSelector("latest.milestone") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> true
                 accept({ComponentMetadata md -> md.id.version == "2.0"}) >> false
@@ -155,7 +155,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.parseSelector("1.+") >> {
+        1 * versionSelectorScheme.parseSelector("1.+") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 matchesUniqueVersion() >> false
@@ -198,7 +198,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.parseSelector("latest.release") >> {
+        1 * versionSelectorScheme.parseSelector("latest.release") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> true
                 matchesUniqueVersion() >> true
@@ -237,7 +237,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.parseSelector("1.3") >> {
+        1 * versionSelectorScheme.parseSelector("1.3") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 matchesUniqueVersion() >> true
@@ -265,7 +265,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.parseSelector("1.3") >> {
+        1 * versionSelectorScheme.parseSelector("1.3") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 accept(_) >> false
@@ -295,7 +295,7 @@ class NewestVersionComponentChooserTest extends Specification {
                 getComponentId() >> { candidateId }
             })
         }
-        1 * versionMatcher.parseSelector("latest.release") >> {
+        1 * versionSelectorScheme.parseSelector("latest.release") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> true
                 accept(_) >> false
@@ -319,7 +319,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         when:
         _ * dependency.getRequested() >> selector
-        1 * versionMatcher.parseSelector("latest.integration") >> {
+        1 * versionSelectorScheme.parseSelector("latest.integration") >> {
             Stub(VersionSelector) {
                 requiresMetadata() >> false
                 matchesUniqueVersion() >> true

@@ -86,7 +86,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     @Inject
-    protected VersionSelectorScheme getVersionMatcher() {
+    protected VersionSelectorScheme getVersionSelectorScheme() {
         throw new UnsupportedOperationException()
     }
 
@@ -169,7 +169,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             return
         }
 
-        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionMatcher)
+        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionSelectorScheme)
 
         def nodeRenderer = new NodeRenderer() {
             void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {

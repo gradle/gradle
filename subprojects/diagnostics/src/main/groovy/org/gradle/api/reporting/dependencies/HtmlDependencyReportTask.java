@@ -83,7 +83,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     }
 
     @Inject
-    protected VersionSelectorScheme getVersionMatcher() {
+    protected VersionSelectorScheme getVersionSelectorScheme() {
         throw new UnsupportedOperationException();
     }
 
@@ -94,7 +94,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
             return;
         }
 
-        HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionMatcher());
+        HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme());
         reporter.render(getProjects(), reports.getHtml().getDestination());
     }
 

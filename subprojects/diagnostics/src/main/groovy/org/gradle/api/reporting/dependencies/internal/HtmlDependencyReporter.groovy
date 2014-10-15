@@ -42,8 +42,8 @@ class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
     private File outputDirectory;
     private final JsonProjectDependencyRenderer renderer
 
-    HtmlDependencyReporter(VersionSelectorScheme versionMatcher) {
-        renderer = new JsonProjectDependencyRenderer(versionMatcher)
+    HtmlDependencyReporter(VersionSelectorScheme versionSelectorScheme) {
+        renderer = new JsonProjectDependencyRenderer(versionSelectorScheme)
     }
 
     @Override

@@ -31,13 +31,13 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
 
 class DependencyInsightReporterSpec extends Specification {
-    VersionSelectorScheme versionMatcher = new DefaultVersionSelectorScheme()
+    VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme()
 
     def "sorts dependencies"() {
         def dependencies = [dep("a", "x", "1.0", "2.0"), dep("a", "x", "1.5", "2.0"), dep("b", "a", "5.0"), dep("a", "z", "1.0"), dep("a", "x", "2.0")]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionMatcher);
+        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme);
 
         then:
         sorted.size() == 5
@@ -62,7 +62,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", FORCED), dep("a", "x", "1.5", "2.0", FORCED), dep("b", "a", "5.0")]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionMatcher);
+        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme);
 
         then:
         sorted.size() == 4
@@ -84,7 +84,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", CONFLICT_RESOLUTION), dep("a", "x", "2.0", "2.0", CONFLICT_RESOLUTION), dep("b", "a", "5.0", "5.0", FORCED)]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionMatcher);
+        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme);
 
         then:
         sorted.size() == 3

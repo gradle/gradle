@@ -42,10 +42,10 @@ public class DependencyResultSorter {
     }
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
-        private final VersionSelectorScheme matcher;
+        private final VersionSelectorScheme versionSelectorScheme;
 
-        private DependencyComparator(VersionSelectorScheme matcher) {
-            this.matcher = matcher;
+        private DependencyComparator(VersionSelectorScheme versionSelectorScheme) {
+            this.versionSelectorScheme = versionSelectorScheme;
         }
 
         public int compare(DependencyEdge left, DependencyEdge right) {
@@ -126,8 +126,8 @@ public class DependencyResultSorter {
             }
 
             //order dynamic selectors after static selectors
-            boolean leftDynamic = matcher.parseSelector(leftRequested.getVersion()).isDynamic();
-            boolean rightDynamic = matcher.parseSelector(rightRequested.getVersion()).isDynamic();
+            boolean leftDynamic = versionSelectorScheme.parseSelector(leftRequested.getVersion()).isDynamic();
+            boolean rightDynamic = versionSelectorScheme.parseSelector(rightRequested.getVersion()).isDynamic();
             if (leftDynamic && !rightDynamic) {
                 return 1;
             } else if (!leftDynamic && rightDynamic) {

@@ -31,18 +31,18 @@ class RepositoryChainAdapterTest extends Specification {
     def metaDataResolver = Mock(DependencyToComponentResolver)
     def dynamicVersionResolver = Mock(DependencyToComponentIdResolver)
     def idResult = Mock(BuildableComponentIdResolveResult)
-    def versionMatcher = Stub(VersionSelectorScheme)
+    def versionSelectorScheme = Stub(VersionSelectorScheme)
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
     def id = new DefaultModuleComponentIdentifier("group", "module", "version")
     def mvId = new DefaultModuleVersionIdentifier("group", "module", "version")
     def dependency = Stub(DependencyMetaData) {
         getRequested() >> requested
     }
-    def resolver = new RepositoryChainAdapter(dynamicVersionResolver, metaDataResolver, versionMatcher)
+    def resolver = new RepositoryChainAdapter(dynamicVersionResolver, metaDataResolver, versionSelectorScheme)
 
     def "short-circuits static version resolution"() {
         given:
-        versionMatcher.parseSelector("version") >> {
+        versionSelectorScheme.parseSelector("version") >> {
             Stub(VersionSelector) {
                 isDynamic() >> false
             }
@@ -57,7 +57,7 @@ class RepositoryChainAdapterTest extends Specification {
 
     def "resolves dynamic version"() {
         given:
-        versionMatcher.parseSelector("version") >> {
+        versionSelectorScheme.parseSelector("version") >> {
             Stub(VersionSelector) {
                 isDynamic() >> true
             }
