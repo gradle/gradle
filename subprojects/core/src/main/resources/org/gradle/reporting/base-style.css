@@ -166,6 +166,9 @@ span.code pre {
     min-width: 700px;
     width: auto !important;
     width: 700px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-all;
 }
 
 span.wrapped pre {
