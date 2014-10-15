@@ -18,28 +18,24 @@ package org.gradle.launcher.daemon.testing
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.process.internal.ExecHandleBuilder
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-
 class TestableDaemon implements DaemonFixture {
     private final DaemonContext context
-    private final DaemonRegistry registry
-    private final File log
+    private final DaemonLogFileStateProbe logFileProbe
+    private final DaemonRegistryStateProbe registryProbe
 
     TestableDaemon(File daemonLog, DaemonRegistry registry) {
-        this.log = daemonLog
-        this.context = DaemonContextParser.parseFrom(log.text)
-        this.registry = registry
+        this.logFileProbe = new DaemonLogFileStateProbe(daemonLog)
+        this.context = logFileProbe.context
+        this.registryProbe = new DaemonRegistryStateProbe(registry, context)
     }
 
     void becomesIdle() {
         def expiry = System.currentTimeMillis() + 20000
         while (expiry > System.currentTimeMillis()) {
-            if (registry.idle.find { it.context.pid == context.pid } != null) {
+            if (registryProbe.currentState == State.idle) {
                 assertIdle()
                 return
             }
@@ -51,7 +47,7 @@ class TestableDaemon implements DaemonFixture {
     void stops() {
         def expiry = System.currentTimeMillis() + 20000
         while (expiry > System.currentTimeMillis()) {
-            if (registry.all.find { it.context.pid == context.pid } == null) {
+            if (registryProbe.currentState == State.stopped) {
                 assertStopped()
                 return
             }
@@ -81,9 +77,9 @@ class TestableDaemon implements DaemonFixture {
         if (pid == null) {
             throw new RuntimeException("Unable to force kill the daemon because provided pid is null!")
         }
-        if (OperatingSystem.current().isUnix()) {
+        if (OperatingSystem.current().unix) {
             return ["kill", "-9", pid]
-        } else if (OperatingSystem.current().isWindows()) {
+        } else if (OperatingSystem.current().windows) {
             return ["taskkill.exe", "/F", "/T", "/PID", pid]
         } else {
             throw new RuntimeException("This implementation does not know how to forcefully kill the daemon on os: " + OperatingSystem.current())
@@ -96,51 +92,25 @@ class TestableDaemon implements DaemonFixture {
     }
 
     void assertIdle() {
-        assert getCurrentState() == State.idle
-    }
-
-    State getCurrentState() {
-        getStates().last()
+        assert logFileProbe.currentState == State.idle
+        assert registryProbe.currentState == State.idle
     }
 
     void assertBusy() {
-        assert getCurrentState() == State.busy
+        assert logFileProbe.currentState == State.busy
+        assert registryProbe.currentState == State.busy
     }
 
     void assertStopped() {
-        assert getCurrentState() == State.stopped
-    }
-
-    List<State> getStates() {
-        def states = new LinkedList<State>()
-        states << State.idle
-        log.eachLine {
-            if (it.contains(DaemonMessages.STARTED_BUILD)) {
-                states << State.busy
-            } else if (it.contains(DaemonMessages.FINISHED_BUILD)) {
-                states << State.idle
-            } else if (it.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)) {
-                states << State.stopped
-            }
-        }
-        states
+        assert logFileProbe.currentState == State.stopped
+        assert registryProbe.currentState == State.stopped
     }
 
     String getLog() {
-        return log.text
+        return logFileProbe.log
     }
 
     int getPort() {
-        Pattern pattern = Pattern.compile("^.*" + DaemonMessages.ADVERTISING_DAEMON + ".*port:(\\d+).*",
-                Pattern.MULTILINE + Pattern.DOTALL);
-
-        Matcher matcher = pattern.matcher(log.text);
-        assert matcher.matches(): "Unable to find daemon address in the daemon log. Daemon: $context"
-
-        try {
-            return Integer.parseInt(matcher.group(1))
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Unexpected format of the port number found in the daemon log. Daemon: $context")
-        }
+        return logFileProbe.port
     }
 }
