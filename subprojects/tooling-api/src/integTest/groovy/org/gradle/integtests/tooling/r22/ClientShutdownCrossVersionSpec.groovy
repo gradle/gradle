@@ -44,7 +44,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     def "cleans up daemons when tooling API session is shutdown"() {
         given:
         toolingApi.requireIsolatedDaemons()
-        toolingApi.isEmbedded = false
 
         withConnection { connection ->
             connection.getModel(GradleBuild)
@@ -68,7 +67,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     def "shutdown ignores daemons that are no longer running"() {
         given:
         toolingApi.requireIsolatedDaemons()
-        toolingApi.isEmbedded = false
 
         withConnection { connection ->
             connection.getModel(GradleBuild)

@@ -52,6 +52,18 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         nullModel == null
     }
 
+    def "action classes are reused"() {
+        toolingApi.requireIsolatedDaemons()
+
+        expect:
+        def result1 = withConnection { it.action(new CounterAction()).run() }
+        def result2 = withConnection { it.action(new CounterAction()).run() }
+        def result3 = withConnection { it.action(new CounterAction()).run() }
+        result1 == 1
+        result2 == 2
+        result3 == 3
+    }
+
     def "client receives the exception thrown by the build action"() {
         when:
         withConnection { it.action(new BrokenAction()).run() }
@@ -67,6 +79,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { it.action(new FetchUnknownModel()).run() }
 
         then:
+        // Verification is in the action
         noExceptionThrown()
     }
 

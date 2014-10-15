@@ -51,8 +51,12 @@ class ToolingApi {
         this.isEmbedded = isEmbedded
     }
 
+    /**
+     * Specifies that the test use real daemons (not embedded) and a test-specific daemon registry.
+     */
     void requireIsolatedDaemons() {
         userHomeDir = new File(testWorkDirProvider.testDirectory, "user-home-dir")
+        isEmbedded = false
     }
 
     DaemonsFixture getDaemons() {
