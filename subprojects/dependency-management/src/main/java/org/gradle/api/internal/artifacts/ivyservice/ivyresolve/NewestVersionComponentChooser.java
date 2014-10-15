@@ -50,10 +50,6 @@ class NewestVersionComponentChooser implements ComponentChooser {
         this.componentSelectionRules = componentSelectionRules;
     }
 
-    public boolean canSelectMultipleComponents(ModuleVersionSelector selector) {
-        return versionMatcher.createSelector(selector.getVersion()).isDynamic();
-    }
-
     public ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two) {
         if (one == null || two == null) {
             return two == null ? one : two;

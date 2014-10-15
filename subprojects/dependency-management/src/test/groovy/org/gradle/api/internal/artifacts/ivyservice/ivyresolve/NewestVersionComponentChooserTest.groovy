@@ -42,31 +42,6 @@ class NewestVersionComponentChooserTest extends Specification {
 
     def chooser = new NewestVersionComponentChooser(versionComparator, versionMatcher, componentSelectionRules)
 
-    def "uses version matcher to determine if selector can select multiple components"() {
-        def selector = Mock(ModuleVersionSelector)
-        when:
-        1 * selector.version >> "foo"
-        versionMatcher.createSelector("foo") >> {
-            Stub(VersionSelector) {
-                isDynamic() >> false
-            }
-        }
-
-        then:
-        !chooser.canSelectMultipleComponents(selector)
-
-        when:
-        1 * selector.version >> "bar"
-        versionMatcher.createSelector("bar") >> {
-            Stub(VersionSelector) {
-                isDynamic() >> true
-            }
-        }
-
-        then:
-        chooser.canSelectMultipleComponents(selector)
-    }
-
     def "chooses latest version for component meta data"() {
         def one = Stub(ComponentResolveMetaData) {
             getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
