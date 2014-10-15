@@ -64,8 +64,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return findConnection(daemonRegistry.getAll(), constraint);
     }
 
-    public DaemonClientConnection maybeConnect(DaemonAddress daemonAddress) {
-        return connectToDaemon(daemonAddress, new CleanupOnStaleAddress(daemonAddress, true));
+    public DaemonClientConnection maybeConnect(DaemonAddress address) {
+        try {
+            return connectToDaemon(address, new CleanupOnStaleAddress(address, true));
+        } catch (ConnectException e) {
+            LOGGER.debug("Cannot connect to the daemon at " + address + " due to " + e + ". Ignoring.");
+            return null;
+        }
     }
 
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {

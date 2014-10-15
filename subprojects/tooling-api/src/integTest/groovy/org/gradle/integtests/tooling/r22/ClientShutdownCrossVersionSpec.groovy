@@ -63,4 +63,29 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         then:
         IllegalStateException e = thrown()
     }
+
+    @TargetGradleVersion(">=2.2")
+    def "shutdown ignores daemons that are no longer running"() {
+        given:
+        toolingApi.requireIsolatedDaemons()
+        toolingApi.isEmbedded = false
+
+        withConnection { connection ->
+            connection.getModel(GradleBuild)
+        }
+        toolingApi.daemons.daemon.assertIdle()
+        toolingApi.daemons.daemon.kill()
+
+        when:
+        DefaultGradleConnector.close()
+
+        then:
+        noExceptionThrown()
+
+        when:
+        GradleConnector.newConnector()
+
+        then:
+        IllegalStateException e = thrown()
+    }
 }
