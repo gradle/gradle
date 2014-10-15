@@ -18,6 +18,8 @@ package org.gradle.api.reporting.components
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -25,6 +27,7 @@ class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
+    private String currentNative = DefaultNativePlatform.getDefault().name //TODO freekh: this test feels completely uneccessary. The reason is that each time we change how we want the report to be, we have to update the test. It still hasn't actually caught an actual error
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -153,14 +156,14 @@ Source sets
 Binaries
     Shared library 'someLib:sharedLibrary'
         build using task: :someLibSharedLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
     Static library 'someLib:staticLibrary'
         build using task: :someLibStaticLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
@@ -255,7 +258,7 @@ Source sets
 Binaries
     Executable 'someExe:executable'
         build using task: :someExeExecutable
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
@@ -273,7 +276,7 @@ Source sets
 Binaries
     C unit exe 'someExeTest:cUnitExe'
         build using task: :someExeTestCUnitExe
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
@@ -451,14 +454,14 @@ Source sets
 Binaries
     Shared library 'nativeLib:sharedLibrary'
         build using task: :nativeLibSharedLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/nativeLibSharedLibrary/libnativeLib.dylib
     Static library 'nativeLib:staticLibrary'
         build using task: :nativeLibStaticLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)

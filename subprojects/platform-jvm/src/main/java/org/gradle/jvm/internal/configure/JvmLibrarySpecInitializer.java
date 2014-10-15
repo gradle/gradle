@@ -27,25 +27,26 @@ import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class JvmLibrarySpecInitializer implements Action<JvmLibrarySpec> {
     private final JarBinariesFactory factory;
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
     private final JavaToolChainRegistry toolChains;
     private final PlatformContainer platforms;
+    private final Set<JavaPlatform> defaultPlatforms = new LinkedHashSet<JavaPlatform>();
 
-    public JvmLibrarySpecInitializer(JarBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, JavaToolChainRegistry toolChains, PlatformContainer platforms) {
+    public JvmLibrarySpecInitializer(JarBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, JavaToolChainRegistry toolChains, PlatformContainer platforms, Collection<? extends JavaPlatform> defaultPlatforms) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChains = toolChains;
         this.platforms = platforms;
+        this.defaultPlatforms.addAll(defaultPlatforms);
     }
 
     public void execute(JvmLibrarySpec jvmLibrary) {
         List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
-        List<JavaPlatform> selectedPlatforms = platforms.select(JavaPlatform.class, targetPlatforms, new DefaultJavaPlatform(JavaVersion.current()));
+        List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms, new DefaultJavaPlatform(JavaVersion.current()), defaultPlatforms);
         for (JavaPlatform platform: selectedPlatforms) {
             JavaToolChain toolChain = toolChains.getForPlatform(platform);
             BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder

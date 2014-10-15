@@ -19,11 +19,12 @@ package org.gradle.platform.base;
 import org.gradle.api.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A container of {@link Platform}s.
  */
 @Incubating
 public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
-    <T extends Platform> List<T> select(Class<T> type,  List<String> targets, T defaultPlatform);
+    <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets, T defaultPlatform, Set<T> defaults);
 }

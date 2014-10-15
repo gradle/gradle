@@ -16,6 +16,7 @@
 package org.gradle.jvm.plugins;
 
 import com.google.common.collect.Lists;
+import org.apache.tools.ant.taskdefs.Java;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
@@ -51,7 +52,9 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
@@ -59,6 +62,9 @@ import java.util.List;
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
+
+    private static final Set<JavaPlatform> DEFAULT_PLATFORMS = instantiateJavaPlatforms();
+
 
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
@@ -75,6 +81,15 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = componentSpecs.containerWithType(JvmLibrarySpec.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
+    }
+
+    private static Set<JavaPlatform> instantiateJavaPlatforms() {
+        Set<JavaPlatform> platforms = new LinkedHashSet<JavaPlatform>();
+        for (JavaVersion javaVersion: JavaVersion.values()) {
+            DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
+            platforms.add(javaPlatform);
+        }
+        return platforms;
     }
 
     /**
@@ -111,13 +126,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createJavaPlatforms(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            //Create default platforms available for Java
-            for (JavaVersion javaVersion: JavaVersion.values()) {
-                DefaultJavaPlatform javaPlatform = instantiator.newInstance(DefaultJavaPlatform.class, javaVersion);
-                platforms.add(javaPlatform);
-            }
+        public void createJavaPlatforms(PlatformContainer platforms) {
+            platforms.addAll(DEFAULT_PLATFORMS);
         }
 
         @Mutate
@@ -132,7 +142,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             JarBinariesFactory factory = new DefaultJarBinariesFactory(instantiator, initAction);
 
             Action<JvmLibrarySpec> createBinariesAction =
-                    new JvmLibrarySpecInitializer(factory, namingSchemeBuilder, toolChains, platforms);
+                    new JvmLibrarySpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, DEFAULT_PLATFORMS);
 
             for (JvmLibrarySpec jvmLibrary : libraries) {
                 createBinariesAction.execute(jvmLibrary);

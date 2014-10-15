@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -207,6 +208,6 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         fails "releaseMainExecutable"
 
         then:
-        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: 'current', buildType: 'release']")
+        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${DefaultNativePlatform.getDefault().name}', buildType: 'release']")
     }
 }

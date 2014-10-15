@@ -50,12 +50,15 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -64,6 +67,7 @@ import java.io.File;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
+    private static final Set<NativePlatform> DEFAULT_PLATFORMS = instantiateDefaultPlatforms();
 
     @Inject
     public NativeComponentModelPlugin(Instantiator instantiator) {
@@ -87,6 +91,34 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().add("nativeComponents", components.withType(NativeComponentSpec.class));
         project.getExtensions().add("executables", nativeExecutables);
         project.getExtensions().add("libraries", nativeLibraries);
+
+        instantiateDefaultPlatforms();
+    }
+
+    private static Set<NativePlatform> instantiateDefaultPlatforms() {
+        Set<NativePlatform> defaultPlatforms = new LinkedHashSet<NativePlatform>();
+
+        defaultPlatforms.add(DefaultNativePlatform.create("windows_x64"));
+        defaultPlatforms.add(DefaultNativePlatform.create("windows_x86"));
+        defaultPlatforms.add(DefaultNativePlatform.create("windows_rt_32"));
+        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_x64"));
+        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_x86"));
+        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_armv7"));
+        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_armv8"));
+        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_ppc"));
+        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_ppc64"));
+        defaultPlatforms.add(DefaultNativePlatform.create("linux_x64"));
+        defaultPlatforms.add(DefaultNativePlatform.create("linux_x86"));
+        defaultPlatforms.add(DefaultNativePlatform.create("linux_armv7"));
+        defaultPlatforms.add(DefaultNativePlatform.create("linux_armv8"));
+        defaultPlatforms.add(DefaultNativePlatform.create("osx_x86"));
+        defaultPlatforms.add(DefaultNativePlatform.create("osx_x64"));
+        defaultPlatforms.add(DefaultNativePlatform.create("solaris_x64"));
+        defaultPlatforms.add(DefaultNativePlatform.create("solaris_x86"));
+        defaultPlatforms.add(DefaultNativePlatform.create("solaris_sparc"));
+        defaultPlatforms.add(DefaultNativePlatform.create("solaris_ultrasparc"));
+
+        return defaultPlatforms;
     }
 
     /**
@@ -160,7 +192,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
-                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
+                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, DEFAULT_PLATFORMS, buildTypes, flavors);
 
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);
@@ -170,25 +202,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
-            platforms.add(DefaultNativePlatform.create("windows_x64"));
-            platforms.add(DefaultNativePlatform.create("windows_x86"));
-            platforms.add(DefaultNativePlatform.create("windows_rt_32"));
-            platforms.add(DefaultNativePlatform.create("freebsd_x64"));
-            platforms.add(DefaultNativePlatform.create("freebsd_x86"));
-            platforms.add(DefaultNativePlatform.create("freebsd_armv7"));
-            platforms.add(DefaultNativePlatform.create("freebsd_armv8"));
-            platforms.add(DefaultNativePlatform.create("freebsd_ppc"));
-            platforms.add(DefaultNativePlatform.create("freebsd_ppc64"));
-            platforms.add(DefaultNativePlatform.create("linux_x64"));
-            platforms.add(DefaultNativePlatform.create("linux_x86"));
-            platforms.add(DefaultNativePlatform.create("linux_armv7"));
-            platforms.add(DefaultNativePlatform.create("linux_armv8"));
-            platforms.add(DefaultNativePlatform.create("osx_x86"));
-            platforms.add(DefaultNativePlatform.create("osx_x64"));
-            platforms.add(DefaultNativePlatform.create("solaris_x64"));
-            platforms.add(DefaultNativePlatform.create("solaris_x86"));
-            platforms.add(DefaultNativePlatform.create("solaris_sparc"));
-            platforms.add(DefaultNativePlatform.create("solaris_ultrasparc"));
+            platforms.addAll(DEFAULT_PLATFORMS);
         }
 
         @Finalize

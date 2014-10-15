@@ -18,6 +18,7 @@ package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
@@ -208,7 +209,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
 
         then:
         fails "germanMainExecutable"
-        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: 'current', buildType: 'debug']")
+        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${DefaultNativePlatform.getDefault().name}', buildType: 'debug']")
     }
 
     def "fails with reasonable error message when trying to target an unknown flavor"() {

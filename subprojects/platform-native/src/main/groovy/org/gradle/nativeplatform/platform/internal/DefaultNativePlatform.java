@@ -97,7 +97,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         } else if (currentOs.isLinux() && architecture.isArmv8()) {
             return "linux_armv8";
         } else if (currentOs.isMacOsX() && architecture.isAmd64()) { //MAX OS X
-            return "osx_x64";
+            return "osx_amd64";
         } else if (currentOs.isMacOsX() && architecture.isI386()) {
             return "osx_x86";
         } else if (currentOs.isSolaris() && architecture.isAmd64()) { //SOLARIS
@@ -146,6 +146,8 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public OperatingSystemInternal getOperatingSystem() {
+        OperatingSystem currentOs = OperatingSystem.current();
+        if (operatingSystem == null) return new DefaultOperatingSystem(currentOs.getName(), currentOs); //TODO freekh: is this really right?
         return operatingSystem;
     }
 
@@ -154,6 +156,6 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public String getCompatibilityString() {
-        return String.format("%s:%s", architecture.getName(), operatingSystem.getName());
+        return String.format("%s:%s", getArchitecture().getName(), getOperatingSystem().getName());
     }
 }
