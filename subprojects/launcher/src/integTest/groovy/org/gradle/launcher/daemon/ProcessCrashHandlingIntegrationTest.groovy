@@ -38,7 +38,7 @@ task block << {
         def build = executer.withTasks("block").start()
         server.waitFor()
         daemons.daemon.assertBusy()
-        build.abort()
+        build.abort().waitForFailure()
 
         then:
         daemons.daemon.stops()
