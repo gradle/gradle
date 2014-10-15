@@ -504,7 +504,7 @@ This story moves definition and configuration of the source sets for a component
 
 ### Story: Configure component model and source sets exclusively using model DSL
 
-Remove the `jvm`, `nativeRuntime`, `binaries` and `sources` and other extensions.
+Remove the `jvm`, `nativeRuntime`, `binaries` and `sources` and other extensions registered by the Jvm and native plugins.
 
 ### Story: Build author configures all language source sets using model DSL
 

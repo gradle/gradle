@@ -1,7 +1,7 @@
 
 # Feature: Component selection rules
 
-## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input
+## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input (DONE)
 
 This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
 
@@ -133,6 +133,11 @@ The primary changes are:
 - ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
 - ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
 
+### Open issues
+
+- `ComponentSelectionRulesProcessor` generates a lot of garbage for each application. Should reuse the lists of rules and the list of inputs.
+- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable. Might not be a problem.
+
 ## Story: Build script targets component selection rule to particular module
 
 This story adds some convenience DSL to target a selection rule to a particular module:
@@ -157,6 +162,10 @@ This story adds some convenience DSL to target a selection rule to a particular 
     - 'module' value is empty or null
     - 'module' value does not match `group:module` pattern
     - 'module' value contains invalid characters: '*', '+', '[', ']', '(', ')', ',' (others?)
+
+### Open issues
+
+- Exception thrown when targeted action fails complains about `all()`.
 
 ## Story: Java API for component selection rules
 
@@ -206,6 +215,10 @@ Rule source class:
     - Invalid rule source class (unit tests)
     - `@Mutate` method does not have `ComponentSelection` as first parameter (integration test)
     - Exception thrown by rule method
+
+### Open issues
+
+- DSL decoration should add Action and Closure overloads for a method that accepts a rule source.
 
 ## Story: Add Java API for component metadata rules
 
@@ -273,6 +286,8 @@ that matched the specified version selector, together with the reason each was r
 - `ComponentChooser.isRejectedByRules` takes a mutable meta-data. It should be immutable.
 - `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
 - `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
+
+## Story: Dependency reports inform user that some versions were rejected
 
 # Later milestones
 

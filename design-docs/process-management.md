@@ -96,7 +96,7 @@ Gradle that makes these changes. The end user would see a ClassNotFoundException
 - Update constructor in org.gradle.process.internal.DefaultExecHandle to have `boolean ignoreExitValue` argument
 - Update org.gradle.process.internal.AbstractExecHandleBuilder.build() to pass `ignoreExitValue` to `new
   DefaultExecHandle(...)`
-- Promote org.gradle.internal.exceptions.AbstractMultiCauseException to a public package (org.gradle.api?). This can allow
+- Promote org.gradle.internal.exceptions.DefaultMultiCauseException to a public package (org.gradle.api?). This can allow
   for a multi cause exception to be used when waiting on multiple external processes in a build.
 - Update org.gradle.process.internal.ExecHandleRunner.abortProcess() to call `completed(process.exitValue());` after
   calling `process.destroy();`
