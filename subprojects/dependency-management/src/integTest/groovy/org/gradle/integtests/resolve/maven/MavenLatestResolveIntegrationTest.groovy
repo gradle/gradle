@@ -14,9 +14,25 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.maven
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Unroll
 
 class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def setup(){
+        buildFile << """
+            repositories {
+                maven { url '${mavenRepo().uri}' }
+            }
+            configurations { compile }
+
+            task retrieve(type: Sync) {
+                into 'build'
+                from configurations.compile
+            }
+        """
+    }
+
     def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
@@ -24,15 +40,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         mavenRepo().module('group', 'projectA', '1.4').publish()
 
         and:
-        buildFile << """
-configurations { compile }
-repositories { maven { url "${mavenRepo().uri}" } }
-dependencies { compile 'group:projectA:latest.$status' }
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'build'
-}
-"""
+        buildFile << " dependencies { compile 'group:projectA:latest.$status' }"
 
         when:
         run 'retrieve'
@@ -48,15 +56,7 @@ task retrieve(type: Sync) {
     def "latest selector with unknown status leads to failure"() {
         mavenRepo().module('group', 'projectA', '1.0').publish()
 
-        buildFile << """
-configurations { compile }
-repositories { maven { url "${mavenRepo().uri}" } }
-dependencies { compile 'group:projectA:latest.foo' }
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'build'
-}
-"""
+        buildFile << "dependencies { compile 'group:projectA:latest.foo' }"
 
         expect:
         fails 'retrieve'
@@ -72,14 +72,9 @@ task retrieve(type: Sync) {
 
         and:
         buildFile << """
-configurations { compile }
-repositories { maven { url "${mavenHttpRepo.uri}" } }
-dependencies { compile 'group:projectA:latest.${status}' }
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'build'
-}
-"""
+            repositories { maven { url "${mavenHttpRepo.uri}" } }
+            dependencies { compile 'group:projectA:latest.${status}' }
+        """
 
         when:
         run "retrieve"
@@ -94,103 +89,30 @@ task retrieve(type: Sync) {
         "integration" | "projectA-1.2-SNAPSHOT.jar"
     }
 
-    def "can resolve dynamic RELEASE version declared in pom as transitive dependency from HTTP Maven repository"() {
+    @Unroll
+    def "can resolve dynamic #versionDefinition version declared in pom as transitive dependency"() {
         given:
-        mavenHttpRepo.module('org.test', 'projectC', '1.1').publish()
-        mavenHttpRepo.module('org.test', 'projectC', '1.5').publish()
-        def projectCRelease = mavenHttpRepo.module('org.test', 'projectC', '2.0').publish()
-        def projectCSnapshot = mavenHttpRepo.module('org.test', 'projectC', '2.1-SNAPSHOT').publish()
-        def projectB = mavenHttpRepo.module('org.test', 'projectB', '1.0').dependsOn("org.test", 'projectC', "RELEASE").publish()
-        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.0').dependsOn('org.test', 'projectB', '1.0').publish()
+        mavenRepo().module('org.test', 'projectC', '1.1').publish()
+        mavenRepo().module('org.test', 'projectC', '1.5').publish()
+        mavenRepo().module('org.test', 'projectC', '2.0').publish()
+        mavenRepo().module('org.test', 'projectC', '2.1-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo().module('org.test', 'projectB', '1.0').dependsOn("org.test", 'projectC', versionDefinition).publish()
+        mavenRepo().module('org.test', 'projectA', '1.0').dependsOn('org.test', 'projectB', '1.0').publish()
 
         buildFile << """
-    repositories {
-        maven { url '${mavenHttpRepo.uri}' }
-    }
-    configurations { compile }
-    dependencies {
-        compile 'org.test:projectA:1.0'
-    }
-
-    task retrieve(type: Sync) {
-        into 'libs'
-        from configurations.compile
-    }
-    """
+            dependencies {
+                compile 'org.test:projectA:1.0'
+            }"""
 
         when:
-        projectA.pom.expectGet()
-        projectA.getArtifact().expectGet()
-        projectB.pom.expectGet()
-        projectB.getArtifact().expectGet()
-        mavenHttpRepo.getModuleMetaData("org.test", "projectC").expectGet()
-        projectCSnapshot.metaData.expectGet()
-        projectCSnapshot.pom.expectGet()
-        projectCRelease.pom.expectGet()
-        projectCRelease.getArtifact().expectGet()
-
-        and:
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar', 'projectC-2.0.jar')
-        def snapshot = file('libs/projectA-1.0.jar').snapshot()
+        file('build').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar', "projectC-${resolvedVersion}.jar")
 
-        when:
-        server.resetExpectations()
-        and:
-        run 'retrieve'
-
-        then:
-        file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
-    }
-
-    def "can resolve dynamic LATEST version declared in pom as transitive dependency from HTTP Maven repository"() {
-        given:
-        mavenHttpRepo.module('org.test', 'projectC', '1.1').publish()
-        mavenHttpRepo.module('org.test', 'projectC', '1.5').publish()
-        def projectCSnapshot = mavenHttpRepo.module('org.test', 'projectC', '2.1-SNAPSHOT').publish()
-        def projectB = mavenHttpRepo.module('org.test', 'projectB', '1.0').dependsOn("org.test", 'projectC', "LATEST").publish()
-        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.0').dependsOn('org.test', 'projectB', '1.0').publish()
-
-        buildFile << """
-    repositories {
-        maven { url '${mavenHttpRepo.uri}' }
-    }
-    configurations { compile }
-    dependencies {
-        compile 'org.test:projectA:1.0'
-    }
-
-    task retrieve(type: Sync) {
-        into 'libs'
-        from configurations.compile
-    }
-    """
-
-        when:
-        projectA.pom.expectGet()
-        projectA.getArtifact().expectGet()
-        projectB.pom.expectGet()
-        projectB.getArtifact().expectGet()
-        mavenHttpRepo.getModuleMetaData("org.test", "projectC").expectGet()
-        projectCSnapshot.metaData.expectGet()
-        projectCSnapshot.pom.expectGet()
-        projectCSnapshot.artifact.expectGet()
-
-        and:
-        run 'retrieve'
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar', 'projectC-2.1-SNAPSHOT.jar')
-        def snapshot = file('libs/projectA-1.0.jar').snapshot()
-
-        when:
-        server.resetExpectations()
-        and:
-        run 'retrieve'
-
-        then:
-        file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+        where:
+        versionDefinition | resolvedVersion
+        "RELEASE"         | "2.0"
+        "LATEST"          | "2.1-SNAPSHOT"
     }
 }
