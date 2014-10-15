@@ -34,14 +34,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
     private final Lock lock = new ReentrantLock();
-    private final ModelClassLoaderFactory classLoaderFactory;
+    private final PayloadClassLoaderFactory classLoaderFactory;
     private Map<ClassLoader, ClassLoaderDetails> classLoaderDetails;
     private Map<UUID, ClassLoader> classLoaderIds;
 
-    public DefaultPayloadClassLoaderRegistry(ModelClassLoaderFactory modelClassLoaderFactory) {
+    public DefaultPayloadClassLoaderRegistry(PayloadClassLoaderFactory payloadClassLoaderFactory) {
         classLoaderDetails = new MapMaker().weakKeys().makeMap();
         classLoaderIds = new MapMaker().weakValues().makeMap();
-        this.classLoaderFactory = modelClassLoaderFactory;
+        this.classLoaderFactory = payloadClassLoaderFactory;
     }
 
     public SerializeMap newSerializeSession() {

@@ -57,7 +57,8 @@ public class ConnectionScopeServices {
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
-                                        new ModelClassLoaderFactory()),
+                                        new ClientSidePayloadClassLoaderFactory(
+                                                new ModelClassLoaderFactory())),
                                 new ClasspathInferer()))
         );
     }
