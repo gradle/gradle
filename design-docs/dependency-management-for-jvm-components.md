@@ -809,10 +809,14 @@ by providing a common set of 'pre-defined' `NativePlatform` instances.
 
 ### Story: Assemble task fails when no variants are buildable
 
-When a user attempts to build a specific binary and no tool-chain is available, the user is given an informative message,
-but `gradle assemble` will silently do nothing where no binaries are buildable.
+Currently, if a user attempts to build a _specific_ binary and that binary cannot be built (e.g. no tool-chain is available) the user is given an informative message. 
 
-This story changes this so that if _no_ binaries can be built, Gradle will report the reason for each binary (variant).
+If a user uses `gradle assemble` to build _all_ binaries, Gradle will attempt to build any binaries that are
+considered 'buildable', skipping those that aren't. This means that a build script may define a component for multiple platforms, but `gradle assemble` will only build those variants where a tool chain is available.
+
+However, `gradle assemble` will silently do nothing when _none_ of the binaries are buildable.
+
+In this story, we will change this behaviour so that if _no_ binaries can be built with `assemble`, Gradle will report the reason that each defined binary is not buildable.
 
 ## Feature: Plugin implements custom language support
 
