@@ -30,12 +30,13 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractIntegrationSpe
         resourceFiles = app.resources*.writeToDir(file("src/main/resources"))
 
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            main
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            main(JvmLibrarySpec)
         }
     }
 """

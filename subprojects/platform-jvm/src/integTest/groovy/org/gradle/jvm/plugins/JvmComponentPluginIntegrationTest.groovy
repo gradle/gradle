@@ -22,11 +22,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "does not create library or binaries when not configured"() {
         when:
         buildFile << """
-        apply plugin: 'jvm-component'
-        task check << {
-            assert jvm.libraries.empty
-            assert binaries.empty
-        }
+    plugins {
+        id 'jvm-component'
+    }
+    task check << {
+        assert jvm.libraries.empty
+        assert binaries.empty
+    }
 """
         then:
         succeeds "check"
@@ -38,11 +40,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "defines jvm library and binary model objects and lifecycle task"() {
         when:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myLib
+    model {
+        components {
+            myLib(JvmLibrarySpec)
         }
     }
 
@@ -81,11 +85,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "creates empty jar when no language sources available"() {
         given:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myJvmLib
+    model {
+        components {
+            myJvmLib(JvmLibrarySpec)
         }
     }
 """
@@ -103,11 +109,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can configure jvm binary"() {
         given:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myJvmLib
+    model {
+        components {
+            myJvmLib(JvmLibrarySpec)
         }
     }
     binaries.withType(JarBinarySpec) { jar ->
@@ -124,18 +132,18 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can configure jvm binary for component"() {
         given:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myJvmLib {
-                binaries.all { jar ->
+    model {
+        components {
+            myJvmLib(JvmLibrarySpec) {
+                binaries.withType(JarBinarySpec) { jar ->
                     jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
                 }
             }
         }
-    }
-    binaries.withType(JarBinarySpec) { jar ->
     }
 """
         when:
@@ -148,11 +156,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can specify additional builder tasks for binary"() {
         given:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myJvmLib
+    model {
+        components {
+            myJvmLib(JvmLibrarySpec)
         }
     }
     binaries.all { binary ->
@@ -175,12 +185,14 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can define multiple jvm libraries in single project"() {
         when:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myLibOne
-            myLibTwo
+    model {
+        components {
+            myLibOne(JvmLibrarySpec)
+            myLibTwo(JvmLibrarySpec)
         }
     }
 
@@ -201,12 +213,14 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can build multiple jvm libraries in single project"() {
         given:
         buildFile << """
-    apply plugin: 'jvm-component'
+    plugins {
+        id 'jvm-component'
+    }
 
-    jvm {
-        libraries {
-            myLibOne
-            myLibTwo
+    model {
+        components {
+            myLibOne(JvmLibrarySpec)
+            myLibTwo(JvmLibrarySpec)
         }
     }
 """

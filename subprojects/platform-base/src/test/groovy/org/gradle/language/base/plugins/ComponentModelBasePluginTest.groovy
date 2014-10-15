@@ -48,7 +48,7 @@ class ComponentModelBasePluginTest extends Specification {
         when:
         project.apply(plugin: ComponentModelBasePlugin)
         then:
-        project.modelRegistry.get(ModelPath.path("componentSpecs")) != null
+        project.modelRegistry.get(ModelPath.path("components")) != null
     }
 
     def "registers language sourceset factory per functional sourceset"() {

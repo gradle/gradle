@@ -24,12 +24,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     def "creates default java source sets"() {
         when:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec)
         }
     }
 
@@ -59,12 +60,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
     def "can configure additional language source sets for java library"() {
         when:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 sources {
                     extraJava(JavaSourceSet)
                     extraResources(JvmResourceSet)
@@ -102,12 +104,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         file('src/myLib/resources').mkdirs()
 
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec)
         }
     }
 """

@@ -75,8 +75,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("componentSpecs", DefaultComponentSpecContainer.class), components)
-                        .simpleDescriptor("Project.<init>.componentSpecs()")
+                ModelCreators.of(ModelReference.of("components", DefaultComponentSpecContainer.class), components)
+                        .simpleDescriptor("Project.<init>.components()")
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
                         .build()
                         );
@@ -148,7 +148,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
-        void applyDefaultSourceConventions(ProjectSourceSet sources) {
+        void applyDefaultSourceConventions(ProjectSourceSet sources, ComponentSpecContainer componentSpecs) {
             for (FunctionalSourceSet functionalSourceSet : sources) {
                 for (LanguageSourceSet languageSourceSet : functionalSourceSet) {
                     // Only apply default locations when none explicitly configured

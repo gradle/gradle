@@ -35,12 +35,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec)
         }
     }
 """
@@ -64,12 +65,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         source2.writeToDir(file("src/myLib/extraJava"))
 
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 sources {
                     extraJava(JavaSourceSet)
                 }
@@ -102,12 +104,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         file("src/myLib/resources/Ignored.txt") << "IGNORE ME"
 
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 sources {
                     java {
                         source.srcDir "src/myLib/myJava"
@@ -137,12 +140,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         String[] expectedOutputs = [app.sources[0].classFile.fullPath, app.sources[1].classFile.fullPath, app.resources[0].fullPath, app.resources[1].fullPath]
 
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 sources {
                     java {
                         source.srcDir "src/myLib"
@@ -172,12 +176,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec)
         }
     }
     binaries.withType(JarBinarySpec) {
@@ -206,12 +211,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec)
         }
     }
 """
@@ -232,12 +238,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "java6"
             }
         }
@@ -260,12 +267,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "java5", "java6", "java7", "java8"
             }
         }
@@ -292,12 +300,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "$badName"
             }
         }
@@ -318,12 +327,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "${current.name}", "java9"
             }
         }
@@ -344,12 +354,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    jvm {
-        libraries {
-            myLib {
+    plugins {
+        id 'jvm-component'
+        id 'java-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "java9"
             }
         }

@@ -71,7 +71,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         private final Class<S> binaryType;
 
         public ComponentBinariesRule(ModelReference<BinaryContainer> subject, final Class<? extends ComponentSpec> componentType, final Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
-            super(subject, componentType, ruleDefinition, ModelReference.of("componentSpecs", ComponentSpecContainer.class));
+            super(subject, componentType, ruleDefinition, ModelReference.of(ComponentSpecContainer.class));
             this.componentType = componentType;
             this.binaryType = binaryType;
             this.modelRegistry = modelRegistry;

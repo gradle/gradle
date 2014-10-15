@@ -36,19 +36,14 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
-import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -69,15 +64,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
 
         ComponentSpecContainer componentSpecs = project.getExtensions().getByType(ComponentSpecContainer.class);
-
-        final ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
-        componentSpecs.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
-            public JvmLibrarySpec create(String name) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return new DefaultJvmLibrarySpec(id, sources.maybeCreate(name));
-            }
-        });
-
         final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = componentSpecs.containerWithType(JvmLibrarySpec.class);
         project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
     }
@@ -97,6 +83,10 @@ public class JvmComponentPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
+        @ComponentType
+        void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
+            builder.defaultImplementation(DefaultJvmLibrarySpec.class);
+        }
 
         @Model
         NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ComponentSpecContainer components) {

@@ -26,9 +26,9 @@ plugins {
     id 'jvm-component'
     id 'jvm-resources'
 }
-jvm {
-    libraries {
-        myLib
+model {
+    components {
+        myLib(JvmLibrarySpec)
     }
 }
 
@@ -58,9 +58,9 @@ plugins {
     id 'jvm-component'
     id 'jvm-resources'
 }
-jvm {
-    libraries {
-        myLib
+model {
+    components {
+        myLib(JvmLibrarySpec)
     }
 }
 """
@@ -83,9 +83,9 @@ plugins {
     id 'jvm-component'
     id 'jvm-resources'
 }
-jvm {
-    libraries {
-        myLib {
+model {
+    components {
+        myLib(JvmLibrarySpec) {
             sources {
                 other(JvmResourceSet)
             }
