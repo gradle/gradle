@@ -16,10 +16,16 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+
 class ToolingGlobalScopeServices {
-    PayloadSerializer createPayloadSerializer() {
+    PayloadSerializer createPayloadSerializer(ClassLoaderFactory classLoaderFactory, CacheFactory cacheFactory) {
         return new PayloadSerializer(
                 new DefaultPayloadClassLoaderRegistry(
-                        new ModelClassLoaderFactory()));
+                        new DaemonSidePayloadClassLoaderFactory(
+                                new ModelClassLoaderFactory(
+                                        classLoaderFactory),
+                                cacheFactory)));
     }
 }

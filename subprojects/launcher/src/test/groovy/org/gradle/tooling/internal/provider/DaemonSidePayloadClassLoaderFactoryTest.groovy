@@ -16,11 +16,12 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.cache.internal.CacheFactory
 import org.gradle.internal.classloader.MutableURLClassLoader
 import spock.lang.Specification
 
-class ModelClassLoaderFactoryTest extends Specification {
-    final ModelClassLoaderFactory registry = new ModelClassLoaderFactory()
+class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
+    def registry = new DaemonSidePayloadClassLoaderFactory(Mock(PayloadClassLoaderFactory), Mock(CacheFactory))
 
     def "creates ClassLoader for classpath"() {
         def url1 = new URL("http://localhost/file1.jar")

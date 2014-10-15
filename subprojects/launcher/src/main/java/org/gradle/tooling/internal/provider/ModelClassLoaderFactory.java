@@ -19,16 +19,16 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderSpec;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 
 import java.util.List;
 
 public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     private final ClassLoader rootClassLoader;
-    private final ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
+    private final ClassLoaderFactory classLoaderFactory;
 
-    public ModelClassLoaderFactory() {
+    public ModelClassLoaderFactory(ClassLoaderFactory classLoaderFactory) {
+        this.classLoaderFactory = classLoaderFactory;
         ClassLoader parent = getClass().getClassLoader();
         FilteringClassLoader filter = new FilteringClassLoader(parent);
         filter.allowPackage("org.gradle.tooling.internal.protocol");

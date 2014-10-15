@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -49,7 +50,8 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
-    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory, ShutdownCoordinator shutdownCoordinator) {
+    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory,
+                                                ClassLoaderFactory classLoaderFactory, ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 loggingServices,
                 daemonClientFactory,
@@ -58,7 +60,8 @@ public class ConnectionScopeServices {
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
                                         new ClientSidePayloadClassLoaderFactory(
-                                                new ModelClassLoaderFactory())),
+                                                new ModelClassLoaderFactory(
+                                                        classLoaderFactory))),
                                 new ClasspathInferer()))
         );
     }
