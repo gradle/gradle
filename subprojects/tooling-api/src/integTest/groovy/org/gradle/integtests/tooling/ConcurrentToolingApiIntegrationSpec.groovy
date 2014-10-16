@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -66,7 +65,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(new UnderDevelopmentGradleDistribution()) }
+            concurrent.start { useToolingApi(toolingApi) }
         }
 
         then:
@@ -79,23 +78,23 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     def "handles different target gradle versions concurrently"() {
         given:
-        def current = dist
-        def last = new ReleasedVersionDistributions().getMostRecentFinalRelease() 
-        assert current != last
-        println "Combination of versions used: current - $current, last - $last"
+        def last = new ReleasedVersionDistributions().getMostRecentFinalRelease()
+        assert dist != last
+        println "Combination of versions used: current - $dist, last - $last"
+        def oldDistApi = new ToolingApi(last, temporaryFolder)
 
         file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        concurrent.start { useToolingApi(current) }
-        concurrent.start { useToolingApi(last)}
+        concurrent.start { useToolingApi(toolingApi) }
+        concurrent.start { useToolingApi(oldDistApi)}
 
         then:
         concurrent.finished()
     }
 
-    def useToolingApi(GradleDistribution target) {
-        new ToolingApi(target, new IntegrationTestBuildContext().gradleUserHomeDir, temporaryFolder, false).withConnection { ProjectConnection connection ->
+    def useToolingApi(ToolingApi target) {
+        target.withConnection { ProjectConnection connection ->
             try {
                 def model = connection.getModel(IdeaProject)
                 assert model != null

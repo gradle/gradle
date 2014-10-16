@@ -43,10 +43,9 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
     }
 
     String runWithInstallation(TestFile gradleHome) {
+        toolingApi.requireIsolatedDaemons()
         toolingApi.withConnector { GradleConnector it ->
             it.useInstallation(new File(gradleHome.absolutePath))
-            it.useGradleUserHomeDir(temporaryFolder.file("user home"))
-            it.embedded(false)
         }
         withBuild { it.forTasks("echo") }.standardOutput
     }

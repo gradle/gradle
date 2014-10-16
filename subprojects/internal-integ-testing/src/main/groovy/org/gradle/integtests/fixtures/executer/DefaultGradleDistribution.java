@@ -115,6 +115,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return true;
     }
 
+    public boolean isToolingApiDaemonBaseDirSupported() {
+        return isSameOrNewer("2.2");
+    }
+
     public VersionNumber getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("2.2-rc-1")) {
             return VersionNumber.parse("2.14");
