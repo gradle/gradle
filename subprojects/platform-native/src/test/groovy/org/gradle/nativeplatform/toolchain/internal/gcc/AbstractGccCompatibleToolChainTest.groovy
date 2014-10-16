@@ -267,6 +267,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
+        platform.operatingSystem.isMacOsX() >> true
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
         toolChain.eachPlatform(action)
 
