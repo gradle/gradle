@@ -219,6 +219,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return parameters.getDaemonMaxIdleTimeValue();
     }
 
+    public File getDaemonBaseDir() {
+        return parameters.getDaemonBaseDir();
+    }
+
     public OutputStream getStandardOutput() {
         return stdout;
     }

@@ -105,11 +105,13 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    public GradleConnector daemonBaseDir(File daemonBaseDir) {
+        connectionParamsBuilder.setDaemonBaseDir(daemonBaseDir);
+        return this;
+    }
+
     /**
      * If true then debug log statements will be shown
-     *
-     * @param verboseLogging
-     * @return
      */
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
         connectionParamsBuilder.setVerboseLogging(verboseLogging);
