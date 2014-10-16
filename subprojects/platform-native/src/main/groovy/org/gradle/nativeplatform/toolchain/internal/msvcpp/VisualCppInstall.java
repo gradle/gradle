@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 

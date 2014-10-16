@@ -134,7 +134,6 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         } else {
             throw new UnsupportedOperationException("Could not detect type of architecture (neither i386 nor amd64)");
         }
-                  ;
         return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
     }
 

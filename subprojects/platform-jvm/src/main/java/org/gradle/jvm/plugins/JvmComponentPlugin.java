@@ -16,7 +16,6 @@
 package org.gradle.jvm.plugins;
 
 import com.google.common.collect.Lists;
-import org.apache.tools.ant.taskdefs.Java;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;

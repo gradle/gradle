@@ -38,11 +38,7 @@ import org.gradle.nativeplatform.internal.configure.*;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.OperatingSystem;
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
@@ -50,7 +46,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
@@ -67,7 +62,7 @@ import java.util.Set;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
-    private static final Set<NativePlatform> DEFAULT_PLATFORMS = instantiateDefaultPlatforms();
+    static final Set<NativePlatform> DEFAULT_PLATFORMS = instantiateDefaultPlatforms();
 
     @Inject
     public NativeComponentModelPlugin(Instantiator instantiator) {

@@ -141,7 +141,9 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public ArchitectureInternal getArchitecture() {
-        if (architecture == null) return getCurrentArchitecture();
+        if (architecture == null) {
+            return getCurrentArchitecture();
+        }
         return architecture;
     }
 
@@ -151,7 +153,9 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     public OperatingSystemInternal getOperatingSystem() {
         OperatingSystem currentOs = OperatingSystem.current();
-        if (operatingSystem == null) return new DefaultOperatingSystem(currentOs.getName(), currentOs); //TODO freekh: is this really right?
+        if (operatingSystem == null) {
+            return new DefaultOperatingSystem(currentOs.getName(), currentOs); //TODO freekh: is this really right?
+        }
         return operatingSystem;
     }
 
