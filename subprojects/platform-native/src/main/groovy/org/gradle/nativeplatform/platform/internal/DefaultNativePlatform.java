@@ -66,10 +66,10 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
         //TODO freekh: add itanium? Who on earth uses it these days? It was discontinued in 2012 so...
         //TODO freekh: add more ppc? xbox/playstation is based on Power arch (ppc/cell) I think?
-        if (currentOs.isWindows() && architecture.isAmd64()) { //WINDOWS
-            return "windows_x64";
-        } else if (currentOs.isWindows() && architecture.isI386()) {
+        if (currentOs.isWindows()) { //WINDOWS
             return "windows_x86";
+//        } else if (currentOs.isWindows() && architecture.isAmd64()) { //TODO freekh: for now always use i386 for windows
+//            return "windows_x64";
         } else if (currentOs.isWindows() && architecture.isArm()) {
             return "windows_rt_32";
         } else if (currentOs.isFreeBSD() && architecture.isAmd64()) { //FREE BSD

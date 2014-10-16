@@ -93,7 +93,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private static Set<NativePlatform> instantiateDefaultPlatforms() {
         Set<NativePlatform> defaultPlatforms = new LinkedHashSet<NativePlatform>();
 
-        defaultPlatforms.add(DefaultNativePlatform.create("windows_x64"));
+        //defaultPlatforms.add(DefaultNativePlatform.create("windows_x64")); TODO freekh: we probably want to include this, but for now try to always use i386 for windows
         defaultPlatforms.add(DefaultNativePlatform.create("windows_x86"));
         defaultPlatforms.add(DefaultNativePlatform.create("windows_rt_32"));
         defaultPlatforms.add(DefaultNativePlatform.create("freebsd_x64"));
