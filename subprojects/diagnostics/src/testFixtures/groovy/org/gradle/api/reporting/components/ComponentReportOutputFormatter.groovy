@@ -20,7 +20,6 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin
 
 class ComponentReportOutputFormatter implements Transformer<String, String> {
     final AvailableToolChains.InstalledToolChain toolChain
