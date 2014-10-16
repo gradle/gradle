@@ -29,7 +29,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
@@ -53,11 +52,6 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
         //concurrent tooling api at the moment is only supported for forked mode
         toolingApi.isEmbedded = false
         concurrent.shortTimeout = 180000
-        ConnectorServices.reset()
-    }
-
-    def cleanup() {
-        ConnectorServices.reset()
     }
 
     def "handles the same target gradle version concurrently"() {

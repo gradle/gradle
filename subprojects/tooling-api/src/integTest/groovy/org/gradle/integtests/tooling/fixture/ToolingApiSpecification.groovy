@@ -27,8 +27,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.runner.RunWith
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
 /**
@@ -46,14 +44,13 @@ import spock.lang.Specification
 @ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
 abstract class ToolingApiSpecification extends Specification {
-    static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
+    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
     static void selectTargetDist(GradleDistribution version) {
@@ -66,19 +63,6 @@ abstract class ToolingApiSpecification extends Specification {
 
     void reset() {
         new ConnectorServices().reset()
-    }
-
-    void setup() {
-        def consumerGradle = GradleVersion.current()
-        def target = GradleVersion.version(VERSION.get().version.version)
-        LOGGER.info(" Using Tooling API consumer ${consumerGradle}, provider ${target}")
-        this.toolingApi.withConnector {
-            if (consumerGradle.version != target.version) {
-                LOGGER.info("Overriding daemon tooling API provider to use installation: " + target);
-                it.useInstallation(new File(getTargetDist().gradleHomeDir.absolutePath))
-                it.embedded(false)
-            }
-        }
     }
 
     public void withConnector(@DelegatesTo(GradleConnector) Closure cl) {
