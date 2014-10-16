@@ -85,9 +85,6 @@ class GccVersionDeterminerTest extends Specification {
     @Unroll
     "can scrape architecture from GCC output"() {
         expect:
-        def result = output(gcc4)
-        result.defaultArchitecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-
         def x86 = output(gccX86)
         x86.defaultArchitecture.isI386()
 
