@@ -60,6 +60,7 @@ project(":") {
     }
 
     task cleanUpCaches {
+        dependsOn ':createBuildReceipt'
         doLast {
             def executingVersion = GradleVersion.version(gradle.gradleVersion)
 
