@@ -52,16 +52,6 @@ class NativeComponentModelPluginTest extends Specification {
         project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer)) != null
     }
 
-    def "adds default target platform, build type and flavor"() {
-        expect:
-        with(one(project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)))) {
-            name == 'current'
-            architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-        }
-        one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'debug'
-        one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'default'
-    }
-
     def "does not provide a default tool chain"() {
         expect:
         project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)).isEmpty()
