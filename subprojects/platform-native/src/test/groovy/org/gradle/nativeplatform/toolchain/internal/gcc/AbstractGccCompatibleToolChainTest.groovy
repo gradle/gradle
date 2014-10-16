@@ -58,6 +58,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def toolChain = new TestNativeToolChain("test", operatingSystem, fileResolver, execActionFactory, toolSearchPath, metaDataProvider, instantiator)
     def platform = Stub(NativePlatformInternal)
 
+    def dummyOs = new DefaultOperatingSystem("dummyos", OperatingSystem.current())
+    def dummyArch = new DefaultArchitecture("dummyarch", ArchitectureInternal.InstructionSet.X86, 64)
+
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
         platform.name >> 'unknown'
@@ -75,8 +78,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
 
         given:
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
 
         and:
         toolSearchPath.locate(ToolType.C_COMPILER, "gcc") >> compilerMissing
@@ -97,8 +100,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
 
         given:
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
 
         and:
         toolSearchPath.locate(_, _) >> tool
@@ -112,8 +115,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def "is available when any language tool can be found and compiler has correct implementation"() {
         given:
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
 
         and:
         toolSearchPath.locate(ToolType.C_COMPILER, "gcc") >> missing
@@ -145,8 +148,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform1.name >> "platform1"
         platform2.name >> "platform2"
 
-        platform1.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform2.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform1.operatingSystem >> dummyOs
+        platform2.operatingSystem >> dummyOs
 
         toolSearchPath.locate(_, _) >> tool
         metaDataProvider.getGccMetaData(_, _) >> correctCompiler
@@ -210,8 +213,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         given:
         toolSearchPath.locate(_, _) >> tool
-        platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        platform.getOperatingSystem() >> dummyOs
+        platform.getArchitecture() >> dummyArch
         toolChain.eachPlatform(action)
 
         when:
@@ -234,7 +237,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         given:
         toolSearchPath.locate(_, _) >> tool
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.operatingSystem >> dummyOs
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
         toolChain.eachPlatform(action)
 
@@ -262,9 +265,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def action = Mock(Action)
 
         given:
-        operatingSystem.isMacOsX() >> true
         toolSearchPath.locate(_, _) >> tool
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.operatingSystem >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
         toolChain.eachPlatform(action)
 
@@ -333,8 +335,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def "provided action can configure platform tool chain"() {
         given:
-        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
 
         def action = Mock(Action)
         toolChain.eachPlatform(action)
