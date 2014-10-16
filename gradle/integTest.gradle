@@ -80,6 +80,7 @@ task cleanUpCaches {
 
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage', 'cleanUpCaches'
+    shouldRunAfter 'test'
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
