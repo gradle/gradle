@@ -17,8 +17,12 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import com.google.common.base.Joiner;
+import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
+import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser;
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
@@ -132,7 +136,9 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         } else if (amd64) {
             architecture = new DefaultArchitecture("amd64", ArchitectureInternal.InstructionSet.X86, 64);
         } else {
-            throw new UnsupportedOperationException("Could not detect type of architecture (neither i386 nor amd64)");
+            NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser(); //TODO freekh: not DRY with DefaultNativePlatform
+            String archName = Native.get(SystemInfo.class).getArchitecture().toString();
+            architecture =  archParser.parseNotation(archName);
         }
         return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
     }
