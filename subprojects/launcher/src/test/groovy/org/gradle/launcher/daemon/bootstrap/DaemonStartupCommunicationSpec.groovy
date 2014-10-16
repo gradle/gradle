@@ -16,46 +16,56 @@
 
 package org.gradle.launcher.daemon.bootstrap
 
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
 import spock.lang.Specification
 
 class DaemonStartupCommunicationSpec extends Specification {
-
     def comm = new DaemonStartupCommunication()
+    def dummyFile = new File("C:\\foo;;\\daemon-123.log\n\r\n\u03b1")
+    def uuid = UUID.randomUUID()
+    def addresses = [InetAddress.getByName(null)]
 
     def "can simply communicate diagnostics"() {
-        given:
-        def dummyFile = new File("C:\\foo;;\\daemon-123.log")
-
         when:
-        def message = comm.daemonStartedMessage(123, dummyFile)
-        def diagnostics = comm.readDiagnostics(message)
+        def message = message(123, "1234", uuid, 123, addresses, dummyFile)
+        def startupInfo = comm.readDiagnostics(message)
 
         then:
-        diagnostics.pid == 123
-        diagnostics.daemonLog == dummyFile
+        startupInfo.uid == "1234"
+        startupInfo.address.id == "1234"
+        startupInfo.address.address.canonicalAddress == uuid
+        startupInfo.address.address.port == 123
+        startupInfo.address.address.candidates == addresses
+        startupInfo.diagnostics.pid == 123
+        startupInfo.diagnostics.daemonLog == dummyFile
     }
 
     def "null pid is supported"() {
-        given:
-        def dummyFile = new File("C:\\foo;;\\daemon-123.log")
-
         when:
-        def message = comm.daemonStartedMessage(null, dummyFile)
-        def diagnostics = comm.readDiagnostics(message)
+        def message = message(null, "1234", uuid, 123, addresses, dummyFile)
+        def startupInfo = comm.readDiagnostics(message)
 
         then:
-        diagnostics.pid == null
-        diagnostics.daemonLog == dummyFile
+        startupInfo.diagnostics.pid == null
     }
 
     def "knows if a message contains a greeting"() {
         expect:
         !comm.containsGreeting("foo")
-        comm.containsGreeting(comm.daemonStartedMessage(null, new File("foo")))
+        comm.containsGreeting(message(null, "id", uuid, 123, addresses, new File("foo")))
 
         when:
         comm.containsGreeting(null)
+
         then:
         thrown(IllegalArgumentException)
+    }
+
+    def message(Long pid, String daemonId, UUID addressId, int port, List<InetAddress> addresses, File logFile) {
+        def outputStream = new ByteArrayOutputStream()
+        def printStream = new PrintStream(outputStream)
+        def address = new MultiChoiceAddress(addressId, port, addresses)
+        comm.printDaemonStarted(printStream, pid, daemonId, address, logFile)
+        return new String(outputStream.toByteArray())
     }
 }

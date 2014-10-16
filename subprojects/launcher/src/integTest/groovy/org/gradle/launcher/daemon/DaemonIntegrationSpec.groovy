@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.launcher.daemon.testing.DaemonsFixture
 
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     String output
@@ -51,7 +52,7 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         output = result.output
     }
 
-    DaemonLogsAnalyzer getDaemons() {
+    DaemonsFixture getDaemons() {
         new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }

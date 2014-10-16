@@ -51,6 +51,6 @@ class DefaultJvmBinaryTasksTest extends Specification {
 
         then:
         def e = thrown GradleException
-        e.message == "Multiple task with type 'Jar' found."
+        e.message == "Multiple tasks with type 'Jar' found."
     }
 }

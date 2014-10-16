@@ -17,10 +17,15 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 /**
@@ -36,16 +41,27 @@ public class ConnectionScopeServices {
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.add(LoggingServiceRegistry.class, loggingServices);
         serviceRegistration.addProvider(new GlobalScopeServices(false));
+        serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
-    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory) {
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, OutputEventRenderer outputEventRenderer) {
+        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(daemonClientFactory, outputEventRenderer);
+        listenerManager.addListener(shutdownCoordinator);
+        return shutdownCoordinator;
+    }
+
+    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory,
+                                                ClassLoaderFactory classLoaderFactory, ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 loggingServices,
+                daemonClientFactory,
                 new InProcessBuildActionExecuter(gradleLauncherFactory),
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
-                                        new ModelClassLoaderFactory()),
+                                        new ClientSidePayloadClassLoaderFactory(
+                                                new ModelClassLoaderFactory(
+                                                        classLoaderFactory))),
                                 new ClasspathInferer()))
         );
     }

@@ -16,18 +16,17 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.daemon.server.exec.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -37,8 +36,6 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The client piece of the build daemon.
@@ -77,7 +74,6 @@ import java.util.Set;
  */
 public class DaemonClient implements BuildActionExecuter<BuildActionParameters> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
-    private static final int STOP_TIMEOUT_SECONDS = 30;
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
@@ -103,41 +99,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
     protected DaemonConnector getConnector() {
         return connector;
-    }
-
-    /**
-     * Stops all daemons, if any is running.
-     */
-    public void stop() {
-        long start = System.currentTimeMillis();
-        long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
-        Set<String> stopped = new HashSet<String>();
-
-        // TODO - only connect to daemons that we have not yet sent a stop request to
-        DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
-        if (connection == null) {
-            LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
-            return;
-        }
-
-        LOGGER.lifecycle("Stopping daemon(s).");
-
-        //iterate and stop all daemons
-        while (connection != null && System.currentTimeMillis() < expiry) {
-            try {
-                if (stopped.add(connection.getUid())) {
-                    new StopDispatcher(idGenerator).dispatch(connection);
-                    LOGGER.lifecycle("Gradle daemon stopped.");
-                }
-            } finally {
-                connection.stop();
-            }
-            connection = connector.maybeConnect(compatibilitySpec);
-        }
-
-        if (connection != null) {
-            throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s seconds.", (System.currentTimeMillis() - start) / 1000));
-        }
     }
 
     /**
@@ -207,8 +168,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, BuildCancellationToken cancellationToken) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, cancellationToken, executorFactory, idGenerator);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
+        DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken, idGenerator);
         try {
+            cancelForwarder.start();
             inputForwarder.start();
             int objectsReceived = 0;
 
@@ -225,7 +188,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 }
             }
         } finally {
-            inputForwarder.stop();
+            // Stop cancelling before sending end-of-input
+            CompositeStoppable.stoppable(cancelForwarder, inputForwarder).stop();
         }
     }
 

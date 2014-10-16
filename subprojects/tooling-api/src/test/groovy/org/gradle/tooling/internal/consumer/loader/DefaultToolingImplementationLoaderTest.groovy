@@ -64,13 +64,14 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         consumerConnection.delegate.configured
 
         and:
-        wrappedToNonCancellableAdapter || adaptedConnection.class == adapter
+        wrappedToNonCancellableAdapter  || adaptedConnection.class == adapter
         !wrappedToNonCancellableAdapter || adaptedConnection.class == NonCancellableConsumerConnectionAdapter
         !wrappedToNonCancellableAdapter || adaptedConnection.delegate.class == adapter
 
         where:
         connectionImplementation  | adapter                                          | wrappedToNonCancellableAdapter
-        TestConnection.class      | CancellableConsumerConnection.class              | false
+        TestConnection.class      | ShutdownAwareConsumerConnection.class            | false
+        TestR21Connection.class   | CancellableConsumerConnection.class              | false
         TestR18Connection.class   | ActionAwareConsumerConnection.class              | true
         TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
         TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class  | true
@@ -131,7 +132,18 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 }
 
-class TestConnection extends TestR18Connection implements InternalCancellableConnection {
+class TestConnection extends TestR21Connection implements StoppableConnection {
+    @Override
+    void shutdown(ShutdownParameters parameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('2.2')
+    }
+}
+
+class TestR21Connection extends TestR18Connection implements InternalCancellableConnection {
     @Override
     BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
             throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {

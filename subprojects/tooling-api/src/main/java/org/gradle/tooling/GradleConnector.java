@@ -16,7 +16,6 @@
 package org.gradle.tooling;
 
 import org.gradle.tooling.internal.consumer.ConnectorServices;
-import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 
 import java.io.File;
 import java.net.URI;
@@ -62,7 +61,7 @@ public abstract class GradleConnector {
      * @since 1.0-milestone-3
      */
     public static GradleConnector newConnector() {
-        return new ConnectorServices().createConnector();
+        return ConnectorServices.createConnector();
     }
 
     /**
@@ -72,7 +71,7 @@ public abstract class GradleConnector {
      * @since 2.1
      */
     public static CancellationTokenSource newCancellationTokenSource() {
-        return new DefaultCancellationTokenSource();
+        return ConnectorServices.createCancellationTokenSource();
     }
 
     /**

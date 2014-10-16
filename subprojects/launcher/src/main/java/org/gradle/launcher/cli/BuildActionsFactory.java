@@ -36,15 +36,16 @@ import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.client.SingleUseDaemonClientServices;
-import org.gradle.launcher.daemon.client.StopDaemonClientServices;
+import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
+import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.logging.internal.OutputEventListener;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -135,14 +136,16 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
-        DaemonClientServices clientServices = new StopDaemonClientServices(loggingServices, daemonParameters, System.in);
-        DaemonClient stopClient = clientServices.get(DaemonClient.class);
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createStopDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
+        DaemonStopClient stopClient = clientServices.get(DaemonStopClient.class);
         return new StopDaemonAction(stopClient);
     }
 
     private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         // Create a client that will match based on the daemon startup parameters.
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return daemonBuildAction(startParameter, daemonParameters, client);
     }
@@ -174,9 +177,19 @@ class BuildActionsFactory implements CommandLineAction {
         //end of workaround.
 
         // Create a client that will not match any existing daemons, so it will always startup a new one
-        DaemonClientServices clientServices = new SingleUseDaemonClientServices(loggingServices, daemonParameters, System.in);
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return daemonBuildAction(startParameter, daemonParameters, client);
+    }
+
+    private ServiceRegistry createGlobalClientServices() {
+        return ServiceRegistryBuilder.builder()
+                .displayName("Daemon client global services")
+                .parent(NativeServices.getInstance())
+                .provider(new GlobalScopeServices(false))
+                .provider(new DaemonClientGlobalServices())
+                .build();
     }
 
     private Runnable daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer) {

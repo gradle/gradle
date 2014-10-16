@@ -16,43 +16,53 @@
 
 package org.gradle.launcher.daemon.testing
 
-import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.daemon.client.DaemonClientServices
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.util.GradleVersion
 
-class DaemonLogsAnalyzer {
+class DaemonLogsAnalyzer implements DaemonsFixture {
     private File daemonLogsDir
     private File daemonBaseDir
-    private ServiceRegistry services
+    private DaemonRegistry registry
 
     DaemonLogsAnalyzer(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir
         daemonLogsDir = new File(daemonBaseDir, GradleVersion.current().version)
-        DaemonParameters daemonParameters = new DaemonParameters(new BuildLayoutParameters())
-        daemonParameters.setBaseDir(daemonBaseDir)
-        services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), daemonParameters, new ByteArrayInputStream(new byte[0]))
+        def services = ServiceRegistryBuilder.builder()
+                .parent(LoggingServiceRegistry.newEmbeddableLogging())
+                .parent(NativeServices.instance)
+                .provider(new GlobalScopeServices(false))
+                .provider(new DaemonClientGlobalServices())
+                .provider(new DaemonRegistryServices(daemonBaseDir))
+                .build()
+        registry = services.get(DaemonRegistry)
+    }
+
+    DaemonRegistry getRegistry() {
+        return registry
     }
 
     void killAll() {
         daemons*.kill()
     }
 
-    List<TestableDaemon> getDaemons() {
+    List<DaemonFixture> getDaemons() {
         assert daemonLogsDir.isDirectory()
         return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { new TestableDaemon(it, registry) }
     }
 
-    TestableDaemon getDaemon() {
+    List<DaemonFixture> getVisible() {
+        return registry.all.collect { new TestableDaemon(new File(daemonLogsDir, "daemon-${it.context.pid}.out.log"), registry) }
+    }
+
+    DaemonFixture getDaemon() {
         def daemons = getDaemons()
         assert daemons.size() == 1
         daemons[0]
-    }
-
-    DaemonRegistry getRegistry() {
-        services.get(DaemonRegistry)
     }
 }

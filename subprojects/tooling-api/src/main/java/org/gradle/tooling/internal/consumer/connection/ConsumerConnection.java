@@ -16,14 +16,17 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**
  * Implementations must be thread-safe.
  */
-public interface ConsumerConnection {
-
+public interface ConsumerConnection extends Stoppable {
+    /**
+     * Cleans up resources used by this connection. Blocks until complete.
+     */
     void stop();
     
     String getDisplayName();

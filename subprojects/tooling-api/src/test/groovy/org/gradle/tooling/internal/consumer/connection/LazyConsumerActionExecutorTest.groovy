@@ -89,22 +89,6 @@ class LazyConsumerActionExecutorTest extends Specification {
         0 * _._
     }
 
-    def stopsConnectionOnStop() {
-        when:
-        connection.run(action)
-        connection.stop()
-
-        then:
-        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
-        _ * cancellationToken.cancellationRequested >> false
-        _ * action.parameters >> params
-        _ * params.cancellationToken >> cancellationToken
-        1 * action.run(consumerConnection)
-        1 * consumerConnection.stop()
-        0 * _._
-    }
-
     def doesNotStopConnectionOnStopIfNotCreated() {
         when:
         connection.stop()

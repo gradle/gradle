@@ -17,18 +17,19 @@
 package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
+import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SynchronizedToolingImplementationLoader implements ToolingImplementationLoader {
-
-    Lock lock = new ReentrantLock();
+public class SynchronizedToolingImplementationLoader implements ToolingImplementationLoader, Closeable {
+    private final Lock lock = new ReentrantLock();
     private final ToolingImplementationLoader delegate;
 
     public SynchronizedToolingImplementationLoader(ToolingImplementationLoader delegate) {
@@ -52,6 +53,15 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         } finally {
             lock.unlock();
             logger.completed();
+        }
+    }
+
+    public void close() {
+        lock.lock();
+        try {
+            CompositeStoppable.stoppable(delegate).stop();
+        } finally {
+            lock.unlock();
         }
     }
 }

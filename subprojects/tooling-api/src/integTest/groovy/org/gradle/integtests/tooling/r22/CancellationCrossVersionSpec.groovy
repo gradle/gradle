@@ -28,7 +28,7 @@ import org.junit.Rule
 
 @ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=2.1")
-class CancellationR22CrossVersionSpec extends ToolingApiSpecification {
+class CancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {

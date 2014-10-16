@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -138,13 +137,6 @@ public interface GradleExecuter {
      * @return The result.
      */
     ExecutionFailure runWithFailure();
-
-    /**
-     * Provides a daemon registry for any daemons started by this executer, which may be none.
-     *
-     * @return the daemon registry, never null.
-     */
-    DaemonRegistry getDaemonRegistry();
 
     /**
      * Starts executing the build asynchronously.

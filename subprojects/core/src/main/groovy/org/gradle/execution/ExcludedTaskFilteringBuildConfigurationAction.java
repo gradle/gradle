@@ -18,6 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,15 +37,11 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
         GradleInternal gradle = context.getGradle();
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
-            final Set<Task> excludedTasks = new HashSet<Task>();
+            final Set<Spec<Task>> filters = new HashSet<Spec<Task>>();
             for (String taskName : excludedTaskNames) {
-                excludedTasks.addAll(taskSelector.getSelection(taskName).getTasks());
+                filters.add(taskSelector.getFilter(taskName));
             }
-            gradle.getTaskGraph().useFilter(new Spec<Task>() {
-                public boolean isSatisfiedBy(Task task) {
-                    return !excludedTasks.contains(task);
-                }
-            });
+            gradle.getTaskGraph().useFilter(Specs.and(filters));
         }
 
         context.proceed();

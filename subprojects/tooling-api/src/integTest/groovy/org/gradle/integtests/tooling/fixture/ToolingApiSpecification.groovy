@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -62,6 +64,10 @@ abstract class ToolingApiSpecification extends Specification {
         VERSION.get()
     }
 
+    void reset() {
+        new ConnectorServices().reset()
+    }
+
     void setup() {
         def consumerGradle = GradleVersion.current()
         def target = GradleVersion.version(VERSION.get().version.version)
@@ -75,15 +81,15 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public void withConnector(Closure cl) {
+    public void withConnector(@DelegatesTo(GradleConnector) Closure cl) {
         toolingApi.withConnector(cl)
     }
 
-    public <T> T withConnection(Closure<T> cl) {
+    public <T> T withConnection(@DelegatesTo(ProjectConnection) Closure<T> cl) {
         toolingApi.withConnection(cl)
     }
 
-    public <T> T withConnection(GradleConnector connector, Closure<T> cl) {
+    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
         toolingApi.withConnection(connector, cl)
     }
 

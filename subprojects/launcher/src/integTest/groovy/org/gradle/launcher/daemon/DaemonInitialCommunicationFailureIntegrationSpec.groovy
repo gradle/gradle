@@ -44,9 +44,9 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def daemon = daemons.daemon
 
         when:
-        // Wait until the daemon has finished updating the registry. Killing it halfway through the registry update will leave the registry corrupted,
+        // Ensure that the daemon has finished updating the registry. Killing it halfway through the registry update will leave the registry corrupted,
         // and the client will just throw the registry away and replace it with an empty one
-        daemon.waitUntilIdle()
+        daemon.assertIdle()
         daemon.kill()
 
         and:
@@ -80,7 +80,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def daemon = daemons.daemon
 
         when:
-        daemon.waitUntilIdle()
+        daemon.assertIdle()
         daemon.kill()
         poll {
             server.tryStart(daemon.port)
@@ -110,7 +110,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def daemon = daemons.daemon
 
         when:
-        daemon.waitUntilIdle()
+        daemon.assertIdle()
         daemon.kill()
 
         then:
@@ -119,7 +119,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         and:
         def analyzer = daemons
         analyzer.daemons.size() == 2        //2 daemon participated
-        analyzer.registry.all.size() == 1   //only one address in the registry
+        analyzer.visible.size() == 1        //only one address in the registry
     }
 
     private static class TestServer extends ExternalResource {

@@ -54,11 +54,11 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
         //concurrent tooling api at the moment is only supported for forked mode
         toolingApi.isEmbedded = false
         concurrent.shortTimeout = 180000
-        new ConnectorServices().reset()
+        ConnectorServices.reset()
     }
 
     def cleanup() {
-        new ConnectorServices().reset()
+        ConnectorServices.reset()
     }
 
     def "handles the same target gradle version concurrently"() {

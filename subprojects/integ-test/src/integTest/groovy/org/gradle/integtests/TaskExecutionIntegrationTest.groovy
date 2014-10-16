@@ -173,6 +173,46 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
     }
 
+    def "unqualified exclude task name does not exclude tasks from parent projects"() {
+        settingsFile << "include 'sub'"
+        buildFile << """
+    task a
+"""
+        file("sub/build.gradle") << """
+    task a
+    task b
+    task c(dependsOn: [a, b, ':a'])
+"""
+
+        expect:
+        executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
+    }
+
+    def 'can use camel-case matching to exclude tasks'() {
+        buildFile << """
+task someDep
+task someOtherDep
+task someTask(dependsOn: [someDep, someOtherDep])
+"""
+
+        expect:
+        executer.withTasks("someTask").withArguments("-x", "sODep").run().assertTasksExecuted(":someDep", ":someTask")
+        executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
+    }
+
+    def 'can combine exclude task filters'() {
+        buildFile << """
+task someDep
+task someOtherDep
+task someTask(dependsOn: [someDep, someOtherDep])
+"""
+
+        expect:
+        executer.withTasks("someTask").withArguments("-x", "someDep", "-x", "someOtherDep").run().assertTasksExecuted(":someTask")
+        executer.withTasks("someTask").withArguments("-x", ":someDep", "-x", ":someOtherDep").run().assertTasksExecuted(":someTask")
+        executer.withTasks("someTask").withArguments("-x", "sODep", "-x", "soDep").run().assertTasksExecuted(":someTask")
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-2974")
     @Issue("https://issues.gradle.org/browse/GRADLE-3031")
     def 'excluding a task that is a dependency of multiple tasks'() {

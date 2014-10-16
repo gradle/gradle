@@ -15,8 +15,7 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.launcher.daemon.protocol.Cancel
+import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.messaging.dispatch.Dispatch
@@ -26,12 +25,10 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
-import org.gradle.internal.id.IdGenerator
 
 class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def bufferSize = 1024
-    def cancellationToken = new DefaultBuildCancellationToken()
 
     def source = new PipedOutputStream()
     def inputStream = new PipedInputStream(source)
@@ -50,10 +47,6 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         true
     }
 
-    boolean receiveCancel() {
-        receivedCommand() instanceof Cancel
-    }
-
     boolean receiveClosed() {
         receivedCommand() instanceof CloseInput
     }
@@ -61,7 +54,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def forwarder
 
     def createForwarder() {
-        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, cancellationToken, executorFactory, { 12 } as IdGenerator, bufferSize)
+        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, executorFactory, { 12 } as IdGenerator, bufferSize)
         forwarder.start()
     }
 
@@ -113,41 +106,6 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         forwarder.stop()
 
         then:
-        receiveClosed()
-    }
-
-    def "cancel is forwarded when recieved before stop"() {
-        when:
-        cancellationToken.doCancel()
-        forwarder.stop()
-
-        then:
-        receiveCancel()
-        receiveClosed()
-    }
-
-    def "cancel is ignored after stop"() {
-        when:
-        forwarder.stop()
-        cancellationToken.doCancel()
-
-        then:
-        receiveClosed()
-    }
-
-    def "can interleave cancel and input"() {
-        def value = toPlatformLineSeparators("abc\n")
-        when:
-        source << value
-        then:
-        receive value
-
-        when:
-        cancellationToken.doCancel()
-        forwarder.stop()
-
-        then:
-        receiveCancel()
         receiveClosed()
     }
 

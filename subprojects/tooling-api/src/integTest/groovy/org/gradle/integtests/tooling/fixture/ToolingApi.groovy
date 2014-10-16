@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.launcher.daemon.testing.DaemonsFixture
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -50,11 +51,15 @@ class ToolingApi {
         this.isEmbedded = isEmbedded
     }
 
+    /**
+     * Specifies that the test use real daemons (not embedded) and a test-specific daemon registry.
+     */
     void requireIsolatedDaemons() {
         userHomeDir = new File(testWorkDirProvider.testDirectory, "user-home-dir")
+        isEmbedded = false
     }
 
-    DaemonLogsAnalyzer getDaemons() {
+    DaemonsFixture getDaemons() {
         return new DaemonLogsAnalyzer(new File(userHomeDir, "daemon"))
     }
 

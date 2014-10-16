@@ -15,10 +15,6 @@
     margin-top: 1.5em;
 }
 
-div.toc {
-    font-size: 15px;
-}
-
 div.toc p { /* Is "Table Of Contents" header */
     font-size: 28px;
     color: #007042;

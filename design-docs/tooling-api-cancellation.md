@@ -120,6 +120,8 @@ In this story, a `BuildAction` receives an exception when it is using or uses a 
 - Add some mechanism to inform the client when cancellation is or is not available
 - Add some mechanism to inform the client about the state of a cancellation request.
 
+### Story: Test execution is aborted when operation is cancelled
+
 ### Story: Task graph assembly is aborted when operation is cancelled
 
 ### Story: Model rule execution is aborted when operation is cancelled

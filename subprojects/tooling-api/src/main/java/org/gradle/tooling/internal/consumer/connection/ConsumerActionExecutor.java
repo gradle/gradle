@@ -22,7 +22,9 @@ import org.gradle.internal.concurrent.Stoppable;
  * Implementations must be thread-safe.
  */
 public interface ConsumerActionExecutor extends Stoppable {
-
+    /**
+     * Blocks until all actions have completed.
+     */
     void stop();
     
     String getDisplayName();

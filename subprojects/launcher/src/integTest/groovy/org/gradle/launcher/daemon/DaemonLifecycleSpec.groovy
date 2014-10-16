@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -314,21 +315,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
-    def "can stop a daemon that is using a different java home"() {
-        when:
-        startForegroundDaemonWithAlternateJavaHome()
-
-        then:
-        idle()
-
-        when:
-        stopDaemons()
-
-        then:
-        stopped()
-    }
-
     def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
         when:
         startBuild(null, "US-ASCII")
@@ -365,7 +351,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     
     def cleanup() {
         try {
-            sequenceBuilder.build(executer.daemonRegistry).run()
+            def registry = new DaemonLogsAnalyzer(executer.daemonBaseDir).registry
+            sequenceBuilder.build(registry).run()
         } finally {
             stopDaemonsNow()
         }

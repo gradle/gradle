@@ -19,10 +19,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildRequestMetaData;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Map;
 
-public interface BuildActionParameters extends Serializable {
+public interface BuildActionParameters {
     BuildRequestMetaData getBuildRequestMetaData();
 
     Map<String, String> getSystemProperties();

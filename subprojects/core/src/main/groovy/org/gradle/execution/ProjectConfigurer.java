@@ -17,7 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.execution.taskpath.ResolvedTaskPath;
 
 public interface ProjectConfigurer {
     /**
@@ -29,9 +28,4 @@ public interface ProjectConfigurer {
      * Configures the given project and all its sub-projects.
      */
     void configureHierarchy(ProjectInternal project);
-
-    /**
-     * Configures the projects required for the given task path.
-     */
-    void configureForPath(ResolvedTaskPath taskPath);
 }

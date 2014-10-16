@@ -18,6 +18,7 @@ package org.gradle.api.specs;
 import groovy.lang.Closure;
 import org.gradle.api.specs.internal.ClosureSpec;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,7 +59,15 @@ public class Specs {
         return new AndSpec<T>(specs);  
     }
 
+    public static <T> AndSpec<T> and(Collection<? extends Spec<? super T>> specs) {
+        return new AndSpec<T>(specs);
+    }
+
     public static <T> OrSpec<T> or(Spec<? super T>... specs) {
+        return new OrSpec<T>(specs);
+    }
+
+    public static <T> OrSpec<T> or(Collection<? extends Spec<? super T>> specs) {
         return new OrSpec<T>(specs);
     }
 

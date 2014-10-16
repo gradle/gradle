@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExecuter {
@@ -32,10 +31,6 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
     @Override
     protected ExecutionFailure doRunWithFailure() {
         return configureExecuter().runWithFailure();
-    }
-
-    public DaemonRegistry getDaemonRegistry() {
-        return configureExecuter().getDaemonRegistry();
     }
 
     public void assertCanExecute() throws AssertionError {

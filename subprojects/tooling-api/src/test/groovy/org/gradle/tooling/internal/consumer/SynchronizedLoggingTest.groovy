@@ -14,35 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer
 
-
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CopyOnWriteArraySet
 
-public class SynchronizedLoggingTest extends Specification {
-
+public class SynchronizedLoggingTest extends ConcurrentSpec {
     def logging = new SynchronizedLogging()
-    def concurrent = new ConcurrentTestUtil()
 
-    def "must be initialized"() {
-        when:
-        logging.listenerManager
-        then:
-        thrown(IllegalStateException)
+    def "initialises on first usage"() {
+        expect:
+        logging.listenerManager != null
+        logging.listenerManager == logging.listenerManager
 
-        when:
-        logging.progressLoggerFactory
-        then:
-        thrown(IllegalStateException)
-
-        when:
-        logging.init()
-        then:
-        logging.listenerManager
-        logging.progressLoggerFactory
+        logging.progressLoggerFactory != null
+        logging.progressLoggerFactory == logging.progressLoggerFactory
     }
 
     def "keeps state per thread"() {
@@ -51,16 +38,16 @@ public class SynchronizedLoggingTest extends Specification {
         Set loggingTools = new CopyOnWriteArraySet()
 
         when:
-        2.times {
-            concurrent.start {
-                logging.init()
-                loggingTools << logging.listenerManager
-                loggingTools << logging.progressLoggerFactory
+        async {
+            2.times {
+                start {
+                    loggingTools << logging.listenerManager
+                    loggingTools << logging.progressLoggerFactory
+                }
             }
         }
-        concurrent.finished()
 
-        then: "each thread has separate instances of logging tools"
+        then:
         loggingTools.size() == 4
     }
 }

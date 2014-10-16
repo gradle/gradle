@@ -15,30 +15,30 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.LazyConsumerActionExecutor;
-import org.gradle.tooling.internal.consumer.connection.LoggingInitializerConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class ConnectionFactory {
     private final ToolingImplementationLoader toolingImplementationLoader;
-    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+    private final ExecutorFactory executorFactory;
+    private final LoggingProvider loggingProvider;
 
-    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader) {
+    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
         this.toolingImplementationLoader = toolingImplementationLoader;
+        this.executorFactory = executorFactory;
+        this.loggingProvider = loggingProvider;
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
-        SynchronizedLogging synchronizedLogging = new SynchronizedLogging();
-        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, synchronizedLogging, parameters);
-        ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(lazyConnection, synchronizedLogging);
-        ConsumerActionExecutor initializingConnection = new LoggingInitializerConsumerActionExecutor(progressLoggingConnection, synchronizedLogging);
-        AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(initializingConnection, executorFactory);
+        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
+        ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(lazyConnection, loggingProvider);
+        AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(progressLoggingConnection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, parameters);
     }
 

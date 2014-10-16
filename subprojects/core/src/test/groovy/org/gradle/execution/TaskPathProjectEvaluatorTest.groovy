@@ -18,7 +18,6 @@ package org.gradle.execution
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.execution.taskpath.ResolvedTaskPath
 import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
 
@@ -60,38 +59,5 @@ class TaskPathProjectEvaluatorTest extends Specification {
         1 * project.evaluate()
         1 * child1.evaluate()
         0 * child2._
-    }
-
-    def "evaluates project when task path is qualified"() {
-        def path = Mock(ResolvedTaskPath)
-        def fooProject = Mock(ProjectInternal)
-
-        when:
-        evaluator.configureForPath(path)
-
-        then:
-        1 * path.qualified >> true
-        1 * path.project >> fooProject
-        1 * fooProject.evaluate()
-        0 * fooProject._
-    }
-
-    def "evaluates all projects when task path is not qualified"() {
-        def path = Mock(ResolvedTaskPath)
-        def subprojects = [Mock(ProjectInternal), Mock(ProjectInternal)]
-
-        when:
-        evaluator.configureForPath(path)
-
-        then:
-        1 * path.project >> project
-        1 * path.qualified >> false
-
-        and:
-        1 * project.evaluate()
-        1 * project.subprojects >> subprojects
-        1 * subprojects[0].evaluate()
-        1 * subprojects[1].evaluate()
-        0 * project._
     }
 }

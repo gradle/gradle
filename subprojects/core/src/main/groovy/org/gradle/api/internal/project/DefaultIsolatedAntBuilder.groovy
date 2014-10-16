@@ -32,13 +32,14 @@ import org.gradle.util.ConfigureUtil
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
-    private final ClassLoader antClassloader
-    private final Map<ClassPath, ClassLoaderSet> classloaders
+    private final ClassLoader baseAntLoader
+    private final ClassLoader gradleLoader
+    private final Map<ClassPath, ClassLoader> classloaders
     private final ClassPathRegistry classPathRegistry
     private final ClassLoaderFactory classLoaderFactory
     private final ClassPath libClasspath
 
-    def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+    DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
         this.classloaders = [:]
@@ -50,14 +51,29 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         if (toolsJar) {
             antClasspath += toolsJar
         }
-        this.antClassloader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath))
+
+        def antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath))
+        def loggingLoader = new FilteringClassLoader(getClass().classLoader)
+        loggingLoader.allowPackage('org.slf4j')
+        loggingLoader.allowPackage('org.apache.commons.logging')
+        loggingLoader.allowPackage('org.apache.log4j')
+        this.baseAntLoader = new MultiParentClassLoader(antLoader, loggingLoader)
+
+        // Need gradle core to pick up ant logging adapter, AntBuilder and such
+        def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
+        gradleCoreUrls += classPathRegistry.getClassPath("GROOVY")
+
+        // Need Transformer (part of AntBuilder API) from base services
+        gradleCoreUrls += classPathRegistry.getClassPath("GRADLE_BASE_SERVICES")
+        this.gradleLoader = new MutableURLClassLoader(baseAntLoader, gradleCoreUrls)
     }
 
     private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
         this.classPathRegistry = copy.classPathRegistry
         this.classLoaderFactory = copy.classLoaderFactory
         this.classloaders = copy.classloaders
-        this.antClassloader = copy.antClassloader
+        this.baseAntLoader = copy.baseAntLoader
+        this.gradleLoader = copy.gradleLoader
         this.libClasspath = new DefaultClassPath(libClasspath)
     }
 
@@ -66,57 +82,31 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     void execute(Closure antClosure) {
-        def classLoadersForImpl = classloaders[libClasspath]
-
-        if (!classLoadersForImpl) {
-            // Need gradle core to pick up ant logging adapter, AntBuilder and such
-            def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
-            gradleCoreUrls += classPathRegistry.getClassPath("GROOVY")
-
-            // Need Transformer (part of AntBuilder API) from base services
-            gradleCoreUrls += classPathRegistry.getClassPath("GRADLE_BASE_SERVICES")
-
-            FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
-            loggingLoader.allowPackage('org.slf4j')
-            loggingLoader.allowPackage('org.apache.commons.logging')
-            loggingLoader.allowPackage('org.apache.log4j')
-            ClassLoader parent = new MultiParentClassLoader(antClassloader, loggingLoader)
-
-            def antLoader = new URLClassLoader(libClasspath.asURLArray, parent)
-            def gradleLoader = new MutableURLClassLoader(parent, gradleCoreUrls)
-
-            classLoadersForImpl = new ClassLoaderSet(gradleLoader, antLoader)
-            classloaders[libClasspath] = classLoadersForImpl
+        def classLoader = classloaders[libClasspath]
+        if (!classLoader) {
+            classLoader = new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
+            classloaders[libClasspath] = classLoader
         }
 
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = classLoadersForImpl.ant
+        Thread.currentThread().contextClassLoader = classLoader
         try {
-            Object antBuilder = classLoadersForImpl.gradle.loadClass(BasicAntBuilder.class.name).newInstance()
+            Object antBuilder = gradleLoader.loadClass(BasicAntBuilder.class.name).newInstance()
 
-            Object antLogger = classLoadersForImpl.gradle.loadClass(AntLoggingAdapter.class.name).newInstance()
+            Object antLogger = gradleLoader.loadClass(AntLoggingAdapter.class.name).newInstance()
             antBuilder.project.removeBuildListener(antBuilder.project.getBuildListeners()[0])
             antBuilder.project.addBuildListener(antLogger)
 
             // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
             // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
             // because they are not an instanceof it's Closure class
-            Object delegate = new AntBuilderDelegate(antBuilder, classLoadersForImpl.ant)
+            Object delegate = new AntBuilderDelegate(antBuilder, classLoader)
             ConfigureUtil.configure(antClosure, delegate)
         } finally {
             Thread.currentThread().contextClassLoader = originalLoader
         }
     }
 
-    private static class ClassLoaderSet {
-        final ClassLoader gradle
-        final ClassLoader ant
-
-        ClassLoaderSet(ClassLoader gradle, ClassLoader ant) {
-            this.gradle = gradle
-            this.ant = ant
-        }
-    }
 }
 
 class AntBuilderDelegate extends BuilderSupport {

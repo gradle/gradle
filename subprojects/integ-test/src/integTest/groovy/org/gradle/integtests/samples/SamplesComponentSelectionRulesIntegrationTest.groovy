@@ -25,7 +25,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
     @Rule public final Sample sample = new Sample(temporaryFolder, 'componentSelectionRules')
 
     @UsesSample("componentSelectionRules")
-    def "version selection rules are applied"() {
+    def "can run resolveConfiguration sample"() {
         given:
         inDirectory "componentSelectionRules"
 
@@ -33,8 +33,57 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         run "resolveConfiguration"
 
         then:
-        output.contains "Rejected version: 18.0"
-        output.contains "Rejected version: 18.0-rc1"
-        output.contains "** Accepted version:"
+        output.contains "Rejected version: 1.5"
+        output.contains "Rejected version: 1.4"
+        output.contains "** Accepted version: 1.3.0"
+    }
+
+    @UsesSample("componentSelectionRules")
+    def "can run reject sample"() {
+        given:
+        inDirectory "componentSelectionRules"
+
+        when:
+        run "printRejectConfig"
+
+        then:
+        output.contains "Resolved: api-1.4.jar"
+    }
+
+    @UsesSample("componentSelectionRules")
+    def "can run metadata rules sample"() {
+        given:
+        inDirectory "componentSelectionRules"
+
+        when:
+        run "printMetadataRulesConfig"
+
+        then:
+        output.contains "Resolved: api-1.3.0.jar"
+        output.contains "Resolved: lib-1.9.jar"
+    }
+
+    @UsesSample("componentSelectionRules")
+    def "can run targeted rule sample"() {
+        given:
+        inDirectory "componentSelectionRules"
+
+        when:
+        run "printTargetConfig"
+
+        then:
+        output.contains "Resolved: api-1.4.jar"
+    }
+
+    @UsesSample("componentSelectionRules")
+    def "can run rules source sample"() {
+        given:
+        inDirectory "componentSelectionRules"
+
+        when:
+        run "printRuleSourceConfig"
+
+        then:
+        output.contains "Resolved: api-1.4.jar"
     }
 }

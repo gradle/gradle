@@ -16,11 +16,24 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.cache.internal.CacheFactory
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
 class ToolingGlobalScopeServicesTest extends Specification {
-    def services = DefaultServiceRegistry.create(new ToolingGlobalScopeServices())
+    def classClassLoaderFactory = Stub(ClassLoaderFactory)
+    def cacheFactory = Stub(CacheFactory)
+
+    def services = DefaultServiceRegistry.create(new ToolingGlobalScopeServices(), new Object() {
+        ClassLoaderFactory createClassLoaderFactory() {
+            return classClassLoaderFactory
+        }
+
+        CacheFactory createCacheFactory() {
+            return cacheFactory
+        }
+    })
 
     def "provides a PayloadSerializer"() {
         expect:

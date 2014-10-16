@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.Factory;
+
 import java.util.concurrent.ExecutorService;
 
-public interface ExecutorServiceFactory {
+public interface ExecutorServiceFactory extends Factory<ExecutorService> {
     ExecutorService create();
 }
