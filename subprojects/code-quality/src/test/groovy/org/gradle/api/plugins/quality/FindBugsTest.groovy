@@ -23,12 +23,8 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.GradleException
 
 class FindBugsTest extends Specification {
-    private FindBugs findbugs
-
-    def setup() {
-        def project = ProjectBuilder.builder().build()
-        findbugs = project.tasks.create("findbugs", FindBugs)
-    }
+    def project = ProjectBuilder.builder().build()
+    FindBugs findbugs = project.tasks.create("findbugs", FindBugs)
 
     def "fails when errorCount greater than zero"() {
         def result = Mock(FindBugsResult)
@@ -106,5 +102,21 @@ class FindBugsTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can use legacy includeFilter property"() {
+        findbugs.includeFilter = project.file("config/file.txt")
+
+        expect:
+        findbugs.includeFilter == project.file("config/file.txt")
+        findbugs.includeFilterConfig.inputFiles.singleFile == project.file("config/file.txt")
+    }
+
+    def "can use legacy excludeFilter property"() {
+        findbugs.excludeFilter = project.file("config/file.txt")
+
+        expect:
+        findbugs.excludeFilter == project.file("config/file.txt")
+        findbugs.excludeFilterConfig.inputFiles.singleFile == project.file("config/file.txt")
     }
 }

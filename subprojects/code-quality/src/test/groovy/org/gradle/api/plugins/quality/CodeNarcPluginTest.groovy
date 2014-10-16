@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyBasePlugin
+import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -224,5 +225,18 @@ class CodeNarcPluginTest extends Specification {
             assert enabled == [html, xml] as Set
             assert xml.destination == project.file("build/foo.xml")
         }
+    }
+
+    def "can use legacy configFile extension property"() {
+        project.plugins.apply(GroovyPlugin)
+
+        project.codenarc {
+            configFile = project.file("codenarc-config")
+        }
+
+        expect:
+        project.codenarc.configFile == project.file("codenarc-config") // computed property
+        project.tasks.codenarcMain.configFile == project.file("codenarc-config")
+        project.tasks.codenarcTest.configFile == project.file("codenarc-config")
     }
 }
