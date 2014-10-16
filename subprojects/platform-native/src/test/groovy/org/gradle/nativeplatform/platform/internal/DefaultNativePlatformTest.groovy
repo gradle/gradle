@@ -21,18 +21,14 @@ import spock.lang.Specification
 class DefaultNativePlatformTest extends Specification {
     def archParser = Mock(NotationParser)
     def osParser = Mock(NotationParser)
-    def platform = new DefaultNativePlatform("platform", archParser, osParser)
+    def os = Mock(OperatingSystemInternal)
+    def arch = Mock(ArchitectureInternal)
+    def platform = new DefaultNativePlatform("platform", arch, os, archParser, osParser)
 
     def "has useful string representation"() {
         expect:
         platform.displayName == "platform 'platform'"
         platform.toString() == "platform 'platform'"
-    }
-
-    def "has default architecture and operating system"() {
-        expect:
-        platform.architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-        platform.operatingSystem == DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
     }
 
     def "can configure architecture"() {
