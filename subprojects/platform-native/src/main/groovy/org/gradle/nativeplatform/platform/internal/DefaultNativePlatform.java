@@ -36,16 +36,12 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this.operatingSystem = operatingSystem;
     }
 
-    public DefaultNativePlatform(String name) {
-        this.name = name;
-        this.archParser = ArchitectureNotationParser.parser();
-        this.osParser = OperatingSystemNotationParser.parser();
+    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem) {
+       this(name, architecture, operatingSystem, ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
     }
 
-    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem) {
-        this(name);
-        this.architecture = architecture;
-        this.operatingSystem = operatingSystem;
+    public DefaultNativePlatform(String name) {
+        this(name, getCurrentArchitecture(), getCurrentOs());
     }
 
     public static DefaultNativePlatform create(String name) {
@@ -122,9 +118,14 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     private static ArchitectureInternal getCurrentArchitecture() {
-        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser(); //TODO freekh: this looks weird, but it seemed like the best way to create an ArchitectureInternal
         String archName = Native.get(SystemInfo.class).getArchitecture().toString();
         return archParser.parseNotation(archName);
+    }
+
+    private static OperatingSystemInternal getCurrentOs() {
+        OperatingSystem currentOs = OperatingSystem.current();
+        return new DefaultOperatingSystem(currentOs.getName(), currentOs); //TODO freekh: this looks weird, but it seemed like the best way to create an OperatingSystemInternal
     }
 
     public String getName() {
@@ -141,9 +142,6 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public ArchitectureInternal getArchitecture() {
-        if (architecture == null) {
-            return getCurrentArchitecture();
-        }
         return architecture;
     }
 
@@ -152,10 +150,6 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public OperatingSystemInternal getOperatingSystem() {
-        OperatingSystem currentOs = OperatingSystem.current();
-        if (operatingSystem == null) {
-            return new DefaultOperatingSystem(currentOs.getName(), currentOs); //TODO freekh: is this really right?
-        }
         return operatingSystem;
     }
 
