@@ -52,15 +52,15 @@ class NativeComponentSpecInitializerTest extends Specification {
         platforms.add(platform)
 
         when:
-        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, platforms, [buildType], [flavor])
+        def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, platforms, [platform], [buildType], [flavor])
         factory.execute(component)
 
         then:
+        1 * platforms.chooseFromTargets(NativePlatform, [], _, _) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
-        1 * platforms.select(NativePlatform, []) >> [ platform ]
         0 * namingSchemeBuilder._
     }
 
@@ -72,14 +72,14 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
+                platforms, [platform], [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
         component.targetPlatforms("platform1")
         component.targetBuildTypes("buildType1")
         component.targetFlavors("flavor1")
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, ["platform1"]) >> [ platform ]
+        1 * platforms.chooseFromTargets(NativePlatform, ["platform1"], _, _) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -94,11 +94,11 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType], [flavor])
+                platforms, [platform, platform2], [buildType], [flavor])
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, []) >> [ platform, platform2 ]
+        1 * platforms.chooseFromTargets(NativePlatform, [], _, _) >> [ platform, platform2 ]
 
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
@@ -124,11 +124,11 @@ class NativeComponentSpecInitializerTest extends Specification {
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType, buildType2], [flavor])
+                platforms, [platform], [buildType, buildType2], [flavor])
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, []) >> [platform]
+        1 * platforms.chooseFromTargets(NativePlatform, [], _, _) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -150,11 +150,11 @@ class NativeComponentSpecInitializerTest extends Specification {
         final Flavor flavor2 = createStub(Flavor, "flavor2")
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
-                platforms, [buildType], [flavor, flavor2])
+                platforms, [platform], [buildType], [flavor, flavor2])
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, []) >> [platform]
+        1 * platforms.chooseFromTargets(NativePlatform, [], _, _) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
