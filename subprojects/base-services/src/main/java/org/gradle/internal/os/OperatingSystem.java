@@ -289,7 +289,6 @@ public abstract class OperatingSystem {
         @Override
         public boolean isMacOsX() {
             return true;
-
         }
 
         @Override
