@@ -25,7 +25,7 @@ class ComponentReportOutputFormatter implements Transformer<String, String> {
     final AvailableToolChains.InstalledToolChain toolChain
 
     ComponentReportOutputFormatter() {
-        this.toolChain = AvailableToolChains.getDefaultToolChain(DefaultNativePlatform.GET)
+        this.toolChain = AvailableToolChains.getDefaultToolChain()
     }
 
     ComponentReportOutputFormatter(AvailableToolChains.InstalledToolChain toolChain) {
