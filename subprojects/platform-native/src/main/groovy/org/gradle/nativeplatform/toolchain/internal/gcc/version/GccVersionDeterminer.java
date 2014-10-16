@@ -130,7 +130,7 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         }
         boolean i386 = defines.containsKey("__i386__");
         boolean amd64 = defines.containsKey("__amd64__");
-        ArchitectureInternal architecture;
+        final ArchitectureInternal architecture;
         if (i386) {
             architecture = new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 32);
         } else if (amd64) {

@@ -77,7 +77,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         } else if (currentOs.isWindows() && architecture.isArm()) {
             return "windows_rt_32";
         } else if (currentOs.isFreeBSD() && architecture.isAmd64()) { //FREE BSD
-            return "freebsd_x86_64";
+            return "freebsd_x64";
         } else if (currentOs.isFreeBSD() && architecture.isI386()) {
             return "freebsd_x86";
         } else if (currentOs.isFreeBSD() && architecture.isArm()) {
@@ -89,7 +89,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         } else if (currentOs.isFreeBSD() && architecture.isPpc64()) {
             return "freebsd_ppc64";
         } else if (currentOs.isLinux() && architecture.isAmd64()) { //LINUX
-            return "linux_x86_64";
+            return "linux_x64";
         } else if (currentOs.isLinux() && architecture.isI386()) {
             return "linux_x86";
         } else if (currentOs.isLinux() && architecture.isArm()) {
