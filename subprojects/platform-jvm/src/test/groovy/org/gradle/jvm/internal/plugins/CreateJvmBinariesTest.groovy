@@ -25,6 +25,7 @@ import org.gradle.jvm.internal.DefaultJarBinarySpec
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
+import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.jvm.toolchain.JavaToolChainRegistry
@@ -76,7 +77,7 @@ class CreateJvmBinariesTest extends Specification {
         then:
         _ * namingScheme.description >> "jvmLibJar"
         _ * namingScheme.outputDirectoryBase >> "jvmJarOutput"
-        1 * platforms.select(_, _) >> [ platform ]
+        1 * platforms.chooseFromTargets(JavaPlatform, _, _, _) >> [ platform ]
         1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
