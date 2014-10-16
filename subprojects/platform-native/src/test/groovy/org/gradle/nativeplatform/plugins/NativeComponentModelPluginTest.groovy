@@ -26,7 +26,6 @@ import org.gradle.model.internal.core.ModelType
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.platform.base.PlatformContainer
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -68,7 +67,7 @@ class NativeComponentModelPluginTest extends Specification {
         one(project.binaries.withType(SharedLibraryBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
     }
 
-    def "does not add defaults when domain is explicitly configured"() {
+    def "behaves correctly for defaults when domain is explicitly configured"() {
         when:
         modelRegistryHelper
                 .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
@@ -81,7 +80,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         then:
         one(project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
-        one(project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer))).name == 'platform'
+        project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == NativeComponentModelPlugin.DEFAULT_PLATFORMS.size() + 1 //adds one to the defaults
         one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
         one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
     }
