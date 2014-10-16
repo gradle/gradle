@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version
 
 import org.gradle.api.Transformer
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
