@@ -197,7 +197,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Finalize
         public void createDefaultPlatforms(PlatformContainer platforms) {
-            platforms.addAll(DEFAULT_PLATFORMS);
+            platforms.addAll(DEFAULT_PLATFORMS); //TODO freekh: We are not using platforms.create here, is this a problem?
         }
 
         @Finalize
