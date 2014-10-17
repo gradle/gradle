@@ -51,8 +51,12 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         //TODO freekh: parsing like this is not what we want
         String[] parts = name.toLowerCase().split("_");
         //TODO freekh: At least this part!
-        if (name.toLowerCase().contains("windows") && name.toLowerCase().contains("rt")) {
-            architecture = new DefaultArchitecture("armv7", ArchitectureInternal.InstructionSet.ARM, 32);
+        if (name.toLowerCase().contains("windows")) { //special rules for windows
+            if (name.toLowerCase().contains("rt")) {
+                architecture = new DefaultArchitecture("armv7", ArchitectureInternal.InstructionSet.ARM, 32);
+            } else {
+                architecture = new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32);
+            }
         } else {
             architecture = archParser.parseNotation(parts[parts.length - 1]);
         }
