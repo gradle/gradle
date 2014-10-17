@@ -51,7 +51,7 @@ public class ConnectionScopeServices {
     }
 
     ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory,
-                                                ClassLoaderFactory classLoaderFactory, ShutdownCoordinator shutdownCoordinator) {
+                                                ClassLoaderFactory classLoaderFactory, ClassLoaderCache classLoaderCache, ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 loggingServices,
                 daemonClientFactory,
@@ -59,6 +59,7 @@ public class ConnectionScopeServices {
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
+                                        new ClassLoaderCache(),
                                         new ClientSidePayloadClassLoaderFactory(
                                                 new ModelClassLoaderFactory(
                                                         classLoaderFactory))),

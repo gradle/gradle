@@ -26,8 +26,8 @@ import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
 class PayloadSerializerTest extends AbstractClassGraphSpec {
-    final PayloadSerializer originator = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ModelClassLoaderFactory(new DefaultClassLoaderFactory())))
-    final PayloadSerializer receiver = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ModelClassLoaderFactory(new DefaultClassLoaderFactory())))
+    final PayloadSerializer originator = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory(new DefaultClassLoaderFactory())))
+    final PayloadSerializer receiver = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory(new DefaultClassLoaderFactory())))
 
     def "can send an object between two parties"() {
         expect:

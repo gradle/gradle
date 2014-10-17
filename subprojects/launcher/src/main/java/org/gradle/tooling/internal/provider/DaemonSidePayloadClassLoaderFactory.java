@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.cache.internal.CacheFactory;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 
@@ -24,11 +23,9 @@ import java.util.List;
 
 public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory {
     private final PayloadClassLoaderFactory delegate;
-    private final CacheFactory cacheFactory;
 
-    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate, CacheFactory cacheFactory) {
+    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate) {
         this.delegate = delegate;
-        this.cacheFactory = cacheFactory;
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
