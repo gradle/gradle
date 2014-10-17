@@ -120,6 +120,12 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                             throw new RuntimeException(e);
                         }
                     }
+                    if (stopped) {
+                        System.out.println("Releasing client on stop.");
+                        outputStream.write("HTTP/1.1 500 Server stopped.\r\nConnection: close\r\nContent-length: 0\r\n\r\n".getBytes());
+                        return;
+                    }
+
                     connected = false;
                     released = false;
                 }
