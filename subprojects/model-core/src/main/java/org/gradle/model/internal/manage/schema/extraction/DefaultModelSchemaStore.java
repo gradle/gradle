@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema;
+package org.gradle.model.internal.manage.schema.extraction;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-public class ModelSchemaStore {
+public class DefaultModelSchemaStore implements ModelSchemaStore {
 
-    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
+    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor(this);
 
     private final LoadingCache<Class<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, ModelSchema<?>>() {
         @Override
@@ -49,4 +50,7 @@ public class ModelSchemaStore {
         }
     }
 
+    public boolean isManaged(Class<?> type) {
+        return extractor.isManaged(type);
+    }
 }

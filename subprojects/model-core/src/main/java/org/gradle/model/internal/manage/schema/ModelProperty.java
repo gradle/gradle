@@ -16,16 +16,24 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelType;
 
 public class ModelProperty<T> {
 
     private final String name;
     private final ModelType<T> type;
+    private final Factory<T> initialValueProvider;
 
     public ModelProperty(String name, ModelType<T> type) {
+        this(name, type, Factories.<T>constant(null));
+    }
+
+    public ModelProperty(String name, ModelType<T> type, Factory<T> initialValueProvider) {
         this.name = name;
         this.type = type;
+        this.initialValueProvider = initialValueProvider;
     }
 
     public String getName() {
@@ -36,4 +44,7 @@ public class ModelProperty<T> {
         return type;
     }
 
+    public T getInitialValue() {
+        return initialValueProvider.create();
+    }
 }

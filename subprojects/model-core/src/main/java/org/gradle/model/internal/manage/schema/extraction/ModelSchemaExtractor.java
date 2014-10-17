@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema;
+package org.gradle.model.internal.manage.schema.extraction;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.state.ManagedModelElement;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 
 public class ModelSchemaExtractor {
+
+    public final ModelSchemaStore store;
+
+    public ModelSchemaExtractor(ModelSchemaStore store) {
+        this.store = store;
+    }
 
     public <T> ModelSchema<T> extract(Class<T> type) throws InvalidManagedModelElementTypeException {
         validateType(type);
@@ -60,45 +70,21 @@ public class ModelSchemaExtractor {
                     throw invalidMethod(type, methodName, "getter methods cannot take parameters");
                 }
 
-                Class<?> returnType = method.getReturnType();
-                if (!returnType.equals(String.class)) {
-                    throw invalidMethod(type, methodName, "only String properties are supported");
-                }
-
-                // hardcoded for now
-                ModelType<String> propertyType = ModelType.of(String.class);
 
                 Character getterPropertyNameFirstChar = methodName.charAt(3);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
                     throw invalidMethod(type, methodName, "the 4th character of the getter method name must be an uppercase character");
                 }
 
-                String propertyNameCapitalized = methodName.substring(3);
-                String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
-                String setterName = "set" + propertyNameCapitalized;
-
-                if (!methods.containsKey(setterName)) {
-                    throw invalidMethod(type, methodName, "no corresponding setter for getter");
+                Class<?> returnType = method.getReturnType();
+                ModelType<?> returnModelType = ModelType.of(returnType);
+                if (returnType.equals(String.class)) {
+                    properties.add(extractNonManagedProperty(type, methods, methodName, returnModelType, handled));
+                } else if (isManaged(returnType)) {
+                    properties.add(extractManagedProperty(type, methods, methodName, returnModelType));
+                } else {
+                    throw invalidMethod(type, methodName, "only String and managed properties are supported");
                 }
-
-                Method setter = methods.get(setterName);
-                handled.add(setterName);
-
-                if (!setter.getReturnType().equals(void.class)) {
-                    throw invalidMethod(type, setterName, "setter method must have void return type");
-                }
-
-                Type[] setterParameterTypes = setter.getGenericParameterTypes();
-                if (setterParameterTypes.length != 1) {
-                    throw invalidMethod(type, setterName, "setter method must have exactly one parameter");
-                }
-
-                ModelType<?> setterType = ModelType.of(setterParameterTypes[0]);
-                if (!setterType.equals(propertyType)) {
-                    throw invalidMethod(type, setterName, "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")");
-                }
-
-                properties.add(new ModelProperty<String>(propertyName, propertyType));
                 iterator.remove();
             }
         }
@@ -113,13 +99,63 @@ public class ModelSchemaExtractor {
         return new ModelSchema<T>(type, properties);
     }
 
-    public <T> void validateType(Class<T> type) {
-        if (!type.isInterface()) {
-            throw invalid(type, "must be defined as an interface");
+    private <T> ModelProperty<T> extractNonManagedProperty(Class<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
+        String propertyNameCapitalized = getterName.substring(3);
+        String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
+        String setterName = "set" + propertyNameCapitalized;
+
+        if (!methods.containsKey(setterName)) {
+            throw invalidMethod(type, getterName, "no corresponding setter for getter");
         }
 
-        if (!type.isAnnotationPresent(Managed.class)) {
+        Method setter = methods.get(setterName);
+        handled.add(setterName);
+
+        if (!setter.getReturnType().equals(void.class)) {
+            throw invalidMethod(type, setterName, "setter method must have void return type");
+        }
+
+        Type[] setterParameterTypes = setter.getGenericParameterTypes();
+        if (setterParameterTypes.length != 1) {
+            throw invalidMethod(type, setterName, "setter method must have exactly one parameter");
+        }
+
+        ModelType<?> setterType = ModelType.of(setterParameterTypes[0]);
+        if (!setterType.equals(propertyType)) {
+            throw invalidMethod(type, setterName, "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")");
+        }
+
+        return new ModelProperty<T>(propertyName, propertyType);
+    }
+
+    private <T> ModelProperty<T> extractManagedProperty(Class<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType) {
+        String propertyNameCapitalized = getterName.substring(3);
+        String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
+        String setterName = "set" + propertyNameCapitalized;
+        if (methods.containsKey(setterName)) {
+            throw invalidMethod(type, setterName, "only getters are allowed for managed properties");
+        }
+
+        try {
+            final ModelSchema<T> modelSchema = store.getSchema(propertyType.getConcreteClass());
+
+            return new ModelProperty<T>(propertyName, propertyType, new Factory<T>() {
+                public T create() {
+                    return new ManagedModelElement<T>(modelSchema).getInstance();
+                }
+            });
+        } catch (InvalidManagedModelElementTypeException e) {
+            throw new InvalidManagedModelElementTypeException(type, propertyName, e);
+        }
+    }
+
+    public <T> void validateType(Class<T> type) {
+        if (!isManaged(type)) {
             throw invalid(type, String.format("must be annotated with %s", Managed.class.getName()));
+        }
+
+        if (!type.isInterface()) {
+            throw invalid(type, "must be defined as an interface");
         }
 
         if (type.getInterfaces().length != 0) {
@@ -129,6 +165,10 @@ public class ModelSchemaExtractor {
         if (type.getTypeParameters().length != 0) {
             throw invalid(type, "cannot be a parameterized type");
         }
+    }
+
+    public boolean isManaged(Class<?> type) {
+        return type.isAnnotationPresent(Managed.class);
     }
 
     public <T> InvalidManagedModelElementTypeException invalidMethod(Class<T> type, String methodName, String message) {

@@ -14,28 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema
+package org.gradle.model.internal.manage.schema.extraction
 
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.manage.schema.ModelSchema
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ModelSchemaExtractorTest extends Specification {
 
-    def extractor = new ModelSchemaExtractor()
-
-    static class EmptyStaticClass {}
-
-    def "must be interface"() {
-        expect:
-        fail EmptyStaticClass, "must be defined as an interface"
-    }
+    def extractor = new ModelSchemaExtractor(new DefaultModelSchemaStore())
 
     static interface NotAnnotatedInterface {}
 
     def "has to be annotated with @Managed"() {
         expect:
         fail NotAnnotatedInterface, "must be annotated with $Managed.name"
+    }
+
+    @Managed
+    static class EmptyStaticClass {}
+
+    def "must be interface"() {
+        expect:
+        fail EmptyStaticClass, "must be defined as an interface"
     }
 
     @Managed
@@ -163,18 +166,23 @@ class ModelSchemaExtractorTest extends Specification {
         void setName(Object name)
     }
 
-    def "only String properties are allowed"() {
+    def "only String and managed properties are allowed"() {
         expect:
-        fail NonStringProperty, /only String properties are supported \(method: getName\)/
+        fail NonStringProperty, /only String and managed properties are supported \(method: getName\)/
     }
 
     @Managed
     static interface MultipleProps {
         String getProp1();
+
         void setProp1(String string);
+
         String getProp2();
+
         void setProp2(String string);
+
         String getProp3();
+
         void setProp3(String string);
     }
 
@@ -185,6 +193,29 @@ class ModelSchemaExtractorTest extends Specification {
         then:
         schema.properties.values().toList()*.name == ["prop1", "prop2", "prop3"]
         schema.properties.values().toList()*.type == [ModelType.of(String)] * 3
+    }
+
+    @Managed
+    static interface ManagedPropertyWithSetter {
+        SingleProperty getManaged()
+
+        void setManaged(SingleProperty name)
+    }
+
+    def "only setters for managed properties are allowed"() {
+        expect:
+        fail ManagedPropertyWithSetter, /only getters are allowed for managed properties \(method: setManaged\)/
+    }
+
+    @Unroll
+    def "is managed - #clazz.simpleName"() {
+        expect:
+        extractor.isManaged(clazz) == expected
+
+        where:
+        clazz                 | expected
+        SingleProperty        | true
+        NotAnnotatedInterface | false
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {

@@ -467,48 +467,4 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains "name: injected"
     }
-
-    def "rule can provide a managed model element"() {
-        when:
-        buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
-            @Managed
-            interface Person {
-                String getName()
-                void setName(String name)
-            }
-
-            @RuleSource
-            class RulePlugin {
-                @Model
-                String name() {
-                    "foo"
-                }
-
-                @Model
-                void createPerson(Person person, String name) {
-                    person.name = name
-                }
-
-                @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
-                    tasks.create("echo") {
-                        it.doLast {
-                            println "name: $person.name"
-                        }
-                    }
-                }
-            }
-
-            apply type: RulePlugin
-        '''
-
-        then:
-        succeeds "echo"
-
-        and:
-        output.contains("name: foo")
-    }
 }

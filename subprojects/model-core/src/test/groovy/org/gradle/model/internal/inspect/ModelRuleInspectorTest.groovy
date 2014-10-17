@@ -18,11 +18,12 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.Finalize
 import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.model.Managed
 import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
+import org.gradle.model.internal.manage.schema.extraction.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -317,8 +318,24 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
+        e.message == "$NonManagedVoidReturning.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a $Managed.name annotated type as the first argument"
+    }
+
+    static class InvalidManagedVoidReturning {
+        @Model
+        void bar(InvalidManaged foo) {
+        }
+    }
+
+    def "type of the first argument of void returning model definition has to be a valid managed type"() {
+        when:
+        inspector.inspect(InvalidManagedVoidReturning, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.message == "Declaration of model rule $InvalidManagedVoidReturning.name#bar($InvalidManaged.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $NonManaged.name: must be annotated with org.gradle.model.Managed"
+        e.cause.message == "Invalid managed model type $InvalidManaged.name: must be defined as an interface"
     }
 
     static class NoArgumentVoidReturning {
@@ -334,5 +351,25 @@ class ModelRuleInspectorTest extends Specification {
         then:
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$NoArgumentVoidReturning.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
+    }
+
+    static class ManagedWithPropertyOfInvalidManagedTypeVoidReturning {
+        @Model
+        void bar(ManagedWithPropertyOfInvalidManagedType foo) {
+        }
+    }
+
+    def "void returning model definition with for a type with a property of invalid managed type"() {
+        when:
+        inspector.inspect(ManagedWithPropertyOfInvalidManagedTypeVoidReturning, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.message == "Declaration of model rule $ManagedWithPropertyOfInvalidManagedTypeVoidReturning.name#bar($ManagedWithPropertyOfInvalidManagedType.name) is invalid."
+        e.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.message == "Invalid managed model type $ManagedWithPropertyOfInvalidManagedType.name: managed type of property 'invalidManaged' is invalid"
+        e.cause.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.cause.message == "Invalid managed model type $InvalidManaged.name: must be defined as an interface"
+
     }
 }

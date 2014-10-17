@@ -29,6 +29,7 @@ public class ModelPropertyInstance<T> {
 
     public ModelPropertyInstance(ModelProperty<T> meta) {
         this.meta = meta;
+        value = meta.getInitialValue();
     }
 
     public ModelProperty<T> getMeta() {

@@ -37,7 +37,7 @@ public class InvalidModelRuleDeclarationException extends GradleException {
     }
 
     public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, Throwable cause) {
-        super("Declaration of model rule " + descriptor.toString() + " in invalid.", cause);
+        super("Declaration of model rule " + descriptor.toString() + " is invalid.", cause);
         if (cause == null) {
             throw new IllegalArgumentException("'cause' cannot be null");
         }

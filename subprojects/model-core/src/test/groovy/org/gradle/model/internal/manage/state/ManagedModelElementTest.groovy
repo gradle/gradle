@@ -17,12 +17,12 @@
 package org.gradle.model.internal.manage.state
 
 import org.gradle.model.Managed
-import org.gradle.model.internal.manage.schema.ModelSchemaStore
+import org.gradle.model.internal.manage.schema.extraction.DefaultModelSchemaStore
 import spock.lang.Specification
 
 class ManagedModelElementTest extends Specification {
 
-    def schemas = new ModelSchemaStore()
+    def schemas = new DefaultModelSchemaStore()
 
     def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(MultipleProps))
 
