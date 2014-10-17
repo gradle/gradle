@@ -81,7 +81,7 @@ public class ModelSchemaExtractor {
                 if (returnType.equals(String.class)) {
                     properties.add(extractNonManagedProperty(type, methods, methodName, returnModelType, handled));
                 } else if (isManaged(returnType)) {
-                    properties.add(extractManagedProperty(type, methods, methodName, returnModelType));
+                    properties.add(extractManagedProperty(type, methods, methodName, returnModelType, handled));
                 } else {
                     throw invalidMethod(type, methodName, "only String and managed properties are supported");
                 }
@@ -108,42 +108,50 @@ public class ModelSchemaExtractor {
             throw invalidMethod(type, getterName, "no corresponding setter for getter");
         }
 
-        Method setter = methods.get(setterName);
+        validateSetter(type, propertyType, methods.get(setterName));
         handled.add(setterName);
+        return new ModelProperty<T>(propertyName, propertyType);
+    }
 
+    private <T> void validateSetter(Class<?> type, ModelType<T> propertyType, Method setter) {
         if (!setter.getReturnType().equals(void.class)) {
-            throw invalidMethod(type, setterName, "setter method must have void return type");
+            throw invalidMethod(type, setter.getName(), "setter method must have void return type");
         }
 
         Type[] setterParameterTypes = setter.getGenericParameterTypes();
         if (setterParameterTypes.length != 1) {
-            throw invalidMethod(type, setterName, "setter method must have exactly one parameter");
+            throw invalidMethod(type, setter.getName(), "setter method must have exactly one parameter");
         }
 
         ModelType<?> setterType = ModelType.of(setterParameterTypes[0]);
         if (!setterType.equals(propertyType)) {
-            throw invalidMethod(type, setterName, "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")");
+            throw invalidMethod(type, setter.getName(), "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")");
         }
-
-        return new ModelProperty<T>(propertyName, propertyType);
     }
 
-    private <T> ModelProperty<T> extractManagedProperty(Class<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType) {
+    private <T> ModelProperty<T> extractManagedProperty(Class<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
+
         if (methods.containsKey(setterName)) {
-            throw invalidMethod(type, setterName, "only getters are allowed for managed properties");
-        }
-
-        try {
-            final ModelSchema<T> modelSchema = store.getSchema(propertyType.getConcreteClass());
-
+            validateSetter(type, propertyType, methods.get(setterName));
+            handled.add(setterName);
+            getModelSchema(type, propertyType.getConcreteClass(), propertyName);
+            return new ModelProperty<T>(propertyName, propertyType);
+        } else {
+            final ModelSchema<T> modelSchema = getModelSchema(type, propertyType.getConcreteClass(), propertyName);
             return new ModelProperty<T>(propertyName, propertyType, new Factory<T>() {
                 public T create() {
                     return new ManagedModelElement<T>(modelSchema).getInstance();
                 }
             });
+        }
+    }
+
+    private <T> ModelSchema<T> getModelSchema(Class<?> type, Class<T> propertyType, String propertyName) {
+        try {
+            return store.getSchema(propertyType);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidManagedModelElementTypeException(type, propertyName, e);
         }

@@ -202,11 +202,6 @@ class ModelSchemaExtractorTest extends Specification {
         void setManaged(SingleProperty name)
     }
 
-    def "only setters for managed properties are allowed"() {
-        expect:
-        fail ManagedPropertyWithSetter, /only getters are allowed for managed properties \(method: setManaged\)/
-    }
-
     @Unroll
     def "is managed - #clazz.simpleName"() {
         expect:

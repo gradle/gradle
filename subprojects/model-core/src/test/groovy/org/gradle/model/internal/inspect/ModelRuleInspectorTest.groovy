@@ -27,6 +27,7 @@ import org.gradle.model.internal.manage.schema.extraction.InvalidManagedModelEle
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ModelRuleInspectorTest extends Specification {
 
@@ -359,17 +360,28 @@ class ModelRuleInspectorTest extends Specification {
         }
     }
 
-    def "void returning model definition with for a type with a property of invalid managed type"() {
+    static class ManagedWithReferenceOfInvalidManagedTypeVoidReturning {
+        @Model
+        void bar(ManagedWithReferenceOfInvalidManagedType foo) {
+        }
+    }
+
+    @Unroll
+    def "void returning model definition with for a type with a property of invalid managed type - #inspected.simpleName"() {
         when:
-        inspector.inspect(ManagedWithPropertyOfInvalidManagedTypeVoidReturning, registry, dependencies)
+        inspector.inspect(inspected, registry, dependencies)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule $ManagedWithPropertyOfInvalidManagedTypeVoidReturning.name#bar($ManagedWithPropertyOfInvalidManagedType.name) is invalid."
+        e.message == "Declaration of model rule $inspected.name#bar($managedType.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $ManagedWithPropertyOfInvalidManagedType.name: managed type of property 'invalidManaged' is invalid"
+        e.cause.message == "Invalid managed model type $managedType.name: managed type of property 'invalidManaged' is invalid"
         e.cause.cause instanceof InvalidManagedModelElementTypeException
         e.cause.cause.message == "Invalid managed model type $InvalidManaged.name: must be defined as an interface"
 
+        where:
+        inspected                                             | managedType
+        ManagedWithPropertyOfInvalidManagedTypeVoidReturning  | ManagedWithPropertyOfInvalidManagedType
+        ManagedWithReferenceOfInvalidManagedTypeVoidReturning | ManagedWithReferenceOfInvalidManagedType
     }
 }

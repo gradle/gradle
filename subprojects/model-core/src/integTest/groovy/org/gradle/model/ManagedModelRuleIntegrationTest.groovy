@@ -111,4 +111,58 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains("platform: windows")
     }
+
+    def "rule can provide a managed model element that references another managed model element"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Platform {
+                String getDisplayName()
+                void setDisplayName(String name)
+
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem operatingSystem)
+            }
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createOs(OperatingSystem os) {
+                  os.name = "windows"
+                }
+
+                @Model
+                void createPlatform(Platform platform, OperatingSystem os) {
+                  platform.displayName = "Microsoft Windows"
+                  platform.operatingSystem = os
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "platform: $platform.operatingSystem.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("platform: windows")
+    }
 }
