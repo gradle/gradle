@@ -17,7 +17,6 @@
 package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
@@ -57,6 +56,7 @@ public class PerformanceTestRunner {
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     PerformanceResults results
+    GradleExecuterProvider executerProvider = new GradleExecuterProvider()
 
     PerformanceResults run() {
         assert !targetVersions.empty
@@ -123,28 +123,15 @@ public class PerformanceTestRunner {
                 //creation of executer is included in measuer operation
                 //this is not ideal but it does not prevent us from finding performance regressions
                 //because extra time is equally added to all executions
-                def executer = this.executer(dist, projectDir)
+                def executer = GradleExecuterProvider.executer(this, dist, projectDir)
                 dataCollector.beforeExecute(projectDir, executer)
                 executer.run()
             }
         }
-        this.executer(dist, projectDir).withTasks("--stop").run()
+        executerProvider.executer(this, dist, projectDir).withTasks("--stop").run()
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }
         results.add(operation)
-    }
-
-    GradleExecuter executer(GradleDistribution dist, File projectDir) {
-        dist.executer(testDirectoryProvider).
-                requireGradleHome().
-                requireIsolatedDaemons().
-                withDeprecationChecksDisabled().
-                withStackTraceChecksDisabled().
-                withArguments('-u').
-                inDirectory(projectDir).
-                withTasks(tasksToRun).
-                withArguments(args).
-                withGradleOpts(gradleOpts as String[])
     }
 }
