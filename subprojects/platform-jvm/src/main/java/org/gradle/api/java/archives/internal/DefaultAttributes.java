@@ -51,12 +51,12 @@ public class DefaultAttributes implements Attributes {
             throw new ManifestException("The key of a manifest attribute must not be null.");
         }
         if (value == null) {
-            throw new ManifestException("The value of a manifest attribute must not be null.");
+            throw new ManifestException(String.format("The value of a manifest attribute must not be null (Key=%s).", key));
         }
         try {
             new java.util.jar.Attributes.Name(key);
-        } catch(IllegalArgumentException e) {
-            throw new ManifestException(String.format("The Key=%s violates the Manifest spec!", key));   
+        } catch (IllegalArgumentException e) {
+            throw new ManifestException(String.format("The Key=%s violates the Manifest spec!", key));
         }
         return attributes.put(key, value);
     }
