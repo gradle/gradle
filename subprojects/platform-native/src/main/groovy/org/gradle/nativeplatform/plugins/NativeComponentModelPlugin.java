@@ -62,7 +62,7 @@ import java.util.Set;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
-    static final Set<NativePlatform> DEFAULT_PLATFORMS = instantiateDefaultPlatforms();
+    static final Set<NativePlatform> DEFAULT_PLATFORMS = instantiateDefaultPlatforms(); //TODO freekh: evaluate if we want to use NativeComponentModelPlugin or DefaultNativePlatform.defaultPlatformDefintions
 
     @Inject
     public NativeComponentModelPlugin(Instantiator instantiator) {
@@ -92,27 +92,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private static Set<NativePlatform> instantiateDefaultPlatforms() {
         Set<NativePlatform> defaultPlatforms = new LinkedHashSet<NativePlatform>();
-
-        defaultPlatforms.add(DefaultNativePlatform.create("windows_x64"));
-        //defaultPlatforms.add(DefaultNativePlatform.create("windows_x86")); //TODO freekh: we probably want to include this, but for now try to always use i386 for windows
-        defaultPlatforms.add(DefaultNativePlatform.create("windows_rt_32"));
-        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_x64"));
-        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_x86"));
-        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_armv7"));
-        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_armv8"));
-        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_ppc"));
-        defaultPlatforms.add(DefaultNativePlatform.create("freebsd_ppc64"));
-        defaultPlatforms.add(DefaultNativePlatform.create("linux_x64"));
-        defaultPlatforms.add(DefaultNativePlatform.create("linux_x86"));
-        defaultPlatforms.add(DefaultNativePlatform.create("linux_armv7"));
-        defaultPlatforms.add(DefaultNativePlatform.create("linux_armv8"));
-        defaultPlatforms.add(DefaultNativePlatform.create("osx_x86"));
-        defaultPlatforms.add(DefaultNativePlatform.create("osx_x64"));
-        defaultPlatforms.add(DefaultNativePlatform.create("solaris_x64"));
-        defaultPlatforms.add(DefaultNativePlatform.create("solaris_x86"));
-        defaultPlatforms.add(DefaultNativePlatform.create("solaris_sparc"));
-        defaultPlatforms.add(DefaultNativePlatform.create("solaris_ultrasparc"));
-
+        defaultPlatforms.addAll(DefaultNativePlatform.defaultPlatformDefinitions());
         return defaultPlatforms;
     }
 
