@@ -23,7 +23,7 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpeci
     def setup() {
         //because embedded tooling api should not replace system out / err
         //we will run below tests only for forked mode
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
     }
 
     def "receives standard streams while the build is executing"() {

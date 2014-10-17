@@ -80,7 +80,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can use custom log level"() {
         //logging infrastructure is not installed when running in-process to avoid issues
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
 
         given:
         file("build.gradle") << """

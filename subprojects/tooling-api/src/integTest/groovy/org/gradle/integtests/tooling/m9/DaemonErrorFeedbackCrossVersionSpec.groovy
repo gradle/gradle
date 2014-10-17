@@ -30,7 +30,7 @@ class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "promptly discovers rubbish jvm arguments"() {
         //jvm arguments cannot be set for an existing process
         //so we must not run in embedded mode
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
 
         when:
         withConnection {

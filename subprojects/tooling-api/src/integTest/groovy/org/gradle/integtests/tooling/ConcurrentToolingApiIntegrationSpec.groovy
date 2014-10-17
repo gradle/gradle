@@ -50,7 +50,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     def setup() {
         //concurrent tooling api at the moment is only supported for forked mode
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
         concurrent.shortTimeout = 180000
     }
 

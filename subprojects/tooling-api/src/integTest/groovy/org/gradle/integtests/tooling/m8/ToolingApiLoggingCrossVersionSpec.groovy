@@ -23,7 +23,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //for embedded tests we don't mess with global logging. Run with forks only.
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
         reset()
     }
 

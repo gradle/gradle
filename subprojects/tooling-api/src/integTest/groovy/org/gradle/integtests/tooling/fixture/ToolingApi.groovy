@@ -38,9 +38,10 @@ class ToolingApi {
     private File gradleUserHomeDir
     private File daemonBaseDir
     private boolean baseDirSupported
+    private boolean inProcess;
+    private boolean requiresDaemon
 
     private final List<Closure> connectorConfigurers = []
-    boolean isEmbedded
     boolean verboseLogging = LOGGER.debugEnabled
 
     ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
@@ -49,7 +50,8 @@ class ToolingApi {
         this.baseDirSupported = dist.toolingApiDaemonBaseDirSupported && DefaultGradleConnector.metaClass.respondsTo(null, "daemonBaseDir")
         this.gradleUserHomeDir = context.gradleUserHomeDir
         this.daemonBaseDir = context.daemonBaseDir
-        this.isEmbedded = GradleContextualExecuter.embedded
+        this.requiresDaemon = !GradleContextualExecuter.embedded
+        this.inProcess = GradleContextualExecuter.embedded
         this.testWorkDirProvider = testWorkDirProvider
     }
 
@@ -62,7 +64,14 @@ class ToolingApi {
         } else {
             gradleUserHomeDir = new File(testWorkDirProvider.testDirectory, "user-home-dir")
         }
-        isEmbedded = false
+        requiresDaemon = true
+    }
+
+    /**
+     * Specifies that the test use real daemon processes (not embedded).
+     */
+    void requireDaemons() {
+        requiresDaemon = true
     }
 
     DaemonsFixture getDaemons() {
@@ -128,8 +137,8 @@ class ToolingApi {
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
             connector.verboseLogging = verboseLogging
         }
-        if (isEmbedded && GradleVersion.current() == dist.version) {
-            println("Using embedded tooling API provider from ${GradleVersion.current().version} to ${dist.version.version}")
+        if (!requiresDaemon && GradleVersion.current() == dist.version) {
+            println("Using embedded tooling API provider from ${GradleVersion.current().version} to classpath (${dist.version.version})")
             connector.useClasspathDistribution()
             connector.embedded(true)
         } else {
