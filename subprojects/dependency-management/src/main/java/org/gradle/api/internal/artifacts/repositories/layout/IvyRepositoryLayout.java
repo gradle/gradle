@@ -27,7 +27,7 @@ import java.net.URI;
  *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
  * </ul>
  */
-public class IvyRepositoryLayout extends RepositoryLayout {
+public class IvyRepositoryLayout extends AbstractRepositoryLayout {
 
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {

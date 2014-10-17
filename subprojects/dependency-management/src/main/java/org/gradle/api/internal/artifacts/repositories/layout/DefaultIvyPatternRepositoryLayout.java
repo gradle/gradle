@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
+import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 
 import java.net.URI;
@@ -26,40 +27,34 @@ import java.util.Set;
  * At least one artifact pattern must be specified. If no Ivy patterns are specified, then the artifact patterns will be used.
  * Optionally supports a Maven style layout for the 'organisation' part, replacing any dots with forward slashes.
  */
-public class PatternRepositoryLayout extends RepositoryLayout {
+public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout implements IvyPatternRepositoryLayout {
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
     private final Set<String> ivyPatterns = new LinkedHashSet<String>();
     private boolean m2compatible;
 
     /**
-     * Adds an Ivy artifact pattern to define where artifacts are located in this repository.
-     * @param pattern The ivy pattern
+     * {@inheritDoc}
      */
     public void artifact(String pattern) {
         artifactPatterns.add(pattern);
     }
 
     /**
-     * Adds an Ivy pattern to define where ivy files are located in this repository.
-     * @param pattern The ivy pattern
+     * {@inheritDoc}
      */
     public void ivy(String pattern) {
         ivyPatterns.add(pattern);
     }
 
     /**
-     * Tells whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
-     * Defaults to {@code false}.
+     * {@inheritDoc}
      */
     public boolean getM2Compatible() {
         return m2compatible;
     }
 
     /**
-     * Sets whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
-     * Defaults to {@code false}.
-     *
-     * @param m2compatible whether a Maven style layout is to be used for the 'organisation' part
+     * {@inheritDoc}
      */
     public void setM2compatible(boolean m2compatible) {
         this.m2compatible = m2compatible;

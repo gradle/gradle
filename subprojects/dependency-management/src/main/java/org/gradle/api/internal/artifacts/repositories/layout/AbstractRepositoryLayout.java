@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
+import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 
 import java.net.URI;
@@ -23,7 +24,7 @@ import java.util.Set;
 /**
  * Represents the directory structure for a repository.
  */
-public abstract class RepositoryLayout {
+public abstract class AbstractRepositoryLayout implements RepositoryLayout {
     /**
      * Given the base URI, apply the patterns and other configuration for this layout to the supplied resolver.
      *
