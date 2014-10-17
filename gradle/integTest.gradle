@@ -92,6 +92,7 @@ project(":") {
         return
     }
     task cleanUpDaemons {
+        onlyIf { !org.gradle.internal.jvm.Jvm.current().ibmJvm }
         doLast {
             println "found daemons:"
             def output = new ByteArrayOutputStream()
