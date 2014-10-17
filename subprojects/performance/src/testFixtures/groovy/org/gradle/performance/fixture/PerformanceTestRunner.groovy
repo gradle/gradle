@@ -123,7 +123,7 @@ public class PerformanceTestRunner {
                 //creation of executer is included in measuer operation
                 //this is not ideal but it does not prevent us from finding performance regressions
                 //because extra time is equally added to all executions
-                def executer = GradleExecuterProvider.executer(this, dist, projectDir)
+                def executer = executerProvider.executer(this, dist, projectDir)
                 dataCollector.beforeExecute(projectDir, executer)
                 executer.run()
             }
