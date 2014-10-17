@@ -189,9 +189,6 @@ task hang << {
         toolingApi.requireIsolatedDaemons()
         def daemons = toolingApi.daemons
 
-        // in-process call does not support forced stop
-        toolingApi.isEmbedded = false
-
         buildFile << """
 task hang << {
     new URL("${server.uri}").text
