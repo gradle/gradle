@@ -82,8 +82,8 @@ This story makes the following possible…
 
 #### Test Coverage
 
-- Nested element is not `@Managed` causes error
-- Nested element violates constraints (error message indicates that it's being considered due to being nested, and indicates why enclosing class was being considered)
+- ~~Nested element is not `@Managed` causes error~~
+- ~~Nested element violates constraints (error message indicates that it's being considered due to being nested, and indicates why enclosing class was being considered)~~
 
 ### Plugin creates model element of custom, reference having, type without supplying an implementation
 
