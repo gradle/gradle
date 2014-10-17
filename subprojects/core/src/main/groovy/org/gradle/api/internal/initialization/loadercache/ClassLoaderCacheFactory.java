@@ -41,8 +41,8 @@ public class ClassLoaderCacheFactory {
 
     private void maybeInit() {
         if (instance == null) {
-            LOGGER.lifecycle("Initializing global ClassLoader cache.");
             instance = newCache(new HashClassPathSnapshotter());
+            LOGGER.lifecycle("Initialized global ClassLoader cache.");
         }
     }
 }
