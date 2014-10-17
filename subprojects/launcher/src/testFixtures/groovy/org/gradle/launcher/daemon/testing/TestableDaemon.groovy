@@ -33,27 +33,27 @@ class TestableDaemon implements DaemonFixture {
     }
 
     void becomesIdle() {
-        def expiry = System.currentTimeMillis() + 20000
-        while (expiry > System.currentTimeMillis()) {
-            if (registryProbe.currentState == State.idle) {
-                assertIdle()
-                return
-            }
-            Thread.sleep(200)
-        }
-        throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to become idle.")
+        waitForState(State.idle)
     }
 
     void stops() {
+        waitForState(State.stopped)
+    }
+
+    private void waitForState(State state) {
         def expiry = System.currentTimeMillis() + 20000
-        while (expiry > System.currentTimeMillis()) {
-            if (registryProbe.currentState == State.stopped) {
-                assertStopped()
-                return
-            }
+        def lastRegistryState = registryProbe.currentState
+        def lastLogState = logFileProbe.currentState
+        while (expiry > System.currentTimeMillis() && (lastRegistryState != state || lastLogState != state)) {
             Thread.sleep(200)
+            lastRegistryState = registryProbe.currentState
+            lastLogState = logFileProbe.currentState
         }
-        throw new AssertionError("Timeout waiting for daemon with pid ${context.pid} to stop.")
+        if (lastRegistryState == state && lastLogState == state) {
+            return
+        }
+        throw new AssertionError("""Timeout waiting for daemon with pid ${context.pid} to reach state ${state}.
+Current registry state is ${lastRegistryState} and current log state is ${lastLogState}.""")
     }
 
     /**
