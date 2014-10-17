@@ -42,11 +42,15 @@ public class PerformanceTestRunner {
     int runs
     int warmUpRuns
 
+    //sub runs 'inside' a run. Useful for tests with the daemon
+    int subRuns
+
     List<String> tasksToRun = []
     DataCollector dataCollector = new CompositeDataCollector(
             new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
             new GCLoggingCollector())
     List<String> args = []
+    List<String> gradleOpts = []
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -91,34 +95,40 @@ public class PerformanceTestRunner {
         println "Running performance tests for test project '$testProject', no. of runs: $runs"
         warmUpRuns.times {
             println "Executing warm-up run #${it + 1}"
-            runOnce()
+            runNow(1) //warm-up will not do any sub-runs
         }
         results.clear()
         runs.times {
             println "Executing test run #${it + 1}"
-            runOnce()
+            runNow(subRuns)
         }
         reporter.report(results)
         results
     }
 
-    void runOnce() {
+    void runNow(int subRuns) {
         File projectDir = testProjectLocator.findProjectDir(testProject)
         results.baselineVersions.each {
             println "Gradle ${it.version}..."
-            runOnce(buildContext.distribution(it.version), projectDir, it.results)
+            runNow(buildContext.distribution(it.version), projectDir, it.results, subRuns)
         }
 
         println "Current Gradle..."
-        runOnce(current, projectDir, results.current)
+        runNow(current, projectDir, results.current, subRuns)
     }
 
-    void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        def executer = this.executer(dist, projectDir)
-        dataCollector.beforeExecute(projectDir, executer)
+    void runNow(GradleDistribution dist, File projectDir, MeasuredOperationList results, int subRuns) {
         def operation = timer.measure { MeasuredOperation operation ->
-            executer.run()
+            subRuns.times {
+                //creation of executer is included in measuer operation
+                //this is not ideal but it does not prevent us from finding performance regressions
+                //because extra time is equally added to all executions
+                def executer = this.executer(dist, projectDir)
+                dataCollector.beforeExecute(projectDir, executer)
+                executer.run()
+            }
         }
+        this.executer(dist, projectDir).withTasks("--stop").run()
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }
@@ -128,11 +138,13 @@ public class PerformanceTestRunner {
     GradleExecuter executer(GradleDistribution dist, File projectDir) {
         dist.executer(testDirectoryProvider).
                 requireGradleHome().
+                requireIsolatedDaemons().
                 withDeprecationChecksDisabled().
                 withStackTraceChecksDisabled().
                 withArguments('-u').
                 inDirectory(projectDir).
                 withTasks(tasksToRun).
-                withArguments(args)
+                withArguments(args).
+                withGradleOpts(gradleOpts as String[])
     }
 }

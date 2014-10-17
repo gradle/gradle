@@ -35,7 +35,7 @@ public class GCLoggingCollector implements DataCollector {
 
     public void beforeExecute(File testProjectDir, GradleExecuter executer) {
         logFile = new File(testProjectDir, "gc.txt");
-        executer.withGradleOpts("-verbosegc", "-XX:+PrintGCDetails", "-Xloggc:" + logFile.getAbsolutePath());
+        executer.withGradleOpts("-Dorg.gradle.jvmargs=-verbosegc -XX:+PrintGCDetails -Xloggc:" + logFile.getAbsolutePath());
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
@@ -46,7 +46,7 @@ public class GCLoggingCollector implements DataCollector {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
             try {
-                collect(reader, operation, locale);
+                collect(new WaitingReader(reader), operation, locale);
             } finally {
                 reader.close();
             }
@@ -55,7 +55,7 @@ public class GCLoggingCollector implements DataCollector {
         }
     }
 
-    private void collect(BufferedReader reader, MeasuredOperation operation, Locale locale) throws IOException {
+    private void collect(WaitingReader reader, MeasuredOperation operation, Locale locale) throws IOException {
         char decimalSeparator = (new DecimalFormatSymbols(locale)).getDecimalSeparator();
         Pattern collectionEventPattern = Pattern.compile(String.format("\\d+\\%s\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
         Pattern memoryPoolPattern = Pattern.compile("([\\w\\s]+) total (\\d+)K, used (\\d+)K \\[.+");
@@ -109,7 +109,7 @@ public class GCLoggingCollector implements DataCollector {
         while (true) {
             String line = reader.readLine();
             if (line == null) {
-                break;
+                    break;
             }
             Matcher matcher = memoryPoolPattern.matcher(line);
             if (!matcher.lookingAt()) {
