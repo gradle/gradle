@@ -109,6 +109,10 @@ integTestTasks.all { Test task ->
             systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
         }
     }
+
+    allTestTasksForFastFeedbackOrder { testTask ->
+        task.shouldRunAfter testTask
+    }
 }
 
 task integTest(type: Test) {
