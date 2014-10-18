@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.MapMaker;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,18 +28,18 @@ import java.util.concurrent.locks.ReentrantLock;
 @ThreadSafe
 public class ClassLoaderCache {
     private final Lock lock = new ReentrantLock();
-    private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails;
-    private final Map<UUID, ClassLoader> classLoaderIds;
+    private final Cache<ClassLoader, ClassLoaderDetails> classLoaderDetails;
+    private final Cache<UUID, ClassLoader> classLoaderIds;
 
     public ClassLoaderCache() {
-        classLoaderDetails = new MapMaker().weakKeys().makeMap();
-        classLoaderIds = new MapMaker().softValues().makeMap();
+        classLoaderDetails = CacheBuilder.newBuilder().weakKeys().build();
+        classLoaderIds = CacheBuilder.newBuilder().softValues().build();
     }
 
     public ClassLoader getClassLoader(ClassLoaderDetails details, Transformer<ClassLoader, ClassLoaderDetails> factory) {
         lock.lock();
         try {
-            ClassLoader classLoader = classLoaderIds.get(details.uuid);
+            ClassLoader classLoader = classLoaderIds.getIfPresent(details.uuid);
             if (classLoader != null) {
                 return classLoader;
             }
@@ -56,7 +56,7 @@ public class ClassLoaderCache {
     public ClassLoaderDetails getDetails(ClassLoader classLoader, Transformer<ClassLoaderDetails, ClassLoader> factory) {
         lock.lock();
         try {
-            ClassLoaderDetails details = classLoaderDetails.get(classLoader);
+            ClassLoaderDetails details = classLoaderDetails.getIfPresent(classLoader);
             if (details != null) {
                 return details;
             }
