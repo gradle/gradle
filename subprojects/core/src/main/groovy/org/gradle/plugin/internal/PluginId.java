@@ -47,6 +47,10 @@ public class PluginId {
         return new PluginId(value);
     }
 
+    public static PluginId unvalidated(String value) {
+        return new PluginId(value);
+    }
+
     public static void validate(String value) throws InvalidPluginIdException {
         if (value.startsWith(SEPARATOR) || value.endsWith(SEPARATOR)) {
             throw new InvalidPluginIdException(value, ID_SEPARATOR_ON_START_OR_END);

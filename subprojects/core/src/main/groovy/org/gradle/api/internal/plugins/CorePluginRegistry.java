@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.internal.PluginId;
 
 public class CorePluginRegistry extends DefaultPluginRegistry {
@@ -25,8 +23,8 @@ public class CorePluginRegistry extends DefaultPluginRegistry {
     public static final String CORE_PLUGIN_NAMESPACE = "org" + PluginId.SEPARATOR + "gradle";
     public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + PluginId.SEPARATOR;
 
-    public CorePluginRegistry(ClassLoader classLoader, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector) {
-        super(classLoader, instantiator, modelRuleSourceDetector);
+    public CorePluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
+        super(pluginInspector, classLoader);
     }
 
     @Override

@@ -16,16 +16,13 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestPlugin1
-import org.gradle.api.internal.project.TestPlugin2
 import org.gradle.api.internal.project.TestRuleSource
+import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.api.plugins.PluginInstantiationException
 import org.gradle.api.plugins.UnknownPluginException
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -35,23 +32,9 @@ import spock.lang.Specification
 class DefaultPluginRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-    final Instantiator instantiator = Mock()
-    final ClassLoader classLoader = Mock()
-    private ModelRuleSourceDetector modelRuleSourceDetector = new ModelRuleSourceDetector()
-    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator, modelRuleSourceDetector)
-
-    public void canLoadPluginByType() {
-        def plugin = new TestPlugin2()
-
-        when:
-        def result = pluginRegistry.loadPlugin(TestPlugin2.class)
-
-        then:
-        result == plugin
-
-        and:
-        1 * instantiator.newInstance(TestPlugin2.class, new Object[0]) >> plugin
-    }
+    final classLoader = Mock(ClassLoader)
+    def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
+    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
 
     public void canLookupPluginTypeById() {
         def url = writePluginProperties("somePlugin", TestPlugin1)
@@ -61,7 +44,7 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        pluginRegistry.getPluginTypeForId("somePlugin") == TestPlugin1
+        pluginRegistry.lookup("somePlugin").asClass() == TestPlugin1
     }
 
     public void canLookupTypesById() {
@@ -73,54 +56,47 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
 
         then:
-        pluginRegistry.getTypeForId("someRuleSource") == TestRuleSource
+        pluginRegistry.lookup("someRuleSource").asClass() == TestRuleSource
 
         when:
         classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> pluginUrl
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         then:
-        pluginRegistry.getTypeForId("somePlugin") == TestPlugin1
+        pluginRegistry.lookup("somePlugin").asClass() == TestPlugin1
     }
 
     public void failsForRuleSourceWhenLookingForAPlugin() {
+
         def url = writePluginProperties("someRuleSource", TestRuleSource)
 
         given:
         classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> url
         classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
 
-        when:
-        pluginRegistry.getPluginTypeForId("someRuleSource") == TestRuleSource
-
-        then:
-        PluginInstantiationException e = thrown()
-        e.message == "Implementation class 'org.gradle.api.internal.project.TestRuleSource' specified for plugin 'someRuleSource' does not implement the Plugin interface. Specified in $url."
+        expect:
+        pluginRegistry.inspect((Class) TestRuleSource.class).type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
     }
 
     public void failsForUnknownId() {
         when:
-        pluginRegistry.getPluginTypeForId("unknownId")
+        pluginRegistry.lookup("unknownId")
 
         then:
         UnknownPluginException e = thrown()
         e.message == "Plugin with id 'unknownId' not found."
 
         when:
-        pluginRegistry.getTypeForId("unknownId")
+        pluginRegistry.lookup("unknownId")
 
         then:
         e = thrown()
         e.message == "Plugin with id 'unknownId' not found."
     }
 
-    public void failsWhenClassDoesNotImplementPlugin() {
-        when:
-        pluginRegistry.loadPlugin((Class)String.class)
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "Cannot create plugin of type 'String' as it does not implement the Plugin interface."
+    public void returnsUnknownType() {
+        expect:
+        pluginRegistry.inspect((Class) String.class).type == PotentialPlugin.Type.UNKNOWN
     }
 
     public void failsWhenNoImplementationClassSpecifiedInPropertiesFile() {
@@ -133,14 +109,14 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.getResource("META-INF/gradle-plugins/noImpl.properties") >> url
 
         when:
-        pluginRegistry.getPluginTypeForId("noImpl")
+        pluginRegistry.lookup("noImpl")
 
         then:
         PluginInstantiationException e = thrown()
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
 
         when:
-        pluginRegistry.getTypeForId("noImpl")
+        pluginRegistry.lookup("noImpl")
 
         then:
         e = thrown()
@@ -152,44 +128,10 @@ class DefaultPluginRegistryTest extends Specification {
 
         given:
         classLoader.getResource("META-INF/gradle-plugins/brokenImpl.properties") >> url
-        classLoader.loadClass("java.lang.String") >> String
+        classLoader.loadClass(String.name) >> String
 
-        when:
-        pluginRegistry.getPluginTypeForId("brokenImpl")
-
-        then:
-        PluginInstantiationException e = thrown()
-        e.message == "Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface. Specified in $url."
-    }
-
-    public void failsWhenImplementationClassSpecifiedInPropertiesFileDoesNotImplementPluginAndDoesNotProvideRuleSources() {
-        def url = writePluginProperties("brokenImpl", String)
-
-        given:
-        classLoader.getResource("META-INF/gradle-plugins/brokenImpl.properties") >> url
-        classLoader.loadClass("java.lang.String") >> String
-
-        when:
-        pluginRegistry.getTypeForId("brokenImpl")
-
-        then:
-        PluginInstantiationException e = thrown()
-        e.message == "Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface and does not define any rule sources. Specified in $url."
-    }
-
-    public void wrapsPluginInstantiationFailure() {
-        def failure = new RuntimeException();
-
-        given:
-        _ * instantiator.newInstance(BrokenPlugin, new Object[0]) >> { throw new ObjectInstantiationException(BrokenPlugin.class, failure) }
-
-        when:
-        pluginRegistry.loadPlugin(BrokenPlugin.class)
-
-        then:
-        PluginInstantiationException e = thrown()
-        e.message == "Could not create plugin of type 'BrokenPlugin'."
-        e.cause == failure
+        expect:
+        pluginRegistry.lookup("brokenImpl").type == PotentialPlugin.Type.UNKNOWN
     }
 
     public void wrapsFailureToLoadImplementationClass() {
@@ -200,45 +142,25 @@ class DefaultPluginRegistryTest extends Specification {
         _ * classLoader.loadClass(TestPlugin1.name) >> { throw new ClassNotFoundException() }
 
         when:
-        pluginRegistry.getTypeForId("somePlugin")
+        pluginRegistry.lookup("somePlugin")
 
         then:
-        PluginInstantiationException e = thrown()
+        InvalidPluginException e = thrown()
         e.message == "Could not find implementation class '$TestPlugin1.name' for plugin 'somePlugin' specified in $url."
         e.cause instanceof ClassNotFoundException
     }
 
-    public void childUsesItsOwnInstantiatorToCreatePlugin() {
-        def lookupScope = Mock(ClassLoaderScope)
-        def childInstantiator = Mock(Instantiator)
-        def plugin = new TestPlugin1()
-
-        given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator, modelRuleSourceDetector)
-
-        when:
-        def result = child.loadPlugin(TestPlugin1)
-
-        then:
-        result == plugin
-
-        and:
-        1 * childInstantiator.newInstance(TestPlugin1, new Object[0]) >> plugin
-        0 * instantiator._
-    }
-
     public void childDelegatesToParentRegistryToLookupPluginType() throws Exception {
         def lookupScope = Mock(ClassLoaderScope)
-        def childInstantiator = Mock(Instantiator)
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator, modelRuleSourceDetector)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope)
         _ * classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         when:
-        def type = child.getTypeForId("somePlugin")
+        def type = child.lookup("somePlugin").asClass()
 
         then:
         type == TestPlugin1
@@ -250,17 +172,16 @@ class DefaultPluginRegistryTest extends Specification {
     public void childClasspathCanContainAdditionalMappingsForPlugins() throws Exception {
         def childClassLoader = Mock(ClassLoader)
         def lookupScope = Mock(ClassLoaderScope)
-        def childInstantiator = Mock(Instantiator)
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator, modelRuleSourceDetector)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope)
         _ * lookupScope.localClassLoader >> childClassLoader
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         when:
-        def type = child.getTypeForId("somePlugin")
+        def type = child.lookup("somePlugin").asClass()
 
         then:
         type == TestPlugin1

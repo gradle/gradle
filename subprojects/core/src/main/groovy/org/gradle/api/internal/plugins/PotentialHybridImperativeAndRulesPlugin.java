@@ -16,7 +16,30 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Action;
+import org.gradle.api.Plugin;
 
-public interface PluginApplicationAction extends Action<PluginApplication> {
+public class PotentialHybridImperativeAndRulesPlugin implements PotentialPlugin {
+
+    private final Class<? extends Plugin<?>> clazz;
+
+    public PotentialHybridImperativeAndRulesPlugin(Class<? extends Plugin<?>> clazz) {
+        this.clazz = clazz;
+    }
+
+    public Class<?> asClass() {
+        return clazz;
+    }
+
+    public Class<? extends Plugin<?>> asImperativeClass() {
+        return clazz;
+    }
+
+    public boolean hasRules() {
+        return true;
+    }
+
+    public Type getType() {
+        return Type.HYBRID_IMPERATIVE_AND_RULES_CLASS;
+    }
+
 }

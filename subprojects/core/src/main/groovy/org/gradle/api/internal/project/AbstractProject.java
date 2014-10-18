@@ -38,14 +38,12 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
-import org.gradle.api.internal.plugins.PluginApplicationHandler;
+import org.gradle.api.internal.plugins.PluginManager;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -64,7 +62,6 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -250,12 +247,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public GradleInternal getGradle() {
         return gradle;
-    }
-
-    @Inject
-    public PluginContainer getPlugins() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
     }
 
     public ProjectEvaluator getProjectEvaluator() {
@@ -898,10 +889,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getModelRuleSourceDetector(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+    }
+
+    @Inject
+    public PluginManager getPluginManager() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -912,24 +908,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     @Inject
     protected ScriptHandlerFactory getScriptHandlerFactory() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public PluginApplicationHandler getPluginApplicationHandler() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public AppliedPlugins getAppliedPlugins() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ModelRuleSourceDetector getModelRuleSourceDetector() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

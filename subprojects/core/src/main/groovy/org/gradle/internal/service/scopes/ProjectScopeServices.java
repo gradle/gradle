@@ -31,15 +31,16 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.RulesCapablePluginApplicator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.plugins.AppliedPlugins;
-import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -82,7 +83,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock(), new DependencyInjectingInstantiator(this), get(ModelRuleSourceDetector.class));
+        return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock());
     }
 
     protected FileResolver createFileResolver() {
@@ -117,23 +118,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginContainer createPluginContainer() {
-        List<PluginApplicationAction> allPluginApplyActions = getAll(PluginApplicationAction.class);
-        return new DefaultPluginContainer<ProjectInternal>(get(PluginRegistry.class), project, allPluginApplyActions, get(ModelRuleSourceDetector.class));
-    }
-
-    protected PluginApplicationAction createAppliedPluginsAdditionAction() {
-        return new AppliedPluginsAdditionAction();
-    }
-
-    protected ProjectAppliedPluginContainer createPluginApplicationHandler() {
+    protected PluginManager createPluginManager() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
-        return new ProjectAppliedPluginContainer(project, get(PluginRegistry.class), inspector, get(ModelRuleSourceDetector.class));
-    }
-
-    protected AppliedPlugins createAppliedPlugins() {
-        return new DefaultAppliedPlugins(get(AppliedPluginContainer.class), get(PluginRegistry.class));
+        PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
+        return new PluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

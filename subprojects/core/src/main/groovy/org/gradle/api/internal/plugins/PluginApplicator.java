@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.Nullable;
+import org.gradle.api.Plugin;
 
-public interface AppliedPluginContainer {
+public interface PluginApplicator {
 
-    public boolean contains(Class<?> pluginClass);
+    // Implementations should not wrap exceptions, this is done in DefaultObjectConfigurationAction
 
-    public DomainObjectCollection<Class<?>> matching(Spec<? super Class<?>> spec);
+    void applyImperative(@Nullable String pluginId, Plugin<?> plugin);
+
+    void applyRules(@Nullable String pluginId, Class<?> clazz);
+
+    void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin);
+
 }

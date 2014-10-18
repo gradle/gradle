@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,29 @@
 
 package org.gradle.api.internal.plugins;
 
-public class AppliedPluginsAdditionAction implements PluginApplicationAction {
+import org.gradle.api.Plugin;
 
-    public void execute(PluginApplication pluginApplication) {
-        pluginApplication.getTarget().getPluginApplicationHandler().apply(pluginApplication.getPlugin().getClass());
+public class PotentialImperativeClassPlugin implements PotentialPlugin {
+
+    private final Class<? extends Plugin<?>> clazz;
+
+    public PotentialImperativeClassPlugin(Class<? extends Plugin<?>> clazz) {
+        this.clazz = clazz;
+    }
+
+    public Class<?> asClass() {
+        return clazz;
+    }
+
+    public Class<? extends Plugin<?>> asImperativeClass() {
+        return clazz;
+    }
+
+    public Type getType() {
+        return Type.IMPERATIVE_CLASS;
+    }
+
+    public boolean hasRules() {
+        return false;
     }
 }

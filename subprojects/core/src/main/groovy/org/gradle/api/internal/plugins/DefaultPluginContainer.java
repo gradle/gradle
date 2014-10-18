@@ -15,49 +15,42 @@
  */
 package org.gradle.api.internal.plugins;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
-public class DefaultPluginContainer<T extends PluginAwareInternal> extends DefaultPluginCollection<Plugin> implements PluginContainer {
-    private PluginRegistry pluginRegistry;
+    private final PluginRegistry pluginRegistry;
+    private final Instantiator instantiator;
+    private final PluginApplicator applicator;
 
-    private final LoadingCache<PluginIdLookupCacheKey, Boolean> idLookupCache;
-
-    private final T pluginAware;
-    private final List<PluginApplicationAction> pluginApplicationActions;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
-
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, ModelRuleSourceDetector modelRuleSourceDetector) {
-        this(pluginRegistry, pluginAware, Collections.<PluginApplicationAction>emptyList(), modelRuleSourceDetector);
-    }
-
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware, List<PluginApplicationAction> pluginApplicationActions, ModelRuleSourceDetector modelRuleSourceDetector) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, Instantiator instantiator, PluginApplicator applicator) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
-        this.pluginAware = pluginAware;
-        this.pluginApplicationActions = pluginApplicationActions;
-        idLookupCache = CacheBuilder.newBuilder().build(new PluginIdLookupCacheLoader(pluginRegistry));
-        this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.instantiator = instantiator;
+        this.applicator = applicator;
     }
 
     public Plugin apply(String id) {
-        return addPluginInternal(getPluginTypeForId(id));
+        PotentialPlugin potentialPlugin = pluginRegistry.lookup(id);
+        Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
+        if (pluginClass == null) {
+            throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+        } else {
+            return addPluginInternal(id, pluginClass);
+        }
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
-        return addPluginInternal(type);
+        return addPluginInternal(null, type);
     }
 
     public boolean hasPlugin(String id) {
@@ -70,7 +63,13 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
 
     public Plugin findPlugin(String id) {
         try {
-            return findPlugin(getPluginTypeForId(id));
+            PotentialPlugin potentialPlugin = pluginRegistry.lookup(id);
+            Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
+            if (pluginClass == null) {
+                throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+            } else {
+                return findPlugin(potentialPlugin.asImperativeClass());
+            }
         } catch (UnknownPluginException e) {
             return null;
         }
@@ -85,15 +84,26 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
         return null;
     }
 
-    private <P extends Plugin<?>> P addPluginInternal(Class<P> type) {
-        if (findPlugin(type) == null) {
-            Plugin plugin = providePlugin(type);
-            add(plugin);
-            for (PluginApplicationAction onApplyAction : pluginApplicationActions) {
-                onApplyAction.execute(new PluginApplication(plugin, pluginAware));
-            }
+    private <P extends Plugin<?>> P addPluginInternal(@Nullable String pluginId, Class<P> type) {
+        P existing = findPlugin(type);
+        if (existing == null) {
+            P plugin = providePlugin(type);
+            return addPluginInternal(pluginId, plugin);
+        } else {
+            return existing;
         }
-        return type.cast(findPlugin(type));
+    }
+
+    private <P extends Plugin<?>> P addPluginInternal(String pluginId, P plugin) {
+        PotentialPlugin potentialPlugin = pluginRegistry.inspect(plugin.getClass());
+        if (potentialPlugin.hasRules()) {
+            applicator.applyImperativeRulesHybrid(pluginId, plugin);
+        } else {
+            applicator.applyImperative(pluginId, plugin);
+        }
+
+        add(plugin);
+        return plugin;
     }
 
     public Plugin getPlugin(String id) {
@@ -113,7 +123,7 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
     }
 
     public <P extends Plugin> P getPlugin(Class<P> type) throws UnknownPluginException {
-        Plugin plugin = findPlugin(type);
+        P plugin = findPlugin(type);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with type " + type + " has not been used.");
         }
@@ -122,9 +132,10 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
 
     public void withId(final String pluginId, Action<? super Plugin> action) {
         try {
-            Class<?> typeForId = pluginRegistry.getTypeForId(pluginId);
-            if (!Plugin.class.isAssignableFrom(typeForId) && modelRuleSourceDetector.hasModelSources(typeForId)) {
-                String message = String.format("The type for id '%s' (class: '%s') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.", pluginId, typeForId.getName());
+            PotentialPlugin potentialPlugin = pluginRegistry.lookup(pluginId);
+            Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
+            if (pluginClass == null) {
+                String message = String.format("The type for id '%s' (class: '%s') is not a plugin implementing the Plugin interface. Please use AppliedPlugins.withPlugin() instead to detect it.", pluginId, potentialPlugin.asClass().getName());
                 throw new IllegalArgumentException(message);
             }
         } catch (UnknownPluginException e) {
@@ -132,31 +143,26 @@ public class DefaultPluginContainer<T extends PluginAwareInternal> extends Defau
         }
         matching(new Spec<Plugin>() {
             public boolean isSatisfiedBy(Plugin element) {
-                try {
-                    return idLookupCache.get(new PluginIdLookupCacheKey(element.getClass(), pluginId));
-                } catch (ExecutionException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                return pluginRegistry.hasId(element.getClass(), pluginId);
             }
         }).all(action);
     }
 
-    protected Class<? extends Plugin> getPluginTypeForId(String id) {
-        return pluginRegistry.getPluginTypeForId(id);
-    }
-
-    private Plugin<T> providePlugin(Class<? extends Plugin<?>> type) {
-        @SuppressWarnings("unchecked") Plugin<T> plugin = (Plugin<T>) pluginRegistry.loadPlugin(type);
-        plugin.apply(pluginAware);
-        return plugin;
+    private <T extends Plugin<?>> T providePlugin(Class<T> type) {
+        try {
+            return instantiator.newInstance(type);
+        } catch (ObjectInstantiationException e) {
+            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", type.getSimpleName()), e.getCause());
+        }
     }
 
     @Override
     public <S extends Plugin> PluginCollection<S> withType(Class<S> type) {
-        if (!Plugin.class.isAssignableFrom(type) && modelRuleSourceDetector.hasModelSources(type)) {
-            String message = String.format("'%s' is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied.", type.getName());
-            throw new IllegalArgumentException(message);
+        // runtime check because method is used from Groovy where type bounds are not respected
+        if (!Plugin.class.isAssignableFrom(type)) {
+            throw new IllegalArgumentException(String.format("'%s' does not implement the Plugin interface.", type.getName()));
         }
+
         return super.withType(type);
     }
 }

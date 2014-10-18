@@ -19,11 +19,9 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScript
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.junit.Test
 import spock.lang.Specification
 
@@ -39,7 +37,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def parentCompileScope = Mock(ClassLoaderScope)
     def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, new ModelRuleSourceDetector(), target)
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, target)
 
     void doesNothingWhenNothingSpecified() {
         expect:

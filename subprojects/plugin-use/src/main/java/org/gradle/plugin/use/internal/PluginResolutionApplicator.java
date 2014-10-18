@@ -30,6 +30,6 @@ public class PluginResolutionApplicator implements Action<PluginResolution> {
 
     public void execute(PluginResolution pluginResolution) {
         Class<?> pluginClass = pluginResolution.resolve();
-        target.getPluginApplicationHandler().apply(pluginClass);
+        target.getPluginManager().apply(pluginClass);
     }
 }

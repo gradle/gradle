@@ -27,11 +27,10 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.PluginApplicationHandler;
+import org.gradle.api.internal.plugins.PluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
@@ -42,7 +41,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
@@ -82,9 +80,7 @@ public class DefaultGradleTest {
     private final ScriptHandlerFactory scriptHandlerFactory = context.mock(ScriptHandlerFactory.class);
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry = context.mock(ClassLoaderScopeRegistry.class);
     private final ClassLoaderScope classLoaderScope = context.mock(ClassLoaderScope.class);
-    private final PluginApplicationHandler pluginApplicationHandler = context.mock(PluginApplicationHandler.class);
-    private final AppliedPlugins appliedPlugins = context.mock(AppliedPlugins.class);
-    private final ModelRuleSourceDetector modelRuleSourceDetector = context.mock(ModelRuleSourceDetector.class);
+    private final PluginManager pluginManager = context.mock(PluginManager.class);
 
     private DefaultGradle gradle;
 
@@ -101,6 +97,8 @@ public class DefaultGradleTest {
             will(returnValue(classLoaderScope));
             allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
             will(returnValue(pluginRegistry));
+            allowing(gradleServiceRegistryMock).get(PluginManager.class);
+            will(returnValue(pluginManager));
             allowing(gradleServiceRegistryMock).get(TaskGraphExecuter.class);
             will(returnValue(taskExecuter));
             allowing(gradleServiceRegistryMock).get(ListenerManager.class);
@@ -121,12 +119,6 @@ public class DefaultGradleTest {
             will(returnValue(buildListenerBroadcast));
             allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);
             will(returnValue(projectEvaluationListenerBroadcast));
-            allowing(gradleServiceRegistryMock).get(PluginApplicationHandler.class);
-            will(returnValue(pluginApplicationHandler));
-            allowing(gradleServiceRegistryMock).get(AppliedPlugins.class);
-            will(returnValue(appliedPlugins));
-            allowing(gradleServiceRegistryMock).get(ModelRuleSourceDetector.class);
-            will(returnValue(modelRuleSourceDetector));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }
