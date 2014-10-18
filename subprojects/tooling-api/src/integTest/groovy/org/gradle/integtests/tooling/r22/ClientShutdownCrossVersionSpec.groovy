@@ -16,15 +16,21 @@
 
 package org.gradle.integtests.tooling.r22
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.junit.Rule
 
 @ToolingApiVersion(">=2.2")
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
+    @Rule
+    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+
     def cleanup() {
         reset()
     }
@@ -41,7 +47,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.2")
-    def "cleans up daemons when tooling API session is shutdown"() {
+    def "cleans up idle daemons when tooling API session is shutdown"() {
         given:
         toolingApi.requireIsolatedDaemons()
 
@@ -55,12 +61,37 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         toolingApi.daemons.daemon.stops()
+    }
+
+    @TargetGradleVersion(">=2.2")
+    def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
+        given:
+        buildFile << """
+task slow << { new URL("${server.uri}").text }
+"""
+
+        toolingApi.requireIsolatedDaemons()
+        withConnection { connection ->
+            connection.getModel(GradleBuild)
+        }
+        toolingApi.daemons.daemon.assertIdle()
+
+        def build = daemonExecutor().withTasks("slow").start()
+        server.waitFor()
+        toolingApi.daemons.daemon.assertBusy()
 
         when:
-        GradleConnector.newConnector()
+        DefaultGradleConnector.close()
 
         then:
-        IllegalStateException e = thrown()
+        toolingApi.daemons.daemon.assertBusy()
+
+        when:
+        server.release()
+        build.waitForFinish()
+
+        then:
+        toolingApi.daemons.daemon.stops()
     }
 
     @TargetGradleVersion(">=2.2")
@@ -79,11 +110,28 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         noExceptionThrown()
+    }
+
+    @TargetGradleVersion(">=2.2")
+    def "shutdown ignores daemons that were not started by client"() {
+        given:
+        toolingApi.requireIsolatedDaemons()
+        daemonExecutor().run()
+        toolingApi.daemons.daemon.assertIdle()
+
+        withConnection { connection ->
+            connection.getModel(GradleBuild)
+        }
+        toolingApi.daemons.daemon.assertIdle()
 
         when:
-        GradleConnector.newConnector()
+        DefaultGradleConnector.close()
 
         then:
-        IllegalStateException e = thrown()
+        toolingApi.daemons.daemon.assertIdle()
+    }
+
+    private GradleExecuter daemonExecutor() {
+        dist.executer(temporaryFolder).withDaemonBaseDir(toolingApi.daemonBaseDir).withArguments("--daemon")
     }
 }

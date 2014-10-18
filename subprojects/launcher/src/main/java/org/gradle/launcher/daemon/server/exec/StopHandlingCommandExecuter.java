@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Stop;
+import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 import org.gradle.launcher.daemon.protocol.Success;
 
 public class StopHandlingCommandExecuter implements DaemonCommandExecuter {
@@ -31,6 +32,9 @@ public class StopHandlingCommandExecuter implements DaemonCommandExecuter {
     public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
         if (command instanceof Stop) {
             daemonStateControl.requestForcefulStop();
+            connection.completed(new Success(null));
+        } else if (command instanceof StopWhenIdle) {
+            daemonStateControl.requestStop();
             connection.completed(new Success(null));
         } else {
             executer.executeCommand(connection, command, daemonContext, daemonStateControl);

@@ -52,6 +52,6 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
         for (DaemonStartupInfo daemonInfo : daemons) {
             addresses.add(daemonInfo.getAddress());
         }
-        client.stop(addresses);
+        client.gracefulStop(addresses);
     }
 }
