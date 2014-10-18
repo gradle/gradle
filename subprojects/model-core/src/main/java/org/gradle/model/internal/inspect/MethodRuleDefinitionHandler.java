@@ -16,10 +16,17 @@
 
 package org.gradle.model.internal.inspect;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.registry.ModelRegistry;
 
+import java.util.List;
+
 public interface MethodRuleDefinitionHandler {
+    List<MethodRuleDefinitionHandler> CORE_HANDLERS = ImmutableList.<MethodRuleDefinitionHandler>of(
+            new ModelCreationRuleDefinitionHandler(), new ManagedModelCreationRuleDefinitionHandler(), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
+    );
+
     Spec<MethodRuleDefinition<?>> getSpec();
 
     String getDescription();

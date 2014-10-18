@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
@@ -52,7 +51,9 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -124,13 +125,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginManager createPluginManager() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
-        List<MethodRuleDefinitionHandler> coreHandlers = ImmutableList.<MethodRuleDefinitionHandler>of(
-                new ModelCreationRuleDefinitionHandler(),
-                new ManagedModelCreationRuleDefinitionHandler(get(ManagedModelElementInstanceFactory.class)),
-                new MutateRuleDefinitionHandler(),
-                new FinalizeRuleDefinitionHandler()
-        );
-        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
+        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
         PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
         return new PluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }

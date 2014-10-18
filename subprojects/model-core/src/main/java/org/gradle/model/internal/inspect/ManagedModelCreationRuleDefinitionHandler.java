@@ -33,16 +33,11 @@ import java.util.List;
 
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final DefaultModelSchemaStore store;
-    private final ManagedModelElementInstanceFactory managedInstanceFactory;
+    private final ManagedModelElementInstanceFactory managedInstanceFactory = new ManagedModelElementInstanceFactory();
+    private final DefaultModelSchemaStore store = new DefaultModelSchemaStore(managedInstanceFactory);
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());
-    }
-
-    public ManagedModelCreationRuleDefinitionHandler(ManagedModelElementInstanceFactory managedInstanceFactory) {
-        this.managedInstanceFactory = managedInstanceFactory;
-        store = new DefaultModelSchemaStore(managedInstanceFactory);
     }
 
     @Override

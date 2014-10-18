@@ -20,7 +20,6 @@ import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extraction.InvalidManagedModelElementTypeException
-import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -30,12 +29,7 @@ class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector([
-            new ModelCreationRuleDefinitionHandler(),
-            new ManagedModelCreationRuleDefinitionHandler(new ManagedModelElementInstanceFactory()),
-            new MutateRuleDefinitionHandler(),
-            new FinalizeRuleDefinitionHandler()
-    ])
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandler.CORE_HANDLERS)
     def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {
