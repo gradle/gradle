@@ -84,6 +84,7 @@ class JarCacheTest extends Specification {
         then:
         result != copy
         result != original
+        result.text == original.text
 
         and:
         1 * baseDirFactory.create() >> cacheDir
@@ -100,6 +101,23 @@ class JarCacheTest extends Specification {
 
         then:
         result == copy
+
+        and:
+        1 * baseDirFactory.create() >> cacheDir
+        0 * _
+    }
+
+    def "copies file again when it has been deleted from the cache directory"() {
+        given:
+        def copy = cache(original)
+        copy.delete()
+
+        when:
+        def result = cache.getCachedJar(original, baseDirFactory)
+
+        then:
+        result == copy
+        copy.text == original.text
 
         and:
         1 * baseDirFactory.create() >> cacheDir

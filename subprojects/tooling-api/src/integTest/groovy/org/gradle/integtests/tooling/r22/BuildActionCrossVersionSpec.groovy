@@ -16,18 +16,16 @@
 
 package org.gradle.integtests.tooling.r22
 
+import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
-import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=1.8")
-@Ignore
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.2")
     def "can change the implementation of an action"() {
@@ -36,56 +34,65 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         def workDir = temporaryFolder.file("work")
         def implJar = workDir.file("action-impl.jar")
-        def builder = new GradleBackedArtifactBuilder(new InProcessGradleExecuter(dist, temporaryFolder), workDir)
+        def builder = new GradleBackedArtifactBuilder(new ForkingGradleExecuter(dist, temporaryFolder), workDir)
 
         given:
         builder.sourceFile('ActionImpl.java') << """
-public class ActionImpl implements ${BuildAction.name}<String> {
-    public String execute(${BuildController.name} controller) {
-        return "one";
+public class ActionImpl implements ${BuildAction.name}<java.io.File> {
+    public java.io.File execute(${BuildController.name} controller) {
+        try {
+            return new java.io.File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (java.net.URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 """
+        // Discard the impl jar from the jvm's jar file cache and rebuild
+        forceJarClose(implJar)
         builder.buildJar(implJar)
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action1 = cl1.loadClass("ActionImpl").newInstance()
 
         when:
-        def result1 = withConnection { ProjectConnection connection ->
+        File actualJar1 = withConnection { ProjectConnection connection ->
             connection.action(action1).run()
         }
 
         then:
-        result1 == "one"
+        actualJar1 != implJar
+        actualJar1.name == implJar.name
 
         when:
         // Discard the impl jar from the jvm's jar file cache
         forceJarClose(implJar)
         workDir.deleteDir()
-        builder.sourceFile('ActionImpl2.java') << """
-public class ActionImpl2 implements ${BuildAction.name}<String> {
+        builder.sourceFile('ActionImpl.java') << """
+public class ActionImpl implements ${BuildAction.name}<String> {
     public String execute(${BuildController.name} controller) {
-        return new InnerThing().value;
-    }
-
-    class InnerThing {
-        String value = "new result";
+        return getClass().getProtectionDomain().getCodeSource().getLocation().toString();
     }
 }
 """
         builder.buildJar(implJar)
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action2 = cl2.loadClass("ActionImpl2").newInstance()
+        def action2 = cl2.loadClass("ActionImpl").newInstance()
 
-        def result2 = withConnection { ProjectConnection connection ->
+        String result2 = withConnection { ProjectConnection connection ->
             connection.action(action2).run()
         }
+        def actualJar2 = new File(new URI(result2))
 
         then:
-        result2 == "new result"
+        actualJar2 != implJar
+        actualJar2 != actualJar1
+        actualJar2.name == implJar.name
     }
 
     def forceJarClose(File jar) {
+        if (!jar.exists()) {
+            return
+        }
         def factory = new sun.net.www.protocol.jar.JarFileFactory()
         def file = factory.get(jar.toURI().toURL())
         factory.close(file)

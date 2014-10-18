@@ -16,11 +16,19 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.cache.CacheRepository
 import org.gradle.internal.classloader.MutableURLClassLoader
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
-    def registry = new DaemonSidePayloadClassLoaderFactory(Mock(PayloadClassLoaderFactory))
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def factory = Mock(PayloadClassLoaderFactory)
+    def jarCache = Mock(JarCache)
+    def cacheRepository = Stub(CacheRepository)
+    def registry = new DaemonSidePayloadClassLoaderFactory(factory, jarCache, cacheRepository)
 
     def "creates ClassLoader for classpath"() {
         def url1 = new URL("http://localhost/file1.jar")
@@ -32,5 +40,23 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         then:
         cl instanceof MutableURLClassLoader
         cl.URLs == [url1, url2] as URL[]
+    }
+
+    def "creates ClassLoader for jar classpath"() {
+        def jarFile = tmpDir.createFile("file1.jar")
+        def cachedJar = tmpDir.createFile("cached/file1.jar")
+        def url1 = jarFile.toURI().toURL()
+        def cached = cachedJar.toURI().toURL()
+        def url2 = tmpDir.createDir("classes-dir").toURI().toURL()
+
+        given:
+        jarCache.getCachedJar(jarFile, _) >> cachedJar
+
+        when:
+        def cl = registry.getClassLoaderFor(new MutableURLClassLoader.Spec([url1, url2]), [null])
+
+        then:
+        cl instanceof MutableURLClassLoader
+        cl.URLs == [cached, url2] as URL[]
     }
 }

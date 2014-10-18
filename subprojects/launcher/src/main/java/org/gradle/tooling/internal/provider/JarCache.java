@@ -51,7 +51,7 @@ public class JarCache {
         lock.lock();
         try {
             fileInfo = cachedFiles.getIfPresent(source);
-            if (fileInfo == null) {
+            if (fileInfo == null || !fileInfo.cachedFile.exists()) {
                 // TODO - use the hashing service for this
                 long lastModified = source.lastModified();
                 long length = source.length();

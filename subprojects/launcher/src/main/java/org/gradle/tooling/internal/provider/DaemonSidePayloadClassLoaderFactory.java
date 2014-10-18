@@ -16,16 +16,42 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factories;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 
+import java.io.Closeable;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
-public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory {
-    private final PayloadClassLoaderFactory delegate;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate) {
+public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory, Closeable {
+    private final PayloadClassLoaderFactory delegate;
+    private final JarCache jarCache;
+    private final PersistentCache cache;
+
+    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate, JarCache jarCache, CacheRepository cacheRepository) {
         this.delegate = delegate;
+        this.jarCache = jarCache;
+        cache = cacheRepository
+                .cache("jars-1")
+                .withDisplayName("jars")
+                .withCrossVersionCache()
+                .withLockOptions(mode(FileLockManager.LockMode.None))
+                .open();
+    }
+
+    public void close() {
+        cache.close();
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
@@ -34,7 +60,26 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             if (parents.size() != 1) {
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
-            return new MutableURLClassLoader(parents.get(0), urlSpec);
+            List<URL> cachedClassPath = new ArrayList<URL>(urlSpec.getClasspath().size());
+            for (URL url : urlSpec.getClasspath()) {
+                if (url.getProtocol().equals("file")) {
+                    try {
+                        File file = new File(url.toURI());
+                        if (file.isFile()) {
+                            file = jarCache.getCachedJar(file, Factories.constant(cache.getBaseDir()));
+                            cachedClassPath.add(file.toURI().toURL());
+                            continue;
+                        }
+                    } catch (MalformedURLException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    } catch (URISyntaxException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+                cachedClassPath.add(url);
+            }
+
+            return new MutableURLClassLoader(parents.get(0), cachedClassPath);
         }
         return delegate.getClassLoaderFor(spec, parents);
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.cache.CacheRepository;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -43,11 +44,12 @@ public class ToolingServices implements PluginServiceRegistry {
     }
 
     static class ToolingBuildScopeServices {
-        PayloadClassLoaderFactory createClassLoaderFactory(ClassLoaderFactory classLoaderFactory, JarCache jarCache) {
+        PayloadClassLoaderFactory createClassLoaderFactory(ClassLoaderFactory classLoaderFactory, JarCache jarCache, CacheRepository cacheRepository) {
             return new DaemonSidePayloadClassLoaderFactory(
                     new ModelClassLoaderFactory(
-                            classLoaderFactory)
-            );
+                            classLoaderFactory),
+                    jarCache,
+                    cacheRepository);
         }
 
         PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
