@@ -20,6 +20,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.MutableURLClassLoader;
@@ -64,10 +65,14 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             for (URL url : urlSpec.getClasspath()) {
                 if (url.getProtocol().equals("file")) {
                     try {
-                        File file = new File(url.toURI());
+                        final File file = new File(url.toURI());
                         if (file.isFile()) {
-                            file = jarCache.getCachedJar(file, Factories.constant(cache.getBaseDir()));
-                            cachedClassPath.add(file.toURI().toURL());
+                            File cached = cache.useCache("Locate Jar file", new Factory<File>() {
+                                public File create() {
+                                    return jarCache.getCachedJar(file, Factories.constant(cache.getBaseDir()));
+                                }
+                            });
+                            cachedClassPath.add(cached.toURI().toURL());
                             continue;
                         }
                     } catch (MalformedURLException e) {

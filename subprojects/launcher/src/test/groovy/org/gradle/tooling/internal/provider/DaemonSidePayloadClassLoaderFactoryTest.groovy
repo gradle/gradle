@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.internal.Factory
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.PersistentCache
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,7 +30,17 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def factory = Mock(PayloadClassLoaderFactory)
     def jarCache = Mock(JarCache)
-    def cacheRepository = Stub(CacheRepository)
+    def cache = Stub(PersistentCache)
+    def cacheBuilder = Stub(CacheBuilder) {
+        open() >> cache
+        withDisplayName(_) >> { cacheBuilder }
+        withCrossVersionCache() >> { cacheBuilder }
+        withLockOptions(_) >> { cacheBuilder }
+    }
+    def cacheRepository = Stub(CacheRepository) {
+        cache(_) >> cacheBuilder
+    }
+
     def registry = new DaemonSidePayloadClassLoaderFactory(factory, jarCache, cacheRepository)
 
     def "creates ClassLoader for classpath"() {
@@ -50,6 +63,7 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         def url2 = tmpDir.createDir("classes-dir").toURI().toURL()
 
         given:
+        cache.useCache(_, _) >> { String display, Factory f -> f.create() }
         jarCache.getCachedJar(jarFile, _) >> cachedJar
 
         when:
