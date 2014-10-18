@@ -25,15 +25,21 @@ public class ModelProperty<T> {
     private final String name;
     private final ModelType<T> type;
     private final Factory<T> initialValueProvider;
+    private final boolean managed;
 
     public ModelProperty(String name, ModelType<T> type) {
-        this(name, type, Factories.<T>constant(null));
+        this(name, type, false);
     }
 
-    public ModelProperty(String name, ModelType<T> type, Factory<T> initialValueProvider) {
+    public ModelProperty(String name, ModelType<T> type, boolean managed) {
+        this(name, type, managed, Factories.<T>constant(null));
+    }
+
+    public ModelProperty(String name, ModelType<T> type, boolean managed, Factory<T> initialValueProvider) {
         this.name = name;
         this.type = type;
         this.initialValueProvider = initialValueProvider;
+        this.managed = managed;
     }
 
     public String getName() {
@@ -42,6 +48,10 @@ public class ModelProperty<T> {
 
     public ModelType<T> getType() {
         return type;
+    }
+
+    public boolean isManaged() {
+        return managed;
     }
 
     public T getInitialValue() {

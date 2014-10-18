@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 
 class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -164,5 +165,56 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains("platform: windows")
+    }
+
+    def "cannot assign a non-managed instance to a property of a managed type"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Platform {
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem operatingSystem)
+            }
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void platform(Platform platform) {
+                }
+
+                @Mutate
+                void addDependencyOnPlatform(CollectionBuilder<Task> tasks, Platform platform) {
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                platform {
+                    operatingSystem = new OperatingSystem() {
+                        String name
+                    }
+                }
+            }
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: model.platform")
+        failure.assertHasCause("Only managed model instances can be set as property 'operatingSystem' of class 'Platform'")
     }
 }

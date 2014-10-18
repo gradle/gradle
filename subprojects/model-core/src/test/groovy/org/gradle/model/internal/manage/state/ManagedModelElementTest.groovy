@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ManagedModelElementTest extends Specification {
 
-    def schemas = new DefaultModelSchemaStore()
+    def schemas = new DefaultModelSchemaStore(null)
 
     def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(MultipleProps))
 
@@ -51,13 +51,5 @@ class ManagedModelElementTest extends Specification {
         then:
         UnexpectedModelPropertyTypeException e = thrown()
         e.message == "Expected property 'prop1' for type '$MultipleProps.name' to be of type '$Object.name' but it actually is of type '$String.name'"
-    }
-
-    def "can get managed element instance"() {
-        when:
-        element.instance.prop1 = "foo"
-
-        then:
-        element.instance.prop1 == "foo"
     }
 }

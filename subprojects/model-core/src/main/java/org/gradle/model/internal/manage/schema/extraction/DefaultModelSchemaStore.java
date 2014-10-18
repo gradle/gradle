@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 
 import java.util.concurrent.ExecutionException;
 
@@ -29,7 +30,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class DefaultModelSchemaStore implements ModelSchemaStore {
 
-    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor(this);
+    private final ModelSchemaExtractor extractor;
 
     private final LoadingCache<Class<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, ModelSchema<?>>() {
         @Override
@@ -37,6 +38,10 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
             return extractor.extract(key);
         }
     });
+
+    public DefaultModelSchemaStore(ManagedModelElementInstanceFactory managedElementFactory) {
+        extractor = new ModelSchemaExtractor(this, managedElementFactory);
+    }
 
     public <T> ModelSchema<T> getSchema(Class<T> type) {
         ModelSchema<?> schema;

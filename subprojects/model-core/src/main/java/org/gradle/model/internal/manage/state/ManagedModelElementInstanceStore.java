@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.manage.state;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.registry.ModelRegistry;
+import com.google.common.collect.Sets;
 
-public interface MethodRuleDefinitionHandler {
-    Spec<MethodRuleDefinition<?>> getSpec();
+import java.util.HashSet;
 
-    String getDescription();
+public class ManagedModelElementInstanceStore {
 
-    <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
+    private final HashSet<Object> instances = Sets.newHashSet();
+
+    public void add(Object instance) {
+        instances.add(instance);
+    }
+
+    public boolean contains(Object instance) {
+        return instances.contains(instance);
+    }
 }

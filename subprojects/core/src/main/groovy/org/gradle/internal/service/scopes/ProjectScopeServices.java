@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
@@ -50,9 +51,8 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -126,9 +126,19 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new AppliedPluginsAdditionAction();
     }
 
+    protected ManagedModelElementInstanceFactory createManagedModelElementInstanceFactory() {
+        return new ManagedModelElementInstanceFactory();
+    }
+
     protected ProjectAppliedPluginContainer createPluginApplicationHandler() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
-        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandler.CORE_HANDLERS, handlers));
+        List<MethodRuleDefinitionHandler> coreHandlers = ImmutableList.<MethodRuleDefinitionHandler>of(
+                new ModelCreationRuleDefinitionHandler(),
+                new ManagedModelCreationRuleDefinitionHandler(get(ManagedModelElementInstanceFactory.class)),
+                new MutateRuleDefinitionHandler(),
+                new FinalizeRuleDefinitionHandler()
+        );
+        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
         return new ProjectAppliedPluginContainer(project, get(PluginRegistry.class), inspector, get(ModelRuleSourceDetector.class));
     }
 

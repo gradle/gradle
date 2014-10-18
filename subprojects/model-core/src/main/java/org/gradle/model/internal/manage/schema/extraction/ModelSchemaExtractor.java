@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.state.ManagedModelElement;
+import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -34,9 +35,11 @@ import java.util.*;
 public class ModelSchemaExtractor {
 
     public final ModelSchemaStore store;
+    private final ManagedModelElementInstanceFactory managedElementFactory;
 
-    public ModelSchemaExtractor(ModelSchemaStore store) {
+    public ModelSchemaExtractor(ModelSchemaStore store, ManagedModelElementInstanceFactory managedElementFactory) {
         this.store = store;
+        this.managedElementFactory = managedElementFactory;
     }
 
     public <T> ModelSchema<T> extract(Class<T> type) throws InvalidManagedModelElementTypeException {
@@ -138,12 +141,13 @@ public class ModelSchemaExtractor {
             validateSetter(type, propertyType, methods.get(setterName));
             handled.add(setterName);
             getModelSchema(type, propertyType.getConcreteClass(), propertyName);
-            return new ModelProperty<T>(propertyName, propertyType);
+            return new ModelProperty<T>(propertyName, propertyType, true);
         } else {
             final ModelSchema<T> modelSchema = getModelSchema(type, propertyType.getConcreteClass(), propertyName);
-            return new ModelProperty<T>(propertyName, propertyType, new Factory<T>() {
+            return new ModelProperty<T>(propertyName, propertyType, true, new Factory<T>() {
                 public T create() {
-                    return new ManagedModelElement<T>(modelSchema).getInstance();
+                    ManagedModelElement<T> managedModelElement = new ManagedModelElement<T>(modelSchema);
+                    return managedElementFactory.create(managedModelElement);
                 }
             });
         }

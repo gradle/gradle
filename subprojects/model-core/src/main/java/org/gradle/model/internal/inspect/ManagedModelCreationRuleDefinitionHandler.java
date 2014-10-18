@@ -26,16 +26,23 @@ import org.gradle.model.internal.manage.schema.extraction.DefaultModelSchemaStor
 import org.gradle.model.internal.manage.schema.extraction.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.state.ManagedModelElement;
+import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final DefaultModelSchemaStore store = new DefaultModelSchemaStore();
+    private final DefaultModelSchemaStore store;
+    private final ManagedModelElementInstanceFactory managedInstanceFactory;
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());
+    }
+
+    public ManagedModelCreationRuleDefinitionHandler(ManagedModelElementInstanceFactory managedInstanceFactory) {
+        this.managedInstanceFactory = managedInstanceFactory;
+        store = new DefaultModelSchemaStore(managedInstanceFactory);
     }
 
     @Override
@@ -72,7 +79,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        Transformer<T, Inputs> transformer = new ManagedModelRuleInvokerBackedTransformer<T>(modelSchema, ruleDefinition.getRuleInvoker(), inputs);
+        Transformer<T, Inputs> transformer = new ManagedModelRuleInvokerBackedTransformer<T>(modelSchema, ruleDefinition.getRuleInvoker(), inputs, managedInstanceFactory);
         return ModelCreators.of(ModelReference.of(modelPath, managedType), transformer)
                 .descriptor(descriptor)
                 .inputs(inputs)
@@ -92,16 +99,18 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         private final ModelSchema<T> modelSchema;
         private final ModelRuleInvoker<?> ruleInvoker;
         private final List<ModelReference<?>> inputReferences;
+        private final ManagedModelElementInstanceFactory factory;
 
-        private ManagedModelRuleInvokerBackedTransformer(ModelSchema<T> modelSchema, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences) {
+        private ManagedModelRuleInvokerBackedTransformer(ModelSchema<T> modelSchema, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences, ManagedModelElementInstanceFactory factory) {
             this.ruleInvoker = ruleInvoker;
             this.inputReferences = inputReferences;
             this.modelSchema = modelSchema;
+            this.factory = factory;
         }
 
         public T transform(Inputs inputs) {
             ManagedModelElement<T> modelElement = new ManagedModelElement<T>(modelSchema);
-            T instance = modelElement.getInstance();
+            T instance = factory.create(modelElement);
             Object[] args = new Object[inputs.size() + 1];
             args[0] = instance;
             for (int i = 0; i < inputs.size(); i++) {

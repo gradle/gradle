@@ -124,7 +124,7 @@ This story makes the following possible…
 
 #### Test Coverage
 
-- Calling `setOperatingSystem()` with “non managed” impl of `OperatingSystem` is a runtime error (i.e. only managed objects can be used)
+- ~~Calling `setOperatingSystem()` with “non managed” impl of `OperatingSystem` is a runtime error (i.e. only managed objects can be used)~~
 
 
 ## Future candidate stories (unordered)

@@ -20,6 +20,7 @@ import org.gradle.model.*
 import org.gradle.model.internal.core.IdentityModelProjection
 import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
@@ -32,7 +33,12 @@ import spock.lang.Unroll
 class ModelRuleBindingTest extends Specification {
 
     def modelRegistry = new DefaultModelRegistry()
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandler.CORE_HANDLERS)
+    def inspector = new ModelRuleInspector([
+            new ModelCreationRuleDefinitionHandler(),
+            new ManagedModelCreationRuleDefinitionHandler(new ManagedModelElementInstanceFactory()),
+            new MutateRuleDefinitionHandler(),
+            new FinalizeRuleDefinitionHandler()
+    ])
 
     static class AmbiguousBindingsInOneSource {
         @Mutate
