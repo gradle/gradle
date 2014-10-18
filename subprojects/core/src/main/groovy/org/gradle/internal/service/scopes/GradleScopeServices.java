@@ -18,11 +18,13 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
+import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.OptionReader;
-import org.gradle.api.plugins.AppliedPlugins;
-import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.*;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
@@ -33,7 +35,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -103,19 +104,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope(), new DependencyInjectingInstantiator(this), get(ModelRuleSourceDetector.class));
+        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
-        return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle, modelRuleSourceDetector);
-    }
-
-    DefaultAppliedPluginContainer createPluginApplicationHandler(GradleInternal gradle, PluginRegistry pluginRegistry, ModelRuleSourceDetector modelRuleSourceDetector) {
-        return new DefaultAppliedPluginContainer(gradle, pluginRegistry, modelRuleSourceDetector);
-    }
-
-    protected AppliedPlugins createAppliedPlugins() {
-        return new DefaultAppliedPlugins(get(AppliedPluginContainer.class), get(PluginRegistry.class));
+    PluginManager createPluginManager() {
+        PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(get(GradleInternal.class));
+        return new PluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
     @Override

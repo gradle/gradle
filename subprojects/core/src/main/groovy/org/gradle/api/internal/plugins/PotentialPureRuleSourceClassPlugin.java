@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,27 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 
-public class PluginApplication {
+public class PotentialPureRuleSourceClassPlugin implements PotentialPlugin {
 
-    private final Plugin plugin;
-    private final PluginAwareInternal target;
+    private final Class<?> clazz;
 
-    public PluginApplication(Plugin plugin, PluginAwareInternal target) {
-        this.plugin = plugin;
-        this.target = target;
+    public PotentialPureRuleSourceClassPlugin(Class<?> clazz) {
+        this.clazz = clazz;
     }
 
-    public Plugin getPlugin() {
-        return plugin;
+    public Class<?> asClass() {
+        return clazz;
     }
 
-    public PluginAwareInternal getTarget() {
-        return target;
+    public Class<? extends Plugin<?>> asImperativeClass() {
+        return null;
     }
 
+    public Type getType() {
+        return Type.PURE_RULE_SOURCE_CLASS;
+    }
+
+    public boolean hasRules() {
+        return false;
+    }
 }

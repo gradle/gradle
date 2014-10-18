@@ -22,12 +22,10 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.ObjectConfigurationAction;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.groovy.scripts.UriScriptSource;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -42,17 +40,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final ClassLoaderScope classLoaderScope;
-    private final Object[] defaultTargets;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private final Object defaultTarget;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
-                                            ModelRuleSourceDetector modelRuleSourceDetector, Object... defaultTargets) {
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.classLoaderScope = classLoaderScope;
-        this.defaultTargets = defaultTargets;
-        this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.defaultTarget = defaultTarget;
     }
 
     public ObjectConfigurationAction to(Object... targets) {
@@ -108,27 +103,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
-        if (!Plugin.class.isAssignableFrom(pluginClass) && modelRuleSourceDetector.hasModelSources(pluginClass)) {
-            throw new IllegalArgumentException(String.format("'%s' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()", pluginClass.getName()));
-        }
-        for (Object target : targets) {
-            if (target instanceof PluginAware) {
-                try {
-                    ((PluginAware) target).getPlugins().apply(pluginClass);
-                } catch (Exception e) {
-                    throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
-                }
-            } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
-            }
-        }
+        applyType(pluginClass);
     }
 
     private void applyType(String pluginId) {
         for (Object target : targets) {
             if (target instanceof PluginAwareInternal) {
                 try {
-                    ((PluginAwareInternal) target).getPluginApplicationHandler().apply(pluginId);
+                    ((PluginAwareInternal) target).getPluginManager().apply(pluginId);
                 } catch (Exception e) {
                     throw new PluginApplicationException("id '" + pluginId + "'", e);
                 }
@@ -139,27 +121,22 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyType(Class<?> pluginClass) {
-        if (Plugin.class.isAssignableFrom(pluginClass)) {
-            @SuppressWarnings("unchecked") Class<? extends Plugin> pluginImplementingClass = (Class<? extends Plugin>) pluginClass;
-            applyPlugin(pluginImplementingClass);
-        } else {
-            for (Object target : targets) {
-                if (target instanceof PluginAwareInternal) {
-                    try {
-                        ((PluginAwareInternal) target).getPluginApplicationHandler().apply(pluginClass);
-                    } catch (Exception e) {
-                        throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
-                    }
-                } else {
-                    throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
+        for (Object target : targets) {
+            if (target instanceof PluginAwareInternal) {
+                try {
+                    ((PluginAwareInternal) target).getPluginManager().apply(pluginClass);
+                } catch (Exception e) {
+                    throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
                 }
+            } else {
+                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
             }
         }
     }
 
     public void execute() {
         if (targets.isEmpty()) {
-            to(defaultTargets);
+            to(defaultTarget);
         }
 
         for (Runnable action : actions) {

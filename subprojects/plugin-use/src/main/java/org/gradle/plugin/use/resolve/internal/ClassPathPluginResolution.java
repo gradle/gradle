@@ -18,28 +18,24 @@ package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.internal.PluginId;
 
 public class ClassPathPluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
-    private final Instantiator instantiator;
     private final ClassLoaderScope parent;
     private final Factory<? extends ClassPath> classPathFactory;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private final PluginInspector pluginInspector;
 
-    public ClassPathPluginResolution(Instantiator instantiator, PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory,
-                                     ModelRuleSourceDetector modelRuleSourceDetector) {
+    public ClassPathPluginResolution(PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory, PluginInspector pluginInspector) {
         this.pluginId = pluginId;
-        this.instantiator = instantiator;
         this.parent = parent;
         this.classPathFactory = classPathFactory;
-        this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.pluginInspector = pluginInspector;
     }
 
     public PluginId getPluginId() {
@@ -51,7 +47,7 @@ public class ClassPathPluginResolution implements PluginResolution {
         ClassLoaderScope loaderScope = parent.createChild();
         loaderScope.local(classPath);
         loaderScope.lock();
-        PluginRegistry pluginRegistry = new DefaultPluginRegistry(loaderScope.getLocalClassLoader(), instantiator, modelRuleSourceDetector);
-        return pluginRegistry.getTypeForId(pluginId.toString());
+        PluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, loaderScope.getLocalClassLoader());
+        return pluginRegistry.lookup(pluginId.toString()).asClass();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 public interface PluginRegistry {
-    <T extends Plugin<?>> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;
 
-    Class<? extends Plugin<?>> getPluginTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
+    PotentialPlugin inspect(Class<?> clazz);
 
-    Class<?> getTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
+    PotentialPlugin lookup(String pluginId) throws UnknownPluginException;
 
-    /**
-     * Creates a child registry which uses the plugins declared in the given script scope.
-     */
-    PluginRegistry createChild(ClassLoaderScope lookupScope, Instantiator instantiator, ModelRuleSourceDetector modelRuleSourceDetector);
+    PluginRegistry createChild(ClassLoaderScope lookupScope);
+
+    boolean hasId(Class<?> pluginClass, String id);
+
 }

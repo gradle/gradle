@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import java.util.Map;
  * For more on writing and applying plugins, see {@link org.gradle.api.Plugin}.
  * </p>
  */
+@HasInternalProtocol
 public interface PluginAware {
     /**
      * Returns the plugins container for this object. The returned container can be used to manage the plugins which
@@ -35,6 +37,8 @@ public interface PluginAware {
      * @return the plugin container. Never returns null.
      */
     PluginContainer getPlugins();
+
+    AppliedPlugins getAppliedPlugins();
 
     /**
      * <p>Configures this object using plugins or scripts. The given closure is used to configure an {@link
@@ -59,6 +63,4 @@ public interface PluginAware {
      * @param options The options to use to configure the {@link ObjectConfigurationAction}.
      */
     void apply(Map<String, ?> options);
-
-    AppliedPlugins getAppliedPlugins();
 }

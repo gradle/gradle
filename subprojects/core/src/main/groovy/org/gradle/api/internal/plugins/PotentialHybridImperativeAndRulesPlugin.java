@@ -16,12 +16,30 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.Plugin;
 
-public interface AppliedPluginContainer {
+public class PotentialHybridImperativeAndRulesPlugin implements PotentialPlugin {
 
-    public boolean contains(Class<?> pluginClass);
+    private final Class<? extends Plugin<?>> clazz;
 
-    public DomainObjectCollection<Class<?>> matching(Spec<? super Class<?>> spec);
+    public PotentialHybridImperativeAndRulesPlugin(Class<? extends Plugin<?>> clazz) {
+        this.clazz = clazz;
+    }
+
+    public Class<?> asClass() {
+        return clazz;
+    }
+
+    public Class<? extends Plugin<?>> asImperativeClass() {
+        return clazz;
+    }
+
+    public boolean hasRules() {
+        return true;
+    }
+
+    public Type getType() {
+        return Type.HYBRID_IMPERATIVE_AND_RULES_CLASS;
+    }
+
 }

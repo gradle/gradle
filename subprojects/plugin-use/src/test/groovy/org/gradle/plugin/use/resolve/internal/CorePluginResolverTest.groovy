@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.CorePluginRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
+import org.gradle.api.internal.plugins.PotentialPlugin
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
@@ -58,7 +59,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo"), result)
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
+        1 * pluginRegistry.lookup("foo") >> Mock(PotentialPlugin) { asClass() >> MyPlugin }
         1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.resolve() == MyPlugin })
     }
 
@@ -67,7 +68,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("${CorePluginRegistry.CORE_PLUGIN_NAMESPACE}.foo"), result)
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
+        1 * pluginRegistry.lookup("foo") >> Mock(PotentialPlugin) { asClass() >> MyPlugin }
         1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.resolve() == MyPlugin })
     }
 
@@ -76,7 +77,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
+        1 * pluginRegistry.lookup("foo") >> Mock(PotentialPlugin) { asClass() >> MyPlugin }
 
         and:
         thrown InvalidPluginRequestException
@@ -87,7 +88,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("org.gradle.foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> { throw new UnknownPluginException("foo") }
+        1 * pluginRegistry.lookup("foo") >> { throw new UnknownPluginException("foo") }
         1 * result.notFound(resolver.getDescription(), { it.contains("not a core plugin") })
     }
 

@@ -16,35 +16,48 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
+import org.gradle.model.internal.registry.ModelRegistryScope;
 
-public class ProjectAppliedPluginContainer extends AbstractAppliedPluginContainer {
+public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
 
-    private final ProjectInternal target;
     private final ModelRuleInspector inspector;
+    private final T target;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private final PluginApplicator imperativeApplicator;
 
-    public ProjectAppliedPluginContainer(ProjectInternal target, PluginRegistry pluginRegistry, ModelRuleInspector inspector, ModelRuleSourceDetector modelRuleSourceDetector) {
-        super(target, pluginRegistry, modelRuleSourceDetector);
+
+    public RulesCapablePluginApplicator(T target, ModelRuleInspector inspector, ModelRuleSourceDetector modelRuleSourceDetector) {
         this.target = target;
         this.inspector = inspector;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.imperativeApplicator = new ImperativeOnlyPluginApplicator<T>(target);
     }
 
-    @Override
-    protected void extractModelRules(Class<?> pluginClass) {
-        for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(pluginClass)) {
+    public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
+        imperativeApplicator.applyImperative(pluginId, plugin);
+    }
+
+    public void applyRules(@Nullable String pluginId, Class<?> clazz) {
+        for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(clazz)) {
             inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
                 public void add(Class<?> source) {
                     if (!Plugin.class.isAssignableFrom(source)) {
                         throw new IllegalArgumentException("Only plugin classes are valid as rule source dependencies.");
                     }
-                    @SuppressWarnings("unchecked") Class<? extends Plugin> pluginImplementingClass = (Class<? extends Plugin>) source;
-                    apply(pluginImplementingClass);
+                    target.getPluginManager().apply(source);
                 }
             });
         }
     }
+
+    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {
+        applyImperative(pluginId, plugin);
+        applyRules(pluginId, plugin.getClass());
+    }
+
 }

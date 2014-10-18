@@ -42,7 +42,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -90,7 +89,6 @@ public abstract class DefaultScript extends BasicScript {
                 __scriptServices.get(ScriptPluginFactory.class),
                 __scriptServices.get(ScriptHandlerFactory.class),
                 classLoaderScope,
-                __scriptServices.get(ModelRuleSourceDetector.class),
                 getScriptTarget()
         );
     }

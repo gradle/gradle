@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.service.ServiceRegistry
@@ -41,14 +40,12 @@ class SettingsFactoryTest extends Specification {
         def startParameter = new StartParameter()
         def serviceRegistryFactory = Mock(ServiceRegistryFactory)
         def settingsServices = Mock(ServiceRegistry)
-        def pluginContainer = Mock(PluginContainer)
         def fileResolver = Mock(FileResolver)
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
         def projectDescriptorRegistry = Mock(ProjectDescriptorRegistry)
 
         1 * serviceRegistryFactory.createFor(_ as Settings) >> settingsServices
-        1 * settingsServices.get(PluginContainer) >> pluginContainer
         1 * settingsServices.get(FileResolver) >> fileResolver
         1 * settingsServices.get(ScriptPluginFactory) >> scriptPluginFactory
         1 * settingsServices.get(ScriptHandlerFactory) >> scriptHandlerFactory

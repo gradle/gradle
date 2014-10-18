@@ -16,10 +16,30 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.Plugin;
 
-public interface PluginAwareInternal extends PluginAware {
+public class PotentialUnknownTypePlugin implements PotentialPlugin {
 
-    PluginManager getPluginManager();
+    private final Class<?> clazz;
+
+    public PotentialUnknownTypePlugin(Class<?> clazz) {
+        this.clazz = clazz;
+    }
+
+    public Class<?> asClass() {
+        return clazz;
+    }
+
+    public Class<? extends Plugin<?>> asImperativeClass() {
+        return null;
+    }
+
+    public boolean hasRules() {
+        return false;
+    }
+
+    public Type getType() {
+        return Type.UNKNOWN;
+    }
 
 }

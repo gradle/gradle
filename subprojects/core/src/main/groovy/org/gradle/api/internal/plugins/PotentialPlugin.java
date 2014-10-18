@@ -16,9 +16,33 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface PluginApplicationHandler {
+import org.gradle.api.Nullable;
+import org.gradle.api.Plugin;
 
-    void apply(Class<?> pluginClass);
+/**
+ * A plugin that could be applied.
+ *
+ * This may represent an invalid plugin.
+ *
+ * At the moment it does not encompass plugins that aren't implemented as classes, but it is likely to in the future.
+ */
+public interface PotentialPlugin {
 
-    void apply(String pluginId);
+    static enum Type {
+        UNKNOWN,
+        IMPERATIVE_CLASS,
+        PURE_RULE_SOURCE_CLASS,
+        HYBRID_IMPERATIVE_AND_RULES_CLASS
+    }
+
+    Class<?> asClass();
+
+    @Nullable
+        // if it doesn't implement this
+    Class<? extends Plugin<?>> asImperativeClass();
+
+    boolean hasRules();
+
+    Type getType();
+
 }

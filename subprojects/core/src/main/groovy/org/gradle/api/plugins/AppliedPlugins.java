@@ -25,9 +25,9 @@ import org.gradle.api.Nullable;
 public interface AppliedPlugins {
 
     @Nullable
-    Class<?> findPlugin(String id);
+    AppliedPlugin findPlugin(String id);
 
     boolean contains(String id);
 
-    void withPlugin(String id, Action<? super Class<?>> action);
+    void withPlugin(String id, Action<? super AppliedPlugin> action);
 }

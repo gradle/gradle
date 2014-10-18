@@ -29,12 +29,10 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.plugins.PluginApplicationHandler;
+import org.gradle.api.internal.plugins.PluginManager;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.plugins.AppliedPlugins;
-import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -44,7 +42,6 @@ import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -61,17 +58,13 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private ActionBroadcast<Project> rootProjectActions = new ActionBroadcast<Project>();
-    private PluginContainer pluginContainer;
 
     private FileResolver fileResolver;
     private final ScriptPluginFactory scriptPluginFactory;
 
     private final ClassLoaderScope classLoaderScope;
     private final ScriptHandlerFactory scriptHandlerFactory;
-
-    private final PluginApplicationHandler pluginApplicationHandler;
-    private final AppliedPlugins appliedPlugins;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private final PluginManager pluginManager;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -81,7 +74,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         taskGraph = services.get(TaskGraphExecuter.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
-        pluginContainer = services.get(PluginContainer.class);
         fileResolver = services.get(FileResolver.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
         scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
@@ -94,9 +86,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                 rootProjectActions = null;
             }
         });
-        pluginApplicationHandler = services.get(PluginApplicationHandler.class);
-        appliedPlugins = services.get(AppliedPlugins.class);
-        modelRuleSourceDetector = services.get(ModelRuleSourceDetector.class);
+        pluginManager = services.get(PluginManager.class);
     }
 
     @Override
@@ -237,24 +227,16 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return services.get(ServiceRegistryFactory.class);
     }
 
-    public PluginContainer getPlugins() {
-        return pluginContainer;
-    }
-
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), modelRuleSourceDetector, this);
+        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getClassLoaderScope(), this);
     }
 
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
     }
 
-    public PluginApplicationHandler getPluginApplicationHandler() {
-        return pluginApplicationHandler;
-    }
-
-    public AppliedPlugins getAppliedPlugins() {
-        return appliedPlugins;
+    public PluginManager getPluginManager() {
+        return pluginManager;
     }
 }

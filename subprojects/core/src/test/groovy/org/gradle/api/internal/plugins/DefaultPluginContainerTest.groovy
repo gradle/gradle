@@ -24,32 +24,34 @@ import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
 public class DefaultPluginContainerTest extends Specification {
 
-    def project = TestUtil.createRootProject()
-    def pluginRegistry = Mock(PluginRegistry)
-    def modelRuleSourceDetector = new ModelRuleSourceDetector()
+    def PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
+    def classLoader = new GroovyClassLoader(getClass().classLoader)
+    def pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
+    def applicator = Mock(PluginApplicator)
+    def instantiator = new DirectInstantiator()
 
     @Subject
-    container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
+    def container = new DefaultPluginContainer(pluginRegistry, instantiator, applicator)
+
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def "offers plugin management via plugin id"() {
-        def plugin = new TestPlugin1()
-        pluginRegistry.getPluginTypeForId("plugin") >> TestPlugin1
-        pluginRegistry.loadPlugin(TestPlugin1) >> plugin
-        pluginRegistry.loadPlugin(TestPlugin2) >> new TestPlugin2()
+    def setup() {
+        classLoader.addURL(testDirectoryProvider.testDirectory.toURL())
+        testDirectoryProvider.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${TestPlugin1.name}"
+    }
 
+    def "offers plugin management via plugin id"() {
         when:
         def p = container.apply(TestPlugin1)
+
         then:
-        p.is(plugin)
         p.is(container.apply("plugin"))
         p.is(container.apply(TestPlugin1))
 
@@ -71,14 +73,10 @@ public class DefaultPluginContainerTest extends Specification {
     }
 
     def "offers plugin management via plugin type"() {
-        def plugin = new TestPlugin1()
-        pluginRegistry.loadPlugin(TestPlugin1) >> plugin
-        pluginRegistry.loadPlugin(TestPlugin2) >> new TestPlugin2()
-
         when:
         def p = container.apply(TestPlugin1)
+
         then:
-        p.is(plugin)
         p.is(container.apply(TestPlugin1))
         p.is(container.findPlugin(TestPlugin1))
         container.hasPlugin(TestPlugin1)
@@ -88,8 +86,6 @@ public class DefaultPluginContainerTest extends Specification {
     }
 
     def "does not find plugin by unknown id"() {
-        pluginRegistry.getPluginTypeForId("x") >> { throw new UnknownPluginException("x") }
-
         expect:
         !container.hasPlugin("x")
         !container.findPlugin("x")
@@ -98,6 +94,7 @@ public class DefaultPluginContainerTest extends Specification {
     def "fails when getting unknown plugin"() {
         when:
         container.getPlugin("unknown")
+
         then:
         thrown(UnknownPluginException)
     }
@@ -105,19 +102,19 @@ public class DefaultPluginContainerTest extends Specification {
     def "fails when getting plugin of unknown type"() {
         when:
         container.getPlugin(TestPlugin1)
+
         then:
         thrown(UnknownPluginException)
     }
 
     def "executes action for plugin with given id"() {
         def plugin = new TestPlugin1()
-        pluginRegistry.getTypeForId("plugin") >> TestPlugin1
-        pluginRegistry.getPluginTypeForId("plugin") >> TestPlugin1
         def plugins = []
         container.add(plugin)
 
         when:
         container.withId("plugin") { plugins << it }
+
         then:
         plugins == [plugin]
     }
@@ -142,8 +139,8 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(groovyLoader, new DirectInstantiator(), modelRuleSourceDetector)
-        def container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
+        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader)
+        def container = new DefaultPluginContainer(pluginRegistry, new DirectInstantiator(), applicator)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -180,8 +177,8 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(groovyLoader.parent, new DirectInstantiator(), modelRuleSourceDetector)
-        def container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
+        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader.parent)
+        def container = new DefaultPluginContainer(pluginRegistry, new DirectInstantiator(), applicator)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -221,8 +218,8 @@ public class DefaultPluginContainerTest extends Specification {
             }
         """
 
-        def pluginRegistry = new DefaultPluginRegistry(groovyLoader.parent, new DirectInstantiator(), modelRuleSourceDetector)
-        def container = new DefaultPluginContainer(pluginRegistry, project, modelRuleSourceDetector)
+        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader.parent)
+        def container = new DefaultPluginContainer(pluginRegistry, new DirectInstantiator(), applicator)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -245,19 +242,20 @@ public class DefaultPluginContainerTest extends Specification {
         plugins == []
     }
 
-    def "can register on application actions"() {
-        given:
-        def plugin = new TestPlugin1()
-        pluginRegistry.loadPlugin(TestPlugin1) >> plugin
-        def applicationAction1 = Mock(PluginApplicationAction)
-        def applicationAction2 = Mock(PluginApplicationAction)
-        def container = new DefaultPluginContainer(pluginRegistry, project, Arrays.asList(applicationAction1, applicationAction2), modelRuleSourceDetector)
-
+    def "calls applicator for type only"() {
         when:
         container.apply(TestPlugin1)
+
         then:
-        1 * applicationAction1.execute({ it.plugin == plugin && it.target == project })
-        1 * applicationAction2.execute({ it.plugin == plugin && it.target == project })
+        1 * applicator.applyImperative(null, { it instanceof TestPlugin1 })
+    }
+
+    def "calls applicator for id"() {
+        when:
+        container.apply("plugin")
+
+        then:
+        1 * applicator.applyImperative("plugin", { it instanceof TestPlugin1 })
     }
 
     def "a useful error message is set when a plain rule source type is passed to withType"() {
@@ -266,18 +264,18 @@ public class DefaultPluginContainerTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "'$TestRuleSource.name' is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied."
+        e.message == "'$TestRuleSource.name' does not implement the Plugin interface."
     }
 
     def "a useful error message is set when an id for plain rule source type is passed to withId"() {
         given:
-        pluginRegistry.getTypeForId("custom-rule-source") >> TestRuleSource
+        testDirectoryProvider.file("META-INF/gradle-plugins/custom-rule-source.properties") << "implementation-class=${TestRuleSource.name}"
 
         when:
         container.withId("custom-rule-source") {}
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "The type for id 'custom-rule-source' (class: '$TestRuleSource.name') is a rule source and not a plugin. Use AppliedPlugins.withPlugin() to perform an action if a rule source is applied."
+        e.message == "The type for id 'custom-rule-source' (class: '$TestRuleSource.name') is not a plugin implementing the Plugin interface. Please use AppliedPlugins.withPlugin() instead to detect it."
     }
 }

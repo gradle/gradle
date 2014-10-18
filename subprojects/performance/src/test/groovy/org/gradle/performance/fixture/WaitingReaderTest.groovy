@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.performance.fixture
 
-public class AppliedPluginsAdditionAction implements PluginApplicationAction {
+import spock.lang.Specification
 
-    public void execute(PluginApplication pluginApplication) {
-        pluginApplication.getTarget().getPluginApplicationHandler().apply(pluginApplication.getPlugin().getClass());
+class WaitingReaderTest extends Specification {
+
+    def "can read lines"() {
+        def source = new BufferedReader(new StringReader("1\n2"))
+        def reader = new WaitingReader(source, 1, 1)
+        expect:
+        reader.readLine() == "1"
+        reader.retriedCount == 0
+
+        reader.readLine() == "2"
+        reader.retriedCount == 0
+
+        reader.readLine() == null
+        reader.retriedCount > 0
     }
 }

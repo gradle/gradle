@@ -16,10 +16,17 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.Nullable;
+import org.gradle.api.Plugin;
 
-public interface PluginAwareInternal extends PluginAware {
+public interface PluginApplicator {
 
-    PluginManager getPluginManager();
+    // Implementations should not wrap exceptions, this is done in DefaultObjectConfigurationAction
+
+    void applyImperative(@Nullable String pluginId, Plugin<?> plugin);
+
+    void applyRules(@Nullable String pluginId, Class<?> clazz);
+
+    void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin);
 
 }

@@ -26,14 +26,11 @@ import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.plugins.PluginApplicationHandler
-import org.gradle.api.plugins.AppliedPlugins
-import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.internal.plugins.PluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
@@ -56,13 +53,10 @@ class DefaultSettingsTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     ProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
-    PluginContainer pluginContainer
     FileResolver fileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
-    PluginApplicationHandler pluginApplicationHandler
-    AppliedPlugins appliedPlugins
-    ModelRuleSourceDetector modelRuleSourceDetector
+    PluginManager pluginManager
 
     @Before
     public void setUp() {
@@ -72,42 +66,33 @@ class DefaultSettingsTest {
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         rootClassLoaderScope = context.mock(ClassLoaderScope)
         classLoaderScope = context.mock(ClassLoaderScope)
+        pluginManager = context.mock(PluginManager)
 
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
-        pluginContainer = context.mock(PluginContainer.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
         scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        pluginApplicationHandler = context.mock(PluginApplicationHandler.class)
-        appliedPlugins = context.mock(AppliedPlugins.class);
-        modelRuleSourceDetector = context.mock(ModelRuleSourceDetector.class);
 
         def settingsServices = context.mock(ServiceRegistry.class)
-        context.checking{
-                one(serviceRegistryFactory).createFor(with(any(Settings.class)));
-                will(returnValue(settingsServices));
-                one(settingsServices).get(PluginContainer.class);
-                will(returnValue(pluginContainer));
-                one(settingsServices).get(FileResolver.class);
-                will(returnValue(fileResolver));
-                one(settingsServices).get(ScriptPluginFactory.class);
-                will(returnValue(scriptPluginFactory));
-                one(settingsServices).get(ScriptHandlerFactory.class);
-                will(returnValue(scriptHandlerFactory));
-                one(settingsServices).get(ProjectDescriptorRegistry.class);
-                will(returnValue(projectDescriptorRegistry));
-                one(settingsServices).get(PluginApplicationHandler.class);
-                will(returnValue(pluginApplicationHandler));
-                one(settingsServices).get(ModelRuleSourceDetector.class);
-                will(returnValue(modelRuleSourceDetector));
-                one(settingsServices).get(AppliedPlugins.class);
-                will(returnValue(appliedPlugins));
+        context.checking {
+            one(serviceRegistryFactory).createFor(with(any(Settings.class)));
+            will(returnValue(settingsServices));
+            one(settingsServices).get(FileResolver.class);
+            will(returnValue(fileResolver));
+            one(settingsServices).get(ScriptPluginFactory.class);
+            will(returnValue(scriptPluginFactory));
+            one(settingsServices).get(ScriptHandlerFactory.class);
+            will(returnValue(scriptHandlerFactory));
+            one(settingsServices).get(ProjectDescriptorRegistry.class);
+            will(returnValue(projectDescriptorRegistry));
+            one(settingsServices).get(PluginManager.class);
+            will(returnValue(pluginManager));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
-                    gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
+                gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
 
     }
 

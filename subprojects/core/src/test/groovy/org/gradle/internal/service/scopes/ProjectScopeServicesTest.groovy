@@ -20,14 +20,16 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.*
+import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.*
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
-import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultAntBuilderFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -35,7 +37,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
@@ -116,13 +117,6 @@ class ProjectScopeServicesTest extends Specification {
 
         expect:
         registry.getFactory(TaskContainerInternal) instanceof DefaultTaskContainerFactory
-    }
-
-    def "provides a PluginContainer"() {
-        1 * pluginRegistry.createChild(classLoaderScope, _ as DependencyInjectingInstantiator, modelRuleSourceDetector) >> Stub(PluginRegistry)
-
-        expect:
-        provides(PluginContainer, DefaultPluginContainer)
     }
 
     def "provides a ToolingModelBuilderRegistry"() {

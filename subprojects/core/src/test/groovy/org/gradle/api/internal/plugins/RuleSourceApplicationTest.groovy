@@ -79,8 +79,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: CustomRuleSource
 
         then:
-        IllegalArgumentException e = thrown()
-        e.message == "'${CustomRuleSource.name}' is a rule source only type, use 'type' key instead of 'plugin' key to apply it via PluginAware.apply()"
+        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "can use id to check for applied plugins and rule sources"() {
