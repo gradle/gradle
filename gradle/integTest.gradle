@@ -94,7 +94,6 @@ project(":") {
     task cleanUpDaemons {
         onlyIf { !org.gradle.internal.jvm.Jvm.current().ibmJvm }
         doLast {
-            println "found daemons:"
             def output = new ByteArrayOutputStream()
             exec {
                 commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
@@ -104,15 +103,21 @@ project(":") {
             output.toString().readLines().each { String line ->
                 def matcher = pattern.matcher(line)
                 if (!matcher.matches()) {
-                    println "not a daemon: $line"
                     return
                 }
                 def remainder = matcher.group(3)
                 if (!remainder.startsWith("${project.projectDir}${File.separator}")) {
-                    println "not in project dir: $line"
                     return
                 }
-                println "would kill daemon: $line"
+                def pid = matcher.group(1)
+                println "killing daemon with pid $pid"
+                exec {
+                    if (org.gradle.internal.os.OperatingSystem.current().windows) {
+                        commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
+                    } else {
+                        commandLine = ["kill", pid]
+                    }
+                }
             }
         }
     }
