@@ -26,9 +26,9 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
         useSharedBuild = true;
-        hasUtilityFacet("java1")
-        hasUtilityFacet("java2")
-        hasUtilityFacet("groovy")
+        hasUtilityAndNoWebFacet("java1")
+        hasUtilityAndNoWebFacet("java2")
+        hasUtilityAndNoWebFacet("groovy")
     }
 
     @Test
@@ -194,10 +194,15 @@ apply plugin: "groovy"
         executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
     }
 
-    private void hasUtilityFacet(String project) {
+    private void hasUtilityAndNoWebFacet(String project) {
         def file = getFacetFile(project: project)
         def facetedProject = new XmlSlurper().parse(file)
-        assert facetedProject.children().any { it.@facet.text() == "jst.utility" && it.@version.text() == "1.0" }
+        assert facetedProject.children().any { it.name() == 'installed' && it.@facet.text() == 'jst.utility' && it.@version.text() == '1.0' }
+
+        // jst.utility requires jst.java, see http://www.eclipse.org/webtools/development/proposals/WtpProjectFacets.html
+        assert facetedProject.children().any { it.name() == 'installed' && it.@facet.text() == 'jst.java' && it.@version.text() }
+        // jst.web and jst.utility are not allowed together (no documentation found but Eclipse shows an error)
+        assert !facetedProject.children().any { it.@facet.text() == 'jst.web' }
     }
 
     private void hasNecessaryBuildersAdded(String project) {
