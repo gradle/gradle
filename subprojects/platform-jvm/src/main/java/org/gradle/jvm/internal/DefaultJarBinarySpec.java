@@ -30,6 +30,21 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
+    private String baseName;
+
+    // TODO:DAZ Make this the default format
+    @Override
+    public String getDisplayName() {
+        return String.format("jar '%s:jar'", getBaseName());
+    }
+
+    public String getBaseName() {
+        return baseName == null ? getName() : baseName;
+    }
+
+    public void setBaseName(String baseName) {
+        this.baseName = baseName;
+    }
 
     public JvmBinaryTasks getTasks() {
         return tasks;

@@ -25,7 +25,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
@@ -43,14 +42,14 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks = new DefaultBinaryTasksCollection(this);
 
-    private final BinaryNamingScheme namingScheme;
+    private final String name;
     private boolean buildable;
 
-    public static <T extends BaseBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
+    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator) {
         if (type.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
-        nextBinaryInfo.set(new BinaryInfo(namingScheme));
+        nextBinaryInfo.set(new BinaryInfo(name));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -70,19 +69,15 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
-        this.namingScheme = info.namingScheme;
+        this.name = info.name;
     }
 
     public String getDisplayName() {
-        return namingScheme.getDescription();
+        return String.format("%s: '%s'", getClass().getSimpleName(), getName());
     }
 
     public String getName() {
-        return namingScheme.getLifecycleTaskName();
-    }
-
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
+        return name;
     }
 
     public boolean isBuildable() {
@@ -110,10 +105,10 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     private static class BinaryInfo {
-        final BinaryNamingScheme namingScheme;
+        final String name;
 
-        private BinaryInfo(BinaryNamingScheme namingScheme) {
-            this.namingScheme = namingScheme;
+        private BinaryInfo(String name) {
+            this.name = name;
         }
     }
 

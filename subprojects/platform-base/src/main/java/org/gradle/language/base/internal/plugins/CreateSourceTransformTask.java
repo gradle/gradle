@@ -26,6 +26,8 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
+import static org.apache.commons.lang.StringUtils.capitalize;
+
 public class CreateSourceTransformTask {
     private final LanguageRegistration<?> language;
 
@@ -44,7 +46,7 @@ public class CreateSourceTransformTask {
             public void execute(LanguageSourceSet languageSourceSet) {
                 LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
                 if (sourceSet.getMayHaveSources()) {
-                    String taskName = binary.getNamingScheme().getTaskName(taskConfig.getTaskPrefix(), sourceSet.getFullName());
+                    String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
                     Task task = tasks.create(taskName, taskConfig.getTaskType());
 
                     taskConfig.configureTask(task, binary, sourceSet);

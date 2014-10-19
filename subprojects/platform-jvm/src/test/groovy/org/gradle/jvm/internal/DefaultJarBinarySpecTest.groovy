@@ -40,7 +40,7 @@ class DefaultJarBinarySpecTest extends Specification {
 
         then:
         binary.name == "jvm-lib-jar"
-        binary.displayName == "the jar"
+        binary.displayName == "jar 'jvm-lib-jar:jar'"
     }
 
     def "binary has properties for classesDir and jar file"() {
@@ -65,6 +65,6 @@ class DefaultJarBinarySpecTest extends Specification {
     }
 
     private DefaultJarBinarySpec binary() {
-        BaseBinarySpec.create(DefaultJarBinarySpec, namingScheme, new DirectInstantiator())
+        BaseBinarySpec.create(DefaultJarBinarySpec, "jvm-lib-jar", new DirectInstantiator())
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.binary.BaseBinarySpec;
@@ -36,7 +37,8 @@ public class DefaultJarBinariesFactory implements JarBinariesFactory { //TODO: N
     }
 
     public void createJarBinaries(JvmLibrarySpec jvmLibrary, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JavaPlatform platform) {
-        JarBinarySpec jarBinary = BaseBinarySpec.create(DefaultJarBinarySpec.class, namingScheme, instantiator);
+        JarBinarySpecInternal jarBinary = BaseBinarySpec.create(DefaultJarBinarySpec.class, namingScheme.getLifecycleTaskName(), instantiator);
+        jarBinary.setBaseName(jvmLibrary.getName());
         jarBinary.setToolChain(toolChain);
         jarBinary.setTargetPlatform(platform);
         setupDefaults(jarBinary);

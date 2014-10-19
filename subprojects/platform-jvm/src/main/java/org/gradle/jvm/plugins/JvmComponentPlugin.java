@@ -16,6 +16,7 @@
 package org.gradle.jvm.plugins;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
@@ -150,7 +151,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         private Task createJarTask(TaskContainer tasks, JarBinarySpecInternal binary) {
-            Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
+            String taskName = "create" + StringUtils.capitalize(binary.getName());
+            Jar jar = tasks.create(taskName, Jar.class);
             jar.setDescription(String.format("Creates the binary file for %s.", binary));
             jar.from(binary.getClassesDir());
             jar.from(binary.getResourcesDir());

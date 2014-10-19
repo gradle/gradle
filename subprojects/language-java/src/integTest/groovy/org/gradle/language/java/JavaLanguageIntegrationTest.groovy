@@ -283,13 +283,13 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/java5/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
+        jarFile("build/jars/java5MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
         and:
-        jarFile("build/jars/myLibJar/java6/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/java6MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
         and:
-        jarFile("build/jars/myLibJar/java7/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
+        jarFile("build/jars/java7MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
         and:
-        jarFile("build/jars/myLibJar/java8/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
+        jarFile("build/jars/java8MyLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
     }
 
     def "erroneous target should produce reasonable error message"() {
@@ -343,7 +343,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/${current.name}/myLib.jar").javaVersion == current.targetCompatibility
+        jarFile("build/jars/${current.name}MyLibJar/myLib.jar").javaVersion == current.targetCompatibility
     }
 
 

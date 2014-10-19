@@ -90,7 +90,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
-                    Task binaryLifecycleTask = tasks.create(binary.getNamingScheme().getLifecycleTaskName());
+                    Task binaryLifecycleTask = tasks.create(binary.getName());
                     binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                     binary.setBuildTask(binaryLifecycleTask);

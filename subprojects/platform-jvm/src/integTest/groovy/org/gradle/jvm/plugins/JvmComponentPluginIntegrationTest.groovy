@@ -166,8 +166,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         }
     }
     binaries.all { binary ->
-        def logTask = project.tasks.create(binary.namingScheme.getTaskName("log")) {
-            println "Constructing binary: \${binary.displayName}"
+        def logTask = project.tasks.create("log_\${binary.name}") {
+            doLast {
+                println "Constructing \${binary.displayName}"
+            }
         }
         binary.builtBy(logTask)
     }
@@ -176,10 +178,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "myJvmLibJar"
 
         then:
-        executed ":createMyJvmLibJar", ":logMyJvmLibJar", ":myJvmLibJar"
+        executed ":createMyJvmLibJar", ":log_myJvmLibJar", ":myJvmLibJar"
 
         and:
-        output.contains("Constructing binary: jar 'myJvmLib:jar'")
+        output.contains("Constructing jar 'myJvmLib:jar'")
     }
 
     def "can define multiple jvm libraries in single project"() {

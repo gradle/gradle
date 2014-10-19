@@ -20,4 +20,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.jvm.JarBinarySpec;
 
 public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {
+    String getBaseName();
+
+    void setBaseName(String baseName);
 }
