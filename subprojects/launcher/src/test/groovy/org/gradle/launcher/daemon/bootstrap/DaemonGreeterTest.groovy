@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.bootstrap
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.launcher.daemon.context.DaemonAddress
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
 import org.gradle.process.ExecResult
@@ -45,8 +44,9 @@ another line of output...
         def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(ExecResult))
 
         then:
-        daemonStartupInfo.address == new DaemonAddress("uid", address)
+        daemonStartupInfo.address == address
         daemonStartupInfo.uid == "uid"
+        daemonStartupInfo.pid == 12
         daemonStartupInfo.diagnostics.pid == 12
         daemonStartupInfo.diagnostics.daemonLog == new File("12.log")
     }

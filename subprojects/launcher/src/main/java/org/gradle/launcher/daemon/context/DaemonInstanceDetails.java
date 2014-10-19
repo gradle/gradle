@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.context;
 
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
+import org.gradle.messaging.remote.Address;
 
 /**
- * Notified when a daemon is started.
+ * Some basic meta-data required to identify and connect to a daemon.
  */
-public interface DaemonStartListener {
-    void daemonStarted(DaemonInstanceDetails daemonInfo);
+public interface DaemonInstanceDetails {
+    String getUid();
+
+    Address getAddress();
+
+    Long getPid();
 }

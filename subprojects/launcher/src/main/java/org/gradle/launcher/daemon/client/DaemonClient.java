@@ -130,7 +130,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken) throws DaemonInitialConnectException {
         Object result;
         try {
-            LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
+            LOGGER.info("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
             connection.dispatch(build);
             result = connection.receive();
         } catch (StaleDaemonAddressException e) {
@@ -147,6 +147,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
             result = monitorBuild(build, diagnostics, connection, cancellationToken);
         }
+
+        LOGGER.info("Received result {} from daemon {}.", result, connection.getDaemon());
 
         connection.dispatch(new Finished());
 
