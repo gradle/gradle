@@ -31,8 +31,6 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 
-    void setBuildable(boolean buildable);
-
     Collection<NativeLibraryBinary> getDependentBinaries();
 
     PlatformToolProvider getPlatformToolProvider();

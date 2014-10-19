@@ -36,6 +36,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
     private File resourcesDir;
+    private boolean buildable;
 
     public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JavaPlatform platform) {
         this.name = name;
@@ -64,7 +65,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public boolean isBuildable() {
-        return true;
+        return buildable;
+    }
+
+    public void setBuildable(boolean buildable) {
+        this.buildable = buildable;
     }
 
     public boolean isLegacyBinary() {

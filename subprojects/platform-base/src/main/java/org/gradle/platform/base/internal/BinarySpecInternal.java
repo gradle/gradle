@@ -21,5 +21,7 @@ import org.gradle.platform.base.BinarySpec;
 public interface BinarySpecInternal extends BinarySpec {
     BinaryNamingScheme getNamingScheme();
 
+    void setBuildable(boolean buildable);
+
     boolean isLegacyBinary();
 }
