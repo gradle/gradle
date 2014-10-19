@@ -31,6 +31,11 @@ public interface ConnectionParameters extends org.gradle.tooling.internal.protoc
      */
     File getGradleUserHomeDir();
 
+    /**
+     * Returns the daemon base directory, or null to use default.
+     */
+    File getDaemonBaseDir();
+
     Boolean isEmbedded();
 
     Integer getDaemonMaxIdleTimeValue();

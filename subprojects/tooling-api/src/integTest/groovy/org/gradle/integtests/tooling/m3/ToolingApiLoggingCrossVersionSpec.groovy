@@ -28,7 +28,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
     }
 
     def "logging is live"() {

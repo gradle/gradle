@@ -253,7 +253,7 @@ task hang << {
 
     def "can cancel build through forced stop"() {
         // in-process call does not support forced stop
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
         buildFile << """
 task hang << {
     new URL("${server.uri}").text

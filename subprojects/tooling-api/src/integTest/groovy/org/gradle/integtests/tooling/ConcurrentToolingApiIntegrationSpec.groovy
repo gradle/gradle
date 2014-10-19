@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -30,7 +29,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
@@ -52,13 +50,8 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     def setup() {
         //concurrent tooling api at the moment is only supported for forked mode
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
         concurrent.shortTimeout = 180000
-        ConnectorServices.reset()
-    }
-
-    def cleanup() {
-        ConnectorServices.reset()
     }
 
     def "handles the same target gradle version concurrently"() {
@@ -66,7 +59,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(new UnderDevelopmentGradleDistribution()) }
+            concurrent.start { useToolingApi(toolingApi) }
         }
 
         then:
@@ -79,23 +72,23 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     def "handles different target gradle versions concurrently"() {
         given:
-        def current = dist
-        def last = new ReleasedVersionDistributions().getMostRecentFinalRelease() 
-        assert current != last
-        println "Combination of versions used: current - $current, last - $last"
+        def last = new ReleasedVersionDistributions().getMostRecentFinalRelease()
+        assert dist != last
+        println "Combination of versions used: current - $dist, last - $last"
+        def oldDistApi = new ToolingApi(last, temporaryFolder)
 
         file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        concurrent.start { useToolingApi(current) }
-        concurrent.start { useToolingApi(last)}
+        concurrent.start { useToolingApi(toolingApi) }
+        concurrent.start { useToolingApi(oldDistApi)}
 
         then:
         concurrent.finished()
     }
 
-    def useToolingApi(GradleDistribution target) {
-        new ToolingApi(target, new IntegrationTestBuildContext().gradleUserHomeDir, temporaryFolder, false).withConnection { ProjectConnection connection ->
+    def useToolingApi(ToolingApi target) {
+        target.withConnection { ProjectConnection connection ->
             try {
                 def model = connection.getModel(IdeaProject)
                 assert model != null

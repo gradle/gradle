@@ -60,6 +60,8 @@ public interface ProviderOperationParameters {
 
     TimeUnit getDaemonMaxIdleTimeUnits();
 
+    File getDaemonBaseDir(File defaultDaemonBaseDir);
+
     ProgressListenerVersion1 getProgressListener();
 
     List<String> getArguments(List<String> defaultArguments);

@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.TestUtil
@@ -175,5 +176,17 @@ class CheckstylePluginTest extends Specification {
         task.reports.xml.destination == project.file("checkstyle-reports/custom.xml")
         task.ignoreFailures
     }
-    
+
+    def "can use legacy configFile extension property"() {
+        project.plugins.apply(JavaPlugin)
+
+        project.checkstyle {
+            configFile = project.file("checkstyle-config")
+        }
+
+        expect:
+        project.checkstyle.configFile == project.file("checkstyle-config") // computed property
+        project.tasks.checkstyleMain.configFile == project.file("checkstyle-config")
+        project.tasks.checkstyleTest.configFile == project.file("checkstyle-config")
+    }
 }

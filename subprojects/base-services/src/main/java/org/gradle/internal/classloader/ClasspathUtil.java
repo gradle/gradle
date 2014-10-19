@@ -61,13 +61,13 @@ public class ClasspathUtil {
         URI location;
         try {
             location = targetClass.getProtectionDomain().getCodeSource().getLocation().toURI();
+            if (!location.getScheme().equals("file")) {
+                throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
+            }
+            return new File(location);
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        if (!location.getScheme().equals("file")) {
-            throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
-        }
-        return new File(location.getPath());
     }
 
     public static File getClasspathForResource(ClassLoader classLoader, String name) {

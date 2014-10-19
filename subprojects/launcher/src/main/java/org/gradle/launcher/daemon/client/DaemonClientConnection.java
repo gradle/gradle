@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.RemoteConnection;
@@ -33,14 +34,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonClientConnection implements Connection<Object> {
     private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
     private final RemoteConnection<Object> connection;
-    private final String uid;
+    private final DaemonInstanceDetails daemon;
     private final StaleAddressDetector staleAddressDetector;
     private boolean hasReceived;
     private final Lock dispatchLock = new ReentrantLock();
 
-    public DaemonClientConnection(RemoteConnection<Object> connection, String uid, StaleAddressDetector staleAddressDetector) {
+    public DaemonClientConnection(RemoteConnection<Object> connection, DaemonInstanceDetails daemon, StaleAddressDetector staleAddressDetector) {
         this.connection = connection;
-        this.uid = uid;
+        this.daemon = daemon;
         this.staleAddressDetector = staleAddressDetector;
     }
 
@@ -49,8 +50,8 @@ public class DaemonClientConnection implements Connection<Object> {
         connection.requestStop();
     }
 
-    public String getUid() {
-        return uid;
+    public DaemonInstanceDetails getDaemon() {
+        return daemon;
     }
 
     public void dispatch(Object message) throws DaemonConnectionException {

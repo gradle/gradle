@@ -27,6 +27,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final Boolean embedded;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
+    private final File daemonBaseDir;
     private final boolean verboseLogging;
 
     public static Builder builder() {
@@ -51,6 +52,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private Integer daemonMaxIdleTimeValue;
         private TimeUnit daemonMaxIdleTimeUnits;
         private boolean verboseLogging;
+        private File daemonBaseDir;
 
         private Builder() {
         }
@@ -92,19 +94,29 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
         public DefaultConnectionParameters build() {
             return new DefaultConnectionParameters(gradleUserHomeDir, projectDir, searchUpwards, embedded,
-                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging);
+                    daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging);
+        }
+
+        public void setDaemonBaseDir(File daemonBaseDir) {
+            this.daemonBaseDir = daemonBaseDir;
         }
     }
 
     private DefaultConnectionParameters(File gradleUserHomeDir, File projectDir, Boolean searchUpwards, Boolean embedded,
-                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging) {
+                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
+                                        boolean verboseLogging) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.projectDir = projectDir;
         this.searchUpwards = searchUpwards;
         this.embedded = embedded;
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
+        this.daemonBaseDir = daemonBaseDir;
         this.verboseLogging = verboseLogging;
+    }
+
+    public File getDaemonBaseDir() {
+        return daemonBaseDir;
     }
 
     public File getGradleUserHomeDir() {

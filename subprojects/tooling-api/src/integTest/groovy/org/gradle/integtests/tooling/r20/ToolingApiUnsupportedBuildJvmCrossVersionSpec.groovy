@@ -31,7 +31,7 @@ import spock.lang.IgnoreIf
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.absolutePath)
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
     }
 
     def "cannot run a build when build is configured to use Java 5"() {

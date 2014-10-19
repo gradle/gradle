@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
-import org.gradle.launcher.daemon.context.DaemonAddress;
+import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.messaging.remote.Address;
 
-public class DaemonStartupInfo {
+public class DaemonStartupInfo implements DaemonInstanceDetails {
     private final String uid;
     private final Address address;
     private final DaemonDiagnostics diagnostics;
@@ -34,8 +34,12 @@ public class DaemonStartupInfo {
         return uid;
     }
 
-    public DaemonAddress getAddress() {
-        return new DaemonAddress(uid, address);
+    public Address getAddress() {
+        return address;
+    }
+
+    public Long getPid() {
+        return diagnostics.getPid();
     }
 
     /**
@@ -47,11 +51,7 @@ public class DaemonStartupInfo {
 
     @Override
     public String toString() {
-        return "{"
-                + "uid='" + uid + '\''
-                + ", address=" + address
-                + ", diagnostics=" + diagnostics
-                + '}';
+        return String.format("DaemonStartupInfo{pid=%s, uid=%s, address=%s, diagnostics=%s}", diagnostics.getPid(), uid, address, diagnostics);
     }
 
     public String describe() {

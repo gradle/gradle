@@ -21,10 +21,10 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 class CheckstyleTest extends Specification {
-    def "default configuration"() {
-        def project = ProjectBuilder.builder().build()
-        def checkstyle = project.tasks.create("checkstyle", Checkstyle)
+    def project = ProjectBuilder.builder().build()
+    def checkstyle = project.tasks.create("checkstyle", Checkstyle)
 
+    def "default configuration"() {
         expect:
         with(checkstyle) {
             checkstyleClasspath == null
@@ -38,5 +38,13 @@ class CheckstyleTest extends Specification {
             !ignoreFailures
             showViolations
         }
+    }
+
+    def "can use legacy configFile property"() {
+        checkstyle.configFile = project.file("config/file.txt")
+
+        expect:
+        checkstyle.configFile == project.file("config/file.txt")
+        checkstyle.config.inputFiles.singleFile == project.file("config/file.txt")
     }
 }

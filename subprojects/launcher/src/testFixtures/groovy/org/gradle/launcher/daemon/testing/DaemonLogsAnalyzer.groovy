@@ -57,7 +57,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     List<DaemonFixture> getVisible() {
-        return registry.all.collect { new TestableDaemon(new File(daemonLogsDir, "daemon-${it.context.pid}.out.log"), registry) }
+        return registry.all.collect { new TestableDaemon(new File(daemonLogsDir, "daemon-${it.pid}.out.log"), registry) }
     }
 
     DaemonFixture getDaemon() {

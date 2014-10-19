@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.MapMaker;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.MutableURLClassLoader;
@@ -27,20 +27,17 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
-    private final Lock lock = new ReentrantLock();
     private final PayloadClassLoaderFactory classLoaderFactory;
-    private Map<ClassLoader, ClassLoaderDetails> classLoaderDetails;
-    private Map<UUID, ClassLoader> classLoaderIds;
+    private final ClassLoaderCache cache;
+    private final ClassLoaderToDetailsTransformer detailsToClassLoader = new ClassLoaderToDetailsTransformer();
+    private final DetailsToClassLoaderTransformer classLoaderToDetails = new DetailsToClassLoaderTransformer();
 
-    public DefaultPayloadClassLoaderRegistry(PayloadClassLoaderFactory payloadClassLoaderFactory) {
-        classLoaderDetails = new MapMaker().weakKeys().makeMap();
-        classLoaderIds = new MapMaker().weakValues().makeMap();
+    public DefaultPayloadClassLoaderRegistry(ClassLoaderCache cache, PayloadClassLoaderFactory payloadClassLoaderFactory) {
+        this.cache = cache;
         this.classLoaderFactory = payloadClassLoaderFactory;
     }
 
@@ -83,63 +80,11 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private ClassLoader getClassLoader(ClassLoaderDetails details) {
-        lock.lock();
-        try {
-            ClassLoader classLoader = classLoaderIds.get(details.uuid);
-            if (classLoader != null) {
-                return classLoader;
-            }
-
-            List<ClassLoader> parents = new ArrayList<ClassLoader>();
-            for (ClassLoaderDetails parentDetails : details.parents) {
-                parents.add(getClassLoader(parentDetails));
-            }
-            if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(ClassLoaderSpec.SYSTEM_CLASS_LOADER, null));
-            }
-
-            LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
-
-            classLoader = classLoaderFactory.getClassLoaderFor(details.spec, parents);
-            classLoaderIds.put(details.uuid, classLoader);
-            classLoaderDetails.put(classLoader, details);
-            return classLoader;
-        } finally {
-            lock.unlock();
-        }
+        return cache.getClassLoader(details, detailsToClassLoader);
     }
 
     private ClassLoaderDetails getDetails(ClassLoader classLoader) {
-        lock.lock();
-        try {
-            ClassLoaderDetails details = classLoaderDetails.get(classLoader);
-            if (details != null) {
-                return details;
-            }
-
-            ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);
-            visitor.visit(classLoader);
-
-            if (visitor.spec == null) {
-                if (visitor.classPath == null) {
-                    visitor.spec = ClassLoaderSpec.SYSTEM_CLASS_LOADER;
-                } else {
-                    visitor.spec = new MutableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
-                }
-            }
-
-            UUID uuid = UUID.randomUUID();
-            details = new ClassLoaderDetails(uuid, visitor.spec);
-            for (ClassLoader parent : visitor.parents) {
-                details.parents.add(getDetails(parent));
-            }
-
-            classLoaderDetails.put(classLoader, details);
-            classLoaderIds.put(details.uuid, classLoader);
-            return details;
-        } finally {
-            lock.unlock();
-        }
+        return cache.getDetails(classLoader, classLoaderToDetails);
     }
 
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
@@ -169,6 +114,44 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         @Override
         public void visitSpec(ClassLoaderSpec spec) {
             this.spec = spec;
+        }
+    }
+
+    private class ClassLoaderToDetailsTransformer implements Transformer<ClassLoader, ClassLoaderDetails> {
+        public ClassLoader transform(ClassLoaderDetails details) {
+            List<ClassLoader> parents = new ArrayList<ClassLoader>();
+            for (ClassLoaderDetails parentDetails : details.parents) {
+                parents.add(getClassLoader(parentDetails));
+            }
+            if (parents.isEmpty()) {
+                parents.add(classLoaderFactory.getClassLoaderFor(ClassLoaderSpec.SYSTEM_CLASS_LOADER, null));
+            }
+
+            LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
+
+            return classLoaderFactory.getClassLoaderFor(details.spec, parents);
+        }
+    }
+
+    private class DetailsToClassLoaderTransformer implements Transformer<ClassLoaderDetails, ClassLoader> {
+        public ClassLoaderDetails transform(ClassLoader classLoader) {
+            ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);
+            visitor.visit(classLoader);
+
+            if (visitor.spec == null) {
+                if (visitor.classPath == null) {
+                    visitor.spec = ClassLoaderSpec.SYSTEM_CLASS_LOADER;
+                } else {
+                    visitor.spec = new MutableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
+                }
+            }
+
+            UUID uuid = UUID.randomUUID();
+            ClassLoaderDetails details = new ClassLoaderDetails(uuid, visitor.spec);
+            for (ClassLoader parent : visitor.parents) {
+                details.parents.add(getDetails(parent));
+            }
+            return details;
         }
     }
 }

@@ -42,7 +42,10 @@ public class DefaultGradleConnector extends GradleConnector {
     /**
      * Closes the tooling API, releasing all resources. Blocks until completed.
      *
-     * Note: this is not on the public GradleConnector API yet.
+     * <p>May attempt to expire some or all daemons started by this tooling API client. The exact behaviour here is implementation-specific and not guaranteed.
+     * The expiration is best effort only. This method may return before the daemons have stopped.</p>
+     *
+     * <p>Note: this is not yet part of the public tooling API yet.</p>
      *
      * TODO - need to model this as a long running operation, and allow stdout, stderr and progress listener to be supplied.
      * TODO - need to define exceptions.
@@ -105,11 +108,13 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    public GradleConnector daemonBaseDir(File daemonBaseDir) {
+        connectionParamsBuilder.setDaemonBaseDir(daemonBaseDir);
+        return this;
+    }
+
     /**
      * If true then debug log statements will be shown
-     *
-     * @param verboseLogging
-     * @return
      */
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
         connectionParamsBuilder.setVerboseLogging(verboseLogging);

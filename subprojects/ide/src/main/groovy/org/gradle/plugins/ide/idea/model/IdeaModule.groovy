@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
@@ -166,6 +167,7 @@ class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
+    @Incubating
     Set<File> generatedSourceDirs = []
 
     /**

@@ -29,7 +29,7 @@ class GradlePropertiesToolingApiCrossVersionSpec extends ToolingApiSpecification
     def setup() {
         //this test does not make any sense in embedded mode
         //as we don't own the process
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
     }
 
     def "tooling api honours jvm args specified in gradle.properties"() {

@@ -22,9 +22,11 @@ import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.launcher.daemon.context.DaemonAddress;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.protocol.Stop;
+import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,23 +51,30 @@ public class DaemonStopClient {
     private final DaemonConnector connector;
     private final IdGenerator<?> idGenerator;
     private final ExplainingSpec<DaemonContext> compatibilitySpec = ExplainingSpecs.satisfyAll();
+    private final StopDispatcher stopDispatcher;
 
     public DaemonStopClient(DaemonConnector connector, IdGenerator<?> idGenerator) {
         this.connector = connector;
         this.idGenerator = idGenerator;
+        this.stopDispatcher = new StopDispatcher();
     }
 
     /**
-     * Stops the daemons at the given addresses.
+     * Requests that the given daemons stop when idle. Does not block and returns before the daemons have all stopped.
      */
-    public void stop(Collection<DaemonAddress> addresses) {
-        for (DaemonAddress address : addresses) {
-            DaemonClientConnection connection = connector.maybeConnect(address);
+    public void gracefulStop(Collection<DaemonInstanceDetails> daemons) {
+        for (DaemonInstanceDetails daemon : daemons) {
+            DaemonClientConnection connection = connector.maybeConnect(daemon);
             if (connection == null) {
                 continue;
             }
-            new StopDispatcher(idGenerator).dispatch(connection);
-            LOGGER.lifecycle("Gradle daemon stopped.");
+            try {
+                LOGGER.debug("Requesting daemon {} stop when idle", daemon);
+                stopDispatcher.dispatch(connection, new StopWhenIdle(idGenerator.generateId()));
+                LOGGER.lifecycle("Gradle daemon stopped.");
+            } finally {
+                connection.stop();
+            }
         }
     }
 
@@ -89,8 +98,9 @@ public class DaemonStopClient {
         //iterate and stop all daemons
         while (connection != null && System.currentTimeMillis() < expiry) {
             try {
-                if (stopped.add(connection.getUid())) {
-                    new StopDispatcher(idGenerator).dispatch(connection);
+                if (stopped.add(connection.getDaemon().getUid())) {
+                    LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
+                    stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId()));
                     LOGGER.lifecycle("Gradle daemon stopped.");
                 }
             } finally {

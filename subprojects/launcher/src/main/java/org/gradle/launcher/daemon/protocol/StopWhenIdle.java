@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.launcher.daemon.protocol;
 
-package org.gradle.launcher.daemon.client;
-
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
-
-/**
- * Notified when a daemon is started.
- */
-public interface DaemonStartListener {
-    void daemonStarted(DaemonInstanceDetails daemonInfo);
+public class StopWhenIdle extends Command {
+    public StopWhenIdle(Object identifier) {
+        super(identifier);
+    }
 }

@@ -41,6 +41,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         result == '[result]'
         1 * connector.connect(compatibilitySpec) >> connection
+        _ * connection.daemon
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Stub(BuildStarted), new Success('[result]')]
         1 * connection.dispatch({it instanceof CloseInput})
@@ -59,6 +60,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException e = thrown()
         e == failure
         1 * connector.connect(compatibilitySpec) >> connection
+        _ * connection.daemon
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Stub(BuildStarted), new CommandFailure(failure)]
         1 * connection.dispatch({it instanceof CloseInput})
@@ -76,6 +78,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         BuildCancelledException gce = thrown()
         1 * connector.connect(compatibilitySpec) >> connection
+        _ * connection.daemon
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             callback.run()
             return false
@@ -103,6 +106,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         BuildCancelledException gce = thrown()
         gce == cancelledException
         1 * connector.connect(compatibilitySpec) >> connection
+        _ * connection.daemon
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             // simulate cancel request processing
             callback.run()
@@ -127,8 +131,10 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        _ * connection.daemon
         1 * connection.dispatch({it instanceof Build}) >> { throw new StaleDaemonAddressException("broken", new RuntimeException())}
         1 * connection.stop()
+        _ * connection2.daemon
         2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
         0 * connection._
     }
@@ -141,10 +147,12 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        _ * connection.daemon
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> Stub(DaemonUnavailable)
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
+        _ * connection2.daemon
         2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
         0 * connection._
     }
@@ -157,9 +165,11 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        _ * connection.daemon
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> null
         1 * connection.stop()
+        _ * connection2.daemon
         2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
         0 * connection._
     }

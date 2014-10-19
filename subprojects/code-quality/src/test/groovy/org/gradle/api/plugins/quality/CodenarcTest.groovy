@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client;
+package org.gradle.api.plugins.quality
 
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
+import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
-/**
- * Notified when a daemon is started.
- */
-public interface DaemonStartListener {
-    void daemonStarted(DaemonInstanceDetails daemonInfo);
+class CodenarcTest extends Specification {
+    def project = ProjectBuilder.builder().build()
+    def codenarc = project.tasks.create("codenarc", CodeNarc)
+
+    def "can use legacy configFile property"() {
+        codenarc.configFile = project.file("config/file.txt")
+
+        expect:
+        codenarc.configFile == project.file("config/file.txt")
+        codenarc.config.inputFiles.singleFile == project.file("config/file.txt")
+    }
 }

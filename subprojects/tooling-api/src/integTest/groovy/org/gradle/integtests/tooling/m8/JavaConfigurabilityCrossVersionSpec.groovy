@@ -27,7 +27,7 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         //this test does not make any sense in embedded mode
         //as we don't own the process
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
     }
 
     def "configures the java settings"() {

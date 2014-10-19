@@ -153,6 +153,9 @@ public class ProviderConnection {
 
         DaemonParameters daemonParams = new DaemonParameters(layout);
         new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);
+        if (operationParameters.getDaemonBaseDir(null) != null) {
+            daemonParams.setBaseDir(operationParameters.getDaemonBaseDir(null));
+        }
 
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
@@ -164,6 +167,7 @@ public class ProviderConnection {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
             daemonParams.setIdleTimeout(idleTimeout);
         }
+
         return new Parameters(daemonParams, properties);
     }
 

@@ -18,25 +18,19 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.id.IdGenerator;
+import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.protocol.Finished;
 import org.gradle.launcher.daemon.protocol.Result;
-import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
 
 public class StopDispatcher {
     private static final Logger LOGGER = Logging.getLogger(StopDispatcher.class);
-    private final IdGenerator<?> idGenerator;
 
-    public StopDispatcher(IdGenerator<?> idGenerator) {
-        this.idGenerator = idGenerator;
-    }
-
-    public void dispatch(Connection<Object> connection) {
+    public void dispatch(Connection<Object> connection, Command stopCommand) {
         Throwable failure = null;
         try {
-            connection.dispatch(new Stop(idGenerator.generateId()));
+            connection.dispatch(stopCommand);
             Result result = (Result) connection.receive();
             if (result instanceof Failure) {
                 failure = ((Failure) result).getValue();
