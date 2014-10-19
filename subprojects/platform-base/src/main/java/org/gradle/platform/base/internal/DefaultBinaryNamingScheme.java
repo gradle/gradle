@@ -41,6 +41,10 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return makeName(dimensions.toArray(new String[dimensions.size()]));
     }
 
+    public String getBaseName() {
+        return parentName;
+    }
+
     public String getLifecycleTaskName() {
         return getTaskName(null, null);
     }

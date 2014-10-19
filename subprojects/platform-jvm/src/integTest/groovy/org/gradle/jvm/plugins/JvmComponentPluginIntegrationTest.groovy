@@ -202,8 +202,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert jvm.libraries.myLibTwo instanceof JvmLibrarySpec
 
         assert binaries.size() == 2
-        assert binaries.myLibOneJar.library == jvm.libraries.myLibOne
-        assert binaries.myLibTwoJar.library == jvm.libraries.myLibTwo
+        assert binaries.myLibOneJar == jvm.libraries.myLibOne.binaries[0]
+        assert binaries.myLibTwoJar == jvm.libraries.myLibTwo.binaries[0]
     }
 """
         then:

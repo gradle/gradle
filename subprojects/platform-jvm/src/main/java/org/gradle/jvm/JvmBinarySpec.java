@@ -39,9 +39,19 @@ public interface JvmBinarySpec extends BinarySpec {
     JavaPlatform getTargetPlatform();
 
     /**
+     * Sets the target platform for this binary.
+     */
+    void setTargetPlatform(JavaPlatform platform);
+
+    /**
      * Returns the {@link org.gradle.jvm.toolchain.JavaToolChain} that will be used to build this binary.
      */
     JavaToolChain getToolChain();
+
+    /**
+     * Sets the {@link org.gradle.jvm.toolchain.JavaToolChain} that will be used to build this binary.
+     */
+    void setToolChain(JavaToolChain toolChain);
 
     /**
      * The classes directory for this binary.

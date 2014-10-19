@@ -44,6 +44,10 @@ class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
         return Collections.emptyList();
     }
 
+    public String getBaseName() {
+        return baseName;
+    }
+
     public String getLifecycleTaskName() {
         return getTaskName(null, "classes");
     }

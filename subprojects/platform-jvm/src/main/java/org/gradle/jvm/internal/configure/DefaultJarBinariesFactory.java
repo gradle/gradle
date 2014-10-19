@@ -23,6 +23,7 @@ import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 public class DefaultJarBinariesFactory implements JarBinariesFactory { //TODO: NativeBInariesFactory and this one should extend a BaseClass (BinariesFactory) that creates binaries and adds them on component specs based on the configure action - parameter should be a Factory that creates the specific type (JarBinarySpec here)
@@ -35,13 +36,15 @@ public class DefaultJarBinariesFactory implements JarBinariesFactory { //TODO: N
     }
 
     public void createJarBinaries(JvmLibrarySpec jvmLibrary, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JavaPlatform platform) {
-        DefaultJarBinarySpec jarBinary = instantiator.newInstance(DefaultJarBinarySpec.class, jvmLibrary, namingScheme, toolChain, platform);
+        JarBinarySpec jarBinary = BaseBinarySpec.create(DefaultJarBinarySpec.class, namingScheme, instantiator);
+        jarBinary.setToolChain(toolChain);
+        jarBinary.setTargetPlatform(platform);
         setupDefaults(jarBinary);
         jarBinary.source(jvmLibrary.getSource());
         jvmLibrary.getBinaries().add(jarBinary);
     }
 
-    private void setupDefaults(DefaultJarBinarySpec jarBinary) {
+    private void setupDefaults(JarBinarySpec jarBinary) {
         configureAction.execute(jarBinary);
     }
 }

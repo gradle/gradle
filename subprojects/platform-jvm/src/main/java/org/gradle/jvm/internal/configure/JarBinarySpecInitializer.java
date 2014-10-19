@@ -39,6 +39,6 @@ public class JarBinarySpecInitializer implements Action<JarBinarySpec> {
         File outputDir = new File(classesDir, outputBaseName);
         jarBinarySpec.setClassesDir(outputDir);
         jarBinarySpec.setResourcesDir(outputDir);
-        jarBinarySpec.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinarySpecInternal.getLibrary().getName())));
+        jarBinarySpec.setJarFile(new File(binariesDir, String.format("%s/%s.jar", outputBaseName, jarBinarySpecInternal.getNamingScheme().getBaseName())));
     }
 }

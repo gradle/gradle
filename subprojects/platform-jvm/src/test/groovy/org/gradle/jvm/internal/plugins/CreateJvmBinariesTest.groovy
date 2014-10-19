@@ -34,6 +34,7 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.PlatformContainer
+import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
@@ -67,7 +68,7 @@ class CreateJvmBinariesTest extends Specification {
         def namingScheme = Mock(BinaryNamingScheme)
         def platform = new DefaultJavaPlatform("test")
         platform.setTargetCompatibility(JavaVersion.current())
-        def binary = new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
+        def binary = BaseBinarySpec.create(DefaultJarBinarySpec, namingScheme, new DirectInstantiator())
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 
@@ -78,12 +79,13 @@ class CreateJvmBinariesTest extends Specification {
         then:
         _ * namingScheme.description >> "jvmLibJar"
         _ * namingScheme.outputDirectoryBase >> "jvmJarOutput"
+        _ * namingScheme.baseName >> "jvmLibOne"
         1 * platforms.chooseFromTargets(JavaPlatform, _, _, _) >> [ platform ]
         1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * instantiator.newInstance(DefaultJarBinarySpec.class, library, namingScheme, toolChain, platform) >> binary
+        1 * instantiator.newInstance(DefaultJarBinarySpec.class) >> binary
         1 * toolChain.select(platform) >> toolProvider
         1 * toolProvider.isAvailable() >> true
         1 * binaries.addAll(toDomainObjectSet(JvmLibraryBinarySpec, binary))
@@ -92,7 +94,6 @@ class CreateJvmBinariesTest extends Specification {
         and:
         JarBinarySpecInternal createdBinary = library.getBinaries().iterator().next()
         createdBinary.namingScheme == namingScheme
-        createdBinary.library == library
         createdBinary.classesDir == new File(buildDir, "classes/jvmJarOutput")
         createdBinary.resourcesDir == binary.classesDir
         createdBinary.toolChain == toolChain

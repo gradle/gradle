@@ -151,7 +151,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         private Task createJarTask(TaskContainer tasks, JarBinarySpecInternal binary) {
             Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
-            jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
+            jar.setDescription(String.format("Creates the binary file for %s.", binary));
             jar.from(binary.getClassesDir());
             jar.from(binary.getResourcesDir());
 

@@ -27,5 +27,5 @@ import org.gradle.internal.HasInternalProtocol;
 // As far as generated resources are concerned, it might be better to model
 // them as an additional (Buildable) ResourceSet.
 @Incubating @HasInternalProtocol
-public interface ClassDirectoryBinarySpec extends JvmLibraryBinarySpec {
+public interface ClassDirectoryBinarySpec extends JvmBinarySpec {
 }

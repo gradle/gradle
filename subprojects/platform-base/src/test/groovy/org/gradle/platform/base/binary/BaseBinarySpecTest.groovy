@@ -48,11 +48,12 @@ class BaseBinarySpecTest extends Specification {
 
         when:
         _ * binaryNamingScheme.lifecycleTaskName >> "sampleBinary"
+        _ * binaryNamingScheme.description >> "sampleBinary description"
 
         then:
         binary.class == MySampleBinary
         binary.name == "sampleBinary"
-        binary.displayName == "MySampleBinary: 'sampleBinary'"
+        binary.displayName == "sampleBinary description"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {

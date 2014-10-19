@@ -59,6 +59,7 @@ public class BinaryTypeRuleDefinitionHandler extends ComponentModelRuleDefinitio
                 public T create(String name) {
                     BinaryNamingScheme binaryNamingScheme = new DefaultBinaryNamingSchemeBuilder()
                             .withComponentName(name)
+                            .withTypeString(implementation.getConcreteClass().getSimpleName())
                             .build();
 
                     // safe because we implicitly know that U extends V, but can't express this in the type system

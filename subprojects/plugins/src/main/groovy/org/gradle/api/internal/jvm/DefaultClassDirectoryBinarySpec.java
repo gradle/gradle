@@ -64,6 +64,14 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return platform;
     }
 
+    public void setTargetPlatform(JavaPlatform platform) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void setToolChain(JavaToolChain toolChain) {
+        throw new UnsupportedOperationException();
+    }
+
     public boolean isBuildable() {
         return buildable;
     }
@@ -113,7 +121,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public String toString() {
-        return namingScheme.getDescription();
+        return getDisplayName();
     }
 
 }

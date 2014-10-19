@@ -48,8 +48,8 @@ class CreateTasksForJarBinariesTest extends Specification {
 
         then:
         _ * jarBinary.name >> "binaryName"
-        2 * jarBinary.namingScheme >> namingScheme
-        1 * namingScheme.description >> "binaryDisplayName"
+        _ * jarBinary.toString() >> "binaryDisplayName"
+        1 * jarBinary.namingScheme >> namingScheme
         1 * jarBinary.classesDir >> classesDir
         1 * jarBinary.resourcesDir >> resourcesDir
         2 * jarBinary.jarFile >> jarFile
