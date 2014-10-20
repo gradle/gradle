@@ -60,7 +60,9 @@ class ModelTypeTest extends Specification {
     }
 
     def m1(List<? extends String> strings) {}
+
     def m2(List<? super String> strings) {}
+
     def m3(List<?> anything) {}
 
     def "wildcards"() {
@@ -96,5 +98,17 @@ class ModelTypeTest extends Specification {
         !superString.asSubclass(anything)
         !superString.asSubclass(extendsString)
         !extendsString.asSubclass(superString)
+    }
+
+    def "has wildcards"() {
+        expect:
+        !ModelType.of(String).hasWildcardTypeVariables
+        new ModelType<List<?>>() {}.hasWildcardTypeVariables
+        new ModelType<List<? extends CharSequence>>() {}.hasWildcardTypeVariables
+        new ModelType<List<? super CharSequence>>() {}.hasWildcardTypeVariables
+        !new ModelType<List<List<String>>>() {}.hasWildcardTypeVariables
+        new ModelType<List<List<?>>>() {}.hasWildcardTypeVariables
+        new ModelType<List<List<List<?>>>>() {}.hasWildcardTypeVariables
+        new ModelType<List<List<? super List<String>>>>() {}.hasWildcardTypeVariables
     }
 }

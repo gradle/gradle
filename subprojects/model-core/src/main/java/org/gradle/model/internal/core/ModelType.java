@@ -172,9 +172,13 @@ public abstract class ModelType<T> {
     }
 
     public boolean isHasWildcardTypeVariables() {
-        for (ModelType<?> typeVariable : getTypeVariables()) {
-            if (typeVariable.isWildcard()) {
-                return true;
+        if (isWildcard()) {
+            return true;
+        } else if (isParameterized()) {
+            for (ModelType<?> typeVariable : getTypeVariables()) {
+                if (typeVariable.isHasWildcardTypeVariables()) {
+                    return true;
+                }
             }
         }
 
