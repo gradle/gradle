@@ -32,7 +32,3 @@ def codeQualityTasks = tasks.matching { task ->
 task codeQuality {
     dependsOn codeQualityTasks
 }
-
-allTestTasksForFastFeedbackOrder {
-    shouldRunAfter codeQualityTasks
-}

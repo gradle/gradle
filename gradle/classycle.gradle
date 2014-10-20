@@ -14,7 +14,7 @@ allprojects {
 
         sourceSets.all { sourceSet ->
             def taskName = sourceSet.getTaskName('classycle', null)
-            def task = task(taskName) {
+            task(taskName) {
                 def reportFile = reporting.file("classcycle/${sourceSet.name}.txt")
                 inputs.files sourceSet.output
                 outputs.file reportFile
@@ -45,9 +45,6 @@ allprojects {
             classycle.dependsOn taskName
             check.dependsOn taskName
             codeQuality.dependsOn taskName
-            allTestTasksForFastFeedbackOrder {
-                shouldRunAfter task
-            }
         }
     }
 }

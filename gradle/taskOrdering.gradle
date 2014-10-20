@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-ext {
-    allTestTasksForFastFeedbackOrder = { action ->
-        if (project.hasProperty("fastFeedbackOrder")) {
-            subprojects {
-                allTestTasks.all(action)
+if (project.hasProperty("fastFeedbackOrder")) {
+    subprojects {
+        afterEvaluate {
+            def testTask = tasks.withType(Test).matching { it.name == "test" }
+            if (testTask) {
+                rootProject.subprojects {
+                    def precedingTasks = tasks.matching { task ->
+                        task.name == "codeQuality" || task.name.startsWith("classycle")
+                    }
+                    testTask.all { it.shouldRunAfter precedingTasks }
+                    def integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+                    integTestTasks.all { it.shouldRunAfter testTask }
+                }
             }
         }
     }
-}
-
-subprojects {
-    ext.allTestTasks = tasks.withType(Test).matching { it.name == "test" }
 }
