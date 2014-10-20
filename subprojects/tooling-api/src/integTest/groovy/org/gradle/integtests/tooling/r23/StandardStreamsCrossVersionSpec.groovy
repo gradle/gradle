@@ -28,7 +28,7 @@ class StandardStreamsCrossVersionSpec extends ToolingApiSpecification {
     @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
 
     def setup() {
-        toolingApi.isEmbedded = false
+        toolingApi.requireDaemons()
     }
 
     def "logging is not sent to stderr/stdout if using custom output streams"() {
