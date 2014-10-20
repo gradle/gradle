@@ -263,15 +263,15 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | X86            | 64           | "-m64"    | "-m64"      | "--64"
     }
 
-    @Requires(TestPrecondition.MAC_OS_X) //TODO freekh: disable test for now, but must fix later
     def "supplies args for supported architecture for os x platforms"() {
         def action = Mock(Action)
 
         given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
-        platform.operatingSystem.isMacOsX() >> true
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
+
+        toolChain.target(platform.name)
         toolChain.eachPlatform(action)
 
         when:
