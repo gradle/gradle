@@ -38,11 +38,11 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
     void setup() {
         server.start()
+        toolingApi.requireIsolatedUserHome()
     }
 
     def "downloads distribution with valid user-agent information"() {
         assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
-        def userHomeDir = file("user-home-dir")
 
         given:
         settingsFile << "";
@@ -55,7 +55,6 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         and:
         toolingApi.withConnector { GradleConnector connector ->
             connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
-            connector.useGradleUserHomeDir(userHomeDir)
         }
 
         when:
@@ -69,7 +68,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         buildOutput.toString().contains('hello')
-        userHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
     def "can cancel distribution download"() {
