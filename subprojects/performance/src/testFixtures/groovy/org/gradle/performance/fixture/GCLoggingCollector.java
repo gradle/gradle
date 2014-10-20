@@ -36,6 +36,10 @@ public class GCLoggingCollector implements DataCollector {
 
     public void beforeExecute(File testProjectDir, GradleExecuter executer) {
         logFile = new File(testProjectDir, "gc.txt");
+
+        //(SF) Using '-Dorg.gradle.jvmargs' with gradle opts causes an extra vm to be forked
+        //so effectively, all our performance tests run with extra forked vm
+        //I think that this is ok since using jvmargs (in gradle.properties) is pretty much a standard
         executer.withGradleOpts("-Dorg.gradle.jvmargs=-verbosegc -XX:+PrintGCDetails -Xloggc:" + logFile.getAbsolutePath());
     }
 
