@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -26,18 +24,25 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.AppliedPlugins;
+import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.internal.PluginId;
 
+import java.util.Set;
+
+// not threadsafe
 public class PluginManager {
 
     private final PluginApplicator applicator;
     private final PluginRegistry pluginRegistry;
     private final PluginContainer pluginContainer;
+    private final Set<Class<?>> allPlugins = Sets.newHashSet();
+    private final Set<String> unclaimedIds = Sets.newHashSet();
+    private final Set<Class<?>> noIdPlugins = Sets.newHashSet();
+    private final DomainObjectSet<PluginWithId> pluginsWithIds = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newHashSet());
 
-    private final DomainObjectSet<AppliedPluginImpl> plugins = new DefaultDomainObjectSet<AppliedPluginImpl>(AppliedPluginImpl.class, Sets.<AppliedPluginImpl>newHashSet());
     private final AppliedPluginsImpl appliedPlugins = new AppliedPluginsImpl();
 
     public PluginManager(PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
@@ -46,7 +51,7 @@ public class PluginManager {
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, instantiator, new PluginApplicator() {
             public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
                 applicator.applyImperative(pluginId, plugin);
-                plugins.add(new AppliedPluginImpl(pluginId, plugin.getClass()));
+                addPlugin(pluginId, plugin.getClass());
             }
 
             public void applyRules(@Nullable String pluginId, Class<?> clazz) {
@@ -55,10 +60,39 @@ public class PluginManager {
             }
 
             public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {
-                applyImperative(pluginId, plugin);
-                applicator.applyRules(pluginId, plugin.getClass());
+                addPlugin(pluginId, plugin.getClass());
+                applicator.applyImperativeRulesHybrid(pluginId, plugin);
             }
         });
+    }
+
+    private void addPlugin(String pluginId, Class<?> pluginClass) {
+        allPlugins.add(pluginClass);
+        if (pluginId == null) {
+            for (String unclaimedId : unclaimedIds) {
+                if (pluginRegistry.hasId(pluginClass, unclaimedId)) {
+                    addPlugin(unclaimedId, pluginClass);
+                    return;
+                }
+            }
+
+            for (PluginWithId pluginWithId : pluginsWithIds) {
+                if (pluginRegistry.hasId(pluginClass, pluginWithId.id)) {
+                    addPlugin(pluginWithId.id, pluginClass); // will fail
+                    return;
+                }
+            }
+
+            noIdPlugins.add(pluginClass);
+        } else {
+            for (PluginWithId plugin : pluginsWithIds) {
+                if (plugin.id.equals(pluginId)) {
+                    throw new InvalidPluginException("Cannot apply plugin '" + pluginId + "' of type " + pluginClass.getName() + " as a plugin of type " + plugin.clazz.getName() + " has already been applied with this id");
+
+                }
+            }
+            pluginsWithIds.add(new PluginWithId(pluginId, pluginClass));
+        }
     }
 
     public PluginContainer getPluginContainer() {
@@ -80,13 +114,14 @@ public class PluginManager {
     }
 
     private void doApply(@Nullable String pluginId, PotentialPlugin potentialPlugin) {
+        Class<?> pluginClass = potentialPlugin.asClass();
         if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
-            throw new IllegalArgumentException("'" + potentialPlugin.asClass().getName() + "' is neither a plugin or a rule source and cannot be applied.");
-        } else if (!isApplied(potentialPlugin.asClass())) {
+            throw new IllegalArgumentException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
+        } else if (!isApplied(pluginClass)) {
             Class<? extends Plugin<?>> asImperativeClass = potentialPlugin.asImperativeClass();
             if (asImperativeClass == null) {
-                applicator.applyRules(pluginId, potentialPlugin.asClass());
-                plugins.add(new AppliedPluginImpl(pluginId, potentialPlugin.asClass()));
+                applicator.applyRules(pluginId, pluginClass);
+                addPlugin(pluginId, pluginClass);
             } else {
                 if (pluginId == null) {
                     pluginContainer.apply(asImperativeClass);
@@ -98,48 +133,62 @@ public class PluginManager {
     }
 
     private boolean isApplied(final Class<?> pluginClass) {
-        return Iterables.any(plugins, new Predicate<AppliedPluginImpl>() {
-            public boolean apply(AppliedPluginImpl input) {
-                return input.getImplementationClass().equals(pluginClass);
-            }
-        });
+        return allPlugins.contains(pluginClass);
     }
 
-    private static class AppliedPluginImpl implements AppliedPlugin {
-        private final PluginId pluginId;
-        private final Class<?> implClass;
+    private class PluginWithId {
+        final String id;
+        final Class<?> clazz;
 
-
-        public AppliedPluginImpl(@Nullable String pluginId, Class<?> implClass) {
-            this.pluginId = pluginId == null ? null : PluginId.unvalidated(pluginId);
-            this.implClass = implClass;
+        private PluginWithId(String id, Class<?> clazz) {
+            this.id = id;
+            this.clazz = clazz;
         }
 
-        public String getId() {
-            return pluginId == null ? null : pluginId.toString();
+        AppliedPlugin asAppliedPlugin() {
+            return new DefaultAppliedPlugin(PluginId.unvalidated(id));
         }
 
-        public String getNamespace() {
-            return pluginId == null ? null : pluginId.getNamespace();
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            PluginWithId that = (PluginWithId) o;
+
+            return clazz.equals(that.clazz) && id.equals(that.id);
         }
 
-        public String getName() {
-            return pluginId == null ? null : pluginId.getName();
-        }
-
-        public Class<?> getImplementationClass() {
-            return implClass;
+        @Override
+        public int hashCode() {
+            int result = id.hashCode();
+            result = 31 * result + clazz.hashCode();
+            return result;
         }
     }
 
     private class AppliedPluginsImpl implements AppliedPlugins {
         public AppliedPlugin findPlugin(final String id) {
-            for (AppliedPluginImpl plugin : plugins) {
-                if (plugin.getId() != null && plugin.getId().equals(id)) {
-                    return plugin;
+            for (PluginWithId plugin : pluginsWithIds) {
+                if (plugin.id.equals(id)) {
+                    return plugin.asAppliedPlugin();
                 }
             }
 
+            for (Class<?> noIdPlugin : noIdPlugins) {
+                if (pluginRegistry.hasId(noIdPlugin, id)) {
+                    PluginWithId pluginWithId = new PluginWithId(id, noIdPlugin);
+                    pluginsWithIds.add(pluginWithId);
+                    noIdPlugins.remove(noIdPlugin);
+                    return pluginWithId.asAppliedPlugin();
+                }
+            }
+
+            unclaimedIds.add(id);
             return null;
         }
 
@@ -147,12 +196,18 @@ public class PluginManager {
             return findPlugin(id) != null;
         }
 
-        public void withPlugin(final String id, Action<? super AppliedPlugin> action) {
-            plugins.matching(new Spec<AppliedPluginImpl>() {
-                public boolean isSatisfiedBy(AppliedPluginImpl element) {
-                    return pluginRegistry.hasId(element.implClass, id);
+        public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {
+            findPlugin(id);
+
+            pluginsWithIds.matching(new Spec<PluginWithId>() {
+                public boolean isSatisfiedBy(PluginWithId element) {
+                    return element.id.equals(id);
                 }
-            }).all(action);
+            }).all(new Action<PluginWithId>() {
+                public void execute(PluginWithId pluginWithId) {
+                    action.execute(pluginWithId.asAppliedPlugin());
+                }
+            });
         }
     }
 }

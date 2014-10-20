@@ -16,29 +16,27 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Plugin;
+import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.plugin.internal.PluginId;
 
-public class PotentialPureRuleSourceClassPlugin implements PotentialPlugin {
+class DefaultAppliedPlugin implements AppliedPlugin {
 
-    private final Class<?> clazz;
+    private final PluginId pluginId;
 
-    public PotentialPureRuleSourceClassPlugin(Class<?> clazz) {
-        this.clazz = clazz;
+    public DefaultAppliedPlugin(PluginId pluginId) {
+        this.pluginId = pluginId;
     }
 
-    public Class<?> asClass() {
-        return clazz;
+    public String getId() {
+        return pluginId.toString();
     }
 
-    public Class<? extends Plugin<?>> asImperativeClass() {
-        return null;
+    public String getNamespace() {
+        return pluginId.getNamespace();
     }
 
-    public Type getType() {
-        return Type.PURE_RULE_SOURCE_CLASS;
+    public String getName() {
+        return pluginId.getName();
     }
 
-    public boolean hasRules() {
-        return false;
-    }
 }

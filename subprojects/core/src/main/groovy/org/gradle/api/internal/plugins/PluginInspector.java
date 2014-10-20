@@ -45,4 +45,105 @@ public class PluginInspector {
         }
     }
 
+    private static class PotentialImperativeClassPlugin implements PotentialPlugin {
+
+        private final Class<? extends Plugin<?>> clazz;
+
+        public PotentialImperativeClassPlugin(Class<? extends Plugin<?>> clazz) {
+            this.clazz = clazz;
+        }
+
+        public Class<?> asClass() {
+            return clazz;
+        }
+
+        public Class<? extends Plugin<?>> asImperativeClass() {
+            return clazz;
+        }
+
+        public Type getType() {
+            return Type.IMPERATIVE_CLASS;
+        }
+
+        public boolean hasRules() {
+            return false;
+        }
+    }
+
+    private static class PotentialHybridImperativeAndRulesPlugin implements PotentialPlugin {
+
+        private final Class<? extends Plugin<?>> clazz;
+
+        public PotentialHybridImperativeAndRulesPlugin(Class<? extends Plugin<?>> clazz) {
+            this.clazz = clazz;
+        }
+
+        public Class<?> asClass() {
+            return clazz;
+        }
+
+        public Class<? extends Plugin<?>> asImperativeClass() {
+            return clazz;
+        }
+
+        public boolean hasRules() {
+            return true;
+        }
+
+        public Type getType() {
+            return Type.HYBRID_IMPERATIVE_AND_RULES_CLASS;
+        }
+
+    }
+
+    private static class PotentialPureRuleSourceClassPlugin implements PotentialPlugin {
+
+        private final Class<?> clazz;
+
+        public PotentialPureRuleSourceClassPlugin(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+
+        public Class<?> asClass() {
+            return clazz;
+        }
+
+        public Class<? extends Plugin<?>> asImperativeClass() {
+            return null;
+        }
+
+        public Type getType() {
+            return Type.PURE_RULE_SOURCE_CLASS;
+        }
+
+        public boolean hasRules() {
+            return false;
+        }
+    }
+
+    private static class PotentialUnknownTypePlugin implements PotentialPlugin {
+
+        private final Class<?> clazz;
+
+        public PotentialUnknownTypePlugin(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+
+        public Class<?> asClass() {
+            return clazz;
+        }
+
+        public Class<? extends Plugin<?>> asImperativeClass() {
+            return null;
+        }
+
+        public boolean hasRules() {
+            return false;
+        }
+
+        public Type getType() {
+            return Type.UNKNOWN;
+        }
+
+    }
 }

@@ -17,17 +17,47 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Allows to query for applied plugins by id
+ * Provides information about the plugins applied to a particular “target”.
+ * <p>
+ * This type is available as a property of something implementing {@link PluginAware}.
+ * <p>
+ * Note that this type differs from {@link PluginContainer} in that it supports different types of plugins.
+ * The use of this type for introspecting on the application of plugins is preferred.
+ *
+ * @see PluginAware
  */
+@Incubating
 public interface AppliedPlugins {
 
+    /**
+     * Returns the information about the plugin that has been applied with the given ID, or null if no plugin has been applied with the given ID.
+     *
+     * @param id the plugin ID
+     * @return information about the applied plugin, or {@code null} if no plugin has been applied with the given ID
+     */
     @Nullable
     AppliedPlugin findPlugin(String id);
 
+    /**
+     * Returns {@code true} if a plugin with the given ID has already been applied, otherwise {@code false}.
+     *
+     * @param id the plugin ID
+     * @return {@code true} if the plugin has been applied
+     */
     boolean contains(String id);
 
+    /**
+     * Executes the given action, potentially in the future, if/when the plugin has been applied.
+     * <p>
+     * If a plugin with the given ID has already been applied, the given action will be executed immediately.
+     * Otherwise, the action will be executed sometime in the future if a plugin with the given ID is applied.
+     *
+     * @param id the plugin ID
+     * @param action the action to execute if/when the plugin is applied
+     */
     void withPlugin(String id, Action<? super AppliedPlugin> action);
 }

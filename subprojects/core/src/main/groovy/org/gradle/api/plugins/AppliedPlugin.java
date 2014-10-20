@@ -16,60 +16,48 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Nullable;
+import org.gradle.api.Incubating;
 
 /**
- * Represents a plugin that has been applied to an object.
+ * Represents a plugin that has been applied.
+ * <p>
+ * Currently just provides information about the ID of the plugin.
  *
  * @see AppliedPlugins
  */
+@Incubating
 public interface AppliedPlugin {
 
-    // Internal note: when we have a canonical way of finding the ID for a plugin given just the class, we can de-@Nullable the ID methods because we will always know it
-
     /**
-     * The ID of the plugin, if it was applied with an ID (opposed to being applied directly via type).
+     * The ID of the plugin.
      * <p>
      * An example of a plugin ID would be {@code "org.gradle.java"}.
      * This method always returns the fully qualified ID, regardless of whether the fully qualified ID was used to apply the plugin or not.
      * <p>
      * This value is guaranteed to be unique, for a given {@link AppliedPlugins}.
      *
-     * @return the ID of the plugin if known
+     * @return the ID of the plugin
      */
-    @Nullable
     String getId();
 
     /**
-     * The namespace of the plugin, if it was applied with an ID (opposed to being applied directly via type).
+     * The namespace of the plugin.
      * <p>
      * An example of a plugin namespace would be {@code "org.gradle"} for the plugin with ID {@code "org.gradle.java"}.
      * This method always returns the namespace, regardless of whether the fully qualified ID was used to apply the plugin or not.
-
-     * @return the namespace of the plugin if known
+     *
+     * @return the namespace of the plugin
      */
-    @Nullable
     String getNamespace();
 
     /**
-     * The name of the plugin, if it was applied with an ID (opposed to being applied directly via type).
+     * The name of the plugin.
      * <p>
      * An example of a plugin name would be {@code "java"} for the plugin with ID {@code "org.gradle.java"}.
      * This method always returns the name, regardless of whether the fully qualified ID was used to apply the plugin or not.
-
-     * @return the name of the plugin if known
-     */
-    @Nullable
-    String getName();
-
-    /**
-     * The class that implements this plugin, if it was implemented as a class.
-     * <p>
-     * This method will currently never return {@code null}, but may in future versions of Gradle when script plugins are also represented by this type.
      *
-     * @return the class that implements this plugin
+     * @return the name of the plugin
      */
-    @Nullable
-    Class<?> getImplementationClass();
+    String getName();
 
 }
