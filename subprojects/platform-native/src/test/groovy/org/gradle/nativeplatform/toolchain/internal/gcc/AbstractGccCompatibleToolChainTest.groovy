@@ -33,8 +33,6 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchR
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
