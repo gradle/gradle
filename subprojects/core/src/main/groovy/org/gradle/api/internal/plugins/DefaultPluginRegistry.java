@@ -41,12 +41,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final DefaultPluginRegistry parent;
     private final PluginInspector pluginInspector;
 
+    @SuppressWarnings("RedundantTypeArguments") // type hints are required on Java 6
     public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
         this(
                 null,
                 pluginInspector,
-                CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector)),
-                CacheBuilder.newBuilder().build(new PluginIdCacheLoader()),
+                CacheBuilder.newBuilder().<Class<?>, PotentialPlugin>build(new PotentialPluginCacheLoader(pluginInspector)),
+                CacheBuilder.newBuilder().<PluginIdLookupCacheKey, Boolean>build(new PluginIdCacheLoader()),
                 Factories.constant(classLoader)
         );
     }
