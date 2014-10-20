@@ -22,6 +22,7 @@ public class ModelPropertyInstance<T> {
 
     private final ModelProperty<T> meta;
     private T value;
+    private boolean initialized;
 
     public static <T> ModelPropertyInstance<T> of(ModelProperty<T> input) {
         return new ModelPropertyInstance<T>(input);
@@ -29,7 +30,6 @@ public class ModelPropertyInstance<T> {
 
     public ModelPropertyInstance(ModelProperty<T> meta) {
         this.meta = meta;
-        value = meta.getInitialValue();
     }
 
     public ModelProperty<T> getMeta() {
@@ -37,10 +37,15 @@ public class ModelPropertyInstance<T> {
     }
 
     public T get() {
+        if (!initialized) {
+            value = meta.getInitialValue();
+            initialized = true;
+        }
         return value;
     }
 
     public void set(T value) {
         this.value = value;
+        initialized = true;
     }
 }
