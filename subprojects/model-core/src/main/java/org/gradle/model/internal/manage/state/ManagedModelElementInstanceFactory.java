@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.state;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.core.ModelType;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -28,7 +29,7 @@ public class ManagedModelElementInstanceFactory {
     private final ManagedModelElementInstanceStore store = new ManagedModelElementInstanceStore();
 
     public <T> T create(ManagedModelElement<T> element) {
-        Class<T> type = element.getType();
+        Class<T> type = element.getType().getConcreteClass();
         Object instance = Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new ManagedModelElementInvocationHandler(element, store));
         store.add(instance);
         @SuppressWarnings("unchecked") T typedInstance = (T) instance;
@@ -49,9 +50,9 @@ public class ManagedModelElementInstanceFactory {
             String methodName = method.getName();
             String propertyName = StringUtils.uncapitalize(methodName.substring(3));
             if (methodName.startsWith("get")) {
-                return getInstanceProperty(method.getReturnType(), propertyName);
+                return getInstanceProperty(ModelType.of(method.getGenericReturnType()), propertyName);
             } else if (methodName.startsWith("set")) {
-                setInstanceProperty(method.getParameterTypes()[0], propertyName, args[0]);
+                setInstanceProperty(ModelType.of(method.getGenericParameterTypes()[0]), propertyName, args[0]);
                 return null;
             } else if (methodName.equals("hashCode")) {
                 return hashCode();
@@ -59,16 +60,16 @@ public class ManagedModelElementInstanceFactory {
             throw new Exception("Unexpected method called: " + methodName);
         }
 
-        private <U> void setInstanceProperty(Class<U> classType, String propertyName, Object value) {
-            ModelPropertyInstance<U> modelPropertyInstance = element.get(classType, propertyName);
+        private <U> void setInstanceProperty(ModelType<U> type, String propertyName, Object value) {
+            ModelPropertyInstance<U> modelPropertyInstance = element.get(type, propertyName);
             if (modelPropertyInstance.getMeta().isManaged() && !store.contains(value)) {
-                throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", propertyName, element.getType().getName()));
+                throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", propertyName, element.getType()));
             }
-            modelPropertyInstance.set(Cast.cast(classType, value));
+            modelPropertyInstance.set(Cast.cast(type.getConcreteClass(), value));
         }
 
-        private <U> U getInstanceProperty(Class<U> classType, String propertyName) {
-            return element.get(classType, propertyName).get();
+        private <U> U getInstanceProperty(ModelType<U> type, String propertyName) {
+            return element.get(type, propertyName).get();
         }
     }
 }

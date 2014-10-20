@@ -61,7 +61,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        if (!extractingStore.isManaged(managedType.getConcreteClass())) {
+        if (!extractingStore.isManaged(managedType.getRawClass())) {
             String description = String.format("a void returning model element creation rule has to take an instance of a %s annotated type as the first argument", Managed.class.getName());
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
         }
@@ -85,7 +85,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition) {
         try {
-            return store.getSchema(managedType.getConcreteClass(), extractingStore);
+            return store.getSchema(managedType, extractingStore);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
         }

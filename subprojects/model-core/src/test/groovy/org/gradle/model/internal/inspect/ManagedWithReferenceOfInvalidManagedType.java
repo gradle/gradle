@@ -20,6 +20,6 @@ import org.gradle.model.Managed;
 
 @Managed
 public interface ManagedWithReferenceOfInvalidManagedType {
-    ManagedAnnotatedClass getInvalidManaged();
-    void setInvalidManaged(ManagedAnnotatedClass invalidManaged);
+    ParametrizedManaged<String> getInvalidManaged();
+    void setInvalidManaged(ParametrizedManaged<String> invalidManaged);
 }

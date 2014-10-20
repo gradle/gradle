@@ -372,7 +372,7 @@ class ModelRuleInspectorTest extends Specification {
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == "Invalid managed model type $managedType.name: managed type of property 'invalidManaged' is invalid"
         e.cause.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface"
+        e.cause.cause.message == "Invalid managed model type $ParametrizedManaged.name<$String.name>: cannot be a parameterized type"
 
         where:
         inspected                                             | managedType

@@ -41,10 +41,10 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         this.managedElementFactory = managedElementFactory;
     }
 
-    public <T> ModelSchema<T> getSchema(Class<T> type, ModelSchemaStore backingStore) {
+    public <T> ModelSchema<T> getSchema(ModelType<T> type, ModelSchemaStore backingStore) {
         validateType(type);
 
-        List<Method> methodList = Arrays.asList(type.getDeclaredMethods());
+        List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
         if (methodList.isEmpty()) {
             return new ModelSchema<T>(type, Collections.<ModelProperty<?>>emptyList());
         }
@@ -78,12 +78,11 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
                     throw invalidMethod(type, methodName, "the 4th character of the getter method name must be an uppercase character");
                 }
 
-                Class<?> returnType = method.getReturnType();
-                ModelType<?> returnModelType = ModelType.of(returnType);
-                if (returnType.equals(String.class)) {
-                    properties.add(extractNonManagedProperty(type, methods, methodName, returnModelType, handled));
-                } else if (isManaged(returnType)) {
-                    properties.add(extractManagedProperty(backingStore, type, methods, methodName, returnModelType, handled));
+                ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
+                if (returnType.equals(ModelType.of(String.class))) {
+                    properties.add(extractNonManagedProperty(type, methods, methodName, returnType, handled));
+                } else if (isManaged(returnType.getRawClass())) {
+                    properties.add(extractManagedProperty(backingStore, type, methods, methodName, returnType, handled));
                 } else {
                     throw invalidMethod(type, methodName, "only String and managed properties are supported");
                 }
@@ -101,7 +100,7 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         return new ModelSchema<T>(type, properties);
     }
 
-    private <T> ModelProperty<T> extractNonManagedProperty(Class<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
+    private <T> ModelProperty<T> extractNonManagedProperty(ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
@@ -115,7 +114,7 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         return new ModelProperty<T>(propertyName, propertyType);
     }
 
-    private <T> void validateSetter(Class<?> type, ModelType<T> propertyType, Method setter) {
+    private <T> void validateSetter(ModelType<?> type, ModelType<T> propertyType, Method setter) {
         if (!setter.getReturnType().equals(void.class)) {
             throw invalidMethod(type, setter.getName(), "setter method must have void return type");
         }
@@ -131,7 +130,7 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    private <T> ModelProperty<T> extractManagedProperty(ModelSchemaStore backingStore, Class<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
+    private <T> ModelProperty<T> extractManagedProperty(ModelSchemaStore backingStore, ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
@@ -139,10 +138,10 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         if (methods.containsKey(setterName)) {
             validateSetter(type, propertyType, methods.get(setterName));
             handled.add(setterName);
-            getModelSchema(backingStore, type, propertyType.getConcreteClass(), propertyName);
+            getModelSchema(backingStore, type, propertyType, propertyName);
             return new ModelProperty<T>(propertyName, propertyType, true);
         } else {
-            final ModelSchema<T> modelSchema = getModelSchema(backingStore, type, propertyType.getConcreteClass(), propertyName);
+            final ModelSchema<T> modelSchema = getModelSchema(backingStore, type, propertyType, propertyName);
             return new ModelProperty<T>(propertyName, propertyType, true, new Factory<T>() {
                 public T create() {
                     ManagedModelElement<T> managedModelElement = new ManagedModelElement<T>(modelSchema);
@@ -152,7 +151,7 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    private <T> ModelSchema<T> getModelSchema(ModelSchemaStore backingStore, Class<?> type, Class<T> propertyType, String propertyName) {
+    private <T> ModelSchema<T> getModelSchema(ModelSchemaStore backingStore, ModelType<?> type, ModelType<T> propertyType, String propertyName) {
         try {
             return backingStore.getSchema(propertyType, this);
         } catch (InvalidManagedModelElementTypeException e) {
@@ -160,20 +159,21 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    public <T> void validateType(Class<T> type) {
-        if (!isManaged(type)) {
+    public <T> void validateType(ModelType<T> type) {
+        Class<T> typeClass = type.getConcreteClass();
+        if (!isManaged(typeClass)) {
             throw invalid(type, String.format("must be annotated with %s", Managed.class.getName()));
         }
 
-        if (!type.isInterface()) {
+        if (!typeClass.isInterface()) {
             throw invalid(type, "must be defined as an interface");
         }
 
-        if (type.getInterfaces().length != 0) {
+        if (typeClass.getInterfaces().length > 0) {
             throw invalid(type, "cannot extend other types");
         }
 
-        if (type.getTypeParameters().length != 0) {
+        if (typeClass.getTypeParameters().length > 0) {
             throw invalid(type, "cannot be a parameterized type");
         }
     }
@@ -182,11 +182,11 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         return type.isAnnotationPresent(Managed.class);
     }
 
-    public <T> InvalidManagedModelElementTypeException invalidMethod(Class<T> type, String methodName, String message) {
+    public <T> InvalidManagedModelElementTypeException invalidMethod(ModelType<T> type, String methodName, String message) {
         return new InvalidManagedModelElementTypeException(type, message + " (method: " + methodName + ")");
     }
 
-    public <T> InvalidManagedModelElementTypeException invalid(Class<T> type, String message) {
+    public <T> InvalidManagedModelElementTypeException invalid(ModelType<T> type, String message) {
         return new InvalidManagedModelElementTypeException(type, message);
     }
 }

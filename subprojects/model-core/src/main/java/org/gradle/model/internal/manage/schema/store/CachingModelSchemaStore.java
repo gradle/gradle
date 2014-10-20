@@ -21,6 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.concurrent.ExecutionException;
@@ -31,9 +32,9 @@ public class CachingModelSchemaStore implements ModelSchemaStore {
 
     private final ModelSchemaCacheLoader modelSchemaCacheLoader = new ModelSchemaCacheLoader();
 
-    private final LoadingCache<Class<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(modelSchemaCacheLoader);
+    private final LoadingCache<ModelType<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(modelSchemaCacheLoader);
 
-    public <T> ModelSchema<T> getSchema(Class<T> type, ModelSchemaStore backingStore) {
+    public <T> ModelSchema<T> getSchema(ModelType<T> type, ModelSchemaStore backingStore) {
         modelSchemaCacheLoader.setBackingStore(backingStore);
         try {
             ModelSchema<?> schema = schemas.get(type);
@@ -45,7 +46,7 @@ public class CachingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    private class ModelSchemaCacheLoader extends CacheLoader<Class<?>, ModelSchema<?>> {
+    private class ModelSchemaCacheLoader extends CacheLoader<ModelType<?>, ModelSchema<?>> {
 
         private ModelSchemaStore backingStore;
 
@@ -54,7 +55,7 @@ public class CachingModelSchemaStore implements ModelSchemaStore {
         }
 
         @Override
-        public ModelSchema<?> load(Class<?> key) throws Exception {
+        public ModelSchema<?> load(ModelType<?> key) throws Exception {
             return backingStore.getSchema(key, CachingModelSchemaStore.this);
         }
     }

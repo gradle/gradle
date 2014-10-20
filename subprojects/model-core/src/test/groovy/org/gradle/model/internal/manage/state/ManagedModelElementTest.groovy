@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.state
 
 import org.gradle.model.Managed
+import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore
 import org.gradle.model.internal.manage.schema.store.ExtractingModelSchemaStore
 import spock.lang.Specification
@@ -25,7 +26,7 @@ class ManagedModelElementTest extends Specification {
 
     def schemas = new CachingModelSchemaStore()
 
-    def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(MultipleProps, new ExtractingModelSchemaStore(null)))
+    def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(ModelType.of(MultipleProps), new ExtractingModelSchemaStore(null)))
 
     @Managed
     static interface MultipleProps {
@@ -39,15 +40,15 @@ class ManagedModelElementTest extends Specification {
 
     def "can create managed element"() {
         when:
-        element.get(String, "prop1").set("foo")
+        element.get(ModelType.of(String), "prop1").set("foo")
 
         then:
-        element.get(String, "prop1").get() == "foo"
+        element.get(ModelType.of(String), "prop1").get() == "foo"
     }
 
     def "an error is raised when property type is different than requested"() {
         when:
-        element.get(Object, "prop1")
+        element.get(ModelType.of(Object), "prop1")
 
         then:
         UnexpectedModelPropertyTypeException e = thrown()

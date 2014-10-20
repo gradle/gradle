@@ -215,7 +215,7 @@ class ExtractingModelSchemaStoreTest extends Specification {
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
-        extractor.getSchema(clazz, null)
+        extractor.getSchema(ModelType.of(clazz), null)
     }
 
     private void fail(Class<?> clazz, String msgPattern) {

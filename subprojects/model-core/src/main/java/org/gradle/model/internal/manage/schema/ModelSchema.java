@@ -17,13 +17,14 @@
 package org.gradle.model.internal.manage.schema;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.model.internal.core.ModelType;
 
 public class ModelSchema<T> {
 
-    private final Class<T> type;
+    private final ModelType<T> type;
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
 
-    public ModelSchema(Class<T> type, Iterable<ModelProperty<?>> properties) {
+    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties) {
         this.type = type;
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
@@ -33,7 +34,7 @@ public class ModelSchema<T> {
         this.properties = builder.build();
     }
 
-    public Class<T> getType() {
+    public ModelType<T> getType() {
         return type;
     }
 

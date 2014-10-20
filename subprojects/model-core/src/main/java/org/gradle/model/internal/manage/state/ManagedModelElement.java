@@ -17,12 +17,13 @@
 package org.gradle.model.internal.manage.state;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 public class ManagedModelElement<T> {
 
-    private final Class<T> type;
+    private final ModelType<T> type;
     private final ImmutableSortedMap<String, ModelPropertyInstance<?>> properties;
 
     public ManagedModelElement(ModelSchema<T> schema) {
@@ -34,15 +35,15 @@ public class ManagedModelElement<T> {
         this.properties = builder.build();
     }
 
-    public Class<T> getType() {
+    public ModelType<T> getType() {
         return type;
     }
 
-    public <U> ModelPropertyInstance<U> get(Class<U> classType, String propertyName) {
+    public <U> ModelPropertyInstance<U> get(ModelType<U> propertyType, String propertyName) {
         ModelPropertyInstance<?> modelPropertyInstance = properties.get(propertyName);
-        Class<?> modelPropertyType = modelPropertyInstance.getMeta().getType().getRawClass();
-        if (!modelPropertyType.equals(classType)) {
-            throw new UnexpectedModelPropertyTypeException(propertyName, type, classType, modelPropertyType);
+        ModelType<?> modelPropertyType = modelPropertyInstance.getMeta().getType();
+        if (!modelPropertyType.equals(propertyType)) {
+            throw new UnexpectedModelPropertyTypeException(propertyName, type, propertyType, modelPropertyType);
         }
         @SuppressWarnings("unchecked") ModelPropertyInstance<U> cast = (ModelPropertyInstance<U>) modelPropertyInstance;
         return cast;

@@ -24,7 +24,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
-public class ModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
+public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
     @Override
     public Spec<MethodRuleDefinition<?>> getSpec() {

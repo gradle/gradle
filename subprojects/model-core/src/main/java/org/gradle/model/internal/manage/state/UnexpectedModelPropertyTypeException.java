@@ -16,9 +16,11 @@
 
 package org.gradle.model.internal.manage.state;
 
+import org.gradle.model.internal.core.ModelType;
+
 public class UnexpectedModelPropertyTypeException extends RuntimeException{
 
-    public UnexpectedModelPropertyTypeException(String propertyName, Class<?> owner, Class<?> expected, Class<?> actual) {
-        super(String.format("Expected property '%s' for type '%s' to be of type '%s' but it actually is of type '%s'", propertyName, owner.getName(), expected.getName(), actual.getName()));
+    public UnexpectedModelPropertyTypeException(String propertyName, ModelType<?> owner, ModelType<?> expected, ModelType<?> actual) {
+        super(String.format("Expected property '%s' for type '%s' to be of type '%s' but it actually is of type '%s'", propertyName, owner, expected, actual));
     }
 }
