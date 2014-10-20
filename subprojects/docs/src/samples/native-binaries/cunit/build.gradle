@@ -36,7 +36,6 @@ binaries.withType(CUnitTestSuiteBinarySpec) {
 // END SNIPPET complete-example
 
 def findCUnitLibForPlatform(Platform platform) {
-    println(platform.toString() + "<-- ")
     if (platform.operatingSystem.windows) {
         return "vs2010/cunit.lib"
 //        return "vs2013/cunit.lib"
