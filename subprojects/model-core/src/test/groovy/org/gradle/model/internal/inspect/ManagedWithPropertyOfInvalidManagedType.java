@@ -20,5 +20,5 @@ import org.gradle.model.Managed;
 
 @Managed
 public interface ManagedWithPropertyOfInvalidManagedType {
-    InvalidManaged getInvalidManaged();
+    ManagedAnnotatedClass getInvalidManaged();
 }

@@ -319,7 +319,7 @@ class ModelRuleInspectorTest extends Specification {
 
     static class InvalidManagedVoidReturning {
         @Model
-        void bar(InvalidManaged foo) {
+        void bar(ManagedAnnotatedClass foo) {
         }
     }
 
@@ -329,9 +329,9 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule $InvalidManagedVoidReturning.name#bar($InvalidManaged.name) is invalid."
+        e.message == "Declaration of model rule $InvalidManagedVoidReturning.name#bar($ManagedAnnotatedClass.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $InvalidManaged.name: must be defined as an interface"
+        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface"
     }
 
     static class NoArgumentVoidReturning {
@@ -372,7 +372,7 @@ class ModelRuleInspectorTest extends Specification {
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == "Invalid managed model type $managedType.name: managed type of property 'invalidManaged' is invalid"
         e.cause.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.cause.message == "Invalid managed model type $InvalidManaged.name: must be defined as an interface"
+        e.cause.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface"
 
         where:
         inspected                                             | managedType
