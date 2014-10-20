@@ -52,12 +52,33 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         nullModel == null
     }
 
+    @TargetGradleVersion(">=2.2")
     def "action classes are reused"() {
         toolingApi.requireIsolatedDaemons()
 
         expect:
         def result1 = withConnection { it.action(new CounterAction()).run() }
         def result2 = withConnection { it.action(new CounterAction()).run() }
+        def result3 = withConnection { it.action(new CounterAction()).run() }
+        result1 == 1
+        result2 == 2
+        result3 == 3
+    }
+
+    @TargetGradleVersion("<=2.1")
+    def "action classes are reused when daemon is idle when operation starts"() {
+        toolingApi.requireIsolatedDaemons()
+
+        expect:
+        def result1 = withConnection { it.action(new CounterAction()).run() }
+
+        // Earlier versions return the build result before marking the daemon as idle. Wait for the daemon to be marked as idle
+        // before attempting the next operation otherwise the client will start a new daemon
+        toolingApi.daemons.daemon.becomesIdle()
+
+        def result2 = withConnection { it.action(new CounterAction()).run() }
+        toolingApi.daemons.daemon.becomesIdle()
+
         def result3 = withConnection { it.action(new CounterAction()).run() }
         result1 == 1
         result2 == 2

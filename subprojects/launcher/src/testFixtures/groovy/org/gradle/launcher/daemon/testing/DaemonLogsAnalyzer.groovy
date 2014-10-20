@@ -26,13 +26,15 @@ import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.util.GradleVersion
 
 class DaemonLogsAnalyzer implements DaemonsFixture {
-    private File daemonLogsDir
-    private File daemonBaseDir
-    private DaemonRegistry registry
+    private final File daemonLogsDir
+    private final File daemonBaseDir
+    private final DaemonRegistry registry
+    private final String version
 
-    DaemonLogsAnalyzer(File daemonBaseDir) {
+    DaemonLogsAnalyzer(File daemonBaseDir, String version = GradleVersion.current().version) {
+        this.version = version
         this.daemonBaseDir = daemonBaseDir
-        daemonLogsDir = new File(daemonBaseDir, GradleVersion.current().version)
+        daemonLogsDir = new File(daemonBaseDir, version)
         def services = ServiceRegistryBuilder.builder()
                 .parent(LoggingServiceRegistry.newEmbeddableLogging())
                 .parent(NativeServices.instance)
@@ -41,6 +43,10 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
                 .provider(new DaemonRegistryServices(daemonBaseDir))
                 .build()
         registry = services.get(DaemonRegistry)
+    }
+
+    static DaemonsFixture newAnalyzer(File daemonBaseDir, String version = GradleVersion.current().version) {
+        return new DaemonLogsAnalyzer(daemonBaseDir, version)
     }
 
     DaemonRegistry getRegistry() {
@@ -53,11 +59,21 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     List<DaemonFixture> getDaemons() {
         assert daemonLogsDir.isDirectory()
-        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { new TestableDaemon(it, registry) }
+        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect {
+            if (version == GradleVersion.current().version) {
+                return new TestableDaemon(it, registry)
+            }
+            return new LegacyDaemon(it)
+        }
     }
 
     List<DaemonFixture> getVisible() {
-        return registry.all.collect { new TestableDaemon(new File(daemonLogsDir, "daemon-${it.pid}.out.log"), registry) }
+        return registry.all.collect {
+            if (version == GradleVersion.current().version) {
+                return new TestableDaemon(new File(daemonLogsDir, "daemon-${it.pid}.out.log"), registry)
+            }
+            return new LegacyDaemon(new File(daemonLogsDir, "daemon-${it.pid}.out.log"))
+        }
     }
 
     DaemonFixture getDaemon() {
