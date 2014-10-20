@@ -18,6 +18,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.VisualCpp)
@@ -59,7 +60,7 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${DefaultNativePlatform.getDefault().name}'"))
         failure.assertThatCause(Matchers.containsString("- ${AbstractInstalledToolChainIntegrationSpec.toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation."))
     }
 
@@ -78,7 +79,7 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${DefaultNativePlatform.getDefault().name}'"))
         failure.assertThatCause(Matchers.containsString("- ${AbstractInstalledToolChainIntegrationSpec.toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation."))
     }
 }

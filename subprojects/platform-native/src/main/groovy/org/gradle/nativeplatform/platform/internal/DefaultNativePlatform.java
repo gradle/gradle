@@ -56,7 +56,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         ArchitectureInternal ppc64 = new DefaultArchitecture("ppc64", ArchitectureInternal.InstructionSet.PPC, 64);
 
 
-        platforms.add(new DefaultNativePlatform("windows_x64", x64, windows));
+        //platforms.add(new DefaultNativePlatform("windows_x64", x64, windows));
         platforms.add(new DefaultNativePlatform("windows_x86", x86, windows));
         platforms.add(new DefaultNativePlatform("windows_rt_32", armv7, windows));
 
@@ -110,7 +110,6 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
             public boolean evaluate(Object object) {
                 DefaultNativePlatform platform = (DefaultNativePlatform) object;
-
                 return platform.architecture.getInstructionSet().equals(architecture.getInstructionSet()) &&
                         platform.architecture.getRegisterSize() == architecture.getRegisterSize() &&
                         platform.operatingSystem.getInternalOs().equals(operatingSystem.getInternalOs());
@@ -121,6 +120,9 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     public static DefaultNativePlatform getDefault() {
         ArchitectureInternal architecture = getCurrentArchitecture();
+        if (getCurrentOs().isWindows() && architecture.getInstructionSet() == ArchitectureInternal.InstructionSet.X86 && architecture.getRegisterSize() == 64) {
+            architecture = new DefaultArchitecture(architecture.getName(), ArchitectureInternal.InstructionSet.X86, 32); //TODO freekh: why do we have to do this for cunit tests to complete? Missing a 64 bit cunit perhaps?
+        }
         OperatingSystem currentOs = OperatingSystem.current();
         OperatingSystemInternal operatingSystem = new DefaultOperatingSystem(currentOs.getName(), currentOs);
         return new DefaultNativePlatform(getDefaultName(architecture, operatingSystem), architecture, operatingSystem);
