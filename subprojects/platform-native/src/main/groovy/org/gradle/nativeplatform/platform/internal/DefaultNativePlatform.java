@@ -56,7 +56,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         ArchitectureInternal ppc64 = new DefaultArchitecture("ppc64", ArchitectureInternal.InstructionSet.PPC, 64);
 
 
-        //platforms.add(new DefaultNativePlatform("windows_x64", x64, windows));
+        //platforms.add(new DefaultNativePlatform("windows_x64", x64, windows)); TODO freekh: currently disabled.
         platforms.add(new DefaultNativePlatform("windows_x86", x86, windows));
         platforms.add(new DefaultNativePlatform("windows_rt_32", armv7, windows));
 
@@ -110,9 +110,9 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
             public boolean evaluate(Object object) {
                 DefaultNativePlatform platform = (DefaultNativePlatform) object;
-                return platform.architecture.getInstructionSet().equals(architecture.getInstructionSet()) &&
-                        platform.architecture.getRegisterSize() == architecture.getRegisterSize() &&
-                        platform.operatingSystem.getInternalOs().equals(operatingSystem.getInternalOs());
+                return platform.architecture.getInstructionSet().equals(architecture.getInstructionSet())
+                        && platform.architecture.getRegisterSize() == architecture.getRegisterSize()
+                        && platform.operatingSystem.getInternalOs().equals(operatingSystem.getInternalOs());
             }
         });
         return matchingPlatform.getName();
