@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.testing
 
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.launcher.daemon.testing.TestableDaemon.State
+import org.gradle.launcher.daemon.testing.AbstractDaemonFixture.State
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -26,10 +26,14 @@ import java.util.regex.Pattern
 class DaemonLogFileStateProbe implements DaemonStateProbe {
     private final DaemonContext context
     private final File log
+    private final String startBuildMessage
+    private final String finishBuildMessage
 
-    DaemonLogFileStateProbe(File daemonLog) {
+    DaemonLogFileStateProbe(File daemonLog, DaemonContext context, String startBuildMessage = DaemonMessages.STARTED_BUILD, String finishBuildMessage = DaemonMessages.FINISHED_BUILD) {
+        this.finishBuildMessage = finishBuildMessage
+        this.startBuildMessage = startBuildMessage
         this.log = daemonLog
-        this.context = DaemonContextParser.parseFrom(log.text)
+        this.context = context
     }
 
     DaemonContext getContext() {
@@ -44,9 +48,9 @@ class DaemonLogFileStateProbe implements DaemonStateProbe {
         def states = new LinkedList<State>()
         states << State.idle
         log.eachLine {
-            if (it.contains(DaemonMessages.STARTED_BUILD)) {
+            if (it.contains(startBuildMessage)) {
                 states << State.busy
-            } else if (it.contains(DaemonMessages.FINISHED_BUILD)) {
+            } else if (it.contains(finishBuildMessage)) {
                 states << State.idle
             } else if (it.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)) {
                 states << State.stopped

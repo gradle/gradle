@@ -85,9 +85,9 @@ class ToolingApi {
 
     DaemonsFixture getDaemons() {
         if (useSeparateDaemonBaseDir) {
-            return new DaemonLogsAnalyzer(daemonBaseDir)
+            return DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, dist.version.version)
         }
-        return new DaemonLogsAnalyzer(new File(gradleUserHomeDir, "daemon"))
+        return DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, "daemon"), dist.version.version)
     }
 
     void withConnector(Closure cl) {

@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.testing
 
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.testing.AbstractDaemonFixture.State
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
     private final DaemonRegistry registry
@@ -29,11 +30,11 @@ class DaemonRegistryStateProbe implements DaemonStateProbe {
     }
 
     @Override
-    TestableDaemon.State getCurrentState() {
+    State getCurrentState() {
         def daemonInfo = registry.all.find { it.context.pid == context.pid }
         if (daemonInfo == null) {
-            return TestableDaemon.State.stopped
+            return State.stopped
         }
-        return daemonInfo.idle ? TestableDaemon.State.idle : TestableDaemon.State.busy
+        return daemonInfo.idle ? State.idle : State.busy
     }
 }
