@@ -38,7 +38,7 @@ class GCLoggingCollectorTest extends Specification {
 
         when:
         collector.beforeExecute(projectDir, Stub(GradleExecuter))
-        collector.collect(projectDir, operation, locale)
+        collector.collect(operation, locale)
 
         then:
         operation.totalHeapUsage == DataAmount.kbytes(totalHeapUsage)

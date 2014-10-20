@@ -19,6 +19,7 @@ package org.gradle.performance.fixture;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.util.GFileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,10 +40,10 @@ public class GCLoggingCollector implements DataCollector {
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
-        collect(testProjectDir, operation, Locale.getDefault());
+        collect(operation, Locale.getDefault());
     }
 
-    public void collect(File testProjectDir, MeasuredOperation operation, Locale locale) {
+    public void collect(MeasuredOperation operation, Locale locale) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
             try {
@@ -51,7 +52,7 @@ public class GCLoggingCollector implements DataCollector {
                 reader.close();
             }
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not process garbage collector log %s.", logFile), e);
+            throw new RuntimeException(String.format("Could not process garbage collector log %s. File contents:\n%s", logFile, GFileUtils.readFileQuietly(logFile)), e);
         }
     }
 

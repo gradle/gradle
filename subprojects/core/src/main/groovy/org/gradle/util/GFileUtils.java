@@ -84,6 +84,13 @@ public class GFileUtils {
         }
     }
 
+    /**
+     * Reads and returns file contents. If some exception is triggered the method returns information about this exception.
+     * Useful for including file contents in debug trace / exception messages.
+     *
+     * @param file to read
+     * @return content of the file or the problem description in case file cannot be read.
+     */
     public static String readFileQuietly(File file) {
         try {
             return readFile(file);
