@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extraction;
+package org.gradle.model.internal.manage.schema.store;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -22,31 +22,21 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 
 import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-public class DefaultModelSchemaStore implements ModelSchemaStore {
+public class CachingModelSchemaStore implements ModelSchemaStore {
 
-    private final ModelSchemaExtractor extractor;
+    private final ModelSchemaCacheLoader modelSchemaCacheLoader = new ModelSchemaCacheLoader();
 
-    private final LoadingCache<Class<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, ModelSchema<?>>() {
-        @Override
-        public ModelSchema<?> load(Class<?> key) throws Exception {
-            return extractor.extract(key);
-        }
-    });
+    private final LoadingCache<Class<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(modelSchemaCacheLoader);
 
-    public DefaultModelSchemaStore(ManagedModelElementInstanceFactory managedElementFactory) {
-        extractor = new ModelSchemaExtractor(this, managedElementFactory);
-    }
-
-    public <T> ModelSchema<T> getSchema(Class<T> type) {
-        ModelSchema<?> schema;
+    public <T> ModelSchema<T> getSchema(Class<T> type, ModelSchemaStore backingStore) {
+        modelSchemaCacheLoader.setBackingStore(backingStore);
         try {
-            schema = schemas.get(type);
+            ModelSchema<?> schema = schemas.get(type);
             return Cast.uncheckedCast(schema);
         } catch (ExecutionException e) {
             throw throwAsUncheckedException(e.getCause());
@@ -55,7 +45,17 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    public boolean isManaged(Class<?> type) {
-        return extractor.isManaged(type);
+    private class ModelSchemaCacheLoader extends CacheLoader<Class<?>, ModelSchema<?>> {
+
+        private ModelSchemaStore backingStore;
+
+        public void setBackingStore(ModelSchemaStore backingStore) {
+            this.backingStore = backingStore;
+        }
+
+        @Override
+        public ModelSchema<?> load(Class<?> key) throws Exception {
+            return backingStore.getSchema(key, CachingModelSchemaStore.this);
+        }
     }
 }

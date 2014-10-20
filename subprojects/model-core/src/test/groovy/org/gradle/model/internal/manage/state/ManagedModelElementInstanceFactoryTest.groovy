@@ -17,14 +17,15 @@
 package org.gradle.model.internal.manage.state
 
 import org.gradle.model.Managed
-import org.gradle.model.internal.manage.schema.extraction.DefaultModelSchemaStore
+import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore
+import org.gradle.model.internal.manage.schema.store.ExtractingModelSchemaStore
 import spock.lang.Specification
 
 class ManagedModelElementInstanceFactoryTest extends Specification {
 
     def factory = new ManagedModelElementInstanceFactory()
-    def schemas = new DefaultModelSchemaStore(factory)
-    def element = new ManagedModelElement<ManagedElement>(schemas.getSchema(ManagedElement))
+    def schemas = new CachingModelSchemaStore()
+    def element = new ManagedModelElement<ManagedElement>(schemas.getSchema(ManagedElement, new ExtractingModelSchemaStore(factory)))
 
     @Managed
     static interface ManagedElement {

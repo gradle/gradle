@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extraction;
+package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.manage.schema.ModelSchema;
+public class InvalidManagedModelElementTypeException extends RuntimeException {
 
-public interface ModelSchemaStore {
+    public InvalidManagedModelElementTypeException(Class<?> type, String message) {
+        super("Invalid managed model type " + type.getName() + ": " + message);
+    }
 
-    <T> ModelSchema<T> getSchema(Class<T> type);
+    public InvalidManagedModelElementTypeException(Class<?> type, String propertyName, InvalidManagedModelElementTypeException cause) {
+        super(String.format("Invalid managed model type %s: managed type of property '%s' is invalid", type.getName(), propertyName), cause);
+    }
 }

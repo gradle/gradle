@@ -17,14 +17,15 @@
 package org.gradle.model.internal.manage.state
 
 import org.gradle.model.Managed
-import org.gradle.model.internal.manage.schema.extraction.DefaultModelSchemaStore
+import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore
+import org.gradle.model.internal.manage.schema.store.ExtractingModelSchemaStore
 import spock.lang.Specification
 
 class ManagedModelElementTest extends Specification {
 
-    def schemas = new DefaultModelSchemaStore(null)
+    def schemas = new CachingModelSchemaStore()
 
-    def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(MultipleProps))
+    def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(MultipleProps, new ExtractingModelSchemaStore(null)))
 
     @Managed
     static interface MultipleProps {

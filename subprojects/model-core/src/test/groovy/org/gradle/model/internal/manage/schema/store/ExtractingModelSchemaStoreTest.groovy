@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extraction
+package org.gradle.model.internal.manage.schema.store
 
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.ModelSchema
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ModelSchemaExtractorTest extends Specification {
+class ExtractingModelSchemaStoreTest extends Specification {
 
-    def extractor = new ModelSchemaExtractor(new DefaultModelSchemaStore(null), null)
+    def extractor = new ExtractingModelSchemaStore(null)
 
     static interface NotAnnotatedInterface {}
 
@@ -214,7 +215,7 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
-        extractor.extract(clazz)
+        extractor.getSchema(clazz, null)
     }
 
     private void fail(Class<?> clazz, String msgPattern) {
