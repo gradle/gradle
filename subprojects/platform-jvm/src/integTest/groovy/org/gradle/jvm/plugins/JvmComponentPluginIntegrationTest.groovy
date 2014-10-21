@@ -17,6 +17,7 @@
 package org.gradle.jvm.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
+import spock.lang.Ignore
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "does not create library or binaries when not configured"() {
@@ -26,7 +27,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         id 'jvm-component'
     }
     task check << {
-        assert jvm.libraries.empty
+        assert componentSpecs.empty
         assert binaries.empty
     }
 """
@@ -51,10 +52,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     task check << {
-        assert jvm.libraries.size() == 1
-        def myLib = jvm.libraries.myLib
+        assert componentSpecs.size() == 1
+        def myLib = componentSpecs.myLib
         assert myLib.name == 'myLib'
-        assert myLib == jvm.libraries['myLib']
+        assert myLib == componentSpecs['myLib']
         assert myLib instanceof JvmLibrarySpec
 
         assert myLib.sources.size() == 0
@@ -117,9 +118,11 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         components {
             myJvmLib(JvmLibrarySpec)
         }
-    }
-    binaries.withType(JarBinarySpec) { jar ->
-        jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
+        jvm {
+            allBinaries { jar ->
+                jar.jarFile = file("\${project.buildDir}/bin/\${jar.name}.bin")
+            }
+        }
     }
 """
         when:
@@ -129,6 +132,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/bin/myJvmLibJar.bin").assertExists()
     }
 
+    @Ignore("Not yet implemented")
     def "can configure jvm binary for component"() {
         given:
         buildFile << """
@@ -199,13 +203,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     task check << {
-        assert jvm.libraries.size() == 2
-        assert jvm.libraries.myLibOne instanceof JvmLibrarySpec
-        assert jvm.libraries.myLibTwo instanceof JvmLibrarySpec
+        assert componentSpecs.size() == 2
+        assert componentSpecs.myLibOne instanceof JvmLibrarySpec
+        assert componentSpecs.myLibTwo instanceof JvmLibrarySpec
 
         assert binaries.size() == 2
-        assert binaries.myLibOneJar == jvm.libraries.myLibOne.binaries[0]
-        assert binaries.myLibTwoJar == jvm.libraries.myLibTwo.binaries[0]
+        assert binaries.myLibOneJar == componentSpecs.myLibOne.binaries[0]
+        assert binaries.myLibTwoJar == componentSpecs.myLibTwo.binaries[0]
     }
 """
         then:

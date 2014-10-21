@@ -24,6 +24,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmComponentExtension;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
@@ -60,13 +61,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
     private static final Set<JavaPlatform> DEFAULT_PLATFORMS = instantiateJavaPlatforms();
 
-
     public void apply(final Project project) {
         project.getPlugins().apply(ComponentModelBasePlugin.class);
-
-        ComponentSpecContainer componentSpecs = project.getExtensions().getByType(ComponentSpecContainer.class);
-        final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = componentSpecs.containerWithType(JvmLibrarySpec.class);
-        project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
     }
 
     private static Set<JavaPlatform> instantiateJavaPlatforms() {
@@ -95,8 +91,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
-        NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ComponentSpecContainer components) {
-            return components.withType(JvmLibrarySpec.class);
+        JvmComponentExtension jvm(ServiceRegistry serviceRegistry) {
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultJvmComponentExtension.class);
         }
 
         @Model
@@ -127,7 +124,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @ComponentBinaries
         public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
-                                   PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder,
+                                   PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                    @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
             List<Action<? super JarBinarySpec>> actions = Lists.newArrayList();
@@ -148,6 +145,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jarBinary.setToolChain(toolChain);
                         jarBinary.setTargetPlatform(platform);
                         initAction.execute(jarBinary);
+                        jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
                     }
                 });
             }

@@ -15,13 +15,12 @@
  */
 
 package org.gradle.jvm.internal.plugins
-
 import org.gradle.api.JavaVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.jvm.JarBinarySpec
-import org.gradle.jvm.internal.DefaultJarBinarySpec
+import org.gradle.jvm.JvmComponentExtension
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
@@ -33,7 +32,6 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.PlatformContainer
-import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
@@ -60,15 +58,15 @@ class CreateJvmBinariesTest extends Specification {
     def "adds a binary for each jvm library"() {
         def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), mainSourceSet, new DirectInstantiator())
         def namingScheme = Mock(BinaryNamingScheme)
+        def jvmExtension = Mock(JvmComponentExtension)
         def platform = new DefaultJavaPlatform("test")
         platform.setTargetCompatibility(JavaVersion.current())
-        def binary = BaseBinarySpec.create(DefaultJarBinarySpec, "jvmLibJar", new DirectInstantiator())
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 
         when:
         library.sources.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, buildDir, serviceRegistry, toolChainRegistry)
+        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
 
         then:
         1 * platforms.chooseFromTargets(JavaPlatform, _, _, _) >> [ platform ]

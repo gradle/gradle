@@ -33,7 +33,7 @@ model {
 }
 
 task check << {
-    def myLib = jvm.libraries.myLib
+    def myLib = componentSpecs.myLib
     assert myLib instanceof JvmLibrarySpec
 
     assert myLib.sources.size() == 1

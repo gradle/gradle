@@ -17,22 +17,18 @@
 package org.gradle.jvm.internal.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentExtension;
-import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.listener.ActionBroadcast;
 
 public class DefaultJvmComponentExtension implements JvmComponentExtension {
-    private final NamedDomainObjectContainer<JvmLibrarySpec> libraries;
+    private final ActionBroadcast<JvmBinarySpec> binariesAction = new ActionBroadcast<JvmBinarySpec>();
 
-    public DefaultJvmComponentExtension(NamedDomainObjectContainer<JvmLibrarySpec> libraries) {
-        this.libraries = libraries;
+    public void allBinaries(Action<? super JvmBinarySpec> action) {
+        binariesAction.add(action);
     }
 
-    public NamedDomainObjectContainer<JvmLibrarySpec> getLibraries() {
-        return libraries;
-    }
-
-    public void libraries(Action<? super NamedDomainObjectContainer<? super JvmLibrarySpec>> action) {
-        action.execute(libraries);
+    public Action<JvmBinarySpec> getAllBinariesAction() {
+        return binariesAction;
     }
 }

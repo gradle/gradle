@@ -184,10 +184,12 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         components {
             myLib(JvmLibrarySpec)
         }
-    }
-    binaries.withType(JarBinarySpec) {
-        classesDir = file("\${project.buildDir}/custom-classes")
-        resourcesDir = file("\${project.buildDir}/custom-resources")
+        jvm {
+            allBinaries {
+                classesDir = file("\${project.buildDir}/custom-classes")
+                resourcesDir = file("\${project.buildDir}/custom-resources")
+            }
+        }
     }
 """
         and:
