@@ -21,14 +21,10 @@ import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class AntlrWorkerManager {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntlrWorkerServer.class);
 
     public AntlrResult runWorker(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
 
