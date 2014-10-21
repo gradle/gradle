@@ -26,7 +26,7 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
             plugins.withId("java") {
                 operations << 'withId for ' + it.class.simpleName
             }
-            appliedPlugins.withPlugin("java") {
+            withPlugin("java") {
                 operations << 'withPlugin'
             }
             operations << "applying"
@@ -61,7 +61,7 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId'
             }
 
-            appliedPlugins.withPlugin("test-rule-source") {
+            withPlugin("test-rule-source") {
                 operations << 'withPlugin'
             }
 
