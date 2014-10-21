@@ -27,19 +27,12 @@ import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeExc
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.state.ManagedModelElement;
-import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 
 public class ModelSchemaExtractor {
-
-    private final ManagedModelElementInstanceFactory managedElementFactory;
-
-    public ModelSchemaExtractor(ManagedModelElementInstanceFactory managedElementFactory) {
-        this.managedElementFactory = managedElementFactory;
-    }
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store) {
         validateType(type);
@@ -145,7 +138,7 @@ public class ModelSchemaExtractor {
             return new ModelProperty<T>(propertyName, propertyType, true, new Factory<T>() {
                 public T create() {
                     ManagedModelElement<T> managedModelElement = new ManagedModelElement<T>(modelSchema);
-                    return managedElementFactory.create(managedModelElement);
+                    return managedModelElement.createInstance();
                 }
             });
         }

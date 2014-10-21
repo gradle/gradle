@@ -54,7 +54,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -117,10 +116,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ToolingModelBuilderRegistry createToolingModelRegistry() {
         return new DefaultToolingModelBuilderRegistry();
-    }
-
-    protected ManagedModelElementInstanceFactory createManagedModelElementInstanceFactory() {
-        return new ManagedModelElementInstanceFactory();
     }
 
     protected PluginManager createPluginManager() {

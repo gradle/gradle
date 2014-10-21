@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 class ModelSchemaExtractorTest extends Specification {
 
-    def extractor = new ModelSchemaExtractor(null)
+    def extractor = new ModelSchemaExtractor()
 
     static interface NotAnnotatedInterface {}
 

@@ -28,15 +28,13 @@ import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore;
 import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor;
 import org.gradle.model.internal.manage.schema.store.ModelSchemaStore;
 import org.gradle.model.internal.manage.state.ManagedModelElement;
-import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final ManagedModelElementInstanceFactory managedInstanceFactory = new ManagedModelElementInstanceFactory();
-    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor(managedInstanceFactory);
+    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
     private final ModelSchemaStore store = new CachingModelSchemaStore(extractor);
 
     public String getDescription() {
@@ -77,7 +75,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        Transformer<T, Inputs> transformer = new ManagedModelRuleInvokerBackedTransformer<T>(modelSchema, ruleDefinition.getRuleInvoker(), inputs, managedInstanceFactory);
+        Transformer<T, Inputs> transformer = new ManagedModelRuleInvokerBackedTransformer<T>(modelSchema, ruleDefinition.getRuleInvoker(), inputs);
         return ModelCreators.of(ModelReference.of(modelPath, managedType), transformer)
                 .descriptor(descriptor)
                 .inputs(inputs)
@@ -97,18 +95,16 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         private final ModelSchema<T> modelSchema;
         private final ModelRuleInvoker<?> ruleInvoker;
         private final List<ModelReference<?>> inputReferences;
-        private final ManagedModelElementInstanceFactory factory;
 
-        private ManagedModelRuleInvokerBackedTransformer(ModelSchema<T> modelSchema, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences, ManagedModelElementInstanceFactory factory) {
+        private ManagedModelRuleInvokerBackedTransformer(ModelSchema<T> modelSchema, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences) {
             this.ruleInvoker = ruleInvoker;
             this.inputReferences = inputReferences;
             this.modelSchema = modelSchema;
-            this.factory = factory;
         }
 
         public T transform(Inputs inputs) {
             ManagedModelElement<T> modelElement = new ManagedModelElement<T>(modelSchema);
-            T instance = factory.create(modelElement);
+            T instance = modelElement.createInstance();
             Object[] args = new Object[inputs.size() + 1];
             args[0] = instance;
             for (int i = 0; i < inputs.size(); i++) {

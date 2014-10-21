@@ -41,7 +41,7 @@ class CachingModelSchemaStoreTest extends Specification {
     def "checked exceptions thrown from the backing store are unwrapped"() {
         given:
         def exception = new Exception("from backing store")
-        def extractor = new ModelSchemaExtractor(null) {
+        def extractor = new ModelSchemaExtractor() {
             @Override
             def <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store) {
                 throw exception

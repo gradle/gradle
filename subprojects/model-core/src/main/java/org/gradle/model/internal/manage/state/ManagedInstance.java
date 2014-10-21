@@ -16,19 +16,8 @@
 
 package org.gradle.model.internal.manage.state;
 
-import com.google.common.collect.Sets;
-
-import java.util.HashSet;
-
-public class ManagedModelElementInstanceStore {
-
-    private final HashSet<Object> instances = Sets.newHashSet();
-
-    public void add(Object instance) {
-        instances.add(instance);
-    }
-
-    public boolean contains(Object instance) {
-        return instances.contains(instance);
-    }
+/**
+ * A marker interface that is implemented by instances of managed model types
+ */
+public interface ManagedInstance {
 }
