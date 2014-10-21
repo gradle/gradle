@@ -276,6 +276,6 @@ public class DefaultPluginContainerTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "The type for id 'custom-rule-source' (class: '$TestRuleSource.name') is not a plugin implementing the Plugin interface. Please use AppliedPlugins.withPlugin() instead to detect it."
+        e.message == "The type for id 'custom-rule-source' (class: '$TestRuleSource.name') is not a plugin implementing the Plugin interface. Please use PluginAware.withPlugin() instead to detect it."
     }
 }

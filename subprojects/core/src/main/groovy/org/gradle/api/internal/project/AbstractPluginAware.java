@@ -17,9 +17,10 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.plugins.AppliedPlugins;
+import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.util.ConfigureUtil;
 
@@ -43,10 +44,17 @@ abstract public class AbstractPluginAware implements PluginAwareInternal {
         return getPluginManager().getPluginContainer();
     }
 
-    public AppliedPlugins getAppliedPlugins() {
-        return getPluginManager().getAppliedPlugins();
-    }
-
     abstract protected DefaultObjectConfigurationAction createObjectConfigurationAction();
 
+    public AppliedPlugin findPlugin(String id) {
+        return getPluginManager().findPlugin(id);
+    }
+
+    public boolean hasPlugin(String id) {
+        return getPluginManager().hasPlugin(id);
+    }
+
+    public void withPlugin(String id, Action<? super AppliedPlugin> action) {
+        getPluginManager().withPlugin(id, action);
+    }
 }

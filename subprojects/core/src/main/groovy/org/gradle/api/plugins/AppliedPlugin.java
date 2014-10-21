@@ -23,7 +23,8 @@ import org.gradle.api.Incubating;
  * <p>
  * Currently just provides information about the ID of the plugin.
  *
- * @see AppliedPlugins
+ * @see org.gradle.api.plugins.PluginAware
+ * @since 2.3
  */
 @Incubating
 public interface AppliedPlugin {
@@ -34,7 +35,7 @@ public interface AppliedPlugin {
      * An example of a plugin ID would be {@code "org.gradle.java"}.
      * This method always returns the fully qualified ID, regardless of whether the fully qualified ID was used to apply the plugin or not.
      * <p>
-     * This value is guaranteed to be unique, for a given {@link AppliedPlugins}.
+     * This value is guaranteed to be unique, for a given {@link org.gradle.api.plugins.PluginAware}.
      *
      * @return the ID of the plugin
      */

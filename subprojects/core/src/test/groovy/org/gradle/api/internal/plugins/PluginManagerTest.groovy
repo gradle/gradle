@@ -44,7 +44,7 @@ class PluginManagerTest extends Specification {
     def "empty manager ops"() {
         expect:
         manager.pluginContainer.isEmpty()
-        !manager.appliedPlugins.contains("foo")
+        !manager.hasPlugin("foo")
     }
 
     @RuleSource
@@ -75,9 +75,9 @@ class PluginManagerTest extends Specification {
 
         and:
         manager.pluginContainer.isEmpty()
-        manager.appliedPlugins.contains("foo")
+        manager.hasPlugin("foo")
         def called = false
-        manager.appliedPlugins.withPlugin("foo") {
+        manager.withPlugin("foo") {
             assert it.id == "foo"
             assert it.namespace == null
             assert it.name == "foo"
@@ -98,9 +98,9 @@ class PluginManagerTest extends Specification {
 
         and:
         manager.pluginContainer.isEmpty()
-        manager.appliedPlugins.contains("foo")
+        manager.hasPlugin("foo")
         def called = false
-        manager.appliedPlugins.withPlugin("foo") {
+        manager.withPlugin("foo") {
             assert it.id == "foo"
             assert it.namespace == null
             assert it.name == "foo"
@@ -142,9 +142,9 @@ class PluginManagerTest extends Specification {
 
         and:
         manager.pluginContainer.size() == 1
-        manager.appliedPlugins.contains("foo")
+        manager.hasPlugin("foo")
         def called = false
-        manager.appliedPlugins.withPlugin("foo") {
+        manager.withPlugin("foo") {
             assert it.id == "foo"
             assert it.namespace == null
             assert it.name == "foo"
@@ -165,9 +165,9 @@ class PluginManagerTest extends Specification {
 
         and:
         manager.pluginContainer.size() == 1
-        manager.appliedPlugins.contains("foo")
+        manager.hasPlugin("foo")
         def called = false
-        manager.appliedPlugins.withPlugin("foo") {
+        manager.withPlugin("foo") {
             assert it.id == "foo"
             assert it.namespace == null
             assert it.name == "foo"
@@ -207,9 +207,9 @@ class PluginManagerTest extends Specification {
 
         and:
         manager.pluginContainer.size() == 1
-        manager.appliedPlugins.contains("foo")
+        manager.hasPlugin("foo")
         def called = false
-        manager.appliedPlugins.withPlugin("foo") {
+        manager.withPlugin("foo") {
             assert it.id == "foo"
             assert it.namespace == null
             assert it.name == "foo"
@@ -230,9 +230,9 @@ class PluginManagerTest extends Specification {
 
         and:
         manager.pluginContainer.size() == 1
-        manager.appliedPlugins.contains("foo")
+        manager.hasPlugin("foo")
         def called = false
-        manager.appliedPlugins.withPlugin("foo") {
+        manager.withPlugin("foo") {
             assert it.id == "foo"
             assert it.namespace == null
             assert it.name == "foo"
@@ -260,7 +260,7 @@ class PluginManagerTest extends Specification {
 
         when:
         addPluginId("plugin", Imperative)
-        manager.appliedPlugins.withPlugin("plugin") { applied << it }
+        manager.withPlugin("plugin") { applied << it }
 
         then:
         applied.empty

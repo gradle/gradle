@@ -17,13 +17,13 @@
 package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Sets;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.specs.Spec;
@@ -32,7 +32,7 @@ import org.gradle.plugin.internal.PluginId;
 
 import java.util.Set;
 
-// not threadsafe
+@NotThreadSafe
 public class PluginManager {
 
     private final PluginApplicator applicator;
@@ -42,8 +42,6 @@ public class PluginManager {
     private final Set<String> unclaimedIds = Sets.newHashSet();
     private final Set<Class<?>> noIdPlugins = Sets.newHashSet();
     private final DomainObjectSet<PluginWithId> pluginsWithIds = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newHashSet());
-
-    private final AppliedPluginsImpl appliedPlugins = new AppliedPluginsImpl();
 
     public PluginManager(PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
         this.applicator = applicator;
@@ -97,10 +95,6 @@ public class PluginManager {
 
     public PluginContainer getPluginContainer() {
         return pluginContainer;
-    }
-
-    public AppliedPlugins getAppliedPlugins() {
-        return appliedPlugins;
     }
 
     public void apply(String pluginId) {
@@ -171,44 +165,42 @@ public class PluginManager {
         }
     }
 
-    private class AppliedPluginsImpl implements AppliedPlugins {
-        public AppliedPlugin findPlugin(final String id) {
-            for (PluginWithId plugin : pluginsWithIds) {
-                if (plugin.id.equals(id)) {
-                    return plugin.asAppliedPlugin();
-                }
+    public AppliedPlugin findPlugin(final String id) {
+        for (PluginWithId plugin : pluginsWithIds) {
+            if (plugin.id.equals(id)) {
+                return plugin.asAppliedPlugin();
             }
+        }
 
-            for (Class<?> noIdPlugin : noIdPlugins) {
-                if (pluginRegistry.hasId(noIdPlugin, id)) {
-                    PluginWithId pluginWithId = new PluginWithId(id, noIdPlugin);
-                    pluginsWithIds.add(pluginWithId);
-                    noIdPlugins.remove(noIdPlugin);
-                    return pluginWithId.asAppliedPlugin();
-                }
+        for (Class<?> noIdPlugin : noIdPlugins) {
+            if (pluginRegistry.hasId(noIdPlugin, id)) {
+                PluginWithId pluginWithId = new PluginWithId(id, noIdPlugin);
+                pluginsWithIds.add(pluginWithId);
+                noIdPlugins.remove(noIdPlugin);
+                return pluginWithId.asAppliedPlugin();
             }
-
-            unclaimedIds.add(id);
-            return null;
         }
 
-        public boolean contains(String id) {
-            return findPlugin(id) != null;
-        }
+        unclaimedIds.add(id);
+        return null;
+    }
 
-        public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {
-            findPlugin(id);
+    public boolean hasPlugin(String id) {
+        return findPlugin(id) != null;
+    }
 
-            pluginsWithIds.matching(new Spec<PluginWithId>() {
-                public boolean isSatisfiedBy(PluginWithId element) {
-                    return element.id.equals(id);
-                }
-            }).all(new Action<PluginWithId>() {
-                public void execute(PluginWithId pluginWithId) {
-                    action.execute(pluginWithId.asAppliedPlugin());
-                }
-            });
-        }
+    public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {
+        findPlugin(id);
+
+        pluginsWithIds.matching(new Spec<PluginWithId>() {
+            public boolean isSatisfiedBy(PluginWithId element) {
+                return element.id.equals(id);
+            }
+        }).all(new Action<PluginWithId>() {
+            public void execute(PluginWithId pluginWithId) {
+                action.execute(pluginWithId.asAppliedPlugin());
+            }
+        });
     }
 }
 

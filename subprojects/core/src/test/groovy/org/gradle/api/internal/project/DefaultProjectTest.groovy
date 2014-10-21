@@ -38,7 +38,6 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.plugins.PluginManager
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.AppliedPlugins
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -106,7 +105,6 @@ class DefaultProjectTest {
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
     PluginManager pluginManager = context.mock(PluginManager.class)
-    AppliedPlugins appliedPlugins = context.mock(AppliedPlugins.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache())
@@ -159,7 +157,6 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManager); will(returnValue(pluginManager))
-            allowing(pluginManager).getAppliedPlugins(); will(returnValue(appliedPlugins))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)

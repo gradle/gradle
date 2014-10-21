@@ -135,7 +135,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             PotentialPlugin potentialPlugin = pluginRegistry.lookup(pluginId);
             Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
             if (pluginClass == null) {
-                String message = String.format("The type for id '%s' (class: '%s') is not a plugin implementing the Plugin interface. Please use AppliedPlugins.withPlugin() instead to detect it.", pluginId, potentialPlugin.asClass().getName());
+                String message = String.format("The type for id '%s' (class: '%s') is not a plugin implementing the Plugin interface. Please use PluginAware.withPlugin() instead to detect it.", pluginId, potentialPlugin.asClass().getName());
                 throw new IllegalArgumentException(message);
             }
         } catch (UnknownPluginException e) {
