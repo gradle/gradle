@@ -51,9 +51,7 @@ These methods should be used when reacting to the presence of another plugin or 
 
 TODO - more detail.
 
-### Changes to ANTLR Plugin 
-
-#### ANTLR plugin supports ANTLR version 3.X and 4.X
+### ANTLR plugin supports ANTLR version 3.X and 4.X
 
 Additionally to the existing 2.X support, the [ANTLR Plugin](userguide/antlrPlugin.html) now supports ANTLR version 3 and 4. 
 To use ANTLR version 3 or 4 the antlr dependency in your build file must be updated:
@@ -71,7 +69,7 @@ To use ANTLR version 3 or 4 the antlr dependency in your build file must be upda
   
 This feature was contributed by [Rob Upcraft] (https://github.com/upcrob)
 
-#### ANTLR plugin supports ANTLR version 3.X and 4.X
+### ANTLR plugin supports ANTLR version 3.X and 4.X
 
 The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) is now 
 executed in a separate process. See [Antlr Plugin](userguide/antlrPlugin.html) for further details. 
