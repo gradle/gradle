@@ -15,6 +15,9 @@
  */
 package org.gradle.api.plugins.antlr
 
+import org.gradle.internal.os.OperatingSystem
+import spock.lang.IgnoreIf
+
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "antlr:antlr:2.7.7"
@@ -33,6 +36,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         succeeds("build")
     }
 
+    @IgnoreIf({OperatingSystem.current().isWindows()})
     def "analyze bad grammar"() {
         badGrammar()
 
