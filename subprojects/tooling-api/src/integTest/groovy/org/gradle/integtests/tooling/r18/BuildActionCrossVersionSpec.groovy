@@ -65,7 +65,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         result3 == 3
     }
 
-    @TargetGradleVersion("<=2.1")
+    @TargetGradleVersion(">=1.8 <=2.1")
     def "action classes are reused when daemon is idle when operation starts"() {
         toolingApi.requireIsolatedDaemons()
 
