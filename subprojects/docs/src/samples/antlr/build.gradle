@@ -1,3 +1,4 @@
+
 // START SNIPPET use-plugin
 apply plugin: 'antlr'
 // END SNIPPET use-plugin
@@ -14,3 +15,9 @@ dependencies {
 // START SNIPPET declare-dependency
 }
 // END SNIPPET declare-dependency
+
+// START SNIPPET memory-settings
+generateGrammarSource {
+    maxHeapSize = "64m"
+}
+// END SNIPPET memory-settings

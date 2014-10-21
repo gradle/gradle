@@ -21,7 +21,7 @@
 
     <note>
         <para>
-            The ANTLR plugin only supports ANTLR version 2.
+            The ANTLR plugin supports ANTLR version 2, 3 and 4.
         </para>
     </note>
 
@@ -182,6 +182,18 @@
                 </td>
             </tr>
         </table>
+    </section>
+    <section>
+        <title>Controlling the ANTLR generator process</title>
+        <para>
+            The ANTLR tool is executed in a forked process.
+            This allows fine grained control over memory settings for the ANTLR process.
+            To set the heap size of a ANTLR process, the <literal>maxHeapSize</literal> property
+            of <apilink class="org.gradle.api.plugins.antlr.AntlrTask"/> can be used.
+        </para>
+        <sample id="advanced" dir="antlr" title="setting custom max heap size for ANTLR">
+            <sourcefile file="build.gradle" snippet="memory-settings"/>
+        </sample>
     </section>
 
 </chapter>
