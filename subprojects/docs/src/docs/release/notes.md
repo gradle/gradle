@@ -39,6 +39,18 @@ Note that a typed `ComponentMetadataDetails` parameter is required for every rul
 
 See the [userguide section](userguide/dependency_management.html#component_metadata_rules) on component metadata rules for further information.
 
+### New PluginAware methods for detecting the presence of plugins
+
+The `PluginAware` interface (implemented by `Project`, `Gradle` and `Settings`) has the following new methods for detecting the presence of plugins, based on ID:
+
+* findPlugin()
+* hasPlugin()
+* withPlugin()
+
+These methods should be used when reacting to the presence of another plugin or for ad-hoc reporting.
+
+TODO - more detail.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
