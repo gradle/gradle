@@ -383,7 +383,7 @@ We would like to thank the following community members for making contributions 
 * [Stuart Armitage](https://github.com/maiflai) - Fixed bug in AbstractTask.setActions
 * [Björn Kautler](https://github.com/Vampire) - improvements to `'sonar-runner'` plugin
 * [Andrii Liubimov](https://github.com/aliubimov) - enhancement to `IdeaModule` model to mark generated source directories
-* [Damien Coraboeu  f](https://github.com/dcoraboeuf) - fix for IndexOutOfBoundsException thrown when determining task execution plan [GRADLE-2957]
+* [Damien Coraboeuf](https://github.com/dcoraboeuf) - fix for IndexOutOfBoundsException thrown when determining task execution plan [GRADLE-2957]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
