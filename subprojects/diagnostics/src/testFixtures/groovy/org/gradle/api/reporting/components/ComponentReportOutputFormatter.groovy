@@ -34,7 +34,7 @@ class ComponentReportOutputFormatter implements Transformer<String, String> {
 
     @Override
     String transform(String original) {
-        return original
+         return original
                 .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
                 .replace("platform: current", "platform: " + DefaultNativePlatform.getDefault().name)
                 .replace("\n", SystemProperties.lineSeparator)

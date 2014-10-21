@@ -16,13 +16,14 @@
 
 package org.gradle.nativeplatform.platform.internal;
 
-import net.rubygrapefruit.platform.Native;
-import net.rubygrapefruit.platform.SystemInfo;
+import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
+import java.io.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -33,8 +34,10 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
     private static Set<DefaultNativePlatform> defaults = defaultPlatformDefinitions();
+    private static volatile DefaultNativePlatform defaultNativePlatform;
 
     public static Set<DefaultNativePlatform> defaultPlatformDefinitions() {
+        //TODO freekh: move this code to somewhere else, or use configuration to load this data instead.
         //TODO freekh: add itanium? Who on earth uses it these days? It was discontinued in 2012 so...
         //TODO freekh: add more ppc? xbox/playstation is based on Power arch (ppc/cell) I think?
         Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
@@ -56,7 +59,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         ArchitectureInternal ppc64 = new DefaultArchitecture("ppc64", ArchitectureInternal.InstructionSet.PPC, 64);
 
 
-        //platforms.add(new DefaultNativePlatform("windows_x64", x64, windows)); TODO freekh: currently disabled.
+        platforms.add(new DefaultNativePlatform("windows_x64", x64, windows));
         platforms.add(new DefaultNativePlatform("windows_x86", x86, windows));
         platforms.add(new DefaultNativePlatform("windows_rt_32", armv7, windows));
 
@@ -103,10 +106,10 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public DefaultNativePlatform(String name) {
-        this(name, getCurrentArchitecture(), getCurrentOs());
+        this(name, (ArchitectureInternal) defaultNativePlatform.getArchitecture(), (OperatingSystemInternal) defaultNativePlatform.getOperatingSystem());
     }
 
-    public static String getDefaultName(final ArchitectureInternal architecture, final OperatingSystemInternal operatingSystem) {
+    public static NativePlatform getDefault(final ArchitectureInternal architecture, final OperatingSystemInternal operatingSystem) {
         DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
             public boolean evaluate(Object object) {
                 DefaultNativePlatform platform = (DefaultNativePlatform) object;
@@ -115,28 +118,142 @@ public class DefaultNativePlatform implements NativePlatformInternal {
                         && platform.operatingSystem.getInternalOs().equals(operatingSystem.getInternalOs());
             }
         });
-        return matchingPlatform.getName();
+        return matchingPlatform;
     }
+
+    //TODO freekh: Move this logic back into grapefruit?
+    private static OperatingSystem getPropertyBasedOperatingSystem() {
+        String osName = System.getProperty("os.name").toLowerCase();
+        OperatingSystem os = null;
+        if (osName.contains("windows")) {
+            os = OperatingSystem.WINDOWS;
+        } else if (osName.contains("linux")) {
+            os = OperatingSystem.LINUX;
+        } else if (osName.contains("os x") || osName.contains("darwin")) {
+            os = OperatingSystem.MAC_OS;
+        } else if (osName.contains("freebsd")) {
+            os = OperatingSystem.FREE_BSD;
+        }
+        return os;
+    }
+
+    //TODO freekh: Move this logic back into grapefruit?
+    private static ArchitectureInternal getPropertyBasedArchitecture() {
+        ArchitectureInternal arch = null;
+        String archName = System.getProperty("os.arch").toLowerCase();
+        if (archName.equals("i386") || archName.equals("x86")) {
+            arch = new DefaultArchitecture(archName, ArchitectureInternal.InstructionSet.X86, 32);
+        }
+        else if (archName.equals("x86_64") || archName.equals("amd64") || archName.equals("universal")) {
+            arch = new DefaultArchitecture(archName, ArchitectureInternal.InstructionSet.X86, 64);
+        }
+        return arch;
+    }
+
+    private static DefaultNativePlatform findDefaultPlatform(final OperatingSystem os, final int registerSize, final ArchitectureInternal.InstructionSet instructionSet) {
+        if (os != null) {
+            DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
+                public boolean evaluate(Object object) {
+                    DefaultNativePlatform platform = (DefaultNativePlatform) object;
+                    return platform.architecture.getInstructionSet().equals(instructionSet)
+                            && platform.architecture.getRegisterSize() == registerSize
+                            && platform.operatingSystem.getInternalOs().equals(os);
+                }
+            });
+            return matchingPlatform;
+        } else {
+            return null;
+        }
+    }
+
+    private static DefaultNativePlatform assertNonNullPlatform(DefaultNativePlatform nativePlatform, String errorMsg) {
+        if (nativePlatform == null) {
+            throw new NativeIntegrationUnavailableException(errorMsg);
+        } else {
+            return nativePlatform;
+        }
+    }
+
+    private final static String UNKNOWN_DEFAULT_PLATFORM_MSG = "Please specify a target platform.";
 
     public static DefaultNativePlatform getDefault() {
-        ArchitectureInternal architecture = getCurrentArchitecture();
-        if (getCurrentOs().isWindows() && architecture.getInstructionSet() == ArchitectureInternal.InstructionSet.X86 && architecture.getRegisterSize() == 64) {
-            architecture = new DefaultArchitecture(architecture.getName(), ArchitectureInternal.InstructionSet.X86, 32); //TODO freekh: why do we have to do this for cunit tests to complete? Missing a 64 bit cunit perhaps?
+        //TODO freekh: no need to synchronize, defaultNativePlatform volatile is sufficient.
+        if (defaultNativePlatform == null) {
+            OperatingSystem os = getPropertyBasedOperatingSystem();
+            ArchitectureInternal architectureInternal = getPropertyBasedArchitecture();
+            DefaultNativePlatform propertyBasedDefault = findDefaultPlatform(os, architectureInternal.getRegisterSize(), architectureInternal.getInstructionSet());
+            if (propertyBasedDefault != null) {
+                defaultNativePlatform = propertyBasedDefault;
+            } else { //could not detect platform based on properties
+                try {
+                    if ((os != null && os.isWindows()) || File.separatorChar == '\\') { //guess Windows
+                        Process archProcess  = Runtime.getRuntime().exec(new String[]{"wmic", "computersystem", "get", "systemtype"});
+                        BufferedReader archReader = new BufferedReader(new InputStreamReader(archProcess.getInputStream()));
+                        archReader.readLine();
+                        archReader.readLine();
+                        String archLine = archReader.readLine().toLowerCase();
+                        if (archLine.contains("x64")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, 64, ArchitectureInternal.InstructionSet.X86),
+                                    "Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+                        } else if (archLine.contains("x86")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, 32, ArchitectureInternal.InstructionSet.X86),
+                                    "Could not find a default platform for what is believed to be 32-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+                        } else if (archLine.contains("strongarm")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, 32, ArchitectureInternal.InstructionSet.ARM),
+                                    "Could not find a default platform for what is believed to be Windows on ARM. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+                        }
+
+                    } else { //guess Nix
+                        Process systemProcess = Runtime.getRuntime().exec(new String[]{"uname", "-s"});
+                        BufferedReader systemReader = new BufferedReader(new InputStreamReader(systemProcess.getInputStream()));
+                        String systemLine = systemReader.readLine().toLowerCase();
+
+                        Process machineProcess = Runtime.getRuntime().exec(new String[]{"uname", "-m"});
+                        BufferedReader matchineReader = new BufferedReader(new InputStreamReader(machineProcess.getInputStream()));
+                        String machineLine = matchineReader.readLine();
+                        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+                        ArchitectureInternal arch = archParser.parseNotation(machineLine);
+
+                        if (arch == null) {
+                            throw new NativeIntegrationUnavailableException("Tried to guess a default architecture of Nix-based OS, but could not. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+                        }
+
+                        String errorMsg = String.format("Could not find a default platform for %s architecture: %s. %s", systemLine, arch.getName(), UNKNOWN_DEFAULT_PLATFORM_MSG);
+                        if (systemLine.contains("linux")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.LINUX, arch.getRegisterSize(), arch.getInstructionSet()),
+                                    errorMsg);
+                        } else if (systemLine.contains("cygwin")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, arch.getRegisterSize(), arch.getInstructionSet()),
+                                    errorMsg);
+                        } else if (systemLine.contains("freebsd")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.FREE_BSD, arch.getRegisterSize(), arch.getInstructionSet()),
+                                    errorMsg);
+                        } else if (systemLine.contains("sunos")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.SOLARIS, arch.getRegisterSize(), arch.getInstructionSet()),
+                                    errorMsg);
+                        } else if (systemLine.contains("darwin")) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.MAC_OS, arch.getRegisterSize(), arch.getInstructionSet()),
+                                    errorMsg);
+                        } else if (!systemLine.isEmpty()) {
+                            defaultNativePlatform = assertNonNullPlatform(
+                                    findDefaultPlatform(OperatingSystem.UNIX, arch.getRegisterSize(), arch.getInstructionSet()),
+                                    errorMsg);
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new NativeIntegrationUnavailableException("Could not guess a default native platform. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
+                }
+            }
         }
-        OperatingSystem currentOs = OperatingSystem.current();
-        OperatingSystemInternal operatingSystem = new DefaultOperatingSystem(currentOs.getName(), currentOs);
-        return new DefaultNativePlatform(getDefaultName(architecture, operatingSystem), architecture, operatingSystem);
-    }
-
-    private static ArchitectureInternal getCurrentArchitecture() {
-        NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser(); //TODO freekh: this looks weird, but it seemed like the best way to create an ArchitectureInternal
-        String archName = Native.get(SystemInfo.class).getArchitecture().toString();
-        return archParser.parseNotation(archName);
-    }
-
-    private static OperatingSystemInternal getCurrentOs() {
-        OperatingSystem currentOs = OperatingSystem.current();
-        return new DefaultOperatingSystem(currentOs.getName(), currentOs); //TODO freekh: this looks weird, but it seemed like the best way to create an OperatingSystemInternal
+        return defaultNativePlatform;
     }
 
     public String getName() {
