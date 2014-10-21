@@ -89,6 +89,7 @@ We would like to thank the following community members for making contributions 
 * [Lari Hotari](https://github.com/lhotari) - improvements to output handling in Tooling API (GRADLE-2687) and coloring for the output
 * [Sébastien Cogneau](https://github.com/scogneau) - share distribution plugin logic with application plugin
 * [Greg Chrystall](https://github.com/ported) - idea plugin generates wrong sources jar for multi artifacts dependencies (GRADLE-3170)
+* [Rob Upcraft] (https://github.com/upcrob) - add support for ANTLR v3 and v4 to antlr plugin (GRADLE-902)
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
