@@ -69,7 +69,7 @@ To use ANTLR version 3 or 4 the antlr dependency in your build file must be upda
   
 This feature was contributed by [Rob Upcraft] (https://github.com/upcrob)
 
-### ANTLR plugin supports ANTLR version 3.X and 4.X
+### AntlrTask running in separate process
 
 The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) is now 
 executed in a separate process. See [Antlr Plugin](userguide/antlrPlugin.html) for further details. 
