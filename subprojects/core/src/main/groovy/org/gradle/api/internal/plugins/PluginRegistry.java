@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.UnknownPluginException;
 
+@ThreadSafe
 public interface PluginRegistry {
 
     PotentialPlugin inspect(Class<?> clazz);

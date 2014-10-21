@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.RuleSource;
 
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+@ThreadSafe
 public class ModelRuleSourceDetector {
 
     private final LoadingCache<Class<?>, Set<Class<?>>> declaredSourcesCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, Set<Class<?>>>() {

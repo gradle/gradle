@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Plugin;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
+@ThreadSafe
 public class PluginInspector {
 
     private final ModelRuleSourceDetector modelRuleSourceDetector;
