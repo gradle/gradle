@@ -96,21 +96,21 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         then:
         succeeds("generateGrammarSource")
 
-        file("build/generated-src/antlr/main/Test1.tokens").exists()
-        file("build/generated-src/antlr/main/Test1Lexer.java").exists()
-        file("build/generated-src/antlr/main/Test1Parser.java").exists()
+        test1TokenFile.exists()
+        test1LexerFile.exists()
+        test1ParserFile.exists()
 
-        file("build/generated-src/antlr/main/Test2.tokens").exists()
-        file("build/generated-src/antlr/main/Test2Lexer.java").exists()
-        file("build/generated-src/antlr/main/Test2Parser.java").exists()
+        test2TokenFile.exists()
+        test2LexerFile.exists()
+        test2ParserFile.exists()
 
         removedGrammar("Test1")
 
         then:
         succeeds("generateGrammarSource")
-        !file("build/generated-src/antlr/main/Test1.tokens").exists();
-        !file("build/generated-src/antlr/main/Test1Lexer.java").exists();
-        !file("build/generated-src/antlr/main/Test1Parser.java").exists();
+        !test1TokenFile.exists();
+        !test1LexerFile.exists();
+        !test1ParserFile.exists();
     }
 
     def grammar(String... ids) {

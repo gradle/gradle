@@ -16,34 +16,26 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.file.FileCollection;
-
 import org.gradle.api.Action;
-
-import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-
+import org.gradle.api.GradleException;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.antlr.internal.AntlrResult;
+import org.gradle.api.plugins.antlr.internal.AntlrSpec;
+import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-
-import org.gradle.api.GradleException;
-
-import java.io.File;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
-import org.gradle.api.plugins.antlr.internal.AntlrSpec;
-import org.gradle.api.plugins.antlr.internal.AntlrResult;
-
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -178,7 +170,8 @@ public class AntlrTask extends SourceTask {
     @TaskAction
     public void execute(IncrementalTaskInputs inputs) {
         final List<File> grammarFiles = new ArrayList<File>();
-        final List<File> sourceFiles = Arrays.asList(getSourceDirectory().listFiles());
+        final Set<File> sourceFiles = getSource().getFiles();
+
         inputs.outOfDate(
                 new Action<InputFileDetails>() {
                     public void execute(InputFileDetails details) {
