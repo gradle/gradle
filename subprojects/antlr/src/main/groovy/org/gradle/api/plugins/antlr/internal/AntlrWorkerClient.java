@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,22 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':plugins')
+package org.gradle.api.plugins.antlr.internal;
 
-    compile libraries.slf4j_api
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class AntlrWorkerClient implements AntlrWorkerClientProtocol {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntlrWorkerClient.class);
+
+    private AntlrResult result;
+
+    public void executed(AntlrResult result) {
+        this.result = result;
+    }
+
+    public AntlrResult getResult() {
+        return result;
+    }
 }
-
-useTestFixtures()

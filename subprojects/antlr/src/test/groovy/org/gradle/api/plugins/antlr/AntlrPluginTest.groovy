@@ -41,7 +41,7 @@ class AntlrPluginTest extends Specification {
         def custom = project.sourceSets.custom
         custom.antlr.srcDirs == [project.file('src/custom/antlr')] as Set
     }
-    
+
     def addsTaskForEachSourceSet() {
         when:
         project.apply plugin: AntlrPlugin
@@ -62,5 +62,174 @@ class AntlrPluginTest extends Specification {
         def custom = project.tasks.generateCustomGrammarSource
         custom instanceof AntlrTask
         project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
+    }
+
+    def traceDefaultProperties() {
+        given:
+        File source = Mock()
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        def sourceFiles = [s1, s2]
+        source.listFiles() >> sourceFiles
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+
+        when:
+        project.apply plugin: AntlrPlugin
+        def main = project.tasks.generateGrammarSource
+        main.outputDirectory = dest
+        main.sourceDirectory = source
+
+        then:
+        main.isTrace() == false
+        main.isTraceLexer() == false
+        main.isTraceParser() == false
+        main.isTraceTreeWalker() == false
+        !main.buildArguments(sourceFiles).contains("-trace")
+        !main.buildArguments(sourceFiles).contains("-traceLexer")
+        !main.buildArguments(sourceFiles).contains("-traceParser")
+        !main.buildArguments(sourceFiles).contains("-traceTreeWalker")
+    }
+
+    def tracePropertiesAddedToArgumentList() {
+        given:
+        File source = Mock()
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        def sourceFiles = [s1, s2]
+        source.listFiles() >> sourceFiles
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+
+        when:
+        project.apply plugin: AntlrPlugin
+        def main = project.tasks.generateGrammarSource
+        main.outputDirectory = dest
+        main.sourceDirectory = source
+        main.setTrace(true)
+        main.setTraceLexer(true)
+        main.setTraceParser(true)
+        main.setTraceTreeWalker(true)
+
+        then:
+        main.isTrace() == true
+        main.isTraceLexer() == true
+        main.isTraceParser() == true
+        main.isTraceTreeWalker() == true
+        main.buildArguments(sourceFiles).contains("-trace")
+        main.buildArguments(sourceFiles).contains("-traceLexer")
+        main.buildArguments(sourceFiles).contains("-traceParser")
+        main.buildArguments(sourceFiles).contains("-traceTreeWalker")
+    }
+
+    def customArgumentsAdded() {
+        given:
+        File source = Mock()
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        def sourceFiles = [s1, s2]
+        source.listFiles() >> sourceFiles
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+
+        when:
+        project.apply plugin: AntlrPlugin
+        def main = project.tasks.generateGrammarSource
+        main.outputDirectory = dest
+        main.sourceDirectory = source
+        main.setArguments(["-a", "-b"])
+
+        then:
+        main.buildArguments(sourceFiles).contains("-a")
+        main.buildArguments(sourceFiles).contains("-b")
+    }
+
+    def customTraceArgumentsOverrideProperties() {
+        given:
+        File source = Mock()
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        def sourceFiles = [s1, s2]
+        source.listFiles() >> sourceFiles
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+
+        when:
+        project.apply plugin: AntlrPlugin
+        def main = project.tasks.generateGrammarSource
+        main.outputDirectory = dest
+        main.sourceDirectory = source
+        main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
+
+        then:
+        main.buildArguments(sourceFiles).contains("-trace")
+        main.buildArguments(sourceFiles).contains("-traceLexer")
+        main.buildArguments(sourceFiles).contains("-traceParser")
+        main.buildArguments(sourceFiles).contains("-traceTreeWalker")
+    }
+
+    def traceArgumentsDoNotDuplicateTrueTraceProperties() {
+        given:
+        File source = Mock()
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        def sourceFiles = [s1, s2]
+        source.listFiles() >> sourceFiles
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+
+        when:
+        project.apply plugin: AntlrPlugin
+        def main = project.tasks.generateGrammarSource
+        main.outputDirectory = dest
+        main.sourceDirectory = source
+        main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
+        main.setTrace(true)
+        main.setTraceLexer(true)
+        main.setTraceParser(true)
+        main.setTraceTreeWalker(true)
+
+        then:
+        main.buildArguments(sourceFiles).count {it == "-trace"} == 1
+        main.buildArguments(sourceFiles).count {it == "-traceLexer"} == 1
+        main.buildArguments(sourceFiles).count {it == "-traceParser"} == 1
+        main.buildArguments(sourceFiles).count {it == "-traceTreeWalker"} == 1
+    }
+
+    def buildArgumentsAddsAllParameters() {
+        given:
+        File source = Mock()
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        def sourceFiles = [s1, s2]
+        source.listFiles() >> sourceFiles
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+
+        when:
+        project.apply plugin: AntlrPlugin
+        def main = project.tasks.generateGrammarSource
+        main.outputDirectory = dest
+        main.sourceDirectory = source
+        main.setArguments(["-test"])
+        main.setTrace(true)
+        main.setTraceLexer(true)
+        main.setTraceParser(true)
+        main.setTraceTreeWalker(true)
+
+        then:
+        main.buildArguments(sourceFiles) == ["-o", "/output", "-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker", "/input/1", "/input/2"]
     }
 }

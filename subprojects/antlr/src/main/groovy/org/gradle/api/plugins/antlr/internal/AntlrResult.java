@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':plugins')
+package org.gradle.api.plugins.antlr.internal;
 
-    compile libraries.slf4j_api
+import java.io.Serializable;
+
+public class AntlrResult implements Serializable {
+
+    private final int errorCount;
+
+    public AntlrResult(int errorCount) {
+        this.errorCount = errorCount;
+    }
+
+    public int getErrorCount() {
+        return errorCount;
+    }
 }
-
-useTestFixtures()
