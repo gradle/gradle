@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-if (project.hasProperty("fastFeedbackOrder")) {
-    subprojects {
-        afterEvaluate {
-            def testTask = tasks.withType(Test).matching { it.name == "test" }
-            if (testTask) {
-                rootProject.subprojects {
-                    def precedingTasks = tasks.matching { task ->
-                        task.name == "codeQuality" || task.name.startsWith("classycle")
-                    }
-                    testTask.all { it.shouldRunAfter precedingTasks }
-                    def integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
-                    integTestTasks.all { it.shouldRunAfter testTask }
-                }
+gradle.projectsEvaluated {
+    def groups = [:].withDefault { [] }
+
+    def codeQualityPrefixes = ["codenarc", "checkstyle", "classycle", "codeQuality"]
+    def taskContainers = subprojects*.tasks
+    taskContainers.each { tasks ->
+        tasks.each { task ->
+            if (codeQualityPrefixes.any { task.name.startsWith(it) }) {
+                groups.codeQuality << task
+            } else if (task instanceof Test && task.name.startsWith("test")) {
+                groups.unitTest << task
+            } else if (task instanceof Test && task.name.contains("integTest")) {
+                groups.integTest << task
             }
         }
     }
+
+    groups.unitTest*.shouldRunAfter groups.codeQuality
+    groups.integTest*.shouldRunAfter groups.codeQuality, groups.unitTest
 }
