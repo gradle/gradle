@@ -17,9 +17,7 @@ package org.gradle.api.plugins.antlr
 
 class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
-    def setup() {
-        writeBuildFile()
-    }
+    String antlrDependency = "org.antlr:antlr:3.5.2"
 
     def "analyze good grammar"() {
         goodGrammar()
@@ -73,21 +71,6 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
             INT :   '0'..'9'+
                 ;
-        """
-    }
-
-    private void writeBuildFile() {
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "antlr"
-
-            repositories() {
-                mavenCentral()
-            }
-
-            dependencies {
-                antlr 'org.antlr:antlr:3.5.2'
-            }
         """
     }
 }

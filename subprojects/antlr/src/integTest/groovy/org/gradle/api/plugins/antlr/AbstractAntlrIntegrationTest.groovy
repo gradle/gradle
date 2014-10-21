@@ -18,14 +18,32 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withArgument("-i")
+        writeBuildFile()
     }
+
+    abstract String getAntlrDependency()
 
     void assertAntlrVersion(int version) {
         assert output.contains("Processing with ANTLR $version")
+    }
+
+    private void writeBuildFile() {
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "antlr"
+
+            repositories() {
+                jcenter()
+            }
+
+            dependencies {
+                antlr '$antlrDependency'
+            }
+        """
     }
 
 }

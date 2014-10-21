@@ -17,9 +17,7 @@ package org.gradle.api.plugins.antlr
 
 class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
-    def setup() {
-        writeBuildFile()
-    }
+    String antlrDependency = "org.antlr:antlr4:4.3"
 
     def "analyze good grammar"() {
         goodGrammar()
@@ -56,21 +54,6 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             r  : 'hello' ID ;    extrastuff
             ID : [a-z]+ ;            
             WS : [ \\t\\r\\n]+ -> skip ;
-        """
-    }
-
-    private void writeBuildFile() {
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "antlr"
-
-            repositories() {
-                mavenCentral()
-            }
-
-            dependencies {
-                antlr 'org.antlr:antlr4:4.3'
-            }
         """
     }
 }

@@ -17,9 +17,7 @@ package org.gradle.api.plugins.antlr
 
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
-    def setup() {
-        writeBuildFile()
-    }
+    String antlrDependency = "antlr:antlr:2.7.7"
 
     def "analyze and build good grammar"() {
         goodGrammar()
@@ -42,6 +40,28 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         args "-i"
         fails("generateGrammarSource")
         assertAntlrVersion(2)
+    }
+
+    def "uses antlr 2 if no explicit dependency is set"() {
+        buildFile.text = """
+            apply plugin: "java"
+            apply plugin: "antlr"
+
+            repositories() {
+                jcenter()
+            }"""
+
+        goodGrammar()
+        goodProgram()
+
+        expect:
+        succeeds("generateGrammarSource")
+        assertAntlrVersion(2)
+        file("build/generated-src/antlr/main/TestGrammar.java").exists()
+        file("build/generated-src/antlr/main/TestGrammar.smap").exists()
+        file("build/generated-src/antlr/main/TestGrammarTokenTypes.java").exists()
+        file("build/generated-src/antlr/main/TestGrammarTokenTypes.txt").exists()
+        succeeds("build")
     }
 
     private goodGrammar() {
@@ -96,16 +116,5 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
             atom:   INT
                 ;"""
-    }
-
-    private void writeBuildFile() {
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "antlr"
-
-            repositories {
-              jcenter()
-            }
-        """
     }
 }
