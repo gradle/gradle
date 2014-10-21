@@ -33,15 +33,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public class ExtractingModelSchemaStore implements ModelSchemaStore {
+public class ModelSchemaExtractor {
 
     private final ManagedModelElementInstanceFactory managedElementFactory;
 
-    public ExtractingModelSchemaStore(ManagedModelElementInstanceFactory managedElementFactory) {
+    public ModelSchemaExtractor(ManagedModelElementInstanceFactory managedElementFactory) {
         this.managedElementFactory = managedElementFactory;
     }
 
-    public <T> ModelSchema<T> getSchema(ModelType<T> type, ModelSchemaStore backingStore) {
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store) {
         validateType(type);
 
         List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
@@ -82,7 +82,7 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
                 if (returnType.equals(ModelType.of(String.class))) {
                     properties.add(extractNonManagedProperty(type, methods, methodName, returnType, handled));
                 } else if (isManaged(returnType.getRawClass())) {
-                    properties.add(extractManagedProperty(backingStore, type, methods, methodName, returnType, handled));
+                    properties.add(extractManagedProperty(store, type, methods, methodName, returnType, handled));
                 } else {
                     throw invalidMethod(type, methodName, "only String and managed properties are supported");
                 }
@@ -130,7 +130,7 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    private <T> ModelProperty<T> extractManagedProperty(ModelSchemaStore backingStore, ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
+    private <T> ModelProperty<T> extractManagedProperty(ModelSchemaStore store, ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType, List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
@@ -138,10 +138,10 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         if (methods.containsKey(setterName)) {
             validateSetter(type, propertyType, methods.get(setterName));
             handled.add(setterName);
-            getModelSchema(backingStore, type, propertyType, propertyName);
+            getModelSchema(store, type, propertyType, propertyName);
             return new ModelProperty<T>(propertyName, propertyType, true);
         } else {
-            final ModelSchema<T> modelSchema = getModelSchema(backingStore, type, propertyType, propertyName);
+            final ModelSchema<T> modelSchema = getModelSchema(store, type, propertyType, propertyName);
             return new ModelProperty<T>(propertyName, propertyType, true, new Factory<T>() {
                 public T create() {
                     ManagedModelElement<T> managedModelElement = new ManagedModelElement<T>(modelSchema);
@@ -151,9 +151,9 @@ public class ExtractingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    private <T> ModelSchema<T> getModelSchema(ModelSchemaStore backingStore, ModelType<?> type, ModelType<T> propertyType, String propertyName) {
+    private <T> ModelSchema<T> getModelSchema(ModelSchemaStore store, ModelType<?> type, ModelType<T> propertyType, String propertyName) {
         try {
-            return backingStore.getSchema(propertyType, this);
+            return store.getSchema(propertyType);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidManagedModelElementTypeException(type, propertyName, e);
         }

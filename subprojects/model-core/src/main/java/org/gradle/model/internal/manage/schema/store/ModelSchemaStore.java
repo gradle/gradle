@@ -21,5 +21,6 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 
 public interface ModelSchemaStore {
 
-    <T> ModelSchema<T> getSchema(ModelType<T> type, ModelSchemaStore backingStore);
+    <T> ModelSchema<T> getSchema(ModelType<T> type);
+    boolean isManaged(ModelType<?> type);
 }

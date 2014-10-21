@@ -19,14 +19,14 @@ package org.gradle.model.internal.manage.state
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore
-import org.gradle.model.internal.manage.schema.store.ExtractingModelSchemaStore
+import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor
 import spock.lang.Specification
 
 class ManagedModelElementTest extends Specification {
 
-    def schemas = new CachingModelSchemaStore()
+    def schemas = new CachingModelSchemaStore(new ModelSchemaExtractor(null))
 
-    def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(ModelType.of(MultipleProps), new ExtractingModelSchemaStore(null)))
+    def element = new ManagedModelElement<MultipleProps>(schemas.getSchema(ModelType.of(MultipleProps)))
 
     @Managed
     static interface MultipleProps {

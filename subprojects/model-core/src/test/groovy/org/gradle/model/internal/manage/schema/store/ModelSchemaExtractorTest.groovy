@@ -23,9 +23,9 @@ import org.gradle.model.internal.manage.schema.ModelSchema
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ExtractingModelSchemaStoreTest extends Specification {
+class ModelSchemaExtractorTest extends Specification {
 
-    def extractor = new ExtractingModelSchemaStore(null)
+    def extractor = new ModelSchemaExtractor(null)
 
     static interface NotAnnotatedInterface {}
 
@@ -215,7 +215,7 @@ class ExtractingModelSchemaStoreTest extends Specification {
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
-        extractor.getSchema(ModelType.of(clazz), null)
+        extractor.extract(ModelType.of(clazz), null)
     }
 
     private void fail(Class<?> clazz, String msgPattern) {

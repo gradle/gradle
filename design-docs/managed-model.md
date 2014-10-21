@@ -129,6 +129,8 @@ This story makes the following possible…
 
 ## Future candidate stories (unordered)
 
+### Plugin creates model element of custom type, with a property of a managed type that has a property of the created model element type (i.e. imposing a cycle of managed types), without supplying an implementation
+
 ### Plugin creates model element of custom type, containing properties of all applicable Java primitive types, without supplying an implementation
 
 ### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation

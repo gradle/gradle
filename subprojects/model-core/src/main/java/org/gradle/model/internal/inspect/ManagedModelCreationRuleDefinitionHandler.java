@@ -22,10 +22,11 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.store.ExtractingModelSchemaStore;
+import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore;
+import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor;
+import org.gradle.model.internal.manage.schema.store.ModelSchemaStore;
 import org.gradle.model.internal.manage.state.ManagedModelElement;
 import org.gradle.model.internal.manage.state.ManagedModelElementInstanceFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -35,8 +36,8 @@ import java.util.List;
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
     private final ManagedModelElementInstanceFactory managedInstanceFactory = new ManagedModelElementInstanceFactory();
-    private final CachingModelSchemaStore store = new CachingModelSchemaStore();
-    private final ExtractingModelSchemaStore extractingStore = new ExtractingModelSchemaStore(managedInstanceFactory);
+    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor(managedInstanceFactory);
+    private final ModelSchemaStore store = new CachingModelSchemaStore(extractor);
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());
@@ -61,7 +62,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        if (!extractingStore.isManaged(managedType.getRawClass())) {
+        if (!store.isManaged(managedType)) {
             String description = String.format("a void returning model element creation rule has to take an instance of a %s annotated type as the first argument", Managed.class.getName());
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
         }
@@ -85,7 +86,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition) {
         try {
-            return store.getSchema(managedType, extractingStore);
+            return store.getSchema(managedType);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
         }

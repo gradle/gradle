@@ -23,19 +23,15 @@ import spock.lang.Specification
 
 class CachingModelSchemaStoreTest extends Specification {
 
-    def store = new CachingModelSchemaStore()
-
     def "runtime exceptions thrown from the backing store are unwrapped"() {
         given:
         def exception = new RuntimeException("from backing store")
-
-        when:
-        def backingStore = Mock(ModelSchemaStore) {
-            getSchema(_, _) >> { throw exception }
+        def extractor = Mock(ModelSchemaExtractor) {
+            extract(_, _) >> { throw exception }
         }
 
-        and:
-        store.getSchema(ModelType.of(String), backingStore)
+        when:
+        new CachingModelSchemaStore(extractor).getSchema(ModelType.of(String))
 
         then:
         RuntimeException thrown = thrown()
@@ -45,18 +41,15 @@ class CachingModelSchemaStoreTest extends Specification {
     def "checked exceptions thrown from the backing store are unwrapped"() {
         given:
         def exception = new Exception("from backing store")
-
-        when:
-        //Have to use an anonymous class cause Spock wraps non-declared exceptions thrown from mocks in UndeclaredThrowableException
-        def backingStore = new ModelSchemaStore() {
+        def extractor = new ModelSchemaExtractor(null) {
             @Override
-            def <T> ModelSchema<T> getSchema(ModelType<T> type, ModelSchemaStore backingStore) {
+            def <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store) {
                 throw exception
             }
         }
 
-        and:
-        store.getSchema(ModelType.of(String), backingStore)
+        when:
+        new CachingModelSchemaStore(extractor).getSchema(ModelType.of(String))
 
         then:
         UncheckedException thrown = thrown()

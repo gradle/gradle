@@ -30,12 +30,20 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class CachingModelSchemaStore implements ModelSchemaStore {
 
-    private final ModelSchemaCacheLoader modelSchemaCacheLoader = new ModelSchemaCacheLoader();
+    private final ModelSchemaExtractor extractor;
 
-    private final LoadingCache<ModelType<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(modelSchemaCacheLoader);
+    public CachingModelSchemaStore(ModelSchemaExtractor extractor) {
+        this.extractor = extractor;
+    }
 
-    public <T> ModelSchema<T> getSchema(ModelType<T> type, ModelSchemaStore backingStore) {
-        modelSchemaCacheLoader.setBackingStore(backingStore);
+    private final LoadingCache<ModelType<?>, ModelSchema<?>> schemas = CacheBuilder.newBuilder().build(new CacheLoader<ModelType<?>, ModelSchema<?>>() {
+        @Override
+        public ModelSchema<?> load(ModelType<?> key) throws Exception {
+            return extractor.extract(key, CachingModelSchemaStore.this);
+        }
+    });
+
+    public <T> ModelSchema<T> getSchema(ModelType<T> type) {
         try {
             ModelSchema<?> schema = schemas.get(type);
             return Cast.uncheckedCast(schema);
@@ -46,17 +54,7 @@ public class CachingModelSchemaStore implements ModelSchemaStore {
         }
     }
 
-    private class ModelSchemaCacheLoader extends CacheLoader<ModelType<?>, ModelSchema<?>> {
-
-        private ModelSchemaStore backingStore;
-
-        public void setBackingStore(ModelSchemaStore backingStore) {
-            this.backingStore = backingStore;
-        }
-
-        @Override
-        public ModelSchema<?> load(ModelType<?> key) throws Exception {
-            return backingStore.getSchema(key, CachingModelSchemaStore.this);
-        }
+    public boolean isManaged(ModelType<?> type) {
+        return extractor.isManaged(type.getRawClass());
     }
 }
