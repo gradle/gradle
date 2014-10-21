@@ -32,7 +32,7 @@ public class ModelProperty<T> {
     }
 
     public ModelProperty(String name, ModelType<T> type, boolean managed) {
-        this(name, type, managed, Factories.<T>constant(null));
+        this(name, type, managed, Factories.<T>constantNull());
     }
 
     public ModelProperty(String name, ModelType<T> type, boolean managed, Factory<T> initialValueProvider) {
