@@ -36,6 +36,11 @@ class DaemonLogFileStateProbe implements DaemonStateProbe {
         this.context = context
     }
 
+    @Override
+    String toString() {
+        return "DaemonLogFile{file: ${log}, context: ${context}}"
+    }
+
     DaemonContext getContext() {
         return context
     }

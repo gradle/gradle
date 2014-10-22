@@ -59,21 +59,18 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     List<DaemonFixture> getDaemons() {
         assert daemonLogsDir.isDirectory()
-        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect {
-            if (version == GradleVersion.current().version) {
-                return new TestableDaemon(it, registry)
-            }
-            return new LegacyDaemon(it)
-        }
+        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
     }
 
     List<DaemonFixture> getVisible() {
-        return registry.all.collect {
-            if (version == GradleVersion.current().version) {
-                return new TestableDaemon(new File(daemonLogsDir, "daemon-${it.pid}.out.log"), registry)
-            }
-            return new LegacyDaemon(new File(daemonLogsDir, "daemon-${it.pid}.out.log"))
+        return registry.all.collect { daemonForLogFile(new File(daemonLogsDir, "daemon-${it.pid}.out.log")) }
+    }
+
+    DaemonFixture daemonForLogFile(File logFile) {
+        if (version == GradleVersion.current().version) {
+            return new TestableDaemon(logFile, registry)
         }
+        return new LegacyDaemon(logFile, version)
     }
 
     DaemonFixture getDaemon() {
