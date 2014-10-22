@@ -81,8 +81,12 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         return identifier.getProjectPath();
     }
 
+    protected String getTypeName() {
+        return typeName;
+    }
+
     public String getDisplayName() {
-        return String.format("%s '%s'", typeName, getName());
+        return String.format("%s '%s'", getTypeName(), getName());
     }
 
     @Override

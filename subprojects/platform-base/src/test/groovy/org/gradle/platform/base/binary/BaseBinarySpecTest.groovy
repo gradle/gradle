@@ -47,7 +47,7 @@ class BaseBinarySpecTest extends Specification {
         expect:
         binary.class == MySampleBinary
         binary.name == "sampleBinary"
-        binary.displayName == "MySampleBinary: 'sampleBinary'"
+        binary.displayName == "MySampleBinary 'sampleBinary'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {

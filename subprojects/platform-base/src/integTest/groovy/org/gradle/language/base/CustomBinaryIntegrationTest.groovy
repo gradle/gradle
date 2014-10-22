@@ -38,7 +38,7 @@ task checkModel << {
     assert project.binaries.size() == 1
     def sampleBinary = project.binaries.sampleBinary
     assert sampleBinary instanceof SampleBinary
-    assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+    assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
 }
 """
         then:
@@ -116,7 +116,7 @@ task checkModel << {
             assert project.binaries.size() == 1
             def sampleBinary = project.binaries.sampleBinary
             assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
         }
 """
         then:
@@ -162,11 +162,11 @@ task checkModel << {
             assert project.binaries.size() == 2
             def sampleBinary = project.binaries.sampleBinary
             assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
 
             def anotherSampleBinary = project.binaries.anotherSampleBinary
             assert anotherSampleBinary instanceof AnotherSampleBinary
-            assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary: 'anotherSampleBinary'"
+            assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary 'anotherSampleBinary'"
         }
 """
         then:
@@ -248,7 +248,7 @@ No components defined for this project.
 
 Additional binaries
 -------------------
-DefaultSampleBinary: 'sampleBinary'
+DefaultSampleBinary 'sampleBinary'
     build using task: :sampleBinary
 
 Note: currently not all plugins register their components, so some components may not be visible here.

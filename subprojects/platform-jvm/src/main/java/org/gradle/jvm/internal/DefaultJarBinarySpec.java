@@ -32,10 +32,9 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File jarFile;
     private String baseName;
 
-    // TODO:DAZ Make this the default format
     @Override
-    public String getDisplayName() {
-        return String.format("jar '%s:jar'", getBaseName());
+    protected String getTypeName() {
+        return "Jar";
     }
 
     public String getBaseName() {

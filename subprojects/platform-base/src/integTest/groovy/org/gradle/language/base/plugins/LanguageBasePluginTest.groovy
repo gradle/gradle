@@ -21,9 +21,8 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.platform.base.BinaryContainer
-import org.gradle.platform.base.internal.BinaryNamingScheme
-import org.gradle.platform.base.internal.DefaultBinaryContainer
 import org.gradle.platform.base.internal.BinarySpecInternal
+import org.gradle.platform.base.internal.DefaultBinaryContainer
 import org.gradle.util.TestUtil
 
 class LanguageBasePluginTest extends WellBehavedPluginTest {
@@ -47,7 +46,6 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
         def tasks = Mock(TaskContainer)
         def binaries = new DefaultBinaryContainer(new DirectInstantiator())
         def binary = Mock(BinarySpecInternal)
-        def namingScheme = Mock(BinaryNamingScheme)
         def task = Mock(Task)
 
         when:
@@ -58,11 +56,9 @@ class LanguageBasePluginTest extends WellBehavedPluginTest {
         then:
         binary.name >> "binaryName"
         binary.toString() >> "binary foo"
-        binary.namingScheme >> namingScheme
-        namingScheme.lifecycleTaskName >> "lifecycle"
 
         and:
-        1 * tasks.create("lifecycle") >> task
+        1 * tasks.create("binaryName") >> task
         1 * task.setGroup("build")
         1 * task.setDescription("Assembles binary foo.")
         1 * binary.setBuildTask(task)

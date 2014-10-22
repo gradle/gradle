@@ -66,17 +66,17 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         def myLibJar = (binaries as List)[0]
         assert myLibJar instanceof JarBinarySpec
         assert myLibJar.name == 'myLibJar'
-        assert myLibJar.displayName == "jar 'myLib:jar'"
+        assert myLibJar.displayName == "Jar 'myLibJar'"
 
         def binaryTask = tasks['myLibJar']
         assert binaryTask.group == 'build'
-        assert binaryTask.description == "Assembles jar 'myLib:jar'."
+        assert binaryTask.description == "Assembles Jar 'myLibJar'."
         assert myLibJar.buildTask == binaryTask
 
         def jarTask = tasks['createMyLibJar']
         assert jarTask instanceof Jar
         assert jarTask.group == null
-        assert jarTask.description == "Creates the binary file for jar 'myLib:jar'."
+        assert jarTask.description == "Creates the binary file for Jar 'myLibJar'."
     }
 """
         then:
@@ -185,7 +185,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         executed ":createMyJvmLibJar", ":log_myJvmLibJar", ":myJvmLibJar"
 
         and:
-        output.contains("Constructing jar 'myJvmLib:jar'")
+        output.contains("Constructing Jar 'myJvmLibJar'")
     }
 
     def "can define multiple jvm libraries in single project"() {

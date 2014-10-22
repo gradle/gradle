@@ -76,9 +76,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             def sampleBinary = project.binaries.sampleLibBinary
             def othersSampleBinary = project.binaries.sampleLibOtherBinary
             assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleLibBinary'"
+            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
             assert othersSampleBinary instanceof OtherSampleBinary
-            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl: 'sampleLibOtherBinary'"
+            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
         }
 """
         then:
@@ -99,9 +99,9 @@ Source sets
     No source sets.
 
 Binaries
-    DefaultSampleBinary: 'sampleLibBinary'
+    DefaultSampleBinary 'sampleLibBinary'
         build using task: :sampleLibBinary
-    OtherSampleBinaryImpl: 'sampleLibOtherBinary'
+    OtherSampleBinaryImpl 'sampleLibOtherBinary'
         build using task: :sampleLibOtherBinary
 """))
     }
@@ -182,9 +182,9 @@ Source sets
     No source sets.
 
 Binaries
-    DefaultSampleBinary: 'sampleLib1stBinary'
+    DefaultSampleBinary 'sampleLib1stBinary'
         build using task: :sampleLib1stBinary
-    DefaultSampleBinary: 'sampleLib2ndBinary'
+    DefaultSampleBinary 'sampleLib2ndBinary'
         build using task: :sampleLib2ndBinary
 """))
         where:

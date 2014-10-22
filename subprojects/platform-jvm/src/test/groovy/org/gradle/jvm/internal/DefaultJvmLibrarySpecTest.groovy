@@ -41,6 +41,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
         then:
         library.name == "jvm-lib"
         library.projectPath == ":project-path"
+        library.displayName == "JVM library 'jvm-lib'"
     }
 
     def "contains sources of associated main sourceSet"() {

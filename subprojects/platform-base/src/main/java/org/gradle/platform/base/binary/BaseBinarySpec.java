@@ -43,13 +43,14 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     private final BinaryTasksCollection tasks = new DefaultBinaryTasksCollection(this);
 
     private final String name;
-    private boolean buildable;
+    private final String typeName;
+    private boolean buildable = true;
 
     public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator) {
         if (type.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
-        nextBinaryInfo.set(new BinaryInfo(name));
+        nextBinaryInfo.set(new BinaryInfo(name, type.getSimpleName()));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -70,10 +71,15 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
         this.name = info.name;
+        this.typeName = info.typeName;
+    }
+
+    protected String getTypeName() {
+        return typeName;
     }
 
     public String getDisplayName() {
-        return String.format("%s: '%s'", getClass().getSimpleName(), getName());
+        return String.format("%s '%s'", getTypeName(), getName());
     }
 
     public String getName() {
@@ -106,9 +112,11 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     private static class BinaryInfo {
         final String name;
+        final String typeName;
 
-        private BinaryInfo(String name) {
+        private BinaryInfo(String name, String typeName) {
             this.name = name;
+            this.typeName = typeName;
         }
     }
 

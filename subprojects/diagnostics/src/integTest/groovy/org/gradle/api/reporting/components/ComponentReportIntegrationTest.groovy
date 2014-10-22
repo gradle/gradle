@@ -18,7 +18,6 @@ package org.gradle.api.reporting.components
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -114,7 +113,7 @@ Source sets
         src/someLib/resources
 
 Binaries
-    Jar 'someLib:jar'
+    Jar 'someLibJar'
         build using task: :someLibJar
         platform: $currentJava
         tool chain: $currentJdk
@@ -436,7 +435,7 @@ Source sets
         src/jvmLib/resources
 
 Binaries
-    Jar 'jvmLib:jar'
+    Jar 'jvmLibJar'
         build using task: :jvmLibJar
         platform: ${currentJava}
         tool chain: $currentJdk
@@ -499,17 +498,17 @@ Source sets
         src/myLib/resources
 
 Binaries
-    Jar 'myLib:java5:jar'
+    Jar 'java5MyLibJar'
         build using task: :java5MyLibJar
         platform: java5
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java5/myLib.jar
-    Jar 'myLib:java6:jar'
+        Jar file: build/jars/java5MyLibJar/myLib.jar
+    Jar 'java6MyLibJar'
         build using task: :java6MyLibJar
         platform: java6
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java6/myLib.jar
-    Jar 'myLib:java7:jar'
+        Jar file: build/jars/java6MyLibJar/myLib.jar
+    Jar 'java7MyLibJar'
         build using task: :java7MyLibJar
         platform: java7
         tool chain: $currentJdk
@@ -547,17 +546,17 @@ Source sets
         src/myLib/resources
 
 Binaries
-    Jar 'myLib:java5:jar'
+    Jar 'java5MyLibJar'
         build using task: :java5MyLibJar
         platform: java5
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java5/myLib.jar
-    Jar 'myLib:java6:jar'
+        Jar file: build/jars/java5MyLibJar/myLib.jar
+    Jar 'java6MyLibJar'
         build using task: :java6MyLibJar
         platform: java6
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java6/myLib.jar
-    Jar 'myLib:java9:jar' (not buildable)
+        Jar file: build/jars/java6MyLibJar/myLib.jar
+    Jar 'java9MyLibJar' (not buildable)
         build using task: :java9MyLibJar
         platform: java9
         tool chain: $currentJdk

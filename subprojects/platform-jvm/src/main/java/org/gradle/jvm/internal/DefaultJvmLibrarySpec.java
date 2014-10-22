@@ -35,6 +35,11 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         this.languageOutputs.add(JvmByteCode.class);
     }
 
+    @Override
+    protected String getTypeName() {
+        return "JVM library";
+    }
+
     public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return languageOutputs;
     }
