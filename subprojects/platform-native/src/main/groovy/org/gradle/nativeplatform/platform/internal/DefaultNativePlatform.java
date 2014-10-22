@@ -151,7 +151,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     private static DefaultNativePlatform findDefaultPlatform(final OperatingSystem os, final int registerSize, final ArchitectureInternal.InstructionSet instructionSet) {
         if (os != null) {
-            final int workAroundRegisterSize = (registerSize == 64 && os.isWindows()) ? 32 : registerSize; //TODO freekh: THis is no right, we do this because the cunit tests are failing
+            final int workAroundRegisterSize = (registerSize == 64 && os.isWindows()) ? 32 : registerSize; //TODO freekh: This is not right, we do this because windows tests are failing because they all assume 32 bits
 
             DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
                 public boolean evaluate(Object object) {
