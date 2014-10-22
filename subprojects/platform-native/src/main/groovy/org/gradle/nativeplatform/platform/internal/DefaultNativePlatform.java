@@ -106,7 +106,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public DefaultNativePlatform(String name) {
-        this(name, defaultNativePlatform.getArchitecture(), defaultNativePlatform.getOperatingSystem());
+        this(name, getDefault().getArchitecture(), getDefault().getOperatingSystem());
     }
 
     public static NativePlatform getDefault(final ArchitectureInternal architecture, final OperatingSystemInternal operatingSystem) {
