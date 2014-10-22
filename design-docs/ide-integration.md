@@ -34,7 +34,7 @@ model introduced by the new language plugins:
 
 - Split `gradle tasks` into 'what can I do with this build?' and a 'what are all the tasks in this project?'.
 
-### GRADLE-2434 - IDE visualises and runs task selectors
+### GRADLE-2434 - IDE visualises and runs task selectors (DONE)
 
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
 and all its subprojects.
@@ -43,7 +43,7 @@ Expose some information to allow the IDE to visualise this and execute builds in
 
 See [tooling-api-improvements.md](tooling-api-improvements.md#story-gradle-2434---expose-the-aggregate-tasks-for-a-project)
 
-### IDE hides implementation tasks
+### IDE hides implementation tasks (DONE)
 
 On the command-line I can run `gradle tasks` and see the public tasks for the build, and `gradle tasks --all` to see all the tasks.
 
