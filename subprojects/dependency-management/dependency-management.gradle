@@ -17,7 +17,7 @@ dependencies {
     compile libraries.maven_ant_tasks
     compile libraries.jsch
     runtime libraries.xbean //maven3 classes dependency
-    runtime "org.bouncycastle:bcprov-jdk15:1.46@jar"
+    runtime "org.bouncycastle:bcprov-jdk15on:1.51@jar"
 
     compile fileTree("$buildDir/libs/jarjar") {
         builtBy 'jarJarMaven3'
