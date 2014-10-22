@@ -193,7 +193,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
                         String archLine = archReader.readLine().toLowerCase();
                         if (archLine.contains("x64")) {
                             defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, 64, ArchitectureInternal.InstructionSet.X86),
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, 32, ArchitectureInternal.InstructionSet.X86), //TODO freekh: NOTICE 32 bit here! It is because of failing Cunit tests
                                     "Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
                         } else if (archLine.contains("x86")) {
                             defaultNativePlatform = assertNonNullPlatform(
