@@ -182,7 +182,10 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         if (defaultNativePlatform == null) {
             OperatingSystem os = getPropertyBasedOperatingSystem();
             ArchitectureInternal architectureInternal = getPropertyBasedArchitecture();
-            DefaultNativePlatform propertyBasedDefault = findDefaultPlatform(os, architectureInternal.getRegisterSize(), architectureInternal.getInstructionSet());
+            DefaultNativePlatform propertyBasedDefault = null;
+            if (architectureInternal != null ) {
+                propertyBasedDefault = findDefaultPlatform(os, architectureInternal.getRegisterSize(), architectureInternal.getInstructionSet());
+            }
             if (propertyBasedDefault != null) {
                 defaultNativePlatform = propertyBasedDefault;
             } else { //could not detect platform based on properties
