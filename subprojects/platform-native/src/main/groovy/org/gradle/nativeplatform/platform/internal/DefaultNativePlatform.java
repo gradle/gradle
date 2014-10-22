@@ -34,7 +34,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
     private static Set<DefaultNativePlatform> defaults = defaultPlatformDefinitions();
-    private static volatile DefaultNativePlatform defaultNativePlatform;
+    private static DefaultNativePlatform defaultNativePlatform;
 
     public static Set<DefaultNativePlatform> defaultPlatformDefinitions() {
         //TODO freekh: move this code to somewhere else, or use configuration to load this data instead.
@@ -179,7 +179,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     //TODO freekh: Move this logic back into grapefruit?
     public static DefaultNativePlatform getDefault() {
-        //TODO freekh: no need to synchronize, defaultNativePlatform volatile is sufficient because we can consider this to be idempotent
+        //TODO freekh: no need to synchronize,  because we can consider this to be idempotent
         if (defaultNativePlatform == null) {
             OperatingSystem os = getPropertyBasedOperatingSystem();
             ArchitectureInternal architectureInternal = getPropertyBasedArchitecture();
