@@ -48,7 +48,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     }
 
-    def "uses antlr 2 if no explicit dependency is set"() {
+    def "uses antlr v2 if no explicit dependency is set"() {
         buildFile.text = """
             apply plugin: "java"
             apply plugin: "antlr"
