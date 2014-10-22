@@ -19,17 +19,17 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.jvm.plugins.JvmComponentPlugin;
+
+import org.gradle.api.Project;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.play.DefaultPlayApplicationSpec;
 import org.gradle.play.PlayApplicationSpec;
 
-@Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
     public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(JvmComponentPlugin.class);
     }
 
     @RuleSource
@@ -38,6 +38,5 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationSpec.class);
         }
-
     }
 }
