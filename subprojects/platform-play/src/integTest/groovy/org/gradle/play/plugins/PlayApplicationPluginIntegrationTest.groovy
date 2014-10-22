@@ -15,9 +15,8 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
+import org.gradle.util.TextUtil
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def "can register PlayApplicationSpec"() {
@@ -35,6 +34,17 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 """
         then:
         succeeds "components"
+        and:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+DefaultPlayApplicationSpec 'myApp'
+----------------------------------
+
+Source sets
+    No source sets.
+
+Binaries
+    No binaries.
+"""))
 
     }
 }
