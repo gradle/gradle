@@ -41,9 +41,9 @@ In this milestone we are not dealing with:
 
 The goal is to get something working pretty quickly, and work to improve the configurability and discoverability over time.
 
-## Feature: Developer builds and runs a trivial Play application with templates and routes
+## Feature: Developer builds and runs the Play Application created by “play new”
 
-### Story: Build author declares a Play application
+### Story: Build author declares and builds a Play application component
 
 Add a `play-application` plugin that provides Play application component:
 
@@ -51,17 +51,44 @@ Add a `play-application` plugin that provides Play application component:
         id 'play-application'
     }
 
-    jvm {
-        playApplications {
-            helloworld {
-            }
+    model {
+        components {
+            myapp(PlayApplicationSpec) 
         }
     }
 
-- Running `gradle assemble` builds an executable Jar.
-- Each Play application produces a single binary.
+- Running `gradle assemble` builds an empty Jar file.
 - Running `gradle components` shows some basic details about the Play application.
 - In this story, no source files are supported.
+
+#### Test cases
+
+TBD
+
+### Story: Developer builds a default generated Play application
+
+TBD
+
+### Story: Developer runs Play application
+
+Extend the Play support to allow the Play application to be executed.
+
+- Running `gradle assemble` produces an executable Jar that, when executed, runs the Play application.
+- Running `gradle run<ComponentName>` builds and executes the Play application.
+
+At this stage, only the default generated Play application is supported, with a hard-coded version of Scala and Play.
+
+#### Test cases
+
+## Feature: Developer builds Play application with custom Java, Scala, routes and templates
+
+## Feature: Developer includes compiled assets in Play application (Javascript, LESS, CoffeeScript)
+
+## Feature: Developer chooses target Play, Scala and/or Java platform
+
+## More stories ...
+
+These stories may be replaced, or rolled into the above features.
 
 ### Story: Developer includes template sources in Play application
 
@@ -82,17 +109,6 @@ Extend the Play support so that routes for a Play application are compiled to by
 - The byte code is included in the executable Jar.
 - Routes source files are assumed to be in a hard-coded location. This won't be configurable for this story.
 - Source generation and compilation should be incremental and remove stale outputs.
-
-### Story: Developer runs Play application
-
-Extend the Play support to allow the Play application to be executed.
-
-- Running `gradle assemble` produces an executable Jar that, when executed, runs the Play application.
-- Running `gradle run<ComponentName>` builds and executes the Play application.
-
-At this stage, only templates and routes are included, with a hard-coded version of Scala and Play.
-
-## Feature: Developer builds a Play application from Java and Scala sources
 
 ### Story: Developer implements a Play application using Java
 
