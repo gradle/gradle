@@ -63,8 +63,49 @@ Add a `play-application` plugin that provides Play application component:
 
 #### Test cases
 
-TBD
+- component report shows PlayApplicationSpec with 
+    - version info about    
+        - play  (declared in the plugin)
+        - scala (declared somehow in the plugin)
+        - java  (picked current version for now)
+    
+- assemble creates an empty jar file
 
+#### Open issues
+
+- apply default PlayApplicationSpec implicitly when applying play-framework plugin?
+- what's the exact impact on choosing a language (play new 'java' or 'scala') -> Fredrik 
+- Scala sourceSets in component -> René
+
+### Story: Declare standard sourceSets for a Play application
+
+Add sourceSets to a PlayApplicationSpec for
+
+- app code
+    - Scala / Java (cross compiled)
+- templates 
+    - Template Compiler creates Scala sources
+    - generated Scala Source is then compiled
+- routes
+    - route Compiler creates Scala / Java sources
+    - generated Source is then (cross) compiled
+
+#### Test cases
+
+- component report shows PlayApplicationSpec with sourceSets for
+    - app code
+    - templates
+    - routes
+- assert sources for sourcesets are detected
+    - appcode is scala/java source
+    - templates sources are `*.html.scala` in `app/views`
+    - routes for now is just `conf/routes`
+    
+#### Open issues
+- is templates folder app/views just a convention for templates? -> Fredrik
+- handle non html templates
+- handle .routes files
+    
 ### Story: Developer builds a default generated Play application
 
 TBD
