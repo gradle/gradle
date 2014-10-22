@@ -46,7 +46,7 @@ import java.io.File;
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(NativeComponentPlugin.class);
     }
 
     /**

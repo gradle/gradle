@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class IdeaPluginTest extends Specification {
     private final DefaultProject project = TestUtil.createRootProject()
-    private final Project childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final DefaultProject childProject = TestUtil.createChildProject(project, "child", new File("."))
 
     def "adds 'ideaProject' task to root project"() {
         when:
@@ -138,7 +138,7 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         when:
-        childProject.plugins.apply(ScalaPlugin)
+        childProject.pluginManager.apply(ScalaPlugin)
 
         then:
         def parentIdeaProject = project.tasks.ideaProject

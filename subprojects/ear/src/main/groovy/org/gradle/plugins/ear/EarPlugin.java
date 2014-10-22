@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -58,7 +59,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.getPlugins().apply(BasePlugin.class);
+        project.apply(ImmutableMap.of("type", BasePlugin.class));
 
         final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver, instantiator);
         project.getConvention().getPlugins().put("ear", earPluginConvention);

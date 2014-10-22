@@ -15,17 +15,17 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class ReportingBasePluginTest extends Specification {
 
-    Project project = TestUtil.createRootProject();
+    DefaultProject project = TestUtil.createRootProject();
 
     def setup() {
-        project.plugins.apply(ReportingBasePlugin)
+        project.pluginManager.apply(ReportingBasePlugin)
     }
 
     def "adds reporting extension"() {

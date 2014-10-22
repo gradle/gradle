@@ -30,7 +30,7 @@ public class CustomPlugin implements Plugin<Project> {
 
 public class BrokenCustomPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.getPlugins().apply(CustomPlugin)
+        project.apply(type: CustomPlugin)
         project.getExtensions().configure(CustomExtension, {
             throw new RuntimeException("broken configuration in plugin")
         } as Action)

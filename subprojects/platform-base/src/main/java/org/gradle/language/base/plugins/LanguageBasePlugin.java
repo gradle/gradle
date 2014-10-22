@@ -17,8 +17,8 @@ package org.gradle.language.base.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,7 +47,7 @@ import javax.inject.Inject;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-public class LanguageBasePlugin implements Plugin<Project> {
+public class LanguageBasePlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private ModelRegistry modelRegistry;
@@ -58,8 +58,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         this.modelRegistry = modelRegistry;
     }
 
-    public void apply(final Project target) {
-        target.getPlugins().apply(LifecycleBasePlugin.class);
+    public void apply(final ProjectInternal target) {
+        target.getPluginManager().apply(LifecycleBasePlugin.class);
 
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);

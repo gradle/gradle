@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-import org.gradle.api.Project
+
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class LegacyJavaComponentPluginTest extends Specification {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(LegacyJavaComponentPlugin)
+        project.pluginManager.apply(LegacyJavaComponentPlugin)
     }
 
     def "applies jvm-lang plugin"() {

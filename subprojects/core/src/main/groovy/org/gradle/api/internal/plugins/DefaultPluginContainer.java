@@ -25,6 +25,7 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.util.SingleMessageLogger;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
@@ -40,6 +41,11 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin apply(String id) {
+        SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(String)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
+        return doApply(id);
+    }
+
+    public Plugin doApply(String id) {
         PotentialPlugin potentialPlugin = pluginRegistry.lookup(id);
         Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
         if (pluginClass == null) {
@@ -50,6 +56,11 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
+        SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(Class)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
+        return doApply(type);
+    }
+
+    public <P extends Plugin> P doApply(Class<P> type) {
         return addPluginInternal(null, type);
     }
 

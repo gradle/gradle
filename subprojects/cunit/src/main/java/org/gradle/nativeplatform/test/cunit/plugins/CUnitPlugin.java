@@ -59,8 +59,8 @@ import java.io.File;
 public class CUnitPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(NativeBinariesTestPlugin.class);
-        project.getPlugins().apply(CLangPlugin.class);
+        project.getPluginManager().apply(NativeBinariesTestPlugin.class);
+        project.getPluginManager().apply(CLangPlugin.class);
     }
 
     /**

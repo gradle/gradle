@@ -37,7 +37,7 @@ public class PluginManager {
 
     private final PluginApplicator applicator;
     private final PluginRegistry pluginRegistry;
-    private final PluginContainer pluginContainer;
+    private final DefaultPluginContainer pluginContainer;
     private final Set<Class<?>> allPlugins = Sets.newHashSet();
     private final Set<String> unclaimedIds = Sets.newHashSet();
     private final Set<Class<?>> noIdPlugins = Sets.newHashSet();
@@ -118,9 +118,9 @@ public class PluginManager {
                 addPlugin(pluginId, pluginClass);
             } else {
                 if (pluginId == null) {
-                    pluginContainer.apply(asImperativeClass);
+                    pluginContainer.doApply(asImperativeClass);
                 } else {
-                    pluginContainer.apply(pluginId);
+                    pluginContainer.doApply(pluginId);
                 }
             }
         }

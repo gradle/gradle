@@ -28,7 +28,7 @@ class NativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(NativeComponentPlugin)
+        project.pluginManager.apply(NativeComponentPlugin)
     }
 
     def "creates link and install task for executable"() {

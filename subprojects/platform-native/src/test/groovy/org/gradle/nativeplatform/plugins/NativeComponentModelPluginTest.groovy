@@ -38,7 +38,7 @@ class NativeComponentModelPluginTest extends Specification {
     def modelRegistryHelper = new ModelRegistryHelper(project)
 
     def setup() {
-        project.plugins.apply(NativeComponentModelPlugin)
+        project.pluginManager.apply(NativeComponentModelPlugin)
     }
 
     def "adds model extensions"() {
@@ -87,7 +87,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "creates binaries for executable"() {
         when:
-        project.plugins.apply(NativeComponentModelPlugin)
+        project.pluginManager.apply(NativeComponentModelPlugin)
         modelRegistryHelper
                 .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
@@ -114,7 +114,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "creates binaries for library"() {
         when:
-        project.plugins.apply(NativeComponentModelPlugin)
+        project.pluginManager.apply(NativeComponentModelPlugin)
         modelRegistryHelper
                 .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
                 .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
@@ -155,7 +155,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "creates lifecycle task for each binary"() {
         when:
-        project.plugins.apply(NativeComponentModelPlugin)
+        project.pluginManager.apply(NativeComponentModelPlugin)
         def executable = project.nativeRuntime.executables.create "exe"
         def library = project.nativeRuntime.libraries.create "lib"
         project.evaluate()

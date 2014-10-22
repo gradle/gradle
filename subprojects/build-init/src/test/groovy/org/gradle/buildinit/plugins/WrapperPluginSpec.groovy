@@ -27,7 +27,7 @@ class WrapperPluginSpec extends Specification {
 
     def "adds 'wrapper' task"() {
         when:
-        project.plugins.apply WrapperPlugin
+        project.pluginManager.apply WrapperPlugin
 
         then:
         project.tasks.wrapper instanceof Wrapper

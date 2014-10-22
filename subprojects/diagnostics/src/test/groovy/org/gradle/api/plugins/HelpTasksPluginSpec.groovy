@@ -61,7 +61,7 @@ class HelpTasksPluginSpec extends Specification {
         !project.tasks[HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK].configuration
 
         when:
-        project.plugins.apply(JavaPlugin)
+        project.pluginManager.apply(JavaPlugin)
 
         then:
         project.tasks[HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK].configuration == project.configurations.compile

@@ -16,9 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal
 
+import org.gradle.api.internal.plugins.PluginManager
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -30,13 +30,13 @@ class BuildInitAutoApplyActionSpec extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     TestFile buildFile
     ProjectInternal projectInternal
-    PluginContainer pluginContainer
+    PluginManager pluginManager
     TaskContainerInternal taskContainerInternal
 
     public void setup() {
         projectInternal = Mock(ProjectInternal)
-        pluginContainer = Mock(PluginContainer)
         taskContainerInternal = Mock(TaskContainerInternal)
+        pluginManager = Mock(PluginManager)
         _ * projectInternal.getTasks() >> taskContainerInternal
 
     }
@@ -47,8 +47,8 @@ class BuildInitAutoApplyActionSpec extends Specification {
         then:
         1 * taskContainerInternal.addPlaceholderAction("init", _) >> {args -> args[1].run()}
         1 * projectInternal.getParent() >> null
-        1 * projectInternal.getPlugins() >> pluginContainer
-        1 * pluginContainer.apply("build-init")
+        1 * projectInternal.getPluginManager() >> pluginManager
+        1 * pluginManager.apply("build-init")
     }
 
     def "is not applied on non rootprojects"() {
@@ -58,8 +58,8 @@ class BuildInitAutoApplyActionSpec extends Specification {
         new BuildInitAutoApplyAction().execute(projectInternal)
         then:
         0 * taskContainerInternal.addPlaceholderAction("init", _)
-        0 * projectInternal.getPlugins() >> pluginContainer
-        0 * pluginContainer.apply("build-init")
+        0 * projectInternal.getPluginManager() >> pluginManager
+        0 * pluginManager.apply("build-init")
     }
 
     def isNotRootProject() {

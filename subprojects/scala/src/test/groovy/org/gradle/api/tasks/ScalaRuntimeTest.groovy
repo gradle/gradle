@@ -26,7 +26,7 @@ class ScalaRuntimeTest extends Specification {
     def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(ScalaBasePlugin)
+        project.pluginManager.apply(ScalaBasePlugin)
     }
 
     def "inferred Scala class path contains 'scala-compiler' repository dependency matching 'scala-library' Jar found on class path"() {

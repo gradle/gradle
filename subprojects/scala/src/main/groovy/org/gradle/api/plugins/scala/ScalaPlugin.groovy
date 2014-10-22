@@ -26,8 +26,8 @@ public class ScalaPlugin implements Plugin<Project> {
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
 
     public void apply(Project project) {
-        project.plugins.apply(ScalaBasePlugin.class);
-        project.plugins.apply(JavaPlugin.class);
+        project.apply(type: ScalaBasePlugin);
+        project.apply(type: JavaPlugin);
 
         configureScaladoc(project);
     }

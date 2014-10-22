@@ -28,7 +28,7 @@ class BuildInitPluginSpec extends Specification {
 
     def "applies plugin"() {
         when:
-        project.plugins.apply BuildInitPlugin
+        project.pluginManager.apply BuildInitPlugin
         and:
         project.evaluate()
         then:
@@ -44,7 +44,7 @@ class BuildInitPluginSpec extends Specification {
         buildFile << '// an empty build'
         project = TestUtil.builder().withProjectDir(projectDir).build()
         when:
-        project.plugins.apply BuildInitPlugin
+        project.pluginManager.apply BuildInitPlugin
 
         then:
         project.init != null
@@ -56,7 +56,7 @@ class BuildInitPluginSpec extends Specification {
         project.file("settings.gradle") << '// an empty file'
 
         when:
-        project.plugins.apply BuildInitPlugin
+        project.pluginManager.apply BuildInitPlugin
 
         then:
         project.init != null
@@ -68,7 +68,7 @@ class BuildInitPluginSpec extends Specification {
         TestUtil.createChildProject(project, 'child')
 
         when:
-        project.plugins.apply BuildInitPlugin
+        project.pluginManager.apply BuildInitPlugin
 
         then:
         project.init != null

@@ -27,6 +27,7 @@ import org.gradle.api.distribution.internal.DefaultDistributionContainer
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
@@ -42,7 +43,7 @@ import org.gradle.api.plugins.BasePlugin
  *
  */
 @Incubating
-class DistributionPlugin implements Plugin<Project> {
+class DistributionPlugin implements Plugin<ProjectInternal> {
     /**
      * Name of the main distribution
      */
@@ -62,8 +63,8 @@ class DistributionPlugin implements Plugin<Project> {
         this.fileOperations =  fileOperations
     }
 
-    public void apply(Project project) {
-        project.plugins.apply(BasePlugin)
+    public void apply(ProjectInternal project) {
+        project.pluginManager.apply(BasePlugin)
 
         def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileOperations)
         // TODO - refactor this action out so it can be unit tested

@@ -28,7 +28,7 @@ class OsgiPluginConventionTest extends Specification {
     OsgiPluginConvention osgiPluginConvention = new OsgiPluginConvention(project)
 
     def setup() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
     }
 
     def osgiManifestWithNoClosure() {

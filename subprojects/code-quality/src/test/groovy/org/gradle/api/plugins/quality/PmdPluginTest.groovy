@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
@@ -27,10 +27,10 @@ import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class PmdPluginTest extends Specification {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(PmdPlugin)
+        project.pluginManager.apply(PmdPlugin)
     }
 
     def "applies reporting-base plugin"() {
@@ -59,7 +59,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "configures pmd task for each source set"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -73,7 +73,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "configures pmd targetjdk based on sourcecompatibilityLevel"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         when:
         project.setSourceCompatibility(sourceCompatibility)
         project.sourceSets {
@@ -127,7 +127,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "adds pmd tasks to check lifecycle task"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -139,7 +139,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test

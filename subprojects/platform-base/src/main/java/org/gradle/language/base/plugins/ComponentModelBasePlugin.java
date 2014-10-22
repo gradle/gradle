@@ -68,7 +68,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(LanguageBasePlugin.class);
+        project.getPluginManager().apply(LanguageBasePlugin.class);
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);

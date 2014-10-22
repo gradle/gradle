@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -65,7 +66,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private void applyEclipsePlugin(Project root) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
-            p.getPlugins().apply(EclipsePlugin.class);
+            p.apply(ImmutableMap.of("type", EclipsePlugin.class));
         }
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }

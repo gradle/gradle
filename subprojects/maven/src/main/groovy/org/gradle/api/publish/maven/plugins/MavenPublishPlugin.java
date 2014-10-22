@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
@@ -57,7 +58,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.4
  */
 @Incubating
-public class MavenPublishPlugin implements Plugin<Project> {
+public class MavenPublishPlugin implements Plugin<ProjectInternal> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
@@ -75,8 +76,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
         this.projectDependencyResolver = projectDependencyResolver;
     }
 
-    public void apply(final Project project) {
-        project.getPlugins().apply(PublishingPlugin.class);
+    public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(PublishingPlugin.class);
 
         final TaskContainer tasks = project.getTasks();
         final Task publishLocalLifecycleTask = tasks.create(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);

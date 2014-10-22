@@ -33,7 +33,7 @@ class IvyPublishPluginTest extends Specification {
     PublishingExtension publishing
 
     def setup() {
-        project.plugins.apply(IvyPublishPlugin)
+        project.pluginManager.apply(IvyPublishPlugin)
         publishing = project.extensions.getByType(PublishingExtension)
     }
 

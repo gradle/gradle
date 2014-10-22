@@ -16,7 +16,7 @@
  
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
@@ -30,13 +30,12 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
-
 class GroovyBasePluginTest {
-    private final Project project = TestUtil.createRootProject()
+    private final DefaultProject project = TestUtil.createRootProject()
 
     @Before
     void before() {
-        project.plugins.apply(GroovyBasePlugin)
+        project.pluginManager.apply(GroovyBasePlugin)
     }
 
     @Test void appliesTheJavaBasePluginToTheProject() {

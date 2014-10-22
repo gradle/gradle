@@ -31,8 +31,8 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 @Incubating
 public class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
-        project.getPlugins().apply(NativeComponentPlugin.class);
-        project.getPlugins().apply(ObjectiveCppLangPlugin.class);
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(ObjectiveCppLangPlugin.class);
     }
 
 }

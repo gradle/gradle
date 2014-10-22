@@ -37,7 +37,7 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_DASHBOARD_TASK_NAME = "buildDashboard";
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(ReportingBasePlugin.class);
+        project.getPluginManager().apply(ReportingBasePlugin.class);
 
         final GenerateBuildDashboard buildDashboardTask = project.getTasks().create(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard.class);
         buildDashboardTask.setDescription("Generates a dashboard of all the reports produced by this build.");

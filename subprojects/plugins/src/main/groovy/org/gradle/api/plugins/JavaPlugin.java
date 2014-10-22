@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -60,7 +61,7 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
     public void apply(Project project) {
-        project.getPlugins().apply(JavaBasePlugin.class);
+        project.apply(ImmutableMap.of("type", JavaBasePlugin.class));
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));

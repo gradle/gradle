@@ -24,7 +24,7 @@ class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
         if (projectInternal.getParent() == null) {
             projectInternal.tasks.addPlaceholderAction("wrapper", new Runnable() {
                 void run() {
-                    projectInternal.getPlugins().apply("wrapper")
+                    projectInternal.pluginManager.apply("wrapper")
                 }
             })
         }

@@ -15,9 +15,9 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
+import org.gradle.language.c.plugins.CPlugin
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
-import org.gradle.language.c.plugins.CPlugin
 import org.gradle.nativeplatform.test.TestSuiteContainer
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitPlugin
 import org.gradle.util.TestUtil
@@ -28,11 +28,11 @@ class CUnitTest extends Specification {
 
     def "check the correct binary type are created for the test suite"() {
         given:
-        project.plugins.apply(CPlugin)
+        project.pluginManager.apply(CPlugin)
         project.libraries.create("main")
 
         when:
-        project.plugins.apply(CUnitPlugin)
+        project.pluginManager.apply(CUnitPlugin)
         project.evaluate()
 
         then:

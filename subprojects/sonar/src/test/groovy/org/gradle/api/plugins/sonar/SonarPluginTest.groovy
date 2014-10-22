@@ -32,7 +32,7 @@ class SonarPluginTest extends Specification {
         def project = TestUtil.createRootProject()
 
         when:
-        project.plugins.apply(SonarPlugin)
+        project.pluginManager.apply(SonarPlugin)
 
         then:
         project.sonar instanceof SonarRootModel
@@ -44,7 +44,7 @@ class SonarPluginTest extends Specification {
         def child = TestUtil.createChildProject(project, "child")
 
         when:
-        project.plugins.apply(SonarPlugin)
+        project.pluginManager.apply(SonarPlugin)
 
         then:
         child.sonar instanceof SonarProjectModel
@@ -55,7 +55,7 @@ class SonarPluginTest extends Specification {
         def project = TestUtil.createRootProject()
 
         when:
-        project.plugins.apply(SonarPlugin)
+        project.pluginManager.apply(SonarPlugin)
 
         then:
         SonarRootModel sonar = project.sonar
@@ -97,7 +97,7 @@ class SonarPluginTest extends Specification {
         sonarProject.java.targetCompatibility == project.targetCompatibility as String
 
         where:
-        project << createMultiProject { plugins.apply(JavaBasePlugin) }.allprojects
+        project << createMultiProject { pluginManager.apply(JavaBasePlugin) }.allprojects
     }
 
     def "provides additional defaults for project configuration if java plugin is present"(Project project) {
@@ -135,7 +135,7 @@ class SonarPluginTest extends Specification {
         ConfigureUtil.configure(commonConfig, child)
         child.group = "group"
 
-        root.plugins.apply(SonarPlugin)
+        root.pluginManager.apply(SonarPlugin)
 
         root
     }

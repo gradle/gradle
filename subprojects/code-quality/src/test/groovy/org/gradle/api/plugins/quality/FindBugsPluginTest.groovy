@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
@@ -28,10 +28,10 @@ import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class FindBugsPluginTest extends Specification {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(FindBugsPlugin)
+        project.pluginManager.apply(FindBugsPlugin)
     }
 
     def "applies reporting-base plugin"() {
@@ -65,7 +65,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "configures FindBugs task for each source set"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -124,7 +124,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "adds FindBugs tasks to check lifecycle task"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -136,7 +136,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -219,7 +219,7 @@ class FindBugsPluginTest extends Specification {
 
     def "can configure reporting"() {
         given:
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
         }
@@ -237,7 +237,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "can use legacy includeFilter extension property"() {
-        project.plugins.apply(JavaPlugin)
+        project.pluginManager.apply(JavaPlugin)
 
         project.findbugs.includeFilter = project.file("filter.txt")
 
@@ -248,7 +248,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "can use legacy excludeFilter extension property"() {
-        project.plugins.apply(JavaPlugin)
+        project.pluginManager.apply(JavaPlugin)
 
         project.findbugs.excludeFilter = project.file("filter.txt")
 

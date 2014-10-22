@@ -24,6 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.plugins.PluginDescriptor;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaPlugin;
@@ -39,7 +40,7 @@ import java.util.*;
  * A plugin for validating java gradle plugins during the jar task.  Emits warnings for common error conditions.
  */
 @Incubating
-public class JavaGradlePluginPlugin implements Plugin<Project> {
+public class JavaGradlePluginPlugin implements Plugin<ProjectInternal> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     static final String COMPILE_CONFIGURATION = "compile";
     static final String JAR_TASK = "jar";
@@ -50,8 +51,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
 
-    public void apply(Project project) {
-        project.getPlugins().apply(JavaPlugin.class);
+    public void apply(ProjectInternal project) {
+        project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
     }

@@ -18,6 +18,7 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.Actions;
@@ -57,12 +58,12 @@ import java.util.Set;
  * the {@link org.gradle.platform.base.ComponentSpecContainer}.
  */
 @Incubating
-public class JvmComponentPlugin implements Plugin<Project> {
+public class JvmComponentPlugin implements Plugin<ProjectInternal> {
 
     private static final Set<JavaPlatform> DEFAULT_PLATFORMS = instantiateJavaPlatforms();
 
-    public void apply(final Project project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
+    public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     private static Set<JavaPlatform> instantiateJavaPlatforms() {

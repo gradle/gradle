@@ -48,7 +48,8 @@ class EclipseWtpPlugin extends IdePlugin {
     }
 
     @Override protected void onApply(Project project) {
-        EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
+        project.apply(type: EclipsePlugin)
+        EclipsePlugin delegatePlugin = project.plugins.getPlugin(EclipsePlugin)
         delegatePlugin.model.wtp = instantiator.newInstance(EclipseWtp, delegatePlugin.model.classpath)
         eclipseWtpModel = delegatePlugin.model.wtp
 

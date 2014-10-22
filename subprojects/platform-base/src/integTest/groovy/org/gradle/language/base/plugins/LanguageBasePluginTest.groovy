@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.language.base.plugins
-import org.gradle.api.Project
+
 import org.gradle.api.Task
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.internal.reflect.DirectInstantiator
@@ -26,10 +27,10 @@ import org.gradle.platform.base.internal.DefaultBinaryContainer
 import org.gradle.util.TestUtil
 
 class LanguageBasePluginTest extends WellBehavedPluginTest {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(LanguageBasePlugin)
+        project.pluginManager.apply(LanguageBasePlugin)
     }
 
     def "adds a 'binaries' container to the project"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.DslObject;
@@ -31,8 +32,8 @@ public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
 
     public void apply(Project project) {
-        project.getPlugins().apply(GroovyBasePlugin.class);
-        project.getPlugins().apply(JavaPlugin.class);
+        project.apply(ImmutableMap.of("type", GroovyBasePlugin.class));
+        project.apply(ImmutableMap.of("type", JavaPlugin.class));
         configureGroovydoc(project);
     }
 

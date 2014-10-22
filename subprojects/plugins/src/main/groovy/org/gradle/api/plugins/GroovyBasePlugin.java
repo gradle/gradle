@@ -54,7 +54,8 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
 
     public void apply(ProjectInternal project) {
         this.project = project;
-        JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
+        project.getPluginManager().apply(JavaBasePlugin.class);
+        JavaBasePlugin javaBasePlugin = project.getPlugins().getPlugin(JavaBasePlugin.class);
 
         configureGroovyRuntimeExtension();
         configureCompileDefaults();

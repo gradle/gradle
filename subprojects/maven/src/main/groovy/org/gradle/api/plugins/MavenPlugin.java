@@ -80,7 +80,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         this.project = project;
-        project.getPlugins().apply(BasePlugin.class);
+        project.getPluginManager().apply(BasePlugin.class);
 
         DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);

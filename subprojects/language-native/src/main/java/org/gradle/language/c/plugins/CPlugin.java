@@ -31,8 +31,8 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 @Incubating
 public class CPlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
-        project.getPlugins().apply(NativeComponentPlugin.class);
-        project.getPlugins().apply(CLangPlugin.class);
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(CLangPlugin.class);
     }
 
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.api.tasks.Copy;
@@ -48,7 +49,7 @@ import java.util.concurrent.Callable;
  * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.jvm.ClassDirectoryBinarySpec}.
  */
 @Incubating
-public class LegacyJavaComponentPlugin implements Plugin<Project> {
+public class LegacyJavaComponentPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final JavaToolChain toolChain;
@@ -59,9 +60,9 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         this.toolChain = toolChain;
     }
 
-    public void apply(final Project target) {
+    public void apply(final ProjectInternal target) {
 
-        target.getPlugins().apply(LanguageBasePlugin.class);
+        target.getPluginManager().apply(LanguageBasePlugin.class);
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {

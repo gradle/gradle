@@ -15,21 +15,22 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class JDependPluginTest extends Specification {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(JDependPlugin)
+        project.pluginManager.apply(JDependPlugin)
     }
 
     def "applies reporting-base plugin"() {
@@ -55,7 +56,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "configures jdepend task for each source set"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -90,7 +91,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "adds jdepend tasks to check lifecycle task"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -102,7 +103,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -138,7 +139,7 @@ class JDependPluginTest extends Specification {
 
     def "can configure reporting"() {
         given:
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
         }

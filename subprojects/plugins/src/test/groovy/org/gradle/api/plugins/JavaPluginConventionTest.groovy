@@ -44,7 +44,7 @@ class JavaPluginConventionTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Before public void setUp() {
-        project.plugins.apply(ReportingBasePlugin)
+        project.pluginManager.apply(ReportingBasePlugin)
         convention = new JavaPluginConvention(project, instantiator)
     }
 

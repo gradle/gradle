@@ -33,7 +33,7 @@ abstract class NativeToolChainPluginTest extends Specification {
     def modelRegistryHelper = new ModelRegistryHelper(project)
 
     def setup() {
-        project.plugins.apply(getPluginClass())
+        project.pluginManager.apply(getPluginClass())
     }
 
     abstract Class<? extends Plugin> getPluginClass()

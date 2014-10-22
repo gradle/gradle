@@ -30,7 +30,7 @@ abstract class AbstractLanguagePluginSpec extends Specification{
     @Unroll
     def "adds support for custom #sourceSetClass.simpleName"() {
         when:
-        project.plugins.apply(pluginClass)
+        project.pluginManager.apply(pluginClass)
         project.sources.create "test"
         then:
         project.sources.test.create("test_sourceSet", sourceSetClass) in sourceSetClass
@@ -42,7 +42,7 @@ abstract class AbstractLanguagePluginSpec extends Specification{
     @Unroll
     def "registers #language in language registration"() {
         when:
-        project.plugins.apply(pluginClass)
+        project.pluginManager.apply(pluginClass)
         then:
         // project.languages is not a NamedObjectContainer
         project.languages.matching { it.name == language } != null

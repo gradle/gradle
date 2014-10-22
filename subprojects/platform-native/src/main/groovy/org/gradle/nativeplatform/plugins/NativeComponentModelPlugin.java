@@ -70,7 +70,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
 
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
         ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);

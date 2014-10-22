@@ -123,7 +123,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             final String id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
                 public void run() {
-                    target.getPlugins().apply(id);
+                    target.getPluginManager().apply(id);
                 }
             });
         }

@@ -25,7 +25,7 @@ public class BuildInitAutoApplyAction implements ProjectConfigureAction {
         if (projectInternal.getParent() == null) {
             projectInternal.getTasks().addPlaceholderAction("init", new Runnable() {
                 public void run() {
-                    projectInternal.getPlugins().apply("build-init");
+                    projectInternal.getPluginManager().apply("build-init");
                 }
             });
         }

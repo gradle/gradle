@@ -50,7 +50,8 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     void apply(Project project) {
         this.project = project
-        def javaPlugin = project.plugins.apply(JavaBasePlugin.class)
+        project.apply(type: JavaBasePlugin)
+        def javaPlugin = project.plugins.getPlugin(JavaBasePlugin.class)
 
         configureConfigurations(project)
         configureScalaRuntimeExtension()

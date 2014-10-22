@@ -17,11 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
@@ -34,11 +34,11 @@ import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
 class BasePluginTest extends Specification {
-    private final Project project = TestUtil.createRootProject()
+    private final DefaultProject project = TestUtil.createRootProject()
 
     public void addsConventionObjects() {
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         project.convention.plugins.base instanceof BasePluginConvention
@@ -47,7 +47,7 @@ class BasePluginTest extends Specification {
 
     public void createsTasksAndAppliesMappings() {
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         def clean = project.tasks[BasePlugin.CLEAN_TASK_NAME]
@@ -65,7 +65,7 @@ class BasePluginTest extends Specification {
         def someJar = project.tasks.create('someJar', Jar)
 
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.artifacts.archives someJar
 
         then:
@@ -75,7 +75,7 @@ class BasePluginTest extends Specification {
 
     public void addsRulesWhenAConfigurationIsAdded() {
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         !project.tasks.rules.empty
@@ -86,7 +86,7 @@ class BasePluginTest extends Specification {
         def someJar = project.tasks.create('someJar', Jar)
 
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.artifacts.archives someJar
 
         then:
@@ -121,7 +121,7 @@ class BasePluginTest extends Specification {
         test.outputs.files(project.buildDir)
 
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         Task cleanTest = project.tasks['cleanTest']
@@ -135,7 +135,7 @@ class BasePluginTest extends Specification {
         project.task('12')
 
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         project.tasks.findByName('cleantestTask') == null
@@ -146,7 +146,7 @@ class BasePluginTest extends Specification {
 
     public void appliesMappingsForArchiveTasks() {
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.version = '1.0'
 
         then:
@@ -170,7 +170,7 @@ class BasePluginTest extends Specification {
 
     public void usesNullVersionWhenProjectVersionNotSpecified() {
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         def task = project.tasks.create('someJar', Jar)
@@ -185,7 +185,7 @@ class BasePluginTest extends Specification {
 
     public void addsConfigurationsToTheProject() {
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         then:
         def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
@@ -204,7 +204,7 @@ class BasePluginTest extends Specification {
         PublishArtifact artifact = Mock()
 
         when:
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.configurations.create("custom").artifacts.add(artifact)
 
         then:

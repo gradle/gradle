@@ -38,7 +38,7 @@ import java.util.Map;
 public class ObjectiveCLangPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
 
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getExtensions().getByType(LanguageRegistry.class).add(new ObjectiveC());
     }
 

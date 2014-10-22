@@ -96,6 +96,10 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
+### `PluginContainer.apply(String)` and `PluginContainer.apply(Class)` methods are deprecated.
+
+Please use `PluginAware.apply(Map)` or `PluginAware.apply(Closure)` instead.
+
 <!--
 ### Example deprecation
 -->
