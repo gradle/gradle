@@ -34,7 +34,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory;
-import org.gradle.api.internal.plugins.CorePluginRegistry;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.*;
@@ -295,7 +295,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry(PluginInspector pluginInspector) {
-        return new CorePluginRegistry(pluginInspector, get(ClassLoaderRegistry.class).getPluginsClassLoader());
+        return new DefaultPluginRegistry(pluginInspector, get(ClassLoaderRegistry.class).getPluginsClassLoader());
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

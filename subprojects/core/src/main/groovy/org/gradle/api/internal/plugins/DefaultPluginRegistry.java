@@ -21,48 +21,45 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginInstantiationException;
-import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.plugin.internal.PluginId;
 import org.gradle.util.GUtil;
 
 import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginRegistry implements PluginRegistry {
 
-    private final LoadingCache<Class<?>, PotentialPlugin> classMappings;
-    private final LoadingCache<PluginIdLookupCacheKey, Boolean> pluginClassIdCache;
-    private final LoadingCache<String, Optional<PotentialPlugin>> idMappings;
-
-    private final DefaultPluginRegistry parent;
+    private final PluginRegistry parent;
     private final PluginInspector pluginInspector;
+    private final Factory<? extends ClassLoader> classLoaderFactory;
 
-    @SuppressWarnings("RedundantTypeArguments") // type hints are required on Java 6
+    private final LoadingCache<Class<?>, PotentialPlugin> classMappings;
+    private final LoadingCache<PluginIdLookupCacheKey, Optional<PotentialPluginWithId>> idMappings;
+
     public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
-        this(
-                null,
-                pluginInspector,
-                CacheBuilder.newBuilder().<Class<?>, PotentialPlugin>build(new PotentialPluginCacheLoader(pluginInspector)),
-                CacheBuilder.newBuilder().<PluginIdLookupCacheKey, Boolean>build(new PluginIdCacheLoader()),
-                Factories.constant(classLoader)
-        );
+        this(null, pluginInspector, Factories.constant(classLoader));
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, PluginInspector pluginInspector, LoadingCache<Class<?>, PotentialPlugin> classMappings, LoadingCache<PluginIdLookupCacheKey, Boolean> pluginClassIdCache, final Factory<? extends ClassLoader> classLoaderFactory) {
+    private DefaultPluginRegistry(PluginRegistry parent, PluginInspector pluginInspector, final Factory<? extends ClassLoader> classLoaderFactory) {
         this.parent = parent;
         this.pluginInspector = pluginInspector;
-        this.classMappings = classMappings;
-        this.pluginClassIdCache = pluginClassIdCache;
-
-        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<String, Optional<PotentialPlugin>>() {
+        this.classLoaderFactory = classLoaderFactory;
+        this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
+        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PotentialPluginWithId>>() {
             @Override
-            public Optional<PotentialPlugin> load(@SuppressWarnings("NullableProblems") String pluginId) throws Exception {
-                ClassLoader classLoader = classLoaderFactory.create();
-                PluginDescriptor pluginDescriptor = findPluginDescriptor(pluginId, classLoader);
+            public Optional<PotentialPluginWithId> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
+                String pluginId = key.getId();
+                ClassLoader classLoader = key.getClassLoader();
+
+                PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
+
+                PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(pluginId);
                 if (pluginDescriptor == null) {
                     return Optional.absent();
                 }
@@ -82,45 +79,56 @@ public class DefaultPluginRegistry implements PluginRegistry {
                 }
 
                 PotentialPlugin potentialPlugin = inspect(implClass);
-                if (potentialPlugin == null) {
-                    throw new InvalidPluginException("Implementation class " + implClassName + " for plugin with id '" + pluginId + "' is not a valid plugin implementation.");
-                } else {
-                    return Optional.of(potentialPlugin);
-                }
+                return Optional.of(new PotentialPluginWithId(PluginId.unvalidated(pluginId), potentialPlugin));
             }
         });
     }
 
     public PluginRegistry createChild(final ClassLoaderScope lookupScope) {
-        return new DefaultPluginRegistry(this, pluginInspector, classMappings, pluginClassIdCache, new Factory<ClassLoader>() {
+        return new DefaultPluginRegistry(this, pluginInspector, new Factory<ClassLoader>() {
             public ClassLoader create() {
                 return lookupScope.getLocalClassLoader();
             }
         });
     }
 
-    private Boolean internalHasId(Class<?> pluginClass, String id) {
+    public PotentialPlugin inspect(Class<?> clazz) {
+        // Don't go up the parent chain.
+        // Don't want to risk classes crossing “scope” boundaries and being non collectible.
+        return uncheckedGet(classMappings, clazz);
+    }
+
+    public PotentialPluginWithId lookup(String idOrName) {
+        PotentialPluginWithId lookup;
         if (parent != null) {
-            Boolean parentHas = parent.internalHasId(pluginClass, id);
-            if (parentHas != null) {
-                return parentHas;
+            lookup = parent.lookup(idOrName);
+            if (lookup == null) {
+                String qualified = maybeQualify(idOrName);
+                if (qualified != null) {
+                    lookup = lookup(qualified);
+                }
+            }
+
+            if (lookup != null) {
+                return lookup;
             }
         }
 
-        Optional<PotentialPlugin> potentialPlugin = find(id);
-        if (potentialPlugin.isPresent() && potentialPlugin.get().asClass().equals(pluginClass)) {
-            return true;
-        } else {
-            return uncheckedGet(pluginClassIdCache, new PluginIdLookupCacheKey(pluginClass, id));
+        return lookup(idOrName, classLoaderFactory.create());
+    }
+
+    public PotentialPluginWithId lookup(String idOrName, ClassLoader classLoader) {
+        // Don't go up the parent chain.
+        // Don't want to risk classes crossing “scope” boundaries and being non collectible.
+        PotentialPluginWithId lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(idOrName, classLoader)).orNull();
+        if (lookup == null) {
+            String qualified = maybeQualify(idOrName);
+            if (qualified != null) {
+                lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
+            }
         }
-    }
 
-    public boolean hasId(Class<?> pluginClass, String id) {
-        return internalHasId(pluginClass, id);
-    }
-
-    public PotentialPlugin inspect(Class<?> clazz) {
-        return uncheckedGet(classMappings, clazz);
+        return lookup;
     }
 
     private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {
@@ -133,38 +141,22 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
     }
 
-    public PotentialPlugin lookup(String pluginId) {
-        Optional<PotentialPlugin> potentialPlugin = find(pluginId);
-        if (potentialPlugin.isPresent()) {
-            return potentialPlugin.get();
+    @Nullable
+    private static String maybeQualify(String id) {
+        if (id.startsWith(PluginManager.CORE_PLUGIN_PREFIX)) {
+            return null;
         } else {
-            throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
+            return PluginManager.CORE_PLUGIN_PREFIX + id;
         }
-    }
-
-    private Optional<PotentialPlugin> find(String pluginId) {
-        if (parent != null) {
-            Optional<PotentialPlugin> fromParent = parent.find(pluginId);
-            if (fromParent.isPresent()) {
-                return fromParent;
-            }
-        }
-
-        return uncheckedGet(idMappings, pluginId);
-    }
-
-    protected PluginDescriptor findPluginDescriptor(String pluginId, ClassLoader classLoader) {
-        PluginDescriptorLocator pluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
-        return pluginDescriptorLocator.findPluginDescriptor(pluginId);
     }
 
     static class PluginIdLookupCacheKey {
 
-        private final Class<?> pluginClass;
+        private final ClassLoader classLoader;
         private final String id;
 
-        PluginIdLookupCacheKey(Class<?> pluginClass, String id) {
-            this.pluginClass = pluginClass;
+        PluginIdLookupCacheKey(String id, ClassLoader classLoader) {
+            this.classLoader = classLoader;
             this.id = id;
         }
 
@@ -172,8 +164,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
             return id;
         }
 
-        public Class<?> getPluginClass() {
-            return pluginClass;
+        public ClassLoader getClassLoader() {
+            return classLoader;
         }
 
         @Override
@@ -187,12 +179,12 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
             PluginIdLookupCacheKey that = (PluginIdLookupCacheKey) o;
 
-            return id.equals(that.id) && pluginClass.equals(that.pluginClass);
+            return classLoader.equals(that.classLoader) && id.equals(that.id);
         }
 
         @Override
         public int hashCode() {
-            int result = pluginClass.hashCode();
+            int result = classLoader.hashCode();
             result = 31 * result + id.hashCode();
             return result;
         }
@@ -211,13 +203,4 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
     }
 
-    private static class PluginIdCacheLoader extends CacheLoader<PluginIdLookupCacheKey, Boolean> {
-        @Override
-        public Boolean load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
-            Class<?> pluginClass = key.getPluginClass();
-            PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(pluginClass.getClassLoader());
-            PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(key.getId());
-            return pluginDescriptor != null && pluginDescriptor.getImplementationClassName().equals(pluginClass.getName());
-        }
-    }
 }

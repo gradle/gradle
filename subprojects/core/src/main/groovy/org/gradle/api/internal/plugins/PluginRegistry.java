@@ -17,18 +17,23 @@
 package org.gradle.api.internal.plugins;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.plugins.UnknownPluginException;
 
 @ThreadSafe
 public interface PluginRegistry {
 
+    // Note: the methods taking a String 'idOrName' may implicitly resolve the name to an ID
+    //       in such cases, the return value will convey the fully qualified ID
+
     PotentialPlugin inspect(Class<?> clazz);
 
-    PotentialPlugin lookup(String pluginId) throws UnknownPluginException;
+    @Nullable
+    PotentialPluginWithId lookup(String idOrName);
+
+    @Nullable
+    PotentialPluginWithId lookup(String idOrName, ClassLoader classLoader);
 
     PluginRegistry createChild(ClassLoaderScope lookupScope);
-
-    boolean hasId(Class<?> pluginClass, String id);
 
 }

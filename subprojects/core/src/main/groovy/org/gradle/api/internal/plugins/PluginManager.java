@@ -29,11 +29,15 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.internal.PluginId;
+import org.gradle.util.SingleMessageLogger;
 
 import java.util.Set;
 
 @NotThreadSafe
 public class PluginManager {
+
+    public static final String CORE_PLUGIN_NAMESPACE = "org" + PluginId.SEPARATOR + "gradle";
+    public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + PluginId.SEPARATOR;
 
     private final PluginApplicator applicator;
     private final PluginRegistry pluginRegistry;
@@ -68,14 +72,21 @@ public class PluginManager {
         allPlugins.add(pluginClass);
         if (pluginId == null) {
             for (String unclaimedId : unclaimedIds) {
-                if (pluginRegistry.hasId(pluginClass, unclaimedId)) {
+                PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(unclaimedId);
+                if (potentialPluginWithId == null || !potentialPluginWithId.asClass().equals(pluginClass)) {
+                    potentialPluginWithId = pluginRegistry.lookup(unclaimedId, pluginClass.getClassLoader());
+                }
+
+                if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(pluginClass)) {
                     addPlugin(unclaimedId, pluginClass);
                     return;
                 }
             }
 
+            // Verify that this plugin doesn't have an ID that we've already used for another class
             for (PluginWithId pluginWithId : pluginsWithIds) {
-                if (pluginRegistry.hasId(pluginClass, pluginWithId.id)) {
+                PotentialPluginWithId lookup = pluginRegistry.lookup(pluginWithId.id, pluginClass.getClassLoader());
+                if (lookup != null && lookup.asClass().equals(pluginClass)) {
                     addPlugin(pluginWithId.id, pluginClass); // will fail
                     return;
                 }
@@ -98,8 +109,8 @@ public class PluginManager {
     }
 
     public void apply(String pluginId) {
-        PotentialPlugin potentialPlugin = pluginRegistry.lookup(pluginId);
-        doApply(pluginId, potentialPlugin);
+        PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(pluginId);
+        doApply(potentialPluginWithId.getPluginId().toString(), potentialPluginWithId);
     }
 
     public void apply(Class<?> type) {
@@ -107,21 +118,25 @@ public class PluginManager {
         doApply(null, potentialPlugin);
     }
 
-    private void doApply(@Nullable String pluginId, PotentialPlugin potentialPlugin) {
+    private void doApply(@Nullable final String pluginId, PotentialPlugin potentialPlugin) {
         Class<?> pluginClass = potentialPlugin.asClass();
         if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
             throw new IllegalArgumentException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
         } else if (!isApplied(pluginClass)) {
-            Class<? extends Plugin<?>> asImperativeClass = potentialPlugin.asImperativeClass();
+            final Class<? extends Plugin<?>> asImperativeClass = potentialPlugin.asImperativeClass();
             if (asImperativeClass == null) {
                 applicator.applyRules(pluginId, pluginClass);
                 addPlugin(pluginId, pluginClass);
             } else {
-                if (pluginId == null) {
-                    pluginContainer.doApply(asImperativeClass);
-                } else {
-                    pluginContainer.doApply(pluginId);
-                }
+                SingleMessageLogger.whileDisabled(new Runnable() {
+                    public void run() {
+                        if (pluginId == null) {
+                            pluginContainer.apply(asImperativeClass);
+                        } else {
+                            pluginContainer.apply(pluginId);
+                        }
+                    }
+                });
             }
         }
     }
@@ -167,14 +182,24 @@ public class PluginManager {
 
     public AppliedPlugin findPlugin(final String id) {
         for (PluginWithId plugin : pluginsWithIds) {
-            if (plugin.id.equals(id)) {
+            PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(id);
+            if (potentialPluginWithId == null) {
+                potentialPluginWithId = pluginRegistry.lookup(id, plugin.clazz.getClassLoader());
+            }
+
+            if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(plugin.clazz)) {
                 return plugin.asAppliedPlugin();
             }
         }
 
         for (Class<?> noIdPlugin : noIdPlugins) {
-            if (pluginRegistry.hasId(noIdPlugin, id)) {
-                PluginWithId pluginWithId = new PluginWithId(id, noIdPlugin);
+            PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(id);
+            if (potentialPluginWithId == null) {
+                potentialPluginWithId = pluginRegistry.lookup(id, noIdPlugin.getClassLoader());
+            }
+
+            if (potentialPluginWithId != null && potentialPluginWithId.asClass().equals(noIdPlugin)) {
+                PluginWithId pluginWithId = new PluginWithId(potentialPluginWithId.getPluginId().toString(), noIdPlugin);
                 pluginsWithIds.add(pluginWithId);
                 noIdPlugins.remove(noIdPlugin);
                 return pluginWithId.asAppliedPlugin();
@@ -191,10 +216,13 @@ public class PluginManager {
 
     public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {
         findPlugin(id);
-
         pluginsWithIds.matching(new Spec<PluginWithId>() {
             public boolean isSatisfiedBy(PluginWithId element) {
-                return element.id.equals(id);
+                PotentialPluginWithId lookup = pluginRegistry.lookup(id);
+                if (lookup == null || !lookup.asClass().equals(element.clazz)) {
+                    lookup = pluginRegistry.lookup(id, element.clazz.getClassLoader());
+                }
+                return lookup != null && lookup.asClass().equals(element.clazz);
             }
         }).all(new Action<PluginWithId>() {
             public void execute(PluginWithId pluginWithId) {
@@ -202,5 +230,6 @@ public class PluginManager {
             }
         });
     }
+
 }
 

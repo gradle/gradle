@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.api.plugins.PluginInstantiationException
-import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -79,19 +78,8 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     public void failsForUnknownId() {
-        when:
-        pluginRegistry.lookup("unknownId")
-
-        then:
-        UnknownPluginException e = thrown()
-        e.message == "Plugin with id 'unknownId' not found."
-
-        when:
-        pluginRegistry.lookup("unknownId")
-
-        then:
-        e = thrown()
-        e.message == "Plugin with id 'unknownId' not found."
+        expect:
+        pluginRegistry.lookup("unknownId") == null
     }
 
     public void returnsUnknownType() {

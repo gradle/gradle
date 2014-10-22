@@ -42,25 +42,22 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
 
     public Plugin apply(String id) {
         SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(String)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
-        return doApply(id);
-    }
+        PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(id);
+        if (potentialPlugin == null) {
+            throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
+        }
 
-    public Plugin doApply(String id) {
-        PotentialPlugin potentialPlugin = pluginRegistry.lookup(id);
         Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
+
         if (pluginClass == null) {
             throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return addPluginInternal(id, pluginClass);
+            return addPluginInternal(potentialPlugin.getPluginId().toString(), pluginClass);
         }
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
         SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(Class)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
-        return doApply(type);
-    }
-
-    public <P extends Plugin> P doApply(Class<P> type) {
         return addPluginInternal(null, type);
     }
 
@@ -73,16 +70,19 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin findPlugin(String id) {
-        try {
-            PotentialPlugin potentialPlugin = pluginRegistry.lookup(id);
-            Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
-            if (pluginClass == null) {
-                throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
-            } else {
-                return findPlugin(potentialPlugin.asImperativeClass());
-            }
-        } catch (UnknownPluginException e) {
+        PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(id);
+        if (potentialPlugin == null) {
             return null;
+        }
+
+        // TODO - doesn't handle case where plugin is applied by class and it's not from the registry's inherent scope
+        // TODO - also doesn't handle case where there's a different instance of the same plugin class
+
+        Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
+        if (pluginClass == null) {
+            throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+        } else {
+            return findPlugin(potentialPlugin.asImperativeClass());
         }
     }
 
@@ -142,19 +142,21 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public void withId(final String pluginId, Action<? super Plugin> action) {
-        try {
-            PotentialPlugin potentialPlugin = pluginRegistry.lookup(pluginId);
+        PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(pluginId);
+        if (potentialPlugin != null) {
             Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
             if (pluginClass == null) {
                 String message = String.format("The type for id '%s' (class: '%s') is not a plugin implementing the Plugin interface. Please use PluginAware.withPlugin() instead to detect it.", pluginId, potentialPlugin.asClass().getName());
                 throw new IllegalArgumentException(message);
             }
-        } catch (UnknownPluginException e) {
-            //just continue if it's impossible to see if the id points to a plain rule source
         }
         matching(new Spec<Plugin>() {
             public boolean isSatisfiedBy(Plugin element) {
-                return pluginRegistry.hasId(element.getClass(), pluginId);
+                PotentialPluginWithId lookup = pluginRegistry.lookup(pluginId);
+                if (lookup == null || !lookup.asClass().equals(element.getClass())) {
+                    lookup = pluginRegistry.lookup(pluginId, element.getClass().getClassLoader());
+                }
+                return lookup != null && lookup.asClass().equals(element.getClass());
             }
         }).all(action);
     }

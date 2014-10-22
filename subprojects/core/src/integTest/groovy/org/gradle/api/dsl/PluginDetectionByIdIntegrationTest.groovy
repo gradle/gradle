@@ -17,30 +17,45 @@ package org.gradle.api.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import spock.lang.Unroll
 
 /**
  * Tests various aspects of detecting the existence of plugins by their ID.
  */
 class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
 
-    def "core plugins are detectable via name"() {
+    public static final ArrayList<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
+
+    @Unroll
+    def "core plugins are detectable - applied by #appliedBy, detected by #detectedBy"() {
         buildFile << """
             def operations = []
-            plugins.withId("java") {
+            plugins.withId("$detectedBy") {
                 operations << 'withId for ' + it.class.simpleName
             }
-            withPlugin("java") {
+            withPlugin("$detectedBy") {
                 operations << 'withPlugin'
             }
             operations << "applying"
-            apply plugin: 'java'
+            apply plugin: '$appliedBy'
             operations << "applied"
+
+            assert plugins["$detectedBy"]
+            assert plugins.getPlugin("$detectedBy")
+            assert hasPlugin("$detectedBy")
+            assert findPlugin("$detectedBy").id == "org.gradle.java"
+            assert findPlugin("$detectedBy").namespace == "org.gradle"
+            assert findPlugin("$detectedBy").name == "java"
 
             task verify << { assert operations == ['applying', 'withPlugin', 'withId for JavaPlugin', 'applied'] }
         """
 
         expect:
         run("verify")
+
+        where:
+        appliedBy << JAVA_PLUGIN_IDS * 2
+        detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
     def "unqualified ids from classpath are detectable"() {

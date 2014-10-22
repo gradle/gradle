@@ -46,15 +46,15 @@ abstract public class AbstractPluginAware implements PluginAwareInternal {
 
     abstract protected DefaultObjectConfigurationAction createObjectConfigurationAction();
 
-    public AppliedPlugin findPlugin(String id) {
-        return getPluginManager().findPlugin(id);
+    public AppliedPlugin findPlugin(String nameOrId) {
+        return getPluginManager().findPlugin(nameOrId);
     }
 
-    public boolean hasPlugin(String id) {
-        return getPluginManager().hasPlugin(id);
+    public boolean hasPlugin(String nameOrId) {
+        return getPluginManager().hasPlugin(nameOrId);
     }
 
-    public void withPlugin(String id, Action<? super AppliedPlugin> action) {
-        getPluginManager().withPlugin(id, action);
+    public void withPlugin(String nameOrId, Action<? super AppliedPlugin> action) {
+        getPluginManager().withPlugin(nameOrId, action);
     }
 }
