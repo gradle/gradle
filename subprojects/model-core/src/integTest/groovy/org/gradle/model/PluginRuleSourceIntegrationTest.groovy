@@ -350,7 +350,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    project.plugins.apply(MyBasePlugin)
+                    project.apply(type: MyBasePlugin)
                 }
 
                 @RuleSource
