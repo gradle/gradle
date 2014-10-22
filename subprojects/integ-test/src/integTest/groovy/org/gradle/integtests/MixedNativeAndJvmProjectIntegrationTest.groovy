@@ -74,7 +74,6 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
         assert nativeRuntime.executables as List == [componentSpecs.nativeExe]
         assert nativeRuntime.libraries as List == [componentSpecs.nativeLib]
-        assert jvm.libraries as List == [componentSpecs.jvmLib]
 
         assert binaries.size() == 4
         assert binaries.jvmLibJar instanceof JarBinarySpec
