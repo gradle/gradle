@@ -106,7 +106,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public DefaultNativePlatform(String name) {
-        this(name, (ArchitectureInternal) defaultNativePlatform.getArchitecture(), (OperatingSystemInternal) defaultNativePlatform.getOperatingSystem());
+        this(name, defaultNativePlatform.getArchitecture(), defaultNativePlatform.getOperatingSystem());
     }
 
     public static NativePlatform getDefault(final ArchitectureInternal architecture, final OperatingSystemInternal operatingSystem) {
@@ -143,8 +143,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         String archName = System.getProperty("os.arch").toLowerCase();
         if (archName.equals("i386") || archName.equals("x86")) {
             arch = new DefaultArchitecture(archName, ArchitectureInternal.InstructionSet.X86, 32);
-        }
-        else if (archName.equals("x86_64") || archName.equals("amd64") || archName.equals("universal")) {
+        } else if (archName.equals("x86_64") || archName.equals("amd64") || archName.equals("universal")) {
             arch = new DefaultArchitecture(archName, ArchitectureInternal.InstructionSet.X86, 64);
         }
         return arch;
