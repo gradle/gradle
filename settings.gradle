@@ -66,6 +66,7 @@ include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
 include 'cunit'
+include 'platformPlay'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
