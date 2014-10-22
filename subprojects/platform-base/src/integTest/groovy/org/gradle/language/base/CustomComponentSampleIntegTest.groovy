@@ -33,7 +33,7 @@ task checkModel << {
     assert titleAImage instanceof ImageComponent
     assert titleAImage.projectPath == project.path
     assert titleAImage.displayName == "DefaultImageComponent 'TitleA'"
-    assert titleAImage.binaries.collect{it.name}.sort() == ['titleA14pxBinary', 'titleA28pxBinary', 'titleA40pxBinary']
+    assert titleAImage.binaries.collect{it.name}.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
 }
 
 """
@@ -47,9 +47,9 @@ task checkModel << {
         when:
         succeeds "assemble"
         then:
-        executedAndNotSkipped ":renderTitleA14pxSvg", ":titleA14pxBinary", ":renderTitleA28pxSvg", ":titleA28pxBinary", ":renderTitleA40pxSvg",
-                              ":titleA40pxBinary", ":renderTitleB14pxSvg", ":titleB14pxBinary", ":renderTitleB28pxSvg", ":titleB28pxBinary",
-                              ":renderTitleB40pxSvg", ":titleB40pxBinary", ":assemble"
+        executedAndNotSkipped ":renderTitleA14pxSvg", ":TitleA14pxBinary", ":renderTitleA28pxSvg", ":TitleA28pxBinary", ":renderTitleA40pxSvg",
+                              ":TitleA40pxBinary", ":renderTitleB14pxSvg", ":TitleB14pxBinary", ":renderTitleB28pxSvg", ":TitleB28pxBinary",
+                              ":renderTitleB40pxSvg", ":TitleB40pxBinary", ":assemble"
 
         and:
         customComponent.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",

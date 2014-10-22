@@ -60,9 +60,9 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         }
     }
 
-    jvm {
-        libraries {
-            jvmLib
+    model {
+        components {
+            jvmLib(JvmLibrarySpec)
         }
     }
 
@@ -120,9 +120,9 @@ int main () {
             nativeApp
         }
     }
-    jvm {
-        libraries {
-            jvmLib
+    model {
+        components {
+            jvmLib(JvmLibrarySpec)
         }
     }
 """

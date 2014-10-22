@@ -92,9 +92,9 @@ plugins {
     id 'java-lang'
 }
 
-jvm {
-    libraries {
-        someLib
+model {
+    components {
+        someLib(JvmLibrarySpec)
     }
 }
 """
@@ -404,11 +404,8 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-jvm {
-    libraries {
-        jvmLib {
+    components {
+        jvmLib(JvmLibrarySpec) {
             targetPlatform "$currentJava"
         }
     }
@@ -475,9 +472,9 @@ Binaries
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    jvm {
-        libraries {
-            myLib {
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "java5", "java6", "java7"
             }
         }
@@ -512,7 +509,7 @@ Binaries
         build using task: :java7MyLibJar
         platform: java7
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java7/myLib.jar
+        Jar file: build/jars/java7MyLibJar/myLib.jar
 """
     }
 
@@ -523,9 +520,9 @@ Binaries
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    jvm {
-        libraries {
-            myLib {
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "java5", "java6", "java9"
             }
         }
@@ -560,7 +557,7 @@ Binaries
         build using task: :java9MyLibJar
         platform: java9
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java9/myLib.jar
+        Jar file: build/jars/java9MyLibJar/myLib.jar
 """
     }
 
@@ -575,11 +572,8 @@ Binaries
         platforms {
             i386 { architecture 'i386' }
         }
-    }
-
-    jvm {
-        libraries {
-            myLib {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "i386"
             }
         }
