@@ -18,9 +18,6 @@ package org.gradle.play.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.jvm.plugins.JvmComponentPlugin;
-
-import org.gradle.api.Project;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
