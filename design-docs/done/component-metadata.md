@@ -1,3 +1,4 @@
+
 ## Consume an Ivy module with custom status
 
 Gradle should be able to consume an Ivy module with custom status. Example:
@@ -350,3 +351,131 @@ Something like...
     - Static version: '1.0'
     - Dynamic version that doesn't require metadata: '1.+', 'latest.integration'
     - Dynamic version that requires metadata: 'latest.milestone'
+
+## Story: Version selection rule takes ComponentMetadataDetails and/or IvyModuleMetadata as input (DONE)
+
+This story makes available the component and Ivy meta-data as optional read only inputs to a version selection rule:
+
+### User visible changes
+
+    configurations.all {
+        resolutionStrategy {
+            versionSelection {
+                all { VersionSelection selection, ComponentMetadata metadata ->
+                }
+                all { VersionSelection selection, IvyModuleDescriptor ivyModule, ComponentMetadata metadata ->
+                }
+            }
+        }
+    }
+
+### Implementation
+
+    interface RuleAction<T> {
+        List<Class<?>> getInputTypes()
+        void execute(T subject, List<?> inputs)
+    }
+
+- Add ComponentMetadata as read-only view of ComponentMetadataDetails
+    - Rename internal ComponentMetaData -> ExternalComponentMetaData
+- Add `VersionSelectionRules.all(RuleAction<VersionSelection> rule)
+    - Only allowable input types are `ComponentMetadata` and `IvyModuleDescriptor`
+    - Provide a `ModuleComponentRepositoryAccess` to `VersionSelectionRulesInternal.apply()`
+    - Look up and supply the module metadata for any rule that requires it.
+- Add `VersionSelectionRules.all(Closure)` : See ComponentMetadataHandler for example
+    - Convert closure to `RuleAction`
+
+### Test cases
+
+- Component metadata is not requested for rule that doesn't require it
+- Using closure parameter, create custom selector scheme that:
+    - matches on Ivy `branch` attribute
+    - matches on `ComponentMetadata.status`
+    - uses information from both `IvyModuleDescriptor` and `ComponentMetadata`
+- Can use Java API for creating metadata rule
+- For custom rule that uses `ComponentMetadata` combined with `latest.release`, component metadata is only requested once for each version (is cached)
+- Reasonable error message if:
+    - First parameter is not VersionSelection
+    - Unsupported other parameter type
+    - No closure parameter
+    - Rule action throws exception
+
+## Story: Replace versionSelection rules with componentSelection rules
+
+This is an update to the previous 3 stories, based on some further analysis and design.
+The primary changes are:
+
+- Rename functionality from 'versionSelection' rules to 'componentSelection' rules.
+- Default version matching will be modeled as a 'componentSelection' rule, applied before any custom rules.
+- Every defined rule can reject the candidate component. If a rule does not reject the candidate, it is assumed accepted.
+- A reason must be specified when rejecting, for reporting purposes.
+- For a candidate to be considered, every defined rule must accept candidate. If any rule rejects the candidate, it is not considered.
+- Once a rule rejects a candidate, no other rules will be evaluated (short-circuit rules).
+    - Custom rules are not evaluated for any component where default version matching rejects candidate.
+- Rules that require additional inputs (`ComponentMetadata` or `IvyModuleDescriptor`) will be evaluated _after_ rules that do not declare these inputs.
+    - This includes the built-in version matching rule, so a custom rule that doesn't require additional input will be evaluated before `latest.release`.
+- If a rule requires an `IvyModuleDescriptor` input, then that rule is not applied to non-ivy modules.
+- Order of rule execution cannot be specified
+- Custom rules can further refine, but not replace the built-in version matching algorithm.
+
+### User visible changes
+
+    ComponentSelection {
+        ModuleComponentSelector getRequested()
+        ModuleComponentIdentifier getCandidate()
+        void reject(String reason)
+    }
+
+    resolutionStrategy.all {
+        componentSelection {
+            // Reject all beta versions for module components
+            all { ModuleComponentSelection selection ->
+                ModuleComponentIdentifier componentId = selection.getCandidate()
+                def isBeta = determineIfBeta(componentId.getVersion())
+                if (isBeta) {
+                    selection.reject("component is beta")
+                }
+            }
+
+            // Accept only modules from a particular branch
+            all { ModuleComponentSelection selection, IvyModuleMetadata ivy ->
+                if (ivy.branch != 'foo') {
+                    selection.reject("Not the correct branch")
+                }
+            }
+        }
+    }
+
+### Implementation
+
+- ~~Use the term 'ComponentSelection' in place of 'VersionSelection' for custom rules.~~
+- ~~Replace `VersionSelection` with `ComponentSelection` as defined above.~~
+- ~~Change `NewestVersionComponentChooser` to evaluate version selector prior to evaluating custom rules.~~
+- Change the `ComponentSelectionRules` mechanism to:
+    - ~~Short-circuit remaining rules when any rule rejects candidate~~
+    - ~~Log the reason for rejecting a particular candidate~~
+    - ~~Evaluate rules with no additional inputs prior to rules with additional inputs~~
+- ~~For this story, `NewestVersionComponentChooser` will simply log the reason for rejecting a candidate~~
+- ~~Convert standard version matching algorithm into componentSelection rules.~~
+
+### Test cases
+
+- ~~No rules are fired when no versions match the version selector~~
+- For a dynamic version selector "1.+":
+    - ~~Custom rule can reject all candidates: user gets general 'not found' error message.~~
+    - ~~Custom rule can select one of the candidates, no further candidates are considered.~~
+    - ~~Custom rule can select one of the candidates using the component metadata~~
+    - ~~Custom rule can select one of the candidates using the ivy module descriptor~~
+    - ~~Custom rule can reject all candidates from one repository, and accept a candidate from a subsequent repository.~~
+        - No network requests are made when this build is run a second time.
+- For a static version selector "1.0":
+    - ~~Custom rule can reject candidate: user gets general 'not found' error message.~~
+    - ~~Custom rule can reject candidate from one repository, and accept a matching candidate from a subsequent repository.~~
+        - No network requests are made when this build is run a second time.
+- With multiple custom rules:
+    - ~~If any rule rejects a candidate, the candidate is not selected.~~
+    - ~~Once a rule rejects a candidate, no other rules are evaluated for the candidate.~~
+    - ~~A rule that declares only a `ModuleComponentSelection` input is evaluated before a rule that declares a `ComponentMetadata` input.
+- ~~Component selection rule that requires an `IvyModuleDescriptor` input does not affect selection of maven module~~
+- ~~All test cases from the previous story (ComponentMetadataDetails/IvyModuleMetadata input) should be adapted~~
+- ~~Test cases from earlier stories will be modified or replaced by the test cases here~~
