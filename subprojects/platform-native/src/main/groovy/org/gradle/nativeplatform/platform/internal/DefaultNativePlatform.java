@@ -179,7 +179,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     //TODO freekh: Move this logic back into grapefruit?
     public static DefaultNativePlatform getDefault() {
-        //TODO freekh: no need to synchronize, defaultNativePlatform volatile is sufficient?
+        //TODO freekh: no need to synchronize, defaultNativePlatform volatile is sufficient because we can consider this to be idempotent
         if (defaultNativePlatform == null) {
             OperatingSystem os = getPropertyBasedOperatingSystem();
             ArchitectureInternal architectureInternal = getPropertyBasedArchitecture();
