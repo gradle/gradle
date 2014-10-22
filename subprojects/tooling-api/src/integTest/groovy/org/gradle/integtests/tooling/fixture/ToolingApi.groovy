@@ -64,6 +64,10 @@ class ToolingApi {
         useSeparateDaemonBaseDir = false
     }
 
+    TestFile getDaemonBaseDir() {
+        return useSeparateDaemonBaseDir ? daemonBaseDir : gradleUserHomeDir.file("daemon")
+    }
+
     /**
      * Specifies that the test use real daemon processes (not embedded) and a test-specific daemon registry. Uses a shared Gradle user home dir
      */
@@ -84,10 +88,7 @@ class ToolingApi {
     }
 
     DaemonsFixture getDaemons() {
-        if (useSeparateDaemonBaseDir) {
-            return DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, dist.version.version)
-        }
-        return DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, "daemon"), dist.version.version)
+        return DaemonLogsAnalyzer.newAnalyzer(getDaemonBaseDir(), dist.version.version)
     }
 
     void withConnector(Closure cl) {

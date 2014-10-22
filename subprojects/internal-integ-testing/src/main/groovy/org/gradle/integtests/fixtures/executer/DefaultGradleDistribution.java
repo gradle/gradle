@@ -116,7 +116,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public boolean isToolingApiDaemonBaseDirSupported() {
-        return isSameOrNewer("2.2");
+        return isSameOrNewer("2.2-rc-1");
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
