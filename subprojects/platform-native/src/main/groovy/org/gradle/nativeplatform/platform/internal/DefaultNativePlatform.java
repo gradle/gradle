@@ -134,6 +134,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         } else if (osName.contains("freebsd")) {
             os = OperatingSystem.FREE_BSD;
         }
+        //TODO: solaris seems to be missing (this code was inspired by grapefruit)?
         return os;
     }
 
