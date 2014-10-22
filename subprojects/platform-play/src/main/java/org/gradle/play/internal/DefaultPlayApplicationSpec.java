@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.play.plugins
+package org.gradle.play.internal;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.play.PlayApplicationSpec;
 
-
-class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
-    def "can register PlayApplicationSpec"() {
-        when:
-        buildFile << """
-        plugins {
-            id 'play-application'
-        }
-
-        model {
-            components {
-                myApp(PlayApplicationSpec)
-            }
-        }
-"""
-        then:
-        succeeds "components"
-
-    }
+public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
 }

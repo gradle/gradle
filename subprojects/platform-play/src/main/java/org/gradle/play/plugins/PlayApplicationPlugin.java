@@ -24,14 +24,24 @@ import org.gradle.api.Project;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
-import org.gradle.play.DefaultPlayApplicationSpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.internal.DefaultPlayApplicationSpec;
 
+/**
+ * Plugin for Play Framework component support.
+ * Registers the {@link org.gradle.play.PlayApplicationSpec} component type for
+ * the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ */
+@Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
     public void apply(ProjectInternal project) {
     }
 
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
         @ComponentType

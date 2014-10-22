@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.play;
+/**
+ * Base plugins that add support for JVM runtime.
+ */
+@Incubating
+package org.gradle.play.plugins;
 
-import org.gradle.platform.base.component.BaseComponentSpec;
-
-public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
-}
+import org.gradle.api.Incubating;

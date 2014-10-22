@@ -16,7 +16,13 @@
 
 package org.gradle.play;
 
+import org.gradle.api.Incubating;
 import org.gradle.platform.base.ComponentSpec;
 
+/**
+ * Definition of a play framework software component that is built by Gradle.
+ * */
+
+@Incubating
 public interface PlayApplicationSpec extends ComponentSpec {
 }

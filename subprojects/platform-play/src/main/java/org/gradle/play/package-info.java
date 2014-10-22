@@ -14,27 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.plugins
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-
-class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
-    def "can register PlayApplicationSpec"() {
-        when:
-        buildFile << """
-        plugins {
-            id 'play-application'
-        }
-
-        model {
-            components {
-                myApp(PlayApplicationSpec)
-            }
-        }
-"""
-        then:
-        succeeds "components"
-
-    }
-}
+/**
+ * Classes that model aspects of the Play Framework support in Gradle.
+ */
+package org.gradle.play;
