@@ -18,9 +18,12 @@ package org.gradle.api.dsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
-class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
+/**
+ * Tests various aspects of detecting the existence of plugins by their ID.
+ */
+class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
 
-    def "filters plugins by id"() {
+    def "core plugins are detectable via name"() {
         buildFile << """
             def operations = []
             plugins.withId("java") {
@@ -40,7 +43,7 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
         run("verify")
     }
 
-    def "filters plugins by id when descriptor not on registry classpath"() {
+    def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
         pluginBuilder.addRuleSource("test-rule-source")
