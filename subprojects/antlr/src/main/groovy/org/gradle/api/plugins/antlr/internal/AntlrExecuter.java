@@ -31,9 +31,6 @@ public class AntlrExecuter implements Serializable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrExecuter.class);
 
-    public AntlrExecuter() {
-    }
-
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
         List<String> arguments = spec.getArguments();
         String[] argArr = new String[arguments.size()];
@@ -95,7 +92,7 @@ public class AntlrExecuter implements Serializable {
 
     AntlrResult processV2(Object tool, String[] args) {
         JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{args});
-        return new AntlrResult(0);  // ANTLR 2 calls System.exit() on error
+        return new AntlrResult(0);  // ANTLR 2 always returning 0
     }
 
     AntlrResult processV3(Object tool) {

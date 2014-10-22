@@ -41,7 +41,6 @@ public class AntlrWorkerManager {
     }
 
     private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle ANTLR Worker");
 
@@ -52,7 +51,8 @@ public class AntlrWorkerManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
-
+        javaCommand.systemProperty("ANTLR_DO_NOT_EXIT", "true");
+        javaCommand.redirectErrorStream();
         return builder.worker(new AntlrWorkerServer(spec)).build();
     }
 }

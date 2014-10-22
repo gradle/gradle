@@ -15,9 +15,6 @@
  */
 package org.gradle.api.plugins.antlr
 
-import org.gradle.internal.os.OperatingSystem
-import spock.lang.IgnoreIf
-
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "antlr:antlr:2.7.7"
@@ -36,14 +33,19 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         succeeds("build")
     }
 
-    @IgnoreIf({OperatingSystem.current().isWindows()})
     def "analyze bad grammar"() {
+        when:
         badGrammar()
-
-        expect:
-        args "-i"
+        and:
+        executer.withStackTraceChecksDisabled()
+        then:
         fails("generateGrammarSource")
+        output.contains("TestGrammar.g:7:24: unexpected token: extra")
+        output.contains("TestGrammar.g:9:13: unexpected token: mexpr")
+        output.contains("TestGrammar.g:7:24: rule classDef trapped:")
+        output.contains("TestGrammar.g:7:24: unexpected token: extra")
         assertAntlrVersion(2)
+
     }
 
     def "uses antlr 2 if no explicit dependency is set"() {
