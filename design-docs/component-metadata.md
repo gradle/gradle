@@ -242,9 +242,12 @@ consistent with component selection rules.
 
 ### Open issues
 
+- `@Mutate` is not documented or included in default imports.
+- Rules that accept a closure should allow no args, as the subject is made available as the delegate.
+- Rules that accept a closure should allow the first arg to be untyped.
 - DSL decoration should add Action and Closure overloads for a method that accepts a rule source.
-- Should accept untyped subject parameter in rule closure?
-- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable. Might not be a problem.
+- Error message for a badly-formed module id could be improved.
+- Inconsistent error messages for badly-formed rule class.
 
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
@@ -271,10 +274,14 @@ that matched the specified version selector, together with the reason each was r
 
 ## Feature open issues:
 
+- Filtering applies to parent poms. It should apply only to those components that are candidates to be included in the graph. Same is probably
+    true for imported poms and imported ivy files.
+- No way to say 'this must be an Ivy module'. Currently, can only say 'if this happens to be an Ivy module, then filter'.
 - Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
 - `ComponentChooser.isRejectedByRules` takes a mutable meta-data. It should be immutable.
 - `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
 - `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
+- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable.
 
 ## Story: Dependency reports inform user that some versions were rejected
 
