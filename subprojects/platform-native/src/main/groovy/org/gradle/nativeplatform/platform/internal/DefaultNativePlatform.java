@@ -177,8 +177,9 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     private final static String UNKNOWN_DEFAULT_PLATFORM_MSG = "Please specify a target platform.";
 
+    //TODO freekh: Move this logic back into grapefruit?
     public static DefaultNativePlatform getDefault() {
-        //TODO freekh: no need to synchronize, defaultNativePlatform volatile is sufficient.
+        //TODO freekh: no need to synchronize, defaultNativePlatform volatile is sufficient?
         if (defaultNativePlatform == null) {
             OperatingSystem os = getPropertyBasedOperatingSystem();
             ArchitectureInternal architectureInternal = getPropertyBasedArchitecture();
@@ -191,6 +192,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
             } else { //could not detect platform based on properties
                 try {
                     //TODO freekh: Close streams!
+                    //TODO freekh: Test for wmic/uname on Path?
                     if ((os != null && os.isWindows()) || File.separatorChar == '\\') { //guess Windows
                         Process archProcess  = Runtime.getRuntime().exec(new String[]{"wmic", "computersystem", "get", "systemtype"});
                         BufferedReader archReader = new BufferedReader(new InputStreamReader(archProcess.getInputStream()));
