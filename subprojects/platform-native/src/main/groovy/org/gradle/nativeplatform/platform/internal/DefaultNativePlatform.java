@@ -190,6 +190,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
                 defaultNativePlatform = propertyBasedDefault;
             } else { //could not detect platform based on properties
                 try {
+                    //TODO freekh: Close streams!
                     if ((os != null && os.isWindows()) || File.separatorChar == '\\') { //guess Windows
                         Process archProcess  = Runtime.getRuntime().exec(new String[]{"wmic", "computersystem", "get", "systemtype"});
                         BufferedReader archReader = new BufferedReader(new InputStreamReader(archProcess.getInputStream()));
