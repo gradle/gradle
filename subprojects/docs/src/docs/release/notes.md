@@ -96,9 +96,20 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### `PluginContainer.apply(String)` and `PluginContainer.apply(Class)` methods are deprecated.
+### Multiple `PluginContainer` methods are deprecated.
 
-Please use `PluginAware.apply(Map)` or `PluginAware.apply(Closure)` instead.
+`PluginContainer.apply(String)` and `PluginContainer.apply(Class)` methods are deprecated, please use `PluginAware.apply(Map)` or `PluginAware.apply(Closure)` instead.
+
+All other mutative methods of `PluginContainer` are deprecated without replacements:
+
+* `add(Plugin)`
+* `addAll(Collection<? extends Plugin>)`
+* `clear()`
+* `remove(Object)`
+* `removeAll(Collection<?>)`
+* `retainAll(Collection<?>)`
+
+These mutative methods have been deprecated because they should never have been part of `PluginContainer` interface. 
 
 <!--
 ### Example deprecation

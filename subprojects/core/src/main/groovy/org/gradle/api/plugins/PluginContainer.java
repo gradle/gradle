@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
+import java.util.Collection;
+
 /**
  * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances applied to a
  * particular project.</p>
@@ -126,4 +128,45 @@ public interface PluginContainer extends PluginCollection<Plugin> {
     @Incubating
     void withId(String pluginId, Action<? super Plugin> action);
 
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated
+     */
+    boolean add(Plugin plugin);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated
+     */
+    boolean addAll(Collection<? extends Plugin> c);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated
+     */
+    void clear();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated
+     */
+    boolean remove(Object o);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated
+     */
+    boolean removeAll(Collection<?> c);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated
+     */
+    boolean retainAll(Collection<?> c);
 }

@@ -29,6 +29,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.util.SingleMessageLogger;
 
+import java.util.Collection;
+
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
     private final PluginRegistry pluginRegistry;
@@ -134,7 +136,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
                     applicator.applyImperative(pluginId, plugin);
                 }
 
-                add(plugin);
+                doAdd(plugin);
                 return plugin;
             } else {
                 return existing;
@@ -205,5 +207,45 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         }
 
         return super.withType(type);
+    }
+
+    private boolean doAdd(Plugin toAdd) {
+        return super.add(toAdd);
+    }
+
+    @Override
+    public boolean add(Plugin toAdd) {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.add(Plugin)");
+        return doAdd(toAdd);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Plugin> c) {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.addAll(Collection<? extends Plugin>)");
+        return super.addAll(c);
+    }
+
+    @Override
+    public void clear() {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.clear()");
+        super.clear();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.remove(Object)");
+        return super.remove(o);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.removeAll(Collection<?>)");
+        return super.removeAll(c);
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> target) {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.retainAll(Collection<?>)");
+        return super.retainAll(target);
     }
 }
