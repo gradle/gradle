@@ -390,7 +390,7 @@ Binaries
 """
     }
 
-    def "shows details of multiple comptoolchain-defaultsonents"() {
+    def "shows details of multiple components"() {
         given:
         buildFile << """
 plugins {
