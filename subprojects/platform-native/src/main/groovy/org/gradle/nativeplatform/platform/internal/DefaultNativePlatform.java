@@ -29,15 +29,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
+    private static Set<DefaultNativePlatform> defaults = defaultPlatformDefinitions();
+    private static DefaultNativePlatform defaultNativePlatform;
     private final String name;
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
-    private static Set<DefaultNativePlatform> defaults = defaultPlatformDefinitions();
-    private static DefaultNativePlatform defaultNativePlatform;
 
     public static Set<DefaultNativePlatform> defaultPlatformDefinitions() {
         //TODO freekh: move this code to somewhere else, or use configuration to load this data instead.
-        //TODO freekh: add itanium? Who on earth uses it these days? It was discontinued in 2012 so...
         //TODO freekh: add more ppc? xbox/playstation is based on Power arch (ppc/cell) I think?
         Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
 
@@ -50,6 +49,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
         ArchitectureInternal x86 = new DefaultArchitecture("x86");
         ArchitectureInternal x64 = new DefaultArchitecture("x86_64");
+        ArchitectureInternal ia64 = new DefaultArchitecture("ia64");
         ArchitectureInternal armv7 = new DefaultArchitecture("armv7");
         ArchitectureInternal armv8 = new DefaultArchitecture("armv8");
         ArchitectureInternal sparc = new DefaultArchitecture("sparc");
@@ -57,49 +57,54 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         ArchitectureInternal ppc = new DefaultArchitecture("ppc");
         ArchitectureInternal ppc64 = new DefaultArchitecture("ppc64");
 
+        platforms.add(createPlatform(windows, x86));
+        platforms.add(createPlatform(windows, x64));
+        platforms.add(createPlatform(windows, armv7));
+        platforms.add(createPlatform(windows, ia64));
 
-        platforms.add(new DefaultNativePlatform("windows_x86", x86, windows));
-        platforms.add(new DefaultNativePlatform("windows_x86_64", x64, windows));
-        platforms.add(new DefaultNativePlatform("windows_rt_32", armv7, windows));
+        platforms.add(createPlatform(freebsd, x86));
+        platforms.add(createPlatform(freebsd, x64));
+        platforms.add(createPlatform(freebsd, armv7));
+        platforms.add(createPlatform(freebsd, armv8));
+        platforms.add(createPlatform(freebsd, ppc));
+        platforms.add(createPlatform(freebsd, ppc64));
 
-        platforms.add(new DefaultNativePlatform("freebsd_x86", x86, freebsd));
-        platforms.add(new DefaultNativePlatform("freebsd_x86_64", x64, freebsd));
-        platforms.add(new DefaultNativePlatform("freebsd_armv7", armv7, freebsd));
-        platforms.add(new DefaultNativePlatform("freebsd_armv8", armv8, freebsd));
-        platforms.add(new DefaultNativePlatform("freebsd_ppc", ppc, freebsd));
-        platforms.add(new DefaultNativePlatform("freebsd_ppc64", ppc64, freebsd));
+        platforms.add(createPlatform(unix, x86));
+        platforms.add(createPlatform(unix, x64));
+        platforms.add(createPlatform(unix, armv7));
+        platforms.add(createPlatform(unix, armv8));
+        platforms.add(createPlatform(unix, ppc));
+        platforms.add(createPlatform(unix, ppc64));
 
-        platforms.add(new DefaultNativePlatform("unix_x86", x86, unix));
-        platforms.add(new DefaultNativePlatform("unix_x86_64", x64, unix));
-        platforms.add(new DefaultNativePlatform("unix_armv7", armv7, unix));
-        platforms.add(new DefaultNativePlatform("unix_armv8", armv8, unix));
-        platforms.add(new DefaultNativePlatform("unix_ppc", ppc, unix));
-        platforms.add(new DefaultNativePlatform("unix_ppc64", ppc64, unix));
+        platforms.add(createPlatform(linux, x64));
+        platforms.add(createPlatform(linux, x86));
+        platforms.add(createPlatform(linux, armv7));
+        platforms.add(createPlatform(linux, armv8));
 
-        platforms.add(new DefaultNativePlatform("linux_x64", x64, linux));
-        platforms.add(new DefaultNativePlatform("linux_x86", x86, linux));
-        platforms.add(new DefaultNativePlatform("linux_armv7", armv7, linux));
-        platforms.add(new DefaultNativePlatform("linux_armv8", armv8, linux));
+        platforms.add(createPlatform(osx, x86));
+        platforms.add(createPlatform(osx, x64));
 
-        platforms.add(new DefaultNativePlatform("osx_x86", x86, osx));
-        platforms.add(new DefaultNativePlatform("osx_x64", x64, osx));
-
-        platforms.add(new DefaultNativePlatform("solaris_x64", x64, solaris));
-        platforms.add(new DefaultNativePlatform("solaris_x86", x86, solaris));
-        platforms.add(new DefaultNativePlatform("solaris_sparc", sparc, solaris));
-        platforms.add(new DefaultNativePlatform("solaris_ultrasparc", ultrasparc, solaris));
+        platforms.add(createPlatform(solaris, x64));
+        platforms.add(createPlatform(solaris, x86));
+        platforms.add(createPlatform(solaris, sparc));
+        platforms.add(createPlatform(solaris, ultrasparc));
 
         return platforms;
     }
 
-    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem) {
-        this.name = name;
-        this.architecture = architecture;
-        this.operatingSystem = operatingSystem;
+    private static DefaultNativePlatform createPlatform(OperatingSystemInternal os, ArchitectureInternal arch) {
+        String name = String.format("%s_%s", os.getName(), arch.getName());
+        return new DefaultNativePlatform(name, os, arch);
     }
 
     public DefaultNativePlatform(String name) {
-        this(name, getDefault().getArchitecture(), getDefault().getOperatingSystem());
+        this(name, getDefault().getOperatingSystem(), getDefault().getArchitecture());
+    }
+
+    protected DefaultNativePlatform(String name, OperatingSystemInternal operatingSystem, ArchitectureInternal architecture) {
+        this.name = name;
+        this.architecture = architecture;
+        this.operatingSystem = operatingSystem;
     }
 
     //TODO freekh: Move this logic back into grapefruit?

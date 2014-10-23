@@ -20,7 +20,7 @@ import spock.lang.Specification
 class DefaultNativePlatformTest extends Specification {
     def os = Mock(OperatingSystemInternal)
     def arch = Mock(ArchitectureInternal)
-    def platform = new DefaultNativePlatform("platform", arch, os)
+    def platform = new DefaultNativePlatform("platform", os, arch)
 
     def "has useful string representation"() {
         expect:
