@@ -127,9 +127,44 @@ This story makes the following possible…
 - ~~Calling `setOperatingSystem()` with “non managed” impl of `OperatingSystem` is a runtime error (i.e. only managed objects can be used)~~
 
 
-## Future candidate stories (unordered)
+### Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference
 
-### Plugin creates model element of custom type, with a property of a managed type that has a property of the created model element type (i.e. imposing a cycle of managed types), without supplying an implementation
+    The story makes the following possible:
+    
+    @Managed
+    interface Parent {
+        String getName();
+        void setName(String name);
+        
+        Child getChild();
+    }
+    
+    @Managed 
+    interface Child {
+        Parent getParent();
+        void setParent(Parent parent);
+    }
+    
+    class RulePlugin {
+        @Model
+        void createParent(Parent parent) {
+            parent.setName("parent");
+            parent.getChild().setParent(parent)
+        }
+        
+        @Mutate
+        void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
+            tasks.create("echo", t -> 
+              t.doLast(t2 -> System.out.println(parent.getChild().getParent().getName())); // prints "parent"
+            );
+        }
+    }
+
+#### Test Coverage
+
+- (something like snippet above)
+
+## Future candidate stories (unordered)
 
 ### Plugin creates model element of custom type, containing properties of all applicable Java primitive types, without supplying an implementation
 
