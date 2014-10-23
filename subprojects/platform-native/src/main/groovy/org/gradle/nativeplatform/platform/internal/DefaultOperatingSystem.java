@@ -24,8 +24,12 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     private final OperatingSystem internalOs;
 
     public DefaultOperatingSystem(String name) {
+        this(name, OperatingSystem.forName(name));
+    }
+
+    public DefaultOperatingSystem(String name, OperatingSystem internalOs) {
         this.name = name;
-        this.internalOs = OperatingSystem.forName(name);
+        this.internalOs = internalOs;
     }
 
     public String getName() {

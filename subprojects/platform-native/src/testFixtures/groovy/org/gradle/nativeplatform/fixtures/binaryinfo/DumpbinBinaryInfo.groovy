@@ -69,11 +69,11 @@ class DumpbinBinaryInfo implements BinaryInfo {
         def archString = readArch(dumpbinHeaders)
         switch (archString) {
             case "x86":
-                return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
+                return new DefaultArchitecture("x86")
             case "x64":
-                return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
+                return new DefaultArchitecture("x86_64")
             case "IA64":
-                return new DefaultArchitecture("ia-64", ArchitectureInternal.InstructionSet.ITANIUM, 64)
+                return new DefaultArchitecture("ia-64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

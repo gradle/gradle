@@ -20,10 +20,6 @@ import org.gradle.nativeplatform.platform.Architecture;
 public interface ArchitectureInternal extends Architecture {
     enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
 
-    InstructionSet getInstructionSet();
-
-    int getRegisterSize();
-
     boolean isI386();
 
     boolean isAmd64();
@@ -31,14 +27,4 @@ public interface ArchitectureInternal extends Architecture {
     boolean isIa64();
 
     boolean isArm();
-
-    boolean isArmv8();
-
-    boolean isPpc();
-
-    boolean isPpc64();
-
-    boolean isSparc();
-
-    boolean isUltraSparc();
 }

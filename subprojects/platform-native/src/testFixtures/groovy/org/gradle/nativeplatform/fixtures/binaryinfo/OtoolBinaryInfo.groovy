@@ -32,9 +32,9 @@ class OtoolBinaryInfo implements BinaryInfo {
 
         switch (archString) {
             case "I386":
-                return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
+                return new DefaultArchitecture("x86")
             case "X86_64":
-                return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
+                return new DefaultArchitecture("x86_64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

@@ -15,15 +15,20 @@
  */
 package org.gradle.nativeplatform.platform.internal;
 
-public class DefaultArchitecture implements ArchitectureInternal {
-    private final String name;
-    private final InstructionSet instructionSet;
-    private final int registerSize;
+import java.util.Arrays;
+import java.util.List;
 
-    public DefaultArchitecture(String name, InstructionSet instructionSet, int registerSize) {
+public class DefaultArchitecture implements ArchitectureInternal {
+    // TODO:DAZ Not sure if we need aliases any more. We should perhaps just use a 'canonical' name, or have some way to compare 2 names for equivalence.
+    private static final List<String> X86_ALIASES = Arrays.asList("x86", "i386");
+    private static final List<String> X86_64_ALIASES = Arrays.asList("x86_64", "amd64", "x64", "x86-64");
+    private static final List<String> ITANIUM_ALIASES = Arrays.asList("ia64", "ia-64");
+    private static final List<String> ARM_32_ALIASES = Arrays.asList("arm", "armv7", "arm-v7", "arm32");
+
+    private final String name;
+
+    public DefaultArchitecture(String name) {
         this.name = name;
-        this.instructionSet = instructionSet;
-        this.registerSize = registerSize;
     }
 
     public String getName() {
@@ -39,58 +44,25 @@ public class DefaultArchitecture implements ArchitectureInternal {
         return String.format("architecture '%s'", name);
     }
 
-    public InstructionSet getInstructionSet() {
-        return instructionSet;
-    }
-
-    public int getRegisterSize() {
-        return registerSize;
-    }
-
     public boolean isI386() {
-        return instructionSet == InstructionSet.X86 && registerSize == 32;
+        return X86_ALIASES.contains(name.toLowerCase());
     }
 
     public boolean isAmd64() {
-        return instructionSet == InstructionSet.X86 && registerSize == 64;
+        return X86_64_ALIASES.contains(name.toLowerCase());
     }
 
     public boolean isIa64() {
-        return instructionSet == InstructionSet.ITANIUM && registerSize == 64;
+        return ITANIUM_ALIASES.contains(name.toLowerCase());
     }
 
     public boolean isArm() {
-        return instructionSet == InstructionSet.ARM && registerSize == 32;
-    }
-
-    public boolean isArmv8() {
-        return instructionSet == InstructionSet.ARM && registerSize == 64;
-    }
-
-    public boolean isPpc() {
-        return instructionSet == InstructionSet.PPC && registerSize == 32;
-    }
-
-    public boolean isPpc64() {
-        return instructionSet == InstructionSet.PPC && registerSize == 64;
-    }
-
-    public boolean isSparc() {
-        return instructionSet == InstructionSet.SPARC && registerSize == 32;
-    }
-
-    public boolean isUltraSparc() {
-        return instructionSet == InstructionSet.SPARC && registerSize == 64;
+        return ARM_32_ALIASES.contains(name.toLowerCase());
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((instructionSet == null) ? 0 : instructionSet.hashCode());
-        result = prime * result + registerSize;
-        return result;
+        return name.hashCode();
     }
 
     @Override
@@ -105,12 +77,6 @@ public class DefaultArchitecture implements ArchitectureInternal {
             return false;
         }
         DefaultArchitecture other = (DefaultArchitecture) obj;
-        if (instructionSet != other.instructionSet) {
-            return false;
-        }
-        if (registerSize != other.registerSize) {
-            return false;
-        }
-        return true;
+        return name.equals(other.name);
     }
 }

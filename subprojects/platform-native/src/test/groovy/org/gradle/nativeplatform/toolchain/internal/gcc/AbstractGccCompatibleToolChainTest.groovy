@@ -58,8 +58,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def toolChain = new TestNativeToolChain("test", operatingSystem, fileResolver, execActionFactory, toolSearchPath, metaDataProvider, instantiator)
     def platform = Stub(NativePlatformInternal)
 
-    def dummyOs = new DefaultOperatingSystem("dummyos", OperatingSystem.current())
-    def dummyArch = new DefaultArchitecture("dummyarch", ArchitectureInternal.InstructionSet.X86, 64)
+    def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())
+    def dummyArch = new DefaultArchitecture("x86_64")
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
@@ -238,7 +238,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> dummyOs
-        platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
+        platform.architecture >> new DefaultArchitecture(arch)
         toolChain.eachPlatform(action)
 
         when:
@@ -267,7 +267,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS)
-        platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
+        platform.architecture >> new DefaultArchitecture(arch)
 
         toolChain.target(platform.name)
         toolChain.eachPlatform(action)

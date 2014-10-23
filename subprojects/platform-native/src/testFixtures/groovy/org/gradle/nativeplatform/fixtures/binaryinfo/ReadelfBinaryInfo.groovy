@@ -69,9 +69,9 @@ class ReadelfBinaryInfo implements BinaryInfo {
         def archString = readFirstHeaderValue(lines, "Machine:", "Maschine:")
         switch (archString) {
             case "Intel 80386":
-                return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
+                return new DefaultArchitecture("x86")
             case "Advanced Micro Devices X86-64":
-                return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
+                return new DefaultArchitecture("x86_64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}\nreadelf output:\n${lines}")
         }

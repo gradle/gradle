@@ -20,9 +20,7 @@ import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser;
 import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
@@ -31,7 +29,10 @@ import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -132,13 +133,12 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         boolean amd64 = defines.containsKey("__amd64__");
         final ArchitectureInternal architecture;
         if (i386) {
-            architecture = new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 32);
+            architecture = new DefaultArchitecture("i386");
         } else if (amd64) {
-            architecture = new DefaultArchitecture("amd64", ArchitectureInternal.InstructionSet.X86, 64);
+            architecture = new DefaultArchitecture("amd64");
         } else {
-            NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser(); //TODO freekh: not DRY with DefaultNativePlatform
             String archName = Native.get(SystemInfo.class).getArchitecture().toString();
-            architecture =  archParser.parseNotation(archName);
+            architecture =  new DefaultArchitecture(archName);
         }
         return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
     }

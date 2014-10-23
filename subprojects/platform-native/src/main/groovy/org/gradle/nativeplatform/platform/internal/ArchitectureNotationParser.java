@@ -53,31 +53,31 @@ public class ArchitectureNotationParser {
 
         protected ArchitectureInternal parseType(String notation) {
             if (X86_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.X86, 32);
+                return new DefaultArchitecture(notation);
             }
             if (X86_64_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.X86, 64);
+                return new DefaultArchitecture(notation);
             }
             if (ITANIUM_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.ITANIUM, 64);
+                return new DefaultArchitecture(notation);
             }
             if (PPC_32_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.PPC, 32);
+                return new DefaultArchitecture(notation);
             }
             if (PPC_64_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.PPC, 64);
+                return new DefaultArchitecture(notation);
             }
             if (SPARC_32_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.SPARC, 32);
+                return new DefaultArchitecture(notation);
             }
             if (SPARC_64_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.SPARC, 64);
+                return new DefaultArchitecture(notation);
             }
             if (ARM_32_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.ARM, 32);
+                return new DefaultArchitecture(notation);
             }
             if (ARM_64_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultArchitecture(notation, ArchitectureInternal.InstructionSet.ARM, 64);
+                return new DefaultArchitecture(notation);
             }
             return null;
         }

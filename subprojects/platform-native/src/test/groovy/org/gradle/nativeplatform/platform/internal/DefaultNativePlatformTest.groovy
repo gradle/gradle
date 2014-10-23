@@ -15,14 +15,12 @@
  */
 package org.gradle.nativeplatform.platform.internal
 
-import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
 class DefaultNativePlatformTest extends Specification {
-    def archParser = Mock(NotationParser)
     def os = Mock(OperatingSystemInternal)
     def arch = Mock(ArchitectureInternal)
-    def platform = new DefaultNativePlatform("platform", arch, os, archParser)
+    def platform = new DefaultNativePlatform("platform", arch, os)
 
     def "has useful string representation"() {
         expect:
@@ -31,15 +29,12 @@ class DefaultNativePlatformTest extends Specification {
     }
 
     def "can configure architecture"() {
-        def arch = Mock(ArchitectureInternal)
         when:
-        platform.architecture "ppc64"
+        platform.architecture "x86"
 
         then:
-        1 * archParser.parseNotation("ppc64") >> arch
-
-        and:
-        platform.architecture == arch
+        platform.architecture.name == "x86"
+        platform.architecture.i386
     }
 
     def "can configure operating system"() {

@@ -80,7 +80,7 @@ public interface NativePlatform extends Platform {
      *     </tr>
      * </table>
      */
-    void architecture(Object notation);
+    void architecture(String name);
 
     /**
      * The operating system being targeted.
