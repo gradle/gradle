@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
+import net.jcip.annotations.ThreadSafe;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
@@ -34,6 +35,7 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.List;
 
+@ThreadSafe
 public class RulesVisitor extends RestrictiveCodeVisitor {
 
     private static final String AST_NODE_METADATA_KEY = RulesVisitor.class.getName();

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -23,6 +24,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
+@ThreadSafe
 public class ProjectionBackedModelCreator<T> implements ModelCreator {
 
     private final List<? extends ModelProjection<? super T>> projections;

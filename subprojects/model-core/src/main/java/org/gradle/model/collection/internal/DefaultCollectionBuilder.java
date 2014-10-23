@@ -16,6 +16,7 @@
 
 package org.gradle.model.collection.internal;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.internal.ErroringAction;
@@ -27,6 +28,7 @@ import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 
+@ThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     private final ModelPath collectionPath;

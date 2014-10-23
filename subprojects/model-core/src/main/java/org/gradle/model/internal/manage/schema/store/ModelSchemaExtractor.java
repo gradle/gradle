@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.store;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
@@ -32,6 +33,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 
+@ThreadSafe
 public class ModelSchemaExtractor {
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store) {

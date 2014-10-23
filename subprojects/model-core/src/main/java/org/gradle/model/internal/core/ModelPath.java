@@ -19,12 +19,14 @@ package org.gradle.model.internal.core;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.util.List;
 
+@ThreadSafe
 public class ModelPath {
 
     public static final String SEPARATOR = ".";

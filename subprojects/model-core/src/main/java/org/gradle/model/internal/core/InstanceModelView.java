@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
+
+@ThreadSafe
 public class InstanceModelView<T> implements ModelView<T> {
 
     private final ModelType<T> type;

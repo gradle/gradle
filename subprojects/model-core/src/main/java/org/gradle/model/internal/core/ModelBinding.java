@@ -16,12 +16,15 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * A binding of a reference to an actual model element.
  * <p>
  * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
  * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
+@ThreadSafe
 public class ModelBinding<T> {
 
     private final ModelReference<T> reference;

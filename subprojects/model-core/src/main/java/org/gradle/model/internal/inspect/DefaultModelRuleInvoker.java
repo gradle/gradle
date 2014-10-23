@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -26,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+@ThreadSafe
 class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
     private final JavaMethod<I, R> javaMethod;
     private final ModelType<I> source;

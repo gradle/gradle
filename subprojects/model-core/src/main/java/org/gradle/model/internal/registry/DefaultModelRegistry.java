@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -34,6 +35,7 @@ import org.gradle.model.internal.report.unbound.UnboundRule;
 
 import java.util.*;
 
+@NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
 
     /*

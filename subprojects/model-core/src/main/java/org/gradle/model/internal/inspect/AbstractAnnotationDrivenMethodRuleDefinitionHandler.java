@@ -17,10 +17,12 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
 
 import java.lang.annotation.Annotation;
 
+@ThreadSafe
 public abstract class AbstractAnnotationDrivenMethodRuleDefinitionHandler<T extends Annotation> implements MethodRuleDefinitionHandler {
     private final Class<T> annotationType;
 

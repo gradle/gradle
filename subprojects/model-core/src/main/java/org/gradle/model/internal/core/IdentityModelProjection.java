@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
 
+@ThreadSafe
 public class IdentityModelProjection<M> implements ModelProjection<M> {
 
     private final ModelType<? super M> type;

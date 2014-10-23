@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 
 /**
@@ -29,6 +30,7 @@ import org.gradle.api.Nullable;
  *
  * @param <T> the type of the reference.
  */
+@ThreadSafe
 public class ModelReference<T> {
 
     private final ModelPath path;

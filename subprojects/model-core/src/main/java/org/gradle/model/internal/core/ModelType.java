@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
+import net.jcip.annotations.ThreadSafe;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -36,6 +37,7 @@ import java.util.List;
  * Borrows from Guava's type token.
  * Represent a fully resolved/bound type.
  */
+@ThreadSafe
 public abstract class ModelType<T> {
 
     // TODO analyze performance cost of wrapping Guava's type token instead of inlining the code

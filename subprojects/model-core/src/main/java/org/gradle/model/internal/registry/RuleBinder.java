@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelBinding;
@@ -32,6 +33,7 @@ import java.util.List;
  *
  * This type is mutable.
  */
+@NotThreadSafe
 public class RuleBinder<T> {
 
     private final ModelReference<T> subjectReference;

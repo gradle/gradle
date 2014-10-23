@@ -18,10 +18,12 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.*;
 
 import java.util.List;
 
+@ThreadSafe
 public class DefaultInputs implements Inputs {
 
     private final List<ModelRuleInput<?>> inputs;

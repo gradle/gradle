@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
@@ -32,6 +33,7 @@ import java.util.List;
 
 import static org.gradle.util.CollectionUtils.findFirst;
 
+@ThreadSafe
 public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R> {
     private final Method method;
     private final ModelType<T> instanceType;

@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
@@ -29,6 +30,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.List;
 
+@ThreadSafe
 class ClosureBackedModelMutator implements ModelMutator<Object> {
 
     private final Closure<?> action;

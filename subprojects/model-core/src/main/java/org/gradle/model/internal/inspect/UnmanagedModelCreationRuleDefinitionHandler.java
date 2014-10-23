@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.*;
@@ -24,6 +25,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
+@ThreadSafe
 public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
     @Override

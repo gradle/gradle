@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Joiner;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
@@ -31,6 +32,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 
+@ThreadSafe
 public class ModelRuleInspector {
 
     private final Iterable<MethodRuleDefinitionHandler> handlers;

@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelType;
 
+@ThreadSafe
 public class ModelProperty<T> {
 
     private final String name;

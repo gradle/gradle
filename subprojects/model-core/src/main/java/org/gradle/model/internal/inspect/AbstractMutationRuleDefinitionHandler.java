@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -24,6 +25,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+@ThreadSafe
 public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
 
     public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {

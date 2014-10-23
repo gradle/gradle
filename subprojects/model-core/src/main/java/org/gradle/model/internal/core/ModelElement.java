@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+@ThreadSafe
 public class ModelElement {
 
     private final ModelPath path;

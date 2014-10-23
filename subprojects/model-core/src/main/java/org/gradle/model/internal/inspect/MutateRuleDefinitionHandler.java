@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.Mutate;
 
+@ThreadSafe
 public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Mutate> {
     @Override
     protected boolean isFinalize() {

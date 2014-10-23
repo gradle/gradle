@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.InvalidModelRuleDeclarationException;
@@ -32,10 +33,10 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
+@ThreadSafe
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
-    private final ModelSchemaStore store = new CachingModelSchemaStore(extractor);
+    private final ModelSchemaStore store = new CachingModelSchemaStore(new ModelSchemaExtractor());
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());

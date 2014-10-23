@@ -17,6 +17,8 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
@@ -26,6 +28,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import java.util.Collections;
 import java.util.List;
 
+@ThreadSafe
 abstract public class ModelCreators {
 
     public static <T> Builder<T> of(ModelReference<? super T> modelReference, T instance) {
@@ -40,6 +43,7 @@ abstract public class ModelCreators {
         return new Builder<T>(modelReference, transformer).withIdentityProjection();
     }
 
+    @NotThreadSafe
     public static class Builder<T> {
 
         private final Transformer<? extends T, ? super Inputs> transformer;

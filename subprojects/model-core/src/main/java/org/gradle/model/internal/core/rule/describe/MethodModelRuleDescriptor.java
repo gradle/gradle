@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -32,6 +33,7 @@ import java.util.List;
 
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
 // TODO some kind of instance state for the method (might be the same as context above)
+@ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private static final Joiner PARAMS_JOINER = Joiner.on(", ");

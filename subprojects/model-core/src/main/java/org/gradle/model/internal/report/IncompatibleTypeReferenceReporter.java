@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.report;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -23,6 +24,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+@ThreadSafe
 public class IncompatibleTypeReferenceReporter {
 
     private final static String INDENT = "  ";

@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.manage.state;
 
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 
+@NotThreadSafe
 public class ModelPropertyInstance<T> {
 
     private final ModelProperty<T> meta;

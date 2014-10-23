@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.internal.core.Inputs;
@@ -34,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@NotThreadSafe
 public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     // TODO include link to documentation giving more explanation of what's going on here.

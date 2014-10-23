@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.state;
 
 import com.google.common.collect.ImmutableSortedMap;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelType;
@@ -27,6 +28,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+@ThreadSafe
 public class ManagedModelElement<T> {
 
     private final ModelType<T> type;

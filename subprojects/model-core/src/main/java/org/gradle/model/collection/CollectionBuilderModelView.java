@@ -16,6 +16,7 @@
 
 package org.gradle.model.collection;
 
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.model.ModelViewClosedException;
@@ -25,6 +26,7 @@ import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 @Incubating
+@NotThreadSafe
 public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>> {
 
     private final ModelType<CollectionBuilder<T>> type;

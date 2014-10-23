@@ -16,11 +16,13 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
+@ThreadSafe
 public class ActionBackedModelMutator<T> implements ModelMutator<T> {
 
     private final ModelReference<T> subject;

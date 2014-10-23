@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import net.jcip.annotations.NotThreadSafe;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -29,6 +30,7 @@ import org.gradle.groovy.scripts.internal.ScriptBlock;
 import java.util.Collections;
 import java.util.List;
 
+@NotThreadSafe
 public class ModelBlockTransformer extends AbstractScriptTransformer {
 
     private static boolean isEnabled() {
