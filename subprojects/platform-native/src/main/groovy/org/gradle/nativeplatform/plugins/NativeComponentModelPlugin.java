@@ -52,6 +52,7 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -70,7 +71,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
 
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
         ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);

@@ -16,13 +16,9 @@
 
 package org.gradle.ide.visualstudio.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioProject;
@@ -39,21 +35,23 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.platform.base.BinaryContainer;
+
+import java.util.Collections;
 
 
 /**
  * A plugin for creating a Visual Studio solution for a gradle project.
  */
 @Incubating
-public class VisualStudioPlugin implements Plugin<ProjectInternal> {
+public class VisualStudioPlugin implements Plugin<Project> {
 
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(NativeComponentModelPlugin.class);
+    public void apply(Project project) {
+        project.apply(Collections.singletonMap("plugin", NativeComponentModelPlugin.class));
     }
 
     /**

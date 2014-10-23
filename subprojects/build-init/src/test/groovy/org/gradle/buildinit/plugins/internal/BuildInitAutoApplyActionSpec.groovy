@@ -45,10 +45,9 @@ class BuildInitAutoApplyActionSpec extends Specification {
         when:
         new BuildInitAutoApplyAction().execute(projectInternal)
         then:
-        1 * taskContainerInternal.addPlaceholderAction("init", _) >> {args -> args[1].run()}
+        1 * taskContainerInternal.addPlaceholderAction("init", _) >> { args -> args[1].run() }
         1 * projectInternal.getParent() >> null
-        1 * projectInternal.getPluginManager() >> pluginManager
-        1 * pluginManager.apply("build-init")
+        1 * projectInternal.apply([plugin: "build-init"])
     }
 
     def "is not applied on non rootprojects"() {
@@ -58,8 +57,7 @@ class BuildInitAutoApplyActionSpec extends Specification {
         new BuildInitAutoApplyAction().execute(projectInternal)
         then:
         0 * taskContainerInternal.addPlaceholderAction("init", _)
-        0 * projectInternal.getPluginManager() >> pluginManager
-        0 * pluginManager.apply("build-init")
+        0 * projectInternal.apply([plugin: "build-init"])
     }
 
     def isNotRootProject() {

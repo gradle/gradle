@@ -21,8 +21,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectScript;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
@@ -132,7 +132,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.run();
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
-            PluginAwareInternal pluginAware = target instanceof PluginAwareInternal ? (PluginAwareInternal) target : null;
+            PluginAware pluginAware = target instanceof PluginAware ? (PluginAware) target : null;
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginAware, targetScope);
 
             compiler.setClassloader(targetScope.getLocalClassLoader());

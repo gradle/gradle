@@ -18,12 +18,12 @@ package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -32,6 +32,7 @@ import org.gradle.api.tasks.SourceSet;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
@@ -39,7 +40,7 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
 /**
  * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
  */
-public class AntlrPlugin implements Plugin<ProjectInternal> {
+public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final FileResolver fileResolver;
 
@@ -48,8 +49,8 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
         this.fileResolver = fileResolver;
     }
 
-    public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(JavaPlugin.class);
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", JavaPlugin.class));
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.

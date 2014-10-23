@@ -18,10 +18,10 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.reporting.ReportingExtension;
@@ -33,18 +33,19 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
  * source files.
  */
-public class GroovyBasePlugin implements Plugin<ProjectInternal> {
+public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final FileResolver fileResolver;
 
-    private ProjectInternal project;
+    private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
@@ -52,9 +53,9 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         this.fileResolver = fileResolver;
     }
 
-    public void apply(ProjectInternal project) {
+    public void apply(Project project) {
         this.project = project;
-        project.getPluginManager().apply(JavaBasePlugin.class);
+        project.apply(Collections.singletonMap("plugin", JavaBasePlugin.class));
         JavaBasePlugin javaBasePlugin = project.getPlugins().getPlugin(JavaBasePlugin.class);
 
         configureGroovyRuntimeExtension();

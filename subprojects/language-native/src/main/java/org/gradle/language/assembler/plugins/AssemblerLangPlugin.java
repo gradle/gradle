@@ -18,26 +18,27 @@ package org.gradle.language.assembler.plugins;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
+import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.nativeplatform.internal.DefaultTool;
-import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
  * Adds core Assembler language support.
  */
 @Incubating
-public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
+public class AssemblerLangPlugin implements Plugin<Project> {
 
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+    public void apply(Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.getExtensions().getByType(LanguageRegistry.class).add(new Assembler());
     }
 

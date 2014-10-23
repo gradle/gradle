@@ -16,15 +16,10 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.plugins.PluginDescriptor;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaPlugin;
@@ -40,7 +35,7 @@ import java.util.*;
  * A plugin for validating java gradle plugins during the jar task.  Emits warnings for common error conditions.
  */
 @Incubating
-public class JavaGradlePluginPlugin implements Plugin<ProjectInternal> {
+public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     static final String COMPILE_CONFIGURATION = "compile";
     static final String JAR_TASK = "jar";
@@ -51,8 +46,8 @@ public class JavaGradlePluginPlugin implements Plugin<ProjectInternal> {
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
 
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(JavaPlugin.class);
+    public void apply(Project project) {
+        project.apply(Collections.singletonMap("plugin", JavaPlugin.class));
         applyDependencies(project);
         configureJarTask(project);
     }
@@ -78,7 +73,7 @@ public class JavaGradlePluginPlugin implements Plugin<ProjectInternal> {
     /**
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */
-    static class PluginValidationAction implements Action<Task>  {
+    static class PluginValidationAction implements Action<Task> {
         Collection<PluginDescriptor> descriptors;
         Set<String> classes;
 

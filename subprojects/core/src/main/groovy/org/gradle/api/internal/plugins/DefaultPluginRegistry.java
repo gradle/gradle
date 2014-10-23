@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginInstantiationException;
@@ -103,7 +102,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         if (parent != null) {
             lookup = parent.lookup(idOrName);
             if (lookup == null) {
-                String qualified = maybeQualify(idOrName);
+                String qualified = PluginManager.maybeQualify(idOrName);
                 if (qualified != null) {
                     lookup = lookup(qualified);
                 }
@@ -122,7 +121,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
         PotentialPluginWithId lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(idOrName, classLoader)).orNull();
         if (lookup == null) {
-            String qualified = maybeQualify(idOrName);
+            String qualified = PluginManager.maybeQualify(idOrName);
             if (qualified != null) {
                 lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
             }
@@ -138,15 +137,6 @@ public class DefaultPluginRegistry implements PluginRegistry {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
-    }
-
-    @Nullable
-    private static String maybeQualify(String id) {
-        if (id.startsWith(PluginManager.CORE_PLUGIN_PREFIX)) {
-            return null;
-        } else {
-            return PluginManager.CORE_PLUGIN_PREFIX + id;
         }
     }
 

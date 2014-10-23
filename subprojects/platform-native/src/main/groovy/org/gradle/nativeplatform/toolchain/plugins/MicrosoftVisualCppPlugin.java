@@ -19,14 +19,14 @@ package org.gradle.nativeplatform.toolchain.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
+import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
@@ -34,14 +34,16 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
+import java.util.Collections;
+
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
 @Incubating
-public class MicrosoftVisualCppPlugin implements Plugin<ProjectInternal> {
+public class MicrosoftVisualCppPlugin implements Plugin<Project> {
 
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(NativeComponentModelPlugin.class);
+    public void apply(Project project) {
+        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
     }
 
     /**

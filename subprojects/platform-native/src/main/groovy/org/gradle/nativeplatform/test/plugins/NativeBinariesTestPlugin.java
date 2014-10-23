@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -39,14 +38,15 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
 @Incubating
-public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
-    public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(NativeComponentPlugin.class);
+public class NativeBinariesTestPlugin implements Plugin<Project> {
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
     }
 
     /**
@@ -61,7 +61,8 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultTestSuiteContainer.class, instantiator);
         }
 
-        @Finalize // Must run after test binaries have been created (currently in CUnit plugin)
+        @Finalize
+            // Must run after test binaries have been created (currently in CUnit plugin)
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
             for (NativeTestSuiteBinarySpec testSuiteBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
                 NativeBinarySpec testedBinary = testSuiteBinary.getTestedBinary();

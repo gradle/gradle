@@ -18,27 +18,27 @@ package org.gradle.language.objectivecpp.plugins;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
-import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
-import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
  * Adds core Objective-Cpp language support.
  */
 @Incubating
-public class ObjectiveCppLangPlugin implements Plugin<ProjectInternal> {
-    public void apply(final ProjectInternal project) {
-
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+public class ObjectiveCppLangPlugin implements Plugin<Project> {
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.getExtensions().getByType(LanguageRegistry.class).add(new ObjectiveCpp());
     }
 

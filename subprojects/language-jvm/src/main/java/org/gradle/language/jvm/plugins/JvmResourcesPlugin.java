@@ -17,7 +17,6 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
@@ -38,10 +37,10 @@ import java.util.Map;
  * org.gradle.language.jvm.JvmResourceSet}.
  */
 @Incubating
-public class JvmResourcesPlugin implements Plugin<ProjectInternal> {
+public class JvmResourcesPlugin implements Plugin<Project> {
 
-    public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.getExtensions().getByType(LanguageRegistry.class).add(new JvmResources());
     }
 

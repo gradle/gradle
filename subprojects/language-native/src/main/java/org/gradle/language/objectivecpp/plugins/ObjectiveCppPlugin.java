@@ -18,8 +18,10 @@ package org.gradle.language.objectivecpp.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
+
+import java.util.Collections;
 
 /**
  * A plugin for projects wishing to build native binary components from Objective-C++ sources.
@@ -29,10 +31,10 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * <li>Creates a {@link org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile} task for each {@link org.gradle.language.objectivecpp.ObjectiveCppSourceSet} to compile the Objective-C++ sources.</li>
  */
 @Incubating
-public class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(NativeComponentPlugin.class);
-        project.getPluginManager().apply(ObjectiveCppLangPlugin.class);
+public class ObjectiveCppPlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
+        project.apply(Collections.singletonMap("plugin", ObjectiveCppLangPlugin.class));
     }
 
 }

@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.test.cunit.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
@@ -51,16 +51,17 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
 @Incubating
-public class CUnitPlugin implements Plugin<ProjectInternal> {
+public class CUnitPlugin implements Plugin<Project> {
 
-    public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(NativeBinariesTestPlugin.class);
-        project.getPluginManager().apply(CLangPlugin.class);
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", NativeBinariesTestPlugin.class));
+        project.apply(Collections.singletonMap("plugin", CLangPlugin.class));
     }
 
     /**

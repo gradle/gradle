@@ -28,11 +28,11 @@ class CUnitTest extends Specification {
 
     def "check the correct binary type are created for the test suite"() {
         given:
-        project.pluginManager.apply(CPlugin)
+        project.apply(plugin: CPlugin)
         project.libraries.create("main")
 
         when:
-        project.pluginManager.apply(CUnitPlugin)
+        project.apply(plugin: CUnitPlugin)
         project.evaluate()
 
         then:

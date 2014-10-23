@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -58,7 +59,7 @@ class RuleSourceApplicationTest extends Specification {
 
         then:
         PluginApplicationException e = thrown()
-        e.cause instanceof IllegalArgumentException
+        e.cause instanceof InvalidPluginException
         e.cause.message == "'${String.name}' is neither a plugin or a rule source and cannot be applied."
     }
 

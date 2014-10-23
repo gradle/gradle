@@ -18,27 +18,27 @@ package org.gradle.language.objectivec.plugins;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet;
-import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
-import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
  * Adds core Objective-C language support.
  */
 @Incubating
-public class ObjectiveCLangPlugin implements Plugin<ProjectInternal> {
-    public void apply(final ProjectInternal project) {
-
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+public class ObjectiveCLangPlugin implements Plugin<Project> {
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.getExtensions().getByType(LanguageRegistry.class).add(new ObjectiveC());
     }
 

@@ -18,7 +18,6 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.Actions;
@@ -49,6 +48,7 @@ import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,17 +58,17 @@ import java.util.Set;
  * the {@link org.gradle.platform.base.ComponentSpecContainer}.
  */
 @Incubating
-public class JvmComponentPlugin implements Plugin<ProjectInternal> {
+public class JvmComponentPlugin implements Plugin<Project> {
 
     private static final Set<JavaPlatform> DEFAULT_PLATFORMS = instantiateJavaPlatforms();
 
-    public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
     }
 
     private static Set<JavaPlatform> instantiateJavaPlatforms() {
         Set<JavaPlatform> platforms = new LinkedHashSet<JavaPlatform>();
-        for (JavaVersion javaVersion: JavaVersion.values()) {
+        for (JavaVersion javaVersion : JavaVersion.values()) {
             DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
             platforms.add(javaPlatform);
         }

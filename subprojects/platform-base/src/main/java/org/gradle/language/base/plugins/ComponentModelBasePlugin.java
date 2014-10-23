@@ -38,13 +38,17 @@ import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 /**
  * Base plugin for language support.
@@ -68,7 +72,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
 
     public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(LanguageBasePlugin.class);
+        project.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
         ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
@@ -79,7 +83,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         .simpleDescriptor("Project.<init>.components()")
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
                         .build()
-                        );
+        );
 
         // TODO:DAZ Convert to model rules
         createLanguageSourceSets(sources, components, languageRegistry, project.getFileResolver());
@@ -147,7 +151,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-        // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
+            // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
         void applyDefaultSourceConventions(ProjectSourceSet sources, ComponentSpecContainer componentSpecs) {
             for (FunctionalSourceSet functionalSourceSet : sources) {
                 for (LanguageSourceSet languageSourceSet : functionalSourceSet) {

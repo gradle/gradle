@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
@@ -29,7 +28,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
  * consumption.  
  */
-public interface GradleInternal extends Gradle, PluginAwareInternal {
+public interface GradleInternal extends Gradle {
     /**
      * {@inheritDoc}
      */
@@ -60,7 +59,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
      * is executed, {@link #getRootProject()} will return null.
-      @param rootProject The root project for this build.
+     @param rootProject The root project for this build.
      */
     void setRootProject(ProjectInternal rootProject);
 

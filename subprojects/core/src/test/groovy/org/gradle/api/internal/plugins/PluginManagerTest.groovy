@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.RuleSource
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,10 +30,48 @@ class PluginManagerTest extends Specification {
     def applicator = Mock(PluginApplicator)
     def manager = new PluginManager(registry, new DirectInstantiator(), applicator)
 
+    Class<?> rulesClass
+    Class<?> hybridClass
+    Class<?> imperativeClass
+
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def setup() {
+        rulesClass = classLoader.parseClass("""
+            @org.gradle.model.RuleSource
+            class Rules {
+
+            }
+        """)
+
+        hybridClass = classLoader.parseClass("""
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class Hybrid implements Plugin<Project> {
+                @Override
+                void apply(Project target) {
+
+                }
+
+                @org.gradle.model.RuleSource
+                static class Rules {}
+            }
+        """)
+
+        imperativeClass = classLoader.parseClass("""
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class Imperative implements Plugin<Project> {
+                @Override
+                void apply(Project target) {
+
+                }
+            }
+        """)
+
         classLoader.addURL(testDirectoryProvider.testDirectory.toURI().toURL())
     }
 
@@ -47,17 +81,13 @@ class PluginManagerTest extends Specification {
         !manager.hasPlugin("foo")
     }
 
-    @RuleSource
-    static class Rules {
-
-    }
 
     def "can apply rules plugin with no id"() {
         when:
-        manager.apply(Rules)
+        manager.apply(rulesClass)
 
         then:
-        1 * applicator.applyRules(null, Rules)
+        1 * applicator.applyRules(null, rulesClass)
 
         and:
         manager.pluginContainer.isEmpty()
@@ -65,13 +95,13 @@ class PluginManagerTest extends Specification {
 
     def "can apply rules plugin by class with id"() {
         given:
-        addPluginId("foo", Rules)
+        addPluginId("foo", rulesClass)
 
         when:
-        manager.apply(Rules)
+        manager.apply(rulesClass)
 
         then:
-        1 * applicator.applyRules(null, Rules)
+        1 * applicator.applyRules(null, rulesClass)
 
         and:
         manager.pluginContainer.isEmpty()
@@ -88,13 +118,13 @@ class PluginManagerTest extends Specification {
 
     def "can apply rules plugin by id"() {
         given:
-        addPluginId("foo", Rules)
+        addPluginId("foo", rulesClass)
 
         when:
         manager.apply("foo")
 
         then:
-        1 * applicator.applyRules("foo", Rules)
+        1 * applicator.applyRules("foo", rulesClass)
 
         and:
         manager.pluginContainer.isEmpty()
@@ -109,22 +139,12 @@ class PluginManagerTest extends Specification {
         called
     }
 
-    static class Hybrid implements Plugin<Project> {
-        @Override
-        void apply(Project target) {
-
-        }
-
-        @RuleSource
-        static class Rules {}
-    }
-
     def "can apply hybrid plugin with no id"() {
         when:
-        manager.apply(Hybrid)
+        manager.apply(hybridClass)
 
         then:
-        1 * applicator.applyImperativeRulesHybrid(null, { it instanceof Hybrid })
+        1 * applicator.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -132,13 +152,13 @@ class PluginManagerTest extends Specification {
 
     def "can apply hybrid plugin by class with id"() {
         given:
-        addPluginId("foo", Hybrid)
+        addPluginId("foo", hybridClass)
 
         when:
-        manager.apply(Hybrid)
+        manager.apply(hybridClass)
 
         then:
-        1 * applicator.applyImperativeRulesHybrid(null, { it instanceof Hybrid })
+        1 * applicator.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -155,13 +175,13 @@ class PluginManagerTest extends Specification {
 
     def "can apply hybrid plugin by id"() {
         given:
-        addPluginId("foo", Hybrid)
+        addPluginId("foo", hybridClass)
 
         when:
         manager.apply("foo")
 
         then:
-        1 * applicator.applyImperativeRulesHybrid("foo", { it instanceof Hybrid })
+        1 * applicator.applyImperativeRulesHybrid("foo", { hybridClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -176,20 +196,12 @@ class PluginManagerTest extends Specification {
         called
     }
 
-
-    static class Imperative implements Plugin<Project> {
-        @Override
-        void apply(Project target) {
-
-        }
-    }
-
     def "can apply imperative plugin with no id"() {
         when:
-        manager.apply(Imperative)
+        manager.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative(null, { it instanceof Imperative })
+        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -197,13 +209,13 @@ class PluginManagerTest extends Specification {
 
     def "can apply imperative plugin by class with id"() {
         given:
-        addPluginId("foo", Imperative)
+        addPluginId("foo", imperativeClass)
 
         when:
-        manager.apply(Imperative)
+        manager.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative(null, { it instanceof Imperative })
+        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -220,13 +232,13 @@ class PluginManagerTest extends Specification {
 
     def "can apply imperative plugin by id"() {
         given:
-        addPluginId("foo", Imperative)
+        addPluginId("foo", imperativeClass)
 
         when:
         manager.apply("foo")
 
         then:
-        1 * applicator.applyImperative("foo", { it instanceof Imperative })
+        1 * applicator.applyImperative("foo", { imperativeClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -241,7 +253,7 @@ class PluginManagerTest extends Specification {
         called
     }
 
-    def "does not allow duplicate plugins"() {
+    def "with plugin fires for each plugin known by that id"() {
         given:
         def applied = []
         def groovyLoader = new GroovyClassLoader(getClass().classLoader)
@@ -259,7 +271,7 @@ class PluginManagerTest extends Specification {
         """
 
         when:
-        addPluginId("plugin", Imperative)
+        addPluginId("plugin", imperativeClass)
         manager.withPlugin("plugin") { applied << it }
 
         then:
@@ -275,22 +287,10 @@ class PluginManagerTest extends Specification {
         applied.size() == 1
 
         when:
-        manager.apply(Imperative)
+        manager.apply(imperativeClass)
 
         then:
-        thrown InvalidPluginException // duplicate
-
-        when:
-        manager.apply("plugin")
-
-        then:
-        noExceptionThrown()
-
-        when:
-        manager.pluginContainer.apply("plugin")
-
-        then:
-        thrown InvalidPluginException // duplicate
+        applied.size() == 2
     }
 
     void addPluginId(String id, Class<?> pluginClass) {

@@ -18,28 +18,28 @@ package org.gradle.language.c.plugins;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
-import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
+import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
  * Adds core C language support.
  */
 @Incubating
-public class CLangPlugin implements Plugin<ProjectInternal> {
+public class CLangPlugin implements Plugin<Project> {
 
-    public void apply(final ProjectInternal project) {
-
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.getExtensions().getByType(LanguageRegistry.class).add(new C());
     }
 

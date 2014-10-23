@@ -24,7 +24,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
@@ -47,6 +46,7 @@ import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -57,7 +57,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.3
  */
 @Incubating
-public class IvyPublishPlugin implements Plugin<ProjectInternal> {
+public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
@@ -73,8 +73,8 @@ public class IvyPublishPlugin implements Plugin<ProjectInternal> {
         this.projectDependencyResolver = projectDependencyResolver;
     }
 
-    public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(PublishingPlugin.class);
+    public void apply(final Project project) {
+        project.apply(Collections.singletonMap("plugin", PublishingPlugin.class));
 
         // Can't move this to rules yet, because it has to happen before user deferred configurable actions
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {

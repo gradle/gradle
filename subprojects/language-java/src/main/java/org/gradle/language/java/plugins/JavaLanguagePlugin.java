@@ -18,8 +18,8 @@ package org.gradle.language.java.plugins;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
@@ -42,11 +42,11 @@ import java.util.Map;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
  */
-public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
+public class JavaLanguagePlugin implements Plugin<Project> {
 
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
-        project.getPluginManager().apply(JvmResourcesPlugin.class);
+    public void apply(Project project) {
+        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.apply(Collections.singletonMap("plugin", JvmResourcesPlugin.class));
         project.getExtensions().getByType(LanguageRegistry.class).add(new Java());
     }
 
