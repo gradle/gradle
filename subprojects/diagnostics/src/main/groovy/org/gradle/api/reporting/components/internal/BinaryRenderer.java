@@ -29,6 +29,7 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
 class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
@@ -75,9 +76,9 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
         }
 
         if (binary instanceof JvmBinarySpec) {
-            JvmBinarySpec libraryBinary = (JvmBinarySpec) binary;
-            textOutput.formatln("    platform: %s", libraryBinary.getTargetPlatform().getName());
-            textOutput.formatln("    tool chain: %s", libraryBinary.getToolChain().toString());
+            JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
+            textOutput.formatln("    platform: %s", jvmBinary.getTargetPlatform().getName());
+            textOutput.formatln("    tool chain: %s", jvmBinary.getToolChain().getDisplayName());
             if (binary instanceof JarBinarySpec) {
                 JarBinarySpec jarBinary = (JarBinarySpec) binary;
                 textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
@@ -87,6 +88,12 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
                 textOutput.formatln("    classes dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getClassesDir()));
                 textOutput.formatln("    resources dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getResourcesDir()));
             }
+        }
+
+        if (binary instanceof PlayApplicationBinarySpec) {
+            PlayApplicationBinarySpec playBinary = (PlayApplicationBinarySpec) binary;
+            textOutput.formatln("    platform: %s", playBinary.getTargetPlatform().getName());
+            textOutput.formatln("    tool chain: %s", playBinary.getToolChain().getDisplayName());
         }
     }
 }

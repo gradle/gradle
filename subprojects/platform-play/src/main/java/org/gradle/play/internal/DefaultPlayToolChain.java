@@ -16,27 +16,23 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.api.JavaVersion;
 import org.gradle.play.PlayToolChain;
 
-public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
-    private JavaPlatform platform;
-    private PlayToolChain toolChain;
+public class DefaultPlayToolChain implements PlayToolChain {
+    private String playVersion;
+    private JavaVersion javaVersion;
 
-    public JavaPlatform getTargetPlatform() {
-        return platform;
+    public DefaultPlayToolChain(String playVersion) {
+        this.playVersion = playVersion;
+        this.javaVersion = JavaVersion.current();
     }
 
-    public PlayToolChain getToolChain() {
-        return toolChain;
+    public String getName() {
+        return String.format("PlayFramework%s", playVersion);
     }
 
-    public void setTargetPlatform(JavaPlatform platform) {
-        this.platform = platform;
-    }
-
-    public void setToolChain(PlayToolChain toolChain) {
-        this.toolChain = toolChain;
+    public String getDisplayName() {
+        return String.format("Play Framework %s / JDK %s (%s)", this.playVersion, javaVersion.getMajorVersion(), javaVersion);
     }
 }

@@ -43,8 +43,9 @@ Source sets
     No source sets.
 
 Binaries
-    No binaries.
-"""))
-
+    DefaultPlayApplicationBinarySpec 'myAppBinary'
+        build using task: :myAppBinary
+        platform: java7
+        tool chain: Play Framework 2.3.5 / JDK 7 (1.7)"""))
     }
 }

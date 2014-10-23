@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':reporting')
-    compile project(':plugins')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':dependencyManagement')
-    compile project(':platformPlay')
+package org.gradle.play.internal;
 
-    integTestRuntime project(':cunit')
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.play.PlayApplicationBinarySpec;
+import org.gradle.play.PlayToolChain;
+
+public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec {
+
+    void setTargetPlatform(JavaPlatform platform);
+    void setToolChain(PlayToolChain toolChain);
+
 }
-
-useTestFixtures()
-useTestFixtures(project: ':dependencyManagement')
-useTestFixtures(project: ':platformNative', sourceSet: 'testFixtures')
