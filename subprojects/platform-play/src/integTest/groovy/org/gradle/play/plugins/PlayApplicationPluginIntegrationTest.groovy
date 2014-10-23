@@ -16,6 +16,7 @@
 
 package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TextUtil
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -35,6 +36,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register PlayApplicationSpec component"() {
+        def javaVersion = Jvm.current().getJavaVersion();
         when:
         succeeds "components"
         then:
@@ -49,7 +51,7 @@ Binaries
     DefaultPlayApplicationBinarySpec 'myAppBinary'
         build using task: :myAppBinary
         platform: java7
-        tool chain: Play Framework 2.3.5 / JDK 7 (1.7)"""))
+        tool chain: Play Framework 2.3.5 / JDK ${javaVersion.majorVersion} (${javaVersion.toString()})"""))
     }
 
     def "builds play binary"() {
