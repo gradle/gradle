@@ -16,20 +16,32 @@
 
 package org.gradle.play.internal
 
-import org.gradle.internal.jvm.Jvm
+import org.gradle.api.JavaVersion
 import spock.lang.Specification
 
 class DefaultPlayToolChainTest extends Specification {
-    DefaultPlayToolChain toolChain = new DefaultPlayToolChain("2.3.5", "2.11.1")
 
     def "provides meaningful name"() {
+        given:
+        def toolChain = new DefaultPlayToolChain(playVersion, "2.11.1")
+
         expect:
-        toolChain.getName() == "PlayFramework2.3.5"
+        toolChain.getName() == "PlayFramework$playVersion"
+
+        where:
+        playVersion << ["2.3.2", "2.3.5"]
     }
 
     def "provides meaningful displayname"() {
-        def javaVersion = Jvm.current().javaVersion
+        given:
+        def toolChain = new DefaultPlayToolChain(playVersion, scalaVersion, javaVersion)
         expect:
-        toolChain.getDisplayName() == "Play Framework 2.3.5 / Scala 2.11.1 / JDK ${javaVersion.majorVersion} ($javaVersion)"
+        toolChain.getDisplayName() == expectedOutput
+
+        where:
+        playVersion | scalaVersion | javaVersion             | expectedOutput
+        "2.3.2"     | "2.10.2"     | JavaVersion.VERSION_1_6 | "Play Framework 2.3.2 (Scala 2.10.2 / JDK 6 (1.6))"
+        "2.3.5"     | "2.10.2"     | JavaVersion.VERSION_1_7 | "Play Framework 2.3.5 (Scala 2.10.2 / JDK 7 (1.7))"
+        "2.3.5"     | "2.11.1"     | JavaVersion.VERSION_1_8 | "Play Framework 2.3.5 (Scala 2.11.1 / JDK 8 (1.8))"
     }
 }

@@ -67,8 +67,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>(){
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
-                    playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(JavaVersion.current()));
-                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION, DEFAULT_SCALA_VERSION));
+                    JavaVersion currentJava = JavaVersion.current();
+                    playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(currentJava));
+                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION, DEFAULT_SCALA_VERSION, currentJava));
                     playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
 
                 }

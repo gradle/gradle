@@ -24,10 +24,10 @@ public class DefaultPlayToolChain implements PlayToolChain {
     private final String scalaVersion;
     private JavaVersion javaVersion;
 
-    public DefaultPlayToolChain(String playVersion, String scalaVersion) {
+    public DefaultPlayToolChain(String playVersion, String scalaVersion, JavaVersion javaVersion) {
         this.playVersion = playVersion;
         this.scalaVersion = scalaVersion;
-        this.javaVersion = JavaVersion.current();
+        this.javaVersion = javaVersion;
     }
 
     public String getName() {
@@ -35,6 +35,6 @@ public class DefaultPlayToolChain implements PlayToolChain {
     }
 
     public String getDisplayName() {
-        return String.format("Play Framework %s / Scala %s / JDK %s (%s)", this.playVersion, this.scalaVersion, javaVersion.getMajorVersion(), javaVersion);
+        return String.format("Play Framework %s (Scala %s / JDK %s (%s))", this.playVersion, this.scalaVersion, javaVersion.getMajorVersion(), javaVersion);
     }
 }
