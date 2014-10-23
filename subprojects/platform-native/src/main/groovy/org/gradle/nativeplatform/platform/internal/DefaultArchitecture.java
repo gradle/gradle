@@ -61,22 +61,19 @@ public class DefaultArchitecture implements ArchitectureInternal {
     }
 
     @Override
-    public int hashCode() {
-        return name.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultArchitecture other = (DefaultArchitecture) o;
+        return name.equals(other.name);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        DefaultArchitecture other = (DefaultArchitecture) obj;
-        return name.equals(other.name);
+    public int hashCode() {
+        return name.hashCode();
     }
 }

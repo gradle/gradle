@@ -72,4 +72,21 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     public boolean isFreeBSD() {
         return internalOs == OperatingSystem.FREE_BSD;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultOperatingSystem that = (DefaultOperatingSystem) o;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 }
