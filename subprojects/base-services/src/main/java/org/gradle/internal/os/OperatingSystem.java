@@ -33,12 +33,16 @@ public abstract class OperatingSystem {
     public static final Unix UNIX = new Unix();
 
     public static OperatingSystem current() {
-        String osName = System.getProperty("os.name").toLowerCase();
+        return forName(System.getProperty("os.name"));
+    }
+
+    public static OperatingSystem forName(String os) {
+        String osName = os.toLowerCase();
         if (osName.contains("windows")) {
             return WINDOWS;
-        } else if (osName.contains("mac os x") || osName.contains("darwin")) {
+        } else if (osName.contains("mac os x") || osName.contains("darwin") || osName.contains("osx")) {
             return MAC_OS;
-        } else if (osName.contains("sunos")) {
+        } else if (osName.contains("sunos") || osName.contains("solaris")) {
             return SOLARIS;
         } else if (osName.contains("linux")) {
             return LINUX;

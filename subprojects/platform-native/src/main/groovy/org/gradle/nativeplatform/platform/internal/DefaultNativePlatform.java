@@ -21,15 +21,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.nativeplatform.platform.NativePlatform;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
     private final NotationParser<Object, ArchitectureInternal> archParser;
-    private final NotationParser<Object, OperatingSystemInternal> osParser;
     private final String name;
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
@@ -42,15 +43,15 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         //TODO freekh: add more ppc? xbox/playstation is based on Power arch (ppc/cell) I think?
         Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
 
-        OperatingSystemInternal windows = new DefaultOperatingSystem("windows", OperatingSystem.WINDOWS);
-        OperatingSystemInternal freebsd = new DefaultOperatingSystem("freebsd", OperatingSystem.FREE_BSD);
-        OperatingSystemInternal linux = new DefaultOperatingSystem("linux", OperatingSystem.LINUX);
-        OperatingSystemInternal osx = new DefaultOperatingSystem("osx", OperatingSystem.MAC_OS);
-        OperatingSystemInternal unix = new DefaultOperatingSystem("unix", OperatingSystem.UNIX);
-        OperatingSystemInternal solaris = new DefaultOperatingSystem("solaris", OperatingSystem.SOLARIS);
+        OperatingSystemInternal windows = new DefaultOperatingSystem("windows");
+        OperatingSystemInternal freebsd = new DefaultOperatingSystem("freebsd");
+        OperatingSystemInternal linux = new DefaultOperatingSystem("linux");
+        OperatingSystemInternal osx = new DefaultOperatingSystem("osx");
+        OperatingSystemInternal unix = new DefaultOperatingSystem("unix");
+        OperatingSystemInternal solaris = new DefaultOperatingSystem("solaris");
 
-        ArchitectureInternal x64 = new DefaultArchitecture("x64", ArchitectureInternal.InstructionSet.X86, 64);
         ArchitectureInternal x86 = new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32);
+        ArchitectureInternal x86_64 = new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64);
         ArchitectureInternal armv7 = new DefaultArchitecture("armv7", ArchitectureInternal.InstructionSet.ARM, 32);
         ArchitectureInternal armv8 = new DefaultArchitecture("armv8", ArchitectureInternal.InstructionSet.ARM, 64);
         ArchitectureInternal sparc = new DefaultArchitecture("sparc", ArchitectureInternal.InstructionSet.SPARC, 32);
@@ -59,33 +60,33 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         ArchitectureInternal ppc64 = new DefaultArchitecture("ppc64", ArchitectureInternal.InstructionSet.PPC, 64);
 
 
-        platforms.add(new DefaultNativePlatform("windows_x64", x64, windows));
         platforms.add(new DefaultNativePlatform("windows_x86", x86, windows));
+        platforms.add(new DefaultNativePlatform("windows_x86_64", x86_64, windows));
         platforms.add(new DefaultNativePlatform("windows_rt_32", armv7, windows));
 
-        platforms.add(new DefaultNativePlatform("freebsd_x64", x64, freebsd));
         platforms.add(new DefaultNativePlatform("freebsd_x86", x86, freebsd));
+        platforms.add(new DefaultNativePlatform("freebsd_x86_64", x86_64, freebsd));
         platforms.add(new DefaultNativePlatform("freebsd_armv7", armv7, freebsd));
         platforms.add(new DefaultNativePlatform("freebsd_armv8", armv8, freebsd));
         platforms.add(new DefaultNativePlatform("freebsd_ppc", ppc, freebsd));
         platforms.add(new DefaultNativePlatform("freebsd_ppc64", ppc64, freebsd));
 
-        platforms.add(new DefaultNativePlatform("unix_x64", x64, unix));
         platforms.add(new DefaultNativePlatform("unix_x86", x86, unix));
+        platforms.add(new DefaultNativePlatform("unix_x86_64", x86_64, unix));
         platforms.add(new DefaultNativePlatform("unix_armv7", armv7, unix));
         platforms.add(new DefaultNativePlatform("unix_armv8", armv8, unix));
         platforms.add(new DefaultNativePlatform("unix_ppc", ppc, unix));
         platforms.add(new DefaultNativePlatform("unix_ppc64", ppc64, unix));
 
-        platforms.add(new DefaultNativePlatform("linux_x64", x64, linux));
+        platforms.add(new DefaultNativePlatform("linux_x64", x86_64, linux));
         platforms.add(new DefaultNativePlatform("linux_x86", x86, linux));
         platforms.add(new DefaultNativePlatform("linux_armv7", armv7, linux));
         platforms.add(new DefaultNativePlatform("linux_armv8", armv8, linux));
 
         platforms.add(new DefaultNativePlatform("osx_x86", x86, osx));
-        platforms.add(new DefaultNativePlatform("osx_x64", x64, osx));
+        platforms.add(new DefaultNativePlatform("osx_x64", x86_64, osx));
 
-        platforms.add(new DefaultNativePlatform("solaris_x64", x64, solaris));
+        platforms.add(new DefaultNativePlatform("solaris_x64", x86_64, solaris));
         platforms.add(new DefaultNativePlatform("solaris_x86", x86, solaris));
         platforms.add(new DefaultNativePlatform("solaris_sparc", sparc, solaris));
         platforms.add(new DefaultNativePlatform("solaris_ultrasparc", ultrasparc, solaris));
@@ -93,32 +94,19 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return platforms;
     }
 
-    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
+    public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem, NotationParser<Object, ArchitectureInternal> archParser) {
         this.name = name;
         this.archParser = archParser;
-        this.osParser = osParser;
         this.architecture = architecture;
         this.operatingSystem = operatingSystem;
     }
 
     public DefaultNativePlatform(String name, ArchitectureInternal architecture, OperatingSystemInternal operatingSystem) {
-       this(name, architecture, operatingSystem, ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+       this(name, architecture, operatingSystem, ArchitectureNotationParser.parser());
     }
 
     public DefaultNativePlatform(String name) {
         this(name, getDefault().getArchitecture(), getDefault().getOperatingSystem());
-    }
-
-    public static NativePlatform getDefault(final ArchitectureInternal architecture, final OperatingSystemInternal operatingSystem) {
-        DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
-            public boolean evaluate(Object object) {
-                DefaultNativePlatform platform = (DefaultNativePlatform) object;
-                return platform.architecture.getInstructionSet().equals(architecture.getInstructionSet())
-                        && platform.architecture.getRegisterSize() == architecture.getRegisterSize()
-                        && platform.operatingSystem.getInternalOs().equals(operatingSystem.getInternalOs());
-            }
-        });
-        return matchingPlatform;
     }
 
     //TODO freekh: Move this logic back into grapefruit?
@@ -289,8 +277,8 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return operatingSystem;
     }
 
-    public void operatingSystem(Object notation) {
-        operatingSystem = osParser.parseNotation(notation);
+    public void operatingSystem(String name) {
+        operatingSystem = new DefaultOperatingSystem(name);
     }
 
     public String getCompatibilityString() {

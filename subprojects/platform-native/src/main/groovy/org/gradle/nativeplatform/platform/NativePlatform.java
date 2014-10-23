@@ -115,5 +115,5 @@ public interface NativePlatform extends Platform {
      *     </tr>
      * </table>
      */
-    void operatingSystem(Object notation);
+    void operatingSystem(String name);
 }

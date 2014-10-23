@@ -20,10 +20,9 @@ import spock.lang.Specification
 
 class DefaultNativePlatformTest extends Specification {
     def archParser = Mock(NotationParser)
-    def osParser = Mock(NotationParser)
     def os = Mock(OperatingSystemInternal)
     def arch = Mock(ArchitectureInternal)
-    def platform = new DefaultNativePlatform("platform", arch, os, archParser, osParser)
+    def platform = new DefaultNativePlatform("platform", arch, os, archParser)
 
     def "has useful string representation"() {
         expect:
@@ -44,14 +43,10 @@ class DefaultNativePlatformTest extends Specification {
     }
 
     def "can configure operating system"() {
-        def os = Mock(OperatingSystemInternal)
         when:
         platform.operatingSystem "the-os"
 
         then:
-        1 * osParser.parseNotation("the-os") >> os
-
-        and:
-        platform.operatingSystem == os
+        platform.operatingSystem.name == "the-os"
     }
 }
