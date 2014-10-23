@@ -19,8 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
-    def "can register PlayApplicationSpec"() {
-        when:
+    def setup() {
         buildFile << """
         plugins {
             id 'play-application'
@@ -32,9 +31,13 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 """
-        then:
+
+    }
+
+    def "can register PlayApplicationSpec component"() {
+        when:
         succeeds "components"
-        and:
+        then:
         output.contains(TextUtil.toPlatformLineSeparators("""
 DefaultPlayApplicationSpec 'myApp'
 ----------------------------------
@@ -47,5 +50,13 @@ Binaries
         build using task: :myAppBinary
         platform: java7
         tool chain: Play Framework 2.3.5 / JDK 7 (1.7)"""))
+    }
+
+    def "builds play binary"() {
+        when:
+        succeeds("assemble")
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators(""":myAppBinary UP-TO-DATE
+:assemble UP-TO-DATE"""));
     }
 }
