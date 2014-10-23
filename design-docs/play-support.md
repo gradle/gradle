@@ -57,17 +57,16 @@ Add a `play-application` plugin that provides Play application component:
         }
     }
 
-- Running `gradle assemble` builds an empty Jar file.
-- Running `gradle components` shows some basic details about the Play application.
+- ~~Running `gradle assemble` builds an empty Jar file.~~
+- ~~Running `gradle components` shows some basic details about the Play application. ~~
 - In this story, no source files are supported.
 
 #### Test cases
 
-- component report shows PlayApplicationSpec with 
-    - version info about    
-        - play  (declared in the plugin)
-        - scala (declared somehow in the plugin)
-        - java  (picked current version for now)
+- ~~component report shows PlayApplicationSpec with~~ 
+- ~~version info about~~
+      - ~~play  (declared in the plugin)~~
+      - ~~java  (picked current version for now)~~
     
 - assemble creates an empty jar file
 
@@ -82,9 +81,12 @@ Add a `play-application` plugin that provides Play application component:
     - Locations of java/scala files
     - Locations of routes file
     - Locations of templates files
-    - Dependencies of the different play jars
-    - Dependency of template compiler
+    - Dependencies of the play ("com.typesafe.play:play_2.11:2.3.5")
+    - Dependency of template compiler ("com.typesafe.play:twirl-compiler_2.11:1.0.2)
     - Dependency of routes compiler
+- resolve different play dependencies from
+    - typesafe maven release repository (http://repo.typesafe.com/typesafe/maven-releases)
+    - 
 - Compile routes to scala and java
 - Compile templates to scala
 - Compile all scala (app/*/*.{scala,java}, output of: conf/routes, output of: app/views/*.scala.html) files
@@ -92,7 +94,9 @@ Add a `play-application` plugin that provides Play application component:
 
 #### Open issues
 
-- How do we handle Play plugin dependencies VS Play dependencies (i.e. how get the map the play version against the list of dependencies we need)
+- Just found a 2.10 routes compiler; shouldn't be a problem though.
+- How do we handle Play plugin dependencies VS Play dependencies 
+    - map play version to compliant routes, twirl compiler
 - Should we make the BinaryRenderer generic on BinarySpec?
 
 #### Test cases
