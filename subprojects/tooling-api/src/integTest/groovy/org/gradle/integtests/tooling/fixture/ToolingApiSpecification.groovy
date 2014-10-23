@@ -27,6 +27,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.runner.RunWith
+import org.junit.runners.model.FrameworkMethod
+import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 /**
@@ -47,7 +49,21 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider() {
+        @Override
+        Statement apply(Statement base, FrameworkMethod method, Object target) {
+            return super.apply(new Statement() {
+                @Override
+                void evaluate() throws Throwable {
+                    try {
+                        base.evaluate()
+                    } finally {
+                        cleanupWhileTestFilesExist()
+                    }
+                }
+            }, method, target)
+        }
+    }
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
@@ -63,6 +79,9 @@ abstract class ToolingApiSpecification extends Specification {
 
     void reset() {
         new ConnectorServices().reset()
+    }
+
+    protected void cleanupWhileTestFilesExist() {
     }
 
     public void withConnector(@DelegatesTo(GradleConnector) Closure cl) {
