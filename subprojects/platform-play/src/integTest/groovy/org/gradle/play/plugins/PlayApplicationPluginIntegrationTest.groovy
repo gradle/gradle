@@ -16,11 +16,11 @@
 
 package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TextUtil
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
-    def "can register PlayApplicationSpec"() {
-        when:
+    def setup() {
         buildFile << """
         plugins {
             id 'play-application'
@@ -32,9 +32,14 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 """
-        then:
+
+    }
+
+    def "can register PlayApplicationSpec component"() {
+        def javaVersion = Jvm.current().getJavaVersion();
+        when:
         succeeds "components"
-        and:
+        then:
         output.contains(TextUtil.toPlatformLineSeparators("""
 DefaultPlayApplicationSpec 'myApp'
 ----------------------------------
@@ -43,8 +48,20 @@ Source sets
     No source sets.
 
 Binaries
-    No binaries.
-"""))
+    DefaultPlayApplicationBinarySpec 'myAppBinary'
+        build using task: :myAppBinary
+        platform: java7
+        tool chain: Play Framework 2.3.5 / JDK ${javaVersion.majorVersion} (${javaVersion.toString()})"""))
+    }
 
+    def "builds play binary"() {
+        when:
+        succeeds("assemble")
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators(""":createMyAppBinaryJar
+:myAppBinary
+:assemble"""));
+        and:
+        file("build/jars/myApp/myAppBinary.jar").exists()
     }
 }
