@@ -47,15 +47,15 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         OperatingSystemInternal unix = new DefaultOperatingSystem("unix");
         OperatingSystemInternal solaris = new DefaultOperatingSystem("solaris");
 
-        ArchitectureInternal x86 = new DefaultArchitecture("x86");
-        ArchitectureInternal x64 = new DefaultArchitecture("x86_64");
-        ArchitectureInternal ia64 = new DefaultArchitecture("ia64");
-        ArchitectureInternal armv7 = new DefaultArchitecture("armv7");
-        ArchitectureInternal armv8 = new DefaultArchitecture("armv8");
-        ArchitectureInternal sparc = new DefaultArchitecture("sparc");
-        ArchitectureInternal ultrasparc = new DefaultArchitecture("ultrasparc");
-        ArchitectureInternal ppc = new DefaultArchitecture("ppc");
-        ArchitectureInternal ppc64 = new DefaultArchitecture("ppc64");
+        ArchitectureInternal x86 = Architectures.forInput("x86");
+        ArchitectureInternal x64 = Architectures.forInput("x86_64");
+        ArchitectureInternal ia64 = Architectures.forInput("ia64");
+        ArchitectureInternal armv7 = Architectures.forInput("armv7");
+        ArchitectureInternal armv8 = Architectures.forInput("armv8");
+        ArchitectureInternal sparc = Architectures.forInput("sparc");
+        ArchitectureInternal ultrasparc = Architectures.forInput("ultrasparc");
+        ArchitectureInternal ppc = Architectures.forInput("ppc");
+        ArchitectureInternal ppc64 = Architectures.forInput("ppc64");
 
         platforms.add(createPlatform(windows, x86));
         platforms.add(createPlatform(windows, x64));
@@ -129,9 +129,9 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         ArchitectureInternal arch = null;
         String archName = System.getProperty("os.arch").toLowerCase();
         if (archName.equals("i386") || archName.equals("x86")) {
-            arch = new DefaultArchitecture(archName);
+            arch = Architectures.forInput(archName);
         } else if (archName.equals("x86_64") || archName.equals("amd64") || archName.equals("universal")) {
-            arch = new DefaultArchitecture(archName);
+            arch = Architectures.forInput(archName);
         }
         return arch;
     }
@@ -185,15 +185,15 @@ public class DefaultNativePlatform implements NativePlatformInternal {
                         String archLine = archReader.readLine().toLowerCase();
                         if (archLine.contains("x64")) {
                             defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, new DefaultArchitecture("x86_64")),
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, Architectures.forInput("x86_64")),
                                     "Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
                         } else if (archLine.contains("x86")) {
                             defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, new DefaultArchitecture("x86")),
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, Architectures.forInput("x86")),
                                     "Could not find a default platform for what is believed to be 32-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
                         } else if (archLine.contains("strongarm")) {
                             defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, new DefaultArchitecture("armv7")),
+                                    findDefaultPlatform(OperatingSystem.WINDOWS, Architectures.forInput("armv7")),
                                     "Could not find a default platform for what is believed to be Windows on ARM. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
                         }
 
@@ -205,7 +205,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
                         Process machineProcess = Runtime.getRuntime().exec(new String[]{"uname", "-m"});
                         BufferedReader matchineReader = new BufferedReader(new InputStreamReader(machineProcess.getInputStream()));
                         String machineLine = matchineReader.readLine();
-                        ArchitectureInternal arch = new DefaultArchitecture(machineLine);
+                        ArchitectureInternal arch = Architectures.forInput(machineLine);
 
                         String errorMsg = String.format("Could not find a default platform for %s architecture: %s. %s", systemLine, arch.getName(), UNKNOWN_DEFAULT_PLATFORM_MSG);
                         if (systemLine.contains("linux")) {

@@ -21,7 +21,7 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
+import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -179,10 +179,12 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         Map<Architecture, File> includePaths = new HashMap<Architecture, File>();
         Map<Architecture, String> assemblerFilenames = new HashMap<Architecture, String>();
         Map<Architecture, Map<String, String>> definitions = new HashMap<Architecture, Map<String, String>>();
-        Architecture amd64 = new DefaultArchitecture(ARCHITECTURE_AMD64);
-        Architecture x86 = new DefaultArchitecture(ARCHITECTURE_X86);
-        Architecture arm = new DefaultArchitecture(ARCHITECTURE_ARM);
-        Architecture ia64 = new DefaultArchitecture(ARCHITECTURE_IA64);
+
+        Architecture amd64 = Architectures.forInput(ARCHITECTURE_AMD64);
+        Architecture x86 = Architectures.forInput(ARCHITECTURE_X86);
+        Architecture arm = Architectures.forInput(ARCHITECTURE_ARM);
+        Architecture ia64 = Architectures.forInput(ARCHITECTURE_IA64);
+
         File includePath = new File(basePath, PATH_INCLUDE);
         File commonTools = new File(vsPath, PATH_COMMONTOOLS);
         File commonIde = new File(vsPath, PATH_COMMONIDE);

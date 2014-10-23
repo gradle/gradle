@@ -23,9 +23,8 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
 import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
-import org.gradle.nativeplatform.platform.Architecture
 import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.platform.internal.ArchitectureNotationParser
+import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.platform.base.internal.BinaryNamingScheme
@@ -55,7 +54,7 @@ class VisualStudioProjectMapperTest extends Specification {
         buildTypeOne.name >> "buildTypeOne"
         buildTypeTwo.name >> "buildTypeTwo"
         platformOne.name >> "platformOne"
-        platformOne.architecture >> arch("i386")
+        platformOne.architecture >> Architectures.forInput("i386")
     }
 
     def "maps executable binary to visual studio project"() {
@@ -143,10 +142,6 @@ class VisualStudioProjectMapperTest extends Specification {
         assert names.configuration == configurationName
         assert names.platform == platformName
         true
-    }
-
-    private static Architecture arch(String name) {
-        return ArchitectureNotationParser.parser().parseNotation(name)
     }
 
     private libraryBinary(Class<? extends NativeBinarySpecInternal> type) {

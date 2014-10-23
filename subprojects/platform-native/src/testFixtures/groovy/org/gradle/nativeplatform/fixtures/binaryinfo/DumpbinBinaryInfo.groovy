@@ -20,7 +20,7 @@ import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
+import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall
@@ -69,11 +69,11 @@ class DumpbinBinaryInfo implements BinaryInfo {
         def archString = readArch(dumpbinHeaders)
         switch (archString) {
             case "x86":
-                return new DefaultArchitecture("x86")
+                return Architectures.forInput("x86")
             case "x64":
-                return new DefaultArchitecture("x86_64")
+                return Architectures.forInput("x86_64")
             case "IA64":
-                return new DefaultArchitecture("ia-64")
+                return Architectures.forInput("ia-64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

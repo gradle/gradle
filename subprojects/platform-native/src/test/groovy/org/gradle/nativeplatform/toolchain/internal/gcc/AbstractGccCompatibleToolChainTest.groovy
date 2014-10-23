@@ -59,7 +59,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def platform = Stub(NativePlatformInternal)
 
     def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())
-    def dummyArch = new DefaultArchitecture("x86_64")
+    def dummyArch = Architectures.forInput("x86_64")
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
@@ -238,7 +238,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         given:
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> dummyOs
-        platform.architecture >> new DefaultArchitecture(arch)
+        platform.architecture >> Architectures.forInput(arch)
         toolChain.eachPlatform(action)
 
         when:
@@ -256,9 +256,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
 
         where:
-        arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArg
-        "i386"   | X86            | 32           | "-m32"    | "-m32"      | "--32"
-        "x86_64" | X86            | 64           | "-m64"    | "-m64"      | "--64"
+        arch     | linkerArg | compilerArg | assemblerArg
+        "i386"   | "-m32"    | "-m32"      | "--32"
+        "x86_64" | "-m64"    | "-m64"      | "--64"
     }
 
     def "supplies args for supported architecture for os x platforms"() {

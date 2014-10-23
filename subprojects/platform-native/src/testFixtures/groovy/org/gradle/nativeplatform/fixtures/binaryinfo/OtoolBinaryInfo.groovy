@@ -15,9 +15,8 @@
  */
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
-
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
+import org.gradle.nativeplatform.platform.internal.Architectures
 
 class OtoolBinaryInfo implements BinaryInfo {
     def binaryFile
@@ -32,9 +31,9 @@ class OtoolBinaryInfo implements BinaryInfo {
 
         switch (archString) {
             case "I386":
-                return new DefaultArchitecture("x86")
+                return Architectures.forInput("x86")
             case "X86_64":
-                return new DefaultArchitecture("x86_64")
+                return Architectures.forInput("x86_64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

@@ -15,16 +15,7 @@
  */
 package org.gradle.nativeplatform.platform.internal;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class DefaultArchitecture implements ArchitectureInternal {
-    // TODO:DAZ Not sure if we need aliases any more. We should perhaps just use a 'canonical' name, or have some way to compare 2 names for equivalence.
-    private static final List<String> X86_ALIASES = Arrays.asList("x86", "i386");
-    private static final List<String> X86_64_ALIASES = Arrays.asList("x86_64", "amd64", "x64", "x86-64");
-    private static final List<String> ITANIUM_ALIASES = Arrays.asList("ia64", "ia-64");
-    private static final List<String> ARM_32_ALIASES = Arrays.asList("arm", "armv7", "arm-v7", "arm32");
-
     private final String name;
 
     public DefaultArchitecture(String name) {
@@ -45,19 +36,19 @@ public class DefaultArchitecture implements ArchitectureInternal {
     }
 
     public boolean isI386() {
-        return X86_ALIASES.contains(name.toLowerCase());
+        return Architectures.X86.isAlias(name);
     }
 
     public boolean isAmd64() {
-        return X86_64_ALIASES.contains(name.toLowerCase());
+        return Architectures.X86_64.isAlias(name);
     }
 
     public boolean isIa64() {
-        return ITANIUM_ALIASES.contains(name.toLowerCase());
+        return Architectures.IA_64.isAlias(name);
     }
 
     public boolean isArm() {
-        return ARM_32_ALIASES.contains(name.toLowerCase());
+        return Architectures.ARM_V7.isAlias(name);
     }
 
     @Override

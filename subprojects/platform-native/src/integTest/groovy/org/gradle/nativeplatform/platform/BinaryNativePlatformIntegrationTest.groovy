@@ -48,7 +48,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def currentArch() {
-        def arch = [name: "x86_64", altName: "amd64"]
+        def arch = [name: "x86-64", altName: "amd64"]
         // Tool chains on Windows currently build for i386 by default, even on amd64
         if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             arch = [name: "x86", altName: "i386"]

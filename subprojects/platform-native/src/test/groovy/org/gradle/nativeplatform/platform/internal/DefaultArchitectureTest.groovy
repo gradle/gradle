@@ -40,9 +40,9 @@ class DefaultArchitectureTest extends Specification {
         where:
         name        | i386  | amd64 | ia64  | arm
         "x86"       | true  | false | false | false
-        "x86_64"    | false | true  | false | false
-        "ia64"      | false | false | true  | false
-        "arm"       | false | false | false | true
+        "x86-64"    | false | true  | false | false
+        "ia-64"     | false | false | true  | false
+        "arm-v7"    | false | false | false | true
         "arbitrary" | false | false | false | false
     }
 

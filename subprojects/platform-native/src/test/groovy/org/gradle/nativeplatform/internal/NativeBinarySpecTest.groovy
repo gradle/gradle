@@ -15,19 +15,18 @@
  */
 
 package org.gradle.nativeplatform.internal
-
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
@@ -44,7 +43,7 @@ class NativeBinarySpecTest extends Specification {
         getName() >> "ToolChain1"
     }
     def platform1 = Stub(NativePlatform) {
-        getArchitecture() >> new DefaultArchitecture("i386")
+        getArchitecture() >> Architectures.forInput("i386")
     }
     def buildType1 = Stub(BuildType) {
         getName() >> "BuildType1"

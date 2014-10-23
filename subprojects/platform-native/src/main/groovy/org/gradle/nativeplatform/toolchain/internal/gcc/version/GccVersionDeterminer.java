@@ -21,7 +21,7 @@ import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
+import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -133,12 +133,12 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         boolean amd64 = defines.containsKey("__amd64__");
         final ArchitectureInternal architecture;
         if (i386) {
-            architecture = new DefaultArchitecture("i386");
+            architecture = Architectures.forInput("i386");
         } else if (amd64) {
-            architecture = new DefaultArchitecture("amd64");
+            architecture = Architectures.forInput("amd64");
         } else {
             String archName = Native.get(SystemInfo.class).getArchitecture().toString();
-            architecture =  new DefaultArchitecture(archName);
+            architecture =  Architectures.forInput(archName);
         }
         return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
     }
