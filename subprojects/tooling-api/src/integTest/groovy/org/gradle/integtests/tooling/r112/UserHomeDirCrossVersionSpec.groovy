@@ -44,9 +44,4 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         then:
         output.contains('userHomeDir=' + userHomeDir.absolutePath)
     }
-
-    @Override
-    protected void cleanupWhileTestFilesExist() {
-        toolingApi.daemons.killAll()
-    }
 }
