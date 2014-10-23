@@ -4,6 +4,9 @@ dependencies {
     integTestCompile project(':toolingApi')
     integTestCompile project(':launcher')
     integTestCompile project(':dependencyManagement')
+    integTestCompile project(':scala')
+    integTestCompile project(':ear')
+    integTestCompile project(':codeQuality')
     integTestCompile libraries.ant
     integTestCompile libraries.jsoup
 
