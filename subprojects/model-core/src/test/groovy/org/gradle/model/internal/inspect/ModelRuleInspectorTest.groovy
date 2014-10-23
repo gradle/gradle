@@ -349,20 +349,20 @@ class ModelRuleInspectorTest extends Specification {
         e.message == "$NoArgumentVoidReturning.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
     }
 
-    static class ManagedWithPropertyOfInvalidManagedTypeVoidReturning {
+    static class ManagedWithNestedPropertyOfInvalidManagedTypeVoidReturning {
         @Model
-        void bar(ManagedWithPropertyOfInvalidManagedType foo) {
+        void bar(ManagedWithNestedPropertyOfInvalidManagedType foo) {
         }
     }
 
-    static class ManagedWithReferenceOfInvalidManagedTypeVoidReturning {
+    static class ManagedWithNestedReferenceOfInvalidManagedTypeVoidReturning {
         @Model
-        void bar(ManagedWithReferenceOfInvalidManagedType foo) {
+        void bar(ManagedWithNestedReferenceOfInvalidManagedType foo) {
         }
     }
 
     @Unroll
-    def "void returning model definition with for a type with a property of invalid managed type - #inspected.simpleName"() {
+    def "void returning model definition with for a type with a nested property of invalid managed type - #inspected.simpleName"() {
         when:
         inspector.inspect(inspected, registry, dependencies)
 
@@ -370,13 +370,15 @@ class ModelRuleInspectorTest extends Specification {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule $inspected.name#bar($managedType.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $managedType.name: managed type of property 'invalidManaged' is invalid"
+        e.cause.message == "Invalid managed model type $managedType.name: managed type of property 'managedWithNestedInvalidManagedType' is invalid"
         e.cause.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.cause.message == "Invalid managed model type $ParametrizedManaged.name<$String.name>: cannot be a parameterized type"
+        e.cause.cause.message == "Invalid managed model type $nestedManagedType.name: managed type of property 'invalidManaged' is invalid"
+        e.cause.cause.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.cause.cause.message == "Invalid managed model type $ParametrizedManaged.name<$String.name>: cannot be a parameterized type"
 
         where:
-        inspected                                             | managedType
-        ManagedWithPropertyOfInvalidManagedTypeVoidReturning  | ManagedWithPropertyOfInvalidManagedType
-        ManagedWithReferenceOfInvalidManagedTypeVoidReturning | ManagedWithReferenceOfInvalidManagedType
+        inspected                                                   | managedType                                    | nestedManagedType
+        ManagedWithNestedPropertyOfInvalidManagedTypeVoidReturning  | ManagedWithNestedPropertyOfInvalidManagedType  | ManagedWithPropertyOfInvalidManagedType
+        ManagedWithNestedReferenceOfInvalidManagedTypeVoidReturning | ManagedWithNestedReferenceOfInvalidManagedType | ManagedWithReferenceOfInvalidManagedType
     }
 }
