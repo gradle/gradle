@@ -62,6 +62,6 @@ Binaries
 :myAppBinary
 :assemble"""));
         and:
-        file("build/jars/myApp/myApp.jar").exists()
+        file("build/jars/myApp/myAppBinary.jar").exists()
     }
 }
