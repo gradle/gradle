@@ -23,25 +23,25 @@ class DefaultPlayToolChainTest extends Specification {
 
     def "provides meaningful name"() {
         given:
-        def toolChain = new DefaultPlayToolChain(playVersion, "2.11.1", JavaVersion.current())
+        def toolChain = new DefaultPlayToolChain(playVersion, JavaVersion.current())
 
         expect:
         toolChain.getName() == "PlayFramework$playVersion"
 
         where:
-        playVersion << ["2.3.2", "2.3.5"]
+        playVersion << ["2.10-2.3.2", "2.11-2.3.5"]
     }
 
     def "provides meaningful displayname"() {
         given:
-        def toolChain = new DefaultPlayToolChain(playVersion, scalaVersion, javaVersion)
+        def toolChain = new DefaultPlayToolChain(playVersion, javaVersion)
         expect:
         toolChain.getDisplayName() == expectedOutput
 
         where:
-        playVersion | scalaVersion | javaVersion             | expectedOutput
-        "2.3.2"     | "2.10.2"     | JavaVersion.VERSION_1_6 | "Play Framework 2.3.2 (Scala 2.10.2 / JDK 6 (1.6))"
-        "2.3.5"     | "2.10.2"     | JavaVersion.VERSION_1_7 | "Play Framework 2.3.5 (Scala 2.10.2 / JDK 7 (1.7))"
-        "2.3.5"     | "2.11.1"     | JavaVersion.VERSION_1_8 | "Play Framework 2.3.5 (Scala 2.11.1 / JDK 8 (1.8))"
+        playVersion  | javaVersion             | expectedOutput
+        "2.10-2.3.2" | JavaVersion.VERSION_1_6 | "Play Framework 2.10-2.3.2 (JDK 6 (1.6))"
+        "2.10-2.3.5" | JavaVersion.VERSION_1_7 | "Play Framework 2.10-2.3.5 (JDK 7 (1.7))"
+        "2.11-2.3.5" | JavaVersion.VERSION_1_8 | "Play Framework 2.11-2.3.5 (JDK 8 (1.8))"
     }
 }

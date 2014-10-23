@@ -50,7 +50,7 @@ Binaries
     DefaultPlayApplicationBinarySpec 'myAppBinary'
         build using task: :myAppBinary
         platform: java7
-        tool chain: Play Framework 2.3.5 (Scala 2.11.1 / JDK ${javaVersion.majorVersion} (${javaVersion.toString()})"""))
+        tool chain: Play Framework 2.11-2.3.5 (JDK ${javaVersion.majorVersion} (${javaVersion.toString()})"""))
     }
 
     def "builds play binary"() {
