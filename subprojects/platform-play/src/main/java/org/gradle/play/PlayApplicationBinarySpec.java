@@ -21,6 +21,8 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.platform.base.BinarySpec;
 
+import java.io.File;
+
 /**
  * Represents a binary artifact that is the result of building a play component.
  */
@@ -29,4 +31,5 @@ import org.gradle.platform.base.BinarySpec;
 public interface PlayApplicationBinarySpec extends BinarySpec {
     JavaPlatform getTargetPlatform();
     PlayToolChain getToolChain();
+    File getJarFile();
 }

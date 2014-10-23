@@ -20,9 +20,12 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.PlayToolChain;
 
+import java.io.File;
+
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private JavaPlatform platform;
     private PlayToolChain toolChain;
+    private File jarFile;
 
     public JavaPlatform getTargetPlatform() {
         return platform;
@@ -32,11 +35,19 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return toolChain;
     }
 
+    public File getJarFile() {
+        return jarFile;
+    }
+
     public void setTargetPlatform(JavaPlatform platform) {
         this.platform = platform;
     }
 
     public void setToolChain(PlayToolChain toolChain) {
         this.toolChain = toolChain;
+    }
+
+    public void setJarFile(File file) {
+        this.jarFile = file;
     }
 }

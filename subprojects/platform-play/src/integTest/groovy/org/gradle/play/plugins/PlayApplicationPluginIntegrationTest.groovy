@@ -58,7 +58,10 @@ Binaries
         when:
         succeeds("assemble")
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":myAppBinary UP-TO-DATE
-:assemble UP-TO-DATE"""));
+        output.contains(TextUtil.toPlatformLineSeparators(""":createMyAppBinaryJar
+:myAppBinary
+:assemble"""));
+        and:
+        file("build/jars/myApp/myApp.jar").exists()
     }
 }

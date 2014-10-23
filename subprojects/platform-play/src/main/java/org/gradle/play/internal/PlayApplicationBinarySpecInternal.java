@@ -20,9 +20,10 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayToolChain;
 
-public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec {
+import java.io.File;
 
+public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec {
     void setTargetPlatform(JavaPlatform platform);
     void setToolChain(PlayToolChain toolChain);
-
+    void setJarFile(File file);
 }

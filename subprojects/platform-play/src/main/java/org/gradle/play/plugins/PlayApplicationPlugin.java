@@ -15,12 +15,12 @@
  */
 package org.gradle.play.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.Plugin;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
@@ -30,6 +30,8 @@ import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayToolChain;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+
+import java.io.File;
 
 /**
  * Plugin for Play Framework component support.
@@ -60,12 +62,24 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, PlayApplicationSpec componentSpec){
+        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, @Path("buildDir") final File buildDir){
             binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>(){
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(JavaVersion.current()));
                     playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION));
+                    playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), componentSpec.getName())));
+
+                }
+            });
+        }
+
+        @BinaryTasks
+        void createRenderingTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary) {
+            tasks.create(String.format("create%sJar", StringUtils.capitalize(binary.getName())), Jar.class, new Action<Jar>(){
+                public void execute(Jar jar) {
+                    jar.setDestinationDir(binary.getJarFile().getParentFile());
+                    jar.setArchiveName(binary.getJarFile().getName());
                 }
             });
         }
