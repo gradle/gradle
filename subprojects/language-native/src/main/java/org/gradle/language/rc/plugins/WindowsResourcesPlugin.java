@@ -34,7 +34,7 @@ import java.util.Collections;
 public class WindowsResourcesPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
-        project.apply(Collections.singletonMap("plugin", WindowsResourcesPlugin.class));
+        project.apply(Collections.singletonMap("plugin", WindowsResourceScriptPlugin.class));
     }
 
 }
