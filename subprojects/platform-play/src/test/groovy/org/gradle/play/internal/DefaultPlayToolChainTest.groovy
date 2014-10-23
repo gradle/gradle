@@ -23,7 +23,7 @@ class DefaultPlayToolChainTest extends Specification {
 
     def "provides meaningful name"() {
         given:
-        def toolChain = new DefaultPlayToolChain(playVersion, "2.11.1")
+        def toolChain = new DefaultPlayToolChain(playVersion, "2.11.1", JavaVersion.current())
 
         expect:
         toolChain.getName() == "PlayFramework$playVersion"
