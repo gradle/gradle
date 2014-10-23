@@ -27,6 +27,10 @@ public class ClosureBackedAction<T> implements Action<T> {
     private final boolean configureableAware;
     private final int resolveStrategy;
 
+    public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
+        return new ClosureBackedAction<T>(closure);
+    }
+
     public ClosureBackedAction(Closure closure) {
         this(closure, Closure.DELEGATE_FIRST, true);
     }

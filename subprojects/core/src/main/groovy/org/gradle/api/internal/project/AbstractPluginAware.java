@@ -18,9 +18,11 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManager;
 import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.util.ConfigureUtil;
@@ -30,9 +32,13 @@ import java.util.Map;
 abstract public class AbstractPluginAware implements PluginAware {
 
     public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = createObjectConfigurationAction();
-        ConfigureUtil.configure(closure, action);
-        action.execute();
+        apply(ClosureBackedAction.of(closure));
+    }
+
+    public void apply(Action<? super ObjectConfigurationAction> action) {
+        DefaultObjectConfigurationAction configAction = createObjectConfigurationAction();
+        action.execute(configAction);
+        configAction.execute();
     }
 
     public void apply(Map<String, ?> options) {
