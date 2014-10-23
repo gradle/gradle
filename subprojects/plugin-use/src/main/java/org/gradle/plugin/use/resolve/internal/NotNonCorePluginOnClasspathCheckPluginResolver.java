@@ -19,7 +19,6 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -51,12 +50,7 @@ public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginRes
     }
 
     private boolean isCorePlugin(PluginId pluginId) {
-        try {
-            corePluginRegistry.lookup(pluginId.toString());
-            return true;
-        } catch (UnknownPluginException ignore) {
-            return false;
-        }
+        return corePluginRegistry.lookup(pluginId.toString()) != null;
     }
 
 }

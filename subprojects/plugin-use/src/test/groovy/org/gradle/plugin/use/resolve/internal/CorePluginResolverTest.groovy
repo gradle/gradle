@@ -21,7 +21,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginManager
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PotentialPluginWithId
-import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.InvalidPluginRequestException
@@ -88,7 +87,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("org.gradle.foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.lookup("foo") >> { throw new UnknownPluginException("foo") }
+        1 * pluginRegistry.lookup("foo") >> null
         1 * result.notFound(resolver.getDescription(), { it.contains("not a core plugin") })
     }
 

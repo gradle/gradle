@@ -27,6 +27,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.util.SingleMessageLogger;
@@ -96,6 +97,9 @@ public class PluginManager {
 
     public void apply(String pluginId) {
         PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(pluginId);
+        if (potentialPluginWithId == null) {
+            throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
+        }
         doApply(potentialPluginWithId.getPluginId().toString(), potentialPluginWithId);
     }
 
