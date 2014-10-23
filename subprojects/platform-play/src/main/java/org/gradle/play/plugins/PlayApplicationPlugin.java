@@ -41,6 +41,7 @@ import java.io.File;
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_PLAY_VERSION = "2.3.5";
+    public static final String DEFAULT_SCALA_VERSION = "2.11.1";
 
     public void apply(ProjectInternal project) {
     }
@@ -67,7 +68,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(JavaVersion.current()));
-                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION));
+                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION, DEFAULT_SCALA_VERSION));
                     playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
 
                 }

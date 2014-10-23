@@ -21,10 +21,12 @@ import org.gradle.play.PlayToolChain;
 
 public class DefaultPlayToolChain implements PlayToolChain {
     private String playVersion;
+    private final String scalaVersion;
     private JavaVersion javaVersion;
 
-    public DefaultPlayToolChain(String playVersion) {
+    public DefaultPlayToolChain(String playVersion, String scalaVersion) {
         this.playVersion = playVersion;
+        this.scalaVersion = scalaVersion;
         this.javaVersion = JavaVersion.current();
     }
 
@@ -33,6 +35,6 @@ public class DefaultPlayToolChain implements PlayToolChain {
     }
 
     public String getDisplayName() {
-        return String.format("Play Framework %s / JDK %s (%s)", this.playVersion, javaVersion.getMajorVersion(), javaVersion);
+        return String.format("Play Framework %s / Scala %s / JDK %s (%s)", this.playVersion, this.scalaVersion, javaVersion.getMajorVersion(), javaVersion);
     }
 }
