@@ -48,7 +48,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def currentArch() {
-        def arch =  [name: "x86_64", altName: "amd64"]
+        def arch = [name: "x86_64", altName: "amd64"]
         // Tool chains on Windows currently build for i386 by default, even on amd64
         if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             arch = [name: "x86", altName: "i386"]
@@ -263,7 +263,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         // Itanium only supported on visualCpp
         if (toolChain.visualCpp) {
             executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"),"build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
+            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
         } else {
             executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
@@ -327,7 +327,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     @Unroll
-    def "fails with reasonable error message when trying to build for an unavailable #type"() {
+    def "fails with reasonable error message when trying to build for an #type"() {
         when:
         buildFile << """
             model {
@@ -348,36 +348,11 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
   - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
 
         where:
-        type               | config
-        "architecture"     | "architecture 'sparc'"
-        "operating system" | "operatingSystem 'solaris'"
-    }
-
-    @Unroll
-    def "fails with reasonable error message when trying to build for an unknown #type"() {
-        when:
-        settingsFile << """rootProject.name = 'bad'"""
-        buildFile << """
-            model {
-                platforms {
-                    bad {
-                        ${badConfig}
-                    }
-                }
-            }
-"""
-
-        and:
-        fails "mainExecutable"
-
-        then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad'.")
-        failure.assertHasCause("Cannot convert the provided notation to an object of type ${type}: bad.")
-
-        where:
-        type               | badConfig
-        "Architecture"     | "architecture 'bad'"
-        "OperatingSystem" | "operatingSystem 'bad'"
+        type                           | config
+        "unavailable architecture"     | "architecture 'sparc'"
+        "unavailable operating system" | "operatingSystem 'solaris'"
+        "unknown architecture"         | "architecture 'unknown'"
+        "unknown operating system"     | "operatingSystem 'unknown'"
     }
 
     def "fails with reasonable error message when trying to target an unknown platform"() {
