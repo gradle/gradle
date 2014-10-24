@@ -163,6 +163,7 @@ This story makes the following possible…
 #### Test Coverage
 
 - (something like snippet above)
+- should also support situations where more than two types are taking part in forming a cycle
 
 ### Plugin creates model element of custom type, containing properties of Java boxed primitive-ish types, without supplying an implementation
 
