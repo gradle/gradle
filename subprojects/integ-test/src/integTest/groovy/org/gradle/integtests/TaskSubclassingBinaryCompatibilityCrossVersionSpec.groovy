@@ -64,10 +64,18 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                 Pmd
         ]
 
-        // Ear plugin added in m4.
         if (previous.version < GradleVersion.version("1.0-milestone-4")) {
             taskClasses.remove(Ear)
         }
+        if (previous.version < GradleVersion.version("1.0-milestone-8")) {
+            taskClasses.remove(FindBugs)
+            taskClasses.remove(Pmd)
+        }
+        if (previous.version < GradleVersion.version("1.1")) {
+            // Breaking changes were made to Test between 1.0 and 1.1
+            taskClasses.remove(Test)
+        }
+
 
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }
 
