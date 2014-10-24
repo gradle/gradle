@@ -127,11 +127,17 @@
 
     <section>
         <title>Dependency management</title>
-        <para>The ANTLR plugin adds an <literal>antlr</literal> dependency configuration. You use this to declare the
-            ANTLR dependency that you wish to use.</para>
+        <para>The ANTLR plugin adds an <literal>antlr</literal> dependency configuration
+            to declare the ANTLR dependency that you wish to use. In the following example
+            we declare a dependency to use ANTLR version 3.</para>
         <sample id="declareAntlrVersion" dir="antlr" title="Declare ANTLR version">
             <sourcefile file="build.gradle" snippet="declare-dependency"/>
         </sample>
+        <para>If not explicit ANTLR dependency is declared the Gradle ANTLR Plugin will use
+            <literal>antlr:antlr:2.7.7</literal> as dependency.
+            To switch between ANTLR version 2, 3 and 4, you just need to declare the according
+            ANTLR dependency.
+        </para>
     </section>
 
     <section>

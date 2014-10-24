@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    antlr 'antlr:antlr:2.7.7' // default version
+    antlr "org.antlr:antlr:3.5.2" // use ANTLR version 3
 // END SNIPPET declare-dependency
     testCompile 'junit:junit:4.11'
 // START SNIPPET declare-dependency

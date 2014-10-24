@@ -1,12 +1,23 @@
-header {
+grammar Calculator;
+
+@lexer::header {
     package org.gradle;
 }
 
-class CalculatorLexer extends Lexer; 
+@parser::header {
+    package org.gradle;
+}
 
-NUMBER	:	('0'..'9')+;
-PLUS	:	'+';
+add
+    :    NUMBER PLUS NUMBER
+    ;
 
-class CalculatorParser extends Parser;
+NUMBER
+    :    ('0'..'9')+
+    ;
 
-add	:	NUMBER PLUS NUMBER;
+PLUS
+    :    ('+')
+    ;
+
+
