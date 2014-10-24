@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.platform
-
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
@@ -47,13 +46,12 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         testApp.writeSources(file("src/main"))
     }
 
+    // Tests will only work on x86 and x86-64 architectures
     def currentArch() {
-        def arch = [name: "x86-64", altName: "amd64"]
-        // Tool chains on Windows currently build for i386 by default, even on amd64
-        if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
-            arch = [name: "x86", altName: "i386"]
+        if (Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
+            return [name: "x86", altName: "i386"]
         }
-        return arch;
+        return [name: "x86-64", altName: "amd64"]
     }
 
     def "build binary for a default target platform"() {
