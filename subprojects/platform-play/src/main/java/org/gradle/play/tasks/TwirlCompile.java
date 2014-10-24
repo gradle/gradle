@@ -17,31 +17,82 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
+import org.gradle.play.internal.twirl.TwirlCompileSpec;
+import org.gradle.play.internal.twirl.TwirlCompiler;
+
+import java.io.File;
 
 /**
  * Task for compiling twirl templates
- * */
-public class TwirlCompile extends ConventionTask {
+ */
+public class TwirlCompile extends SourceTask {
 
     /**
      * FileCollection presenting the twirl compiler classpath.
-     * */
-    FileCollection compilerClasspath;
+     */
+    private FileCollection compilerClasspath;
 
 
-    @TaskAction
-    void compile(){
+    /**
+     * Target directory for the compiled template files.
+     */
+    private File outputDirectory;
 
-    }
-
-
+    @InputFiles
     public FileCollection getCompilerClasspath() {
         return compilerClasspath;
     }
 
     public void setCompilerClasspath(FileCollection compilerClasspath) {
         this.compilerClasspath = compilerClasspath;
+    }
+
+    /**
+     * Returns the directory to generate the parser source files into.
+     *
+     * @return The output directory.
+     */
+    @OutputDirectory
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    /**
+     * Specifies the directory to generate the parser source files into.
+     *
+     * @param outputDirectory The output directory. Must not be null.
+     */
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
+
+    @TaskAction
+    void compile() {
+        TwirlCompileSpec spec = generateSpec();
+        getCompiler().execute(spec);
+    }
+
+    /**
+     * For now just using InProcessCompilerDaemon.
+     *
+     * TODO allow forked compiler
+     * */
+    private DaemonTwirlCompiler getCompiler() {
+        ProjectInternal projectInternal = (ProjectInternal) getProject();
+        InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+        TwirlCompiler twirlCompiler = new TwirlCompiler();
+        return new DaemonTwirlCompiler(projectInternal.getProjectDir(), twirlCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
+
+    }
+
+    private TwirlCompileSpec generateSpec() {
+        return new TwirlCompileSpec(getSource().getFiles(), getOutputDirectory());
     }
 }

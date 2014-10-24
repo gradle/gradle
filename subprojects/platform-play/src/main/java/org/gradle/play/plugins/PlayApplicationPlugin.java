@@ -94,10 +94,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary) {
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>(){
                 public void execute(TwirlCompile twirlCompile) {
+                    twirlCompile.setOutputDirectory(new File(buildDir, String.format("twirl/%s", binary.getName())));
                     binary.builtBy(twirlCompile);
                 }
             });

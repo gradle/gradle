@@ -1,6 +1,7 @@
 dependencies {
     compile project(":core")
     compile project(":platformJvm")
+    compile project(":languageJvm")
 }
 
 useClassycle()
