@@ -58,7 +58,8 @@ Binaries
         when:
         succeeds("assemble")
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":createMyAppBinaryJar
+        output.contains(TextUtil.toPlatformLineSeparators(""":twirlCompileMyAppBinary
+:createMyAppBinaryJar
 :myAppBinary
 :assemble"""));
         and:

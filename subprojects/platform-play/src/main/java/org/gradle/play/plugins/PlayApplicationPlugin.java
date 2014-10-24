@@ -17,6 +17,7 @@ package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -30,8 +31,11 @@ import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayToolChain;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.tasks.RoutesCompile;
+import org.gradle.play.tasks.TwirlCompile;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Plugin for Play Framework component support.
@@ -41,16 +45,31 @@ import java.io.File;
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_PLAY_VERSION = "2.11-2.3.5";
+    public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_2.11:2.3.5";
+    public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_2.11:1.0.2";
+    public static final String TWIRL_CONFIGURATION_NAME = "twirl";
 
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
+        project.getConfigurations().create(TWIRL_CONFIGURATION_NAME);
+        project.getDependencies().add(TWIRL_CONFIGURATION_NAME, project.getDependencies().create(DEFAULT_TWIRL_DEPENDENCY));
+
+        project.getTasks().withType(TwirlCompile.class).all(new Action<TwirlCompile>(){
+            public void execute(TwirlCompile twirlCompile) {
+                twirlCompile.getConventionMapping().map("compilerClasspath", new Callable<FileCollection>() {
+                    public FileCollection call() throws Exception {
+                        return project.getConfigurations().getByName(TWIRL_CONFIGURATION_NAME);
+                    }
+                });
+            }
+        });
     }
-
     /**
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
+
         @ComponentType
         void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationSpec.class);
@@ -70,17 +89,36 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(currentJava));
                     playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION, currentJava));
                     playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
-
                 }
             });
         }
 
         @BinaryTasks
-        void createRenderingTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary) {
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary) {
+            final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
+            tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>(){
+                public void execute(TwirlCompile twirlCompile) {
+                    binary.builtBy(twirlCompile);
+                }
+            });
+
+            final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
+            tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>(){
+                public void execute(RoutesCompile routesCompile) {
+                    binary.builtBy(routesCompile);
+                }
+            });
+
+
             tasks.create(String.format("create%sJar", StringUtils.capitalize(binary.getName())), Jar.class, new Action<Jar>(){
                 public void execute(Jar jar) {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
+
+                    // CollectionBuilder api currently does not allow autowiring for tasks
+                    // later this does not depend on the different compile,
+                    // but on the scala compile output
+                    jar.dependsOn(routesCompileTaskName, twirlCompileTaskName);
                 }
             });
         }
