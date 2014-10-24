@@ -15,8 +15,9 @@
  */
 
 package org.gradle.play.plugins
+
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TextUtil
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -35,7 +36,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register PlayApplicationSpec component"() {
-        def javaVersion = Jvm.current().getJavaVersion();
+        def javaVersion = JavaVersion.current();
         when:
         succeeds "components"
         then:
