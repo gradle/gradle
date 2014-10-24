@@ -99,7 +99,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Multiple `PluginContainer` methods are deprecated.
 
-`PluginContainer.apply(String)` and `PluginContainer.apply(Class)` methods are deprecated, please use `PluginAware.apply(Map)` or `PluginAware.apply(Closure)` instead.
+[`PluginContainer.apply(String)`](javadoc/org/gradle/api/plugins/PluginContainer.html#apply\(java.lang.String\)) and
+[`PluginContainer.apply(Class)`](javadoc/org/gradle/api/plugins/PluginContainer.html#apply\(java.lang.Class\)) methods are deprecated, 
+please use [`PluginAware.apply(Map)`](javadoc/org/gradle/api/plugins/PluginAware.html#apply\(java.util.Map\)) or 
+[`PluginAware.apply(Closure)`](javadoc/org/gradle/api/plugins/PluginAware.html#apply\(groovy.lang.Closure\)) instead.
 
     // Instead of…
     project.plugins.apply("java")
