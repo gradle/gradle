@@ -68,7 +68,7 @@ Add a `play-application` plugin that provides Play application component:
       - ~~play  (declared in the plugin)~~
       - ~~java  (picked current version for now)~~
     
-- assemble creates an empty jar file
+- ~~assemble creates an empty jar file~~
 
 #### Open issues
 
@@ -86,7 +86,9 @@ Add a `play-application` plugin that provides Play application component:
     - Dependency of routes compiler
 - resolve different play dependencies from
     - typesafe maven release repository (http://repo.typesafe.com/typesafe/maven-releases)
-    - 
+
+- setup TwirlCompiler task type
+- setup RoutesCompiler task type
 - Compile routes to scala and java
 - Compile templates to scala
 - Compile all scala (app/*/*.{scala,java}, output of: conf/routes, output of: app/views/*.scala.html) files
@@ -94,6 +96,7 @@ Add a `play-application` plugin that provides Play application component:
 
 #### Open issues
 
+- implement twirl/routes compiler as inprocess/forkedprocess/both?
 - Just found a 2.10 routes compiler; shouldn't be a problem though.
 - How do we handle Play plugin dependencies VS Play dependencies 
     - map play version to compliant routes, twirl compiler
