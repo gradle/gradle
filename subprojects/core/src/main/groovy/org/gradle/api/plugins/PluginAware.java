@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
