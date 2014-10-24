@@ -260,7 +260,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public void architecture(String name) {
-        architecture = new DefaultArchitecture(name);
+        architecture = Architectures.forInput(name);
     }
 
     public OperatingSystemInternal getOperatingSystem() {

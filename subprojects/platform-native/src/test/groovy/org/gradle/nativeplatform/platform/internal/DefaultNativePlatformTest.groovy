@@ -35,6 +35,13 @@ class DefaultNativePlatformTest extends Specification {
         then:
         platform.architecture.name == "x86"
         platform.architecture.i386
+
+        when:
+        platform.architecture "i386"
+
+        then:
+        platform.architecture.name == "x86"
+        platform.architecture.i386
     }
 
     def "can configure operating system"() {
