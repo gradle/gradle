@@ -31,10 +31,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -54,7 +51,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 strings {
@@ -75,10 +72,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -88,7 +82,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             def called = false
 
@@ -117,16 +111,13 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 class Rules {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         then:
@@ -142,10 +133,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -153,10 +141,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class MyOtherPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyOtherPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -164,8 +149,8 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
-            apply plugin: MyOtherPlugin
+            apply type: MyPlugin
+            apply type: MyOtherPlugin
         """
 
         then:
@@ -181,10 +166,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -192,10 +174,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class MyOtherPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyOtherPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -203,7 +182,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks {
@@ -213,7 +192,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             task loadPlugin {
                 doLast {
-                    apply plugin: MyOtherPlugin
+                    apply type: MyOtherPlugin
                 }
             }
         '''
@@ -231,10 +210,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -242,7 +218,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks {
@@ -264,10 +240,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -275,7 +248,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 string {
@@ -300,10 +273,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -313,7 +283,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks {
@@ -335,10 +305,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyBasePlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyBasePlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -439,10 +406,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -456,7 +420,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             task injected(type: Exec)
         '''

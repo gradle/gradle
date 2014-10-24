@@ -25,10 +25,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model(" ")
@@ -38,7 +35,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         then:
@@ -55,10 +52,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                }
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model("foo. bar")
@@ -68,7 +62,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         then:

@@ -30,9 +30,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 List<String> tasks = []
             }
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -51,7 +49,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 myModel {
@@ -91,9 +89,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -122,7 +118,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks.bar {
@@ -151,9 +147,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -164,7 +158,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks.bar {
@@ -190,9 +184,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 List<String> tasks = []
             }
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -220,7 +212,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 myModel {
@@ -243,9 +235,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -257,7 +247,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         when:
@@ -280,9 +270,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -292,7 +280,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         when:
@@ -309,9 +297,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -323,7 +309,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         when:
@@ -340,9 +326,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -352,7 +336,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks.foo {
@@ -367,7 +351,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(21)
+        failure.assertHasLineNumber(19)
     }
 
     def "task created in afterEvaluate() is visible to a rule taking TaskContainer as input"() {
@@ -375,9 +359,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -387,7 +369,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             project.afterEvaluate {
                 project.tasks.create("fromAfterEvaluate") {
@@ -412,9 +394,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -424,7 +404,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             task foo {}
         """

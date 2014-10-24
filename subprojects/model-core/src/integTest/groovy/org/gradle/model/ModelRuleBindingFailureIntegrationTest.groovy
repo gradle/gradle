@@ -37,11 +37,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project p) {
-
-                }
-
+            class MyPlugin {
                 static class MyThing1 {}
                 static class MyThing2 {}
                 static class MyThing3 {}
@@ -61,7 +57,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
         """
 
         when:
@@ -104,9 +100,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -117,7 +111,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks.foonar {
@@ -128,10 +122,9 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails "tasks"
 
-
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.tasks.foonar", buildFile, 21, 17)
+                UnboundRule.descriptor("model.tasks.foonar", buildFile, 19, 17)
                         .mutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar"))
         ))
     }
@@ -141,8 +134,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class Plugin1 implements Plugin {
-                void apply(plugin) {}
+            class Plugin1 {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -152,8 +144,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class Plugin2 implements Plugin {
-                void apply(plugin) {}
+            class Plugin2 {
                 @RuleSource
                 static class Rules {
                     @Model
@@ -163,8 +154,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class Plugin3 implements Plugin {
-                void apply(plugin) {}
+            class Plugin3 {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -174,9 +164,9 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: Plugin1
-            apply plugin: Plugin2
-            apply plugin: Plugin3
+            apply type: Plugin1
+            apply type: Plugin2
+            apply type: Plugin3
         """
 
         when:
@@ -198,8 +188,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class Plugin1 implements Plugin {
-                void apply(plugin) {}
+            class Plugin1 {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -209,7 +198,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: Plugin1
+            apply type: Plugin1
         """
 
         when:

@@ -38,8 +38,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Model("$normalisedPath") List<String> strings() {
@@ -57,7 +56,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 $path {
