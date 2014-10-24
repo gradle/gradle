@@ -38,6 +38,7 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param id The id of the plugin to be applied.
      * @return The plugin which has been used against the project.
      */
+    @Deprecated
     Plugin apply(String id);
 
     /**
@@ -49,6 +50,7 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param type The type of the plugin to be used
      * @return The plugin which has been used against the project.
      */
+    @Deprecated
     <T extends Plugin> T apply(Class<T> type);
 
     /**
@@ -130,43 +132,37 @@ public interface PluginContainer extends PluginCollection<Plugin> {
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated
      */
+    @Deprecated
     boolean add(Plugin plugin);
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated
      */
+    @Deprecated
     boolean addAll(Collection<? extends Plugin> c);
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated
      */
+    @Deprecated
     void clear();
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated
      */
+    @Deprecated
     boolean remove(Object o);
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated
      */
+    @Deprecated
     boolean removeAll(Collection<?> c);
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated
      */
+    @Deprecated
     boolean retainAll(Collection<?> c);
 }
