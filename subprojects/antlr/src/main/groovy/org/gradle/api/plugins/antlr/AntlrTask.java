@@ -51,7 +51,6 @@ public class AntlrTask extends SourceTask {
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
-    private File sourceDirectory;
     private String maxHeapSize = "1g";
 
     /**
@@ -133,14 +132,6 @@ public class AntlrTask extends SourceTask {
      */
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
-    }
-
-    public File getSourceDirectory() {
-        return sourceDirectory;
-    }
-
-    public void setSourceDirectory(File sourceDirectory) {
-        this.sourceDirectory = sourceDirectory;
     }
 
     /**

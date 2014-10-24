@@ -66,21 +66,11 @@ class AntlrPluginTest extends Specification {
 
     def traceDefaultProperties() {
         given:
-        File source = Mock()
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        def sourceFiles = [s1, s2]
-        source.listFiles() >> sourceFiles
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-
+        def sourceFiles = someSourceFiles()
         when:
         project.apply plugin: AntlrPlugin
         def main = project.tasks.generateGrammarSource
-        main.outputDirectory = dest
-        main.sourceDirectory = source
+        main.outputDirectory = destFile()
 
         then:
         main.isTrace() == false
@@ -95,21 +85,11 @@ class AntlrPluginTest extends Specification {
 
     def tracePropertiesAddedToArgumentList() {
         given:
-        File source = Mock()
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        def sourceFiles = [s1, s2]
-        source.listFiles() >> sourceFiles
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-
+        def sourceFiles = someSourceFiles()
         when:
         project.apply plugin: AntlrPlugin
         def main = project.tasks.generateGrammarSource
-        main.outputDirectory = dest
-        main.sourceDirectory = source
+        main.outputDirectory = destFile()
         main.setTrace(true)
         main.setTraceLexer(true)
         main.setTraceParser(true)
@@ -128,21 +108,11 @@ class AntlrPluginTest extends Specification {
 
     def customArgumentsAdded() {
         given:
-        File source = Mock()
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        def sourceFiles = [s1, s2]
-        source.listFiles() >> sourceFiles
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-
+        def sourceFiles = someSourceFiles()
         when:
         project.apply plugin: AntlrPlugin
         def main = project.tasks.generateGrammarSource
-        main.outputDirectory = dest
-        main.sourceDirectory = source
+        main.outputDirectory = destFile()
         main.setArguments(["-a", "-b"])
 
         then:
@@ -152,21 +122,11 @@ class AntlrPluginTest extends Specification {
 
     def customTraceArgumentsOverrideProperties() {
         given:
-        File source = Mock()
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        def sourceFiles = [s1, s2]
-        source.listFiles() >> sourceFiles
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-
+        def sourceFiles = someSourceFiles()
         when:
         project.apply plugin: AntlrPlugin
         def main = project.tasks.generateGrammarSource
-        main.outputDirectory = dest
-        main.sourceDirectory = source
+        main.outputDirectory = destFile()
         main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
 
         then:
@@ -178,21 +138,11 @@ class AntlrPluginTest extends Specification {
 
     def traceArgumentsDoNotDuplicateTrueTraceProperties() {
         given:
-        File source = Mock()
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        def sourceFiles = [s1, s2]
-        source.listFiles() >> sourceFiles
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-
+        def sourceFiles = someSourceFiles()
         when:
         project.apply plugin: AntlrPlugin
         def main = project.tasks.generateGrammarSource
-        main.outputDirectory = dest
-        main.sourceDirectory = source
+        main.outputDirectory = destFile()
         main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
         main.setTrace(true)
         main.setTraceLexer(true)
@@ -207,22 +157,10 @@ class AntlrPluginTest extends Specification {
     }
 
     def buildArgumentsAddsAllParameters() {
-        given:
-        File source = Mock()
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        def sourceFiles = [s1, s2]
-        source.listFiles() >> sourceFiles
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-
         when:
         project.apply plugin: AntlrPlugin
         def main = project.tasks.generateGrammarSource
-        main.outputDirectory = dest
-        main.sourceDirectory = source
+        main.outputDirectory = destFile()
         main.setArguments(["-test"])
         main.setTrace(true)
         main.setTraceLexer(true)
@@ -230,6 +168,20 @@ class AntlrPluginTest extends Specification {
         main.setTraceTreeWalker(true)
 
         then:
-        main.buildArguments(sourceFiles) == ["-o", "/output", "-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker", "/input/1", "/input/2"]
+        main.buildArguments(someSourceFiles()) == ["-o", "/output", "-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker", "/input/1", "/input/2"]
+    }
+
+    def destFile() {
+        File dest = Mock()
+        dest.getAbsolutePath() >> "/output"
+        dest
+    }
+
+    def someSourceFiles() {
+        File s1 = Mock()
+        File s2 = Mock()
+        s1.getAbsolutePath() >> "/input/1"
+        s2.getAbsolutePath() >> "/input/2"
+        [s1, s2]
     }
 }

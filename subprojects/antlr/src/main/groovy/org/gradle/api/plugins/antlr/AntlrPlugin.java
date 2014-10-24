@@ -108,7 +108,6 @@ public class AntlrPlugin implements Plugin<Project> {
                                 project.getBuildDir(), sourceSet.getName());
                         final File outputDirectory = new File(outputDirectoryName);
                         antlrTask.setOutputDirectory(outputDirectory);
-                        antlrTask.setSourceDirectory(new File(srcDir));
                         sourceSet.getJava().srcDir(outputDirectory);
 
                         // 6) register fact that antlr should be run before compiling
