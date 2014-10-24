@@ -28,15 +28,15 @@ import java.util.List;
 public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec> {
     private final Iterable<File> compilerClasspath;
 
-    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory inProcessCompilerDaemonFactory, Iterable<File> compilerClasspath) {
-        super(projectDir, twirlCompiler, inProcessCompilerDaemonFactory);
+    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath) {
+        super(projectDir, twirlCompiler, compilerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(TwirlCompileSpec spec) {
-        List<String> twirlPackages = Arrays.asList("org.gradle.play.internal.twirl", "play.twirl.compiler");
+        List<String> twirlPackages = Arrays.asList("play.twirl.compiler");
         return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, twirlPackages);
     }
 }

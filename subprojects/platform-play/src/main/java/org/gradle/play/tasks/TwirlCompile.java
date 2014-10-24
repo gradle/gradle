@@ -23,6 +23,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
@@ -39,11 +40,17 @@ public class TwirlCompile extends SourceTask {
      */
     private FileCollection compilerClasspath;
 
-
     /**
      * Target directory for the compiled template files.
      */
     private File outputDirectory;
+
+
+    void setCompiler(Compiler<TwirlCompileSpec> compiler) {
+        this.compiler = compiler;
+    }
+
+    private Compiler<TwirlCompileSpec> compiler;
 
     @InputFiles
     public FileCollection getCompilerClasspath() {
@@ -73,6 +80,7 @@ public class TwirlCompile extends SourceTask {
         this.outputDirectory = outputDirectory;
     }
 
+
     @TaskAction
     void compile() {
         TwirlCompileSpec spec = generateSpec();
@@ -84,12 +92,15 @@ public class TwirlCompile extends SourceTask {
      *
      * TODO allow forked compiler
      * */
-    private DaemonTwirlCompiler getCompiler() {
-        ProjectInternal projectInternal = (ProjectInternal) getProject();
-        InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-        TwirlCompiler twirlCompiler = new TwirlCompiler();
-        return new DaemonTwirlCompiler(projectInternal.getProjectDir(), twirlCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
+    private Compiler<TwirlCompileSpec> getCompiler() {
+        if (compiler == null) {
+            ProjectInternal projectInternal = (ProjectInternal) getProject();
+            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+            TwirlCompiler twirlCompiler = new TwirlCompiler();
+            compiler = new DaemonTwirlCompiler(projectInternal.getProjectDir(), twirlCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
 
+        }
+        return compiler;
     }
 
     private TwirlCompileSpec generateSpec() {
