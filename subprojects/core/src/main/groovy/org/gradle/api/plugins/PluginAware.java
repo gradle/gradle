@@ -36,7 +36,6 @@ import java.util.Map;
  * <p>
  * For more on writing and applying plugins, see {@link org.gradle.api.Plugin}.
  */
-@HasInternalProtocol
 public interface PluginAware {
 
     // TODO provide more information about different types of plugins, justifying preference of not using PluginContainer
