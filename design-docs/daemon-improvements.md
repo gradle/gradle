@@ -30,16 +30,3 @@ Connection.receive(timeoutValue, timeoutUnits)
 ## Native daemon client
 
 Use our C support to build a native equivalent to `gradle --daemon`.
-
-## Daemon feature is “usable” when under memory pressure
-
-Currently, the daemon has serious problems when memory pressure occurs. 
-When under pressure, the daemon process exhibits GC thrash. 
-Please see [this forum post](http://forums.gradle.org/gradle/topics/gradle_daemon_becomes_very_slow_when_the_heap_is_nearly_out_of_memory_its_running_full_gcs_almost_back_to) for a discussion.
-
-One hypothesis for this is the use of weak reference caches, particularly in the Groovy metaclass system where meta class instances are held in a weak reference cache.
-Note that this is not necessarily a problem with the daemon, as it would also apply to the non daemon case. 
-However, it is exacerbated by the daemon leaking memory, thereby increasing the chance of a memory pressure situation occurring.
-
-The correct outcome would be for the build to fail quickly instead of hanging in GC thrash limbo.
-This could be done by either detecting or predicting GC thrash and terminating early.
