@@ -296,8 +296,12 @@ The version of Groovy that the [CodeNarc plugin](userguide/codenarc_plugin.html)
 Previously, the version of Groovy that Gradle ships with was used.
 Now, the version of Groovy that the CodeNarc tool declares as a dependency is used. 
 
-This should have no impact on users of the CodeNarc plugin.
+The CodeNarc implementation used by the CodeNarc plugin is defined by the `codenarc` dependency configuration, which defaults to containing the dependency `"org.codenarc:CodeNarc:0.21"`.
+This configuration is expected to provide all of CodeNarc's runtime dependencies, including the Groovy runtime (which it does by default as the CodeNarc dependency depends on `"org.codehaus.groovy:groovy-all:1.7.5"`). 
+This should have have no impact on users of the CodeNarc plugin.
 Upon first use of the CodeNarc plugin with Gradle 2.1, you may see Gradle downloading a Groovy implementation for use with the CodeNarc plugin.
+
+Please note that any generally applied dependency rules targeted at Groovy (e.g. changing `groovy-all` to `groovy-core` or similar) will now affect the CodeNarc plugin whereas they did not previously.
 
 ### Change of package names for sonar-runner plugin
 
