@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection
+package org.gradle.model.collection.internal
 
 import org.gradle.model.ModelViewClosedException
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor

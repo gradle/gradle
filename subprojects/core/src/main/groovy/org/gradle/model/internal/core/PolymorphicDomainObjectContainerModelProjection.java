@@ -22,7 +22,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.CollectionBuilderModelView;
+import org.gradle.model.collection.internal.CollectionBuilderModelView;
 import org.gradle.model.collection.internal.DefaultCollectionBuilder;
 import org.gradle.model.entity.internal.NamedEntityInstantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;

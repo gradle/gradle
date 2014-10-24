@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection;
+package org.gradle.model.collection.internal;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-@Incubating
 @NotThreadSafe
 public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>> {
 
