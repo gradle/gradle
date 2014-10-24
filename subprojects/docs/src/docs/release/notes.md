@@ -54,7 +54,7 @@ TODO - more detail.
 ### ANTLR plugin supports ANTLR version 3.X and 4.X
 
 Additionally to the existing 2.X support, the [ANTLR Plugin](userguide/antlrPlugin.html) now supports ANTLR version 3 and 4. 
-To use ANTLR version 3 or 4, an according antlr dependency must be declared explicitly in your build file:
+To use ANTLR version 3 or 4 in a build, an according antlr dependency must be declared explicitly:
 
     apply plugin: "java"
     apply plugin: "antlr"
