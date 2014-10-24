@@ -54,7 +54,7 @@ TODO - more detail.
 ### ANTLR plugin supports ANTLR version 3.X and 4.X
 
 Additionally to the existing 2.X support, the [ANTLR Plugin](userguide/antlrPlugin.html) now supports ANTLR version 3 and 4. 
-To use ANTLR version 3 or 4 the antlr dependency in your build file must be updated:
+To use ANTLR version 3 or 4, an according antlr dependency must be declared explicitly in your build file:
 
     apply plugin: "java"
     apply plugin: "antlr"
@@ -67,14 +67,15 @@ To use ANTLR version 3 or 4 the antlr dependency in your build file must be upda
         antlr 'org.antlr:antlr4:4.3'
     }
   
-This feature was contributed by [Rob Upcraft] (https://github.com/upcrob)
+This feature was contributed by [Rob Upcraft] (https://github.com/upcrob).
 
 ### AntlrTask running in separate process
 
 The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) is now 
-executed in a separate process. See [Antlr Plugin](userguide/antlrPlugin.html) for further details. 
+executed in a separate process. This allows more fine grained control over memory settings just for the ANTLR process.
+See [Antlr Plugin](userguide/antlrPlugin.html) for further details. 
 
-This feature was also contributed by [Rob Upcraft] (https://github.com/upcrob)
+This feature was also contributed by [Rob Upcraft] (https://github.com/upcrob).
 
 ## Promoted features
 
