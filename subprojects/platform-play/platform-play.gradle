@@ -6,3 +6,5 @@ dependencies {
 
 useClassycle()
 strictCompile()
+
+useTestFixtures()
