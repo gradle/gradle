@@ -15,13 +15,13 @@
  */
 
 package org.gradle.play.tasks
-
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.play.internal.twirl.TwirlCompiler
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TwirlCompileTest extends Specification {
-    def project = ProjectBuilder.builder().build()
+    DefaultProject project = TestUtil.createRootProject()
     TwirlCompile compile = project.tasks.create("twirlCompile", TwirlCompile)
     TwirlCompiler twirlCompiler = Mock(TwirlCompiler);
 
