@@ -28,12 +28,12 @@ import java.util.regex.Pattern;
 
 public class DaemonContextParser {
     public static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[uid=([^\\n]+),javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
                 Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
         if (matcher.matches()) {
-            String uid = matcher.group(1);
+            String uid = matcher.group(1) == null ? null : matcher.group(1).substring("uid=".length());
             String javaHome = matcher.group(2);
             String daemonRegistryDir = matcher.group(3);
             String pidStr = matcher.group(4);
