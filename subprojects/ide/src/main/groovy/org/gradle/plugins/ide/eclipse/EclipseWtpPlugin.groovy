@@ -153,12 +153,13 @@ class EclipseWtpPlugin extends IdePlugin {
                         eclipseWtpPlugin.eclipseWtpModel.component = component
 
                         component.conventionMapping.deployName = { otherProject.eclipse.project.name }
-                        component.libConfigurations = [ otherProject.configurations.runtime ]
+                        component.conventionMapping.resources = {
+                            getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
+                        }
+                        component.libConfigurations = [otherProject.configurations.runtime]
+                        component.minusConfigurations = []
                         component.classesDeployPath = "/"
                         component.libDeployPath = "../"
-
-                        component.conventionMapping.contextPath = { null }
-                        component.conventionMapping.sourceDirs = { getMainSourceDirs(otherProject) }
                     }
                 }
             }
