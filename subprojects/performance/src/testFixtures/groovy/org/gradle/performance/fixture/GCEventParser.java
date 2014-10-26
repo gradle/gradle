@@ -22,15 +22,22 @@ import java.util.regex.Pattern;
 class GCEventParser {
 
     private final Pattern pattern;
+    private final Pattern ignorePattern;
 
     GCEventParser(char decimalSeparator) {
         pattern = Pattern.compile(String.format("\\d+\\%s\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
+        ignorePattern = Pattern.compile(String.format("\\s*\\[Times: .+\\]\\s*"));
     }
 
     GCEvent parseLine(String line) {
         Matcher matcher = pattern.matcher(line);
         if (!matcher.lookingAt()) {
-            throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
+            if (ignorePattern.matcher(line).matches()) {
+                //I see this kind of events on windows. Let's see if this approach helps resolving them.
+                return GCEvent.IGNORED;
+            } else {
+                throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
+            }
         }
 
         long start = Long.parseLong(matcher.group(2));
@@ -44,6 +51,7 @@ class GCEventParser {
         final long start;
         final long end;
         final long committed;
+        final static GCEvent IGNORED = new GCEvent(-1, -1, -1);
 
         GCEvent(long start, long end, long committed) {
             this.start = start;

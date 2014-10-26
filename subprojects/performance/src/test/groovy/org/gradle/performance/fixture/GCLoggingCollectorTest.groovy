@@ -52,5 +52,6 @@ class GCLoggingCollectorTest extends Specification {
         "gc-2.txt" | 140210         | 40427        | 34145              | 223360           | Locale.US
         "gc-3.txt" | 183544         | 119384       | 37982              | 295488           | Locale.US
         "gc-4.txt" | 709909         | 292868       | 86455              | 474176           | Locale.GERMANY
+        "win-1.txt"| 76639          | 33334        | 20002              | 44092            | Locale.US
     }
 }

@@ -82,6 +82,9 @@ public class GCLoggingCollector implements DataCollector {
             }
 
             GCEventParser.GCEvent event = eventParser.parseLine(line);
+            if (event == GCEventParser.GCEvent.IGNORED) {
+                continue;
+            }
 
             events++;
 
