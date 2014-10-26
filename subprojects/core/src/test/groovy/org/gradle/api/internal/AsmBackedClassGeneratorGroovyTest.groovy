@@ -213,6 +213,14 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.setAtFieldInit == i.class
     }
 
+    def "can use inherited properties during construction"() {
+        when:
+        def i = create(UsesInheritedPropertiesDuringConstruction)
+
+        then:
+        i.someValue == 'value'
+    }
+
     def "can call private methods internally"() {
         /*
             We have to specially handle private methods in our dynamic protocol.
@@ -496,6 +504,17 @@ class CallsMethodDuringConstruction {
         setDuringConstructor = setAtFieldInit
         someMap['a'] = 'b'
         assert setDuringConstructor
+    }
+}
+
+class UsesInheritedPropertiesDuringConstruction extends TestJavaObject {
+    UsesInheritedPropertiesDuringConstruction() {
+        assert metaClass != null
+        assert getMetaClass() != null
+        assert metaClass.getProperty(this, "someValue") == "value"
+        assert asDynamicObject.getProperty("someValue") == "value"
+        assert getProperty("someValue") == "value"
+        assert someValue == "value"
     }
 }
 
