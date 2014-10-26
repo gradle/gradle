@@ -122,12 +122,15 @@ class EclipseWtpPluginTest extends Specification {
         assert wtp.libDeployPath == "/lib"
     }
 
-    private void checkEclipseWtpFacet(def facets) {
-        GenerateEclipseWtpFacet eclipseWtpFacet = project.eclipseWtpFacet
+    private void checkEclipseWtpFacet(def expectedFacets) {
+        def wtp = project.eclipse.wtp.facet
+        def eclipseWtpFacet = project.eclipseWtpFacet
         assert eclipseWtpFacet instanceof GenerateEclipseWtpFacet
+        assert eclipseWtpFacet.facet == wtp
         assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+        assert wtp.facets.sort() == expectedFacets.sort()
     }
 
     private void checkEclipseWtpComponentForWar() {
