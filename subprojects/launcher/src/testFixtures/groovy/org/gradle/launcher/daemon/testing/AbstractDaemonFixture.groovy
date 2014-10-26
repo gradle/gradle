@@ -25,7 +25,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     final DaemonContext context
 
     AbstractDaemonFixture(File daemonLog) {
-        this.context = DaemonContextParser.parseFrom(daemonLog.text)
+        this.context = DaemonContextParser.parseFromFile(daemonLog)
     }
 
     void becomesIdle() {
