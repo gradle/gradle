@@ -62,7 +62,7 @@ public class GCLoggingCollector implements DataCollector {
 
     private void collect(WaitingReader reader, MeasuredOperation operation, Locale locale) throws IOException {
         char decimalSeparator = (new DecimalFormatSymbols(locale)).getDecimalSeparator();
-        Pattern collectionEventPattern = Pattern.compile(String.format("\\d+\\%s\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
+        GCEventParser eventParser = new GCEventParser(decimalSeparator);
         Pattern memoryPoolPattern = Pattern.compile("([\\w\\s]+) total (\\d+)K, used (\\d+)K \\[.+");
 
         long totalHeapUsage = 0;
@@ -81,25 +81,19 @@ public class GCLoggingCollector implements DataCollector {
                 break;
             }
 
-            Matcher matcher = collectionEventPattern.matcher(line);
-            if (!matcher.lookingAt()) {
-                throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
-            }
+            GCEventParser.GCEvent event = eventParser.parseLine(line);
+
             events++;
 
-            long start = Long.parseLong(matcher.group(2));
-            long end = Long.parseLong(matcher.group(3));
-            long committed = Long.parseLong(matcher.group(4));
-
-            if (start < usageAtPreviousCollection) {
+            if (event.start < usageAtPreviousCollection) {
                 throw new IllegalArgumentException("Unexpected max heap size found in garbage collection event: " + line);
             }
 
-            totalHeapUsage += start - usageAtPreviousCollection;
-            maxUsage = Math.max(maxUsage, start);
-            maxUncollectedUsage = Math.max(maxUncollectedUsage, end);
-            maxCommittedUsage = Math.max(maxCommittedUsage, committed);
-            usageAtPreviousCollection = end;
+            totalHeapUsage += event.start - usageAtPreviousCollection;
+            maxUsage = Math.max(maxUsage, event.start);
+            maxUncollectedUsage = Math.max(maxUncollectedUsage, event.end);
+            maxCommittedUsage = Math.max(maxCommittedUsage, event.committed);
+            usageAtPreviousCollection = event.end;
         }
 
         if (events == 0) {
