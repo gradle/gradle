@@ -194,15 +194,21 @@ apply plugin: "groovy"
         executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
     }
 
+    /**
+     * This method asserts that the given {@code project}s facet file fulfills the following requirements:
+     * <ul>
+     *     <li>contains the <code>jst.utility</code> facet
+     *     <li>contains the <code>jst.java</code> (as <code>jst.utility</code> requires <code>jst.java</code>)</li>
+     *     <li>does not contain <code>jst.web</code> (as <code>jst.web</code> and <code>jst.utility</code> are not allowed together)</li>
+     * </ul>
+     * For the WTP Project Facets documentation, see <a href="http://www.eclipse.org/webtools/development/proposals/WtpProjectFacets.html">here</a>.
+     */
     private void hasUtilityAndNoWebFacet(String project) {
         def file = getFacetFile(project: project)
         def facetedProject = new XmlSlurper().parse(file)
-        assert facetedProject.children().any { it.name() == 'installed' && it.@facet.text() == 'jst.utility' && it.@version.text() == '1.0' }
-
-        // jst.utility requires jst.java, see http://www.eclipse.org/webtools/development/proposals/WtpProjectFacets.html
-        assert facetedProject.children().any { it.name() == 'installed' && it.@facet.text() == 'jst.java' && it.@version.text() }
-        // jst.web and jst.utility are not allowed together (no documentation found but Eclipse shows an error)
-        assert !facetedProject.children().any { it.@facet.text() == 'jst.web' }
+        assert facetedProject.children().any{ it.name() == 'installed' && it.@facet.text() == 'jst.utility' && it.@version.text() == '1.0' }
+        assert facetedProject.children().any{ it.name() == 'installed' && it.@facet.text() == 'jst.java' && it.@version.text() }
+        assert !facetedProject.children().any{ it.@facet.text() == 'jst.web' }
     }
 
     private void hasNecessaryBuildersAdded(String project) {
