@@ -17,6 +17,9 @@ package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.bundling.Jar;
@@ -48,10 +51,26 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_2.11:2.3.5";
     public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_2.11:1.0.2";
     public static final String TWIRL_CONFIGURATION_NAME = "twirl";
+    private ProjectInternal project;
 
     public void apply(final ProjectInternal project) {
-        project.getConfigurations().create(TWIRL_CONFIGURATION_NAME);
-        project.getDependencies().add(TWIRL_CONFIGURATION_NAME, project.getDependencies().create(DEFAULT_TWIRL_DEPENDENCY));
+        this.project = project;
+        setupTwirlCompilation();
+    }
+
+    private void setupTwirlCompilation() {
+        final Configuration twirlConfiguration = project.getConfigurations().create(TWIRL_CONFIGURATION_NAME);
+        twirlConfiguration.setVisible(false);
+        twirlConfiguration.setDescription("The dependencies to be used twirl template compilation.");
+
+        twirlConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
+            public void execute(ResolvableDependencies resolvableDependencies) {
+                DependencySet dependencies = twirlConfiguration.getDependencies();
+                if (dependencies.isEmpty()) {
+                    dependencies.add(project.getDependencies().create(DEFAULT_TWIRL_DEPENDENCY));
+                }
+            }
+        });
 
         project.getTasks().withType(TwirlCompile.class).all(new Action<TwirlCompile>(){
             public void execute(TwirlCompile twirlCompile) {
@@ -63,6 +82,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             }
         });
     }
+
     /**
      * Model rules.
      */
