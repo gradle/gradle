@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.launcher.daemon.server.health
 
-import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution
+import spock.lang.Specification
 
-public class DefaultDaemonHealthServices implements DaemonHealthServices {
+class DescribeDaemonHealthTest extends Specification {
 
-    private final HintGCAfterBuild hygieneAction = new HintGCAfterBuild();
-    private final DaemonStats daemonStats = new DaemonStats();
-    private final DescribeDaemonHealth describeHealth = new DescribeDaemonHealth(daemonStats);
+    def "describes health"() {
+        def exec = Mock(DaemonCommandExecution)
+        def stats = Mock(DaemonStats)
+        def describe = new DescribeDaemonHealth(stats)
 
-    public DaemonCommandAction getGCHintAction() {
-        return hygieneAction;
-    }
+        when: describe.execute(exec)
 
-    public DaemonCommandAction getHealthInformationAction() {
-        return describeHealth;
+        then: 1 * stats.buildStarted()
+        then: 1 * exec.proceed()
+        then: 1 * stats.buildFinished()
+        0 * _
     }
 }

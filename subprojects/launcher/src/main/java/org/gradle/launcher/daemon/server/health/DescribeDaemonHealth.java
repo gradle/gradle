@@ -16,11 +16,27 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 class DescribeDaemonHealth implements DaemonCommandAction {
+
+    private final static Logger LOG = Logging.getLogger(DescribeDaemonHealth.class);
+
+    private final DaemonStats daemonStats;
+
+    DescribeDaemonHealth(DaemonStats daemonStats) {
+        this.daemonStats = daemonStats;
+    }
+
     public void execute(DaemonCommandExecution execution) {
-        execution.proceed();
+        LOG.lifecycle(daemonStats.buildStarted());
+        try {
+            execution.proceed();
+        } finally {
+            daemonStats.buildFinished();
+        }
     }
 }

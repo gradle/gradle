@@ -16,19 +16,22 @@
 
 package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 
-public class DefaultDaemonHealthServices implements DaemonHealthServices {
+class GCStats {
 
-    private final HintGCAfterBuild hygieneAction = new HintGCAfterBuild();
-    private final DaemonStats daemonStats = new DaemonStats();
-    private final DescribeDaemonHealth describeHealth = new DescribeDaemonHealth(daemonStats);
-
-    public DaemonCommandAction getGCHintAction() {
-        return hygieneAction;
-    }
-
-    public DaemonCommandAction getHealthInformationAction() {
-        return describeHealth;
+    /**
+     * Approx. time spent in gc. See {@link GarbageCollectorMXBean}
+     */
+    long getCollectionTime() {
+        long garbageCollectionTime = 0;
+        for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
+            long time = gc.getCollectionTime();
+            if (time >= 0) {
+                garbageCollectionTime += time;
+            }
+        }
+        return garbageCollectionTime;
     }
 }
