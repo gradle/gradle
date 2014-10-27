@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.exec
+package org.gradle.launcher.daemon.server.health
 
 import org.gradle.internal.TimeProvider
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution
 import spock.lang.Specification
-
 
 class DaemonHygieneActionTest extends Specification {
 
