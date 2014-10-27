@@ -25,7 +25,7 @@ import static org.gradle.performance.measure.Duration.millis
 
 class CachingClassLoadersPerformanceTest extends AbstractPerformanceTest {
 
-    @Unroll("Project '#testProject' daemon build")
+    @Unroll("Project '#testProject' build")
     def "build"() {
         given:
         runner.runs = 2
