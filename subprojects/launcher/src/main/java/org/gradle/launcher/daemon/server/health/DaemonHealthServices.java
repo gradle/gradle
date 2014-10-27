@@ -19,6 +19,6 @@ package org.gradle.launcher.daemon.server.health;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 
 public interface DaemonHealthServices {
-    DaemonCommandAction getHygieneAction();
+    DaemonCommandAction getGCHintAction();
     DaemonCommandAction getHealthInformationAction();
 }

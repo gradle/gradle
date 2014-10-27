@@ -66,10 +66,10 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
-            new HandleCancel(),
+            new HandleCancel(),            
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
-            hygieneAction, //needs to happen after the result is returned to the client
+            healthServices.getGCHintAction(), //TODO SF needs to happen after the result is returned to the client
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
             healthServices.getHealthInformationAction(),

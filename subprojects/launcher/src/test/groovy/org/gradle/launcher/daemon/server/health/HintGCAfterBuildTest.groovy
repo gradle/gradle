@@ -20,10 +20,10 @@ import org.gradle.internal.TimeProvider
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution
 import spock.lang.Specification
 
-class DaemonHygieneActionTest extends Specification {
+class HintGCAfterBuildTest extends Specification {
 
     def "performs hygiene action"() {
-        def a = Spy(DaemonHygieneAction)
+        def a = Spy(HintGCAfterBuild)
 
         when:
         a.execute(Mock(DaemonCommandExecution))
@@ -37,7 +37,7 @@ class DaemonHygieneActionTest extends Specification {
         def timeProvider = Stub(TimeProvider) {
             getCurrentTime() >>> [10, 100, 200]
         }
-        def a = Spy(DaemonHygieneAction, constructorArgs: [100, timeProvider])
+        def a = Spy(HintGCAfterBuild, constructorArgs: [100, timeProvider])
 
         when:
         //executed X3

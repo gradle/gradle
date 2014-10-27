@@ -20,19 +20,19 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
-class DaemonHygieneAction implements DaemonCommandAction {
+class HintGCAfterBuild implements DaemonCommandAction {
 
     private final long gcDelay;
     private TimeProvider timeProvider;
     private long nextGcHint;
 
-    DaemonHygieneAction() {
+    HintGCAfterBuild() {
         //by default, don't hint for gc more often than once per 2 minutes
         //because it is a full scan
         this(1000 * 60 * 2, new TrueTimeProvider());
     }
 
-    DaemonHygieneAction(long gcDelay, TimeProvider timeProvider) {
+    HintGCAfterBuild(long gcDelay, TimeProvider timeProvider) {
         this.gcDelay = gcDelay;
         this.timeProvider = timeProvider;
     }

@@ -24,7 +24,7 @@ public class StubDaemonHealthServices implements DaemonHealthServices {
 
     private final NoOpDaemonCommandAction noOp = new NoOpDaemonCommandAction();
 
-    public DaemonCommandAction getHygieneAction() {
+    public DaemonCommandAction getGCHintAction() {
         return noOp;
     }
 
