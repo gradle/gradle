@@ -40,14 +40,18 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    /**
-     * TODO elaborate
-     * */
     def "can run TwirlCompile"(){
         given:
         withTwirlTemplate()
-        expect:
+        when:
         succeeds("twirlCompile")
+        then:
+        file("build/twirl/views/html/index.template.scala").exists()
+
+        when:
+        succeeds("twirlCompile")
+        then:
+        skipped(":twirlCompile");
     }
 
     def withTwirlTemplate() {
@@ -63,7 +67,6 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
 
 """
         buildFile << "twirlCompile.source '${templateFile.toURI()}'"
-
 
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import com.google.common.base.Function;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
+import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -26,6 +26,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 /**
  * Twirl compiler uses reflection to load and invoke TwirlCompiler$
@@ -63,8 +64,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
     }
 
     public WorkResult execute(TwirlCompileSpec spec) {
-        boolean didWork = false;
-
+        ArrayList<File> outputFiles = Lists.newArrayList();
         try {
             File sourceDirectory = spec.getSourceDirectory().getCanonicalFile();
             File generatedDirectory = spec.getDestinationDir();
@@ -115,14 +115,14 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
                 Method resultIsDefined = result.getClass().getMethod("isDefined");
                 if ((Boolean) resultIsDefined.invoke(result)) {
                     File createdFile = (File) result.getClass().getMethod("get").invoke(result);
-                    didWork = true;
+                    outputFiles.add(createdFile);
                 }
             }
         } catch (Exception e) {
             throw new RuntimeException(e.getCause());
         }
 
-        return new SimpleWorkResult(didWork);
+        return new TwirlCompilerWorkResult(outputFiles);
     }
 
 }
