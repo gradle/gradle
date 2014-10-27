@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.store
 
 import org.gradle.internal.UncheckedException
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.manage.schema.ModelSchema
 import spock.lang.Specification
 
 class CachingModelSchemaStoreTest extends Specification {
@@ -27,7 +26,7 @@ class CachingModelSchemaStoreTest extends Specification {
         given:
         def exception = new RuntimeException("from backing store")
         def extractor = Mock(ModelSchemaExtractor) {
-            extract(_, _) >> { throw exception }
+            extract(_) >> { throw exception }
         }
 
         when:
@@ -42,8 +41,7 @@ class CachingModelSchemaStoreTest extends Specification {
         given:
         def exception = new Exception("from backing store")
         def extractor = new ModelSchemaExtractor() {
-            @Override
-            def <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store) {
+            def <T> ExtractedModelSchema<T> extract(ModelType<T> type) {
                 throw exception
             }
         }

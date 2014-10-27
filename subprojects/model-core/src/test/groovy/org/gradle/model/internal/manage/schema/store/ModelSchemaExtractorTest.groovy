@@ -96,9 +96,12 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     def "extract single property"() {
-        expect:
-        extract(SingleProperty).properties.size() == 1
-        extract(SingleProperty).properties["name"].type == ModelType.of(String)
+        when:
+        def properties = extract(SingleProperty).propertyFactories*.create(null)
+
+        then:
+        properties.size() == 1
+        properties.find { it.name == "name" }.type == ModelType.of(String)
     }
 
     @Managed
@@ -189,11 +192,11 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "multiple properties"() {
         when:
-        def schema = extract(MultipleProps)
+        def properties = extract(MultipleProps).propertyFactories*.create(null).sort { it.name }
 
         then:
-        schema.properties.values().toList()*.name == ["prop1", "prop2", "prop3"]
-        schema.properties.values().toList()*.type == [ModelType.of(String)] * 3
+        properties*.name == ["prop1", "prop2", "prop3"]
+        properties*.type == [ModelType.of(String)] * 3
     }
 
     @Managed
@@ -215,7 +218,7 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
-        extractor.extract(ModelType.of(clazz), null)
+        extractor.extract(ModelType.of(clazz))
     }
 
     private void fail(Class<?> clazz, String msgPattern) {

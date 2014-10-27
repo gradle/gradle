@@ -321,4 +321,105 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Exception thrown while executing model rule: model.platform")
         failure.assertHasCause("Only managed model instances can be set as property 'operatingSystem' of class 'Platform'")
     }
+
+    def "managed types can have cyclical managed type references"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Parent {
+                String getName()
+                void setName(String name)
+
+                Child getChild()
+            }
+
+            @Managed
+            interface Child {
+                Parent getParent()
+                void setParent(Parent parent)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createParent(Parent parent) {
+                    parent.name = "parent"
+                    parent.child.parent = parent
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $parent.child.parent.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: parent")
+    }
+
+    def "managed types can have cyclical managed type references where more than two types constitute the cycle"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface A {
+                String getName()
+                void setName(String name)
+
+                B getB()
+            }
+
+            @Managed
+            interface B {
+                C getC()
+            }
+
+            @Managed
+            interface C {
+                A getA()
+                void setA(A a)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createA(A a) {
+                    a.name = "a"
+                    a.b.c.a = a
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, A a) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $a.b.c.a.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: a")
+    }
 }

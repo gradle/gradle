@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema;
+package org.gradle.model.internal.manage.schema.store;
 
-import com.google.common.collect.ImmutableSortedMap;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 
-public interface ModelSchema<T> {
+@ThreadSafe
+public class ManagedModelReferencePropertyFactory<T> extends ManagedModelPropertyFactory<T> {
+    public ManagedModelReferencePropertyFactory(ModelType<?> type, ModelType<T> propertyType, String propertyName) {
+        super(type, propertyType, propertyName);
+    }
 
-    public ModelType<T> getType();
-
-    public ImmutableSortedMap<String, ModelProperty<?>> getProperties();
-
+    @Override
+    protected ModelProperty<T> doCreate(ModelSchema<T> modelSchema) {
+        return new ModelProperty<T>(propertyName, propertyType, true);
+    }
 }

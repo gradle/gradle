@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.manage.schema.store;
 
-import org.gradle.model.Managed;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 
-@Managed
-public interface ManagedWithNestedReferenceOfInvalidManagedType {
-    ManagedWithReferenceOfInvalidManagedType getManagedWithNestedInvalidManagedType();
-    void setManagedWithNestedInvalidManagedType(ManagedWithReferenceOfInvalidManagedType managedWithNestedManagedType);
+public interface ModelPropertyFactory<T> {
+
+    ModelProperty<T> create(ModelSchemaStore store);
+
 }
