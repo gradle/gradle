@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
@@ -32,6 +33,11 @@ class DescribeDaemonHealth implements DaemonCommandAction {
     }
 
     public void execute(DaemonCommandExecution execution) {
+        if (execution.getCommand() instanceof BuildAndStop) {
+            execution.proceed();
+            return;
+        }
+
         LOG.lifecycle(daemonStats.buildStarted());
         try {
             execution.proceed();
