@@ -23,7 +23,10 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -37,6 +40,7 @@ import org.gradle.play.internal.DefaultPlayToolChain;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -52,11 +56,40 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_2.11:2.3.5";
     public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_2.11:1.0.2";
     public static final String TWIRL_CONFIGURATION_NAME = "twirl";
+    private static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
+
     private ProjectInternal project;
 
     public void apply(final ProjectInternal project) {
+        project.apply(WrapUtil.toMap("type", ScalaBasePlugin.class));
         this.project = project;
         setupTwirlCompilation();
+        setupPlayAppCompileClasspath();
+    }
+
+    private void setupPlayAppCompileClasspath() {
+        final Configuration playAppCompileClasspath = project.getConfigurations().create(PLAYAPP_COMPILE_CONFIGURATION_NAME);
+        playAppCompileClasspath.setVisible(false);
+        playAppCompileClasspath.setDescription("The dependencies to be used for scala compilation of play application.");
+
+        playAppCompileClasspath.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
+            public void execute(ResolvableDependencies resolvableDependencies) {
+                DependencySet dependencies = playAppCompileClasspath.getDependencies();
+                if (dependencies.isEmpty()) {
+                    dependencies.add(project.getDependencies().create(DEFAULT_PLAY_DEPENDENCY));
+                }
+            }
+        });
+
+        project.getTasks().withType(ScalaCompile.class).all(new Action<ScalaCompile>(){
+            public void execute(ScalaCompile scalaCompile) {
+                scalaCompile.getConventionMapping().map("classpath", new Callable<FileCollection>() {
+                    public FileCollection call() throws Exception {
+                        return project.getConfigurations().getByName(PLAYAPP_COMPILE_CONFIGURATION_NAME);
+                    }
+                });
+            }
+        });
     }
 
     private void setupTwirlCompilation() {
@@ -117,12 +150,13 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @BinaryTasks
         void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier,  @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
+            final File twirlCompilerOutputDirectory = new File(buildDir, String.format("twirl/%s", binary.getName()));
+
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>(){
                 public void execute(TwirlCompile twirlCompile) {
-                    twirlCompile.setOutputDirectory(new File(buildDir, String.format("twirl/%s", binary.getName())));
+                    twirlCompile.setOutputDirectory(twirlCompilerOutputDirectory);
                     twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app/views"));
                     binary.builtBy(twirlCompile);
-                    System.out.println("twirlCompile.getSourceDirectory().getAbsolutePath() = " + twirlCompile.getSourceDirectory().getAbsolutePath());
                 }
             });
 
@@ -133,6 +167,38 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 }
             });
 
+            final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
+            tasks.create(scalaCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
+                public void execute(ScalaCompile scalaCompile) {
+                    scalaCompile.setDestinationDir(new File(buildDir, String.format("classes/%s/app", binary.getName())));
+
+                    /*
+                    * @TODO enabling source "app" still gives different compile errors
+                    * */
+                    //scalaCompile.setSource("app");
+
+
+                    //if (!analysisFile) {
+                    IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+                    incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
+
+                    // /ignore uncompiled twirl templates
+                    scalaCompile.exclude("**/*.html");
+
+                    //handle twirl compiler output
+                    scalaCompile.dependsOn(twirlCompileTaskName);
+
+                    /*
+                     * @TODO enable sourcing of generated template scala code
+                     * temporally disabled sourcing of twirl output until route compiler in place as template generated classes has
+                     * dependencies on routs.
+                     */
+                    //scalaCompile.source(twirlCompilerOutputDirectory);
+
+                    //handle routes compiler
+                    scalaCompile.dependsOn(routesCompileTaskName);
+                }
+            });
 
             tasks.create(String.format("create%sJar", StringUtils.capitalize(binary.getName())), Jar.class, new Action<Jar>(){
                 public void execute(Jar jar) {
@@ -140,9 +206,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.setArchiveName(binary.getJarFile().getName());
 
                     // CollectionBuilder api currently does not allow autowiring for tasks
-                    // later this does not depend on the different compile,
-                    // but on the scala compile output
-                    jar.dependsOn(routesCompileTaskName, twirlCompileTaskName);
+                    jar.dependsOn(scalaCompileTaskName);
                 }
             });
         }
