@@ -36,12 +36,15 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    private boolean getCached() { output.contains("build count: 2") }
+    private boolean getNotCached() { output.contains("build count: 1") }
+
     def "classloader is cached"() {
         when:
         run()
         run()
 
-        then: output.contains("build count: 2")
+        then: cached
     }
 
     def "no caching when property is off"() {
@@ -51,7 +54,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
         run()
 
-        then: output.contains("build count: 1")
+        then: notCached
     }
 
     def "refreshes classloader when buildscript changes"() {
@@ -71,12 +74,12 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
         run()
 
-        then: output.contains("build count: 2")
+        then: cached
 
         when:
         file("buildSrc/src/main/groovy/Foo.groovy").text = "class Foo { static int x = 5; }"
         run()
 
-        then: output.contains("build count: 1")
+        then: notCached
     }
 }
