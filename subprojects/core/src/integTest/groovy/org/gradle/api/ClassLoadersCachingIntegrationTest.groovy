@@ -57,7 +57,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         then: notCached
     }
 
-    def "refreshes classloader when buildscript changes"() {
+    def "refreshes when buildscript changes"() {
         run()
         buildFile << """
             task newTask
@@ -67,7 +67,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run "newTask" //knows new task
     }
 
-    def "refreshes classloader when buildSrc changes"() {
+    def "refreshes when buildSrc changes"() {
         file("buildSrc/src/main/groovy/Foo.groovy") << "class Foo {}"
 
         when:
@@ -81,5 +81,28 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then: notCached
+    }
+
+    def "refreshes when new build script plugin added"() {
+        file("plugin.gradle") << "task foo"
+
+        when:
+        run()
+        buildFile << "apply from: 'plugin.gradle'"
+        run("foo")
+
+        then: notCached
+    }
+
+    def "does not refresh main script loader when build script plugin changes"() {
+        when:
+        buildFile << "apply from: 'plugin.gradle'"
+        file("plugin.gradle") << "task foo"
+        run("foo")
+        file("plugin.gradle").text = "task bar"
+
+        then:
+        run("bar") //new task is detected
+        cached //main script loader cached
     }
 }
