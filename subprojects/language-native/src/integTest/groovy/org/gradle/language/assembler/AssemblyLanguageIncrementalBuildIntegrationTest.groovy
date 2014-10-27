@@ -92,7 +92,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         install.exec().out == app.englishOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.CAN_INSTALL_EXECUTABLE])
     def "reassembles binary with target platform change"() {
         when:
         buildFile.text = buildFile.text.replace("i386", "x86-64")
