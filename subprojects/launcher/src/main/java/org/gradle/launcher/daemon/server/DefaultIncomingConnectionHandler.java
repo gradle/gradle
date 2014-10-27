@@ -27,8 +27,8 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.DaemonFailure;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.launcher.daemon.server.exec.DaemonConnection;
-import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
+import org.gradle.launcher.daemon.server.execApi.DaemonConnection;
+import org.gradle.launcher.daemon.server.execApi.DaemonStateControl;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.util.HashSet;

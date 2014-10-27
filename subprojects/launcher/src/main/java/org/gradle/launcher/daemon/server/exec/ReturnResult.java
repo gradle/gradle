@@ -20,6 +20,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Success;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
 
 /**
  * Handles sending the result of the execution back to the client.

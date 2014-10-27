@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.exec;
+package org.gradle.launcher.daemon.server.execApi;
 
 /**
  * Thrown when the daemon is stopped while running a command.

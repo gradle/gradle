@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.launcher.daemon.server.exec.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 

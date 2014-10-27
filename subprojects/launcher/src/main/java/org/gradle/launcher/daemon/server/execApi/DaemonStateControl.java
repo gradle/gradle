@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.exec;
+package org.gradle.launcher.daemon.server.execApi;
 
 import org.gradle.initialization.BuildCancellationToken;
 

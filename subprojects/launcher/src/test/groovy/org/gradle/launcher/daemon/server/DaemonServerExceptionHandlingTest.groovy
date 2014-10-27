@@ -27,7 +27,7 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.daemon.client.StubDaemonHealthServices
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.launcher.daemon.server.exec.DaemonCommandAction
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput

@@ -21,7 +21,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
-import org.gradle.launcher.daemon.server.exec.DaemonStoppedException
+import org.gradle.launcher.daemon.server.execApi.DaemonStoppedException
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.ConcurrentSpecification

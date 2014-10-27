@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
+
 public class NoOpDaemonCommandAction implements DaemonCommandAction {
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();

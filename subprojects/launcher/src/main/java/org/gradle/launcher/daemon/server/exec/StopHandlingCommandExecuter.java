@@ -21,6 +21,8 @@ import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 import org.gradle.launcher.daemon.protocol.Success;
+import org.gradle.launcher.daemon.server.execApi.DaemonConnection;
+import org.gradle.launcher.daemon.server.execApi.DaemonStateControl;
 
 public class StopHandlingCommandExecuter implements DaemonCommandExecuter {
     private final DaemonCommandExecuter executer;

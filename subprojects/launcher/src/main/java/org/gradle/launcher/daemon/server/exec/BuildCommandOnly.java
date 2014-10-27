@@ -17,6 +17,8 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
 
 /**
  * Superclass template for actions that only work for Build.

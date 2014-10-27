@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.internal.TimeProvider
-import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution
 import spock.lang.Specification
 
 class DaemonHygieneActionTest extends Specification {

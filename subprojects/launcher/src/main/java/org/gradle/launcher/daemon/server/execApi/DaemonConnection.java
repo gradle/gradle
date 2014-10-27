@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.exec;
+package org.gradle.launcher.daemon.server.execApi;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.concurrent.Stoppable;

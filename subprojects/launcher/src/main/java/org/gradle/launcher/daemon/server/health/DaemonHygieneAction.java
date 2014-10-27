@@ -17,8 +17,8 @@ package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.launcher.daemon.server.exec.DaemonCommandAction;
-import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
 
 class DaemonHygieneAction implements DaemonCommandAction {
 
