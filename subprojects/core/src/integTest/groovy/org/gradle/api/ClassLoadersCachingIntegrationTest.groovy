@@ -225,4 +225,17 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
         then: notCached
     }
+
+    def "reuse classloader when init script changed"() {
+        file("init.gradle") << "println 'init x'"
+
+        when:
+        run("-I", "init.gradle")
+        file("init.gradle") << "println 'init y'"
+        run("-I", "init.gradle")
+
+        then:
+        cached
+        output.contains "init y"
+    }
 }
