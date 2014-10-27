@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.server
 
-import org.gradle.launcher.daemon.server.execApi.DaemonStoppedException
-import org.gradle.launcher.daemon.server.execApi.DaemonUnavailableException
+import org.gradle.launcher.daemon.server.api.DaemonStoppedException
+import org.gradle.launcher.daemon.server.api.DaemonUnavailableException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.TimeUnit

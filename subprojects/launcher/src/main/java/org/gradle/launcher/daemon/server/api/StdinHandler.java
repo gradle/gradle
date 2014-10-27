@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.execApi;
+package org.gradle.launcher.daemon.server.api;
 
-/**
- * Thrown when the daemon is unavailable to run any commands.
- */
-public class DaemonUnavailableException extends RuntimeException {
-    public DaemonUnavailableException(String message) {
-        super(message);
-    }
+import org.gradle.launcher.daemon.protocol.ForwardInput;
+
+public interface StdinHandler {
+    void onInput(ForwardInput input);
+
+    void onEndOfInput();
 }
-

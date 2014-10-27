@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

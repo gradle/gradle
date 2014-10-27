@@ -17,8 +17,8 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 /**
  * Install a handler for cancel request processed asynchronously while the daemon proceeds to build execution.

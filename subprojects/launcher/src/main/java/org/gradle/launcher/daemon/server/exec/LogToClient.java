@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;

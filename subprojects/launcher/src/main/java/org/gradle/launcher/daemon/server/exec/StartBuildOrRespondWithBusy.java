@@ -22,10 +22,10 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
-import org.gradle.launcher.daemon.server.execApi.DaemonStateControl;
-import org.gradle.launcher.daemon.server.execApi.DaemonStoppedException;
-import org.gradle.launcher.daemon.server.execApi.DaemonUnavailableException;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.api.DaemonStateControl;
+import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
+import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
 /**
  * Updates the daemon idle/busy status, sending a DaemonUnavailable result back to the client if the daemon is busy.

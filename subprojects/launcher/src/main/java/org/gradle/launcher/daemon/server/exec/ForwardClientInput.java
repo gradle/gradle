@@ -20,9 +20,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
-import org.gradle.launcher.daemon.server.execApi.DaemonCommandExecution;
-import org.gradle.launcher.daemon.server.execApi.StdinHandler;
+import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.api.StdinHandler;
 import org.gradle.util.StdinSwapper;
 
 import java.io.IOException;

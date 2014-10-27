@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.execApi;
+package org.gradle.launcher.daemon.server.api;
 
 /**
- * Thrown when the daemon is stopped while running a command.
+ * Thrown when the daemon is unavailable to run any commands.
  */
-public class DaemonStoppedException extends RuntimeException {
-    public static final String MESSAGE = "Gradle build daemon has been stopped.";
-
-    public DaemonStoppedException() {
-        super(MESSAGE);
+public class DaemonUnavailableException extends RuntimeException {
+    public DaemonUnavailableException(String message) {
+        super(message);
     }
 }
+
