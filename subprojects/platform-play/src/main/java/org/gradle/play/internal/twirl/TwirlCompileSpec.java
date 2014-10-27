@@ -31,6 +31,7 @@ public class TwirlCompileSpec implements CompileSpec, Serializable {
     private String formatterType = "play.twirl.api.HtmlFormat";
     private String additionalImports = "import controllers._";
     private String codec = "UTF-8";
+
     private boolean inclusiveDots;
     private boolean useOldParser;
 
@@ -39,9 +40,15 @@ public class TwirlCompileSpec implements CompileSpec, Serializable {
     }
 
     public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  File destinationDir) {
+        this(sourceDirectory, sources, destinationDir, false, false);
+    }
+
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, boolean inclusiveDots, boolean useOldParser) {
         this.sources = sources;
         this.destinationDir = destinationDir;
         this.sourceDirectory = sourceDirectory;
+        this.inclusiveDots = inclusiveDots;
+        this.useOldParser = useOldParser;
     }
 
     File getDestinationDir(){
