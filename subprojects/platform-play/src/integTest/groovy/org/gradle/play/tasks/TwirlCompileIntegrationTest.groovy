@@ -15,6 +15,7 @@
  */
 
 package org.gradle.play.tasks
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.SystemProperties
 
@@ -57,20 +58,48 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "runs compiler incrementally"(){
         when:
-        withTwirlTemplate("input1.scala.xml")
+        withTwirlTemplate("input1.scala.html")
         then:
         succeeds("twirlCompile")
         and:
-        file("build/twirl/views/xml").assertHasDescendants("input1.template.scala")
-        def input1FirstCompileSnapshot = file("build/twirl/views/xml/input1.template.scala").snapshot();
+        file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
+        def input1FirstCompileSnapshot = file("build/twirl/views/html/input1.template.scala").snapshot();
+
         when:
-        withTwirlTemplate("input2.scala.xml")
+        withTwirlTemplate("input2.scala.html")
         and:
         succeeds("twirlCompile")
         then:
-        file("build/twirl/views/xml").assertHasDescendants("input1.template.scala", "input2.template.scala")
+        file("build/twirl/views/html").assertHasDescendants("input1.template.scala", "input2.template.scala")
         and:
-        file("build/twirl/views/xml/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
+        file("build/twirl/views/html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
+
+        when:
+        file("app/views/input2.scala.html").delete()
+        then:
+        succeeds("twirlCompile")
+        and:
+        file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
+    }
+
+    def "removes stale output files in incremental compile"(){
+        given:
+        withTwirlTemplate("input1.scala.html")
+        withTwirlTemplate("input2.scala.html")
+        succeeds("twirlCompile")
+
+        and:
+        file("build/twirl/views/html").assertHasDescendants("input1.template.scala", "input2.template.scala")
+        def input1FirstCompileSnapshot = file("build/twirl/views/html/input1.template.scala").snapshot();
+
+        when:
+        file("app/views/input2.scala.html").delete()
+
+        then:
+        succeeds("twirlCompile")
+        and:
+        file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
+        file("build/twirl/views/html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
     }
 
     def withTwirlTemplate(String fileName = "index.scala.html") {

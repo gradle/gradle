@@ -16,16 +16,24 @@
 
 package org.gradle.play.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Task for compiling twirl templates
@@ -49,6 +57,7 @@ public class TwirlCompile extends SourceTask {
     }
 
     private Compiler<TwirlCompileSpec> compiler;
+    private TwirlStaleOutputCleaner cleaner;
 
     @InputFiles
     public FileCollection getCompilerClasspath() {
@@ -99,16 +108,40 @@ public class TwirlCompile extends SourceTask {
     }
 
     @TaskAction
-    void compile() {
-        TwirlCompileSpec spec = generateSpec();
-        getCompiler().execute(spec);
+    void compile(IncrementalTaskInputs inputs) {
+        if (!inputs.isIncremental()) {
+            TwirlCompileSpec spec = generateSpec(getSource().getFiles());
+            getCompiler().execute(spec);
+        } else {
+            final Set<File> sourcesToCompile = new HashSet<File>();
+            inputs.outOfDate(new Action<InputFileDetails>() {
+                public void execute(InputFileDetails inputFileDetails) {
+                    sourcesToCompile.add(inputFileDetails.getFile());
+                }
+            });
+
+            final Set<File> staleOutputFiles = new HashSet<File>();
+            inputs.removed(new Action<InputFileDetails>() {
+                public void execute(InputFileDetails inputFileDetails) {
+                    staleOutputFiles.add(inputFileDetails.getFile());
+                }
+            });
+            if (cleaner == null) {
+                cleaner = new TwirlStaleOutputCleaner(getOutputDirectory());
+            }
+            cleaner.execute(staleOutputFiles);
+
+            TwirlCompileSpec spec = generateSpec(sourcesToCompile);
+            getCompiler().execute(spec);
+        }
     }
+
 
     /**
      * For now just using InProcessCompilerDaemon.
      *
      * TODO allow forked compiler
-     * */
+     */
     private Compiler<TwirlCompileSpec> getCompiler() {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
@@ -120,8 +153,34 @@ public class TwirlCompile extends SourceTask {
         return compiler;
     }
 
-    private TwirlCompileSpec generateSpec() {
-        return new TwirlCompileSpec(getSourceDirectory(), getSource().getFiles(), getOutputDirectory());
+    private TwirlCompileSpec generateSpec(Set<File> files) {
+        return new TwirlCompileSpec(getSourceDirectory(), files, getOutputDirectory());
     }
 
+    void setCleaner(TwirlStaleOutputCleaner cleaner) {
+        this.cleaner = cleaner;
+    }
+
+
+    private static class TwirlStaleOutputCleaner {
+        private final File destinationDir;
+
+        public TwirlStaleOutputCleaner(File destinationDir) {
+            this.destinationDir = destinationDir;
+        }
+
+        public void execute(Set<File> staleSources) {
+            for (File removedInputFile : staleSources) {
+                File staleOuputFile = calculateOutputFile(removedInputFile);
+                staleOuputFile.delete();
+            }
+        }
+
+        File calculateOutputFile(File inputFile) {
+            String inputFileName = inputFile.getName();
+            String[] splits = inputFileName.split("\\.");
+            String relativeOutputFilePath = String.format("views/%s/%s.template.scala", splits[2], splits[0]);
+            return new File(destinationDir, relativeOutputFilePath);
+        }
+    }
 }

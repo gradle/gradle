@@ -15,7 +15,11 @@
  */
 
 package org.gradle.play.tasks
+
+import org.gradle.api.Action
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.play.internal.twirl.TwirlCompiler
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -23,7 +27,8 @@ import spock.lang.Specification
 class TwirlCompileTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
     TwirlCompile compile = project.tasks.create("twirlCompile", TwirlCompile)
-    TwirlCompiler twirlCompiler = Mock(TwirlCompiler);
+    TwirlCompiler twirlCompiler = Mock(TwirlCompiler)
+    IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)
 
     def "invokes twirl compiler"(){
         given:
@@ -32,8 +37,43 @@ class TwirlCompileTest extends Specification {
         compile.outputDirectory = outputDir
         compile.setCompilerClasspath(project.files([]))
         when:
-        compile.compile()
+        compile.compile(withNonIncrementalInputs())
         then:
         1 * twirlCompiler.execute(_)
+    }
+
+    IncrementalTaskInputs withNonIncrementalInputs() {
+        _ * taskInputs.isIncremental() >> false
+        taskInputs;
+    }
+
+    def "deletes stale output files"(){
+        given:
+        def outputDir = new File("outputDir");
+        compile.compiler = twirlCompiler
+        compile.outputDirectory = outputDir
+        compile.setCompilerClasspath(project.files([]))
+        def outputCleaner = Spy(TwirlCompile.TwirlStaleOutputCleaner, constructorArgs: [outputDir])
+        compile.setCleaner(outputCleaner)
+        when:
+        compile.compile(withDeletedInputFile())
+        then:
+        1 * outputCleaner.execute(_)
+        1 * twirlCompiler.execute(_)
+
+    }
+
+    IncrementalTaskInputs withDeletedInputFile() {
+        def details = someInputFileDetails();
+        _ * taskInputs.isIncremental() >> true;
+        _ * taskInputs.outOfDate(_)
+        _ * taskInputs.removed({Action<InputFileDetails> action -> action.execute(details)})
+        taskInputs
+    }
+
+    private InputFileDetails someInputFileDetails() {
+        def inputFileDetails = Mock(InputFileDetails)
+        _  * inputFileDetails.getFile() >> new File("some/path/index.scala.html");
+        inputFileDetails
     }
 }
