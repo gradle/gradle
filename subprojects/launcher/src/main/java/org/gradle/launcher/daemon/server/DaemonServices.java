@@ -78,6 +78,10 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
+    DaemonHygieneAction createDaemonHygieneAction() {
+        return new DaemonHygieneAction();
+    }
+
     protected Daemon createDaemon() {
         return new Daemon(
                 new DaemonTcpServerConnector(
@@ -93,7 +97,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                                 get(ProcessEnvironment.class),
                                 loggingManager,
                                 getDaemonLogFile(),
-                                new DaemonHygieneAction())),
+                                get(DaemonHygieneAction.class))),
                 get(ExecutorFactory.class));
     }
 
