@@ -126,4 +126,31 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
         then: isNotCached(":foo")
     }
+
+    def "refreshes when buildscript classpath changes"() {
+        file("lib/foo.jar") << "foo"
+
+        when:
+        run()
+        buildFile << """
+            buildscript { dependencies { classpath fileTree("lib") }}
+        """
+        run()
+
+        then: notCached
+    }
+
+    def "refreshes when parent project buildscript classpath changes"() {
+        settingsFile << "include 'foo'"
+        file("lib/foo.jar") << "foo"
+
+        when:
+        run()
+        buildFile << """
+            buildscript { dependencies { classpath fileTree("lib") }}
+        """
+        run()
+
+        then: isNotCached(":foo")
+    }
 }
