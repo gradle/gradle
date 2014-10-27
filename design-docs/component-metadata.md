@@ -68,9 +68,6 @@ consistent with component selection rules.
 - `@Mutate` is not documented or included in default imports.
 - Rules that accept a closure should allow no args, as the subject is made available as the delegate.
 - Rules that accept a closure should allow the first arg to be untyped.
-- DSL decoration should add Action and Closure overloads for a method that accepts a rule source.
-- Error message for a badly-formed module id could be improved.
-- Inconsistent error messages for badly-formed rule class.
 
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
@@ -91,24 +88,16 @@ that matched the specified version selector, together with the reason each was r
 - A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
     - Reason is reported as "not an Ivy Module" (or similar)
 
-### Open issues
-
-- Dependency reports should indicate reasons for candidate selection (why other candidates were rejected).
-
-## Feature open issues:
+## Story: Don't apply selection rules to parent pom references
 
 - Filtering applies to parent poms. It should apply only to those components that are candidates to be included in the graph. Same is probably
     true for imported poms and imported ivy files.
-- No way to say 'this must be an Ivy module'. Currently, can only say 'if this happens to be an Ivy module, then filter'.
-- Component metadata rules get called twice when a cached version is found and an updated version is also found in a repository
-- `ComponentChooser.isRejectedByRules` takes a mutable meta-data. It should be immutable.
-- `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
-- `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
-- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable.
 
 ## Story: Dependency reports inform user that some versions were rejected
 
 # Later milestones
+
+## Dependency reports should indicate reasons for candidate selection (e.g. why other candidates were rejected).
 
 ## Add DSL to allow resolution strategy to be applied to all resolution
 
@@ -120,3 +109,15 @@ A mock up:
         }
     }
 
+## Change dependency substitution rules to use same pattern as other rules
+
+- `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
+
+## Feature open issues:
+
+- No way to say 'this must be an Ivy module'. Currently, can only say 'if this happens to be an Ivy module, then filter'.
+- `ComponentMetadata.id` returns `ModuleVersionIdentifier`, whereas `ComponentSelection.candidate` returns `ModuleComponentIdentifier`
+- `ComponentMetadataDetails` extends `ComponentMetadata`, which means that `ComponentMetadata` is not immutable.
+- DSL decoration should add Action and Closure overloads for a method that accepts a rule source.
+- Error message for a badly-formed module id could be improved.
+- Inconsistent error messages for badly-formed rule class.
