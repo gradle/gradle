@@ -17,16 +17,10 @@
 package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
-public class DefaultDaemonHealthServices implements DaemonHealthServices {
-
-    private final DaemonHygieneAction hygieneAction = new DaemonHygieneAction();
-
-    public DaemonCommandAction getHygieneAction() {
-        return hygieneAction;
-    }
-
-    public DaemonCommandAction getHealthInformationAction() {
-        return new DescribeDaemonHealth();
+class DescribeDaemonHealth implements DaemonCommandAction {
+    public void execute(DaemonCommandExecution execution) {
+        execution.proceed();
     }
 }
