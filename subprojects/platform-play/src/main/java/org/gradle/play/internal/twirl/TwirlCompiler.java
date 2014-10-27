@@ -35,57 +35,30 @@ import java.lang.reflect.Method;
  * */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
+    /**
+     * Invokes a method on a scala object
+     */
+    private static Object invokeScalaObjectMethod(ClassLoader classLoader, String objectName, String methodName, Object... args) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        //TODO: reflection is slow, cache loadClass and basically all things that is executed prior to invoke:
+        Class<?> baseClass = classLoader.loadClass(objectName+"$");
+        Field scalaObject = baseClass.getDeclaredField("MODULE$");
+
+        Class<?>[] classes = new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            //TODO: this is not right:
+            if (args[i].getClass().equals(Boolean.class)) {
+                classes[i] = boolean.class;
+            } else{
+                classes[i] = args[i].getClass();
+            }
+        }
+        Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, classes);
+        Object result = scalaObjectMethod.invoke(scalaObject.get(null), args);
+        return result;
+    }
+
     public WorkResult execute(TwirlCompileSpec spec) {
         try {
-            Class<?> twirlCompiler = getClass().getClassLoader().loadClass("play.twirl.compiler.TwirlCompiler$");
-            File sourceDirectory = (new File("app")).getCanonicalFile(); //TODO: add to spec?
-            File generatedDirectory = spec.getDestinationDir();
-            String formatterType = spec.getFormatterType();
-            String additionalImports = spec.getAdditionalImports();
-
-            boolean inclusiveDots = spec.isInclusiveDots();
-            boolean useOldParser = spec.isUseOldParser();
-
-            Class<?> codecClass = getClass().getClassLoader().loadClass("scala.io.Codec");
-            Class<?> codecObject =  getClass().getClassLoader().loadClass("scala.io.Codec$");
-            String codec = spec.getCodec();
-            try {
-                //TODO: reflection is slow, cache this:
-                Field codeModule = codecObject.getDeclaredField("MODULE$");
-                //codeModule.
-                //Method codecApply = ;getMethod("apply", codec.getClass());
-                Object scalaCodec = codecApply.invoke(null, "utf-8");
-                Method twirlCompile = twirlCompiler.getMethod(
-                        "compile",
-                        File.class, //input
-                        sourceDirectory.getClass(),
-                        generatedDirectory.getClass(),
-                        formatterType.getClass(),
-                        additionalImports.getClass(),
-                        codecClass,
-                        boolean.class,
-                        boolean.class);
-
-                for (File inputFile: spec.getSources()) {
-                    twirlCompile.invoke(null,
-                            inputFile,
-                            sourceDirectory,
-                            generatedDirectory,
-                            formatterType,
-                            scalaCodec,
-                            inclusiveDots,
-                            useOldParser);
-                }
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-
 
             /**
              * TODO load compiler method via reflection and invoke for each source file with
@@ -97,8 +70,6 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             for(File sourceFile : sources){
                 FileUtils.writeStringToFile(new File(spec.getDestinationDir(), sourceFile.getName()), "compiled " + sourceFile.getName());
             }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
