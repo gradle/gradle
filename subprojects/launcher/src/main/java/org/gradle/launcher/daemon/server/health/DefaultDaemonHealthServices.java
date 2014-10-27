@@ -24,10 +24,16 @@ public class DefaultDaemonHealthServices implements DaemonHealthServices {
     private final DaemonStats daemonStats = new DaemonStats();
     private final DescribeDaemonHealth describeHealth = new DescribeDaemonHealth(daemonStats);
 
+    /**
+     * {@inheritDoc}
+     */
     public DaemonCommandAction getGCHintAction() {
         return hygieneAction;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public DaemonCommandAction getHealthInformationAction() {
         return describeHealth;
     }

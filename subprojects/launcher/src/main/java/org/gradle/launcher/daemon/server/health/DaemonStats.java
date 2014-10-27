@@ -68,7 +68,10 @@ class DaemonStats {
         allBuildsTime += timeProvider.getCurrentTime() - currentBuildStart;
     }
 
+    //TODO SF rework, possibly find different place for below
+
     private static int performance(long totalTime, GCStats gcStats) {
+        //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
         return 100 - percent(totalTime, gcStats.getCollectionTime());
     }
 

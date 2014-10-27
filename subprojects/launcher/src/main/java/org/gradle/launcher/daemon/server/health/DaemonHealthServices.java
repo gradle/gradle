@@ -19,6 +19,14 @@ package org.gradle.launcher.daemon.server.health;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 
 public interface DaemonHealthServices {
+
+    /**
+     * gets the action that can perform gc hint after the build
+     */
     DaemonCommandAction getGCHintAction();
+
+    /**
+     * gets the action that can print daemon health information
+     */
     DaemonCommandAction getHealthInformationAction();
 }

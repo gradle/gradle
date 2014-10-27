@@ -33,7 +33,9 @@ class DescribeDaemonHealth implements DaemonCommandAction {
     }
 
     public void execute(DaemonCommandExecution execution) {
+        //TODO SF it would be good to add some integration tests
         if (execution.getCommand() instanceof BuildAndStop) {
+            //TODO SF push to execution and reuse
             execution.proceed();
             return;
         }
