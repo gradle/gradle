@@ -164,9 +164,45 @@ This story makes the following possible…
 
 - (something like snippet above)
 
+### Plugin creates model element of custom type, containing properties of Java boxed primitive-ish types, without supplying an implementation
+
+Adds support for:
+
+1. `Boolean`
+1. `Integer`
+1. `Long`
+1. `Double`
+1. `BigInteger`
+1. `BigDecimal`
+
+Use of non primitive types is not allowed.
+Attempt to declare a property of a primitive type should yield an error message indicating that a boxed type should be used instead.
+ 
+1. boolean -> Boolean	
+1. char -> Integer
+1. float -> Double	
+1. int -> Integer
+1. long	-> Long
+1. short -> Integer	
+1. double -> Double
+
+Use of other boxed types is not allowed.
+Attempt to declare a property of a such a type should yield an error message indicating that an alternative type should be used (see mappings above).
+
+Use of `byte` and `Byte` is unsupported. 
+
+#### Test coverage
+
+- Can get/set properties of all supported types
+- Can narrow/widen values as per normal (e.g. set a `Long` property with a literal `int`)
+
+#### Open questions
+
+- Is this the right set of things to support? Should we just directly support all of Java's primitive types? 
+
+
 ## Future candidate stories (unordered)
 
-### Plugin creates model element of custom type, containing properties of all applicable Java primitive types, without supplying an implementation
 
 ### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation
 
