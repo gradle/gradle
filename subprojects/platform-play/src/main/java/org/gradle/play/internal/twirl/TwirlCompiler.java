@@ -24,6 +24,9 @@ import org.gradle.language.base.internal.compile.Compiler;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Twirl compiler uses reflection to load and invoke TwirlCompiler$
@@ -35,6 +38,54 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
     public WorkResult execute(TwirlCompileSpec spec) {
         try {
             Class<?> twirlCompiler = getClass().getClassLoader().loadClass("play.twirl.compiler.TwirlCompiler$");
+            File sourceDirectory = (new File("app")).getCanonicalFile(); //TODO: add to spec?
+            File generatedDirectory = spec.getDestinationDir();
+            String formatterType = spec.getFormatterType();
+            String additionalImports = spec.getAdditionalImports();
+
+            boolean inclusiveDots = spec.isInclusiveDots();
+            boolean useOldParser = spec.isUseOldParser();
+
+            Class<?> codecClass = getClass().getClassLoader().loadClass("scala.io.Codec");
+            Class<?> codecObject =  getClass().getClassLoader().loadClass("scala.io.Codec$");
+            String codec = spec.getCodec();
+            try {
+                //TODO: reflection is slow, cache this:
+                Field codeModule = codecObject.getDeclaredField("MODULE$");
+                //codeModule.
+                //Method codecApply = ;getMethod("apply", codec.getClass());
+                Object scalaCodec = codecApply.invoke(null, "utf-8");
+                Method twirlCompile = twirlCompiler.getMethod(
+                        "compile",
+                        File.class, //input
+                        sourceDirectory.getClass(),
+                        generatedDirectory.getClass(),
+                        formatterType.getClass(),
+                        additionalImports.getClass(),
+                        codecClass,
+                        boolean.class,
+                        boolean.class);
+
+                for (File inputFile: spec.getSources()) {
+                    twirlCompile.invoke(null,
+                            inputFile,
+                            sourceDirectory,
+                            generatedDirectory,
+                            formatterType,
+                            scalaCodec,
+                            inclusiveDots,
+                            useOldParser);
+                }
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+
 
             /**
              * TODO load compiler method via reflection and invoke for each source file with
