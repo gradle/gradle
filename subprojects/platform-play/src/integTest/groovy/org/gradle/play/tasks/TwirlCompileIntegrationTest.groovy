@@ -62,7 +62,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
 }
 
 """
-        buildFile << "twirlCompile.source '${templateFile.getAbsolutePath()}'"
+        buildFile << "twirlCompile.source '${templateFile.toURI()}'"
 
     }
 }
