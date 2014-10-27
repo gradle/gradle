@@ -104,9 +104,20 @@ Add a `play-application` plugin that provides Play application component:
 
 #### Test cases
 
+- verify that generated scala template files exists
 - verify that generated scala/java route files exists
-- verify that generated
 - `gradle assemble` should trigger compile task and output jar should contain class files
+
+### Story: Developer runs Play application
+
+Extend the Play support to allow the Play application to be executed.
+
+- Running `gradle assemble` produces an executable Jar that, when executed, runs the Play application.
+- Running `gradle run<ComponentName>` builds and executes the Play application.
+
+At this stage, only the default generated Play application is supported, with a hard-coded version of Scala and Play.
+
+#### Test cases
 
 ### Story: Declare standard sourceSets for a Play application
 
@@ -137,16 +148,7 @@ Add sourceSets to a PlayApplicationSpec for
 - handle non html templates
 - handle .routes files
 
-### Story: Developer runs Play application
 
-Extend the Play support to allow the Play application to be executed.
-
-- Running `gradle assemble` produces an executable Jar that, when executed, runs the Play application.
-- Running `gradle run<ComponentName>` builds and executes the Play application.
-
-At this stage, only the default generated Play application is supported, with a hard-coded version of Scala and Play.
-
-#### Test cases
 
 ## Feature: Developer builds Play application with custom Java, Scala, routes and templates
 
