@@ -251,4 +251,13 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         cached
         output.contains "settings y"
     }
+
+    def "change that does not impact bytecode  classloader when settings script changed"() {
+        when:
+        run()
+        buildFile << "//comment that does incur bytecode change"
+        run()
+
+        then: cached
+    }
 }
