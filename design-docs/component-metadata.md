@@ -88,10 +88,21 @@ that matched the specified version selector, together with the reason each was r
 - A Maven module candidate is not considered when a custom rule requires an `IvyModuleDescriptor` input
     - Reason is reported as "not an Ivy Module" (or similar)
 
-## Story: Don't apply selection rules to parent pom references
+## Story: Don't apply component selection rules to parent pom references
 
-- Filtering applies to parent poms. It should apply only to those components that are candidates to be included in the graph. Same is probably
-    true for imported poms and imported ivy files.
+- Filtering applies to parent poms. It should apply only to those components that are candidates to be included in the graph. 
+  Same is probably true for imported poms and imported ivy files.
+    
+### Implementation
+
+When constructing `ResolveIvyFactory.ParentModuleLookupResolver` we should instantiate a separate `UserResolverChain` instance with an
+empty set of component selection rules.
+
+### Test cases
+
+- Resolve a POM that has a parent POM that would be rejected by a component selection rule 
+   - i.e. rule that reject all components for module 'group:my-parent', where that is the parent of resolved module
+- Resolve an Ivy file that imports another ivy module that would be rejected by component selection rule
 
 ## Story: Dependency reports inform user that some versions were rejected
 
