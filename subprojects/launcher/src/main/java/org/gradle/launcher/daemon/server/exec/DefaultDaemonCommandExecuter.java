@@ -72,6 +72,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             hygieneAction, //needs to happen after the result is returned to the client
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
+            healthServices.getHealthInformationAction(),
             new ForwardClientInput(),
             new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),

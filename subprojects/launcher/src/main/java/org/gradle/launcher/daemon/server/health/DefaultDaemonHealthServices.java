@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
 import org.gradle.launcher.daemon.server.execApi.DaemonCommandAction;
 
 public class DefaultDaemonHealthServices implements DaemonHealthServices {
@@ -24,5 +25,9 @@ public class DefaultDaemonHealthServices implements DaemonHealthServices {
 
     public DaemonCommandAction getHygieneAction() {
         return hygieneAction;
+    }
+
+    public DaemonCommandAction getHealthInformationAction() {
+        return new NoOpDaemonCommandAction() {};
     }
 }

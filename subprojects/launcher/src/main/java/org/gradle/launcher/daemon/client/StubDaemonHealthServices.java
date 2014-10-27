@@ -22,7 +22,13 @@ import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 
 public class StubDaemonHealthServices implements DaemonHealthServices {
 
+    private final NoOpDaemonCommandAction noOp = new NoOpDaemonCommandAction();
+
     public DaemonCommandAction getHygieneAction() {
-        return new NoOpDaemonCommandAction();
+        return noOp;
+    }
+
+    public DaemonCommandAction getHealthInformationAction() {
+        return noOp;
     }
 }
