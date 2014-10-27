@@ -62,11 +62,6 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         return function;
     }
 
-    private File asRelativeTo(File root, File file) {
-        String path = file.getAbsolutePath().replace(root.getAbsolutePath(), "./" + root.getName());
-        return new File(path);
-    }
-
     public WorkResult execute(TwirlCompileSpec spec) {
         boolean didWork = false;
 
