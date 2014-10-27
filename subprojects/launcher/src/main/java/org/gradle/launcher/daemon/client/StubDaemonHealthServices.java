@@ -20,7 +20,7 @@ import org.gradle.launcher.daemon.server.exec.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 
-public class StubDaemonHealthServices extends DaemonHealthServices {
+public class StubDaemonHealthServices implements DaemonHealthServices {
 
     public DaemonCommandAction getHygieneAction() {
         return new NoOpDaemonCommandAction();
