@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * Represents a plugin that has been applied.
@@ -46,9 +47,12 @@ public interface AppliedPlugin {
      * <p>
      * An example of a plugin namespace would be {@code "org.gradle"} for the plugin with ID {@code "org.gradle.java"}.
      * This method always returns the namespace, regardless of whether the fully qualified ID was used to apply the plugin or not.
+     * <p>
+     * If the plugin has an unqualified ID, this method will return {@code null}.
      *
      * @return the namespace of the plugin
      */
+    @Nullable
     String getNamespace();
 
     /**
@@ -56,6 +60,8 @@ public interface AppliedPlugin {
      * <p>
      * An example of a plugin name would be {@code "java"} for the plugin with ID {@code "org.gradle.java"}.
      * This method always returns the name, regardless of whether the fully qualified ID was used to apply the plugin or not.
+     * <p>
+     * If the plugin has an unqualified ID, this method will return the same value as {@link #getId()}.
      *
      * @return the name of the plugin
      */

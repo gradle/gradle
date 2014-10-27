@@ -30,21 +30,14 @@ import java.util.Map;
  * The {@link #findPlugin(String)}, {@link #hasPlugin(String)} and {@link #withPlugin(String, org.gradle.api.Action)} methods can be used
  * for detecting whether plugins have been applied.
  * <p>
- * There are different types of plugins that can be applied.
- * Please see {@link org.gradle.api.Plugin} and {@link org.gradle.model.RuleSource}.
- * <p>
  * For more on writing and applying plugins, see {@link org.gradle.api.Plugin}.
  */
 public interface PluginAware {
 
-    // TODO provide more information about different types of plugins, justifying preference of not using PluginContainer
-
     /**
-     * The container of {@link org.gradle.api.Plugin} style plugins.
+     * The container of plugins.
      * <p>
      * While not deprecated, it is preferred to use the methods of this interface than use the plugin container directly.
-     * The plugin container only supports {@link org.gradle.api.Plugin} style plugins, which is a subset of the potentially applied plugins.
-     * The plugin container will be deprecated in future versions of Gradle.
      * <p>
      * Use {@link #apply(java.util.Map)} to apply plugins instead of applying via the plugin container.
      * <p>
@@ -90,17 +83,14 @@ public interface PluginAware {
      */
     void apply(Map<String, ?> options);
 
-    // TODO define semantics around qualified IDs for methods below
-    // Currently core plugins can be queried by name - this should be removed
-
     /**
      * Returns the information about the plugin that has been applied with the given name or ID, or null if no plugin has been applied with the given name or ID.
      * <p>
      * Plugins in the {@code "org.gradle"} namespace (that is, core Gradle plugins) can be specified by either name (e.g. {@code "java"}) or ID {@code "org.gradle.java"}.
      * All other plugins must be queried for by their full ID (e.g. {@code "org.company.some-plugin"}).
      * <p>
-     * Some Gradle plugins have not yet migrated to fully qualifed plugin IDs.
-     * Such plugins can be detected with this method by simply using the unqualifed ID (e.g. {@code "some-third-party-plugin"}.
+     * Some Gradle plugins have not yet migrated to fully qualified plugin IDs.
+     * Such plugins can be detected with this method by simply using the unqualified ID (e.g. {@code "some-third-party-plugin"}.
      *
      * @param nameOrId the plugin name (if in the {@code org.gradle} namespace) or ID
      * @return information about the applied plugin, or {@code null} if no plugin has been applied with the given ID
