@@ -195,4 +195,34 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
         then: notCached
     }
+
+    def "refreshes when buildscript when jar dependency replaced with dir"() {
+        file("foo.jar") << "xxx"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") }}
+        """
+
+        when:
+        run()
+        assert file("foo.jar").delete()
+        assert file("foo.jar").mkdirs()
+        run()
+
+        then: notCached
+    }
+
+    def "refreshes when buildscript when dir dependency replaced with jar"() {
+        assert file("foo.jar").mkdirs()
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") }}
+        """
+
+        when:
+        run()
+        assert file("foo.jar").delete()
+        file("foo.jar") << "xxx"
+        run()
+
+        then: notCached
+    }
 }
