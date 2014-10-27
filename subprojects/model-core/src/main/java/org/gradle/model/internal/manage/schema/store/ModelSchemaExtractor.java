@@ -18,10 +18,7 @@ package org.gradle.model.internal.manage.schema.store;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.model.Managed;
@@ -40,6 +37,16 @@ public class ModelSchemaExtractor {
 
     public final static List<? extends ModelType<?>> SUPPORTED_UNMANAGED_TYPES = ImmutableList.of(ModelType.of(String.class), ModelType.of(Boolean.class), ModelType.of(Integer.class),
             ModelType.of(Long.class), ModelType.of(Double.class), ModelType.of(BigInteger.class), ModelType.of(BigDecimal.class));
+
+    private final static Map<ModelType<?>, Class<?>> BOXED_REPLACEMENTS = ImmutableMap.<ModelType<?>, Class<?>>builder()
+            .put(ModelType.of(Boolean.TYPE), Boolean.class)
+            .put(ModelType.of(Character.TYPE), Integer.class)
+            .put(ModelType.of(Float.TYPE), Double.class)
+            .put(ModelType.of(Integer.TYPE), Integer.class)
+            .put(ModelType.of(Long.TYPE), Long.class)
+            .put(ModelType.of(Short.TYPE), Integer.class)
+            .put(ModelType.of(Double.TYPE), Double.class)
+            .build();
 
     public <T> ExtractedModelSchema<T> extract(ModelType<T> type) {
         validateType(type);
@@ -80,9 +87,9 @@ public class ModelSchemaExtractor {
 
                 ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
                 if (isManaged(returnType.getRawClass())) {
-                    propertyFactories.add(extractManagedProperty(type, methods, methodName, returnType, handled));
+                    propertyFactories.add(extractPropertyOfManagedType(type, methods, methodName, returnType, handled));
                 } else {
-                    propertyFactories.add(extractNonManagedProperty(type, methods, methodName, returnType, handled));
+                    propertyFactories.add(extractPropertyOfUnmanagedType(type, methods, methodName, returnType, handled));
                 }
                 iterator.remove();
             }
@@ -106,10 +113,14 @@ public class ModelSchemaExtractor {
         });
     }
 
-    private <T> ModelPropertyFactory<T> extractNonManagedProperty(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType, List<String> handled) {
+    private <T> ModelPropertyFactory<T> extractPropertyOfUnmanagedType(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType, List<String> handled) {
+        Class<?> boxedType = BOXED_REPLACEMENTS.get(propertyType);
+        if (boxedType != null) {
+            throw invalidMethod(type, getterName, String.format("%s is not a supported property type, use %s instead", propertyType, boxedType.getName()));
+        }
         if (!isSupportedUnmanagedType(propertyType)) {
             String supportedTypes = Joiner.on(", ").join(SUPPORTED_UNMANAGED_TYPES);
-            throw invalidMethod(type, getterName, String.format("%s is not a supported unmanaged property type, only the following types are supported: %s", propertyType, supportedTypes));
+            throw invalidMethod(type, getterName, String.format("%s is not a supported property type, only managed and the following unmanaged types are supported: %s", propertyType, supportedTypes));
         }
 
         String propertyNameCapitalized = getterName.substring(3);
@@ -145,8 +156,8 @@ public class ModelSchemaExtractor {
         }
     }
 
-    private <T> ModelPropertyFactory<T> extractManagedProperty(ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType,
-                                                               List<String> handled) {
+    private <T> ModelPropertyFactory<T> extractPropertyOfManagedType(ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType,
+                                                                     List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;

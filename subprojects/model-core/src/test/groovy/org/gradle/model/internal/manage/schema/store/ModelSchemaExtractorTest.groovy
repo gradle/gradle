@@ -35,7 +35,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "has to be annotated with @Managed"() {
         expect:
-        fail NotAnnotatedInterface, "must be annotated with $Managed.name"
+        fail NotAnnotatedInterface, Pattern.quote("must be annotated with $Managed.name")
     }
 
     @Managed
@@ -78,8 +78,8 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can only have getters and setters"() {
         expect:
-        fail NoGettersOrSetters, "only paired getter/setter methods are supported \\(invalid methods: \\[foo\\]\\)"
-        fail HasExtraNonPropertyMethods, "only paired getter/setter methods are supported \\(invalid methods: \\[foo\\]\\)"
+        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: [foo])")
+        fail HasExtraNonPropertyMethods, Pattern.quote("only paired getter/setter methods are supported (invalid methods: [foo])")
     }
 
     @Managed
@@ -176,7 +176,50 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "only selected unmanaged property types are allowed"() {
         expect:
-        fail NonStringProperty, Pattern.quote("$Object.name is not a supported unmanaged property type, only the following types are supported: ${SUPPORTED_UNMANAGED_TYPES.join(", ")} (method: getName)")
+        fail NonStringProperty,
+                Pattern.quote("$Object.name is not a supported property type, only managed and the following unmanaged types are supported: ${SUPPORTED_UNMANAGED_TYPES.join(", ")} (method: getName)")
+    }
+
+    @Managed
+    static interface BytePrimitiveProperty {
+        byte getByteProperty()
+
+        void setByteProperty(byte value)
+    }
+
+    def "byte property types are not allowed and there is no suggested replacement"() {
+        expect:
+        fail BytePrimitiveProperty,
+                Pattern.quote("byte is not a supported property type, only managed and the following unmanaged types are supported: ${SUPPORTED_UNMANAGED_TYPES.join(", ")} (method: getByteProperty)")
+    }
+
+    @Unroll
+    def "boxed types are suggested when primitive types are being used - #primitiveType"() {
+        when:
+        def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface PrimitiveProperty {
+                $primitiveType getPrimitiveProperty()
+
+                void setPrimitiveProperty($primitiveType value)
+            }
+        """
+
+        then:
+        fail interfaceWithPrimitiveProperty, Pattern.quote("$primitiveType is not a supported property type, use $boxedType.name instead (method: getPrimitiveProperty)")
+
+        where:
+        primitiveType | boxedType
+        "boolean"     | Boolean
+        "char"        | Integer
+        "float"       | Double
+        "long"        | Long
+        "short"       | Integer
+        "int"         | Integer
+        "double"      | Double
+
     }
 
     @Managed
