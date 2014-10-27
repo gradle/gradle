@@ -17,6 +17,9 @@
 package org.gradle.model.internal.manage.schema.store;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
@@ -28,10 +31,15 @@ import org.gradle.model.internal.manage.schema.ModelProperty;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 @ThreadSafe
 public class ModelSchemaExtractor {
+
+    public final static List<? extends ModelType<?>> SUPPORTED_UNMANAGED_TYPES = ImmutableList.of(ModelType.of(String.class), ModelType.of(Boolean.class), ModelType.of(Integer.class),
+            ModelType.of(Long.class), ModelType.of(Double.class), ModelType.of(BigInteger.class), ModelType.of(BigDecimal.class));
 
     public <T> ExtractedModelSchema<T> extract(ModelType<T> type) {
         validateType(type);
@@ -71,12 +79,10 @@ public class ModelSchemaExtractor {
                 }
 
                 ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
-                if (returnType.equals(ModelType.of(String.class))) {
-                    propertyFactories.add(extractNonManagedProperty(type, methods, methodName, returnType, handled));
-                } else if (isManaged(returnType.getRawClass())) {
+                if (isManaged(returnType.getRawClass())) {
                     propertyFactories.add(extractManagedProperty(type, methods, methodName, returnType, handled));
                 } else {
-                    throw invalidMethod(type, methodName, "only String and managed properties are supported");
+                    propertyFactories.add(extractNonManagedProperty(type, methods, methodName, returnType, handled));
                 }
                 iterator.remove();
             }
@@ -92,7 +98,20 @@ public class ModelSchemaExtractor {
         return new ExtractedModelSchema<T>(type, propertyFactories);
     }
 
+    private boolean isSupportedUnmanagedType(final ModelType<?> propertyType) {
+        return Iterables.any(SUPPORTED_UNMANAGED_TYPES, new Predicate<ModelType<?>>() {
+            public boolean apply(ModelType<?> supportedType) {
+                return supportedType.equals(propertyType);
+            }
+        });
+    }
+
     private <T> ModelPropertyFactory<T> extractNonManagedProperty(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType, List<String> handled) {
+        if (!isSupportedUnmanagedType(propertyType)) {
+            String supportedTypes = Joiner.on(", ").join(SUPPORTED_UNMANAGED_TYPES);
+            throw invalidMethod(type, getterName, String.format("%s is not a supported unmanaged property type, only the following types are supported: %s", propertyType, supportedTypes));
+        }
+
         String propertyNameCapitalized = getterName.substring(3);
         final String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
@@ -127,7 +146,7 @@ public class ModelSchemaExtractor {
     }
 
     private <T> ModelPropertyFactory<T> extractManagedProperty(ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType,
-                                                                                               List<String> handled) {
+                                                               List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;

@@ -23,6 +23,10 @@ import org.gradle.model.internal.manage.schema.ModelSchema
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.regex.Pattern
+
+import static org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor.SUPPORTED_UNMANAGED_TYPES
+
 class ModelSchemaExtractorTest extends Specification {
 
     def extractor = new ModelSchemaExtractor()
@@ -170,9 +174,9 @@ class ModelSchemaExtractorTest extends Specification {
         void setName(Object name)
     }
 
-    def "only String and managed properties are allowed"() {
+    def "only selected unmanaged property types are allowed"() {
         expect:
-        fail NonStringProperty, /only String and managed properties are supported \(method: getName\)/
+        fail NonStringProperty, Pattern.quote("$Object.name is not a supported unmanaged property type, only the following types are supported: ${SUPPORTED_UNMANAGED_TYPES.join(", ")} (method: getName)")
     }
 
     @Managed
