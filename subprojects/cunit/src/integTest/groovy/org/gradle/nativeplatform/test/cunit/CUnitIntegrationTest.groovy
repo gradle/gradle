@@ -48,6 +48,11 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                         }
                     }
                 }
+                platforms {
+                    x86 {
+                        architecture "x86"
+                    }
+                }
             }
         """
         settingsFile << "rootProject.name = 'test'"
