@@ -238,4 +238,17 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         cached
         output.contains "init y"
     }
+
+    def "reuse classloader when settings script changed"() {
+        file("settings.gradle") << "println 'settings x'"
+
+        when:
+        run()
+        file("settings.gradle") << "println 'settings y'"
+        run()
+
+        then:
+        cached
+        output.contains "settings y"
+    }
 }
