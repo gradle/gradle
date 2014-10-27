@@ -16,6 +16,7 @@
 
 package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 
 class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
     def setup(){
@@ -54,8 +55,26 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped(":twirlCompile");
     }
 
-    def withTwirlTemplate() {
-        def templateFile = file("app", "views", "index.scala.html")
+    def "runs compiler incrementally"(){
+        when:
+        withTwirlTemplate("input1.scala.xml")
+        then:
+        succeeds("twirlCompile")
+        and:
+        file("build/twirl/views/xml").assertHasDescendants("input1.template.scala")
+        def input1FirstCompileSnapshot = file("build/twirl/views/xml/input1.template.scala").snapshot();
+        when:
+        withTwirlTemplate("input2.scala.xml")
+        and:
+        succeeds("twirlCompile")
+        then:
+        file("build/twirl/views/xml").assertHasDescendants("input1.template.scala", "input2.template.scala")
+        and:
+        file("build/twirl/views/xml/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
+    }
+
+    def withTwirlTemplate(String fileName = "index.scala.html") {
+        def templateFile = file("app", "views", fileName)
         templateFile.createFile()
         templateFile << """@(message: String)
 
@@ -66,7 +85,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
 }
 
 """
-        buildFile << "twirlCompile.source '${templateFile.toURI()}'"
+        buildFile << "twirlCompile.source '${templateFile.toURI()}'${SystemProperties.lineSeparator}"
 
     }
 }
