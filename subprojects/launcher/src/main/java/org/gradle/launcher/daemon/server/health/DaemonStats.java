@@ -57,7 +57,7 @@ class DaemonStats {
             return format("Starting build in new daemon [memory: %s]", prettyBytes(maxMemory));
         } else {
             return format("Executing %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
-                    buildCount, totalTime.getTime(), performance(allBuildsTime, gcStats), percent(maxMemory, comittedMemory), prettyBytes(maxMemory));
+                    IntegerTextUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), percent(maxMemory, comittedMemory), prettyBytes(maxMemory));
         }
     }
 
