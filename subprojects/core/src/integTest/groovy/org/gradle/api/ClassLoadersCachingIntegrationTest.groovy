@@ -127,13 +127,13 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         then: isNotCached(":foo")
     }
 
-    def "refreshes when buildscript classpath changes"() {
-        file("lib/foo.jar") << "foo"
+    def "refreshes when buildscript classpath gets new dependency"() {
+        file("foo.jar") << "foo"
 
         when:
         run()
         buildFile << """
-            buildscript { dependencies { classpath fileTree("lib") }}
+            buildscript { dependencies { classpath files("foo.jar") }}
         """
         run()
 
@@ -142,15 +142,43 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def "refreshes when parent project buildscript classpath changes"() {
         settingsFile << "include 'foo'"
-        file("lib/foo.jar") << "foo"
+        file("foo.jar") << "foo"
 
         when:
         run()
         buildFile << """
-            buildscript { dependencies { classpath fileTree("lib") }}
+            buildscript { dependencies { classpath files("lib") }}
         """
         run()
 
         then: isNotCached(":foo")
+    }
+
+    def "refreshes when buildscript classpath changes dependency"() {
+        file("foo.jar") << "yyy"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") }}
+        """
+
+        when:
+        run()
+        file("foo.jar") << "xxx"
+        run()
+
+        then: notCached
+    }
+
+    def "refreshes when buildscript classpath dependency is removed"() {
+        file("foo.jar") << "yyy"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") }}
+        """
+
+        when:
+        run()
+        assert file("foo.jar").delete()
+        run()
+
+        then: notCached
     }
 }
