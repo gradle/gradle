@@ -32,15 +32,14 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
                 static int x = 0
             }
             BuildCounter.x++
-            task counterInit << { BuildCounter.x = 1 }
-            task buildCount << { println "build count: " + BuildCounter.x }
+            println "build count: " + BuildCounter.x
         """
     }
 
     def "classloader is cached"() {
         when:
-        run("counterInit")
-        run("buildCount")
+        run()
+        run()
 
         then: output.contains("build count: 2")
     }
@@ -49,8 +48,8 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         executer.withClassLoaderCaching(false)
 
         when:
-        run("counterInit")
-        run("buildCount")
+        run()
+        run()
 
         then: output.contains("build count: 1")
     }
@@ -69,14 +68,14 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/groovy/Foo.groovy") << "class Foo {}"
 
         when:
-        run("counterInit")
-        run("buildCount")
+        run()
+        run()
 
         then: output.contains("build count: 2")
 
         when:
         file("buildSrc/src/main/groovy/Foo.groovy").text = "class Foo { static int x = 5; }"
-        run("buildCount")
+        run()
 
         then: output.contains("build count: 1")
     }
