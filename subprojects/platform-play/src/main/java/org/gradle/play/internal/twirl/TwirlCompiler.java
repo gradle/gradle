@@ -36,11 +36,11 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
     /**
      * Invokes a method on a scala object
      */
-    private static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] classes) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] typeParameters) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Class<?> baseClass = classLoader.loadClass(objectName+"$");
         final Field scalaObject = baseClass.getDeclaredField("MODULE$");
 
-        final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, classes);
+        final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, typeParameters);
 
         Function<Object[], Object> function = new Function<Object[], Object>() {
             public Object apply(Object[] args) {
@@ -103,8 +103,8 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             Iterable<File> sources = spec.getSources();
             for (File sourceFile : sources) {
                 Object result = compile.apply(new Object[]{
-                        sourceFile,
-                        sourceDirectory.getCanonicalFile(),
+                        sourceFile.getCanonicalFile(),
+                        sourceDirectory,
                         generatedDirectory,
                         formatterType,
                         additionalImports,
@@ -113,7 +113,10 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
                         useOldParser
                 });
                 Method resultIsDefined = result.getClass().getMethod("isDefined");
-                didWork = didWork || (Boolean) resultIsDefined.invoke(result);
+                if ((Boolean) resultIsDefined.invoke(result)) {
+                    File createdFile = (File) result.getClass().getMethod("get").invoke(result);
+                    didWork = true;
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e.getCause());
@@ -122,4 +125,4 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         return new SimpleWorkResult(didWork);
     }
 
-    }
+}
