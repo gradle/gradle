@@ -26,23 +26,26 @@ Memory leaks are unavoidable because:
 
 # Implementation plan
 
-## Daemon makes the user aware of memory usage
+## The user is aware of daemon health
 
-It feels important to let the user know about certain stats of the daemon.
-It would help building stronger confidence in the daemon and provide information for memory tweaking.
+Let the user know about certain stats of the daemon.
+It would help building stronger confidence in the daemon and provide information to the user for memory tweaking.
 
 ### User visible changes
 
 When building with the daemon there is an elegant lifecycle message informing about the daemon status
 
-"Starting new daemon process for this build"
-"Executing 22nd build in daemon [uptime: 12 mins, memory: 64M of 3.8G]"
+"Starting build in new daemon [memory: 30.4 MB]"
+"Executing 2nd build in daemon [uptime: 2.922 secs, performance: 91%, memory: 100% of 28.8 MB]"
 
-## Daemon exits early before vm gets into gc thrashing
+### Test coverage
 
-## Daemon exits after the build if it suspects that the next build will put vm into gc thrashing
+- First build presents "Starting build..." message
+- Subsequent builds present "Executing x build..." message
 
-## Daemon restarts instead of exiting when exit reason is one of above
+## Prevent memory leaks make daemon unusable
+
+## Prevent daemon become unresponsive due to gc thrashing
 
 # Ideas
 
