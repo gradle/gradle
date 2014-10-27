@@ -78,7 +78,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DaemonHealthServices getDaemonHealthServices() {
+    protected DaemonHealthServices createDaemonHealthServices() {
         return new DaemonHealthServices();
     }
 
@@ -97,7 +97,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                                 get(ProcessEnvironment.class),
                                 loggingManager,
                                 getDaemonLogFile(),
-                                get(DaemonHealthServices.class).getHygieneAction())),
+                                get(DaemonHealthServices.class))),
                 get(ExecutorFactory.class));
     }
 
