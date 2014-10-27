@@ -119,6 +119,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>(){
                 public void execute(TwirlCompile twirlCompile) {
                     twirlCompile.setOutputDirectory(new File(buildDir, String.format("twirl/%s", binary.getName())));
+                    twirlCompile.setSourceDirectory(new File(buildDir, "app"));
                     binary.builtBy(twirlCompile);
                 }
             });

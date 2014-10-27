@@ -44,6 +44,7 @@ public class TwirlCompile extends SourceTask {
      * Target directory for the compiled template files.
      */
     private File outputDirectory;
+    private File sourceDirectory;
 
 
     void setCompiler(Compiler<TwirlCompileSpec> compiler) {
@@ -81,6 +82,24 @@ public class TwirlCompile extends SourceTask {
     }
 
 
+    /**
+     * Returns the root directory where sources are found.
+     *
+     * @return The root directory for sources.
+     */
+    public File getSourceDirectory() {
+        return sourceDirectory;
+    }
+
+    /**
+     * Specifies the root directory where sources are found.
+     *
+     * @param sourceDirectory TThe root directory for sources.
+     */
+    public void setSourceDirectory(File sourceDirectory) {
+        this.sourceDirectory = sourceDirectory;
+    }
+
     @TaskAction
     void compile() {
         TwirlCompileSpec spec = generateSpec();
@@ -104,6 +123,7 @@ public class TwirlCompile extends SourceTask {
     }
 
     private TwirlCompileSpec generateSpec() {
-        return new TwirlCompileSpec(getSource().getFiles(), getOutputDirectory());
+        return new TwirlCompileSpec(getSourceDirectory(), getSource().getFiles(), getOutputDirectory());
     }
+
 }

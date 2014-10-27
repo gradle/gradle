@@ -18,7 +18,6 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
-
     def setup(){
         buildFile << """
         repositories{
@@ -36,6 +35,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
         task twirlCompile(type:TwirlCompile){
             compilerClasspath = configurations.twirl
             outputDirectory = file('build/twirl')
+            sourceDirectory = file('./app')
         }
 """
     }
@@ -51,7 +51,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def withTwirlTemplate() {
-        def templateFile = file("index.html.scala")
+        def templateFile = file("app", "views", "index.scala.html")
         templateFile.createFile()
         templateFile << """@(message: String)
 
@@ -63,6 +63,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
 
 """
         buildFile << "twirlCompile.source '${templateFile.toURI()}'"
+
 
     }
 }

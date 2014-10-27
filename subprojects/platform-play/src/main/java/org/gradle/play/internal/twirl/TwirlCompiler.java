@@ -16,13 +16,12 @@
 
 package org.gradle.play.internal.twirl;
 
-import org.apache.commons.io.FileUtils;
+import com.google.common.base.Function;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -31,50 +30,101 @@ import java.lang.reflect.Method;
 /**
  * Twirl compiler uses reflection to load and invoke TwirlCompiler$
  *
- * TODO: currently this is just a dummy implementation doing a simple file copy
- * */
+ */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
     /**
      * Invokes a method on a scala object
      */
-    private static Object invokeScalaObjectMethod(ClassLoader classLoader, String objectName, String methodName, Object... args) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        //TODO: reflection is slow, cache loadClass and basically all things that is executed prior to invoke:
+    private static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] classes) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Class<?> baseClass = classLoader.loadClass(objectName+"$");
-        Field scalaObject = baseClass.getDeclaredField("MODULE$");
+        final Field scalaObject = baseClass.getDeclaredField("MODULE$");
 
-        Class<?>[] classes = new Class<?>[args.length];
-        for (int i = 0; i < args.length; i++) {
-            //TODO: this is not right:
-            if (args[i].getClass().equals(Boolean.class)) {
-                classes[i] = boolean.class;
-            } else{
-                classes[i] = args[i].getClass();
+        final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, classes);
+
+        Function<Object[], Object> function = new Function<Object[], Object>() {
+            public Object apply(Object[] args) {
+                try {
+                    return scalaObjectMethod.invoke(scalaObject.get(null), args);
+                } catch (Exception e) {
+                    throw new RuntimeException(e.getCause());
+                }
             }
-        }
-        Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, classes);
-        Object result = scalaObjectMethod.invoke(scalaObject.get(null), args);
-        return result;
+
+            public boolean equals(Object object) {
+                return false;
+            }
+
+            public int hashCode() {
+                return scalaObjectMethod.hashCode() + scalaObject.hashCode(); //we had to have a hashCode here because Function requires an equals. Maybe using Function is not the best option.
+            }
+        };
+        return function;
+    }
+
+    private File asRelativeTo(File root, File file) {
+        String path = file.getAbsolutePath().replace(root.getAbsolutePath(), "./" + root.getName());
+        return new File(path);
     }
 
     public WorkResult execute(TwirlCompileSpec spec) {
-        try {
+        boolean didWork = false;
 
-            /**
-             * TODO load compiler method via reflection and invoke for each source file with
-             * parameter from spec
-             *
-             * */
+        try {
+            File sourceDirectory = spec.getSourceDirectory().getCanonicalFile();
+            File generatedDirectory = spec.getDestinationDir();
+            String formatterType = spec.getFormatterType();
+            String additionalImports = spec.getAdditionalImports();
+            boolean inclusiveDots = spec.isInclusiveDots();
+            boolean useOldParser = spec.isUseOldParser();
+            String codec = spec.getCodec();
+            ClassLoader cl = getClass().getClassLoader();
+            Class<?> codecClass = cl.loadClass("scala.io.Codec");
+
+            Function<Object[], Object> ioCodec = scalaObjectFunction(cl,
+                    "scala.io.Codec",
+                    "apply",
+                    new Class<?>[]{
+                            String.class
+                    });
+            Object scalaCodec = ioCodec.apply(new Object[]{
+                    codec
+            });
+
+            Function<Object[], Object> compile = scalaObjectFunction(cl,
+                    "play.twirl.compiler.TwirlCompiler",
+                    "compile",
+                    new Class<?>[]{
+                            File.class,
+                            sourceDirectory.getClass(),
+                            generatedDirectory.getClass(),
+                            formatterType.getClass(),
+                            additionalImports.getClass(),
+                            codecClass,
+                            boolean.class,
+                            boolean.class});
+
 
             Iterable<File> sources = spec.getSources();
-            for(File sourceFile : sources){
-                FileUtils.writeStringToFile(new File(spec.getDestinationDir(), sourceFile.getName()), "compiled " + sourceFile.getName());
+            for (File sourceFile : sources) {
+                Object result = compile.apply(new Object[]{
+                        sourceFile,
+                        sourceDirectory.getCanonicalFile(),
+                        generatedDirectory,
+                        formatterType,
+                        additionalImports,
+                        scalaCodec,
+                        inclusiveDots,
+                        useOldParser
+                });
+                Method resultIsDefined = result.getClass().getMethod("isDefined");
+                didWork = didWork || (Boolean) resultIsDefined.invoke(result);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getCause());
         }
 
-        return new SimpleWorkResult(false);
+        return new SimpleWorkResult(didWork);
     }
 
-}
+    }

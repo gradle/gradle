@@ -30,7 +30,7 @@ class DaemonTwirlCompilerTest extends Specification {
         when:
         def options = compiler.toDaemonOptions(Mock(TwirlCompileSpec));
         then:
-        options.getSharedPackages() == ["play.twirl.compiler"]
+        options.getSharedPackages().asList().contains("play.twirl.compiler")
     }
 
     def "passes compileclasspath to daemon options"() {

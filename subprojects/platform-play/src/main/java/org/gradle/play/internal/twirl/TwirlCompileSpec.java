@@ -25,6 +25,7 @@ import java.io.Serializable;
  * TODO for now hard wired options need to be configurable from task
  * */
 public class TwirlCompileSpec implements CompileSpec, Serializable {
+    private final File sourceDirectory;
     private final Iterable<File> sources;
     private File destinationDir;
     private String formatterType = "play.twirl.api.HtmlFormat";
@@ -37,9 +38,10 @@ public class TwirlCompileSpec implements CompileSpec, Serializable {
         return sources;
     }
 
-    public TwirlCompileSpec(Iterable<File> sources, File destinationDir) {
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  File destinationDir) {
         this.sources = sources;
         this.destinationDir = destinationDir;
+        this.sourceDirectory = sourceDirectory;
     }
 
     File getDestinationDir(){
@@ -66,4 +68,7 @@ public class TwirlCompileSpec implements CompileSpec, Serializable {
         return formatterType;
     }
 
+    public File getSourceDirectory() {
+        return sourceDirectory;
+    }
 }
