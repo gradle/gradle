@@ -28,18 +28,17 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
         executer.withClassLoaderCaching(true)
         buildFile << """
-            class Counter {
-                static int x = 0
+            class StaticState {
+                static set = new HashSet()
             }
             allprojects {
-                Counter.x++
-                println project.path + " count: " + Counter.x
+                println project.path + " cached: " + !StaticState.set.add(project.path)
             }
         """
     }
 
-    private boolean getCached() { output.contains("count: 2") }
-    private boolean getNotCached() { output.contains("count: 1") }
+    private boolean isCached(String projectPath = ":") { output.contains("$projectPath cached: true") }
+    private boolean isNotCached(String projectPath = ":") { output.contains("$projectPath cached: false") }
 
     def "classloader is cached"() {
         when:
@@ -112,21 +111,19 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'foo'"
 
         when: run()
-        then: output.contains(":foo count: 2")
+        then: isNotCached(":foo")
         when: run()
-        then: output.contains(":foo count: 4")
+        then: isCached(":foo")
     }
 
     def "refreshes subproject classloader when parent changes"() {
         settingsFile << "include 'foo'"
 
-        when: run()
-        then: output.contains(":foo count: 2")
-
         when:
+        run()
         buildFile << "task foo"
         run()
 
-        then: output.contains(":foo count: 2")
+        then: isNotCached(":foo")
     }
 }
