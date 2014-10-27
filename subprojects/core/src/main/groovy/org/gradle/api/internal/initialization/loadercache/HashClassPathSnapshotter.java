@@ -47,9 +47,11 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
                     //TODO - figure out a way to test it. I only tested it 'manually' and the feature is needed.
                     combinedHash = hash(visitedFilePaths, visitedDirs, combinedHash, file.listFiles());
                 }
-            } else {
+            } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
                 combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
+            } else {
+                //could be an empty folder - a legit situation
             }
         }
         return combinedHash;

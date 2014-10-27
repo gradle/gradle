@@ -100,4 +100,13 @@ class HashClassPathSnapshotterTest extends Specification {
         a == b
         a.hashCode() == b.hashCode()
     }
+
+    def "empty snapshots are the same"() {
+        when:
+        def s1 = snapshotter.snapshot(new DefaultClassPath(new File(temp.createDir("dir1"), "missing")));
+        def s2 = snapshotter.snapshot(new DefaultClassPath(new File(temp.createDir("dir2"), "missing")));
+
+        then:
+        s1 == s2
+    }
 }

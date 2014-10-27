@@ -64,4 +64,20 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         run "newTask" //knows new task
     }
+
+    def "refreshes classloader when buildSrc changes"() {
+        file("buildSrc/src/main/groovy/Foo.groovy") << "class Foo {}"
+
+        when:
+        run("counterInit")
+        run("buildCount")
+
+        then: output.contains("build count: 2")
+
+        when:
+        file("buildSrc/src/main/groovy/Foo.groovy").text = "class Foo { static int x = 5; }"
+        run("buildCount")
+
+        then: output.contains("build count: 1")
+    }
 }
