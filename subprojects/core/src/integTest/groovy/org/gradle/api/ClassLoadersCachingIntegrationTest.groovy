@@ -181,4 +181,18 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
         then: notCached
     }
+
+    def "refreshes when buildscript classpath dir dependency is changed"() {
+        file("lib/foo.jar") << "xxx"
+        buildFile << """
+            buildscript { dependencies { classpath fileTree("lib") }}
+        """
+
+        when:
+        run()
+        file("lib/bar.jar") << "xxx"
+        run()
+
+        then: notCached
+    }
 }
