@@ -422,4 +422,49 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains("name: a")
     }
+
+    def "values of primitive types and boxed primitive types are widened as usual"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface PrimitiveTypes {
+                Long getLongPropertyFromInt()
+                void setLongPropertyFromInt(Long value)
+
+                Long getLongPropertyFromInteger()
+                void setLongPropertyFromInteger(Long value)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPrimitiveTypes(PrimitiveTypes primitiveTypes) {
+                    primitiveTypes.longPropertyFromInt = 123
+                    primitiveTypes.longPropertyFromInteger = new Integer(321)
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, final PrimitiveTypes primitiveTypes) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "from int: $primitiveTypes.longPropertyFromInt"
+                            println "from Integer: $primitiveTypes.longPropertyFromInteger"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "from int: 123"
+        output.contains "from Integer: 321"
+    }
 }

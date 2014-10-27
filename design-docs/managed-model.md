@@ -195,7 +195,7 @@ Use of `byte` and `Byte` is unsupported.
 #### Test coverage
 
 - ~~Can get/set properties of all supported types~~
-- Can narrow/widen values as per normal (e.g. set a `Long` property with a literal `int`)
+- ~~Can narrow/widen values as per normal (e.g. set a `Long` property with a literal `int`)~~
 
 #### Open questions
 
