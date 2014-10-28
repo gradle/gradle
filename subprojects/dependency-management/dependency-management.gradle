@@ -16,7 +16,6 @@ dependencies {
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
     compile libraries.jsch
-    compile libraries.gson
     runtime libraries.xbean //maven3 classes dependency
     runtime "org.bouncycastle:bcprov-jdk15:1.46@jar"
 
