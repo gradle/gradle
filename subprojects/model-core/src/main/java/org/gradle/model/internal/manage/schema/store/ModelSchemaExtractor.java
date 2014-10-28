@@ -178,9 +178,7 @@ public class ModelSchemaExtractor {
         List<String> methodNames = Lists.newLinkedList(methods.keySet());
         List<String> handled = Lists.newArrayList();
 
-        for (ListIterator<String> iterator = methodNames.listIterator(); iterator.hasNext();) {
-            String methodName = iterator.next();
-
+        for (String methodName : methodNames) {
             Method method = methods.get(methodName);
             if (methodName.startsWith("get") && !methodName.equals("get")) {
                 if (method.getParameterTypes().length != 0) {
@@ -198,7 +196,7 @@ public class ModelSchemaExtractor {
                 } else {
                     properties.add(extractPropertyOfUnmanagedType(type, methods, methodName, returnType, handled));
                 }
-                iterator.remove();
+                handled.add(methodName);
             }
         }
 
