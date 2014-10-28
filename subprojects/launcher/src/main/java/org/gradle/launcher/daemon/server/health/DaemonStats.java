@@ -55,10 +55,10 @@ class DaemonStats {
         ++buildCount;
         currentBuildStart = timeProvider.getCurrentTime();
         if (buildCount == 1) {
-            return format("Starting build in new daemon [memory: %s]", prettyBytes(maxMemory));
+            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(maxMemory));
         } else {
             return format("Executing %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
-                    IntegerTextUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percent(maxMemory, comittedMemory), prettyBytes(maxMemory));
+                    IntegerTextUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percentOf(maxMemory, comittedMemory), NumberUtil.formatBytes(maxMemory));
         }
     }
 
@@ -69,20 +69,9 @@ class DaemonStats {
         allBuildsTime += timeProvider.getCurrentTime() - currentBuildStart;
     }
 
-    //TODO SF rework, possibly find different place for below
-
     private static int performance(long totalTime, GCStats gcStats) {
         //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
-        return 100 - NumberUtil.percent(totalTime, gcStats.getCollectionTime());
+        return 100 - NumberUtil.percentOf(totalTime, gcStats.getCollectionTime());
     }
 
-    private static String prettyBytes(long bytes) {
-        int unit = 1000;
-        if (bytes < unit) {
-            return bytes + " B";
-        }
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        char pre = "kMGTPE".charAt(exp - 1);
-        return format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
-    }
 }
