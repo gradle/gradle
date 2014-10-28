@@ -178,12 +178,15 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @BinaryTasks
         void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier,  @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
-            final File twirlCompilerOutputDirectory = new File(buildDir, String.format("twirl/%s", binary.getName()));
+            final File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
+            final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
 
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>(){
                 public void execute(TwirlCompile twirlCompile) {
-                    twirlCompile.setOutputDirectory(twirlCompilerOutputDirectory);
-                    twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app/views"));
+                    twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
+                    twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
+                    twirlCompile.setSource(twirlCompile.getSourceDirectory());
+                    twirlCompile.include("**/*.html");
                     binary.builtBy(twirlCompile);
                 }
             });
@@ -191,8 +194,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>(){
                 public void execute(RoutesCompile routesCompile) {
-                    routesCompile.setOutputDirectory(new File(buildDir, String.format("twirl/%s", binary.getName())));
+                    routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
                     routesCompile.setAdditionalImports(new ArrayList<String>());
+                    routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf/routes"));
                     binary.builtBy(routesCompile);
                 }
             });
@@ -202,10 +206,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(ScalaCompile scalaCompile) {
                     scalaCompile.setDestinationDir(new File(buildDir, String.format("classes/%s/app", binary.getName())));
 
-                    /*
-                    * @TODO enabling source "app" still gives different compile errors
-                    * */
-                    //scalaCompile.setSource("app");
+                    scalaCompile.setSource("app");
 
 
                     //if (!analysisFile) {
@@ -218,15 +219,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     //handle twirl compiler output
                     scalaCompile.dependsOn(twirlCompileTaskName);
 
-                    /*
-                     * @TODO enable sourcing of generated template scala code
-                     * temporally disabled sourcing of twirl output until route compiler in place as template generated classes has
-                     * dependencies on routs.
-                     */
-                    //scalaCompile.source(twirlCompilerOutputDirectory);
-
                     //handle routes compiler
                     scalaCompile.dependsOn(routesCompileTaskName);
+
+                    scalaCompile.source(twirlCompilerOutputDirectory);
+                    scalaCompile.source(routesCompilerOutputDirectory);
                 }
             });
 
