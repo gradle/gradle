@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.util.NumberUtil;
 import org.gradle.util.Clock;
 
 import static java.lang.String.format;
@@ -57,7 +58,7 @@ class DaemonStats {
             return format("Starting build in new daemon [memory: %s]", prettyBytes(maxMemory));
         } else {
             return format("Executing %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
-                    IntegerTextUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), percent(maxMemory, comittedMemory), prettyBytes(maxMemory));
+                    IntegerTextUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percent(maxMemory, comittedMemory), prettyBytes(maxMemory));
         }
     }
 
@@ -72,12 +73,7 @@ class DaemonStats {
 
     private static int performance(long totalTime, GCStats gcStats) {
         //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
-        return 100 - percent(totalTime, gcStats.getCollectionTime());
-    }
-
-    private static int percent(long total, long fraction) {
-        float out = fraction * 100.0f / total;
-        return (int) out;
+        return 100 - NumberUtil.percent(totalTime, gcStats.getCollectionTime());
     }
 
     private static String prettyBytes(long bytes) {
