@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import org.gradle.api.artifacts.ComponentMetadata;
+
 public abstract class AbstractVersionSelector implements VersionSelector {
     private final String selector;
 
@@ -25,5 +27,9 @@ public abstract class AbstractVersionSelector implements VersionSelector {
 
     protected String getSelector() {
         return selector;
+    }
+
+    public boolean accept(ComponentMetadata candidate) {
+        return accept(candidate.getId().getVersion());
     }
 }

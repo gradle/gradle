@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.artifacts.ComponentMetadata;
-
 /**
  * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
  */
@@ -39,9 +37,5 @@ public class ExactVersionSelector extends AbstractVersionSelector {
 
     public boolean accept(String candidate) {
         return getSelector().equals(candidate);
-    }
-
-    public boolean accept(ComponentMetadata candidate) {
-        return accept(candidate.getId().getVersion());
     }
 }

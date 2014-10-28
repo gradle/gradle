@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.artifacts.ComponentMetadata;
-
 /**
  * Version matcher for dynamic version selectors ending in '+'.
  */
 public class SubVersionSelector extends AbstractVersionSelector {
+    private final String prefix;
+
     public SubVersionSelector(String selector) {
         super(selector);
+        prefix = selector.substring(0, selector.length() - 1);
     }
 
     public boolean isDynamic() {
@@ -37,16 +38,7 @@ public class SubVersionSelector extends AbstractVersionSelector {
         return false;
     }
 
-    public boolean accept(String selector, String candidate) {
-        String prefix = selector.substring(0, selector.length() - 1);
-        return candidate.startsWith(prefix);
-    }
-
     public boolean accept(String candidate) {
-        return accept(getSelector(), candidate);
-    }
-
-    public boolean accept(ComponentMetadata candidate) {
-        return accept(candidate.getId().getVersion());
+        return candidate.startsWith(prefix);
     }
 }

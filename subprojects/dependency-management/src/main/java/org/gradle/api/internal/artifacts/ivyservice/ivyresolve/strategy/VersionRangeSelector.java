@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.artifacts.ComponentMetadata;
-
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,8 +91,40 @@ public class VersionRangeSelector extends AbstractVersionSelector {
 
     private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
 
+    private final String upperBound;
+    private final boolean upperInclusive;
+    private final String lowerBound;
+    private final boolean lowerInclusive;
+
     public VersionRangeSelector(String selector) {
         super(selector);
+
+        Matcher matcher;
+        matcher = FINITE_RANGE.matcher(selector);
+        if (matcher.matches()) {
+            lowerBound = matcher.group(1);
+            lowerInclusive = selector.startsWith(OPEN_INC);
+            upperBound = matcher.group(2);
+            upperInclusive = selector.endsWith(CLOSE_INC);
+        } else {
+            matcher = LOWER_INFINITE_RANGE.matcher(selector);
+            if (matcher.matches()) {
+                lowerBound = null;
+                lowerInclusive = true;
+                upperBound = matcher.group(1);
+                upperInclusive = selector.endsWith(CLOSE_INC);
+            } else {
+                matcher = UPPER_INFINITE_RANGE.matcher(selector);
+                if (matcher.matches()) {
+                    lowerBound = matcher.group(1);
+                    lowerInclusive = selector.startsWith(OPEN_INC);
+                    upperBound = null;
+                    upperInclusive = true;
+                } else {
+                    throw new IllegalArgumentException("Not a version range selector: " + selector);
+                }
+            }
+        }
     }
 
     public boolean isDynamic() {
@@ -110,30 +140,13 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     }
 
     public boolean accept(String candidate) {
-        String selector = getSelector();
-        Matcher matcher;
-        matcher = FINITE_RANGE.matcher(selector);
-        if (matcher.matches()) {
-            String lower = matcher.group(1);
-            String upper = matcher.group(2);
-            return isHigher(candidate, lower, selector.startsWith(OPEN_INC))
-                    && isLower(candidate, upper, selector.endsWith(CLOSE_INC));
+        if (lowerBound != null && !isHigher(candidate, lowerBound, lowerInclusive)) {
+            return false;
         }
-        matcher = LOWER_INFINITE_RANGE.matcher(selector);
-        if (matcher.matches()) {
-            String upper = matcher.group(1);
-            return isLower(candidate, upper, selector.endsWith(CLOSE_INC));
+        if (upperBound != null && !isLower(candidate, upperBound, upperInclusive)) {
+            return false;
         }
-        matcher = UPPER_INFINITE_RANGE.matcher(selector);
-        if (matcher.matches()) {
-            String lower = matcher.group(1);
-            return isHigher(candidate, lower, selector.startsWith(OPEN_INC));
-        }
-        throw new IllegalArgumentException("Not a version range selector: " + selector);
-    }
-
-    public boolean accept(ComponentMetadata candidate) {
-        return accept(candidate.getId().getVersion());
+        return true;
     }
 
     /**

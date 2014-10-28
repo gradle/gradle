@@ -29,7 +29,6 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
         expect:
         !requiresMetadata("[1.0,2.0]")
         !requiresMetadata("[1.0,)")
-        !requiresMetadata("1")
     }
 
     def "accepts candidate versions that fall into the selector's range"() {

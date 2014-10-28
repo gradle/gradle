@@ -18,8 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 import org.gradle.api.artifacts.ComponentMetadata;
 
 public class LatestVersionSelector extends AbstractVersionSelector {
+    private final String selectorStatus;
+
     public LatestVersionSelector(String selector) {
         super(selector);
+        selectorStatus = selector.substring("latest.".length());
     }
 
     public boolean isDynamic() {
@@ -39,7 +42,6 @@ public class LatestVersionSelector extends AbstractVersionSelector {
     }
 
     public boolean accept(ComponentMetadata candidate) {
-        String selectorStatus = getSelector().substring("latest.".length());
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
         return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
