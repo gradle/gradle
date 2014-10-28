@@ -55,4 +55,19 @@ public class NumberUtil {
         char pre = "kMGTPE".charAt(exp - 1);
         return format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
+
+    /**
+     * gets ordinal String representation of given value (e.g. 1 -> 1st, 12 -> 12th, 22 -> 22nd, etc.)
+     */
+    public static String ordinal(int value) {
+        String[] sufixes = new String[] { "th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th" };
+        switch (value % 100) {
+            case 11:
+            case 12:
+            case 13:
+                return value + "th";
+            default:
+                return value + sufixes[value % 10];
+        }
+    }
 }

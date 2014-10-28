@@ -66,8 +66,32 @@ class NumberUtilTest extends Specification {
         formatBytes(1000000000000000000) == "1.0 EB"
     }
 
-    def "does not allow negative bytes"() {
+    def "knows ordinal"() {
+        expect:
+        ordinal == NumberUtil.ordinal(input)
 
+        where:
+        input | ordinal
+        0     | "0th"
+        1     | "1st"
+        2     | "2nd"
+        3     | "3rd"
+        4     | "4th"
+        10    | "10th"
+        11    | "11th"
+        12    | "12th"
+        13    | "13th"
+        14    | "14th"
+        20    | "20th"
+        21    | "21st"
+        22    | "22nd"
+        23    | "23rd"
+        24    | "24th"
+        100   | "100th"
+        1001  | "1001st"
+        10012 | "10012th"
+        10013 | "10013th"
+        10014 | "10014th"
     }
 }
 
