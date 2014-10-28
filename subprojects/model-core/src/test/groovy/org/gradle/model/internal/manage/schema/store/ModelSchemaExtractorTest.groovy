@@ -264,6 +264,51 @@ class ModelSchemaExtractorTest extends Specification {
         NotAnnotatedInterface | false
     }
 
+    @Managed interface SelfReferencing {
+        SelfReferencing getSelf()
+    }
+
+    def "can extract self referencing type"() {
+        expect:
+        extract(SelfReferencing).properties.self.type == ModelType.of(SelfReferencing)
+    }
+
+    @Managed interface A1 {
+        A1 getA();
+        B1 getB();
+        C1 getC();
+        D1 getD();
+    }
+    @Managed interface B1 {
+        A1 getA();
+        B1 getB();
+        C1 getC();
+        D1 getD();
+    }
+    @Managed interface C1 {
+        A1 getA();
+        B1 getB();
+        C1 getC();
+        D1 getD();
+    }
+    @Managed interface D1 {
+        A1 getA();
+        B1 getB();
+        C1 getC();
+        D1 getD();
+    }
+
+    def "can extract incestuous nest"() {
+        expect:
+        extract(type).properties.a.type == extract(A1).type
+        extract(type).properties.b.type == extract(B1).type
+        extract(type).properties.c.type == extract(C1).type
+        extract(type).properties.d.type == extract(D1).type
+
+        where:
+        type << [A1, B1, C1, D1]
+    }
+
     private ModelSchema<?> extract(Class<?> clazz) {
         extractor.extract(ModelType.of(clazz), new ModelSchemaCache())
     }
