@@ -25,8 +25,8 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.routes.DaemonRoutesCompiler;
-import org.gradle.play.internal.routes.PlayRoutesCompileSpec;
-import org.gradle.play.internal.routes.PlayRoutesCompiler;
+import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompiler;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,11 +53,11 @@ public class RoutesCompile  extends SourceTask {
     private List<String> additionalImports = new ArrayList<String>();
 
 
-    void setCompiler(Compiler<PlayRoutesCompileSpec> compiler) {
+    void setCompiler(Compiler<RoutesCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
-    private Compiler<PlayRoutesCompileSpec> compiler;
+    private Compiler<RoutesCompileSpec> compiler;
 
     @InputFiles
     public FileCollection getCompilerClasspath() {
@@ -105,7 +105,7 @@ public class RoutesCompile  extends SourceTask {
 
     @TaskAction
     void compile() {
-        PlayRoutesCompileSpec spec = generateSpec();
+        RoutesCompileSpec spec = generateSpec();
         getCompiler().execute(spec);
     }
 
@@ -114,18 +114,18 @@ public class RoutesCompile  extends SourceTask {
      *
      * TODO allow forked compiler
      * */
-    private Compiler<PlayRoutesCompileSpec> getCompiler() {
+    private Compiler<RoutesCompileSpec> getCompiler() {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            PlayRoutesCompiler playRoutesCompiler = new PlayRoutesCompiler();
+            RoutesCompiler playRoutesCompiler = new RoutesCompiler();
             compiler = new DaemonRoutesCompiler(projectInternal.getProjectDir(), playRoutesCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
 
         }
         return compiler;
     }
 
-    private PlayRoutesCompileSpec generateSpec() {
-        return new PlayRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports());
+    private RoutesCompileSpec generateSpec() {
+        return new RoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports());
     }
 }

@@ -25,17 +25,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DaemonRoutesCompiler extends AbstractDaemonCompiler<PlayRoutesCompileSpec> {
+public class DaemonRoutesCompiler extends AbstractDaemonCompiler<RoutesCompileSpec> {
     private final Iterable<File> compilerClasspath;
 
-    public DaemonRoutesCompiler(File projectDir, PlayRoutesCompiler playRoutesCompiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath) {
+    public DaemonRoutesCompiler(File projectDir, RoutesCompiler playRoutesCompiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath) {
         super(projectDir, playRoutesCompiler, compilerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected DaemonForkOptions toDaemonOptions(PlayRoutesCompileSpec spec) {
+    protected DaemonForkOptions toDaemonOptions(RoutesCompileSpec spec) {
         List<String> routesPackages = Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching");
         return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, routesPackages);
     }

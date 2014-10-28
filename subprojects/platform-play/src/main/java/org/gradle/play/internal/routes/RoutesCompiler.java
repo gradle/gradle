@@ -28,8 +28,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayRoutesCompiler implements Compiler<PlayRoutesCompileSpec>, Serializable {
-    public WorkResult execute(PlayRoutesCompileSpec spec) {
+public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable {
+    public WorkResult execute(RoutesCompileSpec spec) {
         boolean didWork = false;
         File generatedDirectory = spec.getDestinationDir();
 

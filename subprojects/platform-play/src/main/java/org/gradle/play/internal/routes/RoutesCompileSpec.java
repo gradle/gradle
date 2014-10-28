@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayRoutesCompileSpec implements CompileSpec, Serializable {
+public class RoutesCompileSpec implements CompileSpec, Serializable {
     private final Iterable<File> sources;
     private final File destinationDir;
     private final List<String> additionalImports = new ArrayList<String>();
@@ -31,7 +31,7 @@ public class PlayRoutesCompileSpec implements CompileSpec, Serializable {
     private final boolean generateRefReverseRouter;
     private final boolean namespaceReverseRouter;
 
-    public PlayRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports) {
+    public RoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports) {
         this.sources = sources;
         this.destinationDir = destinationDir;
         this.additionalImports.addAll(additionalImports);
