@@ -19,7 +19,6 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.startsWith
 
 public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -282,26 +281,20 @@ task someTask(dependsOn: [someDep, someOtherDep])
         task someTask << {println "explicit sometask"}
         tasks.addPlaceholderAction("someTask"){
             println  "placeholder action triggered"
-            task someTask << {println "placeholder sometask"}
+            task someTask << { assert false }
         }
 """
         when:
         succeeds 'sometask'
 
         then:
-        output.startsWith(toPlatformLineSeparators(""":someTask
-explicit sometask
-
-BUILD SUCCESSFUL"""))
+        output.contains("explicit sometask")
 
         when:
         succeeds 'someT'
 
         then:
-        output.startsWith(toPlatformLineSeparators(""":someTask
-explicit sometask
-
-BUILD SUCCESSFUL"""))
+        output.contains("explicit sometask")
     }
 
     def "honours mustRunAfter task ordering"() {
