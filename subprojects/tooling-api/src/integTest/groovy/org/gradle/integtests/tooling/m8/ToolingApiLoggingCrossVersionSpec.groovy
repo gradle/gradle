@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.launcher.daemon.server.health.DaemonHealthMessages
 import org.junit.Assume
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
@@ -94,7 +95,7 @@ project.logger.debug("debug logging");
         then:
         def out = op.standardOutput
         def err = op.standardError
-        normaliseOutput(filterToolingApiSpecific(out)) == normaliseOutput(commandLineResult.output)
+        normaliseOutput(filterKnownDifferences(out)) == normaliseOutput(commandLineResult.output)
         err == commandLineResult.error
 
         and:
@@ -113,8 +114,9 @@ project.logger.debug("debug logging");
         return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 
-    String filterToolingApiSpecific(String output) {
-        return output.replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 3.0" + System.getProperty("line.separator"), "")
+    String filterKnownDifferences(String output) {
+        return DaemonHealthMessages.filterFrom(output)
+            .replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 3.0" + System.getProperty("line.separator"), "")
     }
 
     void shouldNotContainProviderLogging(String output) {

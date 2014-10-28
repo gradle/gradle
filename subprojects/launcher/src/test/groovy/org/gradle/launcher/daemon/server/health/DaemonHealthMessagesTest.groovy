@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.health
 
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.health.DaemonHealthMessages.filterFrom
 import static org.gradle.launcher.daemon.server.health.DaemonHealthMessages.lineMatches
 
 class DaemonHealthMessagesTest extends Specification {
@@ -25,7 +26,7 @@ class DaemonHealthMessagesTest extends Specification {
     def "knows when line matches health message"() {
         expect:
         lineMatches("Starting build in new daemon [memory: 1 GB]")
-        lineMatches("Starting build in new daemon [memory: 1 GB]\n")
+        lineMatches("Starting build in new daemon [memory: 1 GB]")
         lineMatches("Starting 14th build in daemon [uptime: 4 mins, performance: 90%, memory: 66% of 1 GB]")
 
         !lineMatches("")
@@ -33,5 +34,22 @@ class DaemonHealthMessagesTest extends Specification {
         !lineMatches("Starting build in daemon")
         !lineMatches("build in daemon")
         !lineMatches("build in new daemon")
+    }
+
+    def "filters out from text"() {
+        expect:
+        filterFrom("") == ""
+        filterFrom("foo\nbar") == "foo\nbar"
+        filterFrom("""Stuff
+Starting 2nd build in daemon [uptime: 5.283 secs, performance: 93%, memory: 26% of 954.7 MB]
+xx
+""") == """Stuff
+xx
+"""
+
+        filterFrom("""Starting build in new daemon [memory: 1 GB]
+xx""") == "xx"
+
+        filterFrom("Starting build in new daemon [memory: 1 GB]") == ""
     }
 }
