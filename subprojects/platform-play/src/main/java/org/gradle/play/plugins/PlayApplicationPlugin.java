@@ -204,9 +204,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             });
 
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
+            final File compileOutputDirectory = new File(buildDir, String.format("classes/%s/app", binary.getName()));
             tasks.create(scalaCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
                 public void execute(ScalaCompile scalaCompile) {
-                    scalaCompile.setDestinationDir(new File(buildDir, String.format("classes/%s/app", binary.getName())));
+
+                    scalaCompile.setDestinationDir(compileOutputDirectory);
 
                     scalaCompile.setSource("app");
 
@@ -233,6 +235,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(Jar jar) {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
+                    jar.from(compileOutputDirectory);
 
                     // CollectionBuilder api currently does not allow autowiring for tasks
                     jar.dependsOn(scalaCompileTaskName);

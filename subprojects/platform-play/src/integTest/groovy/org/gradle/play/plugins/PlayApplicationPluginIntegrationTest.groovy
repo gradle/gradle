@@ -15,10 +15,10 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
@@ -94,8 +94,13 @@ Binaries
         succeeds("assemble")
         then:
         executed(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")
+        def jarTestFixture = new JarTestFixture(file("build/jars/myApp/myAppBinary.jar"))
+        jarTestFixture.assertContainsFile("Routes.class")
+        jarTestFixture.assertContainsFile("views/html/index.class")
+        jarTestFixture.assertContainsFile("views/html/main.class")
+        jarTestFixture.assertContainsFile("controllers/Application.class")
 
-        when:
+         when:
         succeeds("assemble")
         then:
         skipped(":createMyAppBinaryJar", ":twirlCompileMyAppBinary")
