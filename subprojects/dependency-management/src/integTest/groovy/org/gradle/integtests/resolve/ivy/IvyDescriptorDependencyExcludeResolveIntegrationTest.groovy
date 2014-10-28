@@ -54,7 +54,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Exlusion of transitive dependency by using a combination of module exclude rules.
+     * Transitive dependency exclude by using a combination of module exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -86,75 +86,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'module'                  | [module: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         //'org and all modules'     | [org: 'org.gradle.test', module: '*']  | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'org and module'          | [org: 'org.gradle.test', module: 'd']  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-    }
-
-    /**
-     * Exclude of transitive diamond dependency for a single path by using a combination of name exclude rules.
-     *
-     * Dependency graph:
-     * a -> b, c
-     * b -> d
-     * c -> d
-     *
-     * Exclude rules are applied to dependency "b".
-     */
-    @Unroll
-    def "transitive diamond dependency exclude for single path with matching #name"() {
-        given:
-        ivyRepo.module('d').publish()
-        ivyRepo.module('b').dependsOn('d').publish()
-        ivyRepo.module('c').dependsOn('d').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        moduleA.publish()
-
-        when:
-        succeeds 'check'
-
-        then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
-
-        where:
-        name                  | excludeAttributes                   | resolvedJars
-        //'all modules'         | [module: '*']                       | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'module'              | [module: 'd']                       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        //'org and all modules' | [org: 'org.gradle.test', name: '*'] | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'org and module'      | [org: 'org.gradle.test', name: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-    }
-
-    /**
-     * Exclude of transitive diamond dependency for all paths by using a combination of name exclude rules.
-     *
-     * Dependency graph:
-     * a -> b, c
-     * b -> d
-     * c -> d
-     *
-     * Exclude rules are applied to dependency "b".
-     */
-    @Unroll
-    def "transitive diamond dependency exclude for all paths with matching #name"() {
-        given:
-        ivyRepo.module('d').publish()
-        ivyRepo.module('b').dependsOn('d').publish()
-        ivyRepo.module('c').dependsOn('d').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        applyExcludeRuleToModuleDependency(moduleA, 'c', excludeAttributes)
-        moduleA.publish()
-
-        when:
-        succeeds 'check'
-
-        then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
-
-        where:
-        name                  | excludeAttributes                   | resolvedJars
-        //'all modules'         | [module: '*']                       | ['a-1.0.jar', 'c-1.0.jar']
-        'module'              | [module: 'd']                       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        //'org and all modules' | [org: 'org.gradle.test', name: '*'] | ['a-1.0.jar', 'c-1.0.jar']
-        'org and module'      | [org: 'org.gradle.test', name: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
@@ -331,6 +262,79 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'org, module and name'            | [org: 'org.gradle.test', module: 'd', name: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, module, name and type'      | [org: 'org.gradle.test', module: 'd', name: 'd', type: 'jar']             | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, module, name, type and ext' | [org: 'org.gradle.test', module: 'd', name: 'd', type: 'jar', ext: 'jar'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+    }
+
+    /**
+     * Transitive diamond dependency exclude for a single path by using a combination of module or name exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     *
+     * Exclude rules are applied to dependency "b".
+     */
+    @Unroll
+    def "transitive diamond dependency exclude for single path with matching #name"() {
+        given:
+        ivyRepo.module('d').publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('c').dependsOn('d').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeeds 'check'
+
+        then:
+        file('libs').assertHasDescendants(resolvedJars as String[])
+
+        where:
+        name                  | excludeAttributes                     | resolvedJars
+        //'all modules'         | [module: '*']                         | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'module'              | [module: 'd']                         | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        //'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'org and module'      | [org: 'org.gradle.test', module: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+    }
+
+    /**
+     * Transitive diamond dependency exclude for all paths by using a combination of module or name exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     *
+     * Exclude rules are applied to dependency "b".
+     */
+    @Unroll
+    def "transitive diamond dependency exclude for all paths with matching #name"() {
+        given:
+        ivyRepo.module('d').publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('c').dependsOn('d').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        applyExcludeRuleToModuleDependency(moduleA, 'c', excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeeds 'check'
+
+        then:
+        file('libs').assertHasDescendants(resolvedJars as String[])
+
+        where:
+        name                  | excludeAttributes                     | resolvedJars
+        //'all modules'         | [module: '*']                         | ['a-1.0.jar', 'c-1.0.jar']
+        'module'              | [module: 'd']                         | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        //'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar', 'c-1.0.jar']
+        'org and module'      | [org: 'org.gradle.test', module: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     private void applyExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {
