@@ -98,19 +98,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     }
 
     private void setupTwirlCompilation() {
-        final Configuration twirlConfiguration = project.getConfigurations().create(TWIRL_CONFIGURATION_NAME);
-        twirlConfiguration.setVisible(false);
+        Configuration twirlConfiguration = createConfigurationWithDefaultDependency(TWIRL_CONFIGURATION_NAME, DEFAULT_TWIRL_DEPENDENCY);
         twirlConfiguration.setDescription("The dependencies to be used Play Twirl template compilation.");
-
-        twirlConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                DependencySet dependencies = twirlConfiguration.getDependencies();
-                if (dependencies.isEmpty()) {
-                    dependencies.add(project.getDependencies().create(DEFAULT_TWIRL_DEPENDENCY));
-                }
-            }
-        });
-
         project.getTasks().withType(TwirlCompile.class).all(new Action<TwirlCompile>(){
             public void execute(TwirlCompile twirlCompile) {
                 twirlCompile.getConventionMapping().map("compilerClasspath", new Callable<FileCollection>() {
@@ -123,18 +112,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     }
 
     private void setupRoutesCompilation() {
-        final Configuration routesConfiguration = project.getConfigurations().create(PLAY_ROUTES_CONFIGURATION_NAME);
+        Configuration routesConfiguration = createConfigurationWithDefaultDependency(PLAY_ROUTES_CONFIGURATION_NAME, DEFAULT_PLAY_ROUTES_DEPENDENCY);
         routesConfiguration.setVisible(false);
         routesConfiguration.setDescription("The dependencies to be used Play Routes compilation.");
-
-        routesConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                DependencySet dependencies = routesConfiguration.getDependencies();
-                if (dependencies.isEmpty()) {
-                    dependencies.add(project.getDependencies().create(DEFAULT_PLAY_ROUTES_DEPENDENCY));
-                }
-            }
-        });
 
         project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>(){
             public void execute(RoutesCompile routesCompile) {
@@ -145,6 +125,21 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
+    }
+
+    private Configuration createConfigurationWithDefaultDependency(String configurationName, final String defaultDependency) {
+        final Configuration configuration = project.getConfigurations().create(configurationName);
+        configuration.setVisible(false);
+
+        configuration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
+            public void execute(ResolvableDependencies resolvableDependencies) {
+                DependencySet dependencies = configuration.getDependencies();
+                if (dependencies.isEmpty()) {
+                    dependencies.add(project.getDependencies().create(defaultDependency));
+                }
+            }
+        });
+        return configuration;
     }
 
     /**
