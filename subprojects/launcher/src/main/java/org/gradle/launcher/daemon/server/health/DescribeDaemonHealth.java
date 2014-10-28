@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
@@ -34,8 +33,7 @@ class DescribeDaemonHealth implements DaemonCommandAction {
 
     public void execute(DaemonCommandExecution execution) {
         //TODO SF it would be good to add some integration tests
-        if (execution.getCommand() instanceof BuildAndStop) {
-            //TODO SF push to execution and reuse
+        if (execution.isSingleUseDaemon()) {
             execution.proceed();
             return;
         }

@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server.api;
 
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.protocol.Command;
 
 import java.util.LinkedList;
@@ -119,6 +120,13 @@ public class DaemonCommandExecution {
             actions.remove(0).execute(this);
             return true;
         }
+    }
+
+    /**
+     * Informs if this execution is of single-use-daemon type
+     */
+    public boolean isSingleUseDaemon() {
+        return getCommand() instanceof BuildAndStop;
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
@@ -27,7 +26,7 @@ public class StartStopIfBuildAndStop implements DaemonCommandAction {
     private static final Logger LOGGER = Logging.getLogger(StartStopIfBuildAndStop.class);
     
     public void execute(DaemonCommandExecution execution) {
-        if (execution.getCommand() instanceof BuildAndStop) {
+        if (execution.isSingleUseDaemon()) {
             LOGGER.debug("Requesting daemon stop after processing {}", execution.getCommand());
             // Does not take effect until after execution has completed
             execution.getDaemonStateControl().requestStop();

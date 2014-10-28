@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server.health
 
-import org.gradle.launcher.daemon.protocol.BuildAndStop
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution
 import spock.lang.Specification
 
@@ -39,7 +38,7 @@ class DescribeDaemonHealthTest extends Specification {
         when: describe.execute(exec)
 
         then:
-        1 * exec.getCommand() >> Mock(BuildAndStop)
+        1 * exec.isSingleUseDaemon() >> true
         1 * exec.proceed()
         0 * _
     }
