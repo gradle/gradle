@@ -20,18 +20,4 @@ public class DaemonHealthMessages {
 
     static final String BUILDING_IN_NEW_DAEMON = "Starting build in new daemon [memory: %s]";
     static final String BUILDING_IN_EXISTING_DAEMON = "Starting %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]";
-
-    public static boolean lineMatches(String line) {
-        return line.matches(toRegEx(BUILDING_IN_NEW_DAEMON)) || line.matches(toRegEx(BUILDING_IN_EXISTING_DAEMON));
-    }
-
-    //replace %s with .+ and escape []
-    private static String toRegEx(String message) {
-        return message.replaceAll("[\\[\\]]", "\\\\$0").replaceAll("%s", ".+").replaceAll("%%", "%");
-    }
-
-    public static String filterFrom(String text) {
-        return text.replaceAll(toRegEx(BUILDING_IN_NEW_DAEMON) + "\n{0,1}", "")
-                .replaceAll(toRegEx(BUILDING_IN_EXISTING_DAEMON) + "\n{0,1}", "");
-    }
 }

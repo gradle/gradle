@@ -20,9 +20,8 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.daemon.server.health.DaemonHealthMessages
-import org.junit.Assert
 import org.gradle.util.TextUtil
+import org.junit.Assert
 
 /**
  * Check that the actual output lines match the expected output lines in content and order.
@@ -72,8 +71,6 @@ class SequentialOutputMatcher {
             } else if (!seenWarning && !Jvm.current().javaVersion.java7Compatible && line == 'Support for reading or changing file permissions is only available on this platform using Java 7 or later.') {
                 // ignore this warning once only on java < 7
                 seenWarning = true
-            } else if (DaemonHealthMessages.lineMatches(line)) {
-                //ignore
             } else {
                 result << line
             }

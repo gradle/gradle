@@ -15,9 +15,9 @@
  */
 
 package org.gradle.api.reporting.components
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.launcher.daemon.server.health.DaemonHealthMessages
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
@@ -614,7 +614,6 @@ Binaries
 
     private boolean outputMatches(String actualOutput, String expectedOutput) {
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
-        cleaned = DaemonHealthMessages.filterFrom(cleaned)
         assert cleaned == expected(expectedOutput)
         return true
     }

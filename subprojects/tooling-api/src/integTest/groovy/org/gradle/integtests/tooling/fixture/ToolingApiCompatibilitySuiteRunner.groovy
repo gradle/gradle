@@ -25,8 +25,10 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.daemon.server.health.DaemonHealthMessages
-import org.gradle.util.*
+import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
@@ -143,7 +145,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('org.gradle.test.fixtures')
             sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')
             sharedClassLoader.allowClass(OperatingSystem)
-            sharedClassLoader.allowClass(DaemonHealthMessages)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
             sharedClassLoader.allowClass(TargetGradleVersion)
