@@ -64,7 +64,7 @@ Binaries
         when:
         succeeds("assemble")
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":routesCompileMyAppBinary
+        output.contains(TextUtil.toPlatformLineSeparators(""":routesCompileMyAppBinary UP-TO-DATE
 :twirlCompileMyAppBinary UP-TO-DATE
 :scalaCompileMyAppBinary UP-TO-DATE
 :createMyAppBinaryJar

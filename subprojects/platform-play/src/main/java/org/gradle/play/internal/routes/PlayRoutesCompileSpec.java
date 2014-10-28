@@ -19,11 +19,12 @@ package org.gradle.play.internal.routes;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
-public class PlayRoutesCompileSpec implements CompileSpec {
+public class PlayRoutesCompileSpec implements CompileSpec, Serializable {
     private final Iterable<File> sources;
-    private final  File destinationDir;
+    private final File destinationDir;
     private final List<String> additionalImports;
     private final boolean generateReverseRoute;
     private final boolean generateRefReverseRouter;

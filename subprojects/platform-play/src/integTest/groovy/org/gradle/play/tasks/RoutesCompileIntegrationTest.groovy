@@ -23,7 +23,10 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
     def setup(){
         buildFile << """
         repositories{
-            jcenter()
+            ivy {
+                url "http://repo.typesafe.com/typesafe/releases/"
+                layout "maven"
+            }
         }
 
         configurations{
@@ -31,7 +34,7 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
         }
 
         dependencies{
-            playRoutes "com.typesafe.play:routes_compiler_2.10:2.3.5"
+            playRoutes "com.typesafe.play:routes-compiler_2.10:2.3.5"
         }
 
         task routesCompile(type:RoutesCompile) {

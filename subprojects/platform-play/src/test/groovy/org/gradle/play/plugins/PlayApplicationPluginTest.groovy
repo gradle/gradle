@@ -32,7 +32,7 @@ class PlayApplicationPluginTest extends Specification {
     def "adds twirl configuration with meaningful description"(){
         expect:
         project.configurations.twirl != null
-        project.configurations.twirl.description == "The dependencies to be used twirl template compilation."
+        project.configurations.twirl.description == "The dependencies to be used Play Twirl template compilation."
     }
 
     def "declares twirl default dependency"(){

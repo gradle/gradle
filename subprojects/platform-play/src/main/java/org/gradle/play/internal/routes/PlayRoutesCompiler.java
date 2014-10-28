@@ -31,7 +31,7 @@ public class PlayRoutesCompiler implements Compiler<PlayRoutesCompileSpec>, Seri
 
             Iterable<File> sources = spec.getSources();
             for (File sourceFile : sources) {
-
+                System.out.println(sourceFile.getAbsoluteFile()); //TODO
             }
         } catch (Exception e) {
             throw new RuntimeException(e.getCause());

@@ -73,7 +73,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     private void setupPlayAppCompileClasspath() {
         final Configuration playAppCompileClasspath = project.getConfigurations().create(PLAYAPP_COMPILE_CONFIGURATION_NAME);
         playAppCompileClasspath.setVisible(false);
-        playAppCompileClasspath.setDescription("The dependencies to be used for scala compilation of play application.");
+        playAppCompileClasspath.setDescription("The dependencies to be used for Scala compilation of a Play application.");
 
         playAppCompileClasspath.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
             public void execute(ResolvableDependencies resolvableDependencies) {
@@ -93,13 +93,12 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        setupRoutesCompilation();
     }
 
     private void setupTwirlCompilation() {
         final Configuration twirlConfiguration = project.getConfigurations().create(TWIRL_CONFIGURATION_NAME);
         twirlConfiguration.setVisible(false);
-        twirlConfiguration.setDescription("The dependencies to be used twirl template compilation.");
+        twirlConfiguration.setDescription("The dependencies to be used Play Twirl template compilation.");
 
         twirlConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
             public void execute(ResolvableDependencies resolvableDependencies) {
