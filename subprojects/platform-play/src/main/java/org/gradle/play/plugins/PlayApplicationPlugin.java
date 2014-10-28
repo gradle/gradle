@@ -53,12 +53,14 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
-    public static final String DEFAULT_PLAY_VERSION = "2.10-2.3.5";
-    public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_2.10:2.3.5";
-    public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_2.10:1.0.2";
+    public static final String DEFAULT_SCALA_BINARY_VERSION = "2.10";
+    public static final String DEFAULT_PLAY_VERSION = "2.3.5";
+    public static final String DEFAULT_PLAY_ID = DEFAULT_SCALA_BINARY_VERSION+"-"+DEFAULT_PLAY_VERSION;
+    public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
+    public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_"+DEFAULT_SCALA_BINARY_VERSION+":1.0.2";
     public static final String TWIRL_CONFIGURATION_NAME = "twirl";
     private static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
-    public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = "com.typesafe.play:routes-compiler_2.10:2.3.5";
+    public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = "com.typesafe.play:routes-compiler_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
     public static final String PLAY_ROUTES_CONFIGURATION_NAME = "playRoutes";
     private ProjectInternal project;
 
@@ -169,7 +171,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     JavaVersion currentJava = JavaVersion.current();
                     playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(currentJava));
-                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_VERSION, currentJava));
+                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(DEFAULT_PLAY_ID, currentJava));
                     playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
                 }
             });
