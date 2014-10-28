@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal.twirl;
 
-import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.play.internal.PlayCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * TODO for now hard wired options need to be configurable from task
  * */
-public class TwirlCompileSpec implements CompileSpec, Serializable {
+public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
     private final File sourceDirectory;
     private final Iterable<File> sources;
     private File destinationDir;
@@ -51,7 +51,7 @@ public class TwirlCompileSpec implements CompileSpec, Serializable {
         this.useOldParser = useOldParser;
     }
 
-    File getDestinationDir(){
+    public File getDestinationDir(){
         return destinationDir;
     }
 

@@ -16,14 +16,14 @@
 
 package org.gradle.play.internal.routes;
 
-import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.play.internal.PlayCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RoutesCompileSpec implements CompileSpec, Serializable {
+public class RoutesCompileSpec implements PlayCompileSpec, Serializable {
     private final Iterable<File> sources;
     private final File destinationDir;
     private final List<String> additionalImports = new ArrayList<String>();

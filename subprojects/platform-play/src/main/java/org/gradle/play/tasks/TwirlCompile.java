@@ -27,6 +27,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
@@ -117,8 +118,11 @@ public class TwirlCompile extends SourceTask {
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
         if (!inputs.isIncremental()) {
+            if(compiler==null){
+                compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs());
+            }
             TwirlCompileSpec spec = generateSpec(getSource().getFiles());
-            getCompiler().execute(spec);
+            compiler.execute(spec);
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
             inputs.outOfDate(new Action<InputFileDetails>() {
