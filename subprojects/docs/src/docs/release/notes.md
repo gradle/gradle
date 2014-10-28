@@ -77,6 +77,8 @@ See [Antlr Plugin](userguide/antlrPlugin.html) for further details.
 
 This feature was also contributed by [Rob Upcraft] (https://github.com/upcrob).
 
+### Daemon health - TODO
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
