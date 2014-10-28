@@ -58,7 +58,7 @@ class DaemonStats {
             return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(maxMemory));
         } else {
             return format("Executing %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percentOf(maxMemory, comittedMemory), NumberUtil.formatBytes(maxMemory));
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percentOf(comittedMemory, maxMemory), NumberUtil.formatBytes(maxMemory));
         }
     }
 
@@ -71,7 +71,7 @@ class DaemonStats {
 
     private static int performance(long totalTime, GCStats gcStats) {
         //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
-        return 100 - NumberUtil.percentOf(totalTime, gcStats.getCollectionTime());
+        return 100 - NumberUtil.percentOf(gcStats.getCollectionTime(), totalTime);
     }
 
 }

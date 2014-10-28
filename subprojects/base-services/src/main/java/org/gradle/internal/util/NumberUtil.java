@@ -25,10 +25,10 @@ public class NumberUtil {
 
     /**
      * Percentage (0-...) of given input.
-     * @param total the total, must be >= 0, if 0, the result will be 0.
      * @param fraction the fraction of total, must be >= 0. if 0, the result will be 100.
+     * @param total the total, must be >= 0, if 0, the result will be 0.
      */
-    public static int percentOf(long total, long fraction) {
+    public static int percentOf(long fraction, long total) {
         if (total < 0 || fraction < 0) {
             throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total
                     + ". All inputs must be >= 0");

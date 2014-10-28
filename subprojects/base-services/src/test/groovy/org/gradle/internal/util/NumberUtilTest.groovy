@@ -25,24 +25,24 @@ class NumberUtilTest extends Specification {
 
     def "knows percentage"() {
         expect:
-        percentOf(100, 0) == 0
-        percentOf(100, 1) == 1
-        percentOf(100, 99) == 99
+        percentOf(0, 100) == 0
+        percentOf(1, 100) == 1
+        percentOf(99, 100) == 99
         percentOf(100, 100) == 100
-        percentOf(100, 101) == 101
-        percentOf(200, 50) == 25
-        percentOf(200, 50) == 25
-        percentOf(301, 17) == 5
-        percentOf(0, 50) == 0
+        percentOf(101, 100) == 101
+        percentOf(50, 200) == 25
+        percentOf(50, 200) == 25
+        percentOf(17, 301) == 5
+        percentOf(50, 0) == 0
     }
 
     def "percentage does not allow negative values"() {
-        when: percentOf(-10, 50) == 0
+        when: percentOf(50, -10) == 0
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "Unable to calculate percentage: 50 of -10. All inputs must be >= 0"
 
-        when: percentOf(100, -1) == 0
+        when: percentOf(-1, 100) == 0
         then:
         ex = thrown(IllegalArgumentException)
         ex.message == "Unable to calculate percentage: -1 of 100. All inputs must be >= 0"
