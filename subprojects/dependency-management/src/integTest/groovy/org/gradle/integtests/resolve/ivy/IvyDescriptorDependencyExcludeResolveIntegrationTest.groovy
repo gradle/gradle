@@ -16,10 +16,78 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Ignore
 import spock.lang.Unroll
 
 class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDescriptorExcludeResolveIntegrationTest {
+    /**
+     * Dependency exclude by using a combination of module exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     *
+     * Exclude rules are applied to dependency "b".
+     */
+    @Ignore("Exclude does not work when applied to same module")
+    @Unroll
+    def "dependency exclude with matching #name"() {
+        given:
+        ivyRepo.module('b').publish()
+        ivyRepo.module('c').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToFirstModuleDependency(moduleA, excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeeds 'check'
+
+        then:
+        file('libs').assertHasDescendants(['a-1.0.jar', 'c-1.0.jar'] as String[])
+
+        where:
+        name                      | excludeAttributes
+        'all modules'             | [module: '*']
+        'module'                  | [module: 'b']
+        'org and all modules'     | [org: 'org.gradle.test', module: '*']
+        'org and module'          | [org: 'org.gradle.test', module: 'b']
+    }
+
+    /**
+     * Exclude of transitive dependency by using a combination of module exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> e
+     *
+     * Exclude rules are applied to dependency "b".
+     */
+    @Unroll
+    def "transitive dependency exclude with matching #name"() {
+        given:
+        ivyRepo.module('d').publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('e').publish()
+        ivyRepo.module('c').dependsOn('e').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToFirstModuleDependency(moduleA, excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeeds 'check'
+
+        then:
+        file('libs').assertHasDescendants(resolvedJars as String[])
+
+        where:
+        name                      | excludeAttributes                      | resolvedJars
+        //'all modules'             | [module: '*']                          | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'module'                  | [module: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        //'org and all modules'     | [org: 'org.gradle.test', module: '*']  | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'org and module'          | [org: 'org.gradle.test', module: 'd']  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+    }
+
     /**
      * Dependency exclude for a single artifact by using a combination of name exclude rules.
      *
@@ -34,13 +102,9 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         given:
         ivyRepo.module('b').publish()
         ivyRepo.module('c').publish()
-        ivyRepo.module('a')
-                .dependsOn('b')
-                .dependsOn('c')
-                .withXml {
-            asNode().dependencies[0].dependency[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
-        }
-        .publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToFirstModuleDependency(moduleA, excludeAttributes)
+        moduleA.publish()
 
         when:
         succeeds 'check'
@@ -82,13 +146,9 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
-        ivyRepo.module('a')
-                .dependsOn('b')
-                .dependsOn('c')
-                .withXml {
-            asNode().dependencies[0].dependency[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
-        }
-        .publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToFirstModuleDependency(moduleA, excludeAttributes)
+        moduleA.publish()
 
         when:
         succeeds 'check'
@@ -131,13 +191,9 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
-        ivyRepo.module('a')
-                .dependsOn('b')
-                .dependsOn('c')
-                .withXml {
-            asNode().dependencies[0].dependency[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
-        }
-        .publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        applyExcludeRuleToFirstModuleDependency(moduleA, excludeAttributes)
+        moduleA.publish()
 
         when:
         succeeds 'check'
@@ -176,20 +232,16 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     def "transitive dependency exclude having multiple artifacts with matching #name"() {
         given:
         ivyRepo.module('d')
-                .artifact([:])
-                .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
-                .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
-                .publish()
+               .artifact([:])
+               .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
+               .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
+               .publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
-        ivyRepo.module('a')
-                .dependsOn('b')
-                .dependsOn('c')
-                .withXml {
-            asNode().dependencies[0].dependency[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
-        }
-        .publish()
+        IvyModule moduleA = ivyRepo.module('a')
+        applyExcludeRuleToFirstModuleDependency(moduleA, excludeAttributes)
+        moduleA.publish()
 
         when:
         succeeds 'check'
@@ -210,5 +262,11 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'org, module and name'            | [org: 'org.gradle.test', module: 'd', name: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, module, name and type'      | [org: 'org.gradle.test', module: 'd', name: 'd', type: 'jar']             | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, module, name, type and ext' | [org: 'org.gradle.test', module: 'd', name: 'd', type: 'jar', ext: 'jar'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+    }
+
+    private void applyExcludeRuleToFirstModuleDependency(IvyModule module, Map<String, String> excludeAttributes) {
+        module.withXml {
+            asNode().dependencies[0].dependency[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
+        }
     }
 }
