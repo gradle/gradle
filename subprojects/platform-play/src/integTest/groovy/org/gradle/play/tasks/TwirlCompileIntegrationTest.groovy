@@ -31,7 +31,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
         }
 
         dependencies{
-            twirl "com.typesafe.play:twirl-compiler_2.11:1.0.2"
+            twirl "com.typesafe.play:twirl-compiler_2.10:1.0.2"
         }
 
         task twirlCompile(type:TwirlCompile){

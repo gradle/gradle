@@ -29,6 +29,7 @@ import org.gradle.play.internal.routes.PlayRoutesCompileSpec;
 import org.gradle.play.internal.routes.PlayRoutesCompiler;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class RoutesCompile  extends SourceTask {
     /**
      * Additional imports used for by generated files.
      */
-    private List<String> additionalImports;
+    private List<String> additionalImports = new ArrayList<String>();
 
 
     void setCompiler(Compiler<PlayRoutesCompileSpec> compiler) {
@@ -99,7 +100,7 @@ public class RoutesCompile  extends SourceTask {
      * @return The additional imports.
      */
     public void setAdditionalImports(List<String> additionalImports) {
-        this.additionalImports = additionalImports;
+        this.additionalImports.addAll(additionalImports);
     }
 
     @TaskAction

@@ -35,6 +35,8 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
 
         dependencies{
             playRoutes "com.typesafe.play:routes-compiler_2.10:2.3.5"
+            playRoutes "org.scala-lang:scala-library:2.10.4"
+            playRoutes "commons-io:commons-io:2.0.1"
         }
 
         task routesCompile(type:RoutesCompile) {
@@ -44,15 +46,46 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    /**
-     * TODO elaborate
-     * */
     def "can run RoutesCompile"(){
         given:
         withRoutesTemplate()
         expect:
         succeeds("routesCompile")
+        and:
+        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
+
+    //TODO: Add incremental functionality and stale test
+//    def "runs compiler incrementally"(){
+//        when:
+//        withRoutesTemplate()
+//        then:
+//        succeeds("routesCompile")
+//        and:
+//        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+//        def routesFirstCompileSnapshot = file("build/routes/controllers/routes.java").snapshot();
+//        def revRoutingFirstCompileSnapshot = file("build/routes/routes_reverseRouting.scala").snapshot();
+//        def routingFirstCompileSnapshot = file("build/routes/routes_routing.scala").snapshot();
+//
+//        when:
+//        withRoutesTemplate()
+//        and:
+//        succeeds("routesCompile")
+//        then:
+//        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+//        and:
+//        file("build/routes/controllers/routes.java").assertHasNotChangedSince(routesFirstCompileSnapshot)
+//        file("build/routes/routes_reverseRouting.scala").assertHasNotChangedSince(revRoutingFirstCompileSnapshot)
+//        file("build/routes/routes_routing.scala").assertHasNotChangedSince(routingFirstCompileSnapshot)
+//
+//        when:
+//        file("conf/routes").delete()
+//        then:
+//        succeeds("routesCompile")
+//        and:
+//        file("build/routes").assertHasDescendants()
+//    }
+
 
     def withRoutesTemplate() {
         def routesFile = file("conf", "routes")

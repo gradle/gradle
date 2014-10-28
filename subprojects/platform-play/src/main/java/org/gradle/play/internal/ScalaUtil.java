@@ -28,7 +28,7 @@ public class ScalaUtil {
      */
     public static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] typeParameters) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Class<?> baseClass = classLoader.loadClass(objectName+"$");
-        final Field scalaObject = baseClass.getDeclaredField("MODULE$");
+        final Field scalaObject = baseClass.getField("MODULE$");
 
         final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, typeParameters);
 
@@ -46,7 +46,7 @@ public class ScalaUtil {
             }
 
             public int hashCode() {
-                return scalaObjectMethod.hashCode() + scalaObject.hashCode(); //we had to have a hashCode here because Function requires an equals. Maybe using Function is not the best option.
+                return scalaObjectMethod.hashCode() + scalaObject.hashCode(); //This is a random hashcode. We had to have a hashCode here because Function requires an equals, but it feels wrong. Maybe using Function is not the best option.
             }
         };
         return function;

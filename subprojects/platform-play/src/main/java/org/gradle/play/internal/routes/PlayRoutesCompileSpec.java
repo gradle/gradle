@@ -20,12 +20,13 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlayRoutesCompileSpec implements CompileSpec, Serializable {
     private final Iterable<File> sources;
     private final File destinationDir;
-    private final List<String> additionalImports;
+    private final List<String> additionalImports = new ArrayList<String>();
     private final boolean generateReverseRoute;
     private final boolean generateRefReverseRouter;
     private final boolean namespaceReverseRouter;
@@ -33,7 +34,7 @@ public class PlayRoutesCompileSpec implements CompileSpec, Serializable {
     public PlayRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports) {
         this.sources = sources;
         this.destinationDir = destinationDir;
-        this.additionalImports = additionalImports;
+        this.additionalImports.addAll(additionalImports);
         generateReverseRoute = true;
         generateRefReverseRouter = true;
         namespaceReverseRouter = false;

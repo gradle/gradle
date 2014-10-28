@@ -36,7 +36,7 @@ public class DaemonRoutesCompiler extends AbstractDaemonCompiler<PlayRoutesCompi
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(PlayRoutesCompileSpec spec) {
-        List<String> routesPackages = Arrays.asList("play.router", "scala.collection");
+        List<String> routesPackages = Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching");
         return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, routesPackages);
     }
 }
