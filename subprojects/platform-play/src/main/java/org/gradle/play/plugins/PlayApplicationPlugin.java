@@ -212,8 +212,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
                     scalaCompile.setSource("app");
 
-
-                    //if (!analysisFile) {
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 
@@ -231,12 +229,14 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 }
             });
 
-            tasks.create(String.format("create%sJar", StringUtils.capitalize(binary.getName())), Jar.class, new Action<Jar>(){
+            String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
+            tasks.create(jarTaskName, Jar.class, new Action<Jar>(){
                 public void execute(Jar jar) {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
                     jar.from(compileOutputDirectory);
-
+                    jar.from("public");
+                    jar.from("conf");
                     // CollectionBuilder api currently does not allow autowiring for tasks
                     jar.dependsOn(scalaCompileTaskName);
                 }
