@@ -51,6 +51,6 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        greeting == "Executing 2nd build in daemon [uptime: 3 mins, performance: 98%, memory: 50% of 10.0 MB]"
+        greeting == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, memory: 50% of 10.0 MB]"
     }
 }

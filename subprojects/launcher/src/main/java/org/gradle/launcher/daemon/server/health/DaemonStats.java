@@ -55,9 +55,9 @@ class DaemonStats {
         ++buildCount;
         currentBuildStart = timeProvider.getCurrentTime();
         if (buildCount == 1) {
-            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(maxMemory));
+            return format(DaemonHealthMessages.BUILDING_IN_NEW_DAEMON, NumberUtil.formatBytes(maxMemory));
         } else {
-            return format("Executing %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
+            return format(DaemonHealthMessages.BUILDING_IN_EXISTING_DAEMON,
                     NumberUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percentOf(comittedMemory, maxMemory), NumberUtil.formatBytes(maxMemory));
         }
     }
