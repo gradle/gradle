@@ -242,8 +242,12 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                             assert cs.candidate.group == "org.utils"
                             assert cs.candidate.module == "api"
                         }
-                        withModule("some.other:module") { ComponentSelection cs -> }
-                        withModule("some.other:module") { ComponentSelection cs, IvyModuleDescriptor descriptor, ComponentMetadata metadata -> }
+                        withModule("some.other:module") { ComponentSelection cs ->
+                            throw new RuntimeException()
+                        }
+                        withModule("some.other:module") { ComponentSelection cs, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                            throw new RuntimeException()
+                        }
                     }
                 }
             }

@@ -39,6 +39,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(19)
         failure.assertHasCause("Could not apply component selection rule.")
         failure.assertHasCause("Could not find method foo()")
     }
@@ -63,6 +65,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(18)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
@@ -92,6 +96,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(18)
         failure.assertHasCause("Could not apply component selection rule.")
         failure.assertHasCause("From test")
     }
@@ -116,6 +122,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(18)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
@@ -143,6 +150,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(13)
         failureHasCause("Type BadRuleSource is not a valid model rule source: first parameter of rule method must be of type org.gradle.api.artifacts.ComponentSelection")
     }
 
@@ -177,6 +186,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(30)
         failure.assertHasCause("Could not apply component selection rule.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
