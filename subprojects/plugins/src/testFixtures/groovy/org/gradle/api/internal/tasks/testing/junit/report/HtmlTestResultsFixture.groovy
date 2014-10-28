@@ -180,17 +180,24 @@ class HtmlTestResultsFixture {
         def anchor = tab.select("TD").find { it.text() == className }
         return anchor?.parent()
     }
-
-    void assertHasStandardOutput(String stdout) {
-        def tab = findTab('Standard output')
+    
+    void assertHasOutput(String testName, String testOutput) {
+        def tab = findTab('Output')
         assert tab != null
-        assert tab.select("SPAN > PRE").find { it.text() == stdout.trim() }
+            
+        def name = tab.select("SPAN > H3").find { it.text() == testName }
+        assert name
+            
+        def pre = name.nextElementSibling()
+        assert pre
+        
+        assert pre.text() == testOutput.trim()
     }
-
-    void assertHasStandardError(String stderr) {
-        def tab = findTab('Standard error')
+    
+    void assertHasClassOutput(String output) {
+        def tab = findTab('Class output')
         assert tab != null
-        assert tab.select("SPAN > PRE").find { it.text() == stderr.trim() }
+        assert tab.select("SPAN > PRE").find { it.text() == output.trim() }
     }
 
     private def findTab(String title) {

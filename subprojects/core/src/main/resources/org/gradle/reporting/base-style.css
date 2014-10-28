@@ -159,3 +159,7 @@ span.code pre {
     width: auto !important;
     width: 700px;
 }
+
+span.code pre span.stderr {
+  color: red;
+}

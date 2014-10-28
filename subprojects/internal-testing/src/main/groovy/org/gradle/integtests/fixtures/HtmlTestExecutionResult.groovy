@@ -137,8 +137,21 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
             def tabs = html.select("div.tab")
-            def tab = tabs.find { it.select("h2").text() == 'Standard output' }
-            assert matcher.matches(tab ? tab.select("span > pre").first().textNodes().first().wholeText : "")
+            
+            def collectTab = { name ->
+                def tab = tabs.find { it.select("h2").text() == name }
+                if (tab) {
+                    def selection = tab.select("span > pre").clone()
+                    selection.select("span").remove()
+                    return selection.collect { it.textNodes().collect { it.wholeText }.join("") }.join("")
+                } else {
+                    return ""
+                }
+            }
+            // Collect from all available sources
+            def text = ['Class Output', 'Output'].collect { collectTab(it) }.join("")
+            
+            assert matcher.matches(text)
             return this;
         }
 
@@ -148,8 +161,19 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
             def tabs = html.select("div.tab")
-            def tab = tabs.find { it.select("h2").text() == 'Standard error' }
-            assert matcher.matches(tab ? tab.select("span > pre").first().textNodes().first().wholeText : "")
+            
+            def collectTab = { name ->
+                def tab = tabs.find { it.select("h2").text() == name }
+                if (tab) {
+                    return tab.select("span > pre > span").collect { it.textNodes().collect { it.wholeText }.join("") }.join("")
+                } else {
+                    return ""
+                }
+            }
+            // Collect from all available sources
+            def text = ['Class Output', 'Output'].collect { collectTab (it) }.join("")
+
+            assert matcher.matches(text)
             return this;
         }
 

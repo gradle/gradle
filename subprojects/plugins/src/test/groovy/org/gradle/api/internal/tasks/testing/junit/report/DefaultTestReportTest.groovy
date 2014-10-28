@@ -292,8 +292,7 @@ class DefaultTestReportTest extends Specification {
         alsoPassedClassFile.assertHasDuration("1.000s")
         alsoPassedClassFile.assertHasLinkTo('../index', 'all')
         alsoPassedClassFile.assertHasLinkTo('../packages/org.gradle.passing', 'org.gradle.passing')
-        alsoPassedClassFile.assertHasStandardOutput('this is\nstandard output')
-        alsoPassedClassFile.assertHasStandardError('this is\nstandard error')
+        alsoPassedClassFile.assertHasOutput('passedToo', 'this is\nstandard outputthis is\nstandard error')
 
         def alsoPassedTestDetails = alsoPassedClassFile.testDetails('passedToo')
         alsoPassedTestDetails.assertDuration("1.000s")
@@ -432,6 +431,35 @@ class DefaultTestReportTest extends Specification {
         def packageFile = results(reportDir.file('packages/default-package.html'))
         packageFile.assertHasLinkTo('../classes/Test', 'Test')
     }
+    
+    def multipleStdoutStderr() {
+        given:
+        def testTestResults = buildResults {
+            testClassResult("org.gradle.MultiTest") {
+                stdout "classoutput1\n"
+                stderr "classoutput2\n"
+                testcase("testCase1") {
+                    stdout "output"
+                    stderr "error"
+                    stdout "output2"
+                    stderr "error2"
+                }
+                testcase("testCase2") {
+                    stderr "case2error+"
+                    stdout "case2output"
+                }
+            }
+        }
+        when:
+        report.generateReport(testTestResults, reportDir)
+
+        then:
+        def testClassFile = results(reportDir.file('classes/org.gradle.MultiTest.html'))
+        testClassFile.assertHasClassOutput('classoutput1\nclassoutput2\n')
+        testClassFile.assertHasTest('testCase1')
+        testClassFile.assertHasOutput('testCase1', 'outputerroroutput2error2')
+        testClassFile.assertHasOutput('testCase2', 'case2error+case2output')
+    }
 
     def escapesHtmlContentInReport() {
         given:
@@ -452,8 +480,7 @@ class DefaultTestReportTest extends Specification {
         def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTest('test1 < test2')
         testClassFile.assertHasFailure('test1 < test2', '<a failure>')
-        testClassFile.assertHasStandardOutput('</html> & ')
-        testClassFile.assertHasStandardError('</div> & ')
+        testClassFile.assertHasOutput('test1 < test2', '</html> & </div> & ')
     }
 
     def encodesUnicodeCharactersInReport() {
@@ -473,8 +500,7 @@ class DefaultTestReportTest extends Specification {
         then:
         def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTest('\u0107')
-        testClassFile.assertHasStandardOutput('out:\u0256')
-        testClassFile.assertHasStandardError('err:\u0102')
+        testClassFile.assertHasOutput('\u0107', 'out:\u0256err:\u0102')
     }
 
     TestResultsProvider buildResults(Closure closure) {

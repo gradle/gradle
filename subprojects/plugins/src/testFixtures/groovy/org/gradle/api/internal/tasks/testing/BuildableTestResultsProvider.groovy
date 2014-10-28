@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider.WriterOutputEnricher;
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.ConfigureUtil
@@ -41,23 +42,44 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     }
 
     void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(id, 0, true, destination, writer)
+        doWrite(id, 0, true, destination, null, writer)
     }
+	
+	void writeAllOutput(long classId, TestResultsProvider.WriterOutputEnricher enricher, Writer writer) {
+        doWrite(id, 0, true, null, enricher, writer)
+	}
 
     void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(id, 0, false, destination, writer)
+        doWrite(id, 0, false, destination, null, writer)
+    }
+    
+    void writeNonTestOutput(long id, TestResultsProvider.WriterOutputEnricher enricher, Writer writer) {
+        doWrite(id, 0, false, null, enricher, writer)
     }
 
     void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(classId, testId, false, destination, writer)
+        doWrite(classId, testId, false, destination, null, writer)
+    }
+    
+    public void writeTestOutput(long classId, long testId, WriterOutputEnricher enricher, Writer writer) {
+        doWrite(classId, testId, false, null, enricher, writer)
     }
 
-    void doWrite(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, Writer writer) {
+    void doWrite(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, TestResultsProvider.WriterOutputEnricher enricher, Writer writer) {
         BuildableTestClassResult testCase = testClasses[classId]
         testCase.outputEvents.each { BuildableOutputEvent event ->
-            if (event.testOutputEvent.destination == destination && (allClassOutput || testId == event.testId)) {
+            if ((destination == null || event.testOutputEvent.destination == destination) && (allClassOutput || testId == event.testId)) {
+                if (enricher != null) {
+                    enricher.enrichPre(event.testId, event.testOutputEvent.destination)
+                }
                 writer.append(event.testOutputEvent.message)
+                if (enricher != null) {
+                    enricher.enrichPost(event.testId, event.testOutputEvent.destination)
+                }
             }
+        }
+        if (enricher != null) {
+            enricher.complete()
         }
     }
 
@@ -74,13 +96,17 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
         testClasses[classId]?.outputEvents?.find { it.testOutputEvent.destination == destination }
     }
+	
+	public boolean hasOutput(long classId) {
+		testClasses[classId]?.outputEvents
+	}
 
     static class BuildableOutputEvent {
         long testId
         TestOutputEvent testOutputEvent
 
         BuildableOutputEvent(long testId, TestOutputEvent testOutputEvent) {
-            this.testId = testId
+			this.testId = testId
             this.testOutputEvent = testOutputEvent
         }
     }

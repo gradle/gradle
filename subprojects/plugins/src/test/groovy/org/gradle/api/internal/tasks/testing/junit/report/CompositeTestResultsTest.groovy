@@ -145,6 +145,6 @@ class CompositeTestResultsTest extends Specification {
     }
 
     private TestResult test() {
-        return new TestResult('test', 45, new ClassTestResults(1, 'test', null))
+        return new TestResult(1, 'test', 45, new ClassTestResults(1, 'test', null))
     }
 }

@@ -53,7 +53,7 @@ public class DefaultTestReport implements TestReporter {
                 model.addTestClass(classResult.getId(), classResult.getClassName());
                 List<TestMethodResult> collectedResults = classResult.getResults();
                 for (TestMethodResult collectedResult : collectedResults) {
-                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
+                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getId(), collectedResult.getName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == SKIPPED) {
                         testResult.setIgnored();
                     } else {

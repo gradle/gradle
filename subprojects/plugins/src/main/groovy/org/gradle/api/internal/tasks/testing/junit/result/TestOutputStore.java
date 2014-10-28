@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
+
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider.WriterOutputEnricher;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.UncheckedException;
@@ -186,6 +188,20 @@ public class TestOutputStore {
             this.stdOut = stdOut;
             this.stdErr = stdErr;
         }
+        
+        private long getStart() {
+            if (stdOut.start < 0) {
+                return stdErr.start;
+            } else if (stdErr.start < 0) {
+                return stdOut.start;
+            } else {
+                return Math.min(stdOut.start, stdErr.start);
+            } 
+        }
+        
+        private long getStop() {
+            return Math.max(stdOut.stop, stdErr.stop);
+        }
     }
 
     private static class IndexBuilder {
@@ -281,7 +297,7 @@ public class TestOutputStore {
                 dataFile.close();
             }
         }
-
+        
         public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
             if (dataFile == null) {
                 return false;
@@ -295,20 +311,36 @@ public class TestOutputStore {
                 return region.start >= 0;
             }
         }
+        
+        public boolean hasOutput(long classId) {
+            return hasOutput(classId, TestOutputEvent.Destination.StdOut) || hasOutput(classId, TestOutputEvent.Destination.StdErr);
+        }
 
         public void writeAllOutput(long classId, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(classId, 0, true, destination, writer);
+            doRead(classId, 0, true, destination, null, writer);
+        }
+        
+        public void writeAllOutput(long classId, WriterOutputEnricher enricher, java.io.Writer writer) {
+            doRead(classId, 0, true, null, enricher, writer);
         }
 
         public void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(classId, 0, false, destination, writer);
+            doRead(classId, 0, false, destination, null, writer);
+        }
+        
+        public void writeNonTestOutput(long classId, WriterOutputEnricher enricher, java.io.Writer writer) {
+            doRead(classId, 0, false, null, enricher, writer);
         }
 
         public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(classId, testId, false, destination, writer);
+            doRead(classId, testId, false, destination, null, writer);
+        }
+        
+        public void writeTestOutput(long classId, long testId, WriterOutputEnricher enricher, java.io.Writer writer) {
+            doRead(classId, testId, false, null, enricher, writer);
         }
 
-        private void doRead(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
+        private void doRead(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, WriterOutputEnricher enricher, java.io.Writer writer) {
             if (dataFile == null) {
                 return;
             }
@@ -322,10 +354,22 @@ public class TestOutputStore {
                 return;
             }
 
+            boolean anyOutput = destination == null;
             boolean stdout = destination == TestOutputEvent.Destination.StdOut;
-            Region region = stdout ? targetIndex.stdOut : targetIndex.stdErr;
-
-            if (region.start < 0) {
+            
+            final long start;
+            final long stop;
+            
+            if (anyOutput) {
+                start = targetIndex.getStart();
+                stop = targetIndex.getStop();
+            } else {
+                Region region = stdout ? targetIndex.stdOut : targetIndex.stdErr;
+                start = region.start;
+                stop = region.stop;
+            }
+            
+            if (start < 0) {
                 return;
             }
 
@@ -333,8 +377,8 @@ public class TestOutputStore {
             boolean ignoreTestLevel = !allClassOutput && testId == 0;
 
             try {
-                dataFile.seek(region.start);
-                long maxPos = region.stop - region.start;
+                dataFile.seek(start);
+                long maxPos = stop - start;
                 KryoBackedDecoder decoder = new KryoBackedDecoder(new RandomAccessFileInputStream(dataFile));
                 while (decoder.getReadPosition() <= maxPos) {
                     boolean readStdout = decoder.readBoolean();
@@ -342,9 +386,10 @@ public class TestOutputStore {
                     long readTestId = decoder.readSmallLong();
                     int readLength = decoder.readSmallInt();
 
+                    TestOutputEvent.Destination readDestination = readStdout ? TestOutputEvent.Destination.StdOut : TestOutputEvent.Destination.StdErr;
                     boolean isClassLevel = readTestId == 0;
 
-                    if (stdout != readStdout || classId != readClassId) {
+                    if ((!anyOutput && stdout != readStdout) || classId != readClassId) {
                         decoder.skipBytes(readLength);
                         continue;
                     }
@@ -360,6 +405,10 @@ public class TestOutputStore {
                     }
 
                     if (testId == 0 || testId == readTestId) {
+                        if (enricher != null) {
+                            enricher.enrichPre(readTestId, readDestination);
+                        }
+
                         byte[] stringBytes = new byte[readLength];
                         decoder.readBytes(stringBytes);
                         String message;
@@ -369,11 +418,18 @@ public class TestOutputStore {
                             // shouldn't happen
                             throw UncheckedException.throwAsUncheckedException(e);
                         }
-
                         writer.write(message);
+                        
+                        if (enricher != null) {
+                            enricher.enrichPost(readTestId, destination);
+                        }
                     } else {
                         decoder.skipBytes(readLength);
                     }
+                }
+                
+                if (enricher != null) {
+                    enricher.complete();
                 }
             } catch (IOException e1) {
                 throw new UncheckedIOException(e1);

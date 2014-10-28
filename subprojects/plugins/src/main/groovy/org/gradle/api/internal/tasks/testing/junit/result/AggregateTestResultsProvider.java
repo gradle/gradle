@@ -21,7 +21,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider.WriterOutputEnricher;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -105,10 +107,26 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
                     }
                 });
     }
+    
+    public boolean hasOutput(long id) {
+        return Iterables.any(
+                classOutputProviders.get(id),
+                new Predicate<DelegateProvider>() {
+                    public boolean apply(DelegateProvider delegateProvider) {
+                        return delegateProvider.provider.hasOutput(delegateProvider.id);
+                    }
+                });
+    }
 
     public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
             delegateProvider.provider.writeAllOutput(delegateProvider.id, destination, writer);
+        }
+    }
+    
+    public void writeAllOutput(long id, WriterOutputEnricher enricher, Writer writer) {
+        for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
+            delegateProvider.provider.writeAllOutput(delegateProvider.id, enricher, writer);
         }
     }
 
@@ -125,10 +143,22 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
             delegateProvider.provider.writeNonTestOutput(delegateProvider.id, destination, writer);
         }
     }
+    
+    public void writeNonTestOutput(long id, WriterOutputEnricher enricher, Writer writer) {
+        for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
+            delegateProvider.provider.writeNonTestOutput(delegateProvider.id, enricher, writer);
+        }
+    }
 
     public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
         for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
             delegateProvider.provider.writeTestOutput(delegateProvider.id, testId, destination, writer);
+        }
+    }
+    
+    public void writeTestOutput(long classId, long testId, WriterOutputEnricher enricher, Writer writer) {
+        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
+            delegateProvider.provider.writeTestOutput(delegateProvider.id, testId, enricher, writer);
         }
     }
 

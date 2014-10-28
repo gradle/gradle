@@ -43,9 +43,9 @@ public class AllTestResults extends CompositeTestResults {
         return packages.values();
     }
 
-    public TestResult addTest(long classId, String className, String testName, long duration) {
+    public TestResult addTest(long classId, String className, long testId, String testName, long duration) {
         PackageTestResults packageResults = addPackageForClass(className);
-        return addTest(packageResults.addTest(classId, className, testName, duration));
+        return addTest(packageResults.addTest(classId, className, testId, testName, duration));
     }
 
     public ClassTestResults addTestClass(long classId, String className) {

@@ -423,6 +423,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         def junitResult = new DefaultTestExecutionResult(testDirectory)
         def testClass = junitResult.testClass("org.gradle.SystemOutTest")
+        testClass.assertStderr(containsText(""))
         testClass.assertStdout(containsText("thread 0 out"))
         testClass.assertStdout(containsText("thread 1 out"))
         testClass.assertStdout(containsText("thread 2 out"))
@@ -437,6 +438,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         def junitResult = new DefaultTestExecutionResult(testDirectory)
         def testClass = junitResult.testClass("org.gradle.SystemErrTest")
+        testClass.assertStdout(containsText(""))
         testClass.assertStderr(containsText("thread 0 err"))
         testClass.assertStderr(containsText("thread 1 err"))
         testClass.assertStderr(containsText("thread 2 err"))
