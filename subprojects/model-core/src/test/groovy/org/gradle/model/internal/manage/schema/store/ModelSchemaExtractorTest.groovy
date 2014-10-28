@@ -101,11 +101,11 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "extract single property"() {
         when:
-        def properties = extract(SingleProperty).propertyFactories*.create(null)
+        def properties = extract(SingleProperty).properties
 
         then:
         properties.size() == 1
-        properties.find { it.name == "name" }.type == ModelType.of(String)
+        properties.name.type == ModelType.of(String)
     }
 
     @Managed
@@ -239,7 +239,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "multiple properties"() {
         when:
-        def properties = extract(MultipleProps).propertyFactories*.create(null).sort { it.name }
+        def properties = extract(MultipleProps).properties.values()
 
         then:
         properties*.name == ["prop1", "prop2", "prop3"]
@@ -265,7 +265,7 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
-        extractor.extract(ModelType.of(clazz))
+        extractor.extract(ModelType.of(clazz), new ModelSchemaCache())
     }
 
     private void fail(Class<?> clazz, String msgPattern) {

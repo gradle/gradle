@@ -21,10 +21,13 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.state.ManagedModelElement;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -48,15 +51,120 @@ public class ModelSchemaExtractor {
             .put(ModelType.of(Double.TYPE), Double.class)
             .build();
 
-    public <T> ExtractedModelSchema<T> extract(ModelType<T> type) {
+    private static class WorkingSet<T> {
+        List<T> items;
+        int i = -1;
+
+        private WorkingSet(List<T> items) {
+            this.items = items;
+        }
+
+        T current() {
+            return i < items.size() ? items.get(Math.max(i, 0)) : null;
+        }
+
+        T next() {
+            ++i;
+            return current();
+        }
+
+        boolean hasNext() {
+            return i < items.size() - 1;
+        }
+    }
+
+    private static class Extraction {
+        final ModelType<?> root;
+        final Deque<WorkingSet<ModelProperty<?>>> stack = Lists.newLinkedList();
+
+        private Extraction(ModelType<?> root) {
+            this.root = root;
+        }
+
+        void push(List<ModelProperty<?>> items) {
+            if (!items.isEmpty()) {
+                stack.push(new WorkingSet<ModelProperty<?>>(items));
+            }
+        }
+
+        ModelProperty<?> next() {
+            if (stack.isEmpty()) {
+                return null;
+            } else {
+                WorkingSet<ModelProperty<?>> childSet = stack.peek();
+                if (childSet.hasNext()) {
+                    return childSet.next();
+                } else {
+                    stack.pop();
+                    return next();
+                }
+            }
+        }
+
+        List<ModelProperty<?>> getCurrentStack() {
+            List<ModelProperty<?>> currentStack = Lists.newLinkedList();
+            for (WorkingSet<ModelProperty<?>> set : stack) {
+                currentStack.add(set.current());
+            }
+            return currentStack;
+        }
+    }
+
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+        ModelSchema<T> schema = extractSchema(type, cache);
+
+        Extraction extraction = new Extraction(type);
+        pushDependencies(schema, extraction, cache);
+        ModelProperty<?> next = extraction.next();
+
+        while (next != null) {
+            ModelSchema<?> nextSchema;
+            try {
+                nextSchema = extractSchema(next.getType(), cache);
+            } catch (InvalidManagedModelElementTypeException e) {
+                InvalidManagedModelElementTypeException cause = e;
+                List<ModelProperty<?>> currentStack = extraction.getCurrentStack();
+                while (!currentStack.isEmpty()) {
+                    ModelProperty<?> previous = currentStack.remove(0);
+                    ModelType<?> owner = currentStack.isEmpty() ? type : currentStack.get(0).getType();
+                    cause = new InvalidManagedModelElementTypeException(owner, previous.getName(), cause);
+                }
+
+                throw cause;
+            }
+
+            pushDependencies(nextSchema, extraction, cache);
+            next = extraction.next();
+        }
+
+        return schema;
+    }
+
+    private <T> void pushDependencies(ModelSchema<T> schema, Extraction extraction, final ModelSchemaCache cache) {
+        cache.set(schema.getType(), schema);
+        Iterable<ModelProperty<?>> pendingProperties = Iterables.filter(schema.getProperties().values(), new Predicate<ModelProperty<?>>() {
+            public boolean apply(ModelProperty<?> input) {
+                return input.isManaged() && cache.get(input.getType()) == null;
+            }
+        });
+
+        extraction.push(Lists.newLinkedList(pendingProperties));
+    }
+
+    private <T> ModelSchema<T> extractSchema(ModelType<T> type, ModelSchemaCache cache) {
+        ModelSchema<T> cached = cache.get(type);
+        if (cached != null) {
+            return cached;
+        }
+
         validateType(type);
 
         List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
         if (methodList.isEmpty()) {
-            return new ExtractedModelSchema<T>(type, Collections.<ModelPropertyFactory<?>>emptyList());
+            return new ModelSchema<T>(type, Collections.<ModelProperty<?>>emptyList());
         }
 
-        List<ModelPropertyFactory<?>> propertyFactories = Lists.newLinkedList();
+        List<ModelProperty<?>> properties = Lists.newLinkedList();
 
         Map<String, Method> methods = Maps.newHashMap();
         for (Method method : methodList) {
@@ -79,7 +187,6 @@ public class ModelSchemaExtractor {
                     throw invalidMethod(type, methodName, "getter methods cannot take parameters");
                 }
 
-
                 Character getterPropertyNameFirstChar = methodName.charAt(3);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
                     throw invalidMethod(type, methodName, "the 4th character of the getter method name must be an uppercase character");
@@ -87,9 +194,9 @@ public class ModelSchemaExtractor {
 
                 ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
                 if (isManaged(returnType.getRawClass())) {
-                    propertyFactories.add(extractPropertyOfManagedType(type, methods, methodName, returnType, handled));
+                    properties.add(extractPropertyOfManagedType(cache, type, methods, methodName, returnType, handled));
                 } else {
-                    propertyFactories.add(extractPropertyOfUnmanagedType(type, methods, methodName, returnType, handled));
+                    properties.add(extractPropertyOfUnmanagedType(type, methods, methodName, returnType, handled));
                 }
                 iterator.remove();
             }
@@ -102,7 +209,9 @@ public class ModelSchemaExtractor {
             throw invalid(type, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "])");
         }
 
-        return new ExtractedModelSchema<T>(type, propertyFactories);
+        ModelSchema<T> schema = new ModelSchema<T>(type, properties);
+        cache.set(type, schema);
+        return schema;
     }
 
     private boolean isSupportedUnmanagedType(final ModelType<?> propertyType) {
@@ -113,7 +222,7 @@ public class ModelSchemaExtractor {
         });
     }
 
-    private <T> ModelPropertyFactory<T> extractPropertyOfUnmanagedType(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType, List<String> handled) {
+    private <T> ModelProperty<T> extractPropertyOfUnmanagedType(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType, List<String> handled) {
         Class<?> boxedType = BOXED_REPLACEMENTS.get(propertyType);
         if (boxedType != null) {
             throw invalidMethod(type, getterName, String.format("%s is not a supported property type, use %s instead", propertyType, boxedType.getName()));
@@ -133,11 +242,7 @@ public class ModelSchemaExtractor {
 
         validateSetter(type, propertyType, methods.get(setterName));
         handled.add(setterName);
-        return new ModelPropertyFactory<T>() {
-            public ModelProperty<T> create(ModelSchemaStore store) {
-                return new ModelProperty<T>(propertyName, propertyType);
-            }
-        };
+        return new ModelProperty<T>(propertyName, propertyType);
     }
 
     private <T> void validateSetter(ModelType<?> type, ModelType<T> propertyType, Method setter) {
@@ -156,8 +261,8 @@ public class ModelSchemaExtractor {
         }
     }
 
-    private <T> ModelPropertyFactory<T> extractPropertyOfManagedType(ModelType<?> type, Map<String, Method> methods, String getterName, ModelType<T> propertyType,
-                                                                     List<String> handled) {
+    private <T> ModelProperty<T> extractPropertyOfManagedType(final ModelSchemaCache schemaCache, ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType,
+                                                              List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
@@ -165,9 +270,15 @@ public class ModelSchemaExtractor {
         if (methods.containsKey(setterName)) {
             validateSetter(type, propertyType, methods.get(setterName));
             handled.add(setterName);
-            return new ManagedModelReferencePropertyFactory<T>(type, propertyType, propertyName);
+            return new ModelProperty<T>(propertyName, propertyType, true);
         } else {
-            return new ManagedModelInstancePropertyFactory<T>(type, propertyType, propertyName);
+            return new ModelProperty<T>(propertyName, propertyType, true, new Factory<T>() {
+                public T create() {
+                    ModelSchema<T> modelSchema = schemaCache.get(propertyType);
+                    return new ManagedModelElement<T>(modelSchema).createInstance();
+                }
+            });
+
         }
     }
 

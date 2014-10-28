@@ -16,41 +16,20 @@
 
 package org.gradle.model.internal.manage.schema.store
 
-import org.gradle.internal.UncheckedException
 import org.gradle.model.internal.core.ModelType
 import spock.lang.Specification
 
 class CachingModelSchemaStoreTest extends Specification {
 
-    def "runtime exceptions thrown from the backing store are unwrapped"() {
-        given:
-        def exception = new RuntimeException("from backing store")
-        def extractor = Mock(ModelSchemaExtractor) {
-            extract(_) >> { throw exception }
-        }
+    def "can get schema"() {
+        def store = new CachingModelSchemaStore(new ModelSchemaExtractor())
 
-        when:
-        new CachingModelSchemaStore(extractor).getSchema(ModelType.of(String))
+        // intentionally use two different “instances” of the same type
+        def type1 = ModelType.of(SimpleManagedType)
+        def type2 = ModelType.of(SimpleManagedType)
 
-        then:
-        RuntimeException thrown = thrown()
-        thrown == exception
+        expect:
+        store.getSchema(type1).is(store.getSchema(type2))
     }
 
-    def "checked exceptions thrown from the backing store are unwrapped"() {
-        given:
-        def exception = new Exception("from backing store")
-        def extractor = new ModelSchemaExtractor() {
-            def <T> ExtractedModelSchema<T> extract(ModelType<T> type) {
-                throw exception
-            }
-        }
-
-        when:
-        new CachingModelSchemaStore(extractor).getSchema(ModelType.of(String))
-
-        then:
-        UncheckedException thrown = thrown()
-        thrown.cause == exception
-    }
 }

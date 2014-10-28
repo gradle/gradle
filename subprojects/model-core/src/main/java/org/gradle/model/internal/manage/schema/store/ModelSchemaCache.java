@@ -16,19 +16,26 @@
 
 package org.gradle.model.internal.manage.schema.store;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 @ThreadSafe
-public class ManagedModelInstancePropertyFactory<T> extends ManagedModelPropertyFactory<T> {
-    public ManagedModelInstancePropertyFactory(ModelType<?> type, ModelType<T> propertyType, String propertyName) {
-        super(type, propertyType, propertyName);
+public class ModelSchemaCache {
+
+    private final Cache<ModelType<?>, ModelSchema<?>> cache = CacheBuilder.newBuilder().build();
+
+    @Nullable
+    public <T> ModelSchema<T> get(ModelType<T> type) {
+        return Cast.uncheckedCast(cache.getIfPresent(type));
     }
 
-    @Override
-    protected ModelProperty<T> doCreate(ModelSchema<T> modelSchema) {
-        return new ModelProperty<T>(propertyName, propertyType, true, new ManagedModelInstanceFactory<T>(modelSchema));
+    public <T> void set(ModelType<T> type, ModelSchema<T> schema) {
+        cache.put(type, schema);
     }
+
 }

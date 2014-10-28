@@ -17,12 +17,30 @@
 package org.gradle.model.internal.manage.schema;
 
 import com.google.common.collect.ImmutableSortedMap;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelType;
 
-public interface ModelSchema<T> {
+@ThreadSafe
+public class ModelSchema<T> {
 
-    public ModelType<T> getType();
+    private final ModelType<T> type;
+    private final ImmutableSortedMap<String, ModelProperty<?>> properties;
 
-    public ImmutableSortedMap<String, ModelProperty<?>> getProperties();
+    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties) {
+        this.type = type;
 
+        ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
+        for (ModelProperty<?> property : properties) {
+            builder.put(property.getName(), property);
+        }
+        this.properties = builder.build();
+    }
+
+    public ModelType<T> getType() {
+        return type;
+    }
+
+    public ImmutableSortedMap<String, ModelProperty<?>> getProperties() {
+        return properties;
+    }
 }

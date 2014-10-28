@@ -16,21 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.store;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.state.ManagedModelElement;
+import org.gradle.model.Managed;
 
-@ThreadSafe
-public class ManagedModelInstanceFactory<T> implements Factory<T> {
-    private final ModelSchema<T> modelSchema;
+@Managed
+public interface SimpleManagedType {
 
-    public ManagedModelInstanceFactory(ModelSchema<T> modelSchema) {
-        this.modelSchema = modelSchema;
-    }
+    String getName();
 
-    public T create() {
-        ManagedModelElement<T> managedModelElement = new ManagedModelElement<T>(modelSchema);
-        return managedModelElement.createInstance();
-    }
+    void setName(String name);
+
 }
