@@ -16,21 +16,115 @@
 
 package org.gradle.play.tasks;
 
-import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.routes.DaemonRoutesCompiler;
+import org.gradle.play.internal.routes.PlayRoutesCompileSpec;
+import org.gradle.play.internal.routes.PlayRoutesCompiler;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Task for compiling routes templates
  * */
-public class RoutesCompile extends DefaultTask{
+public class RoutesCompile  extends SourceTask {
 
     /**
-     * FileCollection presenting the routes compiler classpath.
+     * FileCollection presenting the twirl compiler classpath.
+     */
+    private FileCollection compilerClasspath;
+
+    /**
+     * Target directory for the compiled route files.
+     */
+    private File outputDirectory;
+
+    /**
+     * Additional imports used for by generated files.
+     */
+    private List<String> additionalImports;
+
+
+    void setCompiler(Compiler<PlayRoutesCompileSpec> compiler) {
+        this.compiler = compiler;
+    }
+
+    private Compiler<PlayRoutesCompileSpec> compiler;
+
+    @InputFiles
+    public FileCollection getCompilerClasspath() {
+        return compilerClasspath;
+    }
+
+    public void setCompilerClasspath(FileCollection compilerClasspath) {
+        this.compilerClasspath = compilerClasspath;
+    }
+
+    /**
+     * Returns the directory to generate the parser source files into.
+     *
+     * @return The output directory.
+     */
+    @OutputDirectory
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    /**
+     * Specifies the directory to generate the parser source files into.
+     *
+     * @param outputDirectory The output directory. Must not be null.
+     */
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
+
+    /**
+     * Specifies the additional imports of the Play Routes compiler.
+     */
+    public List<String> getAdditionalImports() {
+        return additionalImports;
+    }
+
+    /**
+     * Returns the additional imports of the Play Routes compiler.
+     *
+     * @return The additional imports.
+     */
+    public void setAdditionalImports(List<String> additionalImports) {
+        this.additionalImports = additionalImports;
+    }
+
+    @TaskAction
+    void compile() {
+        PlayRoutesCompileSpec spec = generateSpec();
+        getCompiler().execute(spec);
+    }
+
+    /**
+     * For now just using InProcessCompilerDaemon.
+     *
+     * TODO allow forked compiler
      * */
-    FileCollection compilerClasspath;
+    private Compiler<PlayRoutesCompileSpec> getCompiler() {
+        if (compiler == null) {
+            ProjectInternal projectInternal = (ProjectInternal) getProject();
+            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+            PlayRoutesCompiler playRoutesCompiler = new PlayRoutesCompiler();
+            compiler = new DaemonRoutesCompiler(projectInternal.getProjectDir(), playRoutesCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
 
-    @TaskAction void compile(){
+        }
+        return compiler;
+    }
 
+    private PlayRoutesCompileSpec generateSpec() {
+        return new PlayRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports());
     }
 }

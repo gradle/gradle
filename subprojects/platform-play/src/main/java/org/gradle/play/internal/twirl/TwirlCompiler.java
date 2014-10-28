@@ -20,11 +20,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.ScalaUtil;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -33,35 +32,6 @@ import java.util.ArrayList;
  *
  */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
-
-    /**
-     * Invokes a method on a scala object
-     */
-    private static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] typeParameters) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Class<?> baseClass = classLoader.loadClass(objectName+"$");
-        final Field scalaObject = baseClass.getDeclaredField("MODULE$");
-
-        final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, typeParameters);
-
-        Function<Object[], Object> function = new Function<Object[], Object>() {
-            public Object apply(Object[] args) {
-                try {
-                    return scalaObjectMethod.invoke(scalaObject.get(null), args);
-                } catch (Exception e) {
-                    throw new RuntimeException(e.getCause());
-                }
-            }
-
-            public boolean equals(Object object) {
-                return false;
-            }
-
-            public int hashCode() {
-                return scalaObjectMethod.hashCode() + scalaObject.hashCode(); //we had to have a hashCode here because Function requires an equals. Maybe using Function is not the best option.
-            }
-        };
-        return function;
-    }
 
     public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
@@ -76,7 +46,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             ClassLoader cl = getClass().getClassLoader();
             Class<?> codecClass = cl.loadClass("scala.io.Codec");
 
-            Function<Object[], Object> ioCodec = scalaObjectFunction(cl,
+            Function<Object[], Object> ioCodec = ScalaUtil.scalaObjectFunction(cl,
                     "scala.io.Codec",
                     "apply",
                     new Class<?>[]{
@@ -86,7 +56,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
                     codec
             });
 
-            Function<Object[], Object> compile = scalaObjectFunction(cl,
+            Function<Object[], Object> compile = ScalaUtil.scalaObjectFunction(cl,
                     "play.twirl.compiler.TwirlCompiler",
                     "compile",
                     new Class<?>[]{

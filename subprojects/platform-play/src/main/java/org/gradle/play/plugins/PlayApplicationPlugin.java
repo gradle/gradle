@@ -43,6 +43,7 @@ import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 /**
@@ -52,18 +53,20 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
-    public static final String DEFAULT_PLAY_VERSION = "2.11-2.3.5";
-    public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_2.11:2.3.5";
-    public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_2.11:1.0.2";
+    public static final String DEFAULT_PLAY_VERSION = "2.10-2.3.5";
+    public static final String DEFAULT_PLAY_DEPENDENCY = "com.typesafe.play:play_2.10:2.3.5";
+    public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_2.10:1.0.2";
     public static final String TWIRL_CONFIGURATION_NAME = "twirl";
     private static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
-
+    public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = "com.typesafe.play:routes-compiler_2.10:2.3.5";
+    public static final String PLAY_ROUTES_CONFIGURATION_NAME = "playRoutes";
     private ProjectInternal project;
 
     public void apply(final ProjectInternal project) {
         project.apply(WrapUtil.toMap("type", ScalaBasePlugin.class));
         this.project = project;
         setupTwirlCompilation();
+        setupRoutesCompilation();
         setupPlayAppCompileClasspath();
     }
 
@@ -90,6 +93,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
+        setupRoutesCompilation();
     }
 
     private void setupTwirlCompilation() {
@@ -111,6 +115,31 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 twirlCompile.getConventionMapping().map("compilerClasspath", new Callable<FileCollection>() {
                     public FileCollection call() throws Exception {
                         return project.getConfigurations().getByName(TWIRL_CONFIGURATION_NAME);
+                    }
+                });
+            }
+        });
+    }
+
+    private void setupRoutesCompilation() {
+        final Configuration routesConfiguration = project.getConfigurations().create(PLAY_ROUTES_CONFIGURATION_NAME);
+        routesConfiguration.setVisible(false);
+        routesConfiguration.setDescription("The dependencies to be used Play Routes compilation.");
+
+        routesConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
+            public void execute(ResolvableDependencies resolvableDependencies) {
+                DependencySet dependencies = routesConfiguration.getDependencies();
+                if (dependencies.isEmpty()) {
+                    dependencies.add(project.getDependencies().create(DEFAULT_PLAY_ROUTES_DEPENDENCY));
+                }
+            }
+        });
+
+        project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>(){
+            public void execute(RoutesCompile routesCompile) {
+                routesCompile.getConventionMapping().map("compilerClasspath", new Callable<FileCollection>() {
+                    public FileCollection call() throws Exception {
+                        return project.getConfigurations().getByName(PLAY_ROUTES_CONFIGURATION_NAME);
                     }
                 });
             }
@@ -163,6 +192,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>(){
                 public void execute(RoutesCompile routesCompile) {
+                    routesCompile.setOutputDirectory(new File(buildDir, String.format("twirl/%s", binary.getName())));
+                    routesCompile.setAdditionalImports(new ArrayList<String>());
                     binary.builtBy(routesCompile);
                 }
             });

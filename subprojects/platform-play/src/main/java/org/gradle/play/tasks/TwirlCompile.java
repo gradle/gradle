@@ -49,6 +49,11 @@ public class TwirlCompile extends SourceTask {
      * Target directory for the compiled template files.
      */
     private File outputDirectory;
+
+    /**
+     * Source directory for the template files.
+     * Used to find the relative path of templates.
+     */
     private File sourceDirectory;
 
 
@@ -90,6 +95,7 @@ public class TwirlCompile extends SourceTask {
 
     /**
      * Returns the root directory where sources are found.
+     * Used to find the relative path of templates.
      *
      * @return The root directory for sources.
      */
@@ -99,6 +105,7 @@ public class TwirlCompile extends SourceTask {
 
     /**
      * Specifies the root directory where sources are found.
+     * Used to find the relative path of templates.
      *
      * @param sourceDirectory TThe root directory for sources.
      */
