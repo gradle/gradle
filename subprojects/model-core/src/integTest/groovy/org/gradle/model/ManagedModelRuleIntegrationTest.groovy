@@ -423,7 +423,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: a")
     }
 
-    def "values of primitive types and boxed primitive types are widened as usual"() {
+    def "values of primitive types and boxed primitive types are widened as usual when using groovy"() {
         when:
         buildScript '''
             import org.gradle.model.*
@@ -466,5 +466,52 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains "from int: 123"
         output.contains "from Integer: 321"
+    }
+
+    def "values of primitive types are boxed as usual when using java"() {
+        when:
+        file('buildSrc/src/main/java/RuleSource.java') << '''
+            import org.gradle.api.*;
+            import org.gradle.model.*;
+            import org.gradle.model.collection.*;
+
+            @Managed
+            interface PrimitiveProperty {
+                Long getLongProperty();
+                void setLongProperty(Long value);
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPrimitiveProperty(PrimitiveProperty primitiveProperty) {
+                    long value = 123;
+                    primitiveProperty.setLongProperty(value);
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, final PrimitiveProperty primitiveProperty) {
+                    tasks.create("echo", new Action<Task>() {
+                        public void execute(Task task) {
+                            task.doLast(new Action<Task>() {
+                                public void execute(Task unused) {
+                                    System.out.println(String.format("value: %d", primitiveProperty.getLongProperty()));
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        '''
+
+        buildScript '''
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "value: 123"
     }
 }
