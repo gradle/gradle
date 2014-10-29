@@ -289,16 +289,21 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << """
     model {
         platforms {
-            arch {
-                // Tool chain defaults
+            platform_x86 {
+                architecture 'x86'
+            }
+            platform_x64 {
+                architecture 'x86-64'
             }
         }
     }
+    executables.main.targetPlatform "platform_x86"
+    libraries.hello.targetPlatform "platform_x86"
 """
         run "mainExecutable"
 
         when:
-        buildFile.text = buildFile.text.replace("// Tool chain defaults", "architecture 'i386'")
+        buildFile.text = buildFile.text.replace("platform_x86", "platform_x64")
         run "mainExecutable"
 
         then:
