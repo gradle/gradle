@@ -44,7 +44,7 @@ be rolled out to other incubating plugins, and later, to existing plugins in a b
 
 # Milestone 1 - Plugin uses rules to define model and tasks
 
-## Story: Plugin declares a top level model to make available
+## Story: Plugin declares a top level model to make available (DONE)
 
 Introduce some mechanism where a plugin can statically declare that a model object should be made available.
 
@@ -83,33 +83,22 @@ A mock up:
 
 ### Open issues
 
+- `@Model` is not in public API.
+- Can attach `@Model("")` to a method. Should probably complain about the empty string.
+- When an input for a creator rule cannot be bound, the error message does not include any context information.
+- When there is a cycle between creator rules, the error message complains about unbound rules instead of a cyclic dependency.
+- Int test that the constructor of a rule source plugin is not invoked until a rule from that class is required, and is invoked once only.
+- When rule source plugin constructor fails, the error message complains about a failure in the first rule from that class, instead of a failure to create the plugin.
+- When the inputs for some rule cannot be bound, search for methods that might have satisfied the requirement but which were not annotated with `@Model`.
+Or disallow methods on a rule source that are not recognised.
+- `DefaultModelRegistry` doesn't have any unit tests.
+- Project service registry is added as a model element.
+- Project build directory is added as a `File` model element. No warning when changed after use by a rule.
+- Project extension container is added as a model element. No warning when changed after use by a rule.
+- Task container is added as a `TaskContainer`, and `AbstractProject` has to synchronize changes to this into the model space.
 - Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
 
 > This is there via `ModelRegistry.element()`.
-
-- Expose models as extensions as well:
-    - Have to handle creation rules that take inputs: defer creation until the convention is used, and close the inputs at this point.
-    - Once closed, cannot mutate an object.
-    
-> Not planning on doing this. Model elements will likely be subject to restrictions to facilitate persistence.
-> For backwards compatibility, plugin authors can include a mutation rule for the model element and copy data from the extension to the model.
-> Some stories (not fleshed out) have been added to the backlog to allow extensions as rule inputs.
-    
-- Exact pattern to use to determine which model(s) a plugin exposes
-    - Alternative pattern that declares only the type and name and Gradle takes care of decoration, instantiation and dependency injection
-    
-> The pattern we've implemented is good enough for now.
-> An alternative pattern that allows Gradle to take care of the instantiation could be added later if needed. (perhaps if the method is abstract).
-> There may be persistence implications here. We may have to own construction for hydration to work.
-    
-- Should assert that every model object is decorated, however it happens to be created.
-
-> UNANSWERED - deferring until we get into the persistence side of things as that is likely to have an impact here. 
-> Also, don't really know exactly what we are going to need decoration for at this point.
-
-- Also add an API where a plugin can declare models dynamically?
-
-> Later, if the use case arises.
 
 - DSL reference documents the model.
 
@@ -126,15 +115,6 @@ A mock up:
 - How would a user verify that they got the signature/annotation correct in a unit test?
 
 > Later story.
-
-- Do we support generic types? including wildcard, covariant and contravariant types?
-
-> We support parameterized types where all variables are concrete. 
-> The method rule can't be generic so the only other possible cases are bounded types and the wildcard.
-
-- How much thread safety do we build in right now? e.g. could two plugins be registered concurrently? 
-
-> Out of scope for this story. Model rules are strictly within the project boundary and assuming serial execution at this time.
 
 ## Story: Plugin author unit tests plugin that declares model elements
 
@@ -192,7 +172,7 @@ This story will require making `ModelType` (or some facade) public.
 
 - Shortcut methods for building from a list of sources? (i.e. instead of additive builder)
 
-## Story: Plugin defines tasks using model as input
+## Story: Plugin defines tasks using model as input (DONE)
 
 Introduce some mechanism where a plugin can static declare a rule to define tasks using its model object as input.
 
@@ -237,14 +217,22 @@ A mock up:
 
 ### Open issues
 
+- `IndexOutOfBoundsException` when type parameter is left off `CollectionBuilder` in the rule parameter list.
+- `CollectionBuilder` is not part of public API.
+- `CollectionBuilder.accept` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
+- `CollectionBuilder` should have an overload that can accept a rule source class or instance, to allow the configuration rule to have its own inputs that aren't required
+when the task is declared. Should be consistent with pattern used for dependency management rules.
+- Error message when no collection builder of requested type should list available collection types.
+- `@Mutate` and `@Finalize` methods can have non-void return type.
+- `@Path("")` can be attached to a rule method parameter.
+- When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
+- Possibly introduce a new type of rule, that adds model elements to a container, rather than 'mutates' the container.
+- Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
 - Project and other things can leak out of `Task` instances when `TaskContainer` is provided to a rule.
     - Same with `Buildable` things, `BuildableModelElement`, `NativeBinaryTasks`, etc.
-- Need another type to allow task instances to be defined without being created.
-- Don't fire rule when tasks not required (eg building model via tooling API).
-- Report on unknown target for configuration closure.
-- Can take extensions as input too?
+- Don't fire task configuration rules when tasks not required (eg building model via tooling API).
 
-## Story: Build author configures task created by configuration rule supplied by plugin
+## Story: Build author configures task created by configuration rule supplied by plugin (DONE)
 
 1. Build author has prior knowledge of task name (i.e. story does not cover any documentation or tooling to allow discovery of task name)
 1. Configuration does not take any external inputs (i.e. all necessary configuration is the application of constants)
@@ -265,6 +253,13 @@ For this story, it is not necessary for the failure message to fully indicate wh
 - ~~User receives useful error message when specified task (i.e using name) is not found~~
   - ~~Error message includes names of X tasks with names closest to given name~~
 - ~~User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)~~
+
+### Open issues
+
+- Should have a sample that shows the plugin + DSL working together
+- Given that a rule creates a task called `thing` then DSL `model { tasks { thing { ... } } }` fails due to a duplicate creator rule, but succeeds when a task `thing`
+does not exist.
+- Error message for unbound rule whose subject is under `tasks` should complain about a missing task. Eg `tasks.thing` should explain that task `thing` is unknown.
 
 ## Story: Model DSL rule uses an implicitly typed model element as input via name
 
