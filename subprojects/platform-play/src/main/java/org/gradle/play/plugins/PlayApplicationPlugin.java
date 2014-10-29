@@ -62,6 +62,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_TWIRL_DEPENDENCY = "com.typesafe.play:twirl-compiler_"+DEFAULT_SCALA_BINARY_VERSION+":1.0.2";
     public static final String TWIRL_CONFIGURATION_NAME = "twirl";
     private static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
+    private static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
     public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = "com.typesafe.play:routes-compiler_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
     public static final String PLAY_ROUTES_CONFIGURATION_NAME = "playRoutes";
     public static final String PLAY_MAIN_CLASS = "play.core.server.NettyServer";
@@ -72,22 +73,12 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         this.project = project;
         setupTwirlCompilation();
         setupRoutesCompilation();
-        setupPlayAppCompileClasspath();
+        setupPlayAppClasspath();
     }
 
-    private void setupPlayAppCompileClasspath() {
-        final Configuration playAppCompileClasspath = project.getConfigurations().create(PLAYAPP_COMPILE_CONFIGURATION_NAME);
-        playAppCompileClasspath.setVisible(false);
+    private void setupPlayAppClasspath() {
+        final Configuration playAppCompileClasspath = createConfigurationWithDefaultDependency(PLAYAPP_COMPILE_CONFIGURATION_NAME, DEFAULT_PLAY_DEPENDENCY);
         playAppCompileClasspath.setDescription("The dependencies to be used for Scala compilation of a Play application.");
-
-        playAppCompileClasspath.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                DependencySet dependencies = playAppCompileClasspath.getDependencies();
-                if (dependencies.isEmpty()) {
-                    dependencies.add(project.getDependencies().create(DEFAULT_PLAY_DEPENDENCY));
-                }
-            }
-        });
 
         project.getTasks().withType(ScalaCompile.class).all(new Action<ScalaCompile>(){
             public void execute(ScalaCompile scalaCompile) {
@@ -98,6 +89,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
+
+        final Configuration playAppRuntimeClasspath = project.getConfigurations().create(PLAYAPP_RUNTIME_CONFIGURATION_NAME);
+        playAppRuntimeClasspath.extendsFrom(playAppCompileClasspath);
     }
 
     private void setupTwirlCompilation() {
@@ -251,7 +245,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         javaExec.setMain(PLAY_MAIN_CLASS);
 
                         Project project = javaExec.getProject();
-                        FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_COMPILE_CONFIGURATION_NAME));
+                        FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
                         javaExec.setClasspath(classpath);
                     }
                 });
