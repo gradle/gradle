@@ -102,6 +102,7 @@ Add a `play-application` plugin that provides Play application component:
     - map play version to compliant routes, twirl compiler
 - Should we make the BinaryRenderer generic on BinarySpec?
 - Do we provide repository setup in play support?
+- Allow forking of twirl and route compilation
 
 #### Test cases
 
