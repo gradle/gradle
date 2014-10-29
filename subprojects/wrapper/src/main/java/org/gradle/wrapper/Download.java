@@ -58,6 +58,10 @@ public class Download implements IDownload {
             int numRead;
             long progressCounter = 0;
             while ((numRead = in.read(buffer)) != -1) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.print("interrupted");
+                    throw new IOException("Download was interrupted.");
+                }
                 progressCounter += numRead;
                 if (progressCounter / PROGRESS_CHUNK > 0) {
                     System.out.print(".");

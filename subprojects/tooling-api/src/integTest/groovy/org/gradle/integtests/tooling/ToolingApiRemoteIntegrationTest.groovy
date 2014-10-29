@@ -140,14 +140,13 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
             def content = file.bytes
             for (int i = 0; i < content.length; i++) {
                 response.outputStream.write(content[i])
-                if (i == 100) {
+                if (i == 30000) { // more than one progress tick in output
                     println('call cancel')
                     tokenSource.cancel()
                     println('cancel request processed')
                     latch.await(10, TimeUnit.SECONDS)
-                } else if (i == 10000) {
-                    println('wait for test finish')
-                    latch.await(10, TimeUnit.SECONDS)
+                    println('cancel request processed')
+                    break;
                 }
             }
             println('server handler done.')
