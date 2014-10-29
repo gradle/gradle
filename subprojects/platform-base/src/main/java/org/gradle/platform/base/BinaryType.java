@@ -39,15 +39,11 @@ import java.lang.annotation.Target;
  *
  * apply plugin: MySamplePlugin
  *
- * class MySamplePlugin implements Plugin<Project> {
- *     void apply(final Project project) {}
- *
- *     {@literal @}RuleSource
- *     static class ComponentModel {
- *         {@literal @}BinaryType
- *         void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
- *             builder.defaultImplementation(DefaultSampleBinary)
- *         }
+ * {@literal @}RuleSource
+ * class MySamplePlugin {
+ *     {@literal @}BinaryType
+ *     void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
+ *         builder.defaultImplementation(DefaultSampleBinary)
  *     }
  * }
  * </pre>

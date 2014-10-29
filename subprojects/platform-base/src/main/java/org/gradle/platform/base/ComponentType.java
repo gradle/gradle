@@ -39,20 +39,16 @@ import java.lang.annotation.Target;
  *
  * apply plugin: MySamplePlugin
  *
- * class MySamplePlugin implements Plugin<Project> {
- *     void apply(final Project project) {}
+ * {@literal @}RuleSource
+ * class MySamplePlugin {
+ *     {@literal @}ComponentType
+ *     void register(ComponentTypeBuilder<SampleComponent> builder) {
+ *         builder.defaultImplementation(DefaultSampleComponent)
+ *     }
  *
- *     {@literal @}RuleSource
- *     static class Rules {
- *         {@literal @}ComponentType
- *         void register(ComponentTypeBuilder<SampleComponent> builder) {
- *             builder.defaultImplementation(DefaultSampleComponent)
- *         }
- *
- *         {@literal @}Mutate
- *         void createSampleLibraryComponents(CollectionBuilder<SampleComponent> componentSpecs) {
- *             componentSpecs.create("sampleComponent")
- *         }
+ *     {@literal @}Mutate
+ *     void createSampleLibraryComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+ *         componentSpecs.create("sampleComponent")
  *     }
  * }
  * </pre>
