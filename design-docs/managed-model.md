@@ -3,7 +3,7 @@ This is a sub stream of the “unified-configuration-model” stream.
    
 ## Stories
                                             
-### Plugin creates model element of custom, simple, type without supplying an implementation
+### ~~Plugin creates model element of custom, simple, type without supplying an implementation~~
                                             
 This story makes the following possible…
 
@@ -47,7 +47,7 @@ This story makes the following possible…
 1. Should we require that types that are designed to be managed model elements be annotated?
 2. Do we need to consider non identity based equals/hashCode at this time?
 
-### Plugin creates model element of custom, composite, type without supplying an implementation
+### ~~Plugin creates model element of custom, composite, type without supplying an implementation~~
 
     @Managed
     interface Platform {
@@ -85,7 +85,7 @@ This story makes the following possible…
 - ~~Nested element is not `@Managed` causes error~~
 - ~~Nested element violates constraints (error message indicates that it's being considered due to being nested, and indicates why enclosing class was being considered)~~
 
-### Plugin creates model element of custom, reference having, type without supplying an implementation
+### ~~Plugin creates model element of custom, reference having, type without supplying an implementation~~
 
     @Managed
     interface Platform {
@@ -127,7 +127,7 @@ This story makes the following possible…
 - ~~Calling `setOperatingSystem()` with “non managed” impl of `OperatingSystem` is a runtime error (i.e. only managed objects can be used)~~
 
 
-### Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference
+### ~~Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference~~
 
     The story makes the following possible:
     
