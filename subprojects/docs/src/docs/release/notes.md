@@ -5,7 +5,7 @@ Selection rules allow extremely fine grained, custom, conflict resolution strate
 Support for declaring module replacements allows Gradle to consider modules that have different identities but that conflict in some way during conflict resolution.
 This can be used to avoid ending up with duplicate copies of libraries at different versions due to their published coordinates changing over time or due to merging into other libraries entirely.
 
-Support for the [SonarQube](http://www.sonarqube.org) code quality management platform has significantly improved in this release. 
+Support for the [SonarQube](http://www.sonarqube.org) code quality management platform has significantly improved in this release.
 The Sonar Runner no longer runs in the build process, which allows more control over its execution (e.g. memory settings) and the use of arbitrary versions of the Sonar Runner.
 This will allow leveraging of new Sonar features without updates to the plugin and more control over how Gradle integrates with Sonar.
 
@@ -13,7 +13,7 @@ The new support for “text resources”, added to the code quality plugins (e.g
 More generally, support for “text resources” opens up new possibilities for obtaining and/or generating text to be used in the build process, typically as a file.
 While only in use by the code quality plugins at this release, this new mechanism will be leveraged by other tasks and plugins in future versions of Gradle.
 
-Gradle 2.1 previously set the high watermark for contributions to Gradle with contributions by 18 different contributors. 
+Gradle 2.1 previously set the high watermark for contributions to Gradle with contributions by 18 different contributors.
 This release raises that high watermark to contributions by 23 different contributors.
 Thank you to all who have contributed and helped to make Gradle an even better build system.
 
@@ -70,13 +70,13 @@ See the [User Guide section](userguide/dependency_management.html#component_sele
 
 ### Declaring module replacements (i)
 
-It is now possible to declare that a certain module has been replaced by some other. 
+It is now possible to declare that a certain module has been replaced by some other.
 An example of this happening in the real world is the [replacement of the Google Collections project by Google Guava](https://code.google.com/p/google-collections).
 By making Gradle aware that this happened, Gradle can consider that these modules are the same thing when resolving conflicts in the dependency graph.
-Another common example of this phenomenon is when a module changes its group or name. 
+Another common example of this phenomenon is when a module changes its group or name.
 Examples of such changes are `org.jboss.netty -> io.netty`, `spring -> spring-core` and there are many more.
- 
-Module replacement declarations can ship with as part of custom Gradle plugins and enable stronger and smarter dependency resolution for all Gradle-powered projects in the enterprise. 
+
+Module replacement declarations can ship with as part of custom Gradle plugins and enable stronger and smarter dependency resolution for all Gradle-powered projects in the enterprise.
 
 This new incubating feature is described in detail in the [User Guide](userguide/dependency_management.html#sec:module_replacement).
 
@@ -98,10 +98,10 @@ The `sonar-runner` plugin defaults to using version 2.3 of the runner.
 Upgrading to a later version is now simple:
 
     apply plugin: "sonar-runner"
-    
+
     sonarRunner {
       toolVersion = "2.4"
-      
+
       // Fine grained control over the runner process
       forkOptions {
         maxHeapSize = '1024m'
@@ -161,7 +161,7 @@ This feature was contributed by [Kallin Nagelberg](https://github.com/Kallin).
 
 The location of the local Maven repository can now be controlled by setting the system property `maven.repo.local` to the absolute path to the repo.
 This has been added for parity with Maven itself.
-This can be used to isolate the maven local repository for a particular build, without changing the location of the `~/.m2/settings.xml` which may 
+This can be used to isolate the maven local repository for a particular build, without changing the location of the `~/.m2/settings.xml` which may
 contain information to be shared by all builds.
 
 This feature was contributed by [Christoph Gritschenberger](https://github.com/ChristophGr).
@@ -171,7 +171,7 @@ This feature was contributed by [Christoph Gritschenberger](https://github.com/C
 The [OpenShift PaaS](https://www.openshift.com) environment uses a proprietary mechanism for discovering the binding address of the network interface.
 Gradle requires this information for inter process communication.
 Support has been added for this environment which now makes it possible to use Gradle with OpenShift.
-  
+
 This feature was contributed by [Colin Findlay](https://github.com/silver2k).
 
 ### Support for renaming imported Ant targets
@@ -182,7 +182,7 @@ This can be used to resolve naming collisions between Ant targets and existing G
 To do so, supply a transformer to the [`ant.importBuild()`] method that supplies the alternative name.
 
     apply plugin: "java" // adds 'clean' task
-    
+
     ant.importBuild("build.xml") {
         it == "clean" ? "ant-clean" : it
     }
@@ -194,29 +194,29 @@ This feature was contributed by [Paul Watson](https://github.com/w4tson).
 
 ### Sharing configuration files across builds (i)
 
-In previous Gradle versions, sharing external configuration files across builds (e.g. to enforce code quality standards) was difficult. 
-To support this use case, a new [`TextResource`](dsl/org.gradle.api.resources.TextResource.html) abstraction was introduced. 
+In previous Gradle versions, sharing external configuration files across builds (e.g. to enforce code quality standards) was difficult.
+To support this use case, a new [`TextResource`](dsl/org.gradle.api.resources.TextResource.html) abstraction was introduced.
 
-`TextResource`s are created using factory methods provided by [`project.resources.text`](dsl/org.gradle.api.resources.ResourceHandler.html#org.gradle.api.resources.ResourceHandler:text). 
-They can be backed by various sources such as inline strings, local text files, or archives containing text files. 
-A `TextResource` backed by an archive can then be shared across builds by publishing and resolving the archive from a binary repository, 
+`TextResource`s are created using factory methods provided by [`project.resources.text`](dsl/org.gradle.api.resources.ResourceHandler.html#org.gradle.api.resources.ResourceHandler:text).
+They can be backed by various sources such as inline strings, local text files, or archives containing text files.
+A `TextResource` backed by an archive can then be shared across builds by publishing and resolving the archive from a binary repository,
 benefiting from Gradle's standard dependency management features (e.g. dependency caching).
 
-Gradle's code quality plugins and tasks are the first to support `TextResource`. 
+Gradle's code quality plugins and tasks are the first to support `TextResource`.
 The following example shows how a Checkstyle configuration file can be sourced from different locations:
 
     apply plugin: "checkstyle"
-    
+
     configurations {
         checkstyleConfig
     }
-    
+
     dependencies {
         // a Jar/Zip/Tar archive containing one or more Checkstyle configuration files,
         // shared via a binary repository
-        checkstyleConfig "com.company:checkstyle-config:1.0@zip" 
+        checkstyleConfig "com.company:checkstyle-config:1.0@zip"
     }
-    
+
     checkstyle { // affects all Checkstyle tasks
         // sourced from inline string
         config = resources.text.fromString("""<module name="Checker">...</module>""")
@@ -227,16 +227,51 @@ The following example shows how a Checkstyle configuration file can be sourced f
         // sourced from shared archive
         config = resources.text.fromArchiveEntry(configurations.checkstyleConfig, "path/to/archive/entry.txt")
     }
-    
+
 Over time, `TextResource` will be leveraged by more existing and new Gradle APIs.
-    
+
+### Plugin to package and publish plugins
+
+The submission process for Gradle plugins is currently a work in progress, and upcoming versions
+of Gradle will provide a fully automated publishing process for plugins. Since we are not quite
+there yet, we are happy that there is the 3rd-party [plugindev plugin](https://github.com/etiennestuder/gradle-plugindev-plugin)
+that highly facilitates packaging and publishing of plugins. Thus, for the time being, we recommend to use
+the `plugindev` plugin. You can learn [here](https://github.com/etiennestuder/gradle-plugindev-plugin/blob/master/README.md) about
+how to use it.
+
+    plugins {
+        id 'nu.studer.plugindev' version '1.0.3'
+    }
+
+    group = 'org.example'
+    version = '0.0.1.DEV'
+
+    plugindev {
+        pluginImplementationClass 'org.example.gradle.foo.FooPlugin'
+        pluginDescription 'Gradle plugin that does foo.'
+        pluginLicenses 'Apache-2.0'
+        pluginTags 'gradle', 'plugin', 'foo'
+        authorId 'johnsmith'
+        authorName 'John Smith'
+        authorEmail 'john@smith.org'
+        projectUrl 'https://github.com/johnsmith/gradle-foo-plugin'
+        projectInceptionYear '2014'
+        done()
+    }
+
+    bintray {
+        user = "$BINTRAY_USER"
+        key = "$BINTRAY_API_KEY"
+        pkg.repo = 'gradle-plugins'
+    }
+
 ## Fixed issues
 
 ## Potential breaking changes
 
 ### filesMatching used in CopySpec now matches against source path rather than destination path
 
-In the example below, both `filesMatching` blocks will now match against the source path of the files under `from`. 
+In the example below, both `filesMatching` blocks will now match against the source path of the files under `from`.
 In previous versions of Gradle, the second `filesMatching` block would match against the destination path that was set by executing the first block.
 
     task copy(type: Copy) {
@@ -263,16 +298,16 @@ Tasks created as a result of `ant.importBuild()` (i.e. the recommended practice)
 
 ### Sonar Runner Plugin changes
 
-The Sonar Runner plugin now forks a new JVM to analyze the project. 
-Projects using the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) should consider setting explicitly the memory settings for the runner process. 
+The Sonar Runner plugin now forks a new JVM to analyze the project.
+Projects using the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html) should consider setting explicitly the memory settings for the runner process.
 
 Existing users of the `sonar-runner` plugin may have increased the memory allocation to the Gradle process to facilitate the Sonar Runner.
 This can now be reduced.
-    
+
 Additionally, the plugin previously mandated the use of version 2.0 of the Sonar Runner.
 The default version is now 2.3 and it is configurable.
 If you require the previous default of 2.0, you can specify this version via the project extension.
-    
+
     sonarRunner {
       toolVersion = '2.0'
     }
@@ -280,24 +315,24 @@ If you require the previous default of 2.0, you can specify this version via the
 ### Publishing plugins and Native Language Support plugins changes
 
 In previous Gradle versions it was possible to use `afterEvaluate {}` blocks to configure tasks added to the project by `"maven-publish"`, `"ivy-publish"` and Native Language Support plugins.
-These tasks are now created after execution of `afterEvaluate {}` blocks. 
-This change was necessary to continue improving the new model configuration. 
+These tasks are now created after execution of `afterEvaluate {}` blocks.
+This change was necessary to continue improving the new model configuration.
 Please use `model {}` blocks instead for that purpose, e.g.:
 
-    model { 
-        tasks.generatePomFileForMavenJavaPublication { 
-            dependsOn 'someOtherTask' 
-        } 
+    model {
+        tasks.generatePomFileForMavenJavaPublication {
+            dependsOn 'someOtherTask'
+        }
     }
 
 ### CodeNarc plugin Groovy version changes
 
 The version of Groovy that the [CodeNarc plugin](userguide/codenarc_plugin.html) uses while analyzing Groovy source code has changed in this Gradle release.
 Previously, the version of Groovy that Gradle ships with was used.
-Now, the version of Groovy that the CodeNarc tool declares as a dependency is used. 
+Now, the version of Groovy that the CodeNarc tool declares as a dependency is used.
 
 The CodeNarc implementation used by the CodeNarc plugin is defined by the `codenarc` dependency configuration, which defaults to containing the dependency `"org.codenarc:CodeNarc:0.21"`.
-This configuration is expected to provide all of CodeNarc's runtime dependencies, including the Groovy runtime (which it does by default as the CodeNarc dependency depends on `"org.codehaus.groovy:groovy-all:1.7.5"`). 
+This configuration is expected to provide all of CodeNarc's runtime dependencies, including the Groovy runtime (which it does by default as the CodeNarc dependency depends on `"org.codehaus.groovy:groovy-all:1.7.5"`).
 This should have no impact on users of the CodeNarc plugin.
 Upon first use of the CodeNarc plugin with Gradle 2.1, you may see Gradle downloading a Groovy implementation for use with the CodeNarc plugin.
 
@@ -327,7 +362,7 @@ If you were depending on these classes explicitly, you will need to update the r
 - Moved `org.gradle.api.jvm.ClassDirectoryBinarySpec` to `org.gradle.jvm.ClassDirectoryBinarySpec`
 - Moved `org.gradle.language.jvm.artifact.JavadocArtifact` to `org.gradle.language.java.artifact.JavadocArtifact`.
 
-### Using convention mapping for code quality tasks/extensions 
+### Using convention mapping for code quality tasks/extensions
 
 Using the internal convention mapping feature for one of the following properties will no longer have an effect:
 
@@ -342,7 +377,7 @@ Using the internal convention mapping feature for one of the following propertie
 
 ### Configuring code quality tasks/extensions with `File` objects representing relative paths
 
-A `File` object that represents a relative path and is used to configure one of the following properties will now be 
+A `File` object that represents a relative path and is used to configure one of the following properties will now be
 interpreted relative to the current project, rather than relative to the current working directory of the Gradle process:
 
 * org.gradle.api.plugins.quality.CheckstyleExtension#configFile
@@ -354,7 +389,7 @@ interpreted relative to the current project, rather than relative to the current
 * org.gradle.api.plugins.quality.FindBugs#includeFilter
 * org.gradle.api.plugins.quality.FindBugs#excludeFilter
 
-Note that this only affects files created with `new File("relative/path")` (which is not recommended), 
+Note that this only affects files created with `new File("relative/path")` (which is not recommended),
 but not files created with `project.file("relative/path")`.
 
 ## External contributions
@@ -371,12 +406,12 @@ We would like to thank the following community members for making contributions 
 * [Colin Findlay](https://github.com/silver2k) - OpenShift compatibility [GRADLE-2871]
 * [Paul Watson](https://github.com/w4tson) - Support for renaming Ant targets on import [GRADLE-771]
 * [Andrea Panattoni](https://github.com/zeeke) - Provide option to fork Sonar analysis [GRADLE-2587]
-* [Lóránt Pintér](https://github.com/lptr) 
+* [Lóránt Pintér](https://github.com/lptr)
     - `Action` overloads project `project.exec()` and `project.javaexec()`
     - DefaultResolutionStrategy.copy() should copy componentSelectionRules, too
 * [Clark Brewer](https://github.com/brewerc) - spelling corrections
 * [Guilherme Espada](https://github.com/GUIpsp) - allow to use OpenJDK with Gradle
-* [Harald Schmitt](https://github.com/surfing) 
+* [Harald Schmitt](https://github.com/surfing)
     - handle German-localised `readelf` when parsing output in integration tests
     - fix performance tests for Locale settings using not `.` as decimal separator
 * [Derek Eskens](https://github.com/snekse) - documentation improvements.
