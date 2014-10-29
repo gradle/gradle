@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
@@ -104,7 +105,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     public static DefaultNativePlatform getDefault() {
         OperatingSystemInternal os = new DefaultOperatingSystem(System.getProperty("os.name"), OperatingSystem.current());
-        ArchitectureInternal architecture = Architectures.forInput(Native.get(SystemInfo.class).getArchitecture().toString());
+        ArchitectureInternal architecture = getCurrentArchitecture();
 
         // TODO:DAZ This is a very limited implementation of defaults, just to get the build passing
         if (os.isWindows()) {
@@ -118,6 +119,16 @@ public class DefaultNativePlatform implements NativePlatformInternal {
             return findWithName("osx_" + architecture.getName());
         }
         return findWithName("unix_x86");
+    }
+
+    private static ArchitectureInternal getCurrentArchitecture() {
+        String architectureName;
+        try {
+            architectureName = Native.get(SystemInfo.class).getArchitectureName();
+        } catch (NativeException e) {
+            architectureName = System.getProperty("os.arch");
+        }
+        return Architectures.forInput(architectureName);
     }
 
     private static DefaultNativePlatform findWithName(final String name) {
