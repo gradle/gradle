@@ -16,15 +16,16 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.*;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * A container of {@link Platform}s.
  */
 @Incubating
 public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
-    <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets, T defaultPlatform, Set<T> defaults);
+    <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets);
 }

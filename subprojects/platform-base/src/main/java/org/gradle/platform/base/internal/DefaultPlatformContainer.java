@@ -18,7 +18,6 @@ package org.gradle.platform.base.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
@@ -29,9 +28,7 @@ import org.gradle.platform.base.PlatformContainer;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
 
@@ -51,27 +48,8 @@ public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectCont
         });
     }
 
-    public <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets, T defaultPlatform, final Set<T> defaults) {
+    public <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets) {
         NamedDomainObjectSet<T> allWithType = withType(type);
-
-        if (targets.isEmpty()) {
-            if ((allWithType.size() - 1) == defaults.size()) {
-
-                Set<T> matching = CollectionUtils.filter(allWithType, new Spec<T>() {
-                    public boolean isSatisfiedBy(T element) {
-                        return !defaults.contains(element);
-                    }
-                });
-
-                if (matching.size() == 1) {
-                    return Lists.newArrayList(matching);
-                }
-            } else if (allWithType.size() > 1 && defaultPlatform != null) {
-                return Collections.singletonList(defaultPlatform);
-            }
-
-            throw new GradleException(String.format("No element is registered for type: '%s'", type));
-        }
 
         List<T> matching = Lists.newArrayList();
         final List<String> notFound = Lists.newArrayList(targets);

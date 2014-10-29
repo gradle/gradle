@@ -98,30 +98,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-
-    def "use platform as default when only one platform is defined"() {
-        when:
-        buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "x86"
-                    }
-                }
-            }
-"""
-
-        and:
-        succeeds "assemble"
-
-        then:
-        // Platform dimension is flattened since there is only one possible value
-        executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
-    }
-
-    def "defaults to current platform if platforms are ambiguous (no targets & more than one)"() {
+    def "defaults to current platform when platforms are defined but not targeted"() {
         def arch = currentArch()
         when:
         buildFile << """
@@ -336,6 +313,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
                     }
                 }
             }
+            executables.main.targetPlatform 'unavailable'
 """
 
         and:

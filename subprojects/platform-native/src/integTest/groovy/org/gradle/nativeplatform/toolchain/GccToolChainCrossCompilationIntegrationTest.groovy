@@ -71,6 +71,11 @@ model {
             }
         }
     }
+    components {
+        all {
+            targetPlatforms "custom"
+        }
+    }
 }
 """
 

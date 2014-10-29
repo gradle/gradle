@@ -56,7 +56,9 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
                 }
             }
             executables {
-                main {}
+                main {
+                    targetPlatforms "x86"
+                }
             }
 
             """
@@ -67,8 +69,8 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         testApp                                              |   expectedOutput
         new DuplicateCBaseNamesTestApp()                     |    "foo1foo2"
         new DuplicateCppBaseNamesTestApp()                   |    "foo1foo2"
-        new DuplicateAssemblerBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)    |    "foo1foo2"
-        new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
+        new DuplicateAssemblerBaseNamesTestApp(toolChain)    |    "foo1foo2"
+        new DuplicateMixedSameBaseNamesTestApp(toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
     /**
@@ -95,8 +97,16 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         }
 
         buildFile << """
+model {
+    platforms {
+        x86 {
+            architecture "i386"
+        }
+    }
+}
 executables {
     main {
+        targetPlatforms "x86"
         sources {"""
 
         testApp.functionalSourceSets.each { name, filterPattern ->
@@ -120,13 +130,6 @@ executables {
             linker.args "-v"
         }
 
-        model {
-            platforms {
-                x86 {
-                    architecture "i386"
-                }
-            }
-        }
 
         """
         expect:

@@ -49,9 +49,7 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
@@ -60,19 +58,8 @@ import java.util.Set;
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
 
-    private static final Set<JavaPlatform> DEFAULT_PLATFORMS = instantiateJavaPlatforms();
-
     public void apply(final Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-    }
-
-    private static Set<JavaPlatform> instantiateJavaPlatforms() {
-        Set<JavaPlatform> platforms = new LinkedHashSet<JavaPlatform>();
-        for (JavaVersion javaVersion : JavaVersion.values()) {
-            DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
-            platforms.add(javaPlatform);
-        }
-        return platforms;
     }
 
     /**
@@ -120,7 +107,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Mutate
         public void createJavaPlatforms(PlatformContainer platforms) {
-            platforms.addAll(DEFAULT_PLATFORMS);
+            // TODO:DAZ Should be creating, not adding
+            for (JavaVersion javaVersion : JavaVersion.values()) {
+                DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
+                platforms.add(javaPlatform);
+            }
         }
 
         @ComponentBinaries
@@ -134,7 +125,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final Action<JarBinarySpec> initAction = Actions.composite(actions);
 
             List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
-            List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms, new DefaultJavaPlatform(JavaVersion.current()), DEFAULT_PLATFORMS);
+            if (targetPlatforms.isEmpty()) {
+                // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
+                targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
+            }
+            List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms);
             for (final JavaPlatform platform : selectedPlatforms) {
                 final JavaToolChain toolChain = toolChains.getForPlatform(platform);
                 String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);

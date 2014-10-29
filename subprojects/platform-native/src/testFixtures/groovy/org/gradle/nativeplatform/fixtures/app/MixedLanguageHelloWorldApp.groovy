@@ -39,6 +39,9 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
                     }
                 }
             }
+            componentSpecs.all {
+                it.targetPlatforms "x86"
+            }
 """
     }
 

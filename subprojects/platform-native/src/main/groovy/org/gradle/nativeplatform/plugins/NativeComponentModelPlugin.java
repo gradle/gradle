@@ -63,7 +63,6 @@ import java.util.Set;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
-    static final Set<NativePlatform> DEFAULT_PLATFORMS = instantiateDefaultPlatforms(); //TODO freekh: evaluate if we want to use NativeComponentModelPlugin or DefaultNativePlatform.defaultPlatformDefintions
 
     @Inject
     public NativeComponentModelPlugin(Instantiator instantiator) {
@@ -168,7 +167,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
-                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, DEFAULT_PLATFORMS, buildTypes, flavors);
+                    new NativeComponentSpecInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
             for (NativeComponentSpec component : nativeComponents) {
                 createBinariesAction.execute(component);
@@ -176,9 +175,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
+        @Mutate
         public void createDefaultPlatforms(PlatformContainer platforms) {
-            platforms.addAll(DEFAULT_PLATFORMS); //TODO freekh: We are not using platforms.create here, is this a problem?
+            // TODO:DAZ Should be creating, not adding
+            platforms.addAll(DefaultNativePlatform.defaultPlatformDefinitions());
         }
 
         @Finalize

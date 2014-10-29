@@ -25,6 +25,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
@@ -80,7 +81,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         then:
         one(project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
-        project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == NativeComponentModelPlugin.DEFAULT_PLATFORMS.size() + 1 //adds one to the defaults
+        project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == DefaultNativePlatform.defaultPlatformDefinitions().size() + 1 //adds one to the defaults
         one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
         one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
     }
@@ -95,6 +96,7 @@ class NativeComponentModelPluginTest extends Specification {
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         def executable = project.nativeRuntime.executables.create "test"
+        executable.targetPlatforms "platform"
         project.evaluate()
 
         then:
@@ -122,6 +124,7 @@ class NativeComponentModelPluginTest extends Specification {
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         def library = project.nativeRuntime.libraries.create "test"
+        library.targetPlatforms "platform"
         project.evaluate()
 
         then:

@@ -15,16 +15,14 @@
  */
 
 package org.gradle.language.c
-
 import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.SourceFile
 
 class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(toolChain)
 
     def "can have all source files co-located in a common directory"() {
         given:
