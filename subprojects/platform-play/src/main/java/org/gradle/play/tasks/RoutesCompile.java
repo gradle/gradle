@@ -162,6 +162,9 @@ public class RoutesCompile  extends SourceTask {
         return new RoutesCompileSpec(files, getOutputDirectory(), getAdditionalImports());
     }
 
+    void setCleaner(RoutesStaleOutputCleaner cleaner) {
+        this.cleaner = cleaner;
+    }
 
     private static class RoutesStaleOutputCleaner {
         private final File destinationDir;
