@@ -40,6 +40,12 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 myApp(PlayApplicationSpec)
             }
         }
+
+        tasks.withType(ScalaCompile) {
+            scalaCompileOptions.fork = true
+            scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
+            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+        }
 """
     }
 
@@ -88,6 +94,7 @@ Binaries
                 url = "http://repo.typesafe.com/typesafe/maven-releases"
             }
         }
+}
 """
         when:
         succeeds("assemble")
