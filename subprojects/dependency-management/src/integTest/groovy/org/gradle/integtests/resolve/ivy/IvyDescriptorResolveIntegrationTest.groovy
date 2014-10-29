@@ -174,19 +174,19 @@ task check(type: Sync) {
         succeeds "check"
 
         then:
-        def jars = ['test_exclude-1.134.jar', 'dep_module-1.134.jar'] + transitiveJars
+        def jars = ['test_exclude-1.134.jar'] + transitiveJars
         file("libs").assertHasDescendants(jars.toArray(new String[0]))
 
         where:
         name                       | excludeAttributes                          | transitiveJars
         "empty exclude"            | [:]                                        | []
-        "unmatched exclude"        | [module: "different"]                      | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-        "module exclude"           | [module: "mod_one"]                        | ['mod_two-2.2.jar']
-        "org exclude"              | [org: "org.gradle.two"]                    | ['mod_one-1.1.jar', 'mod_one-1.1.war']
-        "module and org exclude"   | [org: "org.gradle.two", module: "mod_one"] | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
-        "regex module exclude"     | [module: "mod.*"]                          | []
-        "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['mod_two-2.2.jar']
-        "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "unmatched exclude"        | [module: "different"]                      | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "module exclude"           | [module: "mod_one"]                        | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
+        "org exclude"              | [org: "org.gradle.two"]                    | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war']
+        "module and org exclude"   | [org: "org.gradle.two", module: "mod_one"] | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
+        "regex module exclude"     | [module: "mod.*"]                          | ['dep_module-1.134.jar']
+        "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
+        "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
 //  GRADLE-2674
 //        "type exclude"           | [type: "war"]                              | ['mod_one-1.1.jar', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
     }

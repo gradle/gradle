@@ -714,15 +714,29 @@ public class DependencyGraphBuilder {
             for (DependencyMetaData dependency : metaData.getDependencies()) {
                 DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
                 ModuleId targetModuleId = dependencyDescriptor.getDependencyRevisionId().getModuleId();
-                if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
-                    LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
+                if(isSelectorSatisfied(selectorSpec, targetModuleId)) {
                     continue;
                 }
                 DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, selectorSpec, resolveState);
+
+                // Verify dependency selector against itself
+                if(isSelectorSatisfied(dependencyEdge.getSelector(), targetModuleId)) {
+                    continue;
+                }
+
                 outgoingEdges.add(dependencyEdge);
                 target.add(dependencyEdge);
             }
             previousTraversal = selectorSpec;
+        }
+
+        private boolean isSelectorSatisfied(ModuleVersionSpec selector, ModuleId targetModuleId) {
+            if(!selector.isSatisfiedBy(targetModuleId)) {
+                LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
+                return true;
+            }
+
+            return false;
         }
 
         public void addIncomingEdge(DependencyEdge dependencyEdge) {

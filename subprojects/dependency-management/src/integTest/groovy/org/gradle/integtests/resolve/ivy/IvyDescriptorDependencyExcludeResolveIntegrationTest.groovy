@@ -29,14 +29,13 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      *
      * Exclude rules are applied to dependency "b".
      */
-    @Ignore("Exclude does not work when applied to same module")
     @Unroll
     def "dependency exclude with matching #name"() {
         given:
         ivyRepo.module('b').publish()
         ivyRepo.module('c').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -71,7 +70,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -82,9 +81,9 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         where:
         name                      | excludeAttributes                      | resolvedJars
-        //'all modules'             | [module: '*']                          | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'all modules'             | [module: '*']                          | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'module'                  | [module: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        //'org and all modules'     | [org: 'org.gradle.test', module: '*']  | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'org and all modules'     | [org: 'org.gradle.test', module: '*']  | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'org and module'          | [org: 'org.gradle.test', module: 'd']  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
     }
 
@@ -103,7 +102,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('b').publish()
         ivyRepo.module('c').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -147,7 +146,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -192,7 +191,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -240,7 +239,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
         IvyModule moduleA = ivyRepo.module('a')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -281,7 +280,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('c').dependsOn('d').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -292,12 +291,12 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         where:
         name                  | excludeAttributes                     | resolvedJars
-        //'all modules'         | [module: '*']                         | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'all modules'         | [module: '*']                         | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
         'module'              | [module: 'd']                         | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        //'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
         'org and module'      | [org: 'org.gradle.test', module: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        //'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        //'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
     }
 
     /**
@@ -317,8 +316,8 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('c').dependsOn('d').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        applyExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        applyExcludeRuleToModuleDependency(moduleA, 'c', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        addExcludeRuleToModuleDependency(moduleA, 'c', excludeAttributes)
         moduleA.publish()
 
         when:
@@ -329,15 +328,15 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         where:
         name                  | excludeAttributes                     | resolvedJars
-        //'all modules'         | [module: '*']                         | ['a-1.0.jar', 'c-1.0.jar']
+        'all modules'         | [module: '*']                         | ['a-1.0.jar']
         'module'              | [module: 'd']                         | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        //'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar', 'c-1.0.jar']
+        'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar']
         'org and module'      | [org: 'org.gradle.test', module: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        //'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        //'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
-    private void applyExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {
+    private void addExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {
         module.withXml {
             Node moduleDependency = asNode().dependencies[0].dependency.find { it.@name == dependencyName }
             assert moduleDependency, "Failed to find module dependency with name '$dependencyName'"
