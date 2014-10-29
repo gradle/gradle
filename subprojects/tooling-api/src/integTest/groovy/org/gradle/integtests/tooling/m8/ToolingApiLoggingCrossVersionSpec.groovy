@@ -18,9 +18,7 @@ package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.junit.Assume
-import spock.lang.Ignore
 
-@Ignore
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
