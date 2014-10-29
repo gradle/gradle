@@ -121,7 +121,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return findWithName("unix_x86");
     }
 
-    private static ArchitectureInternal getCurrentArchitecture() {
+    public static ArchitectureInternal getCurrentArchitecture() {
         String architectureName;
         try {
             architectureName = Native.get(SystemInfo.class).getArchitectureName();

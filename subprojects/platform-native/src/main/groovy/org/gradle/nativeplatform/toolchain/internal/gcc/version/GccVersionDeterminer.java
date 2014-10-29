@@ -17,11 +17,10 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import com.google.common.base.Joiner;
-import net.rubygrapefruit.platform.Native;
-import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.Architectures;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -129,6 +128,11 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             minor = toInt(defines.get("__GNUC_MINOR__"));
             patch = toInt(defines.get("__GNUC_PATCHLEVEL__"));
         }
+        final ArchitectureInternal architecture = determineArchitecture(defines);
+        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
+    }
+
+    private ArchitectureInternal determineArchitecture(Map<String, String> defines) {
         boolean i386 = defines.containsKey("__i386__");
         boolean amd64 = defines.containsKey("__amd64__");
         final ArchitectureInternal architecture;
@@ -137,10 +141,9 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         } else if (amd64) {
             architecture = Architectures.forInput("amd64");
         } else {
-            String archName = Native.get(SystemInfo.class).getArchitecture().toString();
-            architecture =  Architectures.forInput(archName);
+            architecture = DefaultNativePlatform.getCurrentArchitecture();
         }
-        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
+        return architecture;
     }
 
     private int toInt(String value) {
