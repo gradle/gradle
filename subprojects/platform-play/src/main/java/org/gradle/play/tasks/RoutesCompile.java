@@ -16,6 +16,8 @@
 
 package org.gradle.play.tasks;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
@@ -23,14 +25,18 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.routes.DaemonRoutesCompiler;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
-
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Task for compiling routes templates
@@ -58,6 +64,7 @@ public class RoutesCompile  extends SourceTask {
     }
 
     private Compiler<RoutesCompileSpec> compiler;
+    private RoutesStaleOutputCleaner cleaner;
 
     @InputFiles
     public FileCollection getCompilerClasspath() {
@@ -104,9 +111,35 @@ public class RoutesCompile  extends SourceTask {
     }
 
     @TaskAction
-    void compile() {
-        RoutesCompileSpec spec = generateSpec();
-        getCompiler().execute(spec);
+    void compile(IncrementalTaskInputs inputs) {
+        if (!inputs.isIncremental()) {
+            if(compiler==null){
+                compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
+            }
+            RoutesCompileSpec spec = generateSpec(getSource().getFiles());
+            compiler.execute(spec);
+        } else {
+            final Set<File> sourcesToCompile = new HashSet<File>();
+            inputs.outOfDate(new Action<InputFileDetails>() {
+                public void execute(InputFileDetails inputFileDetails) {
+                    sourcesToCompile.add(inputFileDetails.getFile());
+                }
+            });
+
+            final Set<File> staleOutputFiles = new HashSet<File>();
+            inputs.removed(new Action<InputFileDetails>() {
+                public void execute(InputFileDetails inputFileDetails) {
+                    staleOutputFiles.add(inputFileDetails.getFile());
+                }
+            });
+            if (cleaner == null) {
+                cleaner = new RoutesStaleOutputCleaner(getOutputDirectory());
+            }
+            cleaner.execute(staleOutputFiles);
+
+            RoutesCompileSpec spec = generateSpec(sourcesToCompile);
+            getCompiler().execute(spec);
+        }
     }
 
     /**
@@ -125,7 +158,45 @@ public class RoutesCompile  extends SourceTask {
         return compiler;
     }
 
-    private RoutesCompileSpec generateSpec() {
-        return new RoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports());
+    private RoutesCompileSpec generateSpec(Set<File> files) {
+        return new RoutesCompileSpec(files, getOutputDirectory(), getAdditionalImports());
+    }
+
+
+    private static class RoutesStaleOutputCleaner {
+        private final File destinationDir;
+
+        public RoutesStaleOutputCleaner(File destinationDir) {
+            this.destinationDir = destinationDir;
+        }
+
+        public void execute(Set<File> staleSources) {
+            for (File removedInputFile : staleSources) {
+                Set<File> staleOutputFiles = calculateOutputFiles(removedInputFile);
+                for (File staleOutputFile: staleOutputFiles) {
+                    staleOutputFile.delete();
+                }
+            }
+        }
+
+        private Set<File> getRoutesFiles(File root) {
+            return Sets.newHashSet(
+                    new File(new File(root, "controllers"), "routes.java"),
+                    new File(root, "routes_reverseRouting.scala"),
+                    new File(root, "routes_routing.scala")
+            );
+        }
+
+        Set<File> calculateOutputFiles(File inputFile) {
+            String inputFileName = inputFile.getName();
+            String[] splits = inputFileName.split("\\.");
+            if (splits.length == 1 && splits[0].equals("routes")) {
+                return getRoutesFiles(destinationDir);
+            } else if (splits.length == 2 && splits[1].equals("routes")) {
+                return getRoutesFiles(new File(destinationDir, splits[0]));
+            } else {
+                throw new IllegalArgumentException("Could not split " + inputFileName + " route compatible. Try to exclude this file (" + inputFile.getAbsolutePath()+") from Play routes.");
+            }
+        }
     }
 }
