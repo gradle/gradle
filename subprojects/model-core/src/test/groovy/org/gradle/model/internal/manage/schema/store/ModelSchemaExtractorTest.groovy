@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.store
 
 import org.gradle.model.Managed
+import org.gradle.model.collection.ManagedSet
 import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.ModelSchema
@@ -309,17 +310,68 @@ class ModelSchemaExtractorTest extends Specification {
         type << [A1, B1, C1, D1]
     }
 
-    private ModelSchema<?> extract(Class<?> clazz) {
-        extractor.extract(ModelType.of(clazz), new ModelSchemaCache())
+
+    def "type argument of a managed set has to be specified"() {
+        given:
+        def type = new ModelType<ManagedSet>() {}
+
+        expect:
+        fail type, "type parameter of $ManagedSet.name has to be specified"
     }
 
-    private void fail(Class<?> clazz, String msgPattern) {
+    def "type argument of a managed set cannot be a wildcard"() {
+        given:
+        def type = new ModelType<ManagedSet<?>>() {}
+
+        expect:
+        fail type, "type parameter of $ManagedSet.name cannot be a wildcard"
+    }
+
+    def "type argument of a managed set has to be managed"() {
+        given:
+        def type = new ModelType<ManagedSet<Object>>() {}
+
+        expect:
+        fail type, "type parameter of $ManagedSet.name has to be a managed type"
+    }
+
+    def "type argument of a managed set has to be a valid managed type"() {
+        given:
+        def type = new ModelType<ManagedSet<SetterOnly>>() {}
+
+        when:
+        extract(type)
+
+        then:
+        InvalidManagedModelElementTypeException e = thrown()
+        e.message == "Invalid managed model type $type: type parameter of $ManagedSet.name has to be a valid managed type"
+        e.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.message == "Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName])"
+    }
+
+    private ModelSchema<?> extract(ModelType<?> modelType) {
+        extractor.extract(modelType, new ModelSchemaCache())
+    }
+
+    private ModelSchema<?> extract(Class<?> clazz) {
+        extract(ModelType.of(clazz))
+    }
+
+    private void fail(def clazzOrModelType, String msgPattern) {
         try {
-            extract(clazz)
-            throw new AssertionError("schema extraction from $clazz should failed with message: $msgPattern")
+            extract(clazzOrModelType)
+            throw new AssertionError("schema extraction from ${getName(clazzOrModelType)} should failed with message: $msgPattern")
         } catch (InvalidManagedModelElementTypeException e) {
+            assert e.message.startsWith("Invalid managed model type ${getName(clazzOrModelType)}: ")
             assert e.message =~ msgPattern
         }
     }
 
+    private String getName(ModelType<?> modelType) {
+        modelType
+    }
+
+    private String getName(Class<?> clazz) {
+        clazz.name
+    }
 }

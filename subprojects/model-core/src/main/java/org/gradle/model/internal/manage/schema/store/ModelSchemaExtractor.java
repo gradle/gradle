@@ -23,6 +23,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -127,7 +128,7 @@ public class ModelSchemaExtractor {
                 while (!currentStack.isEmpty()) {
                     ModelProperty<?> previous = currentStack.remove(0);
                     ModelType<?> owner = currentStack.isEmpty() ? type : currentStack.get(0).getType();
-                    cause = new InvalidManagedModelElementTypeException(owner, previous.getName(), cause);
+                    cause = invalid(owner, String.format("managed type of property '%s' is invalid", previous.getName()), cause);
                 }
 
                 throw cause;
@@ -155,6 +156,10 @@ public class ModelSchemaExtractor {
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
             return cached;
+        }
+
+        if (type.getRawClass().equals(ManagedSet.class)) {
+            return extractManagedSetSchema(type, cache);
         }
 
         validateType(type);
@@ -210,6 +215,27 @@ public class ModelSchemaExtractor {
         ModelSchema<T> schema = new ModelSchema<T>(type, properties);
         cache.set(type, schema);
         return schema;
+    }
+
+    private <T> ModelSchema<T> extractManagedSetSchema(ModelType<T> type, ModelSchemaCache cache) {
+        List<ModelType<?>> typeVariables = type.getTypeVariables();
+
+        if (typeVariables.isEmpty()) {
+            throw invalid(type, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()));
+        }
+        if (type.isHasWildcardTypeVariables()) {
+            throw invalid(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
+        }
+        ModelType<?> typeParameter = typeVariables.get(0);
+        if (!isManaged(typeParameter.getRawClass())) {
+            throw invalid(type, String.format("type parameter of %s has to be a managed type", ManagedSet.class.getName()));
+        }
+
+        try {
+            return new ModelSchema<T>(type, Collections.<ModelProperty<?>>emptyList(), ImmutableList.<ModelSchema<?>>of(extract(typeParameter, cache)));
+        } catch (InvalidManagedModelElementTypeException e) {
+            throw invalid(type, String.format("type parameter of %s has to be a valid managed type", ManagedSet.class.getName()), e);
+        }
     }
 
     private boolean isSupportedUnmanagedType(final ModelType<?> propertyType) {
@@ -309,6 +335,10 @@ public class ModelSchemaExtractor {
 
     public <T> InvalidManagedModelElementTypeException invalid(ModelType<T> type, String message) {
         return new InvalidManagedModelElementTypeException(type, message);
+    }
+
+    private <T> InvalidManagedModelElementTypeException invalid(ModelType<T> type, String message, InvalidManagedModelElementTypeException e) {
+        return new InvalidManagedModelElementTypeException(type, message, e);
     }
 
 }

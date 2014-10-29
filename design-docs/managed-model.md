@@ -241,12 +241,11 @@ Notes:
 
 - No lifecycle management at this stage (i.e. we don't prevent reading the collection when mutating and vice versa)
 - All mutative methods of the `java.lang.Set` interface throw `UnsupportedOperationException`
-- All mutative `Set` methods throw `UnsupportedOperationException`
     
 #### Test coverage
     
-- Attempt to create collection of non managed type
-- Attempt to create collection of invalid managed type
+- ~~Attempt to create collection of non managed type~~
+- ~~Attempt to create collection of invalid managed type~~
     
 ### Model rule accepts property of managed object as input
       

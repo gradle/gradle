@@ -20,11 +20,15 @@ import org.gradle.model.internal.core.ModelType;
 
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
-    public InvalidManagedModelElementTypeException(ModelType<?> type, String message) {
-        super("Invalid managed model type " + type + ": " + message);
+    public static String getMessage(ModelType<?> type, String message) {
+        return "Invalid managed model type " + type + ": " + message;
     }
 
-    public InvalidManagedModelElementTypeException(ModelType<?> type, String propertyName, InvalidManagedModelElementTypeException cause) {
-        super(String.format("Invalid managed model type %s: managed type of property '%s' is invalid", type, propertyName), cause);
+    public InvalidManagedModelElementTypeException(ModelType<?> type, String message) {
+        super(getMessage(type, message));
+    }
+
+    public InvalidManagedModelElementTypeException(ModelType<?> type, String message, InvalidManagedModelElementTypeException cause) {
+        super(getMessage(type, message), cause);
     }
 }

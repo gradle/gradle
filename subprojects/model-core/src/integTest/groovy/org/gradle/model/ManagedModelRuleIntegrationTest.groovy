@@ -514,4 +514,55 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains "value: 123"
     }
+
+    def "rule can create a managed collection of managed model elements"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+              String getName()
+              void setName(String string)
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void people(ManagedSet<Person> people) {}
+
+              @Mutate void addPeople(ManagedSet<Person> people) {
+                people.create { it.name = "p1" }
+                people.create { it.name = "p2" }
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              people {
+                create { it.name = "p3" }
+              }
+
+              tasks {
+                create("printPeople") {
+                  it.doLast {
+                    def names = $("people")*.name.sort().join(", ")
+                    println "people: $names"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains 'people: p1, p2, p3'
+    }
 }

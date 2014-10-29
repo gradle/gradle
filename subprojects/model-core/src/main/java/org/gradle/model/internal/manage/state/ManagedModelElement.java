@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
+import org.gradle.model.collection.ManagedSet;
+import org.gradle.model.collection.internal.DefaultManagedSet;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -31,11 +34,11 @@ import java.lang.reflect.Proxy;
 @ThreadSafe
 public class ManagedModelElement<T> {
 
-    private final ModelType<T> type;
     private final ImmutableSortedMap<String, ModelPropertyInstance<?>> properties;
+    private final ModelSchema<T> schema;
 
     public ManagedModelElement(ModelSchema<T> schema) {
-        this.type = schema.getType();
+        this.schema = schema;
         ImmutableSortedMap.Builder<String, ModelPropertyInstance<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : schema.getProperties().values()) {
             builder.put(property.getName(), ModelPropertyInstance.of(property));
@@ -44,17 +47,16 @@ public class ManagedModelElement<T> {
     }
 
     public ModelType<T> getType() {
-        return type;
+        return schema.getType();
     }
 
     public <U> ModelPropertyInstance<U> get(ModelType<U> propertyType, String propertyName) {
         ModelPropertyInstance<?> modelPropertyInstance = properties.get(propertyName);
         ModelType<?> modelPropertyType = modelPropertyInstance.getMeta().getType();
         if (!modelPropertyType.equals(propertyType)) {
-            throw new UnexpectedModelPropertyTypeException(propertyName, type, propertyType, modelPropertyType);
+            throw new UnexpectedModelPropertyTypeException(propertyName, schema.getType(), propertyType, modelPropertyType);
         }
-        @SuppressWarnings("unchecked") ModelPropertyInstance<U> cast = (ModelPropertyInstance<U>) modelPropertyInstance;
-        return cast;
+        return Cast.uncheckedCast(modelPropertyInstance);
     }
 
     ImmutableSortedMap<String, ModelPropertyInstance<?>> getProperties() {
@@ -62,10 +64,21 @@ public class ManagedModelElement<T> {
     }
 
     public T createInstance() {
-        Class<T> concreteType = type.getConcreteClass();
-        Object instance = Proxy.newProxyInstance(concreteType.getClassLoader(), new Class<?>[]{concreteType, ManagedInstance.class}, new ManagedModelElementInvocationHandler());
-        @SuppressWarnings("unchecked") T typedInstance = (T) instance;
-        return typedInstance;
+        Class<T> concreteType = schema.getType().getConcreteClass();
+        if (concreteType.equals(ManagedSet.class)) {
+            return Cast.uncheckedCast(createManagedSetInstance(schema.getTypeParameterSchemas().get(0)));
+        } else {
+            return Cast.uncheckedCast(Proxy.newProxyInstance(concreteType.getClassLoader(), new Class<?>[]{concreteType, ManagedInstance.class}, new ManagedModelElementInvocationHandler()));
+        }
+    }
+
+    private <P> DefaultManagedSet<P> createManagedSetInstance(final ModelSchema<P> elementSchema) {
+        Factory<P> factory = new Factory<P>() {
+            public P create() {
+                return new ManagedModelElement<P>(elementSchema).createInstance();
+            }
+        };
+        return new DefaultManagedSet<P>(factory);
     }
 
     private class ManagedModelElementInvocationHandler implements InvocationHandler {
@@ -87,7 +100,7 @@ public class ManagedModelElement<T> {
         private <U> void setInstanceProperty(ModelType<U> propertyType, String propertyName, Object value) {
             ModelPropertyInstance<U> modelPropertyInstance = get(propertyType, propertyName);
             if (modelPropertyInstance.getMeta().isManaged() && !ManagedInstance.class.isInstance(value)) {
-                throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", propertyName, type));
+                throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", propertyName, schema.getType()));
             }
             modelPropertyInstance.set(Cast.cast(propertyType.getConcreteClass(), value));
         }
