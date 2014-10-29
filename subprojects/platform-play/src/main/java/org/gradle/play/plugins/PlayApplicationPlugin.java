@@ -24,10 +24,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
@@ -62,6 +64,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     private static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
     public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = "com.typesafe.play:routes-compiler_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
     public static final String PLAY_ROUTES_CONFIGURATION_NAME = "playRoutes";
+    public static final String PLAY_MAIN_CLASS = "play.core.server.NettyServer";
     private ProjectInternal project;
 
     public void apply(final ProjectInternal project) {
@@ -160,8 +163,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, @Path("buildDir") final File buildDir){
-            binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>(){
+        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, @Path("buildDir") final File buildDir) {
+            binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>() {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     JavaVersion currentJava = JavaVersion.current();
@@ -173,12 +176,12 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier,  @Path("buildDir") final File buildDir) {
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             final File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
             final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
 
-            tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>(){
+            tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                 public void execute(TwirlCompile twirlCompile) {
                     twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
                     twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
@@ -189,7 +192,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             });
 
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>(){
+            tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
                     routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
                     routesCompile.setAdditionalImports(new ArrayList<String>());
@@ -225,7 +228,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             });
 
             String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
-            tasks.create(jarTaskName, Jar.class, new Action<Jar>(){
+            tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
@@ -236,6 +239,23 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.dependsOn(scalaCompileTaskName);
                 }
             });
+        }
+
+        @Mutate
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
+            for(final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)){
+                String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
+                tasks.create(runTaskName, JavaExec.class, new Action<JavaExec>() {
+                    public void execute(JavaExec javaExec) {
+                        javaExec.dependsOn(binary.getBuildTask());
+                        javaExec.setMain(PLAY_MAIN_CLASS);
+
+                        Project project = javaExec.getProject();
+                        FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_COMPILE_CONFIGURATION_NAME));
+                        javaExec.setClasspath(classpath);
+                    }
+                });
+            }
         }
     }
 }
