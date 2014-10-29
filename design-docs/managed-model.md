@@ -316,10 +316,34 @@ Notes:
         }
       }
     }
-    
-### Test Coverage
+        
+#### Test Coverage
 
 (above)
+
+### Managed model interface extends other interfaces
+
+    interface Named {
+        String getName(); void setName(String name);         
+    }
+    
+    @Managed
+    interface NamedThing extends Named {
+        String getValue(); void setValue(String value);
+    }
+    
+#### Notes
+
+- Super types do not need to be annotated with `@Managed` - but are subject to the same constraints as @Managed types
+- Specialisation of a generic parent is not supported through this story (i.e. can't do `interface BookList extends List<Book>`)
+
+#### Test Coverage
+
+- Can extend more than one interface
+- Error message produced when super type is not a “manageable” type indicates the original (sub) type (and the rule that caused it to be extracted)
+- Can get/set properties of super type(s)
+- Can depend on super type as input and subject
+- Two different types can extend same parent
 
 ## Future candidate stories (unordered)
 
