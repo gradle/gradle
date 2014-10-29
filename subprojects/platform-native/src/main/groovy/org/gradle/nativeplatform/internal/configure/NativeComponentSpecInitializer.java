@@ -23,8 +23,8 @@ import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -56,7 +56,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         List<String> targetPlatformNames = targetedComponent.getTargetPlatforms();
         if (targetPlatformNames.isEmpty()) {
-            targetPlatformNames = Collections.singletonList(DefaultNativePlatform.getDefault().getName());
+            targetPlatformNames = Collections.singletonList(NativePlatforms.getDefaultName());
         }
         List<NativePlatform> targetPlatforms = platforms.chooseFromTargets(NativePlatform.class, targetPlatformNames);
 

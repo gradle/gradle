@@ -41,6 +41,7 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -53,8 +54,6 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -86,14 +85,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().add("nativeComponents", components.withType(NativeComponentSpec.class));
         project.getExtensions().add("executables", nativeExecutables);
         project.getExtensions().add("libraries", nativeLibraries);
-
-        instantiateDefaultPlatforms();
-    }
-
-    private static Set<NativePlatform> instantiateDefaultPlatforms() {
-        Set<NativePlatform> defaultPlatforms = new LinkedHashSet<NativePlatform>();
-        defaultPlatforms.addAll(DefaultNativePlatform.defaultPlatformDefinitions());
-        return defaultPlatforms;
     }
 
     /**
@@ -178,7 +169,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void createDefaultPlatforms(PlatformContainer platforms) {
             // TODO:DAZ Should be creating, not adding
-            platforms.addAll(DefaultNativePlatform.defaultPlatformDefinitions());
+            platforms.addAll(NativePlatforms.defaultPlatformDefinitions());
         }
 
         @Finalize

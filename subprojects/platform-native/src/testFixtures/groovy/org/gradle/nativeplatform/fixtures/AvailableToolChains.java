@@ -25,7 +25,6 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
@@ -84,38 +83,36 @@ public class AvailableToolChains {
      * @return A list of all known tool chains for this platform. Includes those tool chains that are not available on the current machine.
      */
     public static List<ToolChainCandidate> getToolChains() {
-        DefaultNativePlatform targetPlatform = DefaultNativePlatform.getDefault();
         if (toolChains == null) {
             List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
-            if (targetPlatform.getOperatingSystem().isWindows()) {
-                compilers.add(findVisualCpp(targetPlatform));
+            if (OperatingSystem.current().isWindows()) {
+                compilers.add(findVisualCpp());
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
             } else {
-                compilers.add(findGcc(targetPlatform));
-                compilers.add(findClang(targetPlatform));
+                compilers.add(findGcc());
+                compilers.add(findClang());
             }
             toolChains = compilers;
         }
         return toolChains;
     }
 
-    static private ToolChainCandidate findClang(NativePlatformInternal targetPlatform) {
-        File compilerExe = targetPlatform.getOperatingSystem().getInternalOs().findInPath("clang");
+    static private ToolChainCandidate findClang() {
+        File compilerExe = OperatingSystem.current().findInPath("clang");
         if (compilerExe != null) {
             return new InstalledClang();
         }
         return new UnavailableToolChain("clang");
     }
 
-    static private ToolChainCandidate findVisualCpp(NativePlatformInternal targetPlatform) {
+    static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(targetPlatform.getOperatingSystem().getInternalOs(), NativeServices.getInstance().get(WindowsRegistry.class), NativeServices.getInstance().get(SystemInfo.class));
-
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class), NativeServices.getInstance().get(SystemInfo.class));
         VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
         if (searchResult.isAvailable()) {
             VisualStudioInstall install = searchResult.getVisualStudio();
-            return new InstalledVisualCpp().withInstall(install, targetPlatform);
+            return new InstalledVisualCpp().withInstall(install);
         }
 
         return new UnavailableToolChain("visual c++");
@@ -141,14 +138,14 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc cygwin");
     }
 
-    static private ToolChainCandidate findGcc(NativePlatformInternal targetPlatform) {
+    static private ToolChainCandidate findGcc() {
         GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(new ExecActionFactory() {
             public ExecAction newExecAction() {
                 return new DefaultExecAction(TestFiles.resolver());
             }
         });
 
-        List<File> gppCandidates = targetPlatform.getOperatingSystem().getInternalOs().findAllInPath("g++");
+        List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
             GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
@@ -379,7 +376,8 @@ public class AvailableToolChains {
             return "visualCpp";
         }
 
-        public InstalledVisualCpp withInstall(VisualStudioInstall install, NativePlatformInternal targetPlatform) {
+        public InstalledVisualCpp withInstall(VisualStudioInstall install) {
+            DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVersion();
             pathEntries.addAll(install.getVisualCpp().getPath(targetPlatform));

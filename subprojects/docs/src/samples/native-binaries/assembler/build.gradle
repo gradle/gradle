@@ -30,6 +30,7 @@ model {
 // START SNIPPET assembler-args
 executables {
     main {
+        targetPlatform "x86"
         binaries.all {
             if (toolChain in VisualCpp) {
 // END SNIPPET assembler-args
