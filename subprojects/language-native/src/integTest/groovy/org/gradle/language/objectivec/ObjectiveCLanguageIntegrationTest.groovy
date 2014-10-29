@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class ObjectiveCLanguageIntegrationTest extends AbstractLanguageIntegrationTest{
 
     @Override

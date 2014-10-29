@@ -22,7 +22,7 @@ import org.gradle.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrat
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends ObjectiveCLanguageIncrementalBuildIntegrationTest{
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

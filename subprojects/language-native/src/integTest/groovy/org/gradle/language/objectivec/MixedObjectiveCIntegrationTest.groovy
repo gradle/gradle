@@ -23,7 +23,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 //TODO find a better name
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class MixedObjectiveCIntegrationTest extends AbstractLanguageIntegrationTest{
 
     @Override

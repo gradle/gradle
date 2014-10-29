@@ -25,7 +25,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
     def setupSpec(){

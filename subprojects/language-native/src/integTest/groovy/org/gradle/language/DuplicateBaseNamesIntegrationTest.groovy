@@ -134,8 +134,7 @@ executables {
         executable("build/binaries/mainExecutable/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
-    //TODO Rene: inline with testcase above once we got coverage for objective-c and objective-cpp on windows
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
         setup:
         testApp.writeSources(file("src/main"))

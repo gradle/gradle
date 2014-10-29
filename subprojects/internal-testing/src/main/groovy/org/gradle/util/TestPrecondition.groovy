@@ -116,6 +116,9 @@ enum TestPrecondition {
     }),
     CAN_INSTALL_EXECUTABLE({
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
+    }),
+    OBJECTIVE_C_SUPPORT({
+        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     });
 
     /**

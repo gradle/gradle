@@ -87,7 +87,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(cpp.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "objectiveC"() {
         given:
         sample objectiveC
@@ -102,7 +102,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executable(objectiveC.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "objectiveCpp"() {
         given:
         sample objectiveCpp
