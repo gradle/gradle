@@ -248,8 +248,80 @@ Notes:
 - Attempt to create collection of non managed type
 - Attempt to create collection of invalid managed type
     
-## Future candidate stories (unordered)
+### Model rule accepts property of managed object as input
+      
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+    }
+    
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+      }
+      
+      @Mutate void addPeople(CollectionBuilder<Task> tasks, String personName) {
+        tasks.create("injectedByType", t -> t.doLast(() -> assert personName.equals("foo"))
+      }
+    }
+    
+    model {
+      tasks {
+        create("injectedByName") {
+          it.doLast {
+            assert $("p1.name") == "foo"
+          }
+        }
+      }
+    }
+    
+### Test Coverage
 
+- Can inject leaf type property (e.g. String, Number)
+- Can inject node type property (i.e. another managed type with properties)
+- Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`) 
+- Can inject by “path”
+- Can inject by “type”
+
+### Model rule mutates property of managed object
+      
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+      Person getMother();
+      Person getFather();
+    }
+    
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+      }
+      
+      @Mutate void setFather(@Path("p1.father") Person father) {
+        father.setName("father")
+      }
+    }
+    
+    model {
+      p1.mother { name = "mother" }
+      tasks {
+        create("test") {
+          it.doLast {
+            def p1 = $("p1")
+            assert p1.mother.name == "mother"
+            assert p1.father.name == "father"
+          }
+        }
+      }
+    }
+    
+### Test Coverage
+
+(above)
+
+## Future candidate stories (unordered)
 
 ### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation
 
@@ -271,4 +343,41 @@ i.e. Something like the current scenario with `Platform.operatingSystem`. There 
  
 ### Plugin creates item of managed type in collection property of unmanaged type
  
-> Need to find a use case for this to see if it's needed (i.e. do we mix managed/unmanaged) types 
+> Need to find a use case for this to see if it's needed (i.e. do we mix managed/unmanaged) types
+ 
+### Model rule creates property of managed object
+
+   @Managed
+    interface Person {
+      String getName(); void setName(String string)
+      Person getFather();
+    }
+    
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+      }
+      
+      @Model("p1.father")
+      void father(Person father) {
+        father.setName("father")
+      }
+    }
+    
+    model {
+      tasks {
+        create("test") {
+          it.doLast {
+            def p1 = $("p1")
+            assert p1.father.name == "father"
+          }
+        }
+      }
+    }
+
+#### Notes
+
+Haven't identified a real use case for this yet. 
+In theory, it allows avoiding creating the nested property if it's not needed.
+However, given our current capabilities there's no real useful case for this.
