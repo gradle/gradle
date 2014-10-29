@@ -21,6 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
+    def destinationDirPath = "build/routes/"
+    def destinationDir = file(destinationDirPath)
+
     def setup(){
         buildFile << """
         repositories{
@@ -53,7 +56,7 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("routesCompile")
         and:
-        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
 
     def "runs compiler incrementally"(){
@@ -62,54 +65,48 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds("routesCompile")
         and:
-        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-        def routesFirstCompileSnapshot = file("build/routes/controllers/routes.java").snapshot();
-        def revRoutingFirstCompileSnapshot = file("build/routes/routes_reverseRouting.scala").snapshot();
-        def routingFirstCompileSnapshot = file("build/routes/routes_routing.scala").snapshot();
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
 
         withRoutesTemplate("foo")
         and:
         succeeds("routesCompile")
         then:
-        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-        and:
-        file("build/routes/controllers/routes.java").assertHasNotChangedSince(routesFirstCompileSnapshot)
-        file("build/routes/routes_reverseRouting.scala").assertHasNotChangedSince(revRoutingFirstCompileSnapshot)
-        file("build/routes/routes_routing.scala").assertHasNotChangedSince(routingFirstCompileSnapshot)
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala",
+                "controllers/foo/routes.java", "foo/routes_reverseRouting.scala", "foo/routes_routing.scala")
 
         when:
         file("conf/foo.routes").delete()
         then:
         succeeds("routesCompile")
         and:
-        file("build/routes/foo").assertHasDescendants()
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
 
     def "removes stale output files in incremental compile"(){
         given:
-        TestFile file = withRoutesTemplate()
+        TestFile templateFile = withRoutesTemplate()
         succeeds("routesCompile")
 
         and:
-        file("build/routes").assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
-        def routesFirstCompileSnapshot = file("build/routes/controllers/routes.java").snapshot();
-        def revRoutingFirstCompileSnapshot = file("build/routes/routes_reverseRouting.scala").snapshot();
-        def routingFirstCompileSnapshot = file("build/routes/routes_routing.scala").snapshot();
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        def routesFirstCompileSnapshot = file(destinationDirPath, "controllers/routes.java").snapshot();
+        def revRoutingFirstCompileSnapshot = file(destinationDirPath, "routes_reverseRouting.scala").snapshot();
+        def routingFirstCompileSnapshot = file(destinationDirPath, "routes_routing.scala").snapshot();
 
         when:
-        file.delete()
+        templateFile.delete()
 
         then:
         succeeds("routesCompile")
         and:
-        file("build/routes/controllers/routes.java").assertHasNotChangedSince(routesFirstCompileSnapshot);
-        file("build/routes/routes_reverseRouting.scala").assertHasNotChangedSince(revRoutingFirstCompileSnapshot);
-        file("build/routes/routes_routing.scala").assertHasNotChangedSince(routingFirstCompileSnapshot);
+        file(destinationDirPath, "controllers/routes.java").assertHasNotChangedSince(routesFirstCompileSnapshot);
+        file(destinationDirPath, "routes_reverseRouting.scala").assertHasNotChangedSince(revRoutingFirstCompileSnapshot);
+        file(destinationDirPath, "routes_routing.scala").assertHasNotChangedSince(routingFirstCompileSnapshot);
     }
 
     def withRoutesTemplate(String packageName = "") {
         def routesFile = packageName.isEmpty() ? file("conf", "routes") : file("conf", packageName + ".routes")
-
+        def packageId = packageName.isEmpty() ? "" : ".$packageName"
         routesFile.createFile()
         routesFile << """
 # Routes
@@ -117,7 +114,7 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
 # ~~~~
 
 # Home page
-GET     /                          controllers.Application.index()
+GET     /                          controllers${packageId}.Application.index()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

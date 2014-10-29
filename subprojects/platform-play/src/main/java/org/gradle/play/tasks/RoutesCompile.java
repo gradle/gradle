@@ -111,35 +111,12 @@ public class RoutesCompile  extends SourceTask {
     }
 
     @TaskAction
-    void compile(IncrementalTaskInputs inputs) {
-        if (!inputs.isIncremental()) {
-            if(compiler==null){
-                compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
-            }
-            RoutesCompileSpec spec = generateSpec(getSource().getFiles());
-            compiler.execute(spec);
-        } else {
-            final Set<File> sourcesToCompile = new HashSet<File>();
-            inputs.outOfDate(new Action<InputFileDetails>() {
-                public void execute(InputFileDetails inputFileDetails) {
-                    sourcesToCompile.add(inputFileDetails.getFile());
-                }
-            });
-
-            final Set<File> staleOutputFiles = new HashSet<File>();
-            inputs.removed(new Action<InputFileDetails>() {
-                public void execute(InputFileDetails inputFileDetails) {
-                    staleOutputFiles.add(inputFileDetails.getFile());
-                }
-            });
-            if (cleaner == null) {
-                cleaner = new RoutesStaleOutputCleaner(getOutputDirectory());
-            }
-            cleaner.execute(staleOutputFiles);
-
-            RoutesCompileSpec spec = generateSpec(sourcesToCompile);
-            getCompiler().execute(spec);
+    void compile() {
+        if(compiler==null){
+            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
         }
+        RoutesCompileSpec spec = generateSpec(getSource().getFiles());
+        compiler.execute(spec);
     }
 
     /**
