@@ -16,21 +16,16 @@
 
 package org.gradle.nativeplatform.platform.internal;
 
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
     private static Set<DefaultNativePlatform> defaults = defaultPlatformDefinitions();
-    private static DefaultNativePlatform defaultNativePlatform;
     private final String name;
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
@@ -107,139 +102,30 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this.operatingSystem = operatingSystem;
     }
 
-    //TODO freekh: Move this logic back into grapefruit?
-    private static OperatingSystem getPropertyBasedOperatingSystem() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        OperatingSystem os = null;
-        if (osName.contains("windows")) {
-            os = OperatingSystem.WINDOWS;
-        } else if (osName.contains("linux")) {
-            os = OperatingSystem.LINUX;
-        } else if (osName.contains("os x") || osName.contains("darwin")) {
-            os = OperatingSystem.MAC_OS;
-        } else if (osName.contains("freebsd")) {
-            os = OperatingSystem.FREE_BSD;
-        }
-        //TODO: solaris seems to be missing (this code was inspired by grapefruit)?
-        return os;
-    }
-
-    //TODO freekh: Move this logic back into grapefruit?
-    private static ArchitectureInternal getPropertyBasedArchitecture() {
-        ArchitectureInternal arch = null;
-        String archName = System.getProperty("os.arch").toLowerCase();
-        if (archName.equals("i386") || archName.equals("x86")) {
-            arch = Architectures.forInput(archName);
-        } else if (archName.equals("x86_64") || archName.equals("amd64") || archName.equals("universal")) {
-            arch = Architectures.forInput(archName);
-        }
-        return arch;
-    }
-
-    private static DefaultNativePlatform findDefaultPlatform(final OperatingSystem os, final ArchitectureInternal architecture) {
-        if (os != null) {
-            DefaultNativePlatform matchingPlatform = (DefaultNativePlatform) CollectionUtils.find(defaults, new Predicate() {
-                public boolean evaluate(Object object) {
-                    DefaultNativePlatform platform = (DefaultNativePlatform) object;
-                    return platform.architecture.equals(architecture)
-                            && platform.operatingSystem.getInternalOs().equals(os);
-                }
-            });
-            return matchingPlatform;
-        } else {
-            return null;
-        }
-    }
-
-    private static DefaultNativePlatform assertNonNullPlatform(DefaultNativePlatform nativePlatform, String errorMsg) {
-        if (nativePlatform == null) {
-            throw new NativeIntegrationUnavailableException(errorMsg);
-        } else {
-            return nativePlatform;
-        }
-    }
-
-    private final static String UNKNOWN_DEFAULT_PLATFORM_MSG = "Please specify a target platform.";
-
-    //TODO freekh: Move this logic back into grapefruit?
     public static DefaultNativePlatform getDefault() {
-        //TODO freekh: no need to synchronize,  because we can consider this to be idempotent
-        if (defaultNativePlatform == null) {
-            OperatingSystem os = getPropertyBasedOperatingSystem();
-            ArchitectureInternal architectureInternal = getPropertyBasedArchitecture();
-            DefaultNativePlatform propertyBasedDefault = null;
-            if (architectureInternal != null) {
-                propertyBasedDefault = findDefaultPlatform(os, architectureInternal);
-            }
-            if (propertyBasedDefault != null) {
-                defaultNativePlatform = propertyBasedDefault;
-            } else { //could not detect platform based on properties
-                try {
-                    //TODO freekh: Close streams!
-                    //TODO freekh: Test for wmic/uname on Path?
-                    if ((os != null && os.isWindows()) || File.separatorChar == '\\') { //guess Windows
-                        Process archProcess  = Runtime.getRuntime().exec(new String[]{"wmic", "computersystem", "get", "systemtype"});
-                        BufferedReader archReader = new BufferedReader(new InputStreamReader(archProcess.getInputStream()));
-                        archReader.readLine();
-                        archReader.readLine();
-                        String archLine = archReader.readLine().toLowerCase();
-                        if (archLine.contains("x64")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, Architectures.forInput("x86_64")),
-                                    "Could not find a default platform for what is believed to be 64-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-                        } else if (archLine.contains("x86")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, Architectures.forInput("x86")),
-                                    "Could not find a default platform for what is believed to be 32-bit Windows on x86. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-                        } else if (archLine.contains("strongarm")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, Architectures.forInput("armv7")),
-                                    "Could not find a default platform for what is believed to be Windows on ARM. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-                        }
+        OperatingSystemInternal os = new DefaultOperatingSystem(System.getProperty("os.name"), OperatingSystem.current());
+        ArchitectureInternal architecture = Architectures.forInput(Native.get(SystemInfo.class).getArchitecture().toString());
 
-                    } else { //guess Nix
-                        Process systemProcess = Runtime.getRuntime().exec(new String[]{"uname", "-s"});
-                        BufferedReader systemReader = new BufferedReader(new InputStreamReader(systemProcess.getInputStream()));
-                        String systemLine = systemReader.readLine().toLowerCase();
-
-                        Process machineProcess = Runtime.getRuntime().exec(new String[]{"uname", "-m"});
-                        BufferedReader matchineReader = new BufferedReader(new InputStreamReader(machineProcess.getInputStream()));
-                        String machineLine = matchineReader.readLine();
-                        ArchitectureInternal arch = Architectures.forInput(machineLine);
-
-                        String errorMsg = String.format("Could not find a default platform for %s architecture: %s. %s", systemLine, arch.getName(), UNKNOWN_DEFAULT_PLATFORM_MSG);
-                        if (systemLine.contains("linux")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.LINUX, arch),
-                                    errorMsg);
-                        } else if (systemLine.contains("cygwin")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.WINDOWS, arch),
-                                    errorMsg);
-                        } else if (systemLine.contains("freebsd")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.FREE_BSD, arch),
-                                    errorMsg);
-                        } else if (systemLine.contains("sunos")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.SOLARIS, arch),
-                                    errorMsg);
-                        } else if (systemLine.contains("darwin")) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.MAC_OS, arch),
-                                    errorMsg);
-                        } else if (!systemLine.isEmpty()) {
-                            defaultNativePlatform = assertNonNullPlatform(
-                                    findDefaultPlatform(OperatingSystem.UNIX, arch),
-                                    errorMsg);
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new NativeIntegrationUnavailableException("Could not guess a default native platform. " + UNKNOWN_DEFAULT_PLATFORM_MSG);
-                }
-            }
+        // TODO:DAZ This is a very limited implementation of defaults, just to get the build passing
+        if (os.isWindows()) {
+            // Always use x86 as default on windows
+            return findWithName("windows_x86");
         }
-        return defaultNativePlatform;
+        if (os.isLinux()) {
+            return findWithName("linux_" + architecture.getName());
+        }
+        if (os.isMacOsX()) {
+            return findWithName("osx_" + architecture.getName());
+        }
+        return findWithName("unix_x86");
+    }
+
+    private static DefaultNativePlatform findWithName(final String name) {
+        return org.gradle.util.CollectionUtils.findFirst(defaults, new Spec<DefaultNativePlatform>() {
+            public boolean isSatisfiedBy(DefaultNativePlatform element) {
+                return element.getName().equals(name);
+            }
+        });
     }
 
     public String getName() {

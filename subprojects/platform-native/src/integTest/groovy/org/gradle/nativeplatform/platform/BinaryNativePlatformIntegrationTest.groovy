@@ -48,7 +48,8 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
     // Tests will only work on x86 and x86-64 architectures
     def currentArch() {
-        if (Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
+        // On windows we currently target i386 by default, even on amd64
+        if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             return [name: "x86", altName: "i386"]
         }
         return [name: "x86-64", altName: "amd64"]
