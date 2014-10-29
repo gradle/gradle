@@ -18,6 +18,7 @@ package org.gradle.language
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -34,14 +35,16 @@ import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    static boolean multiPlatformsAvailable = true
-
     IncrementalHelloWorldApp app
     String mainCompileTask
     String libraryCompileTask
     TestFile sourceFile
     TestFile headerFile
     List<TestFile> librarySourceFiles = []
+
+    boolean isCanBuildForMultiplePlatforms() {
+        return !(toolChain instanceof AvailableToolChains.InstalledWindowsGcc)
+    }
 
     abstract IncrementalHelloWorldApp getHelloWorldApp();
 
@@ -284,7 +287,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with target platform change"() {
-        Assume.assumeTrue(multiPlatformsAvailable)
+        Assume.assumeTrue(canBuildForMultiplePlatforms)
         given:
         buildFile << """
     model {

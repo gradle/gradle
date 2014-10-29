@@ -15,9 +15,7 @@
  */
 
 package org.gradle.language.objectivec
-
 import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
@@ -28,8 +26,9 @@ import spock.lang.Ignore
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
-    def setupSpec(){
-        multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
+    @Override
+    boolean isCanBuildForMultiplePlatforms() {
+        false
     }
 
     @Ignore("Demos a problem with clang on ubuntu creating randomly differerent object files")
