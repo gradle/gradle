@@ -111,12 +111,21 @@ project(":") {
                 }
                 def pid = matcher.group(1)
                 println "killing daemon with pid $pid"
-                exec {
+                def killOutput = new ByteArrayOutputStream()
+                def result = exec {
                     if (org.gradle.internal.os.OperatingSystem.current().windows) {
                         commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
                     } else {
                         commandLine = ["kill", pid]
                     }
+                    standardOutput = killOutput
+                    errorOutput = killOutput
+                    ignoreExitValue = true
+                }
+                if (result.exitValue != 0) {
+                    throw new GradleException("""Failed to kill daemon process $pid.
+Output: ${killOutput}
+""")
                 }
             }
         }
