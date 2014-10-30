@@ -38,8 +38,8 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
     }
 
     private enum RoutesCompilerVersion {
-        PLAY_ROUTES_VERSION_22,
-        PLAY_ROUTES_VERSION_23;
+        V_22X,
+        V_23X;
 
         public static RoutesCompilerVersion parse(String version) {
             if (version == null) {
@@ -47,9 +47,9 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
             }
 
             if (version.matches("2\\.2\\..*?")) {
-                return PLAY_ROUTES_VERSION_22;
+                return V_22X;
             } else if (version.matches("2\\.3\\..*?")) {
-                return PLAY_ROUTES_VERSION_23;
+                return V_23X;
             }
             throw new InvalidUserDataException("Could not find a compatible Play version for Routes Compiler. This plugin is compatible with: 2.3.x, 2.2.x");
         }
@@ -57,7 +57,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
 
     private static Function<Object[], Object> createCompileFunction(ClassLoader cl, RoutesCompilerVersion routesCompilerVersion) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         switch (routesCompilerVersion) {
-            case PLAY_ROUTES_VERSION_22:
+            case V_22X:
                 return ScalaUtil.scalaObjectFunction(
                         cl,
                         "play.router.RoutesCompiler",
@@ -70,7 +70,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
                                 boolean.class
                         }
                 );
-            case PLAY_ROUTES_VERSION_23:
+            case V_23X:
                 return ScalaUtil.scalaObjectFunction(
                         cl,
                         "play.router.RoutesCompiler",
@@ -98,7 +98,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
         boolean namespaceReverseRouter = spec.isNamespaceReverseRouter();
 
         switch (routesCompilerVersion) {
-            case PLAY_ROUTES_VERSION_22:
+            case V_22X:
                 return  new Object[]{
                     sourceFile,
                     generatedDirectory,
@@ -106,7 +106,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
                     generateReverseRoute,
                     namespaceReverseRouter
                 };
-            case PLAY_ROUTES_VERSION_23:
+            case V_23X:
                 return new Object[]{
                     sourceFile,
                     generatedDirectory,
@@ -153,7 +153,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to compile Play routes.", e);
+            throw new RuntimeException("Error invoking the Play routes compiler.", e);
         }
 
         return new SimpleWorkResult(didWork);

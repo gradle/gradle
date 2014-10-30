@@ -59,7 +59,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error invoking template compiler", e);
+            throw new RuntimeException("Error invoking Play Twirl template compiler.", e);
         }
 
         return new TwirlCompilerWorkResult(outputFiles);
