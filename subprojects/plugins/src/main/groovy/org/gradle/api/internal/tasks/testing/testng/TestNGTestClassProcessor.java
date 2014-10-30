@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
@@ -43,8 +42,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final StandardOutputRedirector outputRedirector;
-    private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
+    private TestResultProcessor resultProcessor;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator,
                                     StandardOutputRedirector outputRedirector) {
@@ -56,10 +55,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector);
-
-        testResultProcessor = new TestNGTestResultProcessorAdapter(resultProcessorChain, idGenerator);
-
+        this.resultProcessor = resultProcessor;
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -101,18 +97,32 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
                 throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }
         }
-        testNg.addListener((Object) adaptListener(testResultProcessor));
+
         if (!options.getIncludedTests().isEmpty()) {
             testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
         }
 
+        TestResultProcessor processor = new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector);
+
+        //TODO SF ugly, refactor, unit test coverage
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
+
+            Object rootId = idGenerator.generateId();
+            TestDescriptorInternal rootSuite = new DefaultTestSuiteDescriptor(rootId, options.getDefaultTestName());
+            TestResultProcessor decorator = new AttachParentTestResultProcessor(processor);
+            decorator.started(rootSuite, new TestStartEvent(System.currentTimeMillis()));
+            testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(decorator, idGenerator)));
+            try {
+                testNg.run();
+            } finally {
+                decorator.completed(rootId, new TestCompleteEvent(System.currentTimeMillis()));
+            }
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
+            testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(processor, idGenerator)));
+            testNg.run();
         }
-
-        testNg.run();
     }
 
     private ITestListener adaptListener(ITestListener listener) {

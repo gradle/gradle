@@ -60,6 +60,7 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
             }
         } else {
             //when test is completed, should redirect output for the 'suite' to log things like @AfterSuite, etc.
+            //TODO SF throw exception early about null suiteId
             redirectOutputFor(suiteId);
         }
         processor.completed(testId, event);
