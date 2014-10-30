@@ -60,7 +60,12 @@ public class MethodInvocation {
 
     @Override
     public String toString() {
-        return String.format("[MethodInvocation method: %s(%s)]", method.getName(), Arrays.toString(arguments));
+        return String.format("[MethodInvocation method: %s(%s)]", method.getName(), toString(arguments));
+    }
+
+    private static String toString(Object[] arguments) {
+        //comma separate list without leading '[' and trailing ']'
+        return Arrays.toString(arguments).replaceFirst("\\[", "").replaceAll("\\]$", "");
     }
 }
 
