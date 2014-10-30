@@ -16,12 +16,20 @@
 
 package org.gradle.play.internal.twirl;
 
-import com.google.common.base.Function;
-import org.gradle.play.internal.ScalaUtil;
-
 import java.io.Serializable;
 
 public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable{
+
+    private ScalaCodecMapper scalaCodecMapper;
+
+    public TwirlCompilerVersionedInvocationSpecBuilder(){
+        this(new ScalaCodecMapper());
+    }
+
+    TwirlCompilerVersionedInvocationSpecBuilder(ScalaCodecMapper scalaCodecMapper){
+        this.scalaCodecMapper = scalaCodecMapper;
+    }
+
     VersionedInvocationSpec build(TwirlCompileSpec spec) throws ReflectiveOperationException {
         VersionedInvocationSpec versionedTwirlCompileInvocationSpec = null;
         switch (TwirlCompilerVersion.parse(spec.getCompilerVersion())) {
@@ -35,16 +43,7 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
                 break;
 
             case V_102:
-                ClassLoader cl = getClass().getClassLoader();
-                Function<Object[], Object> ioCodec = ScalaUtil.scalaObjectFunction(cl,
-                        "scala.io.Codec",
-                        "apply",
-                        new Class<?>[]{
-                                String.class
-                        });
-                Object scalaCodec = ioCodec.apply(new Object[]{
-                        spec.getCodec()
-                });
+                Object scalaCodec = scalaCodecMapper.map(spec.getCodec());
                 versionedTwirlCompileInvocationSpec = new VersionedInvocationSpec(
                         TwirlCompilerVersion.V_102,
                         spec.getSourceDirectory(),

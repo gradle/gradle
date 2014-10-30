@@ -46,7 +46,7 @@ class VersionedInvocationSpec {
         return parameterTypes;
     }
 
-    public Object[] getParameters(File canonicalFile) {
+    public Object[] getParameter(File canonicalFile) {
         return CollectionUtils.flattenCollections(canonicalFile, parameters).toArray();
     }
 

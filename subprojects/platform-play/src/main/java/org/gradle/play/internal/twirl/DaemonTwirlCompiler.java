@@ -26,17 +26,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec> {
-    private final Iterable<File> compilerClasspath;
-
-    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath) {
+    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory) {
         super(projectDir, twirlCompiler, compilerDaemonFactory);
-        this.compilerClasspath = compilerClasspath;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(TwirlCompileSpec spec) {
         List<String> twirlPackages = Arrays.asList("play.templates", "play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
-        return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, twirlPackages);
+        return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, spec.getCompileClasspath(), twirlPackages);
     }
 }

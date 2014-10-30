@@ -50,7 +50,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
             Iterable<File> sources = spec.getSources();
             for (File sourceFile : sources) {
-                Object[] parameters  = invocationSpec.getParameters(sourceFile.getCanonicalFile());
+                Object[] parameters  = invocationSpec.getParameter(sourceFile.getCanonicalFile());
                 Object result = compile.apply(parameters);
                 Method resultIsDefined = result.getClass().getMethod("isDefined");
                 if ((Boolean) resultIsDefined.invoke(result)) {

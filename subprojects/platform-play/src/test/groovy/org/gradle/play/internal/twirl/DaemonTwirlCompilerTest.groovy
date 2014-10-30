@@ -27,7 +27,7 @@ class DaemonTwirlCompilerTest extends Specification {
 
     def "shares play compiler package"() {
         given:
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, Collections.emptyList())
+        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
@@ -38,7 +38,8 @@ class DaemonTwirlCompilerTest extends Specification {
     def "passes compileclasspath to daemon options"() {
         given:
         def classpath = someClasspath()
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, classpath)
+        1 * spec.getCompileClasspath() >> classpath
+        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:

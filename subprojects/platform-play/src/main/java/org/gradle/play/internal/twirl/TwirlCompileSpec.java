@@ -28,27 +28,33 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
     private final File sourceDirectory;
     private final Iterable<File> sources;
     private File destinationDir;
+
+    /**
+     * @TODO move default into versioned invocation spec
+     * */
     private String formatterType = "play.twirl.api.HtmlFormat";
     private String additionalImports = "import controllers._";
     private String codec = "UTF-8";
 
     private boolean inclusiveDots;
     private boolean useOldParser;
-    private String compilerClassName;
+    private String compilerVersion;
+    private Iterable<File> compileClasspath;
 
     public Iterable<File> getSources() {
         return sources;
     }
 
-    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  File destinationDir, String compilerClassName) {
-        this(sourceDirectory, sources, destinationDir, compilerClassName, false, false);
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  Iterable<File> compileClasspath, File destinationDir, String compilerVersion) {
+        this(sourceDirectory, sources, compileClasspath, destinationDir, compilerVersion, false, false);
     }
 
-    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, String compilerClassName, boolean inclusiveDots, boolean useOldParser) {
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, Iterable<File> compileClasspath, File destinationDir, String compilerVersion, boolean inclusiveDots, boolean useOldParser) {
         this.sources = sources;
+        this.compileClasspath = compileClasspath;
         this.destinationDir = destinationDir;
         this.sourceDirectory = sourceDirectory;
-        this.compilerClassName = compilerClassName;
+        this.compilerVersion = compilerVersion;
         this.inclusiveDots = inclusiveDots;
         this.useOldParser = useOldParser;
     }
@@ -82,6 +88,10 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
     }
 
     public String getCompilerVersion() {
-        return compilerClassName;
+        return compilerVersion;
+    }
+
+    public Iterable<File> getCompileClasspath() {
+        return compileClasspath;
     }
 }
