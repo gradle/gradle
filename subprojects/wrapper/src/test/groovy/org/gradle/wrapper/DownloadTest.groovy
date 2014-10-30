@@ -34,7 +34,7 @@ class DownloadTest {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before public void setUp() {
-        download = new Download("gradlew", "aVersion")
+        download = new Download(new Logger(true), "gradlew", "aVersion")
         testDir = tmpDir.testDirectory
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')
