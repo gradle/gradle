@@ -29,8 +29,12 @@ import java.util.List;
 
 @ThreadSafe
 public class ManagedSetSchemaExtractionHandler extends AbstractModelSchemaExtractionHandler {
+
+    private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
+    };
+
     public ManagedSetSchemaExtractionHandler() {
-        super(new ModelType<ManagedSet<?>>() {});
+        super(MANAGED_SET_MODEL_TYPE);
     }
 
     public <T> ModelSchemaExtractionResult<T> extract(ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
@@ -41,6 +45,9 @@ public class ManagedSetSchemaExtractionHandler extends AbstractModelSchemaExtrac
         }
         if (type.isHasWildcardTypeVariables()) {
             throw invalid(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
+        }
+        if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(typeVariables.get(0))) {
+            throw invalid(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
         }
 
         ManagedSetInstantiator<T> elementInstantiator = new ManagedSetInstantiator<T>(cache);

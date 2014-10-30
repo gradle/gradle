@@ -309,12 +309,17 @@ class ModelSchemaExtractorTest extends Specification {
         fail type, "type parameter of $ManagedSet.name has to be specified"
     }
 
-    def "type argument of a managed set cannot be a wildcard"() {
-        given:
-        def type = new ModelType<ManagedSet<?>>() {}
-
+    @Unroll
+    def "type argument of a managed set cannot be a wildcard - #type"() {
         expect:
         fail type, "type parameter of $ManagedSet.name cannot be a wildcard"
+
+        where:
+        type << [
+                new ModelType<ManagedSet<?>>() {},
+                new ModelType<ManagedSet<? extends A1>>() {},
+                new ModelType<ManagedSet<? super A1>>() {}
+        ]
     }
 
     def "type argument of a managed set has to be managed"() {
@@ -343,6 +348,14 @@ class ModelSchemaExtractorTest extends Specification {
         e.message == "Invalid managed model type $type: type parameter of $ManagedSet.name has to be a valid managed type"
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == "Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName])"
+    }
+
+    def "managed sets of managed set are not supported"() {
+        given:
+        def type = new ModelType<ManagedSet<ManagedSet<A1>>>() {}
+
+        expect:
+        fail type, "$ManagedSet.name cannot be used as type parameter of $ManagedSet.name"
     }
 
     private ModelSchema<?> extract(ModelType<?> modelType) {
