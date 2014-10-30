@@ -31,5 +31,6 @@ public class MethodInvocationTest {
         assertThat(invocation, strictlyEqual(equalInvocation));
         assertThat(invocation, not(equalTo(differentMethod)));
         assertThat(invocation, not(equalTo(differentArgs)));
+        assertThat(invocation.toString(), equalTo("[MethodInvocation method: length([param])]"));
     }
 }

@@ -60,7 +60,7 @@ public class MethodInvocation {
 
     @Override
     public String toString() {
-        return String.format("[MethodInvocation method: %s()]", method.getName());
+        return String.format("[MethodInvocation method: %s(%s)]", method.getName(), Arrays.toString(arguments));
     }
 }
 
