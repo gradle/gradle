@@ -45,6 +45,7 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
 
         task routesCompile(type:RoutesCompile) {
             compilerClasspath = configurations.playRoutes
+            routesCompilerVersion = "2.3.5"
             outputDirectory = file('build/routes')
         }
 """

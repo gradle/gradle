@@ -29,6 +29,7 @@ import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.routes.DaemonRoutesCompiler;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ public class RoutesCompile  extends SourceTask {
      */
     private List<String> additionalImports = new ArrayList<String>();
 
+    private String routesCompilerVersion;
 
     void setCompiler(Compiler<RoutesCompileSpec> compiler) {
         this.compiler = compiler;
@@ -106,6 +108,23 @@ public class RoutesCompile  extends SourceTask {
         this.additionalImports.addAll(additionalImports);
     }
 
+    /**
+     * Specifies the version for the Play Routes compiler.
+     */
+    public void setRoutesCompilerVersion(String routesCompilerVersion) {
+        this.routesCompilerVersion = routesCompilerVersion;
+    }
+
+    /**
+     * Returns the version used for the Play Routes compiler.
+     *
+     * @return The version of the Play Routes compiler.
+     */
+    public String getRoutesCompilerVersion() {
+        return routesCompilerVersion;
+    }
+
+
     @TaskAction
     void compile() {
         if(compiler==null){
@@ -124,7 +143,8 @@ public class RoutesCompile  extends SourceTask {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            RoutesCompiler playRoutesCompiler = new RoutesCompiler();
+
+            RoutesCompiler playRoutesCompiler = new RoutesCompiler(getRoutesCompilerVersion());
             compiler = new DaemonRoutesCompiler(projectInternal.getProjectDir(), playRoutesCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
 
         }
