@@ -314,7 +314,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "$NonManagedVoidReturning.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a $Managed.name annotated type as the first argument"
+        e.message == "$NonManagedVoidReturning.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument"
     }
 
     static class InvalidManagedVoidReturning {

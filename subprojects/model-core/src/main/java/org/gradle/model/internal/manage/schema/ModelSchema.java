@@ -16,9 +16,9 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelType;
 
 import java.util.Collections;
@@ -28,21 +28,21 @@ public class ModelSchema<T> {
 
     private final ModelType<T> type;
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
-    private final ImmutableList<ModelSchema<?>> typeParameterSchemas;
+    private final Factory<T> elementInstantiator;
 
-    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties) {
-        this(type, properties, Collections.<ModelSchema<?>>emptyList());
+    public ModelSchema(ModelType<T> type, Factory<T> elementInstantiator) {
+        this(type, Collections.<ModelProperty<?>>emptyList(), elementInstantiator);
     }
 
-    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchema<?>> typeParameterSchemas) {
+    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Factory<T> elementInstantiator) {
         this.type = type;
+        this.elementInstantiator = elementInstantiator;
 
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
             builder.put(property.getName(), property);
         }
         this.properties = builder.build();
-        this.typeParameterSchemas = ImmutableList.copyOf(typeParameterSchemas);
     }
 
     public ModelType<T> getType() {
@@ -53,7 +53,7 @@ public class ModelSchema<T> {
         return properties;
     }
 
-    public ImmutableList<ModelSchema<?>> getTypeParameterSchemas() {
-        return typeParameterSchemas;
+    public T createInstance() {
+        return elementInstantiator.create();
     }
 }

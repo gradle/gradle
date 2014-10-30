@@ -21,12 +21,13 @@ import org.gradle.model.collection.ManagedSet
 import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.ModelSchema
+import org.gradle.model.internal.manage.schema.UnmanagedModelElementTypeException
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-import static org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor.SUPPORTED_UNMANAGED_TYPES
+import static org.gradle.model.internal.manage.schema.store.ManagedTypeModelSchemaExtractionHandler.SUPPORTED_UNMANAGED_TYPES
 
 class ModelSchemaExtractorTest extends Specification {
 
@@ -36,7 +37,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "has to be annotated with @Managed"() {
         expect:
-        fail NotAnnotatedInterface, Pattern.quote("must be annotated with $Managed.name")
+        fail NotAnnotatedInterface, Pattern.quote("not a managed type")
     }
 
     @Managed
@@ -254,17 +255,6 @@ class ModelSchemaExtractorTest extends Specification {
         void setManaged(SingleProperty name)
     }
 
-    @Unroll
-    def "is managed - #clazz.simpleName"() {
-        expect:
-        extractor.isManaged(clazz) == expected
-
-        where:
-        clazz                 | expected
-        SingleProperty        | true
-        NotAnnotatedInterface | false
-    }
-
     @Managed interface SelfReferencing {
         SelfReferencing getSelf()
     }
@@ -331,8 +321,14 @@ class ModelSchemaExtractorTest extends Specification {
         given:
         def type = new ModelType<ManagedSet<Object>>() {}
 
-        expect:
-        fail type, "type parameter of $ManagedSet.name has to be a managed type"
+        when:
+        extract(type)
+
+        then:
+        InvalidManagedModelElementTypeException e = thrown()
+        e.message == "Invalid managed model type $type: type parameter of $ManagedSet.name has to be a valid managed type"
+        e.cause instanceof UnmanagedModelElementTypeException
+        e.cause.message == "Invalid managed model type $Object.name: not a managed type"
     }
 
     def "type argument of a managed set has to be a valid managed type"() {

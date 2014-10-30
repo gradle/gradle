@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection;
+package org.gradle.model.internal.manage.schema;
 
-import org.gradle.api.Action;
+import org.gradle.model.internal.core.ModelType;
 
-import java.util.Set;
-
-public interface ManagedSet<T> extends Set<T> {
-    void create(Action<? super T> action);
+public class UnmanagedModelElementTypeException extends InvalidManagedModelElementTypeException {
+    public UnmanagedModelElementTypeException(ModelType<?> type) {
+        super(type, "not a managed type");
+    }
 }

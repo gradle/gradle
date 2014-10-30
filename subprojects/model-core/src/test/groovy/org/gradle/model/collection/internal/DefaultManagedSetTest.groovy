@@ -22,7 +22,6 @@ import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.store.ModelSchemaCache
 import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor
-import org.gradle.model.internal.manage.state.ManagedModelElement
 import spock.lang.Specification
 
 class DefaultManagedSetTest extends Specification {
@@ -36,7 +35,7 @@ class DefaultManagedSetTest extends Specification {
     def <T> DefaultManagedSet<T> createManagedSet(Class<T> elementClass) {
         ModelSchema<T> schema = new ModelSchemaExtractor().extract(ModelType.of(elementClass), new ModelSchemaCache())
         Factory<T> factory = Mock(Factory) {
-            create() >> { new ManagedModelElement<T>(schema).createInstance() }
+            create() >> { schema.createInstance() }
         }
         new DefaultManagedSet<T>(factory)
     }

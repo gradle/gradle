@@ -20,15 +20,14 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.Managed;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
-import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.UnmanagedModelElementTypeException;
+import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore;
 import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor;
 import org.gradle.model.internal.manage.schema.store.ModelSchemaStore;
-import org.gradle.model.internal.manage.state.ManagedModelElement;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -61,11 +60,6 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        if (!store.isManaged(managedType)) {
-            String description = String.format("a void returning model element creation rule has to take an instance of a %s annotated type as the first argument", Managed.class.getName());
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
-        }
-
         modelRegistry.create(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
@@ -86,6 +80,9 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition) {
         try {
             return store.getSchema(managedType);
+        } catch (UnmanagedModelElementTypeException e) {
+            String description = String.format("a void returning model element creation rule has to take an instance of a managed type as the first argument");
+            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description, e);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
         }
@@ -104,8 +101,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
 
         public T transform(Inputs inputs) {
-            ManagedModelElement<T> modelElement = new ManagedModelElement<T>(modelSchema);
-            T instance = modelElement.createInstance();
+            T instance = modelSchema.createInstance();
             Object[] args = new Object[inputs.size() + 1];
             args[0] = instance;
             for (int i = 0; i < inputs.size(); i++) {

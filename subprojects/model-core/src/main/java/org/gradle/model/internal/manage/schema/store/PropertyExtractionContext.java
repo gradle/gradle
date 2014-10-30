@@ -16,23 +16,22 @@
 
 package org.gradle.model.internal.manage.schema.store;
 
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 
-@NotThreadSafe
-public class CachingModelSchemaStore implements ModelSchemaStore {
+@ThreadSafe
+public class PropertyExtractionContext extends AbstractModelSchemaExtractionContext {
 
-    private final ModelSchemaCache cache = new ModelSchemaCache();
-    private final ModelSchemaExtractor extractor;
+    private final ModelProperty<?> property;
 
-    public CachingModelSchemaStore(ModelSchemaExtractor extractor) {
-        this.extractor = extractor;
+    PropertyExtractionContext(ModelType<?> owner, ModelProperty<?> property, ModelSchemaExtractionContext parent) {
+        super(owner, property.getType(), parent);
+        this.property = property;
     }
 
-
-    public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return extractor.extract(type, cache);
+    @Override
+    protected String getWrappingExceptionMessage() {
+        return String.format("managed type of property '%s' is invalid", property.getName());
     }
-
 }

@@ -18,18 +18,10 @@ package org.gradle.model.internal.manage.state;
 
 import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
-import org.gradle.model.collection.ManagedSet;
-import org.gradle.model.collection.internal.DefaultManagedSet;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 @ThreadSafe
 public class ManagedModelElement<T> {
@@ -61,52 +53,5 @@ public class ManagedModelElement<T> {
 
     ImmutableSortedMap<String, ModelPropertyInstance<?>> getProperties() {
         return properties;
-    }
-
-    public T createInstance() {
-        Class<T> concreteType = schema.getType().getConcreteClass();
-        if (concreteType.equals(ManagedSet.class)) {
-            return Cast.uncheckedCast(createManagedSetInstance(schema.getTypeParameterSchemas().get(0)));
-        } else {
-            return Cast.uncheckedCast(Proxy.newProxyInstance(concreteType.getClassLoader(), new Class<?>[]{concreteType, ManagedInstance.class}, new ManagedModelElementInvocationHandler()));
-        }
-    }
-
-    private <P> DefaultManagedSet<P> createManagedSetInstance(final ModelSchema<P> elementSchema) {
-        Factory<P> factory = new Factory<P>() {
-            public P create() {
-                return new ManagedModelElement<P>(elementSchema).createInstance();
-            }
-        };
-        return new DefaultManagedSet<P>(factory);
-    }
-
-    private class ManagedModelElementInvocationHandler implements InvocationHandler {
-
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            String methodName = method.getName();
-            String propertyName = StringUtils.uncapitalize(methodName.substring(3));
-            if (methodName.startsWith("get")) {
-                return getInstanceProperty(ModelType.of(method.getGenericReturnType()), propertyName);
-            } else if (methodName.startsWith("set")) {
-                setInstanceProperty(ModelType.of(method.getGenericParameterTypes()[0]), propertyName, args[0]);
-                return null;
-            } else if (methodName.equals("hashCode")) {
-                return hashCode();
-            }
-            throw new Exception("Unexpected method called: " + methodName);
-        }
-
-        private <U> void setInstanceProperty(ModelType<U> propertyType, String propertyName, Object value) {
-            ModelPropertyInstance<U> modelPropertyInstance = get(propertyType, propertyName);
-            if (modelPropertyInstance.getMeta().isManaged() && !ManagedInstance.class.isInstance(value)) {
-                throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", propertyName, schema.getType()));
-            }
-            modelPropertyInstance.set(Cast.cast(propertyType.getConcreteClass(), value));
-        }
-
-        private <U> U getInstanceProperty(ModelType<U> propertyType, String propertyName) {
-            return get(propertyType, propertyName).get();
-        }
     }
 }

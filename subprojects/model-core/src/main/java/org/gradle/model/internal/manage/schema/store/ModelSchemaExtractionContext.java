@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection;
+package org.gradle.model.internal.manage.schema.store;
 
-import org.gradle.api.Action;
+import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 
-import java.util.Set;
+public interface ModelSchemaExtractionContext {
+    public ModelType<?> getType();
 
-public interface ManagedSet<T> extends Set<T> {
-    void create(Action<? super T> action);
+    public InvalidManagedModelElementTypeException wrap(InvalidManagedModelElementTypeException cause);
 }

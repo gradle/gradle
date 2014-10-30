@@ -16,23 +16,17 @@
 
 package org.gradle.model.internal.manage.schema.store;
 
-import net.jcip.annotations.NotThreadSafe;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 
-@NotThreadSafe
-public class CachingModelSchemaStore implements ModelSchemaStore {
+public class ManagedSetElementTypeExtractionContext extends AbstractModelSchemaExtractionContext {
 
-    private final ModelSchemaCache cache = new ModelSchemaCache();
-    private final ModelSchemaExtractor extractor;
-
-    public CachingModelSchemaStore(ModelSchemaExtractor extractor) {
-        this.extractor = extractor;
+    ManagedSetElementTypeExtractionContext(ModelType<? extends ManagedSet<?>> setType, ModelSchemaExtractionContext parent) {
+        super(setType, setType.getTypeVariables().get(0), parent);
     }
 
-
-    public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return extractor.extract(type, cache);
+    @Override
+    protected String getWrappingExceptionMessage() {
+        return String.format("type parameter of %s has to be a valid managed type", ManagedSet.class.getName());
     }
-
 }

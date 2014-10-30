@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection;
+package org.gradle.model.internal.manage.schema.store;
 
-import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
+import org.gradle.model.internal.core.ModelType;
 
-import java.util.Set;
+public interface ModelSchemaExtractionHandler {
 
-public interface ManagedSet<T> extends Set<T> {
-    void create(Action<? super T> action);
+    public ModelType<?> getSupportedSuperType();
+
+    public Spec<ModelType<?>> getSpec();
+
+    public <T> ModelSchemaExtractionResult<T> extract(ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context);
 }

@@ -33,6 +33,10 @@ class ManagedModelElementTest extends Specification {
         new ManagedModelElement<MultipleProps>(schemas.getSchema(ModelType.of(elementClass)))
     }
 
+    def <T> T createInstance(Class<T> elementClass) {
+        schemas.getSchema(ModelType.of(elementClass)).createInstance()
+    }
+
     @Managed
     static interface MultipleProps {
         String getProp1();
@@ -73,10 +77,9 @@ class ManagedModelElementTest extends Specification {
 
     def "can get an instance of a managed element"() {
         given:
-        def element = createElement(MultipleProps)
+        def instance = createInstance(MultipleProps)
 
         when:
-        def instance = element.createInstance()
         instance.prop1 = "foo"
 
         then:
@@ -117,7 +120,7 @@ class ManagedModelElementTest extends Specification {
     @Unroll
     def "can set/get properties of all supported unmanaged types - #propertyClass.simpleName"() {
         given:
-        def instance = createElement(AllSupportedUnmanagedTypes).createInstance()
+        def instance = createInstance(AllSupportedUnmanagedTypes)
 
         expect:
         instance[propertyName] == null
