@@ -110,15 +110,6 @@ Add a `play-application` plugin that provides Play application component:
 - Do we provide repository setup in play support?
 - Allow forking of twirl and route compilation
 
-### Story: Add support for multiple play versions
-
-- Adapt TwirlCompile task to support play 2.2.3 compliant template compiler
-- Adapt RoutesCompile task to support play 2.2.3 compliant routes compiler
-- Add test fixture for multi version play integration tests
-
-#### Test cases
-- verify that play app can be built and executed with play version 2.3.5 and 2.2.3
-
 ### Story: Developer runs Play application
 
 Extend the Play support to allow the Play application to be executed.
@@ -127,8 +118,16 @@ Extend the Play support to allow the Play application to be executed.
 - Running `gradle run<ComponentName>` builds and executes the Play application.
 
 At this stage, only the default generated Play application is supported, with a hard-coded version of Scala and Play.
-
+          
 #### Test cases
+
+- verify that play app can be built and executed with play version 2.3.5 and 2.2.3
+
+### Story: Add support for multiple play versions
+
+- Adapt TwirlCompile task to support play 2.2.3 compliant template compiler
+- Adapt RoutesCompile task to support play 2.2.3 compliant routes compiler
+- Add test fixture to allow multi version play integration tests
 
 ### Story: Declare standard sourceSets for a Play application
 
