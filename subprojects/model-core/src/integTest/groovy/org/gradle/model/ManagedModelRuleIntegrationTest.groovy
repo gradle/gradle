@@ -485,8 +485,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
             class RulePlugin {
                 @Model
                 void createPrimitiveProperty(PrimitiveProperty primitiveProperty) {
-                    long value = 123;
-                    primitiveProperty.setLongProperty(value);
+                    primitiveProperty.setLongProperty(123l);
                 }
 
                 @Mutate
