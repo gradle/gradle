@@ -19,4 +19,34 @@ package org.gradle.play.fixtures
 class PlayCoverage {
     static final PlayPlatformVersion[] DEFAULT = [new PlayPlatformVersion("2.2.3", "2.10", "templates-compiler_2.10:2.2.3"),
                                                   new PlayPlatformVersion("2.3.5", "2.10", "twirl-compiler_2.10:1.0.2")]
+
+
+    public static class PlayPlatformVersion {
+        private String playVersion
+        private String scalaBinaryVersion
+        private String templatesCompilerDependency
+
+        PlayPlatformVersion(String playVersion, String scalaBinaryVersion, String templatesCompilerDependency){
+            this.templatesCompilerDependency = templatesCompilerDependency
+            this.playVersion = playVersion
+            this.scalaBinaryVersion = scalaBinaryVersion
+        }
+
+        String getPlayDependency(){
+            "com.typesafe.play:play_$scalaBinaryVersion:$playVersion"
+
+        }
+
+        String getTwirlDependency(){
+            "com.typesafe.play:$templatesCompilerDependency"
+        }
+
+        String getRoutesDependency(){
+            "com.typesafe.play:routes-compiler_$scalaBinaryVersion:$playVersion"
+        }
+
+        String toString(){
+            "${playVersion}_${scalaBinaryVersion}";
+        }
+    }
 }

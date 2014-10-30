@@ -36,7 +36,8 @@ public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(TwirlCompileSpec spec) {
-        List<String> twirlPackages = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
+        String compilerPackage = spec.getCompilerClassName().substring(0, spec.getCompilerClassName().lastIndexOf('.'));
+        List<String> twirlPackages = Arrays.asList(compilerPackage, "scala.io"); //scala.io is for Codec which is a parameter to twirl
         return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, twirlPackages);
     }
 }

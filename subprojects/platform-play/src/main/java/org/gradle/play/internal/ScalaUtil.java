@@ -37,7 +37,7 @@ public class ScalaUtil {
                 try {
                     return scalaObjectMethod.invoke(scalaObject.get(null), args);
                 } catch (Exception e) {
-                    throw new RuntimeException(e.getCause());
+                    throw new RuntimeException("Cannot invoke scala method", e);
                 }
             }
 

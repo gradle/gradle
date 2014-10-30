@@ -34,19 +34,21 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
 
     private boolean inclusiveDots;
     private boolean useOldParser;
+    private String compilerClassName;
 
     public Iterable<File> getSources() {
         return sources;
     }
 
-    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  File destinationDir) {
-        this(sourceDirectory, sources, destinationDir, false, false);
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  File destinationDir, String compilerClassName) {
+        this(sourceDirectory, sources, destinationDir, compilerClassName, false, false);
     }
 
-    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, boolean inclusiveDots, boolean useOldParser) {
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, String compilerClassName, boolean inclusiveDots, boolean useOldParser) {
         this.sources = sources;
         this.destinationDir = destinationDir;
         this.sourceDirectory = sourceDirectory;
+        this.compilerClassName = compilerClassName;
         this.inclusiveDots = inclusiveDots;
         this.useOldParser = useOldParser;
     }
@@ -77,5 +79,9 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
 
     public File getSourceDirectory() {
         return sourceDirectory;
+    }
+
+    public String getCompilerClassName() {
+        return compilerClassName;
     }
 }

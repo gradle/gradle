@@ -24,25 +24,60 @@ import org.gradle.play.internal.ScalaUtil;
 
 import java.io.File;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
  * Twirl compiler uses reflection to load and invoke TwirlCompiler$
- *
  */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
     public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
-            File sourceDirectory = spec.getSourceDirectory().getCanonicalFile();
-            File generatedDirectory = spec.getDestinationDir();
-            String formatterType = spec.getFormatterType();
-            String additionalImports = spec.getAdditionalImports();
-            boolean inclusiveDots = spec.isInclusiveDots();
-            boolean useOldParser = spec.isUseOldParser();
-            String codec = spec.getCodec();
+            VersionedTwirlCompileSpec versionedTwirlCompileSpec = createVersionedSpec(spec);
+            Function<Object[], Object> compile = ScalaUtil.scalaObjectFunction(getClass().getClassLoader(),
+                    spec.getCompilerClassName(),
+                    "compile",
+                    versionedTwirlCompileSpec.getParameterTypes());
+
+
+            Iterable<File> sources = spec.getSources();
+            Object[] prefilledCompileParameters = versionedTwirlCompileSpec.getParameters();
+            for (File sourceFile : sources) {
+                prefilledCompileParameters[0] = sourceFile.getCanonicalFile();
+                Object result = compile.apply(prefilledCompileParameters);
+                Method resultIsDefined = result.getClass().getMethod("isDefined");
+                if ((Boolean) resultIsDefined.invoke(result)) {
+                    File createdFile = (File) result.getClass().getMethod("get").invoke(result);
+                    outputFiles.add(createdFile);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking template compiler", e);
+        }
+
+        return new TwirlCompilerWorkResult(outputFiles);
+    }
+
+    private VersionedTwirlCompileSpec createVersionedSpec(TwirlCompileSpec spec) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        if (spec.getCompilerClassName().equals("play.templates.ScalaTemplateCompiler")) {
+            return new VersionedTwirlCompileSpec(new Class<?>[]{
+                    File.class,
+                    spec.getSourceDirectory().getClass(),
+                    spec.getDestinationDir().getClass(),
+                    spec.getFormatterType().getClass(),
+                    spec.getAdditionalImports().getClass()},
+
+                    new Object[]{
+                            null,
+                            spec.getSourceDirectory(),
+                            spec.getDestinationDir(),
+                            spec.getFormatterType(),
+                            spec.getAdditionalImports()
+                    });
+        } else {
             ClassLoader cl = getClass().getClassLoader();
             Class<?> codecClass = cl.loadClass("scala.io.Codec");
 
@@ -53,46 +88,46 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
                             String.class
                     });
             Object scalaCodec = ioCodec.apply(new Object[]{
-                    codec
+                    spec.getCodec()
             });
+            return new VersionedTwirlCompileSpec(new Class<?>[]{
+                    File.class,
+                    spec.getSourceDirectory().getClass(),
+                    spec.getDestinationDir().getClass(),
+                    spec.getFormatterType().getClass(),
+                    spec.getAdditionalImports().getClass(),
+                    codecClass,
+                    boolean.class,
+                    boolean.class},
 
-            Function<Object[], Object> compile = ScalaUtil.scalaObjectFunction(cl,
-                    "play.twirl.compiler.TwirlCompiler",
-                    "compile",
-                    new Class<?>[]{
-                            File.class,
-                            sourceDirectory.getClass(),
-                            generatedDirectory.getClass(),
-                            formatterType.getClass(),
-                            additionalImports.getClass(),
-                            codecClass,
-                            boolean.class,
-                            boolean.class});
-
-
-            Iterable<File> sources = spec.getSources();
-            for (File sourceFile : sources) {
-                Object result = compile.apply(new Object[]{
-                        sourceFile.getCanonicalFile(),
-                        sourceDirectory,
-                        generatedDirectory,
-                        formatterType,
-                        additionalImports,
-                        scalaCodec,
-                        inclusiveDots,
-                        useOldParser
-                });
-                Method resultIsDefined = result.getClass().getMethod("isDefined");
-                if ((Boolean) resultIsDefined.invoke(result)) {
-                    File createdFile = (File) result.getClass().getMethod("get").invoke(result);
-                    outputFiles.add(createdFile);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e.getCause());
+                    new Object[]{
+                            null,
+                            spec.getSourceDirectory(),
+                            spec.getDestinationDir(),
+                            spec.getFormatterType(),
+                            spec.getAdditionalImports(),
+                            scalaCodec,
+                            spec.isInclusiveDots(),
+                            spec.isUseOldParser()
+                    });
         }
-
-        return new TwirlCompilerWorkResult(outputFiles);
     }
 
+    private class VersionedTwirlCompileSpec {
+        private Class<?>[] parameterTypes;
+        private Object[] parameters;
+
+        public VersionedTwirlCompileSpec(Class<?>[] parameterTypes, Object[] parameters) {
+            this.parameterTypes = parameterTypes;
+            this.parameters = parameters;
+        }
+
+        public Class<?>[] getParameterTypes() {
+            return parameterTypes;
+        }
+
+        public Object[] getParameters() {
+            return parameters;
+        }
+    }
 }

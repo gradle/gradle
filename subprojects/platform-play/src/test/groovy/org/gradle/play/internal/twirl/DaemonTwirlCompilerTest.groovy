@@ -23,14 +23,19 @@ class DaemonTwirlCompilerTest extends Specification {
     def workingDirectory = Mock(File)
     def delegate = Mock(TwirlCompiler)
     def compilerDaemonFactory = Mock(CompilerDaemonFactory)
+    def spec = Mock(TwirlCompileSpec)
+
+    def setup() {
+        _ * spec.getCompilerClassName() >> "some.package.for.Compiler"
+    }
 
     def "shares play compiler package"() {
         given:
         def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, Collections.emptyList())
         when:
-        def options = compiler.toDaemonOptions(Mock(TwirlCompileSpec));
+        def options = compiler.toDaemonOptions(spec);
         then:
-        options.getSharedPackages().asList().contains("play.twirl.compiler")
+        options.getSharedPackages().asList().contains("some.package.for")
     }
 
     def "passes compileclasspath to daemon options"() {
@@ -38,7 +43,7 @@ class DaemonTwirlCompilerTest extends Specification {
         def classpath = someClasspath()
         def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, classpath)
         when:
-        def options = compiler.toDaemonOptions(Mock(TwirlCompileSpec));
+        def options = compiler.toDaemonOptions(spec);
         then:
         options.getClasspath() == classpath
     }

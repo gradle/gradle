@@ -15,15 +15,21 @@
  */
 
 package org.gradle.play.tasks
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.SystemProperties
+import org.gradle.play.fixtures.TwirlCoverage
 
-class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({TwirlCoverage.DEFAULT})
+class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
     def setup(){
         buildFile << """
         repositories{
             jcenter()
+            maven{
+                name = "typesafe-maven-release"
+                url = "http://repo.typesafe.com/typesafe/maven-releases"
+            }
         }
 
         configurations{
@@ -31,7 +37,7 @@ class TwirlCompileIntegrationTest extends AbstractIntegrationSpec {
         }
 
         dependencies{
-            twirl "com.typesafe.play:twirl-compiler_2.10:1.0.2"
+            twirl '${version.dependency}'
         }
 
         task twirlCompile(type:TwirlCompile){
