@@ -17,6 +17,7 @@
 package org.gradle.model.collection.internal;
 
 import com.google.common.collect.Sets;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
+@NotThreadSafe
 public class DefaultManagedSet<T> implements ManagedSet<T> {
 
     private final Set<T> elements = Sets.newHashSet();
