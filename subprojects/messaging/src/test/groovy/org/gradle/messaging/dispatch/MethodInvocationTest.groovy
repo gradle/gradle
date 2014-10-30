@@ -1,7 +1,7 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,12 +15,10 @@
  */
 package org.gradle.messaging.dispatch
 
-import org.junit.Test
 import spock.lang.Specification
 
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.gradle.util.Matchers.strictlyEqual
+import static org.junit.Assert.assertThat
 
 class MethodInvocationTest extends Specification {
 
