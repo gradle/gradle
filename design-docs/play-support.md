@@ -110,7 +110,7 @@ Add a `play-application` plugin that provides Play application component:
 - Do we provide repository setup in play support?
 - Allow forking of twirl and route compilation
 
-### Story: Add support for multiple gradle versions
+### Story: Add support for multiple play versions
 
 - Adapt TwirlCompile task to support play 2.2.3 compliant template compiler
 - Adapt RoutesCompile task to support play 2.2.3 compliant routes compiler
