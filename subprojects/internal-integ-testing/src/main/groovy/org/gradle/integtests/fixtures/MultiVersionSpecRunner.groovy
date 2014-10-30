@@ -38,15 +38,15 @@ class MultiVersionSpecRunner extends AbstractMultiTestRunner {
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {
-        final String version
+        final def version
 
-        VersionExecution(String version) {
+        VersionExecution(def version) {
             this.version = version
         }
 
         @Override
         protected String getDisplayName() {
-            return version
+            return version.toString()
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.play.fixtures
 
-import org.junit.runner.RunWith
-import org.gradle.util.VersionNumber
-
-@RunWith(MultiVersionSpecRunner)
-abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
-    static def version
-
-    static VersionNumber getVersionNumber() {
-        VersionNumber.parse(version.toString())
-    }
+class PlayCoverage {
+    static final PlayPlatformVersion[] DEFAULT = [new PlayPlatformVersion("2.2.3", "2.10", "templates-compiler_2.10:2.2.3"),
+                                                  new PlayPlatformVersion("2.3.5", "2.10", "twirl-compiler_2.10:1.0.2")]
 }
