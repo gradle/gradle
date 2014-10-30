@@ -119,10 +119,6 @@ public class TwirlCompile extends SourceTask {
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-
-//        boolean prePmd5 = getPmdClasspath().any {
-//            it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
-//        }
         boolean templateCompiler = CollectionUtils.any(getCompilerClasspath(), new Spec<File>() {
             public boolean isSatisfiedBy(File classpathFile) {
                 return classpathFile.getName().matches("templates-compiler_\\d\\.\\d+-(2\\.2\\.\\d).jar");
