@@ -30,7 +30,7 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
         this.scalaCodecMapper = scalaCodecMapper;
     }
 
-    VersionedInvocationSpec build(TwirlCompileSpec spec) throws ReflectiveOperationException {
+    VersionedInvocationSpec build(TwirlCompileSpec spec) {
         VersionedInvocationSpec versionedTwirlCompileInvocationSpec = null;
         switch (TwirlCompilerVersion.parse(spec.getCompilerVersion())) {
             case V_22X:

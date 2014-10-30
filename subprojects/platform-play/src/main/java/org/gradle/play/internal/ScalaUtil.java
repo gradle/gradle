@@ -17,39 +17,47 @@
 package org.gradle.play.internal;
 
 import com.google.common.base.Function;
+import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ScalaUtil {
     /**
      * Invokes a method on a scala object
      */
-    public static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] typeParameters) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Class<?> baseClass = classLoader.loadClass(objectName+"$");
-        final Field scalaObject = baseClass.getField("MODULE$");
+    public static Function<Object[], Object> scalaObjectFunction(ClassLoader classLoader, String objectName, String methodName, Class<?>[] typeParameters) {
+        try {
+            Class<?> baseClass = classLoader.loadClass(objectName + "$");
 
-        final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, typeParameters);
+            final Field scalaObject = baseClass.getField("MODULE$");
+            final Method scalaObjectMethod = scalaObject.getType().getMethod(methodName, typeParameters);
 
-        Function<Object[], Object> function = new Function<Object[], Object>() {
-            public Object apply(Object[] args) {
-                try {
-                    return scalaObjectMethod.invoke(scalaObject.get(null), args);
-                } catch (Exception e) {
-                    throw new RuntimeException("Cannot invoke scala method", e);
+            Function<Object[], Object> function = new Function<Object[], Object>() {
+                public Object apply(Object[] args) {
+                    try {
+                        return scalaObjectMethod.invoke(scalaObject.get(null), args);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Cannot invoke scala method", e);
+                    }
                 }
-            }
 
-            public boolean equals(Object object) {
-                return false;
-            }
+                public boolean equals(Object object) {
+                    return false;
+                }
 
-            public int hashCode() {
-                return scalaObjectMethod.hashCode() + scalaObject.hashCode(); //This is a random hashcode. We had to have a hashCode here because Function requires an equals, but it feels wrong. Maybe using Function is not the best option.
-            }
-        };
-        return function;
+                public int hashCode() {
+                    return scalaObjectMethod.hashCode() + scalaObject.hashCode(); //This is a random hashcode. We had to have a hashCode here because Function requires an equals, but it feels wrong. Maybe using Function is not the best option.
+                }
+            };
+            return function;
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (NoSuchFieldException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
 }

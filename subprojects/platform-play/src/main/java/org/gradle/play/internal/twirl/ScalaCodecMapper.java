@@ -22,7 +22,7 @@ import org.gradle.play.internal.ScalaUtil;
 import java.io.Serializable;
 
 public class ScalaCodecMapper implements Serializable{
-    public Object map(String codec) throws ReflectiveOperationException {
+    public Object map(String codec) {
         ClassLoader cl = getClass().getClassLoader();
         Function<Object[], Object> ioCodec = ScalaUtil.scalaObjectFunction(cl,
                 "scala.io.Codec",
