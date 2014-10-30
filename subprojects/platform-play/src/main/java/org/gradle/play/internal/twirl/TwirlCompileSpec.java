@@ -27,6 +27,7 @@ import java.io.Serializable;
 public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
     private final File sourceDirectory;
     private final Iterable<File> sources;
+    private final boolean fork;
     private File destinationDir;
 
     /**
@@ -45,16 +46,17 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
         return sources;
     }
 
-    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources,  Iterable<File> compileClasspath, File destinationDir, String compilerVersion) {
-        this(sourceDirectory, sources, compileClasspath, destinationDir, compilerVersion, false, false);
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, Iterable<File> compileClasspath, File destinationDir, String compilerVersion, boolean fork) {
+        this(sourceDirectory, sources, compileClasspath, destinationDir, compilerVersion, fork, false, false);
     }
 
-    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, Iterable<File> compileClasspath, File destinationDir, String compilerVersion, boolean inclusiveDots, boolean useOldParser) {
+    public TwirlCompileSpec(File sourceDirectory, Iterable<File> sources, Iterable<File> compileClasspath, File destinationDir, String compilerVersion, boolean fork, boolean inclusiveDots, boolean useOldParser) {
         this.sources = sources;
         this.compileClasspath = compileClasspath;
         this.destinationDir = destinationDir;
         this.sourceDirectory = sourceDirectory;
         this.compilerVersion = compilerVersion;
+        this.fork = fork;
         this.inclusiveDots = inclusiveDots;
         this.useOldParser = useOldParser;
     }
@@ -93,5 +95,9 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
 
     public Iterable<File> getCompileClasspath() {
         return compileClasspath;
+    }
+
+    public boolean isFork() {
+        return fork;
     }
 }

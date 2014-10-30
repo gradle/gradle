@@ -17,6 +17,8 @@
 package org.gradle.play.internal.twirl;
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
@@ -24,15 +26,25 @@ import java.io.File;
 
 public class TwirlCompilerFactory implements CompilerFactory<TwirlCompileSpec> {
     private final File workingDirectory;
+    private CompilerDaemonManager compilerDaemonManager;
     private final CompilerDaemonFactory inProcessCompilerDaemonFactory;
+    private BaseForkOptions forkOptions;
 
-    public TwirlCompilerFactory(File workingDirectory, CompilerDaemonFactory inProcessCompilerDaemonFactory) {
+    public TwirlCompilerFactory(File workingDirectory, CompilerDaemonManager compilerDaemonManager, CompilerDaemonFactory inProcessCompilerDaemonFactory, BaseForkOptions forkOptions) {
         this.workingDirectory = workingDirectory;
+        this.compilerDaemonManager = compilerDaemonManager;
         this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
+        this.forkOptions = forkOptions;
     }
 
     public org.gradle.language.base.internal.compile.Compiler<TwirlCompileSpec> newCompiler(TwirlCompileSpec spec) {
-        Compiler<TwirlCompileSpec> compiler = new DaemonTwirlCompiler(workingDirectory, new TwirlCompiler(new TwirlCompilerVersionedInvocationSpecBuilder()), inProcessCompilerDaemonFactory);
+        CompilerDaemonFactory daemonFactory;
+        if (spec.isFork()) {
+            daemonFactory = compilerDaemonManager;
+        } else {
+            daemonFactory = inProcessCompilerDaemonFactory;
+        }
+        Compiler<TwirlCompileSpec> compiler = new DaemonTwirlCompiler(workingDirectory, new TwirlCompiler(new TwirlCompilerVersionedInvocationSpecBuilder()), daemonFactory, forkOptions);
         return compiler;
     }
 }

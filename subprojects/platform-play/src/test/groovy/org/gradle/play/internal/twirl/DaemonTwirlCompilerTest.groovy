@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
+import org.gradle.api.tasks.compile.BaseForkOptions
 import spock.lang.Specification
 
 class DaemonTwirlCompilerTest extends Specification {
@@ -24,10 +25,11 @@ class DaemonTwirlCompilerTest extends Specification {
     def delegate = Mock(TwirlCompiler)
     def compilerDaemonFactory = Mock(CompilerDaemonFactory)
     def spec = Mock(TwirlCompileSpec)
+    def forkOptions = Mock(BaseForkOptions)
 
     def "shares play compiler package"() {
         given:
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory)
+        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, forkOptions)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
@@ -39,11 +41,23 @@ class DaemonTwirlCompilerTest extends Specification {
         given:
         def classpath = someClasspath()
         1 * spec.getCompileClasspath() >> classpath
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory)
+        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, forkOptions)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
         options.getClasspath() == classpath
+    }
+
+    def "applies fork settings to daemon options"(){
+        given:
+        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, forkOptions)
+        when:
+        1 * forkOptions.getMemoryInitialSize() >> "256m"
+        1 * forkOptions.getMemoryMaximumSize() >> "512m"
+        then:
+        def options = compiler.toDaemonOptions(spec);
+        options.getMinHeapSize() == "256m"
+        options.getMaxHeapSize() == "512m"
     }
 
     def someClasspath() {

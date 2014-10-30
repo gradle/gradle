@@ -19,21 +19,24 @@ package org.gradle.play.internal.twirl;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec> {
-    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory) {
+    private final BaseForkOptions forkOptions;
+
+    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory, BaseForkOptions forkOptions) {
         super(projectDir, twirlCompiler, compilerDaemonFactory);
+        this.forkOptions = forkOptions;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(TwirlCompileSpec spec) {
         List<String> twirlPackages = Arrays.asList("play.templates", "play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
-        return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, spec.getCompileClasspath(), twirlPackages);
+        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(), spec.getCompileClasspath(), twirlPackages);
     }
 }

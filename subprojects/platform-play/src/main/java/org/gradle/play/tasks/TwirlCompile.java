@@ -18,11 +18,13 @@ package org.gradle.play.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -57,15 +59,31 @@ public class TwirlCompile extends SourceTask {
      */
     private File sourceDirectory;
 
+    private boolean fork;
+
+    private BaseForkOptions forkOptions;
+
+    private Compiler<TwirlCompileSpec> compiler;
+
+    private TwirlStaleOutputCleaner cleaner;
+
+
+    /**
+     * fork options for the twirl compiler.
+     * Forked compilation must be enabled by setting fork = true first
+     */
+    public BaseForkOptions getForkOptions() {
+        if (forkOptions == null) {
+            forkOptions = new BaseForkOptions();
+        }
+        return forkOptions;
+    }
 
     void setCompiler(Compiler<TwirlCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
-    private Compiler<TwirlCompileSpec> compiler;
-    private TwirlStaleOutputCleaner cleaner;
-
-    @InputFiles
+      @InputFiles
     public FileCollection getCompilerClasspath() {
         return compilerClasspath;
     }
@@ -113,6 +131,14 @@ public class TwirlCompile extends SourceTask {
     public void setSourceDirectory(File sourceDirectory) {
         this.sourceDirectory = sourceDirectory;
         this.setSource(sourceDirectory);
+    }
+
+    public boolean isFork() {
+        return fork;
+    }
+
+    public void setFork(boolean fork) {
+        this.fork = fork;
     }
 
     @TaskAction
@@ -167,13 +193,14 @@ public class TwirlCompile extends SourceTask {
     private Compiler<TwirlCompileSpec> getCompiler(TwirlCompileSpec spec) {
         if (compiler == null) {
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            compiler = new TwirlCompilerFactory(getProject().getProjectDir(), inProcessCompilerDaemonFactory).newCompiler(spec);
+            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+            compiler = new TwirlCompilerFactory(getProject().getProjectDir(), compilerDaemonManager, inProcessCompilerDaemonFactory, getForkOptions()).newCompiler(spec);
         }
         return compiler;
     }
 
     private TwirlCompileSpec generateSpec(Set<File> sourceFiles, String compilerClassName) {
-        return new TwirlCompileSpec(getSourceDirectory(), sourceFiles, getCompilerClasspath().getFiles(), getOutputDirectory(), compilerClassName);
+        return new TwirlCompileSpec(getSourceDirectory(), sourceFiles, getCompilerClasspath().getFiles(), getOutputDirectory(), compilerClassName, fork);
     }
 
     void setCleaner(TwirlStaleOutputCleaner cleaner) {

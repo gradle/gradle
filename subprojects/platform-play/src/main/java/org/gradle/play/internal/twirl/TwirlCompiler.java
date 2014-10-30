@@ -36,7 +36,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
     public TwirlCompiler(TwirlCompilerVersionedInvocationSpecBuilder invocationSpecBuilder){
         this.invocationSpecBuilder = invocationSpecBuilder;
-    };
+    }
 
     public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();

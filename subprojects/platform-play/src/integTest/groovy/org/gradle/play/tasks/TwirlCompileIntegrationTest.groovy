@@ -44,6 +44,10 @@ class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
             compilerClasspath = configurations.twirl
             outputDirectory = file('build/twirl')
             sourceDirectory = file('./app')
+
+            fork = true
+            forkOptions.memoryInitialSize =  "256m"
+            forkOptions.memoryMaximumSize =  "512m"
         }
 """
     }
