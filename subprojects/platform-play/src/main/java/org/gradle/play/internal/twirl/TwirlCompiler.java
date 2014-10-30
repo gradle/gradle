@@ -24,7 +24,6 @@ import org.gradle.play.internal.ScalaUtil;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -33,21 +32,26 @@ import java.util.ArrayList;
  */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
+    private TwirlCompilerVersionedInvocationSpecBuilder invocationSpecBuilder;
+
+    public TwirlCompiler(TwirlCompilerVersionedInvocationSpecBuilder invocationSpecBuilder){
+        this.invocationSpecBuilder = invocationSpecBuilder;
+    };
+
     public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
-            VersionedTwirlCompileSpec versionedTwirlCompileSpec = createVersionedSpec(spec);
+            VersionedInvocationSpec invocationSpec = invocationSpecBuilder.build(spec);
             Function<Object[], Object> compile = ScalaUtil.scalaObjectFunction(getClass().getClassLoader(),
-                    spec.getCompilerClassName(),
+                    invocationSpec.getVersion().getCompilerClassname(),
                     "compile",
-                    versionedTwirlCompileSpec.getParameterTypes());
+                    invocationSpec.getParameterTypes());
 
 
             Iterable<File> sources = spec.getSources();
-            Object[] prefilledCompileParameters = versionedTwirlCompileSpec.getParameters();
             for (File sourceFile : sources) {
-                prefilledCompileParameters[0] = sourceFile.getCanonicalFile();
-                Object result = compile.apply(prefilledCompileParameters);
+                Object[] parameters  = invocationSpec.getParameters(sourceFile.getCanonicalFile());
+                Object result = compile.apply(parameters);
                 Method resultIsDefined = result.getClass().getMethod("isDefined");
                 if ((Boolean) resultIsDefined.invoke(result)) {
                     File createdFile = (File) result.getClass().getMethod("get").invoke(result);
@@ -61,73 +65,5 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         return new TwirlCompilerWorkResult(outputFiles);
     }
 
-    private VersionedTwirlCompileSpec createVersionedSpec(TwirlCompileSpec spec) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
-        if (spec.getCompilerClassName().equals("play.templates.ScalaTemplateCompiler")) {
-            return new VersionedTwirlCompileSpec(new Class<?>[]{
-                    File.class,
-                    spec.getSourceDirectory().getClass(),
-                    spec.getDestinationDir().getClass(),
-                    spec.getFormatterType().getClass(),
-                    spec.getAdditionalImports().getClass()},
 
-                    new Object[]{
-                            null,
-                            spec.getSourceDirectory(),
-                            spec.getDestinationDir(),
-                            spec.getFormatterType(),
-                            spec.getAdditionalImports()
-                    });
-        } else {
-            ClassLoader cl = getClass().getClassLoader();
-            Class<?> codecClass = cl.loadClass("scala.io.Codec");
-
-            Function<Object[], Object> ioCodec = ScalaUtil.scalaObjectFunction(cl,
-                    "scala.io.Codec",
-                    "apply",
-                    new Class<?>[]{
-                            String.class
-                    });
-            Object scalaCodec = ioCodec.apply(new Object[]{
-                    spec.getCodec()
-            });
-            return new VersionedTwirlCompileSpec(new Class<?>[]{
-                    File.class,
-                    spec.getSourceDirectory().getClass(),
-                    spec.getDestinationDir().getClass(),
-                    spec.getFormatterType().getClass(),
-                    spec.getAdditionalImports().getClass(),
-                    codecClass,
-                    boolean.class,
-                    boolean.class},
-
-                    new Object[]{
-                            null,
-                            spec.getSourceDirectory(),
-                            spec.getDestinationDir(),
-                            spec.getFormatterType(),
-                            spec.getAdditionalImports(),
-                            scalaCodec,
-                            spec.isInclusiveDots(),
-                            spec.isUseOldParser()
-                    });
-        }
-    }
-
-    private class VersionedTwirlCompileSpec {
-        private Class<?>[] parameterTypes;
-        private Object[] parameters;
-
-        public VersionedTwirlCompileSpec(Class<?>[] parameterTypes, Object[] parameters) {
-            this.parameterTypes = parameterTypes;
-            this.parameters = parameters;
-        }
-
-        public Class<?>[] getParameterTypes() {
-            return parameterTypes;
-        }
-
-        public Object[] getParameters() {
-            return parameters;
-        }
-    }
 }

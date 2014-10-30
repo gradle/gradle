@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
@@ -32,11 +31,13 @@ import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
-import org.gradle.util.CollectionUtils;
+import org.gradle.play.internal.twirl.TwirlCompilerVersionedInvocationSpecBuilder;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Task for compiling twirl templates
@@ -119,17 +120,12 @@ public class TwirlCompile extends SourceTask {
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-        boolean templateCompiler = CollectionUtils.any(getCompilerClasspath(), new Spec<File>() {
-            public boolean isSatisfiedBy(File classpathFile) {
-                return classpathFile.getName().matches("templates-compiler_\\d\\.\\d+-(2\\.2\\.\\d).jar");
-            }
-        });
-        String compilerClassName = templateCompiler ? "play.templates.ScalaTemplateCompiler" : "play.twirl.compiler.TwirlCompiler";
+        String compilerVersion = detectCompilerVersion();
         if (!inputs.isIncremental()) {
             if(compiler==null){
                 compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs());
             }
-            TwirlCompileSpec spec = generateSpec(getSource().getFiles(), compilerClassName);
+            TwirlCompileSpec spec = generateSpec(getSource().getFiles(), compilerVersion);
             compiler.execute(spec);
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
@@ -150,9 +146,20 @@ public class TwirlCompile extends SourceTask {
             }
             cleaner.execute(staleOutputFiles);
 
-            TwirlCompileSpec spec = generateSpec(sourcesToCompile, compilerClassName);
+            TwirlCompileSpec spec = generateSpec(sourcesToCompile, compilerVersion);
             getCompiler().execute(spec);
         }
+    }
+
+    private String detectCompilerVersion() {
+        final Pattern versionPattern = Pattern.compile("(templates-compiler|twirl-compiler)_(\\d+\\.\\d+)-(\\d+\\.\\d+\\.\\d).jar");
+        for (File file : getCompilerClasspath()) {
+            Matcher matcher = versionPattern.matcher(file.getName());
+            if(matcher.matches()){
+                return matcher.group(3);
+            }
+        }
+        return null;
     }
 
 
@@ -165,7 +172,7 @@ public class TwirlCompile extends SourceTask {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            TwirlCompiler twirlCompiler = new TwirlCompiler();
+            TwirlCompiler twirlCompiler = new TwirlCompiler(new TwirlCompilerVersionedInvocationSpecBuilder());
             compiler = new DaemonTwirlCompiler(projectInternal.getProjectDir(), twirlCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
 
         }

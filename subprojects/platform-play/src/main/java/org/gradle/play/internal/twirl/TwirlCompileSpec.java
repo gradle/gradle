@@ -81,7 +81,7 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
         return sourceDirectory;
     }
 
-    public String getCompilerClassName() {
+    public String getCompilerVersion() {
         return compilerClassName;
     }
 }
