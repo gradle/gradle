@@ -94,6 +94,12 @@ Add a `play-application` plugin that provides Play application component:
 - Compile all scala (app/*/*.{scala,java}, output of: conf/routes, output of: app/views/*.scala.html) files
 - Output class files are part of assemble jar file
 
+#### Test cases
+
+- verify that generated scala template files exists
+- verify that generated scala/java route files exists
+- `gradle assemble` should trigger compile task and output jar should contain class files
+
 #### Open issues
 
 - implement twirl/routes compiler as inprocess/forkedprocess/both?
@@ -104,11 +110,14 @@ Add a `play-application` plugin that provides Play application component:
 - Do we provide repository setup in play support?
 - Allow forking of twirl and route compilation
 
-#### Test cases
+### Story: Add support for multiple gradle versions
 
-- verify that generated scala template files exists
-- verify that generated scala/java route files exists
-- `gradle assemble` should trigger compile task and output jar should contain class files
+- Adapt TwirlCompile task to support play 2.2.3 compliant template compiler
+- Adapt RoutesCompile task to support play 2.2.3 compliant routes compiler
+- Add test fixture for multi version play integration tests
+
+#### Test cases
+- verify that play app can be built and executed with play version 2.3.5 and 2.2.3
 
 ### Story: Developer runs Play application
 
