@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
 import org.gradle.model.collection.ManagedSet;
@@ -159,7 +160,8 @@ public class ModelSchemaExtractor {
         }
 
         if (type.getRawClass().equals(ManagedSet.class)) {
-            return extractManagedSetSchema(type, cache);
+            ModelType<ManagedSet<?>> managedSetModelType = Cast.uncheckedCast(type);
+            return Cast.uncheckedCast(extractManagedSetSchema(managedSetModelType, cache));
         }
 
         validateType(type);
@@ -217,7 +219,7 @@ public class ModelSchemaExtractor {
         return schema;
     }
 
-    private <T> ModelSchema<T> extractManagedSetSchema(ModelType<T> type, ModelSchemaCache cache) {
+    private <T extends ManagedSet<?>> ModelSchema<T> extractManagedSetSchema(ModelType<T> type, ModelSchemaCache cache) {
         List<ModelType<?>> typeVariables = type.getTypeVariables();
 
         if (typeVariables.isEmpty()) {
