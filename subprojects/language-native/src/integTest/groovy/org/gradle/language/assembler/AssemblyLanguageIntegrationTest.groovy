@@ -31,9 +31,11 @@ class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when assemble fails"() {
         given:
         buildFile << """
-            executables {
-                main {}
-            }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
         """
 
         and:
@@ -60,17 +62,19 @@ pushl
 
         and:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        sumAsm(AssemblerSourceSet) {
-                            source {
-                                srcDir "src/main/sum-sources"
-                            }
-                        }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                sumAsm(AssemblerSourceSet) {
+                    source {
+                        srcDir "src/main/sum-sources"
                     }
                 }
             }
+        }
+    }
+}
 """
 
         when:

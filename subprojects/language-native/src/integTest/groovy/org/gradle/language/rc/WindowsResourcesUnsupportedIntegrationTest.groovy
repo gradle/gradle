@@ -31,12 +31,16 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
     def "resource files are ignored on unsupported platforms"() {
         given:
         buildFile << """
-            apply plugin: 'cpp'
-            apply plugin: 'windows-resources'
+plugins {
+    id 'cpp'
+    id 'windows-resources'
+}
 
-            executables {
-                main {}
-            }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
          """
 
         and:
@@ -59,12 +63,16 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
     def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
         given:
         buildFile << """
-            apply plugin: 'cpp'
-            apply plugin: 'windows-resources'
+plugins {
+    id 'cpp'
+    id 'windows-resources'
+}
 
-            executables {
-                main {}
-            }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
          """
 
         and:

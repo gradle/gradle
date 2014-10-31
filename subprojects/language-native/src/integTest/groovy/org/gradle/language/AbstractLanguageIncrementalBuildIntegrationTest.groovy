@@ -65,20 +65,20 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << app.extraConfiguration
 
         buildFile << """
-            executables {
-                main {
+        model {
+            components {
+                main(NativeExecutableSpec) {
                     binaries.all {
                         lib libraries.hello
                     }
                 }
-            }
-            libraries {
-                hello {
+                hello(NativeLibrarySpec) {
                     binaries.withType(SharedLibraryBinarySpec) {
                         ${app.compilerDefine("DLL_EXPORT")}
                     }
                 }
             }
+        }
         """
         settingsFile << "rootProject.name = 'test'"
         sourceFile = app.mainSource.writeToDir(file("src/main"))
@@ -259,13 +259,15 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile << """
-            libraries {
+        model {
+            components {
                 hello {
                     binaries.all {
                         ${helloWorldApp.compilerArgs("-DFRENCH")}
                     }
                 }
             }
+        }
 """
 
         maybeWait()
@@ -299,9 +301,11 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
                 architecture 'x86-64'
             }
         }
+        components {
+            main.targetPlatform "platform_x86"
+            hello.targetPlatform "platform_x86"
+        }
     }
-    executables.main.targetPlatform "platform_x86"
-    libraries.hello.targetPlatform "platform_x86"
 """
         run "mainExecutable"
 
@@ -345,17 +349,18 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs =
-                AbstractInstalledToolChainIntegrationSpec.toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
-            executables {
-                main {
+        model {
+            components {
+                main(NativeExecutableSpec) {
                     binaries.all {
                         linker.args ${escapeString(linkerArgs)}
                     }
                 }
             }
+        }
 """
 
         run "installMainExecutable"
@@ -499,10 +504,14 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles binary when header file with relative path changes"() {
         when:
         buildFile << """
-            apply plugin: 'cpp'
-            executables {
-                main {}
-            }
+plugins {
+    id 'cpp'
+}
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
 """
 
         file("src/main/cpp/main.cpp") << """
@@ -541,11 +550,11 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
 
     def buildingCorCppWithGcc() {
-        return AbstractInstalledToolChainIntegrationSpec.toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
+        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
     }
 
     private void maybeWait() {
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
+        if (toolChain.visualCpp) {
             def now = System.currentTimeMillis()
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)

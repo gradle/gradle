@@ -30,19 +30,21 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
     def "setup"() {
         buildFile << """
-            apply plugin: 'assembler'
-            apply plugin: 'c'
-            apply plugin: 'cpp'
+            plugins {
+                id 'assembler'
+                id 'c'
+                id 'cpp'
+            }
 
             $app.extraConfiguration
 
-            libraries {
-                hello {}
-            }
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello
+            model {
+                components {
+                    hello(NativeLibrarySpec)
+                    main(NativeExecutableSpec) {
+                        binaries.all {
+                            lib libraries.hello
+                        }
                     }
                 }
             }
@@ -70,13 +72,15 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     def "reassembles binary with assembler option change"() {
         when:
         buildFile << """
-            libraries {
-                hello {
-                    binaries.all {
-                        if (toolChain in VisualCpp) {
-                            assembler.args '/Zf'
-                        } else {
-                            assembler.args '-W'
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        binaries.all {
+                            if (toolChain in VisualCpp) {
+                                assembler.args '/Zf'
+                            } else {
+                                assembler.args '-W'
+                            }
                         }
                     }
                 }

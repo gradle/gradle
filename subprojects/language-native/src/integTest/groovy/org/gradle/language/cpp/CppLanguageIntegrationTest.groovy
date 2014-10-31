@@ -29,9 +29,11 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             executables {
-                 main {}
-             }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
          """
 
         and:
@@ -55,9 +57,11 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-             executables {
-                 main {}
-             }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
          """
 
         expect:
@@ -75,34 +79,32 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
-
-            executables {
-                main {
-                    sources {
-                        cpp {
-                            exportedHeaders {
-                                srcDirs "src/shared/headers"
-                            }
-                        }
-                        cpp2(CppSourceSet) {
-                            exportedHeaders {
-                                srcDirs "src/shared/headers"
-                            }
-                        }
-                        cpp3(CppSourceSet) {
-                            source {
-                                srcDir "src/main/sum-sources"
-                            }
-                            exportedHeaders {
-                                srcDirs "src/shared/headers"
-                            }
-                        }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    exportedHeaders {
+                        srcDirs "src/shared/headers"
+                    }
+                }
+                cpp2(CppSourceSet) {
+                    exportedHeaders {
+                        srcDirs "src/shared/headers"
+                    }
+                }
+                cpp3(CppSourceSet) {
+                    source {
+                        srcDir "src/main/sum-sources"
+                    }
+                    exportedHeaders {
+                        srcDirs "src/shared/headers"
                     }
                 }
             }
+        }
+    }
+}
 """
 
         when:

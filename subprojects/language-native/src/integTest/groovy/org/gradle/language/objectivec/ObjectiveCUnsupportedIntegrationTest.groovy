@@ -36,9 +36,11 @@ class ObjectiveCUnsupportedIntegrationTest extends AbstractInstalledToolChainInt
     def "fails with decent error message with visual studio toolchain"() {
         given:
         buildFile << """
-            executables {
-                main {}
-            }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
         """
 
         and:

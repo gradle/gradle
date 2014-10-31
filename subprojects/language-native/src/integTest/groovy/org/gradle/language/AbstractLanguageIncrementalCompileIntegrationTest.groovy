@@ -47,9 +47,11 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
         buildFile << """
-            executables {
-                main {}
-            }
+    model {
+        components {
+            main(NativeExecutableSpec)
+        }
+    }
         """
 
         and:
@@ -236,13 +238,19 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         when:
         buildFile << """
-            executables.main.sources {
-                ${app.sourceType} {
-                    exportedHeaders {
-                        srcDirs ${headerDirs}
+    model {
+        components {
+            main {
+                sources {
+                    ${app.sourceType} {
+                        exportedHeaders {
+                            srcDirs ${headerDirs}
+                        }
                     }
                 }
             }
+        }
+    }
 """
         and:
         run "mainExecutable"
@@ -266,13 +274,19 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         when:
         buildFile << """
-            executables.main.sources  {
+model {
+    components {
+        main {
+            sources {
                 ${app.sourceType}  {
                     exportedHeaders {
                         srcDirs "src/replacement-headers", "src/main/headers"
                     }
                 }
             }
+        }
+    }
+}
 """
         and:
         run "mainExecutable"
@@ -287,13 +301,19 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """
-            executables.main.sources  {
+model {
+    components {
+        main {
+            sources {
                 ${app.sourceType} {
                     exportedHeaders {
                         srcDirs "src/replacement-headers", "src/main/headers"
                     }
                 }
             }
+        }
+    }
+}
 """
         outputs.snapshot { run "mainExecutable" }
 
@@ -341,13 +361,15 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
             // Changed source file
 """
         buildFile << """
-            executables {
+        model {
+            components {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerDefine("MY_DEF")}
                     }
                 }
             }
+        }
 """
         extraSource.delete()
 
@@ -463,9 +485,11 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     def "incremental compile is not effected by other compile tasks"() {
         given:
         buildFile << """
-            executables {
-                other
-            }
+model {
+    components {
+        other(NativeExecutableSpec)
+    }
+}
 """
         app.writeSources(file("src/other"))
 

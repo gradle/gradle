@@ -43,24 +43,21 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         }
 
         buildFile << """
-        binaries.all{
-            linker.args "-v"
+model {
+    platforms {
+        x86 {
+            architecture "i386"
         }
-        """
-        buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "i386"
-                    }
-                }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatforms "x86"
+            binaries.all {
+                linker.args "-v"
             }
-            executables {
-                main {
-                    targetPlatforms "x86"
-                }
-            }
-
+        }
+    }
+}
             """
         expect:
         succeeds "mainExecutable"
@@ -103,35 +100,31 @@ model {
             architecture "i386"
         }
     }
-}
-executables {
-    main {
-        targetPlatforms "x86"
-        sources {"""
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatforms "x86"
+            binaries.all {
+                linker.args "-v"
+            }
+            sources {"""
 
         testApp.functionalSourceSets.each { name, filterPattern ->
                 buildFile << """
-            $name {
-                source {
-                    include '$filterPattern'
-                    srcDirs "src/main/all"
-                }
-            }"""
+                $name {
+                    source {
+                        include '$filterPattern'
+                        srcDirs "src/main/all"
+                    }
+                }"""
         }
 
         buildFile << """
+            }
         }
     }
-}"""
+}
+"""
 
-        buildFile << """
-
-        binaries.all {
-            linker.args "-v"
-        }
-
-
-        """
         expect:
         succeeds "mainExecutable"
         executable("build/binaries/mainExecutable/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
@@ -148,10 +141,11 @@ executables {
         buildFile << testApp.extraConfiguration
 
         buildFile << """
-            executables {
-                main {}
-            }
-
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
             """
         expect:
         succeeds "mainExecutable"
@@ -170,12 +164,15 @@ executables {
             buildFile << "apply plugin: '$plugin'\n"
         }
         buildFile <<"""
+model {
+    components {
+        main(NativeExecutableSpec) {
             binaries.all {
                 linker.args "user32.lib"
             }
-            executables {
-                main {}
-            }
+        }
+    }
+}
             """
         expect:
         succeeds "mainExecutable"

@@ -27,33 +27,35 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "can have all source files co-located in a common directory"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp {
-                            source {
-                                srcDirs "src/main/flat"
-                                include "**/*.cpp"
-                            }
-                        }
-                        c {
-                            source {
-                                srcDirs "src/main/flat"
-                                include "**/*.c"
-                            }
-                            exportedHeaders {
-                                srcDirs "src/main/flat"
-                            }
-                        }
-                        asm {
-                            source {
-                                srcDirs "src/main/flat"
-                                include "**/*.s"
-                            }
-                        }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs "src/main/flat"
+                        include "**/*.cpp"
+                    }
+                }
+                c {
+                    source {
+                        srcDirs "src/main/flat"
+                        include "**/*.c"
+                    }
+                    exportedHeaders {
+                        srcDirs "src/main/flat"
+                    }
+                }
+                asm {
+                    source {
+                        srcDirs "src/main/flat"
+                        include "**/*.s"
                     }
                 }
             }
+        }
+    }
+}
         """
 
         and:
@@ -73,30 +75,32 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """
-        executables {
-            main {
-                sources {
-                    cpp {
-                        source {
-                            srcDirs "source"
-                            include "**/*.cpp"
-                        }
-                        exportedHeaders {
-                            srcDirs "source/hello", "include"
-                        }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs "source"
+                        include "**/*.cpp"
                     }
-                    c {
-                        source {
-                            srcDirs "source", "include"
-                            include "**/*.c"
-                        }
-                        exportedHeaders {
-                            srcDirs "source/hello", "include"
-                        }
+                    exportedHeaders {
+                        srcDirs "source/hello", "include"
+                    }
+                }
+                c {
+                    source {
+                        srcDirs "source", "include"
+                        include "**/*.c"
+                    }
+                    exportedHeaders {
+                        srcDirs "source/hello", "include"
                     }
                 }
             }
         }
+    }
+}
         """
         settingsFile << "rootProject.name = 'test'"
 
