@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.language.java.internal
-
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.jvm.Classpath
-import org.gradle.language.base.FunctionalSourceSet
 import spock.lang.Specification
 
 class DefaultJavaSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def functionalSourceSet = Stub(FunctionalSourceSet) {
-            getName() >> "mainX"
-        }
-        def resourceSet = new DefaultJavaSourceSet("javaX", Stub(SourceDirectorySet), Stub(Classpath), functionalSourceSet)
+        def resourceSet = new DefaultJavaSourceSet("javaX", "mainX", Stub(SourceDirectorySet), Stub(Classpath))
 
         expect:
         resourceSet.displayName == "Java source 'mainX:javaX'"

@@ -23,10 +23,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.jvm.Classpath;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.jvm.Classpath;
 
 import javax.inject.Inject;
 import java.util.HashSet;
@@ -36,12 +35,12 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
     private final Classpath compileClasspath;
 
     @Inject
-    public DefaultJavaSourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+    public DefaultJavaSourceSet(String name, String parent, FileResolver fileResolver) {
         super(name, parent, "Java source", new DefaultSourceDirectorySet("source", fileResolver));
         this.compileClasspath = new EmptyClasspath();
     }
 
-    public DefaultJavaSourceSet(String name, SourceDirectorySet source, Classpath compileClasspath, FunctionalSourceSet parent) {
+    public DefaultJavaSourceSet(String name, String parent, SourceDirectorySet source, Classpath compileClasspath) {
         super(name, parent, "Java source", source);
         this.compileClasspath = compileClasspath;
     }

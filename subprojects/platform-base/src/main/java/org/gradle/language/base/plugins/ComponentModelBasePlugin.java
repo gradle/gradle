@@ -115,7 +115,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 NamedDomainObjectFactory<U> namedDomainObjectFactory = new NamedDomainObjectFactory<U>() {
                     public U create(String name) {
                         Class<? extends U> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
-                        return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet, fileResolver);
+                        return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet.getName(), fileResolver);
                     }
                 };
                 functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), namedDomainObjectFactory);

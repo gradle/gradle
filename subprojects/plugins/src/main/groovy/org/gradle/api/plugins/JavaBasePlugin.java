@@ -131,9 +131,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 FunctionalSourceSet functionalSourceSet = projectSourceSet.create(sourceSet.getName());
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getJava(), compileClasspath, functionalSourceSet);
+                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
                 functionalSourceSet.add(javaSourceSet);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
                 functionalSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);

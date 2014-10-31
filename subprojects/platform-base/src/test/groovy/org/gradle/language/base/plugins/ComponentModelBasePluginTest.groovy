@@ -124,7 +124,7 @@ class ComponentModelBasePluginTest extends Specification {
     public static class TestSourceImplementation implements TestSourceSet {
         String name
 
-        public TestSourceImplementation(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+        public TestSourceImplementation(String name, String parent, FileResolver fileResolver) {
             this.name = name;
         }
 

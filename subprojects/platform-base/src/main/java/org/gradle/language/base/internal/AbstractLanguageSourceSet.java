@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.FunctionalSourceSet;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;
@@ -31,10 +30,10 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(String name, FunctionalSourceSet parent, String typeName, SourceDirectorySet source) {
+    public AbstractLanguageSourceSet(String name, String parentName, String typeName, SourceDirectorySet source) {
         this.name = name;
-        this.fullName = parent.getName() + StringUtils.capitalize(name);
-        this.displayName = String.format("%s '%s:%s'", typeName, parent.getName(), name);
+        this.fullName = parentName + StringUtils.capitalize(name);
+        this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
         super.builtBy(source.getBuildDependencies());
     }

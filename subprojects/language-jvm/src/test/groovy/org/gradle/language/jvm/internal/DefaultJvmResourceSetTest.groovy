@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.language.jvm.internal
-
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.base.FunctionalSourceSet
 import spock.lang.Specification
 
 class DefaultJvmResourceSetTest extends Specification {
     def "has useful String representation"() {
-        def functionalSourceSet = Stub(FunctionalSourceSet) {
-            getName() >> "mainX"
-        }
-        def resourceSet = new DefaultJvmResourceSet("resourcesX", Stub(SourceDirectorySet), functionalSourceSet)
+        def resourceSet = new DefaultJvmResourceSet("resourcesX", "mainX", Stub(SourceDirectorySet))
 
         expect:
         resourceSet.displayName == "JVM resources 'mainX:resourcesX'"
