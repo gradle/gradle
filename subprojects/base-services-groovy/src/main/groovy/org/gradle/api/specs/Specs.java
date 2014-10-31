@@ -17,6 +17,7 @@ package org.gradle.api.specs;
 
 import groovy.lang.Closure;
 import org.gradle.api.specs.internal.ClosureSpec;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,10 +27,6 @@ import java.util.List;
  */
 public class Specs {
 
-    /*
-        Note: This should be in baseServicesGroovy, but it needs the DeprecationLogger which needs commons-lang
-              It as
-     */
     public static final Spec<Object> SATISFIES_ALL = new Spec<Object>() {
         public boolean isSatisfiedBy(Object element) {
             return true;
@@ -37,7 +34,7 @@ public class Specs {
     };
 
     public static <T> Spec<T> satisfyAll() {
-        return (Spec<T>)SATISFIES_ALL;
+        return Cast.uncheckedCast(SATISFIES_ALL);
     }
 
     public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
@@ -45,9 +42,9 @@ public class Specs {
             return false;
         }
     };
-    
+
     public static <T> Spec<T> satisfyNone() {
-        return (Spec<T>)SATISFIES_NONE;
+        return Cast.uncheckedCast(SATISFIES_NONE);
     }
 
     //TODO SF rename for consistency with Actions.toAction
@@ -56,7 +53,7 @@ public class Specs {
     }
 
     public static <T> AndSpec<T> and(Spec<? super T>... specs) {
-        return new AndSpec<T>(specs);  
+        return new AndSpec<T>(specs);
     }
 
     public static <T> AndSpec<T> and(Collection<? extends Spec<? super T>> specs) {
@@ -72,7 +69,7 @@ public class Specs {
     }
 
     public static <T> NotSpec<T> not(Spec<? super T> spec) {
-        return new NotSpec<T>(spec);  
+        return new NotSpec<T>(spec);
     }
 
     public static <T> Spec<T> or(final boolean defaultWhenNoSpecs, List<? extends Spec<? super T>> specs) {
@@ -83,6 +80,6 @@ public class Specs {
                 }
             };
         }
-        return new OrSpec<T>(specs.toArray(new Spec[specs.size()]));
+        return new OrSpec<T>(specs);
     }
 }
