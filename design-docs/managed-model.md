@@ -348,8 +348,6 @@ Notes:
 
 ### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation
 
-i.e. unclear what mutation concerns are in scope 
-
 ### User assigns reference type property using indirect identifier
 
 i.e. Something like the current scenario with `Platform.operatingSystem`. There is a set of objects of the referenced type, and they can be assigned as references some convenient way (e.g. by parsing a string)
@@ -358,9 +356,6 @@ i.e. Something like the current scenario with `Platform.operatingSystem`. There 
 
 i.e. Something like the current scenario with `Platform.operatingSystem`. There is a set of objects of the referenced type, and they can be assigned as references some convenient way (e.g. by parsing a string)
 
-### Model type is provided as an abstract class, containing non abstract methods
-
-### Model type is part of an inheritance hierarchy and can be viewed/mutated as any type in the hierarchy
 
 ### Plugin creates item of managed type in collection property of managed type
  
