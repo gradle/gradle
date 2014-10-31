@@ -291,6 +291,12 @@ Notes:
 
 ### Managed model type has enum property
 
+#### Notes
+
+- Support for enums of any type
+- Enum values are opaque to the model space (i.e. we do not treat enum values as structured objects, e.g. cannot depend on a property of an enum value)
+- Enum values are not strictly immutable/threadsafe in Java but almost always are, as such we will consider them to be at this stage
+- It doesn't have any impact at this stage, but only the enum value is strictly part of the model (all properties of an enum value are supplied by the runtime)
 
 ### Managed model element has “generated” display name indicating identity in model space
 
