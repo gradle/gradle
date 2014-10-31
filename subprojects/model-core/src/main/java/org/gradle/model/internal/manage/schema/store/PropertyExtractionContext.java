@@ -31,7 +31,7 @@ public class PropertyExtractionContext extends AbstractModelSchemaExtractionCont
     }
 
     @Override
-    protected String getWrappingExceptionMessage() {
-        return String.format("managed type of property '%s' is invalid", property.getName());
+    protected String getPathFragment() {
+        return String.format("%s.%s", owner, property.getName());
     }
 }

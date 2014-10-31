@@ -17,10 +17,9 @@
 package org.gradle.model.internal.manage.schema.store;
 
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 
 public interface ModelSchemaExtractionContext {
-    public ModelType<?> getType();
+    ModelType<?> getType();
 
-    public InvalidManagedModelElementTypeException wrap(InvalidManagedModelElementTypeException cause);
+    String getContextPath();
 }

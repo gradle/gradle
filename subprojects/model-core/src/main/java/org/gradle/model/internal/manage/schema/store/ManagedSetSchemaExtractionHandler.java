@@ -26,7 +26,6 @@ import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.collection.internal.DefaultManagedSet;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.List;
@@ -59,13 +58,13 @@ public class ManagedSetSchemaExtractionHandler<T extends ManagedSet<?>> implemen
         List<ModelType<?>> typeVariables = type.getTypeVariables();
 
         if (typeVariables.isEmpty()) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()));
+            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()), context);
         }
         if (type.isHasWildcardTypeVariables()) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
+            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()), context);
         }
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(typeVariables.get(0))) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
+            throw new InvalidManagedModelElementTypeException(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()), context);
         }
 
         ModelSchema<R> schema = createSchema(type, cache);

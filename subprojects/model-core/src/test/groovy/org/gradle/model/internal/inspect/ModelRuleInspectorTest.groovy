@@ -19,7 +19,7 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
+import org.gradle.model.internal.manage.schema.store.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -370,11 +370,7 @@ class ModelRuleInspectorTest extends Specification {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule $inspected.name#bar($managedType.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $managedType.name: managed type of property 'managedWithNestedInvalidManagedType' is invalid"
-        e.cause.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.cause.message == "Invalid managed model type $nestedManagedType.name: managed type of property 'invalidManaged' is invalid"
-        e.cause.cause.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.cause.cause.message == "Invalid managed model type $ParametrizedManaged.name<$String.name>: cannot be a parameterized type"
+        e.cause.message == "Invalid managed model type $ParametrizedManaged.name<$String.name>: cannot be a parameterized type. The type was analyzed due to the following dependencies: ${managedType.name}.managedWithNestedInvalidManagedType -> ${nestedManagedType.name}.invalidManaged"
 
         where:
         inspected                                                   | managedType                                    | nestedManagedType

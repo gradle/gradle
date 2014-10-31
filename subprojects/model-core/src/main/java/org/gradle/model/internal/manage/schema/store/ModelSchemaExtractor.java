@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.List;
@@ -47,11 +46,7 @@ public class ModelSchemaExtractor {
         ModelSchemaExtractionContext dependency = unsatisfiedDependencies.poll();
         while (dependency != null) {
             ModelSchemaExtractionResult<?> nextSchema;
-            try {
-                nextSchema = extractSchema(dependency.getType(), cache, dependency);
-            } catch (InvalidManagedModelElementTypeException e) {
-                throw dependency.wrap(e);
-            }
+            nextSchema = extractSchema(dependency.getType(), cache, dependency);
 
             pushUnsatisfiedDependencies(nextSchema.getDependencies(), unsatisfiedDependencies, cache);
             dependency = unsatisfiedDependencies.poll();

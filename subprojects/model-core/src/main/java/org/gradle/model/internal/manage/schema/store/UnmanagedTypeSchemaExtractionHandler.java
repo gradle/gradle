@@ -20,7 +20,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.UnmanagedModelElementTypeException;
 
 @ThreadSafe
 public class UnmanagedTypeSchemaExtractionHandler implements ModelSchemaExtractionHandler<Object> {
@@ -38,7 +37,7 @@ public class UnmanagedTypeSchemaExtractionHandler implements ModelSchemaExtracti
     }
 
     public <R> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
-        throw new UnmanagedModelElementTypeException(type);
+        throw new UnmanagedModelElementTypeException(type, context);
     }
 
     private static class UnmanagedTypeSpec implements Spec<ModelType<?>> {

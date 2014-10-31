@@ -19,9 +19,7 @@ package org.gradle.model.internal.manage.schema.store
 import org.gradle.model.Managed
 import org.gradle.model.collection.ManagedSet
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.ModelSchema
-import org.gradle.model.internal.manage.schema.UnmanagedModelElementTypeException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -331,9 +329,7 @@ class ModelSchemaExtractorTest extends Specification {
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type $type: type parameter of $ManagedSet.name has to be a valid managed type"
-        e.cause instanceof UnmanagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $Object.name: not a managed type"
+        e.message == "Invalid managed model type $Object.name: not a managed type. The type was analyzed due to the following dependencies: $type"
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
@@ -345,9 +341,7 @@ class ModelSchemaExtractorTest extends Specification {
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type $type: type parameter of $ManagedSet.name has to be a valid managed type"
-        e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName])"
+        e.message == "Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName]). The type was analyzed due to the following dependencies: $type"
     }
 
     def "managed sets of managed set are not supported"() {

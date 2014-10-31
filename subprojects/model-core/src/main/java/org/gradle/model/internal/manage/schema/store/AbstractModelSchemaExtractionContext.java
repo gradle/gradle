@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.store;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 
 @ThreadSafe
 public abstract class AbstractModelSchemaExtractionContext implements ModelSchemaExtractionContext {
@@ -29,7 +28,7 @@ public abstract class AbstractModelSchemaExtractionContext implements ModelSchem
 
     private final ModelSchemaExtractionContext parent;
 
-    protected abstract String getWrappingExceptionMessage();
+    protected abstract String getPathFragment();
 
     AbstractModelSchemaExtractionContext(ModelType<?> owner, ModelType<?> type, ModelSchemaExtractionContext parent) {
         this.owner = owner;
@@ -41,8 +40,7 @@ public abstract class AbstractModelSchemaExtractionContext implements ModelSchem
         return type;
     }
 
-    public InvalidManagedModelElementTypeException wrap(InvalidManagedModelElementTypeException cause) {
-        InvalidManagedModelElementTypeException wrapped = new InvalidManagedModelElementTypeException(owner, getWrappingExceptionMessage(), cause);
-        return parent != null ? parent.wrap(wrapped) : wrapped;
+    public String getContextPath() {
+        return parent != null ? String.format("%s -> %s", parent.getContextPath(), getPathFragment()) : getPathFragment();
     }
 }

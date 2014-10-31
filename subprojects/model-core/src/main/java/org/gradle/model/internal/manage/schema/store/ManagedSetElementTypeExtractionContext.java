@@ -26,7 +26,7 @@ public class ManagedSetElementTypeExtractionContext extends AbstractModelSchemaE
     }
 
     @Override
-    protected String getWrappingExceptionMessage() {
-        return String.format("type parameter of %s has to be a valid managed type", ManagedSet.class.getName());
+    protected String getPathFragment() {
+        return owner.toString();
     }
 }
