@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.play.fixtures.PlayCoverage
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 @TargetCoverage({PlayCoverage.DEFAULT})
 class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
 
