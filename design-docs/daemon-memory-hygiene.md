@@ -28,15 +28,22 @@ Memory leaks are unavoidable because:
 
 ## The user is aware of daemon health
 
-Let the user know about certain stats of the daemon.
-It would help building stronger confidence in the daemon and provide information to the user for memory tweaking.
+Let the user be proud of the daemon, of how many builds it happily served and the operational uptime.
+Let the user be aware of daemon performance so that he can map the performance to things like:
+plugins, build logic, environment or build invocations.
+Consumption of this information may lead to interesting discoveries and valuable feedback for the Gradle team.
+Help building stronger confidence in the daemon and its smartness by demonstrating
+in every build that the daemon is able to monitor its own health.
 
 ### User visible changes
 
-When building with the daemon there is an elegant lifecycle message informing about the daemon status
+- When building with the daemon there is an elegant lifecycle message informing about the daemon status
 
 "Starting build in new daemon [memory: 30.4 MB]"
 "Executing 2nd build in daemon [uptime: 2.922 secs, performance: 91%, memory: 100% of 28.8 MB]"
+
+- The message is only shown when 'org.gradle.daemon.performance.info' gradle property is enabled.
+Example gradle.properties: 'org.gradle.daemon.performance.info=true'
 
 ### Test coverage
 
