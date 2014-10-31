@@ -291,6 +291,43 @@ Notes:
 
 ### Managed model type has enum property
 
+### Managed model type has property of collection of managed types
+
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+    }
+    
+    package org.gradle.model.collection
+    interface ManagedSet<T> extends Set<T> {
+      void create(Action<? super T> action)
+    }
+    
+    class Rules {
+      @Model
+      void people(ManagedSet<Person> people) {}
+      
+      @Mutate void addPeople(ManagedSet<Person> people) {
+        people.create(p -> p.setName("p1"))
+        people.create(p -> p.setName("p2"))
+      }
+    }
+    
+    model {
+      people {
+        create { it.name = "p3" }
+      }
+      
+      tasks {
+        create("printPeople") {
+          it.doLast {
+            assert $("people")*.name.sort() == ["p1", "p2", "p3"]
+          }
+        }
+      }
+    }
+    
+
 #### Notes
 
 - Support for enums of any type
@@ -304,17 +341,30 @@ Notes:
     
     @Managed
     interface Person {
-      String getDisplayName();
+      String getName(); void setName(String name);
+    }
+    
+    @Managed
+    interface Group {
+      ManagedSet<Person> getPeople();
     }
     
     @RuleSource
     class Rules {
       @Model
-      void p1(Person p) {}
-      
-      @Mutate
-      void echoTask(CollectionBuilder<Task> tasks, Person p) {
-        tasks.create("verify", (t) -> t.doLast(t2 -> { assert p.getDisplayName().equals("Person @ 'p1'") })
+      void g1(Group group) {
+        group.getPeople().create(p -> p.setName("p1"));
+        group.getPeople().create(p -> p.setName("p2"));
+      }      
+    }
+    
+    model {
+      tasks {
+        create("verify") {
+          it.doLast { 
+            assert $("group").people*.name.sort() == ["p1", "p2"]
+          }
+        }
       }
     }
     
