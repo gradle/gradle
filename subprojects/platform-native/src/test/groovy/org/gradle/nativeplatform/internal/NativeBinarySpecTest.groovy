@@ -52,11 +52,11 @@ class NativeBinarySpecTest extends Specification {
 
     def "binary uses source from its owner component"() {
         given:
-        def binary = testBinary(component)
         def sourceSet = Stub(LanguageSourceSet)
 
         when:
         component.sources.add(sourceSet)
+        def binary = testBinary(component)
 
         then:
         binary.source.contains(sourceSet)

@@ -16,16 +16,15 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
+import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -62,11 +61,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         this.buildType = buildType;
         this.buildable = true;
         this.resolver = resolver;
-        component.getSources().all(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet sourceSet) {
-                sourceSets.add(sourceSet);
-            }
-        });
+        this.source(component.getSources());
     }
 
     @Override
