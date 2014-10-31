@@ -22,8 +22,10 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Timeout
-//@Ignore("Test is causing OOM exceptions on CI")
+
+@Ignore("Test is causing OOM exceptions on CI")
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
