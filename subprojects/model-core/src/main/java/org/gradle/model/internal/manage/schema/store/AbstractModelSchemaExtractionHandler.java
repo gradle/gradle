@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema.store;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 
@@ -25,17 +26,17 @@ import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeExc
 abstract class AbstractModelSchemaExtractionHandler implements ModelSchemaExtractionHandler {
 
     private final ModelType<?> supportedSuperType;
-    private final Spec<ModelType<?>> spec;
+    private final Spec<? super ModelType<?>> spec;
 
-    public AbstractModelSchemaExtractionHandler(Spec<ModelType<?>> spec) {
+    public AbstractModelSchemaExtractionHandler(Spec<? super ModelType<?>> spec) {
         this(ModelType.of(Object.class), spec);
     }
 
     public AbstractModelSchemaExtractionHandler(ModelType<?> supportedSuperType) {
-        this(supportedSuperType, new AcceptAllSpec());
+        this(supportedSuperType, Specs.satisfyAll());
     }
 
-    public AbstractModelSchemaExtractionHandler(ModelType<?> supportedSuperType, Spec<ModelType<?>> spec) {
+    public AbstractModelSchemaExtractionHandler(ModelType<?> supportedSuperType, Spec<? super ModelType<?>> spec) {
         this.supportedSuperType = supportedSuperType;
         this.spec = spec;
     }
@@ -44,7 +45,7 @@ abstract class AbstractModelSchemaExtractionHandler implements ModelSchemaExtrac
         return supportedSuperType;
     }
 
-    public Spec<ModelType<?>> getSpec() {
+    public Spec<? super ModelType<?>> getSpec() {
         return spec;
     }
 
@@ -58,12 +59,5 @@ abstract class AbstractModelSchemaExtractionHandler implements ModelSchemaExtrac
 
     protected <T> InvalidManagedModelElementTypeException invalid(ModelType<T> type, String message, InvalidManagedModelElementTypeException e) {
         return new InvalidManagedModelElementTypeException(type, message, e);
-    }
-
-    private static class AcceptAllSpec implements Spec<ModelType<?>> {
-
-        public boolean isSatisfiedBy(ModelType<?> element) {
-            return true;
-        }
     }
 }

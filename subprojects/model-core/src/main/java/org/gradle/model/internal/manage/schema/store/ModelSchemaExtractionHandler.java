@@ -23,7 +23,7 @@ public interface ModelSchemaExtractionHandler {
 
     public ModelType<?> getSupportedSuperType();
 
-    public Spec<ModelType<?>> getSpec();
+    public Spec<? super ModelType<?>> getSpec();
 
     public <T> ModelSchemaExtractionResult<T> extract(ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context);
 }
