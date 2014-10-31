@@ -455,3 +455,7 @@ i.e. Something like the current scenario with `Platform.operatingSystem`. There 
 Haven't identified a real use case for this yet. 
 In theory, it allows avoiding creating the nested property if it's not needed.
 However, given our current capabilities there's no real useful case for this.
+
+### User sees useful type name in stack trace for managed model type and while debugging
+
+This is about ensuring that managed model instances don't make debugging more difficult by presenting type names that don't hint at the type.
