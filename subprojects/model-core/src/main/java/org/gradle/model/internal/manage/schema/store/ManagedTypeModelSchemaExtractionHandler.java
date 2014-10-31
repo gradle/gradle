@@ -22,6 +22,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -91,7 +92,6 @@ public class ManagedTypeModelSchemaExtractionHandler<T> implements ModelSchemaEx
         if (methodList.isEmpty()) {
             ManagedTypeInstantiator<R> elementInstantiator = new ManagedTypeInstantiator<R>();
             ModelSchema<R> schema = new ModelSchema<R>(type, elementInstantiator);
-            elementInstantiator.setSchema(schema);
             return new ModelSchemaExtractionResult<R>(schema);
         }
 
@@ -140,7 +140,6 @@ public class ManagedTypeModelSchemaExtractionHandler<T> implements ModelSchemaEx
 
         ManagedTypeInstantiator<R> elementInstantiator = new ManagedTypeInstantiator<R>();
         ModelSchema<R> schema = new ModelSchema<R>(type, properties, elementInstantiator);
-        elementInstantiator.setSchema(schema);
         Iterable<? extends ModelSchemaExtractionContext> dependencies = getModelSchemaDependencies(properties, type, context);
         return new ModelSchemaExtractionResult<R>(schema, dependencies);
     }
@@ -247,15 +246,9 @@ public class ManagedTypeModelSchemaExtractionHandler<T> implements ModelSchemaEx
         return type.getRawClass().isAnnotationPresent(Managed.class);
     }
 
-    private static class ManagedTypeInstantiator<T> implements Factory<T> {
+    private static class ManagedTypeInstantiator<T> implements Transformer<T, ModelSchema<T>> {
 
-        private ModelSchema<T> schema;
-
-        public void setSchema(ModelSchema<T> schema) {
-            this.schema = schema;
-        }
-
-        public T create() {
+        public T transform(ModelSchema<T> schema) {
             Class<T> concreteType = schema.getType().getConcreteClass();
             ManagedModelElement<T> element = new ManagedModelElement<T>(schema);
             ManagedModelElementInvocationHandler invocationHandler = new ManagedModelElementInvocationHandler(element);

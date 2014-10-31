@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.schema;
 
 import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
+import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelType;
 
 import java.util.Collections;
@@ -28,15 +28,15 @@ public class ModelSchema<T> {
 
     private final ModelType<T> type;
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
-    private final Factory<T> elementInstantiator;
+    private final Transformer<T, ModelSchema<T>> instantiator;
 
-    public ModelSchema(ModelType<T> type, Factory<T> elementInstantiator) {
+    public ModelSchema(ModelType<T> type, Transformer<T, ModelSchema<T>> elementInstantiator) {
         this(type, Collections.<ModelProperty<?>>emptyList(), elementInstantiator);
     }
 
-    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Factory<T> elementInstantiator) {
+    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Transformer<T, ModelSchema<T>> instantiator) {
         this.type = type;
-        this.elementInstantiator = elementInstantiator;
+        this.instantiator = instantiator;
 
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
@@ -54,6 +54,6 @@ public class ModelSchema<T> {
     }
 
     public T createInstance() {
-        return elementInstantiator.create();
+        return instantiator.transform(this);
     }
 }

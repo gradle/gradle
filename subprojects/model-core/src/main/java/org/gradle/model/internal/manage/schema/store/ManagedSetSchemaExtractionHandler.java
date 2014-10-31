@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema.store;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
@@ -73,25 +74,18 @@ public class ManagedSetSchemaExtractionHandler<T extends ManagedSet<?>> implemen
 
     private <R extends T> ModelSchema<R> createSchema(ModelType<R> type, ModelSchemaCache cache) {
         ManagedSetInstantiator<R> elementInstantiator = new ManagedSetInstantiator<R>(cache);
-        ModelSchema<R> schema = new ModelSchema<R>(type, elementInstantiator);
-        elementInstantiator.setSchema(schema);
-        return schema;
+        return new ModelSchema<R>(type, elementInstantiator);
     }
 
-    private class ManagedSetInstantiator<S> implements Factory<S> {
+    private class ManagedSetInstantiator<S> implements Transformer<S, ModelSchema<S>> {
 
         private final ModelSchemaCache cache;
-        private ModelSchema<S> schema;
 
         ManagedSetInstantiator(ModelSchemaCache cache) {
             this.cache = cache;
         }
 
-        public void setSchema(ModelSchema<S> schema) {
-            this.schema = schema;
-        }
-
-        public S create() {
+        public S transform(ModelSchema<S> schema) {
             ModelType<?> elementType = schema.getType().getTypeVariables().get(0);
             final ModelSchema<?> elementSchema = cache.get(elementType);
             return Cast.uncheckedCast(createManagedSetInstance(elementSchema));
