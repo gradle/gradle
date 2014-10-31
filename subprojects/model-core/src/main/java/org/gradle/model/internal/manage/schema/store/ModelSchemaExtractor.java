@@ -25,60 +25,46 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
-import java.util.Deque;
 import java.util.List;
+import java.util.Queue;
 
 @ThreadSafe
 public class ModelSchemaExtractor {
 
-    private final static List<? extends ModelSchemaExtractionHandler> EXTRACTION_HANDLERS = ImmutableList.of(new ManagedTypeModelSchemaExtractionHandler(), new ManagedSetSchemaExtractionHandler(),
-            new UnmanagedTypeSchemaExtractionHandler());
-
-    private static class Extraction {
-        final Deque<ModelSchemaExtractionContext> stack = Lists.newLinkedList();
-
-        void push(List<ModelSchemaExtractionContext> items) {
-            stack.addAll(Lists.reverse(items));
-        }
-
-        ModelSchemaExtractionContext next() {
-            return stack.pop();
-        }
-
-        boolean hasNext() {
-            return !stack.isEmpty();
-        }
-    }
+    private final static List<? extends ModelSchemaExtractionHandler> EXTRACTION_HANDLERS = ImmutableList.of(
+            new ManagedTypeModelSchemaExtractionHandler(),
+            new ManagedSetSchemaExtractionHandler(),
+            new UnmanagedTypeSchemaExtractionHandler()
+    );
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         ModelSchemaExtractionResult<T> schemaExtraction = extractSchema(type, cache, null);
+        Queue<ModelSchemaExtractionContext> unsatisfiedDependencies = Lists.newLinkedList();
 
-        Extraction extraction = new Extraction();
-        pushDependencies(schemaExtraction.getDependencies(), extraction, cache);
+        pushUnsatisfiedDependencies(schemaExtraction.getDependencies(), unsatisfiedDependencies, cache);
 
-        while (extraction.hasNext()) {
-            ModelSchemaExtractionContext next = extraction.next();
+        ModelSchemaExtractionContext dependency = unsatisfiedDependencies.poll();
+        while (dependency != null) {
             ModelSchemaExtractionResult<?> nextSchema;
             try {
-                nextSchema = extractSchema(next.getType(), cache, next);
+                nextSchema = extractSchema(dependency.getType(), cache, dependency);
             } catch (InvalidManagedModelElementTypeException e) {
-                throw next.wrap(e);
+                throw dependency.wrap(e);
             }
 
-            pushDependencies(nextSchema.getDependencies(), extraction, cache);
+            pushUnsatisfiedDependencies(nextSchema.getDependencies(), unsatisfiedDependencies, cache);
+            dependency = unsatisfiedDependencies.poll();
         }
 
         return schemaExtraction.getSchema();
     }
 
-    private <T> void pushDependencies(List<? extends ModelSchemaExtractionContext> dependencies, Extraction extraction, final ModelSchemaCache cache) {
-        Iterable<? extends ModelSchemaExtractionContext> pendingDependencies = Iterables.filter(dependencies, new Predicate<ModelSchemaExtractionContext>() {
+    private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext> allDependencies, Queue<ModelSchemaExtractionContext> dependencyQueue, final ModelSchemaCache cache) {
+        Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext>() {
             public boolean apply(ModelSchemaExtractionContext dependency) {
                 return cache.get(dependency.getType()) == null;
             }
-        });
-
-        extraction.push(Lists.newLinkedList(pendingDependencies));
+        }));
     }
 
     private <T> ModelSchemaExtractionResult<T> extractSchema(final ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {

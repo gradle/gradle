@@ -124,11 +124,11 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         ManagedTypeInstantiator<T> elementInstantiator = new ManagedTypeInstantiator<T>();
         ModelSchema<T> schema = new ModelSchema<T>(type, properties, elementInstantiator);
         elementInstantiator.setSchema(schema);
-        List<? extends ModelSchemaExtractionContext> dependencies = getModelSchemaDependencies(properties, type, context);
+        Iterable<? extends ModelSchemaExtractionContext> dependencies = getModelSchemaDependencies(properties, type, context);
         return new ModelSchemaExtractionResult<T>(schema, Lists.newLinkedList(dependencies));
     }
 
-    private <T> List<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(List<ModelProperty<?>> properties, final ModelType<T> type, final ModelSchemaExtractionContext context) {
+    private <T> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(List<ModelProperty<?>> properties, final ModelType<T> type, final ModelSchemaExtractionContext context) {
         Iterable<ModelProperty<?>> managedProperties = Iterables.filter(properties, new Predicate<ModelProperty<?>>() {
             public boolean apply(ModelProperty<?> input) {
                 return input.isManaged();

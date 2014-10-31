@@ -20,28 +20,28 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.Collections;
-import java.util.List;
 
 @ThreadSafe
 public class ModelSchemaExtractionResult<T> {
 
     private ModelSchema<T> schema;
 
-    private List<? extends ModelSchemaExtractionContext> dependencies;
+    private Iterable<? extends ModelSchemaExtractionContext> dependencies;
 
     public ModelSchemaExtractionResult(ModelSchema<T> schema) {
         this(schema, Collections.<ModelSchemaExtractionContext>emptyList());
     }
 
-    public ModelSchemaExtractionResult(ModelSchema<T> schema, List<? extends ModelSchemaExtractionContext> dependencies) {
+    public ModelSchemaExtractionResult(ModelSchema<T> schema, Iterable<? extends ModelSchemaExtractionContext> dependencies) {
         this.schema = schema;
         this.dependencies = dependencies;
     }
+
     public ModelSchema<T> getSchema() {
         return schema;
     }
 
-    public List<? extends ModelSchemaExtractionContext> getDependencies() {
+    public Iterable<? extends ModelSchemaExtractionContext> getDependencies() {
         return dependencies;
     }
 }
