@@ -35,6 +35,7 @@ import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -89,7 +90,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
         inheritedDependencies = new CompositeDomainObjectSet<Dependency>(Dependency.class)
-                .beforeChange(new VetoContainerChangeAction())
+                .beforeChange(new WarnOnChangeAction())
                 .addCollection(ownDependencies);
 
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
@@ -388,7 +389,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void throwExceptionIfAlreadyResolved() {
         if (getState() != State.UNRESOLVED) {
-            throw new InvalidUserDataException("You can't change configuration '" + getName() + "' because it is already resolved!");
+            throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
+        }
+    }
+
+    private void warnIfAlreadyResolved() {
+        if (getState() != State.UNRESOLVED) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
         }
     }
 
@@ -489,6 +496,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private class VetoContainerChangeAction implements Runnable {
         public void run() {
             throwExceptionIfAlreadyResolved();
+        }
+    }
+
+    private class WarnOnChangeAction implements Runnable {
+        public void run() {
+            warnIfAlreadyResolved();
         }
     }
 
