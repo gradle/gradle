@@ -18,10 +18,9 @@ package org.gradle.api.reporting.components.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -68,13 +67,11 @@ public class ComponentReportRenderer extends TextReportRenderer {
         }
     }
 
-    public void renderSourceSets(Collection<FunctionalSourceSet> sourceSets) {
+    public void renderSourceSets(Collection<LanguageSourceSet> sourceSets) {
         Set<LanguageSourceSet> additionalSourceSets = new LinkedHashSet<LanguageSourceSet>();
-        for (FunctionalSourceSet functionalSourceSet : sourceSets) {
-            for (LanguageSourceSet sourceSet : functionalSourceSet) {
-                if (!componentSourceSets.contains(sourceSet)) {
-                    additionalSourceSets.add(sourceSet);
-                }
+        for (LanguageSourceSet sourceSet : sourceSets) {
+            if (!componentSourceSets.contains(sourceSet)) {
+                additionalSourceSets.add(sourceSet);
             }
         }
         if (!additionalSourceSets.isEmpty()) {

@@ -766,17 +766,14 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
     }
 
-    sources {
-        win32 {
-            cpp(CppSourceSet)
+    binaries.all { binary ->
+        def platformName = binary.targetPlatform.name
+        sources {
+            platformSources(CppSourceSet) {
+                source.srcDir "src/\$platformName/cpp"
+                exportedHeaders.srcDir "src/\$platformName/headers"
+            }
         }
-        x64 {
-            cpp(CppSourceSet)
-        }
-    }
-
-    binaries.all {
-        source sources[it.targetPlatform.name]
     }
 """
         and:

@@ -19,6 +19,7 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -31,7 +32,7 @@ class DefaultNativeComponentTest extends Specification {
     def component
 
     def setup(){
-        mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
+        mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator(), Stub(ProjectSourceSet))
         component = new TestNativeComponentSpec(id, mainSourceSet)
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.BuildType
@@ -35,7 +36,7 @@ import spock.lang.Specification
 
 class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
-    final library = new DefaultNativeLibrarySpec(new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", new DirectInstantiator()))
+    final library = new DefaultNativeLibrarySpec(new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", new DirectInstantiator(), Stub(ProjectSourceSet)))
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)

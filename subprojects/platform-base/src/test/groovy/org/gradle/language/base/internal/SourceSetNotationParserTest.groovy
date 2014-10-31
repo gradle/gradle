@@ -16,9 +16,11 @@
 package org.gradle.language.base.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import spock.lang.Specification
 
 class SourceSetNotationParserTest extends Specification {
+    def projectSources = Mock(ProjectSourceSet)
     def parser = SourceSetNotationParser.parser()
     def languageSourceSet1 = languageSourceSet("lss1")
     def languageSourceSet2 = languageSourceSet("lss2")
@@ -30,7 +32,7 @@ class SourceSetNotationParserTest extends Specification {
 
     def "collects all LanguageSourceSets for a FunctionalSourceSet"() {
         when:
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator())
+        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator(), projectSources)
         functionalSourceSet.add(languageSourceSet1)
         functionalSourceSet.add(languageSourceSet2)
 

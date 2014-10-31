@@ -15,18 +15,27 @@
  */
 package org.gradle.language.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 
 public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet {
     private final String name;
+    private final ProjectSourceSet projectSourceSet;
 
-    public DefaultFunctionalSourceSet(String name, Instantiator instantiator) {
+    public DefaultFunctionalSourceSet(String name, Instantiator instantiator, final ProjectSourceSet projectSourceSet) {
         super(LanguageSourceSet.class, instantiator);
         this.name = name;
+        this.projectSourceSet = projectSourceSet;
+        whenObjectAdded(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                projectSourceSet.add(languageSourceSet);
+            }
+        });
     }
 
     @Override
@@ -41,15 +50,15 @@ public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectCo
     // TODO:DAZ This needs unit testing
     // TODO:DAZ Perhaps we should pull out a LanguageSourceSet 'factory-for-type' so we only register the languages once
     public FunctionalSourceSet copy(String name) {
-        DefaultFunctionalSourceSet copy = getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator());
+        DefaultFunctionalSourceSet copy = getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator(), projectSourceSet);
         for (Class<? extends LanguageSourceSet> languageType : factories.keySet()) {
-            registerFactory(copy, languageType);
+            copyFactory(copy, languageType);
         }
         copy.addAll(this);
         return copy;
     }
 
-    <T extends LanguageSourceSet, U extends T> void registerFactory(DefaultFunctionalSourceSet target, Class<T> type) {
+    <T extends LanguageSourceSet, U extends T> void copyFactory(DefaultFunctionalSourceSet target, Class<T> type) {
         @SuppressWarnings("unchecked")
         NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) factories.get(type);
         target.registerFactory(type, factory);

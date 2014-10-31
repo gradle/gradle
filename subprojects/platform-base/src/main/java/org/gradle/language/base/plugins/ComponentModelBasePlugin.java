@@ -53,8 +53,7 @@ import java.util.Collections;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code componentSpecs} to the project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the
- * project.
+ * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code componentSpecs} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
@@ -75,7 +74,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         project.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
 
         LanguageRegistry languageRegistry = project.getExtensions().create("languages", DefaultLanguageRegistry.class);
-        ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
 
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         modelRegistry.create(
@@ -86,13 +84,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         );
 
         // TODO:DAZ Convert to model rules
-        createLanguageSourceSets(sources, components, languageRegistry, project.getFileResolver());
+        createLanguageSourceSets(components, languageRegistry, project.getFileResolver());
     }
 
-    private void createLanguageSourceSets(final ProjectSourceSet sources, final ComponentSpecContainer components, final LanguageRegistry languageRegistry, final FileResolver fileResolver) {
+    private void createLanguageSourceSets(final ComponentSpecContainer components, final LanguageRegistry languageRegistry, final FileResolver fileResolver) {
         languageRegistry.all(new Action<LanguageRegistration<?>>() {
             public void execute(final LanguageRegistration<?> languageRegistration) {
-                registerLanguageSourceSetFactory(languageRegistration, sources, fileResolver);
+                registerLanguageSourceSetFactory(languageRegistration, components, fileResolver);
                 createDefaultSourceSetForComponents(languageRegistration, components);
             }
         });
@@ -109,9 +107,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private <U extends LanguageSourceSet> void registerLanguageSourceSetFactory(final LanguageRegistration<U> languageRegistration, ProjectSourceSet sources, final FileResolver fileResolver) {
-        sources.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
+    private <U extends LanguageSourceSet> void registerLanguageSourceSetFactory(final LanguageRegistration<U> languageRegistration, final ComponentSpecContainer components, final FileResolver fileResolver) {
+        components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
+            public void execute(final ComponentSpecInternal componentSpec) {
+                final FunctionalSourceSet functionalSourceSet = componentSpec.getSources();
                 NamedDomainObjectFactory<U> namedDomainObjectFactory = new NamedDomainObjectFactory<U>() {
                     public U create(String name) {
                         Class<? extends U> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
@@ -151,18 +150,19 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-            // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
-        void applyDefaultSourceConventions(ProjectSourceSet sources, ComponentSpecContainer componentSpecs) {
-            for (FunctionalSourceSet functionalSourceSet : sources) {
-                for (LanguageSourceSet languageSourceSet : functionalSourceSet) {
+        // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
+        void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs) {
+                for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
                     // Only apply default locations when none explicitly configured
                     if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                        languageSourceSet.getSource().srcDir(String.format("src/%s/%s", functionalSourceSet.getName(), languageSourceSet.getName()));
+                        languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
                     }
                 }
             }
         }
 
+        // TODO:DAZ Work out why this is required
         @Mutate
         void closeSourcesForBinaries(BinaryContainer binaries, ProjectSourceSet sources) {
             // Only required because sources aren't fully integrated into model

@@ -203,16 +203,17 @@ include 'exe', 'lib'
         buildFile << """
             apply plugin: "cpp"
             apply plugin: "c"
-            executables {
-                main {}
-            }
             libraries {
                 libCpp {}
                 libC {}
             }
-            sources {
-                main.cpp.lib libraries.libCpp.static
-                main.c.lib libraries.libC.static
+            executables {
+                main {
+                    sources {
+                        cpp.lib libraries.libCpp.static
+                        c.lib libraries.libC.static
+                    }
+                }
             }
         """
 
@@ -278,12 +279,6 @@ include 'exe', 'lib'
         buildFile << """
             apply plugin: "cpp"
 
-            sources {
-                helloLib {
-                    cpp(CppSourceSet)
-                }
-            }
-
             executables {
                 main {
                     sources {
@@ -295,7 +290,12 @@ include 'exe', 'lib'
             libraries {
                 hello {
                     binaries.all {
-                        source project.sources.helloLib.cpp
+                        sources {
+                            helloLib(CppSourceSet) {
+                                source.srcDir "src/helloLib/cpp"
+                                exportedHeaders.srcDir "src/helloLib/headers"
+                            }
+                        }
                     }
                 }
             }

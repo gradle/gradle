@@ -15,18 +15,12 @@
  */
 package org.gradle.language.base.internal;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultProjectSourceSet extends AbstractNamedDomainObjectContainer<FunctionalSourceSet> implements ProjectSourceSet {
-    public DefaultProjectSourceSet(Instantiator instantiator) {
-        super(FunctionalSourceSet.class, instantiator);
-    }
-
-    @Override
-    protected FunctionalSourceSet doCreate(String name) {
-        return getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator());
+public class DefaultProjectSourceSet extends DefaultDomainObjectSet<LanguageSourceSet> implements ProjectSourceSet {
+    public DefaultProjectSourceSet() {
+        super(LanguageSourceSet.class);
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.nativeplatform.*
@@ -36,7 +37,7 @@ import spock.lang.Specification
 class NativeBinarySpecTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
+    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator(), Stub(ProjectSourceSet))
     def component = new TestNativeComponentSpec(id, sourceSet)
 
     def toolChain1 = Stub(NativeToolChainInternal) {
@@ -65,7 +66,7 @@ class NativeBinarySpecTest extends Specification {
     def "binary uses all source sets from a functional source set"() {
         given:
         def binary = testBinary(component)
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator())
+        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator(), Stub(ProjectSourceSet))
         def sourceSet1 = Stub(LanguageSourceSet) {
             getName() >> "ss1"
         }

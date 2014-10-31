@@ -15,11 +15,9 @@
  */
 
 package org.gradle.api.reporting.components.internal
-
 import org.gradle.api.Project
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.platform.base.BinarySpec
@@ -95,14 +93,11 @@ class ComponentReportRendererTest extends Specification {
         def component = Stub(ComponentSpec) {
             getSource() >> set(LanguageSourceSet, sourceSet1)
         }
-        def functionalSourceSet = Stub(FunctionalSourceSet) {
-            iterator() >> [sourceSet1, sourceSet2].iterator()
-        }
 
         when:
         renderer.startProject(project)
         renderer.renderComponents([component])
-        renderer.renderSourceSets([functionalSourceSet])
+        renderer.renderSourceSets([sourceSet1, sourceSet2])
         renderer.completeProject(project)
         renderer.complete()
 

@@ -187,6 +187,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
     }
 
+    // TODO:DAZ Should not need a component here
     def "assemble executable binary directly from language source sets"() {
         given:
         useMixedSources()
@@ -196,21 +197,22 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: "c"
             apply plugin: "cpp"
 
-            sources {
-                test{
-                    c(CSourceSet)
-                    cpp(CppSourceSet)
+            executables {
+                main {}
+            }
+
+            binaries.all {
+                sources {
+                    testCpp(CppSourceSet) {
+                        source.srcDir "src/test/cpp"
+                        exportedHeaders.srcDir "src/test/headers"
+                    }
+                    testC(CSourceSet) {
+                        source.srcDir "src/test/c"
+                        exportedHeaders.srcDir "src/test/headers"
+                    }
                 }
             }
-
-            executables {
-                main {}
-            }
-
-            binaries.all {
-                source project.sources.test.cpp
-                source project.sources.test.c
-            }
         """
 
         then:
@@ -220,33 +222,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
     }
 
-    def "assemble executable binary directly from functional source set"() {
-        given:
-        useMixedSources()
-
-        when:
-        buildFile << """
-            apply plugin: "c"
-            apply plugin: "cpp"
-            libraries {
-                test{}
-            }
-            executables {
-                main {}
-            }
-            binaries.all {
-                source sources.test
-            }
-        """
-        
-        then:
-        succeeds "mainExecutable"
-
-        and:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
-    }
-
-    def "ignores java sources added to binary"() {
+    def "cannot add java sources to native binary"() {
         given:
         useMixedSources()
         file("src/test/java/HelloWorld.java") << """
@@ -259,21 +235,9 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: "cpp"
             apply plugin: "java"
 
-            libraries {
-                test {}
-            }
-
             executables {
                 main {
                     sources {
-                        c {
-                            source.srcDir "src/test/c"
-                            exportedHeaders.srcDir "src/test/headers"
-                        }
-                        cpp {
-                            source.srcDir "src/test/cpp"
-                            exportedHeaders.srcDir "src/test/headers"
-                        }
                         java(JavaSourceSet) {
                             source.srcDir "src/test/java"
                         }
@@ -283,10 +247,9 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
          """
 
         then:
-        succeeds "mainExecutable"
-
-        and:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        fails "mainExecutable"
+        failure.assertHasDescription("A problem occurred evaluating root project 'test'.");
+        failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
     }
 
     private def useMixedSources() {

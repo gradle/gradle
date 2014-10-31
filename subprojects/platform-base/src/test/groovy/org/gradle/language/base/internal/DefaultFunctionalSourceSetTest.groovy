@@ -17,11 +17,13 @@
 package org.gradle.language.base.internal
 
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.ProjectSourceSet
 import spock.lang.Specification
 
+// TODO:DAZ Needs unit test coverage
 class DefaultFunctionalSourceSetTest extends Specification {
     def "has reasonable string representation"() {
-        def sourceSet = new DefaultFunctionalSourceSet("main", Stub(Instantiator))
+        def sourceSet = new DefaultFunctionalSourceSet("main", Stub(Instantiator), Stub(ProjectSourceSet))
 
         expect:
         sourceSet.toString() == /source set 'main'/

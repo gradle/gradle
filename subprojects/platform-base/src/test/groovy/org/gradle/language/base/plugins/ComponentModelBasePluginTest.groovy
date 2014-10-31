@@ -17,6 +17,7 @@
 package org.gradle.language.base.plugins
 
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -51,19 +52,7 @@ class ComponentModelBasePluginTest extends Specification {
         project.modelRegistry.get(ModelPath.path("components")) != null
     }
 
-    def "registers language sourceset factory per functional sourceset"() {
-        setup:
-        project.apply(plugin: ComponentModelBasePlugin)
-        project.languages.add(new TestLanguageRegistration())
-
-        when:
-        def fSourceSet = project.sources.create("testFunctionalSourceSet")
-
-        then:
-        fSourceSet.create("test", TestSourceSet) != null
-    }
-
-    def "creates language sourceSets for component"() {
+    def "registers language sourceset factory and created default source set for component"() {
         setup:
         project.apply(plugin: ComponentModelBasePlugin)
         project.languages.add(new TestLanguageRegistration())
@@ -80,7 +69,8 @@ class ComponentModelBasePluginTest extends Specification {
         project.componentSpecs.add(componentSpecInternal)
 
         then:
-        1 * componentFunctionalSourceSet.maybeCreate("test", _)
+        1 * componentFunctionalSourceSet.registerFactory(TestSourceSet, _ as NamedDomainObjectFactory)
+        1 * componentFunctionalSourceSet.maybeCreate("test", TestSourceSet)
         0 * componentFunctionalSourceSet._
     }
 

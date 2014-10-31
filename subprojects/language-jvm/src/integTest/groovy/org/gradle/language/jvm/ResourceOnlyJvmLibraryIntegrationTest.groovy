@@ -38,7 +38,8 @@ task check << {
 
     assert myLib.sources.size() == 1
     assert myLib.sources.resources instanceof JvmResourceSet
-    assert myLib.sources as Set == [sources.myLib.resources] as Set
+
+    assert sources as Set == myLib.sources as Set
 
     binaries.withType(JarBinarySpec) { jvmBinary ->
         assert jvmBinary.source == myLib.source

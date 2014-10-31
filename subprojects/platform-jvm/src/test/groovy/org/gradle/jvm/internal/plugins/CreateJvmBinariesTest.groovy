@@ -30,6 +30,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.jvm.toolchain.JavaToolChainRegistry
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.ComponentSpecIdentifier
@@ -47,7 +48,7 @@ class CreateJvmBinariesTest extends Specification {
     def platforms = Mock(PlatformContainer)
     CollectionBuilder<JarBinarySpec> binaries = Mock(CollectionBuilder)
     def instantiator = Mock(Instantiator)
-    def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator())
+    def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator(), Stub(ProjectSourceSet))
     def toolChainRegistry = Mock(JavaToolChainRegistry)
 
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {

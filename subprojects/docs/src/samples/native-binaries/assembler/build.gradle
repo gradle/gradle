@@ -33,29 +33,20 @@ executables {
         targetPlatform "x86"
         binaries.all {
             if (toolChain in VisualCpp) {
-// END SNIPPET assembler-args
-                source project.sources.i386_masm.asm
-// START SNIPPET assembler-args
+                sources {
+                    platformAsm(AssemblerSourceSet) {
+                        source.srcDir "src/main/asm_i386_masm"
+                    }
+                }
                 assembler.args "/Zi"
             } else {
-// END SNIPPET assembler-args
-                source project.sources.i386_gcc.asm
-// START SNIPPET assembler-args
+                sources {
+                    platformAsm(AssemblerSourceSet) {
+                        source.srcDir "src/main/asm_i386_gcc"
+                    }
+                }
                 assembler.args "-g"
             }
-        }
-    }
-}
-
-sources {
-    i386_masm {
-        asm(AssemblerSourceSet) {
-            source.srcDir "src/main/asm_i386_masm"
-        }
-    }
-    i386_gcc {
-        asm(AssemblerSourceSet) {
-            source.srcDir "src/main/asm_i386_gcc"
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.jvm.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.component.BaseComponentSpec
@@ -28,7 +29,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
     FunctionalSourceSet mainSourceSet
 
     def setup(){
-        mainSourceSet = new DefaultFunctionalSourceSet("testFss", new DirectInstantiator());
+        mainSourceSet = new DefaultFunctionalSourceSet("testFss", new DirectInstantiator(), Stub(ProjectSourceSet));
     }
 
     def "library has name and path"() {

@@ -41,9 +41,8 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib.sources.size() == 2
         assert myLib.sources.java instanceof JavaSourceSet
         assert myLib.sources.resources instanceof JvmResourceSet
-        assert myLib.sources as Set == [sources.myLib.java, sources.myLib.resources] as Set
 
-        assert sources.myLib == myLib.sources
+        assert sources as Set == myLib.sources as Set
 
         binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source
@@ -79,12 +78,13 @@ class JavaLanguagePluginIntegrationTest extends AbstractIntegrationSpec {
         def myLib = componentSpecs.myLib
         assert myLib instanceof JvmLibrarySpec
 
-        assert myLib.sources == sources.myLib
         assert myLib.sources.size() == 4
         assert myLib.sources.java instanceof JavaSourceSet
         assert myLib.sources.extraJava instanceof JavaSourceSet
         assert myLib.sources.resources instanceof JvmResourceSet
         assert myLib.sources.extraResources instanceof JvmResourceSet
+
+        assert sources as Set == myLib.sources as Set
 
         binaries.withType(JarBinarySpec) { jvmBinary ->
             assert jvmBinary.source == myLib.source

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
@@ -32,7 +33,7 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "has useful string representation"() {
         given:
-        def executable = new DefaultNativeExecutableSpec(new DefaultComponentSpecIdentifier("path", "name"), new DefaultFunctionalSourceSet("name", new DirectInstantiator()))
+        def executable = new DefaultNativeExecutableSpec(new DefaultComponentSpecIdentifier("path", "name"), new DefaultFunctionalSourceSet("name", new DirectInstantiator(), Stub(ProjectSourceSet)))
 
         when:
         def binary = new DefaultNativeExecutableBinarySpec(executable, new DefaultFlavor("flavorOne"), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativePlatform), Stub(BuildType), namingScheme, Mock(NativeDependencyResolver))

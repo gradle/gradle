@@ -91,21 +91,18 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of language source set added to binary are not shared when compiling"() {
         given:
         buildFile << """
-            sources {
-                other {
-                    cpp(CppSourceSet) {
-                        source.srcDir "src/main/otherCpp"
-                        lib library: 'lib2', linkage: 'api'
-                    }
-                }
-            }
             executables {
                 main {
                     sources {
                         cpp.lib library: 'lib1', linkage: 'api'
                     }
                     binaries.all {
-                        source project.sources.other
+                        sources {
+                            other(CppSourceSet) {
+                                source.srcDir "src/main/otherCpp"
+                                lib library: 'lib2', linkage: 'api'
+                            }
+                        }
                     }
                 }
             }

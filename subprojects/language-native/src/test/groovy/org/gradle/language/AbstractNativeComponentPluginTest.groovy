@@ -48,23 +48,26 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         }
 
         then:
-        def sourceSets = project.sources
-        sourceSets.size() == 2
-        sourceSets*.name == ["exe", "lib"]
+        def components = project.componentSpecs
+        components.size() == 2
+        components*.name == ["exe", "lib"]
 
         and:
-        sourceSets.exe instanceof FunctionalSourceSet
-        sourceSetClass.isInstance(sourceSets.exe."$pluginName")
-        sourceSets.exe."$pluginName".source.srcDirs == [project.file("src/exe/$pluginName")] as Set
-        sourceSets.exe."$pluginName".exportedHeaders.srcDirs == [project.file("src/exe/headers")] as Set
-        project.nativeRuntime.executables.exe.source == [sourceSets.exe."$pluginName"] as Set
+        def exe = components.exe
+        exe.sources instanceof FunctionalSourceSet
+        sourceSetClass.isInstance(exe.sources."$pluginName")
+        exe.sources."$pluginName".source.srcDirs == [project.file("src/exe/$pluginName")] as Set
+        exe.sources."$pluginName".exportedHeaders.srcDirs == [project.file("src/exe/headers")] as Set
 
         and:
-        sourceSets.lib instanceof FunctionalSourceSet
-        sourceSetClass.isInstance(sourceSets.lib."$pluginName")
-        sourceSets.lib."$pluginName".source.srcDirs == [project.file("src/lib/$pluginName")] as Set
-        sourceSets.lib."$pluginName".exportedHeaders.srcDirs == [project.file("src/lib/headers")] as Set
-        project.nativeRuntime.libraries.lib.source == [sourceSets.lib."$pluginName"] as Set
+        def lib = components.lib
+        lib.sources instanceof FunctionalSourceSet
+        sourceSetClass.isInstance(lib.sources."$pluginName")
+        lib.sources."$pluginName".source.srcDirs == [project.file("src/lib/$pluginName")] as Set
+        lib.sources."$pluginName".exportedHeaders.srcDirs == [project.file("src/lib/headers")] as Set
+
+        and:
+        project.sources as Set == lib.sources + exe.sources
     }
 
     def "can configure source set locations"() {
@@ -103,13 +106,14 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         }
 
         expect:
-        def sourceSets = project.sources
-        with (sourceSets.exe."$pluginName") {
+        def exe = project.componentSpecs.exe
+        with (exe.sources."$pluginName") {
             source.srcDirs*.name == ["d1", "d2"]
             exportedHeaders.srcDirs*.name == ["h1", "h2"]
         }
 
-        with (sourceSets.lib."$pluginName") {
+        def lib = project.componentSpecs.lib
+        with (lib.sources."$pluginName") {
             source.srcDirs*.name == ["d3"]
             exportedHeaders.srcDirs*.name == ["h3"]
         }

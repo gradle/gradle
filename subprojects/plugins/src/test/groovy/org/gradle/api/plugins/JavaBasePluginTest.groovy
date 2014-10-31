@@ -26,6 +26,8 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
+import org.gradle.language.java.JavaSourceSet
+import org.gradle.language.jvm.JvmResourceSet
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -215,7 +217,7 @@ class JavaBasePluginTest extends Specification {
         task.inputs.getSourceFiles().empty
     }
 
-    def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {
+    def "adds language source sets for each source set added to the 'sourceSets' container"() {
         project.pluginManager.apply(JavaBasePlugin)
 
         when:
@@ -232,18 +234,15 @@ class JavaBasePluginTest extends Specification {
         }
 
         then:
-        def functional = project.sources.findByName("custom")
-        functional != null
+        project.sources.size() == 2
 
         and:
-        def java = functional.findByName("java")
-        java != null
+        def java = project.sources.withType(JavaSourceSet).iterator().next()
         java.source.srcDirs as Set == [project.file("src1"), project.file("src2")] as Set
         java.compileClasspath.files as Set == project.files("jar1.jar", "jar2.jar") as Set
 
         and:
-        def resources = functional.findByName("resources")
-        resources != null
+        def resources = project.sources.withType(JvmResourceSet).iterator().next()
         resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
     }
 
@@ -263,6 +262,6 @@ class JavaBasePluginTest extends Specification {
         binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
-        binary.source as Set == [project.sources.custom.java, project.sources.custom.resources] as Set
+        binary.source as Set == project.sources as Set
     }
 }

@@ -25,7 +25,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -46,6 +46,7 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegist
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
@@ -194,9 +195,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configureGeneratedSourceSets(ProjectSourceSet sources) {
-            for (FunctionalSourceSet functionalSourceSet : sources) {
-                for (LanguageSourceSetInternal languageSourceSet : functionalSourceSet.withType(LanguageSourceSetInternal.class)) {
+        void configureGeneratedSourceSets(ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs) {
+                for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
                     Task generatorTask = languageSourceSet.getGeneratorTask();
                     if (generatorTask != null) {
                         languageSourceSet.builtBy(generatorTask);
@@ -210,12 +211,13 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Finalize
-        public void applyHeaderSourceSetConventions(ProjectSourceSet sources) {
-            for (FunctionalSourceSet functionalSourceSet : sources) {
+        public void applyHeaderSourceSetConventions(ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs) {
+                DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
                 for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
                     // Only apply default locations when none explicitly configured
                     if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", functionalSourceSet.getName()));
+                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
                     }
 
                     headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());

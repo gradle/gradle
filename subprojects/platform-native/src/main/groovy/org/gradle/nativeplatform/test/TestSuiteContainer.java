@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.test;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A polymorphic container of {@link NativeTestSuiteSpec} instances.
  */
 @Incubating
-public interface TestSuiteContainer extends ExtensiblePolymorphicDomainObjectContainer<NativeTestSuiteSpec> {
+public interface TestSuiteContainer extends NamedDomainObjectContainer<NativeTestSuiteSpec> {
 }

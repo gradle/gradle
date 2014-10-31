@@ -177,13 +177,14 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         when:
         buildFile << """
             executables {
-                exe
+                exe {
+                    sources {
+                        cpp.lib library: 'hello', linkage: 'static'
+                    }
+                }
             }
             libraries {
                 hello
-            }
-            sources {
-                exe.cpp.lib libraries.hello.static
             }
 """
 

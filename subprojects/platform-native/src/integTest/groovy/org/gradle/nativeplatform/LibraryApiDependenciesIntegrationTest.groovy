@@ -144,19 +144,13 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             libraries {
                 util {
                     binaries.all { binary ->
-                        binary.source project.sources[binary.buildType.name]
-                    }
-                }
-            }
-            sources {
-                debug {
-                    cpp(CppSourceSet) {
-                        exportedHeaders.srcDir "src/util/debug"
-                    }
-                }
-                release {
-                    cpp(CppSourceSet) {
-                        exportedHeaders.srcDir "src/util/release"
+                        sources {
+                            buildTypeSources(CppSourceSet) {
+                                sources {
+                                    exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
+                                }
+                            }
+                        }
                     }
                 }
             }

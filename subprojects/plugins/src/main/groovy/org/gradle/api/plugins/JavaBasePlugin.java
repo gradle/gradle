@@ -36,6 +36,7 @@ import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
@@ -129,7 +130,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
                 sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
-                FunctionalSourceSet functionalSourceSet = projectSourceSet.create(sourceSet.getName());
+                FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, sourceSet.getName(), instantiator, projectSourceSet);
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
                 functionalSourceSet.add(javaSourceSet);
