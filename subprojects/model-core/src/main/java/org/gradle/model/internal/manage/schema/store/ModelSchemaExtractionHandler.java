@@ -19,11 +19,11 @@ package org.gradle.model.internal.manage.schema.store;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.ModelType;
 
-public interface ModelSchemaExtractionHandler {
+public interface ModelSchemaExtractionHandler<T> {
 
-    public ModelType<?> getSupportedSuperType();
+    public ModelType<T> getType();
 
-    public Spec<? super ModelType<?>> getSpec();
+    public Spec<? super ModelType<? extends T>> getSpec();
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context);
+    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context);
 }

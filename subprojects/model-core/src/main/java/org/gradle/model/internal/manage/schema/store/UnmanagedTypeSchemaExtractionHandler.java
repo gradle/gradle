@@ -23,13 +23,21 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.UnmanagedModelElementTypeException;
 
 @ThreadSafe
-public class UnmanagedTypeSchemaExtractionHandler extends AbstractModelSchemaExtractionHandler {
+public class UnmanagedTypeSchemaExtractionHandler implements ModelSchemaExtractionHandler<Object> {
 
-    public UnmanagedTypeSchemaExtractionHandler() {
-        super(new UnmanagedTypeSpec());
+    private final ModelType<Object> type = ModelType.of(Object.class);
+
+    private final Spec<? super ModelType<?>> spec = new UnmanagedTypeSpec();
+
+    public ModelType<Object> getType() {
+        return type;
     }
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
+    public Spec<? super ModelType<?>> getSpec() {
+        return spec;
+    }
+
+    public <R> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
         throw new UnmanagedModelElementTypeException(type);
     }
 

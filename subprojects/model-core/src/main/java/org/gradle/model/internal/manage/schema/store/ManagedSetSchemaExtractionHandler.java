@@ -18,71 +18,92 @@ package org.gradle.model.internal.manage.schema.store;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.collection.internal.DefaultManagedSet;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.List;
 
 @ThreadSafe
-public class ManagedSetSchemaExtractionHandler extends AbstractModelSchemaExtractionHandler {
+public class ManagedSetSchemaExtractionHandler<T extends ManagedSet<?>> implements ModelSchemaExtractionHandler<T> {
+
+    private final ModelType<T> type;
 
     private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
     };
 
-    public ManagedSetSchemaExtractionHandler() {
-        super(MANAGED_SET_MODEL_TYPE);
+    public ModelType<T> getType() {
+        return type;
     }
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
+    public Spec<? super ModelType<? extends T>> getSpec() {
+        return Specs.satisfyAll();
+    }
+
+    private ManagedSetSchemaExtractionHandler(ModelType<T> type) {
+        this.type = type;
+    }
+
+    public static ManagedSetSchemaExtractionHandler<ManagedSet<?>> getInstance() {
+        return new ManagedSetSchemaExtractionHandler<ManagedSet<?>>(new ModelType<ManagedSet<?>>() {});
+    }
+
+    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
         List<ModelType<?>> typeVariables = type.getTypeVariables();
 
         if (typeVariables.isEmpty()) {
-            throw invalid(type, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()));
+            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()));
         }
         if (type.isHasWildcardTypeVariables()) {
-            throw invalid(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
+            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
         }
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(typeVariables.get(0))) {
-            throw invalid(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
+            throw new InvalidManagedModelElementTypeException(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
         }
 
-        ManagedSetInstantiator<T> elementInstantiator = new ManagedSetInstantiator<T>(cache);
-        ModelSchema<T> schema = new ModelSchema<T>(type, elementInstantiator);
-        elementInstantiator.setSchema(schema);
-        ModelType<? extends ManagedSet<?>> managedSetSchema = Cast.uncheckedCast(type);
-        return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(new ManagedSetElementTypeExtractionContext(managedSetSchema, context)));
+        ModelSchema<R> schema = createSchema(type, cache);
+        return new ModelSchemaExtractionResult<R>(schema, ImmutableList.of(new ManagedSetElementTypeExtractionContext(type, context)));
     }
 
-    private class ManagedSetInstantiator<T> implements Factory<T> {
+    private <R extends T> ModelSchema<R> createSchema(ModelType<R> type, ModelSchemaCache cache) {
+        ManagedSetInstantiator<R> elementInstantiator = new ManagedSetInstantiator<R>(cache);
+        ModelSchema<R> schema = new ModelSchema<R>(type, elementInstantiator);
+        elementInstantiator.setSchema(schema);
+        return schema;
+    }
+
+    private class ManagedSetInstantiator<S> implements Factory<S> {
 
         private final ModelSchemaCache cache;
-        private ModelSchema<T> schema;
+        private ModelSchema<S> schema;
 
         ManagedSetInstantiator(ModelSchemaCache cache) {
             this.cache = cache;
         }
 
-        public void setSchema(ModelSchema<T> schema) {
+        public void setSchema(ModelSchema<S> schema) {
             this.schema = schema;
         }
 
-        public T create() {
-            final ModelSchema<?> elementSchema = cache.get(schema.getType().getTypeVariables().get(0));
-            T set = Cast.uncheckedCast(createManagedSetInstance(elementSchema));
-            return set;
+        public S create() {
+            ModelType<?> elementType = schema.getType().getTypeVariables().get(0);
+            final ModelSchema<?> elementSchema = cache.get(elementType);
+            return Cast.uncheckedCast(createManagedSetInstance(elementSchema));
         }
 
-        private <P> DefaultManagedSet<P> createManagedSetInstance(final ModelSchema<P> elementSchema) {
-            Factory<P> factory = new Factory<P>() {
-                public P create() {
+        private <E> DefaultManagedSet<E> createManagedSetInstance(final ModelSchema<E> elementSchema) {
+            Factory<E> factory = new Factory<E>() {
+                public E create() {
                     return elementSchema.createInstance();
                 }
             };
-            return new DefaultManagedSet<P>(factory);
+            return new DefaultManagedSet<E>(factory);
         }
     }
 }

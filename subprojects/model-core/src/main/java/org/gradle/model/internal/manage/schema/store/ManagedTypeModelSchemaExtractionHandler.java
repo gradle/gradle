@@ -27,6 +27,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.state.ManagedInstance;
@@ -44,7 +45,15 @@ import java.util.List;
 import java.util.Map;
 
 @ThreadSafe
-public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchemaExtractionHandler {
+public class ManagedTypeModelSchemaExtractionHandler<T> implements ModelSchemaExtractionHandler<T> {
+
+    private final ModelType<T> type;
+
+    private final Spec<ModelType<?>> spec = new Spec<ModelType<?>>() {
+        public boolean isSatisfiedBy(ModelType<?> element) {
+            return isManaged(element);
+        }
+    };
 
     public final static List<? extends ModelType<?>> SUPPORTED_UNMANAGED_TYPES = ImmutableList.of(ModelType.of(String.class), ModelType.of(Boolean.class), ModelType.of(Integer.class),
             ModelType.of(Long.class), ModelType.of(Double.class), ModelType.of(BigInteger.class), ModelType.of(BigDecimal.class));
@@ -59,23 +68,31 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
             .put(ModelType.of(Double.TYPE), Double.class)
             .build();
 
-    public ManagedTypeModelSchemaExtractionHandler() {
-        super(new Spec<ModelType<?>>() {
-            public boolean isSatisfiedBy(ModelType<?> type) {
-                return isManaged(type);
-            }
-        });
+    public ModelType<T> getType() {
+        return type;
     }
 
-    public <T> ModelSchemaExtractionResult<T> extract(final ModelType<T> type, ModelSchemaCache cache, final ModelSchemaExtractionContext context) {
+    public Spec<? super ModelType<?>> getSpec() {
+        return spec;
+    }
+
+    private ManagedTypeModelSchemaExtractionHandler(ModelType<T> type) {
+        this.type = type;
+    }
+
+    public static ManagedTypeModelSchemaExtractionHandler<Object> getInstance() {
+        return new ManagedTypeModelSchemaExtractionHandler<Object>(ModelType.of(Object.class));
+    }
+
+    public <R extends T> ModelSchemaExtractionResult<R> extract(final ModelType<R> type, ModelSchemaCache cache, final ModelSchemaExtractionContext context) {
         validateType(type);
 
         List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
         if (methodList.isEmpty()) {
-            ManagedTypeInstantiator<T> elementInstantiator = new ManagedTypeInstantiator<T>();
-            ModelSchema<T> schema = new ModelSchema<T>(type, elementInstantiator);
+            ManagedTypeInstantiator<R> elementInstantiator = new ManagedTypeInstantiator<R>();
+            ModelSchema<R> schema = new ModelSchema<R>(type, elementInstantiator);
             elementInstantiator.setSchema(schema);
-            return new ModelSchemaExtractionResult<T>(schema);
+            return new ModelSchemaExtractionResult<R>(schema);
         }
 
         List<ModelProperty<?>> properties = Lists.newLinkedList();
@@ -118,17 +135,18 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
 
         // TODO - should call out valid getters without setters
         if (!methodNames.isEmpty()) {
-            throw invalid(type, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "])");
+            throw new InvalidManagedModelElementTypeException(type, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "])");
         }
 
-        ManagedTypeInstantiator<T> elementInstantiator = new ManagedTypeInstantiator<T>();
-        ModelSchema<T> schema = new ModelSchema<T>(type, properties, elementInstantiator);
+        ManagedTypeInstantiator<R> elementInstantiator = new ManagedTypeInstantiator<R>();
+        ModelSchema<R> schema = new ModelSchema<R>(type, properties, elementInstantiator);
         elementInstantiator.setSchema(schema);
         Iterable<? extends ModelSchemaExtractionContext> dependencies = getModelSchemaDependencies(properties, type, context);
-        return new ModelSchemaExtractionResult<T>(schema, dependencies);
+        return new ModelSchemaExtractionResult<R>(schema, dependencies);
     }
 
-    private <T> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties, final ModelType<T> type, final ModelSchemaExtractionContext context) {
+    private <R extends T> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties, final ModelType<R> type,
+                                                                                                      final ModelSchemaExtractionContext context) {
         Iterable<ModelProperty<?>> managedProperties = Iterables.filter(properties, new Predicate<ModelProperty<?>>() {
             public boolean apply(ModelProperty<?> input) {
                 return input.isManaged();
@@ -141,7 +159,7 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         });
     }
 
-    private <T> ModelProperty<T> extractPropertyOfManagedType(final ModelSchemaCache schemaCache, ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType,
+    private <P> ModelProperty<P> extractPropertyOfManagedType(final ModelSchemaCache schemaCache, ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<P> propertyType,
                                                               List<String> handled) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
@@ -150,11 +168,11 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         if (methods.containsKey(setterName)) {
             validateSetter(type, propertyType, methods.get(setterName));
             handled.add(setterName);
-            return new ModelProperty<T>(propertyName, propertyType, true);
+            return new ModelProperty<P>(propertyName, propertyType, true);
         } else {
-            return new ModelProperty<T>(propertyName, propertyType, true, new Factory<T>() {
-                public T create() {
-                    ModelSchema<T> modelSchema = schemaCache.get(propertyType);
+            return new ModelProperty<P>(propertyName, propertyType, true, new Factory<P>() {
+                public P create() {
+                    ModelSchema<P> modelSchema = schemaCache.get(propertyType);
                     return modelSchema.createInstance();
                 }
             });
@@ -162,7 +180,7 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         }
     }
 
-    private <T> ModelProperty<T> extractPropertyOfUnmanagedType(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType, List<String> handled) {
+    private <P> ModelProperty<P> extractPropertyOfUnmanagedType(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<P> propertyType, List<String> handled) {
         Class<?> boxedType = BOXED_REPLACEMENTS.get(propertyType);
         if (boxedType != null) {
             throw invalidMethod(type, getterName, String.format("%s is not a supported property type, use %s instead", propertyType, boxedType.getName()));
@@ -182,10 +200,10 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
 
         validateSetter(type, propertyType, methods.get(setterName));
         handled.add(setterName);
-        return new ModelProperty<T>(propertyName, propertyType);
+        return new ModelProperty<P>(propertyName, propertyType);
     }
 
-    private <T> void validateSetter(ModelType<?> type, ModelType<T> propertyType, Method setter) {
+    private void validateSetter(ModelType<?> type, ModelType<?> propertyType, Method setter) {
         if (!setter.getReturnType().equals(void.class)) {
             throw invalidMethod(type, setter.getName(), "setter method must have void return type");
         }
@@ -209,19 +227,19 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         });
     }
 
-    public <T> void validateType(ModelType<T> type) {
-        Class<T> typeClass = type.getConcreteClass();
+    public void validateType(ModelType<?> type) {
+        Class<?> typeClass = type.getConcreteClass();
 
         if (!typeClass.isInterface()) {
-            throw invalid(type, "must be defined as an interface");
+            throw new InvalidManagedModelElementTypeException(type, "must be defined as an interface");
         }
 
         if (typeClass.getInterfaces().length > 0) {
-            throw invalid(type, "cannot extend other types");
+            throw new InvalidManagedModelElementTypeException(type, "cannot extend other types");
         }
 
         if (typeClass.getTypeParameters().length > 0) {
-            throw invalid(type, "cannot be a parameterized type");
+            throw new InvalidManagedModelElementTypeException(type, "cannot be a parameterized type");
         }
     }
 
@@ -278,5 +296,9 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         private <U> U getInstanceProperty(ModelType<U> propertyType, String propertyName) {
             return element.get(propertyType, propertyName).get();
         }
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethod(ModelType<?> type, String methodName, String message) {
+        return new InvalidManagedModelElementTypeException(type, message + " (method: " + methodName + ")");
     }
 }

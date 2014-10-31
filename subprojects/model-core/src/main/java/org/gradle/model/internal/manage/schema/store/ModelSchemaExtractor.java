@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -31,9 +32,9 @@ import java.util.Queue;
 @ThreadSafe
 public class ModelSchemaExtractor {
 
-    private final static List<? extends ModelSchemaExtractionHandler> EXTRACTION_HANDLERS = ImmutableList.of(
-            new ManagedTypeModelSchemaExtractionHandler(),
-            new ManagedSetSchemaExtractionHandler(),
+    private final static List<ModelSchemaExtractionHandler<?>> EXTRACTION_HANDLERS = ImmutableList.of(
+            ManagedTypeModelSchemaExtractionHandler.getInstance(),
+            ManagedSetSchemaExtractionHandler.getInstance(),
             new UnmanagedTypeSchemaExtractionHandler()
     );
 
@@ -73,13 +74,19 @@ public class ModelSchemaExtractor {
             return new ModelSchemaExtractionResult<T>(cached);
         }
 
-        ModelSchemaExtractionHandler handler = Iterables.find(EXTRACTION_HANDLERS, new Predicate<ModelSchemaExtractionHandler>() {
-            public boolean apply(ModelSchemaExtractionHandler candidate) {
-                return candidate.getSupportedSuperType().isAssignableFrom(type) && candidate.getSpec().isSatisfiedBy(type);
+        ModelSchemaExtractionHandler<?> handler = Iterables.find(EXTRACTION_HANDLERS, new Predicate<ModelSchemaExtractionHandler<?>>() {
+            public boolean apply(ModelSchemaExtractionHandler<?> candidate) {
+                if (candidate.getType().isAssignableFrom(type)) {
+                    ModelSchemaExtractionHandler<? super T> castCandidate = Cast.uncheckedCast(candidate);
+                    return castCandidate.getSpec().isSatisfiedBy(type);
+                } else {
+                    return false;
+                }
             }
         });
 
-        ModelSchemaExtractionResult<T> schemaExtraction = handler.extract(type, cache, context);
+        ModelSchemaExtractionHandler<? super T> castHandler = Cast.uncheckedCast(handler);
+        ModelSchemaExtractionResult<T> schemaExtraction = castHandler.extract(type, cache, context);
         cache.set(type, schemaExtraction.getSchema());
         return schemaExtraction;
     }
