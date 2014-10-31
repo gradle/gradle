@@ -54,13 +54,15 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         settingsFile.text = "include ':exe', ':lib'"
         file("exe", "build.gradle") << """
-    executables {
-        main {
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
                 cpp.lib project: ':lib', library: 'hello', linkage: 'static'
             }
         }
     }
+}
 """
         file("lib", "build.gradle") << """
     libraries {
@@ -103,33 +105,39 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         and:
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
-        project(":exe") {
-            apply plugin: "cpp"
-            executables {
-                main {
-                    sources {
-                        cpp.lib project: ':lib', library: 'hello'
-                    }
+project(":exe") {
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
                 }
             }
         }
-        project(":lib") {
-            apply plugin: "cpp"
-            libraries {
-                hello {
-                    sources {
-                        cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
-                    }
+    }
+}
+project(":lib") {
+    apply plugin: "cpp"
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                sources {
+                    cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
                 }
             }
         }
-        project(":greet") {
-            apply plugin: "cpp"
-            libraries {
-                greetings {}
-            }
+    }
+}
+project(":greet") {
+    apply plugin: "cpp"
+    model {
+        components {
+            greetings(NativeLibrarySpec)
         }
-        """
+    }
+}
+"""
 
         when:
         succeeds ":exe:mainVisualStudio"
@@ -160,33 +168,39 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         and:
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
-        project(":exe") {
-            apply plugin: "cpp"
-            executables {
-                main {
-                    sources {
-                        cpp.lib project: ':lib', library: 'main'
-                    }
+project(":exe") {
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'main'
                 }
             }
         }
-        project(":lib") {
-            apply plugin: "cpp"
-            libraries {
-                main {
-                    sources {
-                        cpp.lib project: ':greet', library: 'main', linkage: 'static'
-                    }
+    }
+}
+project(":lib") {
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeLibrarySpec) {
+                sources {
+                    cpp.lib project: ':greet', library: 'main', linkage: 'static'
                 }
             }
         }
-        project(":greet") {
-            apply plugin: "cpp"
-            libraries {
-                main {}
-            }
+    }
+}
+project(":greet") {
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeLibrarySpec)
         }
-        """
+    }
+}
+"""
 
         when:
         succeeds ":exe:mainVisualStudio"
@@ -217,30 +231,32 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         and:
         settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
-        project(":exe") {
-            apply plugin: "cpp"
-            executables {
-                main {
-                    sources {
-                        cpp.lib project: ':lib', library: 'hello'
-                    }
+project(":exe") {
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
                 }
             }
-            libraries {
-                greetings {}
-            }
+            greetings(NativeLibrarySpec)
         }
-        project(":lib") {
-            apply plugin: "cpp"
-            libraries {
-                hello {
-                    sources {
-                        cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
-                    }
+    }
+}
+project(":lib") {
+    apply plugin: "cpp"
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                sources {
+                    cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
                 }
             }
         }
-        """
+    }
+}
+"""
 
         when:
         succeeds ":exe:mainVisualStudio"
@@ -269,11 +285,13 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         settingsFile.text = "include ':exe'"
         buildFile << """
-    project(':exe') {
-        executables {
-            main {}
+project(':exe') {
+    model {
+        components {
+            main(NativeExecutableSpec)
         }
     }
+}
 """
         and:
         run ":exe:mainVisualStudio"
@@ -289,20 +307,24 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         when:
         settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
-    project(':exe') {
-        executables {
-            main {
+project(':exe') {
+    model {
+        components {
+            main(NativeExecutableSpec) {
                 sources {
                     cpp.lib project: ':lib', library: 'main', linkage: 'static'
                 }
             }
         }
     }
-    project(':lib') {
-        libraries {
-            main {}
+}
+project(':lib') {
+    model {
+        components {
+            main(NativeLibrarySpec)
         }
     }
+}
 """
         and:
         run "mainVisualStudio"

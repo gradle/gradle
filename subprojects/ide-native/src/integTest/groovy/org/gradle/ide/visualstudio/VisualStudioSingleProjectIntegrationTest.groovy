@@ -57,15 +57,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.writeSources(file("src/main"))
         buildFile << """
-    executables {
-        main {
+model {
+    components {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
+            binaries.all {
+                cppCompiler.define "TEST"
+                cppCompiler.define "foo", "bar"
+            }
         }
     }
-    binaries.all {
-        cppCompiler.define "TEST"
-        cppCompiler.define "foo", "bar"
-    }
+}
 """
         and:
         run "mainVisualStudio"
@@ -94,11 +96,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
-        main {
+model {
+    components {
+        main(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
     }
+}
 """
         and:
         run "mainDllVisualStudio"
@@ -126,11 +130,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
-        main {
+model {
+    components {
+        main(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
     }
+}
 """
         and:
         run "mainLibVisualStudio"
@@ -154,16 +160,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
-        both {
-             targetPlatform "win32", "x64"
+model {
+    components {
+        both(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
         }
-        staticOnly {
+        staticOnly(NativeLibrarySpec) {
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable false
             }
         }
     }
+}
 """
         and:
         run "bothVisualStudio", "staticOnlyVisualStudio"
@@ -180,14 +188,16 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
-        main {
+model {
+    components {
+        main(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable = false
             }
         }
     }
+}
 """
         and:
         run "mainLibVisualStudio"
@@ -212,19 +222,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
-        hello {
+model {
+    components {
+        hello(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
-    }
-    executables {
-        main {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.lib libraries.hello.static
             }
         }
     }
+}
 """
         and:
         run "mainVisualStudio"
@@ -253,19 +263,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
-        hello {
+model {
+    components {
+        hello(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
-    }
-    executables {
-        main {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.lib libraries.hello
             }
         }
     }
+}
 """
         and:
         run "mainVisualStudio"
@@ -295,27 +305,27 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
 
         buildFile << """
-            apply plugin: "cpp"
-            libraries {
-                greetings {
-                    targetPlatform "win32", "x64"
-                }
-                hello {
-                   targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib libraries.greetings.static
-                    }
-                }
+apply plugin: "cpp"
+model {
+    components {
+        greetings(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+        }
+        hello(NativeLibrarySpec) {
+           targetPlatform "win32", "x64"
+            sources {
+                cpp.lib libraries.greetings.static
             }
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib libraries.hello
-                    }
-                }
+        }
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib libraries.hello
             }
-        """
+        }
+    }
+}
+"""
         when:
         run "mainVisualStudio"
 
@@ -350,19 +360,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
-        hello {
+model {
+    components {
+        hello(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
-    }
-    executables {
-        main {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.lib libraries.hello
             }
         }
-        mainStatic {
+        mainStatic(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.source.srcDirs "src/main/cpp"
@@ -370,6 +379,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             }
         }
     }
+}
 """
         and:
         run "mainVisualStudio", "mainStaticVisualStudio"
@@ -397,19 +407,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
-        hello {
+model {
+    components {
+        hello(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
-    }
-    executables {
-        main {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.lib libraries.hello
             }
         }
-        mainRelease {
+        mainRelease(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             targetBuildTypes "release"
             sources {
@@ -418,6 +427,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             }
         }
     }
+}
 """
         and:
         run "mainVisualStudio", "mainReleaseVisualStudio"
@@ -445,18 +455,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.writeSources(file("src/main"))
         buildFile << """
-    model {
-        platforms {
-            otherWin32 {
-                architecture "i386"
-            }
+model {
+    platforms {
+        otherWin32 {
+            architecture "i386"
         }
     }
-    executables {
-        main {
+    components {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "otherWin32"
         }
     }
+}
 """
         and:
         run "mainVisualStudio"
@@ -471,27 +481,27 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
 
         buildFile << """
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: "hello"
-                        cpp.lib library: "greetings", linkage: "static"
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: "hello"
+                cpp.lib library: "greetings", linkage: "static"
             }
-            libraries {
-                hello {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: "greetings", linkage: "static"
-                    }
-                }
-                greetings {
-                    targetPlatform "win32", "x64"
-                }
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: "greetings", linkage: "static"
             }
-        """
+        }
+        greetings(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+        }
+    }
+}
+"""
 
         when:
         succeeds "mainVisualStudio"
@@ -521,27 +531,27 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: "hello", linkage: "shared"
-                        cpp.lib library: "greetings", linkage: "shared"
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: "hello", linkage: "shared"
+                cpp.lib library: "greetings", linkage: "shared"
             }
-            libraries {
-                hello {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: "greetings", linkage: "static"
-                    }
-                }
-                greetings {
-                    targetPlatform "win32", "x64"
-                }
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: "greetings", linkage: "static"
             }
-        """
+        }
+        greetings(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+        }
+    }
+}
+"""
 
         when:
         succeeds "mainVisualStudio"
@@ -578,14 +588,16 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            apply plugin: 'c'
-            apply plugin: 'assembler'
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                }
-            }
-        """
+apply plugin: 'c'
+apply plugin: 'assembler'
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+        }
+    }
+}
+"""
 
         when:
         run "mainVisualStudio"
@@ -610,17 +622,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            apply plugin: 'windows-resources'
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                }
-            }
-            binaries.all {
-                rcCompiler.define "TEST"
-                rcCompiler.define "foo", "bar"
-            }
-        """
+apply plugin: 'windows-resources'
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+        }
+    }
+    binaries.all {
+        rcCompiler.define "TEST"
+        rcCompiler.define "foo", "bar"
+    }
+}
+"""
 
         when:
         run "mainVisualStudio"
@@ -646,12 +660,14 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     def "builds solution for component with no source"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                }
-            }
-        """
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+        }
+    }
+}
+"""
 
         when:
         run "mainVisualStudio"
@@ -676,14 +692,16 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             it.writeToFile(file("src/main/cpp/${it.name}"))
         }
         buildFile << """
-    executables {
-        main {
+model {
+    components {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.source.include "**/*.cpp"
             }
         }
     }
+}
 """
         and:
         run "mainVisualStudio"
@@ -707,27 +725,27 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
-                        cpp.lib library: 'hello'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
+                cpp.lib library: 'hello'
             }
-            libraries {
-                helloApi {
-                    targetPlatform "win32", "x64"
-                }
-                hello {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: 'helloApi', linkage: 'api'
-                    }
-                }
+        }
+        helloApi(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: 'helloApi', linkage: 'api'
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "mainVisualStudio"
@@ -760,21 +778,23 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.writeSources(file("src/win32"))
         app.alternate.writeSources(file("src/x64"))
         buildFile << """
-    executables {
-        main {
+model {
+    components {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
-        }
-    }
-
-    binaries.all { binary ->
-        def platformName = binary.targetPlatform.name
-        sources {
-            platformSources(CppSourceSet) {
-                source.srcDir "src/\$platformName/cpp"
-                exportedHeaders.srcDir "src/\$platformName/headers"
+            binaries.all { binary ->
+                def platformName = binary.targetPlatform.name
+                sources {
+                    platformSources(CppSourceSet) {
+                        source.srcDir "src/\$platformName/cpp"
+                        exportedHeaders.srcDir "src/\$platformName/headers"
+                    }
+                }
             }
         }
     }
+}
+
 """
         and:
         run "mainVisualStudio"
@@ -794,23 +814,23 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         given:
         app.writeSources(file("src/main"))
         buildFile << """
-    model {
-        repositories {
-            libs(PrebuiltLibraries) {
-                test {
-                    headers.srcDir "libs/test/include"
-                }
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            test {
+                headers.srcDir "libs/test/include"
             }
         }
     }
-    executables {
-        main {
+    components {
+        main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'test', linkage: 'api'
             }
         }
     }
+}
 """
 
         when:
@@ -841,28 +861,28 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            executables {
-                main {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: 'hello'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: 'hello'
             }
-            libraries {
-                hello {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: 'greetings', linkage: 'static'
-                    }
-                }
-                greetings {
-                    targetPlatform "win32", "x64"
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'api'
-                    }
-                }
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: 'greetings', linkage: 'static'
             }
+        }
+        greetings(NativeLibrarySpec) {
+            targetPlatform "win32", "x64"
+            sources {
+                cpp.lib library: 'hello', linkage: 'api'
+            }
+        }
+    }
+}
 """
 
         when:
@@ -896,13 +916,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
-        hello {
+model {
+    components {
+        hello(NativeLibrarySpec) {
             targetPlatform "win32", "x64"
         }
-    }
-    executables {
-        main {
+        main(NativeExecutableSpec) {
             targetPlatform "win32"
             targetBuildTypes "release"
             sources {
@@ -910,6 +929,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             }
         }
     }
+}
 """
         and:
         run "mainVisualStudio"

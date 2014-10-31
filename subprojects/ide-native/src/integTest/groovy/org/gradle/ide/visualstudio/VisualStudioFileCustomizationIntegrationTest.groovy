@@ -43,9 +43,9 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
             debug
             release
         }
-    }
-    executables {
-        main {}
+        components {
+            main(NativeExecutableSpec)
+        }
     }
 """
     }
@@ -175,13 +175,10 @@ EndGlobal
     def "can configure gradle command line"() {
         when:
         buildFile << """
-    executables {
-        main {}
-    }
-    tasks.withType(GenerateProjectFileTask) {
-        it.gradleExe "myCustomGradleExe"
-        it.gradleArgs "--configure-on-demand --another"
-    }
+tasks.withType(GenerateProjectFileTask) {
+    it.gradleExe "myCustomGradleExe"
+    it.gradleArgs "--configure-on-demand --another"
+}
 """
         and:
         run "mainVisualStudio"
