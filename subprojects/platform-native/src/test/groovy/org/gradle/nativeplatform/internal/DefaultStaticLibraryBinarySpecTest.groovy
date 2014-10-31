@@ -18,14 +18,16 @@ package org.gradle.nativeplatform.internal
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -33,8 +35,8 @@ import spock.lang.Specification
 
 class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
+    final library = new DefaultNativeLibrarySpec(new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", new DirectInstantiator()))
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
-    def library = Stub(NativeLibrarySpec)
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)
     def buildType = Stub(BuildType)

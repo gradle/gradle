@@ -16,11 +16,14 @@
 
 package org.gradle.platform.base.binary;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.BinaryTasksCollection;
@@ -39,11 +42,13 @@ import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
+
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks = new DefaultBinaryTasksCollection(this);
 
     private final String name;
     private final String typeName;
+
     private boolean buildable = true;
 
     public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator) {
@@ -94,10 +99,23 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         this.buildable = buildable;
     }
 
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
+    public FunctionalSourceSet getBinarySources() {
+        return sourceSets.getMainSources();
     }
 
+    public void setBinarySources(FunctionalSourceSet sources) {
+        sourceSets.setMainSources(sources);
+    }
+
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets.getSources();
+    }
+
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        action.execute(sourceSets.getMainSources());
+    }
+
+    // TODO:DAZ Remove this
     public void source(Object source) {
         sourceSets.source(source);
     }

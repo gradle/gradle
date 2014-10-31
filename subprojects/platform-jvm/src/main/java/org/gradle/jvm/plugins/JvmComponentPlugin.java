@@ -37,6 +37,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
@@ -45,6 +46,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import java.io.File;
@@ -132,12 +134,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
             List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms);
             for (final JavaPlatform platform : selectedPlatforms) {
                 final JavaToolChain toolChain = toolChains.getForPlatform(platform);
-                String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
+                final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
 
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     public void execute(JarBinarySpec jarBinary) {
                         ((JarBinarySpecInternal) jarBinary).setBaseName(jvmLibrary.getName());
-                        jarBinary.source(jvmLibrary.getSource());
+                        FunctionalSourceSet binarySourceSet = ((ComponentSpecInternal) jvmLibrary).getSources().copy(binaryName);
+                        ((JarBinarySpecInternal) jarBinary).setBinarySources(binarySourceSet);
                         jarBinary.setToolChain(toolChain);
                         jarBinary.setTargetPlatform(platform);
                         initAction.execute(jarBinary);

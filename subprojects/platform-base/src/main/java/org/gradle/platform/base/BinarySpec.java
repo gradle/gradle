@@ -51,7 +51,13 @@ public interface BinarySpec extends BuildableModelElement, Named {
      *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
      * </ul>
      */
+    // TODO:DAZ Remove this
     void source(Object source);
+
+    /**
+     * Configure the source sets used to build this binary.
+     */
+    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
 
     /**
      * The set of tasks associated with this binary.

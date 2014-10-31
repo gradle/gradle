@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.internal;
 
+import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
@@ -35,5 +36,22 @@ public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectCo
 
     public String getName() {
         return name;
+    }
+
+    // TODO:DAZ This needs unit testing
+    // TODO:DAZ Perhaps we should pull out a LanguageSourceSet 'factory-for-type' so we only register the languages once
+    public FunctionalSourceSet copy(String name) {
+        DefaultFunctionalSourceSet copy = getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator());
+        for (Class<? extends LanguageSourceSet> languageType : factories.keySet()) {
+            registerFactory(copy, languageType);
+        }
+        copy.addAll(this);
+        return copy;
+    }
+
+    <T extends LanguageSourceSet, U extends T> void registerFactory(DefaultFunctionalSourceSet target, Class<T> type) {
+        @SuppressWarnings("unchecked")
+        NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) factories.get(type);
+        target.registerFactory(type, factory);
     }
 }

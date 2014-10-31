@@ -16,8 +16,11 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -62,7 +65,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         this.buildType = buildType;
         this.buildable = true;
         this.resolver = resolver;
-        this.source(((ComponentSpecInternal) component).getSources());
+        setBinarySources(((ComponentSpecInternal) component).getSources().copy(namingScheme.getLifecycleTaskName()));
     }
 
     @Override
@@ -98,12 +101,25 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         return buildType;
     }
 
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
+    public FunctionalSourceSet getBinarySources() {
+        return sourceSets.getMainSources();
     }
 
-    public void source(Object sources) {
-        sourceSets.source(sources);
+    public void setBinarySources(FunctionalSourceSet sources) {
+        sourceSets.setMainSources(sources);
+    }
+
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets.getSources();
+    }
+
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        action.execute(sourceSets.getMainSources());
+    }
+
+    // TODO:DAZ Remove this
+    public void source(Object source) {
+        sourceSets.source(source);
     }
 
     public Tool getLinker() {
@@ -127,7 +143,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return resolve(sourceSets.withType(DependentSourceSet.class)).getAllResults();
+        return resolve(getSource().withType(DependentSourceSet.class)).getAllResults();
     }
 
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
@@ -139,7 +155,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
     }
 
     public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(sourceSets.withType(DependentSourceSet.class)).getAllLibraryBinaries();
+        return resolve(getSource().withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
     private NativeBinaryResolveResult resolve(Collection<? extends DependentSourceSet> sourceSets) {
