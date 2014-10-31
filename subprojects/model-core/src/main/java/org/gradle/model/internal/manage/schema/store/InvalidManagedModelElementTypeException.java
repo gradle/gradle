@@ -23,7 +23,7 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
     private static String getMessage(ModelType<?> type, String message, ModelSchemaExtractionContext context) {
         String fullMessage = "Invalid managed model type " + type + ": " + message;
         if (context != null) {
-            fullMessage += ". The type was analyzed due to the following dependencies: " + context.getContextPath();
+            fullMessage += ". The type was analyzed due to the following dependencies: " + context.getContextPathRepresentation();
         }
         return fullMessage;
     }

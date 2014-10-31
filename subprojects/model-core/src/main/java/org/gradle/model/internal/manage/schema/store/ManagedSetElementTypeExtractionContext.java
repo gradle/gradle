@@ -19,14 +19,21 @@ package org.gradle.model.internal.manage.schema.store;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.ModelType;
 
-public class ManagedSetElementTypeExtractionContext extends AbstractModelSchemaExtractionContext {
+public class ManagedSetElementTypeExtractionContext implements ModelSchemaExtractionContext {
 
-    ManagedSetElementTypeExtractionContext(ModelType<? extends ManagedSet<?>> setType, ModelSchemaExtractionContext parent) {
-        super(setType, setType.getTypeVariables().get(0), parent);
+    private final ModelType<? extends ManagedSet<?>> setType;
+    private final ExtractionContextPathRepresentationProvider representationProvider;
+
+    public ManagedSetElementTypeExtractionContext(ModelType<? extends ManagedSet<?>> setType, ModelSchemaExtractionContext parent) {
+        this.setType = setType;
+        this.representationProvider = new ExtractionContextPathRepresentationProvider(parent);
     }
 
-    @Override
-    protected String getPathFragment() {
-        return owner.toString();
+    public ModelType<?> getType() {
+        return setType.getTypeVariables().get(0);
+    }
+
+    public String getContextPathRepresentation() {
+        return representationProvider.getContextPathRepresentation(setType.toString());
     }
 }

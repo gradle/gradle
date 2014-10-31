@@ -17,30 +17,16 @@
 package org.gradle.model.internal.manage.schema.store;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.core.ModelType;
 
 @ThreadSafe
-public abstract class AbstractModelSchemaExtractionContext implements ModelSchemaExtractionContext {
-
-    protected final ModelType<?> owner;
-
-    protected final ModelType<?> type;
-
+public class ExtractionContextPathRepresentationProvider {
     private final ModelSchemaExtractionContext parent;
 
-    protected abstract String getPathFragment();
-
-    AbstractModelSchemaExtractionContext(ModelType<?> owner, ModelType<?> type, ModelSchemaExtractionContext parent) {
-        this.owner = owner;
-        this.type = type;
+    public ExtractionContextPathRepresentationProvider(ModelSchemaExtractionContext parent) {
         this.parent = parent;
     }
 
-    public ModelType<?> getType() {
-        return type;
-    }
-
-    public String getContextPath() {
-        return parent != null ? String.format("%s -> %s", parent.getContextPath(), getPathFragment()) : getPathFragment();
+    public String getContextPathRepresentation(String currentPathFragment) {
+        return parent != null ? String.format("%s -> %s", parent.getContextPathRepresentation(), currentPathFragment) : currentPathFragment;
     }
 }

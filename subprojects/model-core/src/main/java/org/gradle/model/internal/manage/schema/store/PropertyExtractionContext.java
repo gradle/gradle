@@ -21,17 +21,23 @@ import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 
 @ThreadSafe
-public class PropertyExtractionContext extends AbstractModelSchemaExtractionContext {
+public class PropertyExtractionContext implements ModelSchemaExtractionContext {
 
+    private final ModelType<?> owner;
     private final ModelProperty<?> property;
+    private final ExtractionContextPathRepresentationProvider representationProvider;
 
-    PropertyExtractionContext(ModelType<?> owner, ModelProperty<?> property, ModelSchemaExtractionContext parent) {
-        super(owner, property.getType(), parent);
+    public PropertyExtractionContext(ModelType<?> owner, ModelProperty<?> property, ModelSchemaExtractionContext parent) {
+        this.owner = owner;
         this.property = property;
+        this.representationProvider = new ExtractionContextPathRepresentationProvider(parent);
     }
 
-    @Override
-    protected String getPathFragment() {
-        return String.format("%s.%s", owner, property.getName());
+    public ModelType<?> getType() {
+        return property.getType();
+    }
+
+    public String getContextPathRepresentation() {
+        return representationProvider.getContextPathRepresentation(String.format("%s.%s", owner, property.getName()));
     }
 }

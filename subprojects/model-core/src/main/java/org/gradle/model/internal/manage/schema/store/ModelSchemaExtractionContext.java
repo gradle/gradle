@@ -21,5 +21,5 @@ import org.gradle.model.internal.core.ModelType;
 public interface ModelSchemaExtractionContext {
     ModelType<?> getType();
 
-    String getContextPath();
+    String getContextPathRepresentation();
 }
