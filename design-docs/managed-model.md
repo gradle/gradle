@@ -270,6 +270,31 @@ Notes:
 - Can get/set properties of super type(s)
 - Can depend on super type as input and subject
 - Two different types can extend same parent
+
+### Managed model element has “generated” display name indicating identity in model space
+
+    package org.example;
+    
+    @Managed
+    interface Person {
+      String getDisplayName();
+    }
+    
+    @RuleSource
+    class Rules {
+      @Model
+      void p1(Person p) {}
+      
+      @Mutate
+      void echoTask(CollectionBuilder<Task> tasks, Person p) {
+        tasks.create("verify", (t) -> t.doLast(t2 -> { assert p.getDisplayName().equals("Person @ 'p1'") })
+      }
+    }
+    
+#### Notes
+
+- It is an error to define a setter for display name (may relax this in the future)
+- Exact format of error message is unimportant, but it must include the “address” of the object in the model space
     
 ### Model rule accepts property of managed object as input
       
@@ -345,6 +370,10 @@ Notes:
 (above)
 
 ## Future candidate stories (unordered)
+
+### Model designer augments generated display name to contain extra information
+
+Possible driver for this is the component report.
 
 ### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation
 
