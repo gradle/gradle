@@ -18,15 +18,20 @@ package org.gradle.model.internal.manage.schema.store;
 
 import net.jcip.annotations.ThreadSafe;
 
+import java.util.LinkedList;
+import java.util.List;
+
 @ThreadSafe
-public class ExtractionContextPathRepresentationProvider {
+public class ExtractionContextPath {
     private final ModelSchemaExtractionContext parent;
 
-    public ExtractionContextPathRepresentationProvider(ModelSchemaExtractionContext parent) {
+    public ExtractionContextPath(ModelSchemaExtractionContext parent) {
         this.parent = parent;
     }
 
-    public String getContextPathRepresentation(String currentPathFragment) {
-        return parent != null ? String.format("%s -> %s", parent.getContextPathRepresentation(), currentPathFragment) : currentPathFragment;
+    public List<String> getContextPathElements(String currentPathElement) {
+        List<String> elements = parent != null ? parent.getContextPathElements() : new LinkedList<String>();
+        elements.add(currentPathElement);
+        return elements;
     }
 }

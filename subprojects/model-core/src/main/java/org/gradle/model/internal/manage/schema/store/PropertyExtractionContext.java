@@ -20,24 +20,26 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 
+import java.util.List;
+
 @ThreadSafe
 public class PropertyExtractionContext implements ModelSchemaExtractionContext {
 
     private final ModelType<?> owner;
     private final ModelProperty<?> property;
-    private final ExtractionContextPathRepresentationProvider representationProvider;
+    private final ExtractionContextPath representationProvider;
 
     public PropertyExtractionContext(ModelType<?> owner, ModelProperty<?> property, ModelSchemaExtractionContext parent) {
         this.owner = owner;
         this.property = property;
-        this.representationProvider = new ExtractionContextPathRepresentationProvider(parent);
+        this.representationProvider = new ExtractionContextPath(parent);
     }
 
     public ModelType<?> getType() {
         return property.getType();
     }
 
-    public String getContextPathRepresentation() {
-        return representationProvider.getContextPathRepresentation(String.format("%s.%s", owner, property.getName()));
+    public List<String> getContextPathElements() {
+        return representationProvider.getContextPathElements(String.format("%s.%s", owner, property.getName()));
     }
 }

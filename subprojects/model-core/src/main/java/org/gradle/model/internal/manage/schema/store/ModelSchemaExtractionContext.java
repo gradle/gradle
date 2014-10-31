@@ -18,8 +18,10 @@ package org.gradle.model.internal.manage.schema.store;
 
 import org.gradle.model.internal.core.ModelType;
 
+import java.util.List;
+
 public interface ModelSchemaExtractionContext {
     ModelType<?> getType();
 
-    String getContextPathRepresentation();
+    List<String> getContextPathElements();
 }
