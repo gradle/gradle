@@ -30,11 +30,9 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
     private final boolean fork;
     private File destinationDir;
 
-    /**
-     * @TODO move default into versioned invocation spec
-     * */
-    private String formatterType = null;
-    private String additionalImports = "import controllers._";
+    private String formatterType;
+    private String additionalImports;
+
     private String codec = "UTF-8";
 
     private boolean inclusiveDots;

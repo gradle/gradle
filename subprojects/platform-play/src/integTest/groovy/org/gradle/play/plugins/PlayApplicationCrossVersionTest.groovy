@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.play.fixtures.PlayCoverage
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 @TargetCoverage({PlayCoverage.DEFAULT})
 class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
 
@@ -44,8 +42,15 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
 
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.fork = true
+            scalaCompileOptions.useAnt = false
             scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
             scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+        }
+
+        tasks.withType(TwirlCompile) {
+            fork = true
+            forkOptions.memoryInitialSize =  "256m"
+            forkOptions.memoryMaximumSize =  "512m"
         }
 """
     }

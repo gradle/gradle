@@ -39,7 +39,7 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
                         spec.getSourceDirectory(),
                         spec.getDestinationDir(),
                         getFormatterType(spec, TwirlCompilerVersion.V_22X),
-                        spec.getAdditionalImports());
+                        getAdditionalImports(spec, TwirlCompilerVersion.V_22X));
                 break;
 
             case V_102:
@@ -49,7 +49,7 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
                         spec.getSourceDirectory(),
                         spec.getDestinationDir(),
                         getFormatterType(spec, TwirlCompilerVersion.V_102),
-                        spec.getAdditionalImports(),
+                        getAdditionalImports(spec, TwirlCompilerVersion.V_102),
                         scalaCodec,
                         spec.isInclusiveDots(),
                         spec.isUseOldParser()
@@ -58,6 +58,14 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
 
         }
         return versionedTwirlCompileInvocationSpec;
+    }
+
+    private String getAdditionalImports(TwirlCompileSpec spec, TwirlCompilerVersion compilerVersion) {
+        String additionalImports = spec.getAdditionalImports();
+        if(additionalImports==null){
+            additionalImports = compilerVersion.getDefaultAdditionalImports();
+        }
+        return additionalImports;
     }
 
     private String getFormatterType(TwirlCompileSpec spec, TwirlCompilerVersion compilerVersion) {

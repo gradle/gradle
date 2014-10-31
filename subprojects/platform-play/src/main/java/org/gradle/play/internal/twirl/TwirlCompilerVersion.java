@@ -17,15 +17,18 @@
 package org.gradle.play.internal.twirl;
 
 enum TwirlCompilerVersion {
-    V_22X("play.templates.ScalaTemplateCompiler", "play.api.templates.HtmlFormat"),
-    V_102("play.twirl.compiler.TwirlCompiler", "play.twirl.api.HtmlFormat");
+
+    V_22X("play.templates.ScalaTemplateCompiler", "play.api.templates.HtmlFormat", DEFAULTS.V_22X_DEFAULT_IMPORTS),
+    V_102("play.twirl.compiler.TwirlCompiler", "play.twirl.api.HtmlFormat", DEFAULTS.V_102_DEFAULT_IMPORTS);
 
     private final String compilerClassName;
     private String defaultFormatterType;
+    private String defaultAdditionalImports;
 
-    TwirlCompilerVersion(String compilerClassName, String defaultFormatterType) {
+    TwirlCompilerVersion(String compilerClassName, String defaultFormatterType, String defaultAdditionalImports) {
         this.compilerClassName = compilerClassName;
         this.defaultFormatterType = defaultFormatterType;
+        this.defaultAdditionalImports = defaultAdditionalImports;
     }
 
     String getCompilerClassname(){
@@ -43,5 +46,22 @@ enum TwirlCompilerVersion {
 
     public String getDefaultFormatterType() {
         return defaultFormatterType;
+    }
+
+    public String getDefaultAdditionalImports() {
+        return defaultAdditionalImports;
+    }
+
+    static class DEFAULTS {
+        static final String V_22X_DEFAULT_IMPORTS = "import play.api.templates._\n"
+                + "import play.api.templates.PlayMagic._\n"
+                + "import models._\n"
+                + "import controllers._\n"
+                + "import play.api.i18n._\n"
+                + "import play.api.mvc._\n"
+                + "import play.api.data._\n"
+                + "import views.html._";
+
+        static final String V_102_DEFAULT_IMPORTS = "import controllers._";
     }
 }
