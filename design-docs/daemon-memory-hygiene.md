@@ -43,7 +43,25 @@ When building with the daemon there is an elegant lifecycle message informing ab
 - First build presents "Starting build..." message
 - Subsequent builds present "Executing x build..." message
 
-## Prevent memory leaks make daemon unusable
+## Prevent memory leaks make daemon unusable, ensure high daemon performance
+
+Allow using daemon everywhere and always, even for CI builds. Ensure stability in serving builds.
+Prevent stalled builds when n-th build becomes memory-exhausted and stalls.
+
+Continuous tracking of daemon's performance allows us to expire the daemon when it's performance drops below certain threshold.
+This can ensure stability in serving builds and avoid stalled build due to exhausted daemon that consumed all memory.
+
+### User visible changes
+
+- daemon is stopped after the build if the performance during the build was below certain threshold
+- the default expire threshold is 85%
+- threshold can configured in gradle.properties via 'org.gradle.daemon.performance.expire-at=85%'
+- the feature can be switched off in gradle.properties file by specifying: 'org.gradle.daemon.performance.expire-at=0%'
+- when daemon is expired due to this reason, a lifecycle message is presented to the user
+
+### Coverage
+
+- integration test that contains a leaky build. The build fails with OOME if the feature is turned off.
 
 ## Prevent daemon become unresponsive due to gc thrashing
 
