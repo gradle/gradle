@@ -1,6 +1,24 @@
 This spec outlines some initial stories for what's generally termed “managed model”.
 This is a sub stream of the “unified-configuration-model” stream.
    
+## Background
+
+There are several key drivers for this stream of work:
+
+1. Model insight
+2. Bidirectional model externalisation
+3. Model caching
+
+The term “model insight” (#1) refers to deeply understanding the structure of model elements.
+While not a goal with immediate user benefit in itself, it is included in this list as a proxy for general usability enhancements made possible by this.
+For example, a model browsing tool would rely on this insight to generate visual representation of elements and facilitate browsing a model (schema and data).
+
+The term “bidirectional model externalisation” refers to being able to serialize a data set to some “external” form (e.g. JSON, YAML, XML, Turtle etc.) for consumption by other systems, and the possibility of using such a format to construct a data set for Gradle to use.
+
+The term “model caching” refers to the ability to safely reuse a previously “built” model element, avoiding the need to execute the user code that contributed to its final state. 
+
+Moreover, we consider owning the implementation of model elements an enabler for the general dependency based configuration model.
+   
 ## Stories
                                             
 ### ~~Plugin creates model element of custom, simple, type without supplying an implementation~~
@@ -270,6 +288,9 @@ Notes:
 - Can get/set properties of super type(s)
 - Can depend on super type as input and subject
 - Two different types can extend same parent
+
+### Managed model type has enum property
+
 
 ### Managed model element has “generated” display name indicating identity in model space
 
