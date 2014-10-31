@@ -31,11 +31,13 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "skips building executable binary with no source"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            executables {
-                main {}
-            }
-        """
+apply plugin: "cpp"
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
 
         when:
         succeeds "mainExecutable"
@@ -50,23 +52,25 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         and:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    model {
-        buildTypes {
-            debug
-            optimised
-            release
-        }
+model {
+    buildTypes {
+        debug
+        optimised
+        release
     }
-    executables {
-        main
+}
+model {
+    components {
+        main(NativeExecutableSpec)
     }
-    binaries.all { binary ->
-        if (binary.buildType == buildTypes.optimised) {
-            binary.buildable = false
-        }
+}
+binaries.all { binary ->
+    if (binary.buildType == buildTypes.optimised) {
+        binary.buildable = false
     }
+}
 """
         when:
         succeeds "assemble"
@@ -81,39 +85,6 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         executable("build/binaries/mainExecutable/release/main").assertExists()
     }
 
-    // TODO:DAZ Once use of the extension has been rolled into the rest of the integration tests, this test won't be necessary
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "can define native binaries using nativeRuntime extension"() {
-        given:
-        helloWorldApp.library.writeSources(file("src/hello"))
-        helloWorldApp.executable.writeSources(file("src/main"))
-
-        and:
-        buildFile << """
-    apply plugin: 'cpp'
-    apply plugin: 'c'
-
-    nativeRuntime {
-        executables {
-            main {
-                sources {
-                    cpp.lib library: "hello"
-                }
-            }
-        }
-
-        libraries {
-            hello
-        }
-    }
-"""
-        when:
-        succeeds "installMainExecutable"
-
-        then:
-        installation("build/install/mainExecutable").exec().out == helloWorldApp.englishOutput
-    }
-
     // Test for temporary backward-compatibility layer for native binaries. Plan is to deprecate in 2.1 and remove in 2.2.
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can define native binaries using 1.12 compatible api"() {
@@ -123,24 +94,25 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         and:
         buildFile << """
-    apply plugin: 'cpp'
-    apply plugin: 'c'
+apply plugin: 'cpp'
+apply plugin: 'c'
 
-    executables {
-        main {
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
                 cpp.lib library: "hello"
             }
         }
+        hello(NativeLibrarySpec)
     }
-    libraries {
-        hello
+}
+
+task buildAllExecutables {
+    dependsOn binaries.withType(NativeExecutableBinary).matching {
+        it.buildable
     }
-    task buildAllExecutables {
-        dependsOn binaries.withType(NativeExecutableBinary).matching {
-            it.buildable
-        }
-    }
+}
 """
         when:
         succeeds "buildAllExecutables"
@@ -161,24 +133,26 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         when:
         buildFile << """
-            apply plugin: "c"
-            apply plugin: "cpp"
+apply plugin: "c"
+apply plugin: "cpp"
 
-            executables {
-                main {
-                    sources {
-                        c {
-                            source.srcDir "src/test/c"
-                            exportedHeaders.srcDir "src/test/headers"
-                        }
-                        cpp {
-                            source.srcDir "src/test/cpp"
-                            exportedHeaders.srcDir "src/test/headers"
-                        }
-                    }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c {
+                    source.srcDir "src/test/c"
+                    exportedHeaders.srcDir "src/test/headers"
+                }
+                cpp {
+                    source.srcDir "src/test/cpp"
+                    exportedHeaders.srcDir "src/test/headers"
                 }
             }
-        """
+        }
+    }
+}
+"""
 
         then:
         succeeds "mainExecutable"
@@ -194,26 +168,28 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         when:
         buildFile << """
-            apply plugin: "c"
-            apply plugin: "cpp"
+apply plugin: "c"
+apply plugin: "cpp"
 
-            executables {
-                main {}
-            }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
 
-            binaries.all {
-                sources {
-                    testCpp(CppSourceSet) {
-                        source.srcDir "src/test/cpp"
-                        exportedHeaders.srcDir "src/test/headers"
-                    }
-                    testC(CSourceSet) {
-                        source.srcDir "src/test/c"
-                        exportedHeaders.srcDir "src/test/headers"
-                    }
-                }
-            }
-        """
+binaries.all {
+    sources {
+        testCpp(CppSourceSet) {
+            source.srcDir "src/test/cpp"
+            exportedHeaders.srcDir "src/test/headers"
+        }
+        testC(CSourceSet) {
+            source.srcDir "src/test/c"
+            exportedHeaders.srcDir "src/test/headers"
+        }
+    }
+}
+"""
 
         then:
         succeeds "mainExecutable"
@@ -231,24 +207,26 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         when:
         buildFile << """
-            apply plugin: "c"
-            apply plugin: "cpp"
-            apply plugin: "java"
+apply plugin: "c"
+apply plugin: "cpp"
+apply plugin: "java"
 
-            executables {
-                main {
-                    sources {
-                        java(JavaSourceSet) {
-                            source.srcDir "src/test/java"
-                        }
-                    }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                java(JavaSourceSet) {
+                    source.srcDir "src/test/java"
                 }
             }
-         """
+        }
+    }
+}
+"""
 
         then:
         fails "mainExecutable"
-        failure.assertHasDescription("A problem occurred evaluating root project 'test'.");
+        failure.assertHasDescription("A problem occurred configuring root project 'test'.");
         failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
     }
 
@@ -259,11 +237,13 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "build fails when link executable fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            executables {
-                main {}
-            }
-        """
+apply plugin: "cpp"
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
 
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
@@ -306,11 +286,16 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "build fails when create static library fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            libraries { main {} }
-            binaries.withType(StaticLibraryBinarySpec) {
-                staticLibArchiver.args "not_a_file"
-            }
+apply plugin: "cpp"
+model {
+    components {
+        main(NativeLibrarySpec)
+    }
+}
+
+binaries.withType(StaticLibraryBinarySpec) {
+    staticLibArchiver.args "not_a_file"
+}
         """
 
         and:

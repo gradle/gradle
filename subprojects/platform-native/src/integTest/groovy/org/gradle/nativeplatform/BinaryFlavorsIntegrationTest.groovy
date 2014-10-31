@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -34,36 +32,34 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
-            apply plugin: "cpp"
-            model {
-                flavors {
-                    english
-                    french
-                    german
+apply plugin: "cpp"
+model {
+    flavors {
+        english
+        french
+        german
+    }
+    components {
+        greetings(NativeLibrarySpec) {
+            binaries.all {
+                if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+                    cppCompiler.args("-fPIC");
                 }
             }
-            libraries {
-                greetings {
-                    binaries.all {
-                        if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-                            cppCompiler.args("-fPIC");
-                        }
-                    }
-                }
-                hello {
-                    binaries.all {
-                        lib libraries.greetings.static
-                    }
-                }
+        }
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                lib libraries.greetings.static
             }
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello
-                    }
-                }
+        }
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib libraries.hello
             }
-        """
+        }
+    }
+}
+"""
 
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
@@ -71,14 +67,18 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "can configure components for a single flavor"() {
         given:
         buildFile << """
-    binaries.all {
-        if (flavor == flavors.french) {
-            cppCompiler.define "FRENCH"
-        }
+binaries.all {
+    if (flavor == flavors.french) {
+        cppCompiler.define "FRENCH"
     }
-    executables.main.targetFlavors "french"
-    libraries.hello.targetFlavors "french"
-    libraries.greetings.targetFlavors "french"
+}
+model {
+    components {
+        main.targetFlavors "french"
+        hello.targetFlavors "french"
+        greetings.targetFlavors "french"
+    }
+}
 """
         when:
         succeeds "installMainExecutable"
@@ -100,85 +100,27 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """
-            executables {
-                main {
-                    targetFlavors "english", "french"
-                    binaries.all {
-                        if (flavor == flavors.french) {
-                            cppCompiler.define "FRENCH"
-                        }
-                    }
+model {
+    components {
+        main {
+            targetFlavors "english", "french"
+            binaries.all {
+                if (flavor == flavors.french) {
+                    cppCompiler.define "FRENCH"
                 }
             }
-            libraries.all {
-                targetFlavors "english", "french"
-                binaries.all {
-                    if (flavor == flavors.french) {
-                        cppCompiler.define "FRENCH"
-                    }
+        }
+        withType(NativeLibrarySpec) {
+            targetFlavors "english", "french"
+            binaries.all {
+                if (flavor == flavors.french) {
+                    cppCompiler.define "FRENCH"
                 }
             }
-        """
-
-        and:
-        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
-
-        then:
-        installation("build/install/mainExecutable/english").exec().out == DEFAULT + " " + DEFAULT
-        installation("build/install/mainExecutable/french").exec().out == FRENCH + " " + FRENCH
+        }
     }
-
-    // TODO:DAZ Un-ignore
-    @Ignore("Requires proper dependency resolution")
-    def "executable with flavors depends on library with no defined flavor"() {
-        when:
-        buildFile << """
-            executables {
-                main {
-                    targetFlavors "english", "french"
-                    binaries.all {
-                        if (flavor == flavors.french) {
-                            cppCompiler.define "FRENCH"
-                        }
-                    }
-                }
-            }
-        """
-
-        and:
-        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
-
-        then:
-        installation("build/install/mainExecutable/english").exec().out == DEFAULT + " " + DEFAULT
-        installation("build/install/mainExecutable/french").exec().out == FRENCH + " " + DEFAULT
-    }
-
-    // TODO:DAZ Un-ignore
-    @Ignore("Library resolution does not yet handle this case")
-    def "executable with flavors depends on a library with a single flavor which depends on a library with flavors"() {
-        when:
-        buildFile << """
-            executables {
-                main {
-                    targetFlavors "english", "french"
-                    binaries.all {
-                        if (flavor == flavors.french) {
-                            cppCompiler.define "FRENCH"
-                        }
-                    }
-                }
-            }
-            libraries {
-                greetings {
-                    targetFlavors "english", "french"
-                    binaries.all {
-                        if (flavor == flavors.french) {
-                            cppCompiler.define "FRENCH"
-                        }
-                    }
-                }
-            }
-        """
+}
+"""
 
         and:
         succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
@@ -191,21 +133,21 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "build fails when library has no matching flavour"() {
         when:
         buildFile << """
-            apply plugin: "cpp"
-            libraries {
-                hello {
-                    targetFlavors "english", "french"
-                }
+apply plugin: "cpp"
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            targetFlavors "english", "french"
+        }
+        main(NativeExecutableSpec) {
+            targetFlavors "english", "german"
+            binaries.all {
+                lib libraries.hello
             }
-            executables {
-                main {
-                    targetFlavors "english", "german"
-                    binaries.all {
-                        lib libraries.hello
-                    }
-                }
-            }
-        """
+        }
+    }
+}
+"""
 
         then:
         fails "germanMainExecutable"
@@ -215,7 +157,11 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "fails with reasonable error message when trying to target an unknown flavor"() {
         when:
         buildFile << """
-            executables.main.targetFlavors "unknown"
+model {
+    components {
+        main.targetFlavors "unknown"
+    }
+}
 """
 
         and:

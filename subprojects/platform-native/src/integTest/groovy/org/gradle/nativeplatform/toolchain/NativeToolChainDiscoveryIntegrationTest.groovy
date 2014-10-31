@@ -31,19 +31,19 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
 
     def "can discover tool chain in environment"() {
         given:
-        AbstractInstalledToolChainIntegrationSpec.toolChain.initialiseEnvironment();
+        toolChain.initialiseEnvironment();
 
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                toolChains {
-                    tc(${AbstractInstalledToolChainIntegrationSpec.toolChain.implementationClass})
-                }
-            }
-            executables {
-                main {}
-            }
+apply plugin: 'cpp'
+model {
+    toolChains {
+        tc(${toolChain.implementationClass})
+    }
+    components {
+        main(NativeExecutableSpec)
+    }
+}
         """
 
         and:
@@ -55,26 +55,25 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
         then:
         def mainExecutable = executable("build/binaries/mainExecutable/main")
         mainExecutable.assertExists()
-        mainExecutable.exec().out == helloWorldApp.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        mainExecutable.exec().out == helloWorldApp.expectedOutput(toolChain)
 
         cleanup:
-        AbstractInstalledToolChainIntegrationSpec.toolChain.resetEnvironment();
+        toolChain.resetEnvironment();
     }
 
     def "uses correct tool chain when explicitly configured"() {
         given:
         buildFile << """
-            apply plugin: 'cpp'
+apply plugin: 'cpp'
 
-            model {
-                toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.buildScriptConfig}
-                }
-            }
-
-            executables {
-                main {}
-            }
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        main(NativeExecutableSpec)
+    }
+}
         """
 
         and:
@@ -86,7 +85,7 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
         then:
         def mainExecutable = executable("build/binaries/mainExecutable/main")
         mainExecutable.assertExists()
-        mainExecutable.exec().out == helloWorldApp.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        mainExecutable.exec().out == helloWorldApp.expectedOutput(toolChain)
     }
 
 }

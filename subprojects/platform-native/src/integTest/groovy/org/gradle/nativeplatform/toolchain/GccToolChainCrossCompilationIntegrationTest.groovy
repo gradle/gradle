@@ -29,24 +29,21 @@ class GccToolChainCrossCompilationIntegrationTest extends AbstractInstalledToolC
 
     def setup() {
         buildFile << """
-            apply plugin: 'c'
+apply plugin: 'c'
 
-            model {
-                toolChains {
-                    ${toolChain.buildScriptConfig}
-                }
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib library: 'hello', linkage: 'static'
             }
-
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello.static
-                    }
-                }
-            }
-            libraries {
-                hello {}
-            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
 """
 
         helloWorldApp.executable.writeSources(file("src/main"))

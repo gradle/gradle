@@ -36,12 +36,15 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
     def setup() {
         buildFile << """
-            apply plugin: 'cpp'
-
-            executables {
-                main {}
-            }
-        """
+plugins {
+    id 'cpp'
+}
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
 
         testApp.writeSources(file("src/main"))
     }
@@ -72,20 +75,22 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     def "configure component for a single target platform"() {
         when:
         buildFile << """
-            model {
-                platforms {
-                    sparc {
-                        architecture "sparc"
-                    }
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
-                    }
-                }
-            }
-            executables.main.targetPlatform "x86"
+model {
+    platforms {
+        sparc {
+            architecture "sparc"
+        }
+        x86 {
+            architecture "x86"
+        }
+        x86_64 {
+            architecture "x86_64"
+        }
+    }
+    components {
+        executables.main.targetPlatform "x86"
+    }
+}
 """
 
         and:
@@ -102,16 +107,16 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         def arch = currentArch()
         when:
         buildFile << """
-            model {
-                platforms {
-                    sparc {
-                        architecture "sparc"
-                    }
-                    x86 {
-                        architecture "x86"
-                    }
-                }
-            }
+model {
+    platforms {
+        sparc {
+            architecture "sparc"
+        }
+        x86 {
+            architecture "x86"
+        }
+    }
+}
 """
 
         and:
@@ -130,32 +135,30 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         testApp.library.writeSources(file("src/hello"))
         when:
         buildFile << """
-            model {
-                platforms {
-                    sparc {
-                        architecture "sparc"
-                    }
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
-                    }
-                }
+model {
+    platforms {
+        sparc {
+            architecture "sparc"
+        }
+        x86 {
+            architecture "x86"
+        }
+        x86_64 {
+            architecture "x86_64"
+        }
+    }
+    components {
+        exe(NativeExecutableSpec) {
+            targetPlatform "x86"
+            sources {
+                cpp.lib library: "hello", linkage: "static"
             }
-            executables {
-                exe {
-                    targetPlatform "x86"
-                    sources {
-                        cpp.lib library: "hello", linkage: "static"
-                    }
-                }
-            }
-            libraries {
-                hello {
-                    targetPlatform "x86"
-                }
-            }
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+}
 """
 
         and:
@@ -176,16 +179,16 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         testApp.library.writeSources(file("src/hello"))
         when:
         buildFile << """
-            executables {
-                exe {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'static'
-                    }
-                }
+model {
+    components {
+        exe(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'static'
             }
-            libraries {
-                hello
-            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
 """
 
         and:
@@ -200,24 +203,28 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
-                    }
-                    itanium {
-                        architecture "ia-64"
-                    }
-                    arm {
-                        architecture "arm"
-                    }
-                }
-            }
+model {
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+        x86_64 {
+            architecture "x86_64"
+        }
+        itanium {
+            architecture "ia-64"
+        }
+        arm {
+            architecture "arm"
+        }
+    }
+    components {
+        main {
+            targetPlatform "x86", "x86_64", "itanium", "arm"
+        }
+    }
+}
 
-            executables.main.targetPlatform "x86", "x86_64", "itanium", "arm"
 """
 
         and:
@@ -268,25 +275,26 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
         when:
         buildFile << """
-            model {
-                platforms {
-                    osx {
-                        operatingSystem "osx"
-                    }
-                    windows {
-                        operatingSystem "windows"
-                    }
-                    linux {
-                        operatingSystem "linux"
-                    }
-                }
-            }
+model {
+    platforms {
+        osx {
+            operatingSystem "osx"
+        }
+        windows {
+            operatingSystem "windows"
+        }
+        linux {
+            operatingSystem "linux"
+        }
+    }
+    components {
+        main.targetPlatform "$currentOs"
+    }
+}
 
-            binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
-                cppCompiler.define "FRENCH"
-            }
-
-            executables.main.targetPlatform "$currentOs"
+binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
+    cppCompiler.define "FRENCH"
+}
         """
         and:
         succeeds "assemble"
@@ -307,14 +315,16 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     def "fails with reasonable error message when trying to build for an #type"() {
         when:
         buildFile << """
-            model {
-                platforms {
-                    unavailable {
-                        ${config}
-                    }
-                }
-            }
-            executables.main.targetPlatform 'unavailable'
+model {
+    platforms {
+        unavailable {
+            ${config}
+        }
+    }
+    components {
+        main.targetPlatform 'unavailable'
+    }
+}
 """
 
         and:
@@ -337,12 +347,14 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         when:
         settingsFile << "rootProject.name = 'bad-platform'"
         buildFile << """
-            model {
-                platforms {
-                    main
-                }
-            }
-            executables.main.targetPlatform "unknown"
+model {
+    platforms {
+        main
+    }
+    components {
+        main.targetPlatform "unknown"
+    }
+}
 """
 
         and:
@@ -357,24 +369,23 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         when:
         settingsFile << "rootProject.name = 'no-matching-platform'"
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                platforms {
-                    one
-                    two
-                }
+model {
+    platforms {
+        one
+        two
+    }
+    components {
+        hello(NativeLibrarySpec) {
+            targetPlatform "two"
+        }
+        main {
+            targetPlatform "one"
+            sources {
+                cpp.lib library: 'hello'
             }
-
-            libraries {
-                hello {
-                    targetPlatform "two"
-                }
-            }
-            executables.main.targetPlatform "one"
-
-            executables.main.sources {
-                cpp.lib libraries.hello
-            }
+        }
+    }
+}
 """
 
         and:

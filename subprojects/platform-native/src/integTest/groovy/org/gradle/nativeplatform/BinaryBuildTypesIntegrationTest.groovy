@@ -28,20 +28,21 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         helloWorldApp.writeSources(file("src/main"))
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                buildTypes {
-                    debug {
-                        ext.debug = true
-                    }
-                    integration {
-                        ext.debug = true
-                    }
-                    release {
-                        ext.debug = false
-                    }
-                }
-            }
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug {
+            ext.debug = true
+        }
+        integration {
+            ext.debug = true
+        }
+        release {
+            ext.debug = false
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
             binaries.all { binary ->
                 if (toolChain in Gcc && buildType.debug) {
                     cppCompiler.args "-g"
@@ -59,9 +60,9 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     cppCompiler.define "FRENCH"
                 }
             }
-            executables {
-                main {}
-            }
+        }
+    }
+}
         """
         and:
         succeeds "debugMainExecutable", "integrationMainExecutable", "releaseMainExecutable"
@@ -88,23 +89,23 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         when:
         helloWorldApp.writeSources(file("src/main"))
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                buildTypes {
-                    debug
-                    release
-                }
-            }
-            executables {
-                main {
-                    targetBuildTypes "release"
-                }
-            }
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug
+        release
+    }
+    components {
+        main(NativeExecutableSpec) {
+            targetBuildTypes "release"
             binaries.all { binary ->
                 if (buildType == buildTypes.release) {
                     cppCompiler.define "FRENCH"
                 }
             }
+        }
+    }
+}
 """
 
         and:
@@ -124,28 +125,26 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                buildTypes {
-                    debug
-                    release
-                }
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug
+        release
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: "hello", linkage: "static"
             }
-            binaries.all {
-                if (buildType == buildTypes.debug) {
-                    cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
-                }
-            }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: "hello", linkage: "static"
-                    }
-                }
-            }
-            libraries {
-                hello {}
-            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
+binaries.all {
+    if (buildType == buildTypes.debug) {
+        cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
+    }
+}
         """
         and:
         succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
@@ -159,16 +158,16 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         when:
         settingsFile << "rootProject.name = 'bad-build-type'"
         buildFile << """
-            model {
-                buildTypes {
-                    debug
-                }
-            }
-            executables {
-                main {
-                    targetBuildTypes "unknown"
-                }
-            }
+model {
+    buildTypes {
+        debug
+    }
+    components {
+        main(NativeExecutableSpec) {
+            targetBuildTypes "unknown"
+        }
+    }
+}
 """
 
         and:
@@ -183,25 +182,23 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         when:
         settingsFile << "rootProject.name = 'no-matching-build-type'"
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                buildTypes {
-                    debug
-                    release
-                }
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug
+        release
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: "hello", linkage: "static"
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: "hello", linkage: "static"
-                    }
-                }
-            }
-            libraries {
-                hello {
-                    targetBuildTypes "debug"
-                }
-            }
+        }
+        hello(NativeLibrarySpec) {
+            targetBuildTypes "debug"
+        }
+    }
+}
 """
 
         and:

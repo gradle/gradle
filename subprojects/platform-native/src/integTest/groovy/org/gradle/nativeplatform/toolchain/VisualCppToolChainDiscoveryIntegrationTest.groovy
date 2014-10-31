@@ -27,18 +27,16 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
 
     def setup() {
         buildFile << """
-            apply plugin: 'c'
+apply plugin: 'c'
 
-            model {
-                toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.buildScriptConfig}
-                }
-            }
-
-            executables {
-                main {
-                }
-            }
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        main(NativeExecutableSpec)
+    }
+}
 """
 
         helloWorldApp.executable.writeSources(file("src/main"))
@@ -48,14 +46,15 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
     def "tool chain is not available when visual studio install is not available"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        installDir "does-not-exist"
-                    }
-                }
-            }
+model {
+    toolChains {
+        ${toolChain.id} {
+            installDir "does-not-exist"
+        }
+    }
+}
 """
+
         fails "mainExecutable"
 
         then:
@@ -67,13 +66,13 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
     def "tool chain is not available when SDK install is not available"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
-                        windowsSdkDir "does-not-exist"
-                    }
-                }
-            }
+model {
+    toolChains {
+        ${toolChain.id} {
+            windowsSdkDir "does-not-exist"
+        }
+    }
+}
 """
         fails "mainExecutable"
 

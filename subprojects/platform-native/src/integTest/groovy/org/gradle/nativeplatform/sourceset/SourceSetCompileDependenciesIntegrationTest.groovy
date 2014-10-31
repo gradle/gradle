@@ -56,29 +56,33 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
 
         and:
         buildFile << """
-            apply plugin: "cpp"
-            libraries {
-                lib1
-                lib2
-            }
+apply plugin: "cpp"
+model {
+    components {
+        lib1(NativeLibrarySpec)
+        lib2(NativeLibrarySpec)
+    }
+}
 """
     }
 
     def "dependencies of 2 language source sets are not shared when compiling"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp {
-                            lib library: 'lib1', linkage: 'api'
-                        }
-                        otherCpp(CppSourceSet) {
-                            lib library: 'lib2', linkage: 'api'
-                        }
-                    }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    lib library: 'lib1', linkage: 'api'
+                }
+                otherCpp(CppSourceSet) {
+                    lib library: 'lib2', linkage: 'api'
                 }
             }
+        }
+    }
+}
 """
 
         when:
@@ -91,21 +95,23 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of language source set added to binary are not shared when compiling"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'lib1', linkage: 'api'
-                    }
-                    binaries.all {
-                        sources {
-                            other(CppSourceSet) {
-                                source.srcDir "src/main/otherCpp"
-                                lib library: 'lib2', linkage: 'api'
-                            }
-                        }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'lib1', linkage: 'api'
+            }
+            binaries.all {
+                sources {
+                    other(CppSourceSet) {
+                        source.srcDir "src/main/otherCpp"
+                        lib library: 'lib2', linkage: 'api'
                     }
                 }
             }
+        }
+    }
+}
 """
 
         when:
@@ -118,16 +124,18 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of binary are shared with all source sets when compiling"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        otherCpp(CppSourceSet)
-                    }
-                    binaries.all {
-                        lib library: 'lib1', linkage: 'api'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                otherCpp(CppSourceSet)
             }
+            binaries.all {
+                lib library: 'lib1', linkage: 'api'
+            }
+        }
+    }
+}
 """
 
         when:

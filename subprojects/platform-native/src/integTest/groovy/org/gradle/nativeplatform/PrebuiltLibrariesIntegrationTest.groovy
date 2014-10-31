@@ -29,22 +29,22 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         app.library.writeSources(file("libs/src/hello"))
 
         file("libs/build.gradle") << """
-            apply plugin: 'cpp'
-            model {
-                flavors {
-                    english
-                    french
+apply plugin: 'cpp'
+model {
+    flavors {
+        english
+        french
+    }
+    components {
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                if (flavor == flavors.french) {
+                    cppCompiler.define "FRENCH"
                 }
             }
-            libraries {
-                hello {
-                    binaries.all {
-                        if (flavor == flavors.french) {
-                            cppCompiler.define "FRENCH"
-                        }
-                    }
-                }
-            }
+        }
+    }
+}
 """
     }
 
@@ -57,24 +57,24 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         given:
         app.alternateLibrarySources*.writeToDir(file("src/main"))
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
-                        }
-                    }
-                }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "libs/src/hello/headers"
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'api'
-                    }
-                }
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'api'
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable"
@@ -89,51 +89,51 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
-                            binaries.withType(StaticLibraryBinary) {
-                                def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
-                                staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
-                            }
-                            binaries.withType(SharedLibraryBinary) {
-                                def os = targetPlatform.operatingSystem
-                                def baseDir = "libs/build/binaries/helloSharedLibrary/french"
-                                if (os.windows) {
-                                    // Windows uses a .dll file, and a different link file if it exists (not Cygwin or MinGW)
-                                    sharedLibraryFile = file("\${baseDir}/hello.dll")
-                                    if (file("\${baseDir}/hello.lib").exists()) {
-                                        sharedLibraryLinkFile = file("\${baseDir}/hello.lib")
-                                    }
-                                } else if (os.macOsX) {
-                                    sharedLibraryFile = file("\${baseDir}/libhello.dylib")
-                                } else {
-                                    sharedLibraryFile = file("\${baseDir}/libhello.so")
-                                }
-                            }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "libs/src/hello/headers"
+                binaries.withType(StaticLibraryBinary) {
+                    def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
+                    staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
+                }
+                binaries.withType(SharedLibraryBinary) {
+                    def os = targetPlatform.operatingSystem
+                    def baseDir = "libs/build/binaries/helloSharedLibrary/french"
+                    if (os.windows) {
+                        // Windows uses a .dll file, and a different link file if it exists (not Cygwin or MinGW)
+                        sharedLibraryFile = file("\${baseDir}/hello.dll")
+                        if (file("\${baseDir}/hello.lib").exists()) {
+                            sharedLibraryLinkFile = file("\${baseDir}/hello.lib")
                         }
+                    } else if (os.macOsX) {
+                        sharedLibraryFile = file("\${baseDir}/libhello.dylib")
+                    } else {
+                        sharedLibraryFile = file("\${baseDir}/libhello.so")
                     }
                 }
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello'
-                    }
-                }
-                mainStatic {
-                    sources {
-                        cpp {
-                            source.srcDir "src/main/cpp"
-                            lib library: 'hello', linkage: 'static'
-                        }
-                    }
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello'
+            }
+        }
+        mainStatic(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source.srcDir "src/main/cpp"
+                    lib library: 'hello', linkage: 'static'
                 }
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable", "installMainStaticExecutable"
@@ -149,32 +149,32 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs1(PrebuiltLibraries) {
-                        nope {
-                            headers.srcDir "not/here"
-                        }
-                    }
-                    libs2(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
-                            binaries.withType(StaticLibraryBinary) {
-                                def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
-                                staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/french/\${libName}")
-                            }
-                        }
-                    }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs1(PrebuiltLibraries) {
+            nope {
+                headers.srcDir "not/here"
+            }
+        }
+        libs2(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "libs/src/hello/headers"
+                binaries.withType(StaticLibraryBinary) {
+                    def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
+                    staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/french/\${libName}")
                 }
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'static'
-                    }
-                }
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'static'
             }
+        }
+    }
+}
         """
 
         when:
@@ -193,30 +193,32 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         and:
         settingsFile.text = "include ':projectA', ':projectB'"
         buildFile << """
-            project(':projectA') {
-                apply plugin: 'cpp'
-                executables {
-                    main {
-                        sources {
-                            cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
-                        }
-                    }
+project(':projectA') {
+    apply plugin: 'cpp'
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
                 }
             }
+        }
+    }
+}
         """
 
         file("projectB/build.gradle") << """
-            apply plugin: 'cpp'
+apply plugin: 'cpp'
 
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "../libs/src/hello/headers"
-                        }
-                    }
-                }
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "../libs/src/hello/headers"
             }
+        }
+    }
+}
         """
 
         when:
@@ -229,24 +231,24 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
     def "produces reasonable error message when no output file is defined for binary"() {
         given:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
-                        }
-                    }
-                }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "libs/src/hello/headers"
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'static'
-                    }
-                }
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'static'
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         fails "mainExecutable"
@@ -258,27 +260,27 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
     def "produces reasonable error message when prebuilt library output file does not exist"() {
         given:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
-                            binaries.withType(StaticLibraryBinary) { binary ->
-                                staticLibraryFile = file("does_not_exist")
-                            }
-                        }
-                    }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "libs/src/hello/headers"
+                binaries.withType(StaticLibraryBinary) { binary ->
+                    staticLibraryFile = file("does_not_exist")
                 }
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'static'
-                    }
-                }
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'static'
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "tasks"
@@ -291,25 +293,25 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
     def "produces reasonable error message when prebuilt library does not exist"() {
         given:
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello
-                    }
-                    libs2(PrebuiltLibraries) {
-                        hello2
-                    }
-                }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello
+        }
+        libs2(PrebuiltLibraries) {
+            hello2
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'other'
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'other'
-                    }
-                }
-            }
-        """
+        }
+    }
+}
+"""
 
         when:
         fails "mainExecutable"
@@ -324,23 +326,23 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         given:
         settingsFile.text = "include ':projectA', ':projectB'"
         file("projectA/build.gradle") << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
-                        }
-                    }
-                }
+apply plugin: 'cpp'
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            hello {
+                headers.srcDir "libs/src/hello/headers"
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
-                    }
-                }
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
             }
+        }
+    }
+}
         """
 
         file("projectB/build.gradle") << """

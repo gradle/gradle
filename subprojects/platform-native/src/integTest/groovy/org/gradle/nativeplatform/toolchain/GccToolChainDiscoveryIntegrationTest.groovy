@@ -30,24 +30,21 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
 
     def setup() {
         buildFile << """
-            apply plugin: 'c'
+apply plugin: 'c'
 
-            model {
-                toolChains {
-                    ${toolChain.buildScriptConfig}
-                }
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib library: 'hello', linkage: 'static'
             }
-
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello.static
-                    }
-                }
-            }
-            libraries {
-                hello {}
-            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
 """
 
         helloWorldApp.executable.writeSources(file("src/main"))
@@ -57,15 +54,15 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
     def "can build when language tools that are not required are not available"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        eachPlatform {
-                            cppCompiler.executable = 'does-not-exist'
-                        }
-                    }
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            eachPlatform {
+                cppCompiler.executable = 'does-not-exist'
             }
+        }
+    }
+}
 """
         succeeds "mainExecutable"
 
@@ -76,17 +73,17 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
     def "does not break when compiler not available and not building"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        eachPlatform {
-                            cCompiler.executable = 'does-not-exist'
-                            cppCompiler.executable = 'does-not-exist'
-                            linker.executable = 'does-not-exist'
-                        }
-                    }
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            eachPlatform {
+                cCompiler.executable = 'does-not-exist'
+                cppCompiler.executable = 'does-not-exist'
+                linker.executable = 'does-not-exist'
             }
+        }
+    }
+}
 """
 
         then:
@@ -96,21 +93,21 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
     def "tool chain is not available when no tools are available"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        eachPlatform {
-                            assembler.executable = 'does-not-exist'
-                            cCompiler.executable = 'does-not-exist'
-                            cppCompiler.executable = 'does-not-exist'
-                            linker.executable = 'does-not-exist'
-                            staticLibArchiver.executable = 'does-not-exist'
-                            objcCompiler.executable = 'does-not-exist'
-                            objcppCompiler.executable = 'does-not-exist'
-                        }
-                    }
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            eachPlatform {
+                assembler.executable = 'does-not-exist'
+                cCompiler.executable = 'does-not-exist'
+                cppCompiler.executable = 'does-not-exist'
+                linker.executable = 'does-not-exist'
+                staticLibArchiver.executable = 'does-not-exist'
+                objcCompiler.executable = 'does-not-exist'
+                objcppCompiler.executable = 'does-not-exist'
             }
+        }
+    }
+}
 """
         fails "mainExecutable"
 
@@ -123,15 +120,15 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
     def "fails when required language tool is not available but other language tools are available"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        eachPlatform {
-                            cCompiler.executable = 'does-not-exist'
-                        }
-                    }
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            eachPlatform {
+                cCompiler.executable = 'does-not-exist'
             }
+        }
+    }
+}
 """
         fails "mainExecutable"
 
@@ -143,15 +140,15 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
     def "fails when required linker tool is not available but language tool is available"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        eachPlatform {
-                            linker.executable = 'does-not-exist'
-                        }
-                    }
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            eachPlatform {
+                linker.executable = 'does-not-exist'
             }
+        }
+    }
+}
 """
         fails "mainExecutable"
 

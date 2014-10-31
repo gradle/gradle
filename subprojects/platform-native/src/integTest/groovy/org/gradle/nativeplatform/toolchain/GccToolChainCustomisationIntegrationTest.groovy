@@ -32,24 +32,21 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
     def setup() {
         buildFile << """
-            apply plugin: 'c'
+apply plugin: 'c'
 
-            model {
-                toolChains {
-                    ${toolChain.buildScriptConfig}
-                }
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib library: 'hello', linkage: 'static'
             }
-
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello.static
-                    }
-                }
-            }
-            libraries {
-                hello {}
-            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
 """
 
         helloWorldApp.executable.writeSources(file("src/main"))
@@ -59,44 +56,41 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
     def "can configure platform specific args"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        target("arm"){
-                            cCompiler.withArguments { args ->
-                                args << "-m32"
-                                args << "-DFRENCH"
-                            }
-                            linker.withArguments { args ->
-                                args << "-m32"
-                            }
-                        }
-                        target("sparc")
-                    }
+model {
+    toolChains {
+        ${toolChain.id} {
+            target("arm"){
+                cCompiler.withArguments { args ->
+                    args << "-m32"
+                    args << "-DFRENCH"
                 }
-                platforms {
-                    arm {
-                        architecture "arm"
-                    }
-                    i386 {
-                        architecture "i386"
-                    }
-                    sparc {
-                        architecture "sparc"
-                    }
+                linker.withArguments { args ->
+                    args << "-m32"
                 }
             }
-
-            executables {
-               main {
-                   targetPlatform "arm", "i386", "sparc"
-               }
-            }
-            libraries {
-               hello {
-                   targetPlatform "arm", "i386", "sparc"
-               }
-            }
+            target("sparc")
+        }
+    }
+    platforms {
+        arm {
+            architecture "arm"
+        }
+        i386 {
+            architecture "i386"
+        }
+        sparc {
+            architecture "sparc"
+        }
+    }
+    components {
+        main {
+           targetPlatform "arm", "i386", "sparc"
+        }
+        hello {
+           targetPlatform "arm", "i386", "sparc"
+        }
+    }
+}
 """
 
         and:
@@ -121,18 +115,18 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        path file('${binDir.toURI()}')
-                        eachPlatform {
-                            cCompiler.executable = 'c-compiler'
-                            staticLibArchiver.executable = 'static-lib'
-                            linker.executable = 'linker'
-                        }
-                    }
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            path file('${binDir.toURI()}')
+            eachPlatform {
+                cCompiler.executable = 'c-compiler'
+                staticLibArchiver.executable = 'static-lib'
+                linker.executable = 'linker'
             }
+        }
+    }
+}
 """
         succeeds "mainExecutable"
 
@@ -162,46 +156,41 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         """
         and:
         buildFile << """
-            executables {
-                execTest {
-                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
-                }
-                main {
-                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
-                }
-            }
-            libraries {
-                hello {
-                    targetPlatform "alwaysFrench", "alwaysCPlusPlus"
-                }
-            }
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        target("alwaysFrench"){
-                            cCompiler.executable = '${binDir.absolutePath}/french-c-compiler'
-                            staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
-                            linker.executable = '${binDir.absolutePath}/linker'
-                        }
-
-                        target("alwaysCPlusPlus") {
-                            def compilerMap = [gcc: 'g++', clang: 'clang++']
-                            cCompiler.executable = compilerMap[cCompiler.executable]
-                            cCompiler.withArguments { args ->
-                                Collections.replaceAll(args, "c", "c++")
-                            }
-                        }
-                    }
-                }
-
-                platforms {
-                    alwaysFrench
-                    alwaysCPlusPlus
-                }
+model {
+    toolChains {
+        ${toolChain.id} {
+            target("alwaysFrench"){
+                cCompiler.executable = '${binDir.absolutePath}/french-c-compiler'
+                staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
+                linker.executable = '${binDir.absolutePath}/linker'
             }
 
+            target("alwaysCPlusPlus") {
+                def compilerMap = [gcc: 'g++', clang: 'clang++']
+                cCompiler.executable = compilerMap[cCompiler.executable]
+                cCompiler.withArguments { args ->
+                    Collections.replaceAll(args, "c", "c++")
+                }
+            }
+        }
+    }
 
-
+    platforms {
+        alwaysFrench
+        alwaysCPlusPlus
+    }
+    components {
+        execTest(NativeExecutableSpec) {
+            targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+        }
+        main(NativeExecutableSpec) {
+            targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+        }
+    }
+}
 """
         succeeds "assemble"
         then:

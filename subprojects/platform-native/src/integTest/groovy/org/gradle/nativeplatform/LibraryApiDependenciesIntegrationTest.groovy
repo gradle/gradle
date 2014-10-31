@@ -26,16 +26,18 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-            apply plugin: "cpp"
-            // Allow static libraries to be linked into shared
-            binaries.withType(StaticLibraryBinarySpec) {
-                if (toolChain in Gcc || toolChain in Clang) {
-                    cppCompiler.args '-fPIC'
-                }
-            }
+apply plugin: "cpp"
+
+// Allow static libraries to be linked into shared
+binaries.withType(StaticLibraryBinarySpec) {
+    if (toolChain in Gcc || toolChain in Clang) {
+        cppCompiler.args '-fPIC'
+    }
+}
 """
     }
 
+    // TODO:DAZ Migrate this
     @Unroll
     def "can use api linkage via #notationName notation"() {
         given:
@@ -92,16 +94,16 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
 """
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'util'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'util'
             }
-            libraries {
-                util {}
-            }
+        }
+        util(NativeLibrarySpec)
+    }
+}
 """
         when:
         succeeds "installMainExecutable"
@@ -128,32 +130,30 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
 """
         buildFile << """
-            model {
-                buildTypes {
-                    debug
-                    release
-                }
+model {
+    buildTypes {
+        debug
+        release
+    }
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'util'
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'util'
-                    }
-                }
-            }
-            libraries {
-                util {
-                    binaries.all { binary ->
+        }
+        util(NativeLibrarySpec) {
+            binaries.all { binary ->
+                sources {
+                    buildTypeSources(CppSourceSet) {
                         sources {
-                            buildTypeSources(CppSourceSet) {
-                                sources {
-                                    exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
-                                }
-                            }
+                            exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
                         }
                     }
                 }
             }
+        }
+    }
+}
 """
         when:
         succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
@@ -173,22 +173,22 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'api'
-                        cpp.lib library: 'hello2'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'api'
+                cpp.lib library: 'hello2'
             }
-            libraries {
-                hello {}
-                hello2 {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'api'
-                    }
-                }
+        }
+        hello(NativeLibrarySpec)
+        hello2(NativeLibrarySpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'api'
             }
+        }
+    }
+}
         """
 
         when:
@@ -208,25 +208,25 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello'
             }
-            libraries {
-                hello {
-                    sources {
-                        cpp.lib library: 'greetings', linkage: 'static'
-                    }
-                }
-                greetings {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'api'
-                    }
-                }
+        }
+        hello(NativeLibrarySpec) {
+            sources {
+                cpp.lib library: 'greetings', linkage: 'static'
             }
+        }
+        greetings(NativeLibrarySpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'api'
+            }
+        }
+    }
+}
         """
 
         when:
@@ -244,16 +244,16 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
-                main {
-                    sources {
-                        cpp.lib library: 'hello', linkage: 'api'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'api'
             }
-            libraries {
-                hello {}
-            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
         """
 
         when:
