@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -48,7 +48,7 @@ public interface ComponentSpec extends Named {
     /**
      * Configure the source sets used to build this component.
      */
-    void sources(Closure<?> action);
+    void sources(Action<? super FunctionalSourceSet> action);
 
     // TODO:DAZ Remove this
     /**

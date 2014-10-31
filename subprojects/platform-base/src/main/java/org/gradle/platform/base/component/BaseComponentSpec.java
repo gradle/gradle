@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.component;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -28,7 +28,6 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.util.ConfigureUtil;
 
 /**
  * Base class for custom component implementations.
@@ -106,8 +105,8 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         return mainSourceSet;
     }
 
-    public void sources(Closure<?> action) {
-        ConfigureUtil.configure(action, mainSourceSet, true);
+    public void sources(Action<? super FunctionalSourceSet> action) {
+        action.execute(mainSourceSet);
     }
 
     private static class ComponentInfo {
