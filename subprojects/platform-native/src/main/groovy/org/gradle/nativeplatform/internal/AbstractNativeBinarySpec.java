@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -61,7 +62,7 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         this.buildType = buildType;
         this.buildable = true;
         this.resolver = resolver;
-        this.source(component.getSources());
+        this.source(((ComponentSpecInternal) component).getSources());
     }
 
     @Override

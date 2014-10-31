@@ -16,12 +16,8 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
@@ -43,18 +39,12 @@ public interface ComponentSpec extends Named {
     /**
      * The source sets that are used to build this component.
      */
-    FunctionalSourceSet getSources();
+    DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
      * Configure the source sets used to build this component.
      */
-    void sources(Action<? super FunctionalSourceSet> action);
-
-    // TODO:DAZ Remove this
-    /**
-     * The source sets that are used to build this component.
-     */
-    DomainObjectSet<LanguageSourceSet> getSource();
+    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
 
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.

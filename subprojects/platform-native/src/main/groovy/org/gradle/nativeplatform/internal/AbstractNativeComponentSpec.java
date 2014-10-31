@@ -17,6 +17,7 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -66,7 +67,7 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
         return mainSourceSet;
     }
 
-    public void sources(Action<? super FunctionalSourceSet> action) {
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
         action.execute(mainSourceSet);
     }
 

@@ -47,6 +47,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
@@ -93,7 +94,7 @@ public class CUnitPlugin implements Plugin<Project> {
         public void configureCUnitTestSuiteSources(ProjectSourceSet projectSourceSet, TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
-                FunctionalSourceSet suiteSourceSet = suite.getSources();
+                FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
                 CSourceSet launcherSources = suiteSourceSet.maybeCreate(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class);
                 File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
                 launcherSources.getSource().srcDir(new File(baseDir, "c"));

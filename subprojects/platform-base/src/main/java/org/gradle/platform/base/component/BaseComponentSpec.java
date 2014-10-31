@@ -19,22 +19,24 @@ package org.gradle.platform.base.component;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Base class for custom component implementations.
  * A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-public abstract class BaseComponentSpec implements ComponentSpec {
+public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
 
@@ -105,8 +107,12 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         return mainSourceSet;
     }
 
-    public void sources(Action<? super FunctionalSourceSet> action) {
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
         action.execute(mainSourceSet);
+    }
+
+    public Set<Class<? extends TransformationFileType>> getInputTypes() {
+        return Collections.emptySet();
     }
 
     private static class ComponentInfo {
