@@ -125,21 +125,20 @@ public class ManagedTypeModelSchemaExtractionHandler extends AbstractModelSchema
         ModelSchema<T> schema = new ModelSchema<T>(type, properties, elementInstantiator);
         elementInstantiator.setSchema(schema);
         Iterable<? extends ModelSchemaExtractionContext> dependencies = getModelSchemaDependencies(properties, type, context);
-        return new ModelSchemaExtractionResult<T>(schema, Lists.newLinkedList(dependencies));
+        return new ModelSchemaExtractionResult<T>(schema, dependencies);
     }
 
-    private <T> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(List<ModelProperty<?>> properties, final ModelType<T> type, final ModelSchemaExtractionContext context) {
+    private <T> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties, final ModelType<T> type, final ModelSchemaExtractionContext context) {
         Iterable<ModelProperty<?>> managedProperties = Iterables.filter(properties, new Predicate<ModelProperty<?>>() {
             public boolean apply(ModelProperty<?> input) {
                 return input.isManaged();
             }
         });
-        Iterable<? extends ModelSchemaExtractionContext> dependencies = Iterables.transform(managedProperties, new Function<ModelProperty<?>, ModelSchemaExtractionContext>() {
+        return Iterables.transform(managedProperties, new Function<ModelProperty<?>, ModelSchemaExtractionContext>() {
             public ModelSchemaExtractionContext apply(ModelProperty<?> property) {
                 return new PropertyExtractionContext(type, property, context);
             }
         });
-        return Lists.newLinkedList(dependencies);
     }
 
     private <T> ModelProperty<T> extractPropertyOfManagedType(final ModelSchemaCache schemaCache, ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<T> propertyType,
