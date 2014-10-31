@@ -33,7 +33,7 @@ public class TwirlCompileSpec implements PlayCompileSpec, Serializable {
     /**
      * @TODO move default into versioned invocation spec
      * */
-    private String formatterType = "play.twirl.api.HtmlFormat";
+    private String formatterType = null;
     private String additionalImports = "import controllers._";
     private String codec = "UTF-8";
 

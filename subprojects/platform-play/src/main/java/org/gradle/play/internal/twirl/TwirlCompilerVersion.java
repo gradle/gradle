@@ -17,13 +17,15 @@
 package org.gradle.play.internal.twirl;
 
 enum TwirlCompilerVersion {
-    V_22X("play.templates.ScalaTemplateCompiler"),
-    V_102("play.twirl.compiler.TwirlCompiler");
+    V_22X("play.templates.ScalaTemplateCompiler", "play.api.templates.HtmlFormat"),
+    V_102("play.twirl.compiler.TwirlCompiler", "play.twirl.api.HtmlFormat");
 
     private final String compilerClassName;
+    private String defaultFormatterType;
 
-    TwirlCompilerVersion(String compilerClassName) {
+    TwirlCompilerVersion(String compilerClassName, String defaultFormatterType) {
         this.compilerClassName = compilerClassName;
+        this.defaultFormatterType = defaultFormatterType;
     }
 
     String getCompilerClassname(){
@@ -37,5 +39,9 @@ enum TwirlCompilerVersion {
             return V_102;
         }
         return V_102; // DEFAULT fallback
+    }
+
+    public String getDefaultFormatterType() {
+        return defaultFormatterType;
     }
 }

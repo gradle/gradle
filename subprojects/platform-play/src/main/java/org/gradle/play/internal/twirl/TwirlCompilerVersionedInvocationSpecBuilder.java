@@ -38,7 +38,7 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
                         TwirlCompilerVersion.V_22X,
                         spec.getSourceDirectory(),
                         spec.getDestinationDir(),
-                        spec.getFormatterType(),
+                        getFormatterType(spec, TwirlCompilerVersion.V_22X),
                         spec.getAdditionalImports());
                 break;
 
@@ -48,7 +48,7 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
                         TwirlCompilerVersion.V_102,
                         spec.getSourceDirectory(),
                         spec.getDestinationDir(),
-                        spec.getFormatterType(),
+                        getFormatterType(spec, TwirlCompilerVersion.V_102),
                         spec.getAdditionalImports(),
                         scalaCodec,
                         spec.isInclusiveDots(),
@@ -58,5 +58,13 @@ public class TwirlCompilerVersionedInvocationSpecBuilder implements Serializable
 
         }
         return versionedTwirlCompileInvocationSpec;
+    }
+
+    private String getFormatterType(TwirlCompileSpec spec, TwirlCompilerVersion compilerVersion) {
+        String formatterType = spec.getFormatterType();
+        if(formatterType==null){
+            formatterType = compilerVersion.getDefaultFormatterType();
+        }
+        return formatterType;
     }
 }

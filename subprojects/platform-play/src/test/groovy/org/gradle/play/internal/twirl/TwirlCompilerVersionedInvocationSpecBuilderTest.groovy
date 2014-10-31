@@ -34,7 +34,6 @@ class TwirlCompilerVersionedInvocationSpecBuilderTest extends Specification {
     def setup(){
         1 * spec.getSourceDirectory() >> sourceDir
         1 * spec.getDestinationDir() >> destinationDir
-        1 * spec.getFormatterType() >> "some.formatter"
         1 * spec.getAdditionalImports() >> "additional_import"
     }
 
@@ -48,7 +47,7 @@ class TwirlCompilerVersionedInvocationSpecBuilderTest extends Specification {
         invocationSpec.version == TwirlCompilerVersion.V_22X
         invocationSpec.getParameter(templateSourceFile).size() == invocationSpec.getParameter(templateSourceFile).size()
         invocationSpec.getParameterTypes() == [File.class, File.class, File.class, String.class, String.class]
-        invocationSpec.getParameter(templateSourceFile) == [templateSourceFile, sourceDir, destinationDir, "some.formatter", "additional_import"]
+        invocationSpec.getParameter(templateSourceFile) == [templateSourceFile, sourceDir, destinationDir, "play.api.templates.HtmlFormat", "additional_import"]
     }
 
     def "can build 1.0.2 invocation spec"(){
@@ -66,7 +65,19 @@ class TwirlCompilerVersionedInvocationSpecBuilderTest extends Specification {
         invocationSpec.version == TwirlCompilerVersion.V_102
         invocationSpec.getParameter(templateSourceFile).size() == invocationSpec.getParameter(templateSourceFile).size()
         invocationSpec.getParameterTypes() == [File.class, File.class, File.class, String.class, String.class, charSet.getClass(), boolean.class, boolean.class]
-        invocationSpec.getParameter(templateSourceFile) == [templateSourceFile, sourceDir, destinationDir, "some.formatter", "additional_import", charSet, true, true]
+        invocationSpec.getParameter(templateSourceFile) == [templateSourceFile, sourceDir, destinationDir, "play.twirl.api.HtmlFormat", "additional_import", charSet, true, true]
+    }
 
+    def "uses explicit declared formatter type"(){
+        setup:
+        1 * spec.getCompilerVersion() >> "1.0.2"
+        1 * spec.getCodec() >> "utf-8"
+        // placeholder instead of using scala io
+        1 * codeMapper.map("utf-8") >> charSet
+        1 * spec.getFormatterType() >> "some.specific.formatter"
+        when:
+        def invocationSpec = builder.build(spec);
+        then:
+        invocationSpec.getParameter(templateSourceFile) == [templateSourceFile, sourceDir, destinationDir, "some.specific.formatter", "additional_import", charSet, false, false]
     }
 }
