@@ -28,16 +28,18 @@ import org.gradle.language.base.LanguageSourceSet;
  * <pre autoTested="true">
  * apply plugin: "windows-resources"
  *
- * executables {
- *     main {
- *         sources {
- *             rc {
- *                 source {
- *                     srcDirs "src/main/rc"
- *                     include "**{@literal /}*.rc"
- *                 }
- *                 exportedHeaders {
- *                     srcDirs "src/main/include"
+ * model {
+ *     components {
+ *         main(NativeLibrarySpec) {
+ *             sources {
+ *                 rc {
+ *                     source {
+ *                         srcDirs "src/main/rc"
+ *                         include "**{@literal /}*.rc"
+ *                     }
+ *                     exportedHeaders {
+ *                         srcDirs "src/main/include"
+ *                     }
  *                 }
  *             }
  *         }

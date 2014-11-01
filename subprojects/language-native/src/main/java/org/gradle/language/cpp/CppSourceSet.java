@@ -28,17 +28,18 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  * <pre autoTested="true">
  * apply plugin: "cpp"
  *
- * executables {
- *     main {
- *         sources {
- *             // Configure an existing CppSourceSet
- *             cpp {
- *                 source {
- *                     srcDirs "src/main/cpp", "src/shared/c++"
- *                     include "**{@literal /}*.cpp"
- *                 }
- *                 exportedHeaders {
- *                     srcDirs "src/main/include", "src/shared/include"
+ * model {
+ *     components {
+ *         main(NativeLibrarySpec) {
+ *             sources {
+ *                 cpp {
+ *                     source {
+ *                         srcDirs "src/main/cpp", "src/shared/c++"
+ *                         include "**{@literal /}*.cpp"
+ *                     }
+ *                     exportedHeaders {
+ *                         srcDirs "src/main/include", "src/shared/include"
+ *                     }
  *                 }
  *             }
  *         }
