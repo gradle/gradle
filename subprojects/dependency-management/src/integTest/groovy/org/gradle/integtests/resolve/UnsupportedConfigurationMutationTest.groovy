@@ -38,6 +38,16 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
     }
 
+    def "does not allow adding artifacts to a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            artifacts { a file("some.jar") }
+        """
+        when: fails()
+        then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
+    }
+
     def "does not allow changing a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
@@ -58,6 +68,23 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
             configurations.c.resolve()
             dependencies { a files("some.jar") }
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    @Issue("GRADLE-3155")
+    def "warns about adding artifacts to a configuration whose child has been resolved"() {
+        buildFile << """
+            configurations {
+                a
+                b.extendsFrom a
+                c.extendsFrom b
+            }
+            configurations.c.resolve()
+            artifacts { a file("some.jar") }
         """
         executer.withDeprecationChecksDisabled()
 
