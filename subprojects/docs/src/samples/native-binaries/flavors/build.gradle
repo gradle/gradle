@@ -6,13 +6,12 @@ model {
         english
         french
     }
-}
-
-libraries {
-    hello {
-        binaries.all {
-            if (flavor == flavors.french) {
-                cppCompiler.define "FRENCH"
+    components {
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                if (flavor == flavors.french) {
+                    cppCompiler.define "FRENCH"
+                }
             }
         }
     }
@@ -22,10 +21,12 @@ binaries.withType(SharedLibraryBinarySpec) {
     cppCompiler.define "DLL_EXPORT"
 }
 
-executables {
-    main {
-        binaries.all {
-            lib libraries.hello
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib libraries.hello
+            }
         }
     }
 }

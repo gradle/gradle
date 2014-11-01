@@ -3,23 +3,28 @@ apply plugin: 'cpp'
 // END SNIPPET apply-plugin
 
 // START SNIPPET libraries
-libraries {
-    hello {}
+model {
+    components {
+        hello(NativeLibrarySpec)
+    }
 }
 // END SNIPPET libraries
 
 // START SNIPPET executables
-executables {
-    main {
+model {
+    components {
+        main(NativeExecutableSpec) {
 // START SNIPPET source-library
-        sources {
-            cpp {
-                lib library: "hello"
+            sources {
+                cpp {
+                    lib library: "hello"
+                }
             }
-        }
 // END SNIPPET source-library
+        }
     }
 }
+
 // END SNIPPET executables
 
 // START SNIPPET all-binaries

@@ -24,11 +24,10 @@ model {
             }
         }
     }
-}
-
-libraries {
-    operators {
-        targetPlatform "x86"
+    components {
+        operators(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
     }
 }
 // START SNIPPET configure-test-binary

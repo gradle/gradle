@@ -26,20 +26,20 @@ model {
 // END SNIPPET build-types
 
 // START SNIPPET target-platforms
-libraries {
-    hello {
-        targetPlatform "x86", "x64"
-    }
-}
-// END SNIPPET target-platforms
-executables {
-    main {
-        targetPlatform "x86", "x64"
-        sources {
-            cpp.lib libraries.hello.static
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            targetPlatform "x86", "x64"
+        }
+        main(NativeExecutableSpec) {
+            targetPlatform "x86", "x64"
+            sources {
+                cpp.lib libraries.hello.static
+            }
         }
     }
 }
+// END SNIPPET target-platforms
 
 // Apply arguments for debug binaries (these options are not yet set automatically)
 // START SNIPPET build-type-config

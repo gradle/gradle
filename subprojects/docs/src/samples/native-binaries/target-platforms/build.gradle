@@ -39,11 +39,10 @@ model {
             architecture "sparc"
         }
     }
-}
-// END SNIPPET targetplatforms
-
-executables {
-    main {
-        targetPlatform "arm", "sparc"
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "arm", "sparc"
+        }
     }
 }
+// END SNIPPET targetplatforms

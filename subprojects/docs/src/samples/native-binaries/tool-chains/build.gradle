@@ -44,8 +44,10 @@ model {
 }
 // END SNIPPET withArguments
 
-executables {
-    main {}
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
 }
 
 // START SNIPPET buildable

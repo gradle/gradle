@@ -19,16 +19,20 @@ apply plugin: 'c'
 // END SNIPPET apply-plugin
 
 // START SNIPPET libraries
-libraries {
-    hello {}
+model {
+    components {
+        hello(NativeLibrarySpec)
+    }
 }
 // END SNIPPET libraries
 
 // START SNIPPET executables
-executables {
-    main {
-        sources {
-           c.lib library: "hello"
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+               c.lib library: "hello"
+            }
         }
     }
 }

@@ -53,15 +53,15 @@ model {
 }
 // END SNIPPET customize-solution-files
 
-executables {
-    main {
-        sources {
-            cpp.lib library: "hello"
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: "hello"
+            }
         }
+        hello(NativeLibrarySpec)
     }
-}
-libraries {
-    hello {}
 }
 
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
