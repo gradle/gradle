@@ -804,11 +804,6 @@ public class DefaultConfigurationTest {
         });
         assertInvalidUserDataException(new Executer() {
             public void execute() {
-                configuration.setDescription("someDesc");
-            }
-        });
-        assertInvalidUserDataException(new Executer() {
-            public void execute() {
                 configuration.setExcludeRules(new HashSet<ExcludeRule>());
             }
         });
