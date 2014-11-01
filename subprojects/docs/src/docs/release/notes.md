@@ -267,6 +267,20 @@ how to use it.
 
 ## Fixed issues
 
+## Deprecations
+
+Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
+in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+
+### Modifying a parent configuration of a configuration that has been resolved
+
+In previous Gradle releases, it was possible to modify a configuration whose child has been resolved. This, however, leads to confusing behaviour because each
+configuration is resolved once and the result reused. This means that the changes made to the parent will never be used by the child configuration.
+
+This behaviour is now deprecated and will become an error in Gradle 3.0.
+
 ## Potential breaking changes
 
 ### filesMatching used in CopySpec now matches against source path rather than destination path
