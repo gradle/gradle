@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.health
 
+import org.gradle.api.GradleException
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,6 +36,15 @@ class DaemonStatusTest extends Specification {
         expect:
         status.isDaemonTired(stats)
         !status.isDaemonTired(betterStats)
+    }
+
+    def "validates supplied threshold value"() {
+        System.setProperty(DaemonStatus.EXPIRE_AT_PROPERTY, "foo")
+
+        when: status.isDaemonTired(stats)
+        then:
+        def ex = thrown(GradleException)
+        ex.message == "System property 'org.gradle.daemon.performance.expire-at' has incorrect value: 'foo'. The value needs to be integer."
     }
 
     def "knows when daemon is tired"() {

@@ -16,14 +16,27 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import org.gradle.api.GradleException;
+
+import static java.lang.String.format;
+
 class DaemonStatus {
 
     static final String EXPIRE_AT_PROPERTY = "org.gradle.daemon.performance.expire-at";
 
     boolean isDaemonTired(DaemonStats stats) {
-        //TODO SF validation
         String expireAt = System.getProperty(EXPIRE_AT_PROPERTY, "85");
-        int threshold = Integer.parseInt(expireAt);
+        int threshold = parseValue(expireAt);
         return threshold != 0 && stats.getCurrentPerformance() <= threshold;
+    }
+
+    private int parseValue(String expireAt) {
+        try {
+            return Integer.parseInt(expireAt);
+        } catch (Exception e) {
+            throw new GradleException(format(
+                    "System property '%s' has incorrect value: '%s'. The value needs to be integer.",
+                    EXPIRE_AT_PROPERTY, expireAt));
+        }
     }
 }
