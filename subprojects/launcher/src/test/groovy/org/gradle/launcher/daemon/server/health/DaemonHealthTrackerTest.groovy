@@ -27,7 +27,7 @@ class DaemonHealthTrackerTest extends Specification {
         getDaemonStateControl() >> control
     }
     def stats = Mock(DaemonStats)
-    def tracker = new DaemonHealthTracker(stats, 85)
+    def tracker = new DaemonHealthTracker(stats)
 
     def "tracks start and complete events"() {
         when: tracker.execute(exec)
@@ -35,7 +35,7 @@ class DaemonHealthTrackerTest extends Specification {
         then: 1 * stats.buildStarted()
         then: 1 * exec.proceed()
         then: 1 * stats.buildFinished()
-        1 * stats.getCurrentPerformance()
+        1 * stats.isDaemonTired()
         0 * stats._
     }
 
@@ -49,8 +49,7 @@ class DaemonHealthTrackerTest extends Specification {
     }
 
     def "stops after the build when performance goes down"() {
-        tracker = new DaemonHealthTracker(stats, 85)
-        1 * stats.getCurrentPerformance() >> 84
+        1 * stats.isDaemonTired() >> true
 
         when: tracker.execute(exec)
 
@@ -59,8 +58,7 @@ class DaemonHealthTrackerTest extends Specification {
     }
 
     def "does not stop after the build when performance is acceptable"() {
-        tracker = new DaemonHealthTracker(stats, 85)
-        1 * stats.getCurrentPerformance() >> 85
+        1 * stats.isDaemonTired() >> false
 
         when: tracker.execute(exec)
 

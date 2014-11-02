@@ -26,11 +26,9 @@ class DaemonHealthTracker implements DaemonCommandAction {
     private final static Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
 
     private final DaemonStats daemonStats;
-    private final int daemonTiredThreshold;
 
-    DaemonHealthTracker(DaemonStats daemonStats, int daemonTiredThreshold) {
+    DaemonHealthTracker(DaemonStats daemonStats) {
         this.daemonStats = daemonStats;
-        this.daemonTiredThreshold = daemonTiredThreshold;
     }
 
     public void execute(DaemonCommandExecution execution) {
@@ -47,7 +45,7 @@ class DaemonHealthTracker implements DaemonCommandAction {
             daemonStats.buildFinished();
         }
 
-        if (daemonStats.getCurrentPerformance() < daemonTiredThreshold) {
+        if(daemonStats.isDaemonTired()) {
             execution.getDaemonStateControl().requestStop();
         }
     }

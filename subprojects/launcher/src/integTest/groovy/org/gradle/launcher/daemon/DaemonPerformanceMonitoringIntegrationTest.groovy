@@ -19,7 +19,6 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-import spock.lang.Ignore
 
 /**
  * This test runs a 'leaky' build many times against a single daemon instance.
@@ -33,13 +32,13 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     def "leaky build is happy"() {
-        healthMonitor(true)
+        expireDaemonWhenPerformanceDropsBelow(85)
         expect: runManyLeakyBuilds()
     }
 
-    @Ignore
-    def "leaky build fails"() {
-        healthMonitor(false)
+    def "leaky build fails when daemon expire threshold is too low"() {
+        //this test ensures that the leaky build actually fails when the expire threshold is too low
+        expireDaemonWhenPerformanceDropsBelow(0)
 
         when:
         runManyLeakyBuilds()
@@ -49,8 +48,8 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         //assuming the failure is OOME or gc overhead, etc.
     }
 
-    private void healthMonitor(boolean enabled) {
-        file("gradle.properties") << "org.gradle.jvmargs=-Xmx30m -Dorg.gradle.caching.classloaders=true -Dorg.gradle.daemon.performance.monitor=$enabled"
+    private void expireDaemonWhenPerformanceDropsBelow(int threshold) {
+        file("gradle.properties") << "org.gradle.jvmargs=-Xmx30m -Dorg.gradle.caching.classloaders=true -Dorg.gradle.daemon.performance.expire-at=$threshold"
     }
 
     private void runManyLeakyBuilds() {
