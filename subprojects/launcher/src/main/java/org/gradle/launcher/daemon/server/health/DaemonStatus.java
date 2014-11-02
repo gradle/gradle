@@ -18,9 +18,12 @@ package org.gradle.launcher.daemon.server.health;
 
 class DaemonStatus {
 
+    static final String EXPIRE_AT_PROPERTY = "org.gradle.daemon.performance.expire-at";
+
     boolean isDaemonTired(DaemonStats stats) {
-        String expireAt = System.getProperty("org.gradle.daemon.performance.expire-at", "85");
+        //TODO SF validation
+        String expireAt = System.getProperty(EXPIRE_AT_PROPERTY, "85");
         int threshold = Integer.parseInt(expireAt);
-        return stats.getCurrentPerformance() < threshold;
+        return threshold != 0 && stats.getCurrentPerformance() <= threshold;
     }
 }
