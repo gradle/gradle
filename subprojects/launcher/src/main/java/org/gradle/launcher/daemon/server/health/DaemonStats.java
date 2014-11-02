@@ -34,6 +34,7 @@ class DaemonStats {
     private int buildCount;
     private long currentBuildStart;
     private long allBuildsTime;
+    private int currentPerformance;
 
     DaemonStats() {
         this(Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory(),
@@ -58,7 +59,7 @@ class DaemonStats {
             return format(DaemonHealthMessages.BUILDING_IN_NEW_DAEMON, NumberUtil.formatBytes(maxMemory));
         } else {
             return format(DaemonHealthMessages.BUILDING_IN_EXISTING_DAEMON,
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), performance(allBuildsTime, gcStats), NumberUtil.percentOf(comittedMemory, maxMemory), NumberUtil.formatBytes(maxMemory));
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), currentPerformance, NumberUtil.percentOf(comittedMemory, maxMemory), NumberUtil.formatBytes(maxMemory));
         }
     }
 
@@ -67,6 +68,7 @@ class DaemonStats {
      */
     public void buildFinished() {
         allBuildsTime += timeProvider.getCurrentTime() - currentBuildStart;
+        currentPerformance = performance(allBuildsTime, gcStats);
     }
 
     private static int performance(long totalTime, GCStats gcStats) {
@@ -74,4 +76,7 @@ class DaemonStats {
         return 100 - NumberUtil.percentOf(gcStats.getCollectionTime(), totalTime);
     }
 
+    public int getCurrentPerformance() {
+        return currentPerformance;
+    }
 }
