@@ -35,40 +35,41 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: "cunit"
+apply plugin: "cunit"
 
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        cunit {
-                            headers.srcDir "libs/cunit/2.1-2/include"
-                            binaries.withType(StaticLibraryBinary) {
-                                staticLibraryFile = file("libs/cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}")
-                            }
-                        }
-                    }
-                }
-                platforms {
-                    x86 {
-                        architecture "x86"
-                    }
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            cunit {
+                headers.srcDir "libs/cunit/2.1-2/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("libs/cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}")
                 }
             }
-        """
+        }
+    }
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+    }
+}
+"""
         settingsFile << "rootProject.name = 'test'"
     }
 
     private void useStandardConfig() {
         buildFile << """
-            libraries {
-                hello {
-                    targetPlatform "x86"
-                }
-            }
-
-            binaries.withType(CUnitTestSuiteBinarySpec) {
-                lib library: "cunit", linkage: "static"
-            }
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+}
+binaries.withType(CUnitTestSuiteBinarySpec) {
+    lib library: "cunit", linkage: "static"
+}
 """
     }
 
@@ -127,20 +128,20 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         useConventionalSourceLocations()
 
         buildFile << """
-            libraries {
-                hello {
-                    targetPlatform "x86"
-                }
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+    testSuites {
+        helloTest {
+            binaries.all {
+                lib library: "cunit", linkage: "static"
             }
-            model {
-                testSuites {
-                    helloTest {
-                        binaries.all {
-                            lib library: "cunit", linkage: "static"
-                        }
-                    }
-                }
-            }
+        }
+    }
+}
 """
 
         when:
@@ -166,9 +167,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            binaries.withType(CUnitTestSuiteBinarySpec) {
-                cCompiler.define "ONE_TEST"
-            }
+binaries.withType(CUnitTestSuiteBinarySpec) {
+    cCompiler.define "ONE_TEST"
+}
 """
         and:
         run "runHelloTestCUnitExe"
@@ -186,15 +187,18 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            model {
-                sources {
-                    helloTest {
-                        c {
-                            source.srcDir "src/alternateHelloTest/c"
-                        }
-                    }
+model {
+    testSuites {
+        helloTest {
+            sources {
+                // TODO:DAZ Should not need type here (source set should already be created)
+                c(CSourceSet) {
+                    source.srcDir "src/alternateHelloTest/c"
                 }
             }
+        }
+    }
+}
 """
 
         then:
@@ -209,15 +213,18 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            model {
-                sources {
-                    helloTest {
-                        c {
-                            source.srcDir "src/alternateHelloTest/c"
-                        }
-                    }
+model {
+    testSuites {
+        helloTest {
+            sources {
+                // TODO:DAZ Should not need type here (source set should already be created)
+                c(CSourceSet) {
+                    source.srcDir "src/alternateHelloTest/c"
                 }
             }
+        }
+    }
+}
 """
         useStandardConfig()
 
@@ -228,26 +235,29 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "variant-dependent sources are included in test binary"() {
         given:
-        useStandardConfig()
         app.library.headerFiles*.writeToDir(file("src/hello"))
         app.cunitTests.writeSources(file("src/helloTest"))
         app.library.sourceFiles*.writeToDir(file("src/variant"))
 
         when:
         buildFile << """
-            model {
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            targetPlatform "x86"
+            binaries.all {
                 sources {
-                    variant {
-                        c(CSourceSet) {
-                            lib sources.hello.c
-                        }
+                    variant(CSourceSet) {
+                        source.srcDir "src/variant/c"
                     }
                 }
             }
-
-            binaries.withType(NativeLibraryBinary) {
-                source sources.variant
-            }
+        }
+    }
+}
+binaries.withType(CUnitTestSuiteBinarySpec) {
+    lib library: "cunit", linkage: "static"
+}
 """
 
         then:
@@ -263,19 +273,21 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         when:
         buildFile << """
-            model {
+model {
+    testSuites {
+        helloTest {
+            binaries.all {
                 sources {
-                    variantTest {
-                        c(CSourceSet) {
-                            lib sources.hello.c
-                            lib sources.helloTest.cunitLauncher
-                        }
+                    variant(CSourceSet) {
+                        source.srcDir "src/variantTest/c"
+                        lib sources.c
+                        lib sources.cunitLauncher
                     }
                 }
             }
-            binaries.withType(CUnitTestSuiteBinarySpec) {
-                source sources.variantTest.c
-            }
+        }
+    }
+}
 """
 
         then:
@@ -327,9 +339,9 @@ There were test failures:
         useStandardConfig()
         useFailingTestSources()
         buildFile << """
-    tasks.withType(RunTestExecutable) {
-        it.ignoreFailures = true
-    }
+tasks.withType(RunTestExecutable) {
+    it.ignoreFailures = true
+}
 """
         succeeds "runHelloTestCUnitExe"
 

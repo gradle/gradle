@@ -32,24 +32,23 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
     def setup() {
         buildFile << """
-    apply plugin: 'cpp'
-    apply plugin: 'visual-studio'
+apply plugin: 'cpp'
+apply plugin: 'visual-studio'
 
-    model {
-        platforms {
-            win32 {
-                architecture "i386"
-            }
-            x64 {
-                architecture "amd64"
-            }
+model {
+    platforms {
+        win32 {
+            architecture "i386"
         }
-        buildTypes {
-            debug
-            release
+        x64 {
+            architecture "amd64"
         }
     }
-
+    buildTypes {
+        debug
+        release
+    }
+}
 """
     }
 

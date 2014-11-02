@@ -88,7 +88,7 @@ model {
         }
     }
     components {
-        executables.main.targetPlatform "x86"
+        main.targetPlatform "x86"
     }
 }
 """

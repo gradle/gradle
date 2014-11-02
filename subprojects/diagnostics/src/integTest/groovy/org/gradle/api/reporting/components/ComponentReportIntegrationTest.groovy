@@ -135,11 +135,8 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-nativeRuntime {
-    libraries {
-        someLib
+    components {
+        someLib(NativeLibrarySpec)
     }
 }
 """
@@ -187,11 +184,8 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-nativeRuntime {
-    libraries {
-        someLib {
+    components {
+        someLib(NativeLibrarySpec) {
             targetPlatform "windows"
         }
     }
@@ -239,11 +233,8 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-nativeRuntime {
-    executables {
-        someExe
+    components {
+        someExe(NativeExecutableSpec)
     }
 }
 """
@@ -309,11 +300,8 @@ model {
         free
         paid
     }
-}
-
-nativeRuntime {
-    libraries {
-        someLib {
+    components {
+        someLib(NativeLibrarySpec) {
             targetPlatform "i386", "amd64"
         }
     }
@@ -413,11 +401,7 @@ model {
         jvmLib(JvmLibrarySpec) {
             targetPlatform "$currentJava"
         }
-    }
-}
-nativeRuntime {
-    libraries {
-        nativeLib
+        nativeLib(NativeLibrarySpec)
     }
 }
 """
@@ -599,9 +583,9 @@ Binaries
     apply plugin: 'native-component'
     apply plugin: 'java-lang'
 
-    nativeRuntime {
-        libraries {
-            myLib {
+    model {
+        components {
+            myLib(NativeLibrarySpec) {
                 targetPlatform "java8"
             }
         }

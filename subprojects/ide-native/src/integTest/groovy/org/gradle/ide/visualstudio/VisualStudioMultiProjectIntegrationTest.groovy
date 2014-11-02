@@ -65,9 +65,11 @@ model {
 }
 """
         file("lib", "build.gradle") << """
-    libraries {
-        hello {}
+model {
+    components {
+        hello(NativeLibrarySpec)
     }
+}
 """
         and:
         run ":exe:mainVisualStudio"

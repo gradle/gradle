@@ -24,23 +24,23 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "cpp"
+plugins {
+    id 'java'
+    id 'cpp'
+}
 
-            nativeRuntime {
-                executables {
-                    mainExe
-                }
-                libraries {
-                    mainLib
-                }
-            }
+model {
+    components {
+        mainExe(NativeExecutableSpec)
+        mainLib(NativeLibrarySpec)
+    }
+}
 
-            task checkBinaries << {
-                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
-                assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
-                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
-            }
+task checkBinaries << {
+    assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
+    assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
+    assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
+}
 """
         expect:
         succeeds "checkBinaries"
@@ -48,39 +48,31 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
     def "can combine jvm and native components in the same project"() {
         buildFile << """
-    apply plugin: 'native-component'
-    apply plugin: 'jvm-component'
+plugins {
+    id 'native-component'
+    id 'jvm-component'
+}
 
-    nativeRuntime {
-        executables {
-            nativeExe
-        }
-        libraries {
-            nativeLib
-        }
+model {
+    components {
+        nativeExe(NativeExecutableSpec)
+        nativeLib(NativeLibrarySpec)
+        jvmLib(JvmLibrarySpec)
     }
+}
 
-    model {
-        components {
-            jvmLib(JvmLibrarySpec)
-        }
-    }
+task check << {
+    assert componentSpecs.size() == 3
+    assert componentSpecs.nativeExe instanceof NativeExecutableSpec
+    assert componentSpecs.nativeLib instanceof NativeLibrarySpec
+    assert componentSpecs.jvmLib instanceof JvmLibrarySpec
 
-    task check << {
-        assert componentSpecs.size() == 3
-        assert componentSpecs.nativeExe instanceof NativeExecutableSpec
-        assert componentSpecs.nativeLib instanceof NativeLibrarySpec
-        assert componentSpecs.jvmLib instanceof JvmLibrarySpec
-
-        assert nativeRuntime.executables as List == [componentSpecs.nativeExe]
-        assert nativeRuntime.libraries as List == [componentSpecs.nativeLib]
-
-        assert binaries.size() == 4
-        assert binaries.jvmLibJar instanceof JarBinarySpec
-        assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
-        assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
-        assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
-    }
+    assert binaries.size() == 4
+    assert binaries.jvmLibJar instanceof JarBinarySpec
+    assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
+    assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
+    assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
+}
 """
         expect:
         succeeds "check"
@@ -109,21 +101,19 @@ int main () {
 
         and:
         buildFile << """
-    apply plugin: 'native-component'
-    apply plugin: 'c'
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
+plugins {
+    id 'native-component'
+    id 'c'
+    id 'jvm-component'
+    id 'java-lang'
+}
 
-    nativeRuntime {
-        executables {
-            nativeApp
-        }
+model {
+    components {
+        nativeApp(NativeExecutableSpec)
+        jvmLib(JvmLibrarySpec)
     }
-    model {
-        components {
-            jvmLib(JvmLibrarySpec)
-        }
-    }
+}
 """
         when:
         succeeds "jvmLibJar"

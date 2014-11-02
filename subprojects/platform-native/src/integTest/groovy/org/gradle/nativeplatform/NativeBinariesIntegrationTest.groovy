@@ -259,9 +259,13 @@ model {
     def "build fails when link library fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            libraries { main {} }
-        """
+apply plugin: "cpp"
+model {
+    components {
+        main(NativeLibrarySpec)
+    }
+}
+"""
 
         and:
         file("src/main/cpp/hello1.cpp") << """
