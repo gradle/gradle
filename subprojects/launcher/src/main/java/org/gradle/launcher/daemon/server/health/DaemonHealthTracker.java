@@ -34,7 +34,6 @@ class DaemonHealthTracker implements DaemonCommandAction {
     }
 
     public void execute(DaemonCommandExecution execution) {
-        //TODO SF it would be good to add some integration tests
         if (execution.isSingleUseDaemon()) {
             execution.proceed();
             return;
