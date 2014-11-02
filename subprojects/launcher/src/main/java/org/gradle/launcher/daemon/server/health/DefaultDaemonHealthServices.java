@@ -21,8 +21,9 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 public class DefaultDaemonHealthServices implements DaemonHealthServices {
 
     private final HintGCAfterBuild hygieneAction = new HintGCAfterBuild();
-    private final DaemonStats daemonStats = new DaemonStats();
-    private final DaemonHealthTracker tracker = new DaemonHealthTracker(daemonStats);
+    private final DaemonStats stats = new DaemonStats();
+    private final DaemonStatus status = new DaemonStatus();
+    private final DaemonHealthTracker tracker = new DaemonHealthTracker(stats, status);
 
     /**
      * {@inheritDoc}
@@ -34,7 +35,7 @@ public class DefaultDaemonHealthServices implements DaemonHealthServices {
     /**
      * {@inheritDoc}
      */
-    public DaemonCommandAction getHealthInformationAction() {
+    public DaemonCommandAction getHealthTrackerAction() {
         return tracker;
     }
 }

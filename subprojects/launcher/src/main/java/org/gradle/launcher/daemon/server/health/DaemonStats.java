@@ -76,10 +76,7 @@ class DaemonStats {
         return 100 - NumberUtil.percentOf(gcStats.getCollectionTime(), totalTime);
     }
 
-    public boolean isDaemonTired() {
-        //TODO SF refactor or cover
-        String expireAt = System.getProperty("org.gradle.daemon.performance.expire-at", "85");
-        int threshold = Integer.parseInt(expireAt);
-        return currentPerformance < threshold;
+    public int getCurrentPerformance() {
+        return currentPerformance;
     }
 }

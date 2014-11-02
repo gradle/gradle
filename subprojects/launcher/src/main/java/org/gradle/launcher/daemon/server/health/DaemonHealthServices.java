@@ -26,7 +26,7 @@ public interface DaemonHealthServices {
     DaemonCommandAction getGCHintAction();
 
     /**
-     * gets the action that can print daemon health information
+     * gets the action that tracks daemon's health
      */
-    DaemonCommandAction getHealthInformationAction();
+    DaemonCommandAction getHealthTrackerAction();
 }

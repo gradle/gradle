@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
-import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
-import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
+class DaemonStatus {
 
-public class StubDaemonHealthServices implements DaemonHealthServices {
-
-    private final NoOpDaemonCommandAction noOp = new NoOpDaemonCommandAction();
-
-    public DaemonCommandAction getGCHintAction() {
-        return noOp;
-    }
-
-    public DaemonCommandAction getHealthTrackerAction() {
-        return noOp;
+    boolean isDaemonTired(DaemonStats stats) {
+        String expireAt = System.getProperty("org.gradle.daemon.performance.expire-at", "85");
+        int threshold = Integer.parseInt(expireAt);
+        return stats.getCurrentPerformance() < threshold;
     }
 }

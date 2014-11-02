@@ -72,7 +72,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             healthServices.getGCHintAction(), //TODO SF needs to happen after the result is returned to the client
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
-            healthServices.getHealthInformationAction(),
+            healthServices.getHealthTrackerAction(),
             new ForwardClientInput(),
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),

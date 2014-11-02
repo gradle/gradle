@@ -25,10 +25,12 @@ class DaemonHealthTracker implements DaemonCommandAction {
 
     private final static Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
 
-    private final DaemonStats daemonStats;
+    private final DaemonStats stats;
+    private final DaemonStatus status;
 
-    DaemonHealthTracker(DaemonStats daemonStats) {
-        this.daemonStats = daemonStats;
+    DaemonHealthTracker(DaemonStats stats, DaemonStatus status) {
+        this.stats = stats;
+        this.status = status;
     }
 
     public void execute(DaemonCommandExecution execution) {
@@ -38,14 +40,14 @@ class DaemonHealthTracker implements DaemonCommandAction {
             return;
         }
 
-        LOG.info(daemonStats.buildStarted());
+        LOG.info(stats.buildStarted());
         try {
             execution.proceed();
         } finally {
-            daemonStats.buildFinished();
+            stats.buildFinished();
         }
 
-        if(daemonStats.isDaemonTired()) {
+        if(status.isDaemonTired(stats)) {
             execution.getDaemonStateControl().requestStop();
         }
     }
