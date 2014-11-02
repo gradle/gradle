@@ -40,7 +40,7 @@ class DaemonHealthTracker implements DaemonCommandAction {
             return;
         }
 
-        LOG.lifecycle(daemonStats.buildStarted());
+        LOG.info(daemonStats.buildStarted());
         try {
             execution.proceed();
         } finally {
