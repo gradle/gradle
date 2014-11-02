@@ -17,11 +17,14 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Subject
 
+@IgnoreIf({JavaVersion.current().java8Compatible})
 class DaemonStatusTest extends Specification {
 
     @Subject status = new DaemonStatus()
