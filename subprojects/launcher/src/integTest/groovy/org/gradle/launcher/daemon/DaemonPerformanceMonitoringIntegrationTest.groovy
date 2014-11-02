@@ -49,16 +49,16 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     private void expireDaemonWhenPerformanceDropsBelow(int threshold) {
-        file("gradle.properties") << "org.gradle.jvmargs=-Xmx30m"
+        file("gradle.properties") << ("org.gradle.jvmargs=-Xmx30m"
                 + " -Dorg.gradle.caching.classloaders=true"
                 + " -Dorg.gradle.daemon.performance.expire-at=$threshold"
-                + " -Dorg.gradle.daemon.performance.logging=true"
+                + " -Dorg.gradle.daemon.performance.logging=true")
     }
 
     private void runManyLeakyBuilds() {
         setupLeakyBuild()
         for (int i = 0; i < 20; i++) {
-            run()
+            run("-q")
         }
     }
 
