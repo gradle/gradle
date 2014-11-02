@@ -21,9 +21,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
-public class StartStopIfBuildAndStop implements DaemonCommandAction {
+public class RequestStopIfSingleUsedDaemon implements DaemonCommandAction {
 
-    private static final Logger LOGGER = Logging.getLogger(StartStopIfBuildAndStop.class);
+    private static final Logger LOGGER = Logging.getLogger(RequestStopIfSingleUsedDaemon.class);
     
     public void execute(DaemonCommandExecution execution) {
         if (execution.isSingleUseDaemon()) {
