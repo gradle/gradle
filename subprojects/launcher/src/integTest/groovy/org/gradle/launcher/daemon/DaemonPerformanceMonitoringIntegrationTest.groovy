@@ -18,13 +18,6 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-
-/**
- * This test runs a 'leaky' build many times against a single daemon instance.
- * When daemon performance monitoring is turned on, the build can be executed many times.
- * When monitoring is off, the n-th build will incur build failure related to memory (OOME, gc overhead, etc.)
- */
 class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
@@ -32,34 +25,29 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     def "leaky build is happy"() {
-        expireDaemonWhenPerformanceDropsBelow(85)
-        expect: runManyLeakyBuilds()
-    }
-
-    def "leaky build fails when daemon expire threshold is too low"() {
-        //this test ensures that the leaky build actually fails when the expire threshold is too low
-        expireDaemonWhenPerformanceDropsBelow(0)
-
-        when:
-        runManyLeakyBuilds()
-
-        then:
-        thrown(UnexpectedBuildFailure)
-        //assuming the failure is OOME or gc overhead, etc.
-    }
-
-    private void expireDaemonWhenPerformanceDropsBelow(int threshold) {
         file("gradle.properties") << ("org.gradle.jvmargs=-Xmx30m"
                 + " -Dorg.gradle.caching.classloaders=true"
-                + " -Dorg.gradle.daemon.performance.expire-at=$threshold"
                 + " -Dorg.gradle.daemon.performance.logging=true")
+
+        when:
+        def daemonsUsed = runManyLeakyBuilds(20)
+
+        then:
+        daemonsUsed > 1  //feature actually works and expires tired daemons
+        daemonsUsed <= 5 //feature does not fork new daemon for each build
     }
 
-    private void runManyLeakyBuilds() {
+    //invokes leaky build x times and returns number of daemons used
+    private int runManyLeakyBuilds(int x) {
         setupLeakyBuild()
-        for (int i = 0; i < 20; i++) {
-            run("-q")
+        int newDaemons = 0
+        for (int i = 0; i < x; i++) {
+            def r = run()
+            if (r.output.contains("Starting build in new daemon [memory: ")) {
+                newDaemons++;
+            }
         }
+        newDaemons
     }
 
     private void setupLeakyBuild() {
