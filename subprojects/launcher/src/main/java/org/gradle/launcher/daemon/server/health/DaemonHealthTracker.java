@@ -21,13 +21,13 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
-class DescribeDaemonHealth implements DaemonCommandAction {
+class DaemonHealthTracker implements DaemonCommandAction {
 
-    private final static Logger LOG = Logging.getLogger(DescribeDaemonHealth.class);
+    private final static Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
 
     private final DaemonStats daemonStats;
 
-    DescribeDaemonHealth(DaemonStats daemonStats) {
+    DaemonHealthTracker(DaemonStats daemonStats) {
         this.daemonStats = daemonStats;
     }
 

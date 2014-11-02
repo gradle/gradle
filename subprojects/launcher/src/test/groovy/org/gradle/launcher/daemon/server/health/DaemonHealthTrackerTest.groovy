@@ -19,14 +19,14 @@ package org.gradle.launcher.daemon.server.health
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution
 import spock.lang.Specification
 
-class DescribeDaemonHealthTest extends Specification {
+class DaemonHealthTrackerTest extends Specification {
 
     def exec = Mock(DaemonCommandExecution)
     def stats = Mock(DaemonStats)
-    def describe = new DescribeDaemonHealth(stats)
+    def tracker = new DaemonHealthTracker(stats)
 
     def "describes health"() {
-        when: describe.execute(exec)
+        when: tracker.execute(exec)
 
         then: 1 * stats.buildStarted()
         then: 1 * exec.proceed()
@@ -35,7 +35,7 @@ class DescribeDaemonHealthTest extends Specification {
     }
 
     def "does not describe health for single use daemon"() {
-        when: describe.execute(exec)
+        when: tracker.execute(exec)
 
         then:
         1 * exec.isSingleUseDaemon() >> true
