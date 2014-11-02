@@ -30,11 +30,11 @@ class DaemonStatsTest extends Specification {
         def stats = new DaemonStats(5000000, 10000000, clock, Stub(TimeProvider), gcStats)
 
         when:
-        def greeting = stats.buildStarted()
+        stats.buildStarted()
         stats.buildFinished()
 
         then:
-        greeting == "Starting build in new daemon [memory: 10.0 MB]"
+        stats.healthInfo == "Starting build in new daemon [memory: 10.0 MB]"
     }
 
     def "consumes subsequent builds"() {
@@ -47,10 +47,10 @@ class DaemonStatsTest extends Specification {
         when:
         stats.buildStarted()
         stats.buildFinished()
-        def greeting = stats.buildStarted()
+        stats.buildStarted()
         stats.buildFinished()
 
         then:
-        greeting == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, memory: 50% of 10.0 MB]"
+        stats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, memory: 50% of 10.0 MB]"
     }
 }

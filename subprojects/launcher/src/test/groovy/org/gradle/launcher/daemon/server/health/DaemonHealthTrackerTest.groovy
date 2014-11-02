@@ -28,16 +28,16 @@ class DaemonHealthTrackerTest extends Specification {
     }
     def stats = Mock(DaemonStats)
     def status = Mock(DaemonStatus)
-    def tracker = new DaemonHealthTracker(stats, status)
+    def logger = Mock(HealthLogger)
+    def tracker = new DaemonHealthTracker(stats, status, logger)
 
     def "tracks start and complete events"() {
         when: tracker.execute(exec)
 
         then: 1 * stats.buildStarted()
+        then: 1 * logger.logHealth(stats, _)
         then: 1 * exec.proceed()
         then: 1 * stats.buildFinished()
-        1 * status.isDaemonTired(stats)
-        0 * stats._
     }
 
     def "does not track single use daemon"() {

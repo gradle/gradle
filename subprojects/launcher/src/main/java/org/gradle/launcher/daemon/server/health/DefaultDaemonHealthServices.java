@@ -23,7 +23,8 @@ public class DefaultDaemonHealthServices implements DaemonHealthServices {
     private final HintGCAfterBuild hygieneAction = new HintGCAfterBuild();
     private final DaemonStats stats = new DaemonStats();
     private final DaemonStatus status = new DaemonStatus();
-    private final DaemonHealthTracker tracker = new DaemonHealthTracker(stats, status);
+    private final HealthLogger logger = new HealthLogger();
+    private final DaemonHealthTracker tracker = new DaemonHealthTracker(stats, status, logger);
 
     /**
      * {@inheritDoc}

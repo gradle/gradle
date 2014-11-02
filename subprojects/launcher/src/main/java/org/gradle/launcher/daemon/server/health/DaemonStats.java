@@ -50,17 +50,11 @@ class DaemonStats {
     }
 
     /**
-     * Informs the stats that build started and returns an elegant description of daemon stats
+     * Informs the stats that build started
      */
-    public String buildStarted() {
+    public void buildStarted() {
         ++buildCount;
         currentBuildStart = timeProvider.getCurrentTime();
-        if (buildCount == 1) {
-            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(maxMemory));
-        } else {
-            return format("Starting %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), currentPerformance, NumberUtil.percentOf(comittedMemory, maxMemory), NumberUtil.formatBytes(maxMemory));
-        }
     }
 
     /**
@@ -78,5 +72,14 @@ class DaemonStats {
 
     public int getCurrentPerformance() {
         return currentPerformance;
+    }
+
+    public String getHealthInfo() {
+        if (buildCount == 1) {
+            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(maxMemory));
+        } else {
+            return format("Starting %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), currentPerformance, NumberUtil.percentOf(comittedMemory, maxMemory), NumberUtil.formatBytes(maxMemory));
+        }
     }
 }

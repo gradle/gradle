@@ -27,10 +27,12 @@ class DaemonHealthTracker implements DaemonCommandAction {
 
     private final DaemonStats stats;
     private final DaemonStatus status;
+    private final HealthLogger logger;
 
-    DaemonHealthTracker(DaemonStats stats, DaemonStatus status) {
+    DaemonHealthTracker(DaemonStats stats, DaemonStatus status, HealthLogger logger) {
         this.stats = stats;
         this.status = status;
+        this.logger = logger;
     }
 
     public void execute(DaemonCommandExecution execution) {
@@ -39,7 +41,8 @@ class DaemonHealthTracker implements DaemonCommandAction {
             return;
         }
 
-        LOG.info(stats.buildStarted());
+        stats.buildStarted();
+        logger.logHealth(stats, LOG);
         try {
             execution.proceed();
         } finally {
