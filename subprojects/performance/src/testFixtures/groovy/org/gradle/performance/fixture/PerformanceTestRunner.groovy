@@ -136,7 +136,9 @@ public class PerformanceTestRunner {
                 executer.run()
             }
         }
-        executerProvider.executer(this, dist, projectDir).withTasks("--stop").run()
+        if (useDaemon) {
+            executerProvider.executer(this, dist, projectDir).withTasks("--stop").run()
+        }
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }
