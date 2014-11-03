@@ -30,7 +30,7 @@ class DaemonStatus {
             //TODO SF, until I figure out the CI failures. Also make the test work with all javas.
             return false;
         }
-        String expireAt = System.getProperty(EXPIRE_AT_PROPERTY, "85");
+        String expireAt = System.getProperty(EXPIRE_AT_PROPERTY, "80");
         int threshold = parseValue(expireAt);
         return threshold != 0 && stats.getCurrentPerformance() <= threshold;
     }

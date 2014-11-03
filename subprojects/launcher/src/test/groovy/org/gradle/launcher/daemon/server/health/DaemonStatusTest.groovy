@@ -33,8 +33,8 @@ class DaemonStatusTest extends Specification {
     @Rule SetSystemProperties props = new SetSystemProperties()
 
     def "uses default tired threshold"() {
-        stats.getCurrentPerformance() >> 85
-        def betterStats = Mock(DaemonStats) { getCurrentPerformance() >> 86 }
+        stats.getCurrentPerformance() >> 80
+        def betterStats = Mock(DaemonStats) { getCurrentPerformance() >> 81 }
 
         expect:
         status.isDaemonTired(stats)
