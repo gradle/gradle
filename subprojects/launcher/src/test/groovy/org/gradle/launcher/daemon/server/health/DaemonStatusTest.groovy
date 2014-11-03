@@ -17,14 +17,14 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.api.GradleException
-import org.gradle.api.JavaVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Subject
 
-@IgnoreIf({JavaVersion.current().java8Compatible})
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.DEFAULT_EXPIRE_AT
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.EXPIRE_AT_PROPERTY
+
 class DaemonStatusTest extends Specification {
 
     @Subject status = new DaemonStatus()
@@ -33,8 +33,8 @@ class DaemonStatusTest extends Specification {
     @Rule SetSystemProperties props = new SetSystemProperties()
 
     def "uses default tired threshold"() {
-        stats.getCurrentPerformance() >> 80
-        def betterStats = Mock(DaemonStats) { getCurrentPerformance() >> 81 }
+        stats.getCurrentPerformance() >> DEFAULT_EXPIRE_AT
+        def betterStats = Mock(DaemonStats) { getCurrentPerformance() >> DEFAULT_EXPIRE_AT + 1 }
 
         expect:
         status.isDaemonTired(stats)
@@ -42,7 +42,7 @@ class DaemonStatusTest extends Specification {
     }
 
     def "validates supplied threshold value"() {
-        System.setProperty(DaemonStatus.EXPIRE_AT_PROPERTY, "foo")
+        System.setProperty(EXPIRE_AT_PROPERTY, "foo")
 
         when: status.isDaemonTired(stats)
         then:
@@ -52,7 +52,7 @@ class DaemonStatusTest extends Specification {
 
     def "knows when daemon is tired"() {
         when:
-        System.setProperty(DaemonStatus.EXPIRE_AT_PROPERTY, threshold.toString())
+        System.setProperty(EXPIRE_AT_PROPERTY, threshold.toString())
         stats.getCurrentPerformance() >> perf
 
         then:

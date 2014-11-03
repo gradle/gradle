@@ -17,25 +17,24 @@
 package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
 
 import static java.lang.String.format;
 
 class DaemonStatus {
 
     static final String EXPIRE_AT_PROPERTY = "org.gradle.daemon.performance.expire-at";
+    static final int DEFAULT_EXPIRE_AT = 75;
 
     boolean isDaemonTired(DaemonStats stats) {
-        if (JavaVersion.current().isJava8Compatible()) {
-            //TODO SF, until I figure out the CI failures. Also make the test work with all javas.
-            return false;
-        }
-        String expireAt = System.getProperty(EXPIRE_AT_PROPERTY, "80");
-        int threshold = parseValue(expireAt);
+        String expireAt = System.getProperty(EXPIRE_AT_PROPERTY);
+        int threshold = parseValue(expireAt, DEFAULT_EXPIRE_AT);
         return threshold != 0 && stats.getCurrentPerformance() <= threshold;
     }
 
-    private int parseValue(String expireAt) {
+    private static int parseValue(String expireAt, int defaultValue) {
+        if (expireAt == null) {
+            return defaultValue;
+        }
         try {
             return Integer.parseInt(expireAt);
         } catch (Exception e) {
