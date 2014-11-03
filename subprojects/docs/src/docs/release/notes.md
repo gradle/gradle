@@ -142,7 +142,7 @@ We would like to thank the following community members for making contributions 
 * [Sébastien Cogneau](https://github.com/scogneau) - share distribution plugin logic with application plugin
 * [Greg Chrystall](https://github.com/ported) - idea plugin generates wrong sources jar for multi artifacts dependencies (GRADLE-3170)
 * [Rob Upcraft](https://github.com/upcrob) - add support for ANTLR v3 and v4 to antlr plugin (GRADLE-902)
-* [Andreas Schmid](https://github.com/aaschmid) - remove test/runtime libs from classpath entries exported to WTP (GRADLE-1422) 
+* [Andreas Schmid](https://github.com/aaschmid) - changes to Eclipse classpath generating when using WTP (GRADLE-1422) 
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
