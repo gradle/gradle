@@ -22,12 +22,12 @@ import org.gradle.api.specs.Spec;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.store.InvalidManagedModelElementTypeException;
+import org.gradle.model.internal.manage.schema.extract.ExtractingModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.store.UnmanagedModelElementTypeException;
-import org.gradle.model.internal.manage.schema.store.CachingModelSchemaStore;
-import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor;
-import org.gradle.model.internal.manage.schema.store.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.UnmanagedModelElementTypeException;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.List;
 @NotThreadSafe
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final ModelSchemaStore store = new CachingModelSchemaStore(new ModelSchemaExtractor());
+    private final ModelSchemaStore store = new ExtractingModelSchemaStore(new ModelSchemaExtractor());
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());

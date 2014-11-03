@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema.extract;
 
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
-public interface ModelSchemaStore {
+@NotThreadSafe
+public class ExtractingModelSchemaStore implements ModelSchemaStore {
 
-    <T> ModelSchema<T> getSchema(ModelType<T> type);
+    private final ModelSchemaCache cache = new ModelSchemaCache();
+    private final ModelSchemaExtractor extractor;
+
+    public ExtractingModelSchemaStore(ModelSchemaExtractor extractor) {
+        this.extractor = extractor;
+    }
+
+
+    public <T> ModelSchema<T> getSchema(ModelType<T> type) {
+        return extractor.extract(type, cache);
+    }
+
 }

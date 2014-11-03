@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.collection.ManagedSet;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 
 import java.util.List;
 
-public class ManagedSetElementTypeExtractionContext implements ModelSchemaExtractionContext {
+@ThreadSafe
+public class PropertyExtractionContext implements ModelSchemaExtractionContext {
 
-    private final ModelType<? extends ManagedSet<?>> setType;
+    private final ModelType<?> owner;
+    private final ModelProperty<?> property;
     private final ExtractionContextPath representationProvider;
 
-    public ManagedSetElementTypeExtractionContext(ModelType<? extends ManagedSet<?>> setType, ModelSchemaExtractionContext parent) {
-        this.setType = setType;
+    public PropertyExtractionContext(ModelType<?> owner, ModelProperty<?> property, ModelSchemaExtractionContext parent) {
+        this.owner = owner;
+        this.property = property;
         this.representationProvider = new ExtractionContextPath(parent);
     }
 
     public ModelType<?> getType() {
-        return setType.getTypeVariables().get(0);
+        return property.getType();
     }
 
     public List<String> getContextPathElements() {
-        return representationProvider.getContextPathElements(setType.toString());
+        return representationProvider.getContextPathElements(String.format("%s.%s", owner, property.getName()));
     }
 }

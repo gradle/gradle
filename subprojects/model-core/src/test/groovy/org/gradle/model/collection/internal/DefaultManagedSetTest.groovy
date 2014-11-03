@@ -20,8 +20,8 @@ import org.gradle.internal.Factory
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
 import org.gradle.model.internal.manage.schema.ModelSchema
-import org.gradle.model.internal.manage.schema.store.ModelSchemaCache
-import org.gradle.model.internal.manage.schema.store.ModelSchemaExtractor
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaCache
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import spock.lang.Specification
 
 class DefaultManagedSetTest extends Specification {

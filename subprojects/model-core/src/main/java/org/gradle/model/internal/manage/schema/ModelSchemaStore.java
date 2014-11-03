@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.Managed;
+import org.gradle.model.internal.core.ModelType;
 
-@Managed
-public interface SimpleManagedType {
+public interface ModelSchemaStore {
 
-    String getName();
-
-    void setName(String name);
-
+    <T> ModelSchema<T> getSchema(ModelType<T> type);
 }

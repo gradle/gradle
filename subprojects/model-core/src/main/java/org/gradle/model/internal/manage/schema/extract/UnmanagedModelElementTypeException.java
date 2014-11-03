@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.core.ModelType;
 
-import java.util.List;
-
-public interface ModelSchemaExtractionContext {
-    ModelType<?> getType();
-
-    List<String> getContextPathElements();
+public class UnmanagedModelElementTypeException extends InvalidManagedModelElementTypeException {
+    public UnmanagedModelElementTypeException(ModelType<?> type, ModelSchemaExtractionContext context) {
+        super(type, "not a managed type", context);
+    }
 }

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.Managed;
 
-public interface ModelSchemaExtractionStrategy<T> {
+@Managed
+public interface SimpleManagedType {
 
-    public ModelType<T> getType();
+    String getName();
 
-    public Spec<? super ModelType<? extends T>> getSpec();
+    void setName(String name);
 
-    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context);
 }

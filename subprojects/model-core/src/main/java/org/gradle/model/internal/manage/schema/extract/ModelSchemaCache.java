@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.store;
+package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
