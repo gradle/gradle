@@ -30,12 +30,12 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Actions;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -68,6 +68,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     // This lock only protects the following fields
     private final Object lock = new Object();
     private State state = State.UNRESOLVED;
+    private boolean includedInResult;
     private ResolverResults cachedResolverResults;
     private final ResolutionStrategyInternal resolutionStrategy;
 
@@ -92,13 +93,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        inheritedDependencies.all(Actions.<Dependency>toAction(veto));
-        inheritedDependencies.whenObjectRemoved(Actions.<Dependency>toAction(veto));
-
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        ownArtifacts.beforeChange(veto);
+        ownArtifacts.beforeChange(new VetoContainerChangeAction());
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
@@ -123,7 +121,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setVisible(boolean visible) {
-        throwExceptionIfAlreadyResolved();
+        validateMutation();
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
     }
@@ -133,7 +131,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        throwExceptionIfAlreadyResolved();
+        validateMutation();
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
@@ -146,7 +144,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        throwExceptionIfAlreadyResolved();
+        validateMutation();
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -165,7 +163,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setTransitive(boolean transitive) {
-        throwExceptionIfAlreadyResolved();
+        validateMutation();
         this.transitive = transitive;
         return this;
     }
@@ -175,7 +173,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setDescription(String description) {
-        throwExceptionIfAlreadyResolved();
         this.description = description;
         return this;
     }
@@ -232,6 +229,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
+    public void includedInResolveResult() {
+        includedInResult = true;
+        for (Configuration configuration : extendsFrom) {
+            ((ConfigurationInternal) configuration).includedInResolveResult();
+        }
+    }
+
     public ResolvedConfiguration getResolvedConfiguration() {
         resolveNow();
         return cachedResolverResults.getResolvedConfiguration();
@@ -244,6 +248,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
                 cachedResolverResults = resolver.resolve(this);
+                for (Configuration configuration : extendsFrom) {
+                    ((ConfigurationInternal) configuration).includedInResolveResult();
+                }
                 if (cachedResolverResults.getResolvedConfiguration().hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
@@ -290,12 +297,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        throwExceptionIfAlreadyResolved();
+        validateMutation();
         this.excludeRules = excludeRules;
     }
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
-        throwExceptionIfAlreadyResolved();
+        validateMutation();
         excludeRules.add(new ExcludeRuleNotationParser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
@@ -389,9 +396,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    private void throwExceptionIfAlreadyResolved() {
+    private void validateMutation() {
         if (getState() != State.UNRESOLVED) {
-            throw new InvalidUserDataException("You can't change configuration '" + getName() + "' because it is already resolved!");
+            throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
+        }
+        if (includedInResult) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
         }
     }
 
@@ -491,7 +501,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class VetoContainerChangeAction implements Runnable {
         public void run() {
-            throwExceptionIfAlreadyResolved();
+            validateMutation();
         }
     }
 

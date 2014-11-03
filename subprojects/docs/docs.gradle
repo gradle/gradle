@@ -309,7 +309,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
 }
 
 def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
-def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
+def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
 
 task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")

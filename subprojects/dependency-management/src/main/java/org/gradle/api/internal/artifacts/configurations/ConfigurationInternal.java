@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyResolutionListener;
 
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
-    DependencyResolutionListener getDependencyResolutionBroadcast();
-
     ResolutionStrategyInternal getResolutionStrategy();
 
     String getPath();
+
+    void includedInResolveResult();
 }
