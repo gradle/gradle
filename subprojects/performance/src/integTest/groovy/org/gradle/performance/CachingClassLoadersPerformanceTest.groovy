@@ -49,6 +49,6 @@ class CachingClassLoadersPerformanceTest extends AbstractPerformanceTest {
         where:
         testProject       | maxTimeReg    | maxMemReg
         "small"           | millis(2000)  | DataAmount.kbytes(-150)
-        "multi"           | millis(2000)  | DataAmount.mbytes(-8)
+        "multi"           | millis(5000)  | DataAmount.mbytes(0)
     }
 }
