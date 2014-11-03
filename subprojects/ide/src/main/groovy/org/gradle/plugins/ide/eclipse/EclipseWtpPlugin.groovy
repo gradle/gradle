@@ -204,13 +204,12 @@ class EclipseWtpPlugin extends IdePlugin {
                     eclipseWtpPlugin.eclipseWtpModel.facet = facet
 
                     facet.conventionMapping.facets = {
-                        [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                                new Facet(FacetType.installed, "jst.utility", "1.0")]
+                        [new Facet(FacetType.installed, "jst.java", "1.3"), new Facet(FacetType.installed, "jst.utility", "1.0")]
                     }
                     otherProject.plugins.withType(JavaPlugin) {
                         facet.conventionMapping.facets = {
-                            [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                                    new Facet(FacetType.installed, "jst.utility", "1.0"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
+                            [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.installed, "jst.utility", "1.0"),
+                                    new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
                         }
                     }
                 }
