@@ -61,10 +61,10 @@ class EclipseWtpPlugin extends IdePlugin {
 
         configureEclipseProjectForPlugin(project, WarPlugin)
         configureEclipseProjectForPlugin(project, EarPlugin)
-        configureEclipseClasspathForWarPlugin(project)
-
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
+
+        configureEclipseClasspathForWarPlugin(project)
     }
 
     private void configureEclipseClasspathForWarPlugin(Project project) {
@@ -84,14 +84,19 @@ class EclipseWtpPlugin extends IdePlugin {
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 otherProject.eclipse.classpath.file.whenMerged { Classpath classpath ->
+                    def minusFiles = otherProject.eclipse.wtp.component.minusConfigurations*.files?.flatten() ?: project.files()
+                    def libFiles = otherProject.eclipse.wtp.component.libConfigurations*.files?.flatten() ?: project.files()
                     for (entry in classpath.entries) {
-                        if (entry instanceof AbstractLibrary) {
+                        if (entry instanceof AbstractLibrary && !minusFiles.contains(project.file(entry.path)) && libFiles.contains(project.file(entry.path))) {
                             // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
                             //this is necessary so that the depended upon projects will have their dependencies
                             // deployed to WEB-INF/lib of the main project.
                             entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = '../'
                         }
                     }
+                }
+                otherProject.eclipse.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
+                    wtpComponent.wbModuleEntries.removeAll(wtpComponent.wbModuleEntries.findAll { it instanceof WbDependentModule })
                 }
             }
         }
@@ -152,6 +157,10 @@ class EclipseWtpPlugin extends IdePlugin {
                         component.conventionMapping.resources = {
                             getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
                         }
+                        component.libConfigurations = [otherProject.configurations.runtime]
+                        component.minusConfigurations = []
+                        component.classesDeployPath = "/"
+                        component.libDeployPath = "../"
                     }
                 }
             }
