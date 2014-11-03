@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Cast;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -30,6 +31,8 @@ import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A type token for the type of a model element.
@@ -63,8 +66,15 @@ public abstract class ModelType<T> {
     }
 
     protected ModelType(final Class<?> clazz) {
-        this(new TypeToken<T>(clazz) {
-        });
+        Type superclass = getClass().getGenericSuperclass();
+        checkArgument(superclass instanceof ParameterizedType, "%s isn't parameterized", superclass);
+        @SuppressWarnings("ConstantConditions") Type captured = ((ParameterizedType) superclass).getActualTypeArguments()[0];
+
+        if (captured instanceof Class) {
+            this.typeToken = Cast.uncheckedCast(TypeToken.of(captured));
+        } else {
+            this.typeToken = Cast.uncheckedCast(TypeToken.of(clazz).resolveType(captured));
+        }
     }
 
     public static <T> ModelType<T> of(Class<T> clazz) {

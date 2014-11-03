@@ -19,8 +19,6 @@ package org.gradle.model.internal.manage.schema.store;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
@@ -31,30 +29,12 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import java.util.List;
 
 @ThreadSafe
-public class ManagedSetSchemaExtractionStrategy<T extends ManagedSet<?>> implements ModelSchemaExtractionStrategy<T> {
-
-    private final ModelType<T> type;
+public class ManagedSetSchemaExtractionStrategy extends AbstractModelSchemaExtractionStrategy<ManagedSet<?>> {
 
     private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
     };
 
-    public ModelType<T> getType() {
-        return type;
-    }
-
-    public Spec<? super ModelType<? extends T>> getSpec() {
-        return Specs.satisfyAll();
-    }
-
-    private ManagedSetSchemaExtractionStrategy(ModelType<T> type) {
-        this.type = type;
-    }
-
-    public static ManagedSetSchemaExtractionStrategy<ManagedSet<?>> getInstance() {
-        return new ManagedSetSchemaExtractionStrategy<ManagedSet<?>>(new ModelType<ManagedSet<?>>() {});
-    }
-
-    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
+    public <R extends ManagedSet<?>> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
         List<ModelType<?>> typeVariables = type.getTypeVariables();
 
         if (typeVariables.isEmpty()) {
@@ -71,7 +51,7 @@ public class ManagedSetSchemaExtractionStrategy<T extends ManagedSet<?>> impleme
         return new ModelSchemaExtractionResult<R>(schema, ImmutableList.of(new ManagedSetElementTypeExtractionContext(type, context)));
     }
 
-    private <R extends T> ModelSchema<R> createSchema(ModelType<R> type, ModelSchemaCache cache) {
+    private <R extends ManagedSet<?>> ModelSchema<R> createSchema(ModelType<R> type, ModelSchemaCache cache) {
         ManagedSetInstantiator<R> elementInstantiator = new ManagedSetInstantiator<R>(cache);
         return new ModelSchema<R>(type, elementInstantiator);
     }

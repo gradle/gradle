@@ -16,25 +16,20 @@
 
 package org.gradle.model.internal.manage.schema.store;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
-import org.gradle.model.Managed;
+import org.gradle.api.specs.Specs;
 import org.gradle.model.internal.core.ModelType;
 
-@ThreadSafe
-public class UnmanagedTypeSchemaExtractionStrategy extends AbstractModelSchemaExtractionStrategy<Object> {
+public abstract class AbstractModelSchemaExtractionStrategy<T> implements ModelSchemaExtractionStrategy<T> {
 
-    @Override
-    public Spec<? super ModelType<?>> getSpec() {
-        return new Spec<ModelType<?>>() {
-            public boolean isSatisfiedBy(ModelType<?> type) {
-                return !type.getRawClass().isAnnotationPresent(Managed.class);
-            }
-        };
+    private final ModelType<T> type = new ModelType<T>(getClass()) {
+    };
+
+    public ModelType<T> getType() {
+        return type;
     }
 
-    public <R> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
-        throw new UnmanagedModelElementTypeException(type, context);
+    public Spec<? super ModelType<? extends T>> getSpec() {
+        return Specs.satisfyAll();
     }
-
 }

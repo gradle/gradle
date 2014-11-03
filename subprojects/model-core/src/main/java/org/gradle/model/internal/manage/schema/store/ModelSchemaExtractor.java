@@ -31,9 +31,9 @@ import java.util.Queue;
 @ThreadSafe
 public class ModelSchemaExtractor {
 
-    private final static List<ModelSchemaExtractionStrategy<?>> EXTRACTION_STRATEGIES = ImmutableList.of(
-            ManagedTypeModelSchemaExtractionStrategy.getInstance(),
-            ManagedSetSchemaExtractionStrategy.getInstance(),
+    private final static List<ModelSchemaExtractionStrategy<?>> EXTRACTION_STRATEGIES = ImmutableList.<ModelSchemaExtractionStrategy<?>>of(
+            new ManagedTypeModelSchemaExtractionStrategy(),
+            new ManagedSetSchemaExtractionStrategy(),
             new UnmanagedTypeSchemaExtractionStrategy()
     );
 

@@ -45,15 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 @ThreadSafe
-public class ManagedTypeModelSchemaExtractionStrategy<T> implements ModelSchemaExtractionStrategy<T> {
-
-    private final ModelType<T> type;
-
-    private final Spec<ModelType<?>> spec = new Spec<ModelType<?>>() {
-        public boolean isSatisfiedBy(ModelType<?> element) {
-            return isManaged(element);
-        }
-    };
+public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchemaExtractionStrategy<Object> {
 
     public final static List<? extends ModelType<?>> SUPPORTED_UNMANAGED_TYPES = ImmutableList.of(ModelType.of(String.class), ModelType.of(Boolean.class), ModelType.of(Integer.class),
             ModelType.of(Long.class), ModelType.of(Double.class), ModelType.of(BigInteger.class), ModelType.of(BigDecimal.class));
@@ -68,23 +60,16 @@ public class ManagedTypeModelSchemaExtractionStrategy<T> implements ModelSchemaE
             .put(ModelType.of(Double.TYPE), Double.class)
             .build();
 
-    public ModelType<T> getType() {
-        return type;
-    }
 
     public Spec<? super ModelType<?>> getSpec() {
-        return spec;
+        return new Spec<ModelType<?>>() {
+            public boolean isSatisfiedBy(ModelType<?> element) {
+                return isManaged(element) || isSupportedUnmanagedType(element);
+            }
+        };
     }
 
-    private ManagedTypeModelSchemaExtractionStrategy(ModelType<T> type) {
-        this.type = type;
-    }
-
-    public static ManagedTypeModelSchemaExtractionStrategy<Object> getInstance() {
-        return new ManagedTypeModelSchemaExtractionStrategy<Object>(ModelType.of(Object.class));
-    }
-
-    public <R extends T> ModelSchemaExtractionResult<R> extract(final ModelType<R> type, ModelSchemaCache cache, final ModelSchemaExtractionContext context) {
+    public <R> ModelSchemaExtractionResult<R> extract(final ModelType<R> type, ModelSchemaCache cache, final ModelSchemaExtractionContext context) {
         validateType(type, context);
 
         List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
@@ -143,8 +128,8 @@ public class ManagedTypeModelSchemaExtractionStrategy<T> implements ModelSchemaE
         return new ModelSchemaExtractionResult<R>(schema, dependencies);
     }
 
-    private <R extends T> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties, final ModelType<R> type,
-                                                                                                      final ModelSchemaExtractionContext context) {
+    private <R> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties, final ModelType<R> type,
+                                                                                            final ModelSchemaExtractionContext context) {
         Iterable<ModelProperty<?>> managedProperties = Iterables.filter(properties, new Predicate<ModelProperty<?>>() {
             public boolean apply(ModelProperty<?> input) {
                 return input.isManaged();
