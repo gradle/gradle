@@ -60,15 +60,14 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
             }
         } else {
             //when test is completed, should redirect output for the 'suite' to log things like @AfterSuite, etc.
-            //TODO SF throw exception early about null suiteId
             redirectOutputFor(suiteId);
         }
         processor.completed(testId, event);
     }
 
     private void redirectOutputFor(final Object testId) {
-        outputRedirector.redirectStandardOutputTo(new StdOutForwarder(testId));
-        outputRedirector.redirectStandardErrorTo(new StdErrForwarder(testId));
+        outputRedirector.redirectStandardOutputTo(new Forwarder(testId, TestOutputEvent.Destination.StdOut));
+        outputRedirector.redirectStandardErrorTo(new Forwarder(testId, TestOutputEvent.Destination.StdErr));
     }
 
     public void output(Object testId, TestOutputEvent event) {
@@ -79,28 +78,20 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         processor.failure(testId, result);
     }
 
-
-    class StdOutForwarder implements StandardOutputListener {
+    class Forwarder implements StandardOutputListener {
         private final Object testId;
+        private final TestOutputEvent.Destination dest;
 
-        public StdOutForwarder(Object testId) {
+        public Forwarder(Object testId, TestOutputEvent.Destination dest) {
             this.testId = testId;
+            this.dest = dest;
         }
 
         public void onOutput(CharSequence output) {
-            processor.output(testId, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, output.toString()));
-        }
-    }
-
-    class StdErrForwarder implements StandardOutputListener {
-        private final Object testId;
-
-        public StdErrForwarder(Object testId) {
-            this.testId = testId;
-        }
-
-        public void onOutput(CharSequence output) {
-            processor.output(testId, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, output.toString()));
+            if (testId == null) {
+                throw new RuntimeException("Unable send output event from test executor. Please report this problem. Destination: " + dest + ", event: " + output.toString());
+            }
+            processor.output(testId, new DefaultTestOutputEvent(dest, output.toString()));
         }
     }
 }
