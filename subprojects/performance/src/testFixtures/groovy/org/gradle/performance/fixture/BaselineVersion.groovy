@@ -20,7 +20,8 @@ import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 
-import static org.gradle.performance.fixture.PrettyCalculator.*
+import static org.gradle.performance.fixture.PrettyCalculator.toBytes
+import static org.gradle.performance.fixture.PrettyCalculator.toMillis
 
 class BaselineVersion implements VersionResults {
     final String version
@@ -58,6 +59,7 @@ class BaselineVersion implements VersionResults {
     String getMemoryStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
         def currentVersionAverage = current.totalMemoryUsed.average
+        assert currentVersionAverage != null
         def thisVersionAverage = results.totalMemoryUsed.average
         if (currentVersionAverage > thisVersionAverage) {
             sb.append("Memory $displayName: we need more memory than $version.\n")

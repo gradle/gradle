@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture;
 
+import com.google.common.base.Joiner;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.MeasuredOperation;
@@ -33,14 +34,21 @@ import java.util.regex.Pattern;
 
 public class GCLoggingCollector implements DataCollector {
     private File logFile;
+    private boolean useDaemon;
+
+    void useDaemon() {
+        this.useDaemon = true;
+    }
 
     public void beforeExecute(File testProjectDir, GradleExecuter executer) {
         logFile = new File(testProjectDir, "gc.txt");
 
-        //(SF) Using '-Dorg.gradle.jvmargs' with gradle opts causes an extra vm to be forked
-        //so effectively, all our performance tests run with extra forked vm
-        //I think that this is ok since using jvmargs (in gradle.properties) is pretty much a standard
-        executer.withGradleOpts("-Dorg.gradle.jvmargs=-verbosegc -XX:+PrintGCDetails -Xloggc:" + logFile.getAbsolutePath());
+        String[] gradleOpts = new String[]{"-verbosegc", "-XX:+PrintGCDetails", "-Xloggc:" + logFile.getAbsolutePath()};
+        if (useDaemon) {
+            executer.withGradleOpts("-Dorg.gradle.jvmargs=" + Joiner.on(" ").join(gradleOpts));
+        } else {
+            executer.withGradleOpts(gradleOpts);
+        }
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {

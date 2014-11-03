@@ -40,14 +40,16 @@ public class PerformanceTestRunner {
     String testProject
     int runs
     int warmUpRuns
+    boolean useDaemon
 
     //sub runs 'inside' a run. Useful for tests with the daemon
     int subRuns
 
     List<String> tasksToRun = []
+    private GCLoggingCollector gcCollector = new GCLoggingCollector()
     DataCollector dataCollector = new CompositeDataCollector(
             new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
-            new GCLoggingCollector())
+            gcCollector)
     List<String> args = []
     List<String> gradleOpts = []
 
@@ -61,6 +63,11 @@ public class PerformanceTestRunner {
     PerformanceResults run() {
         assert !targetVersions.empty
         assert testId
+
+        if (useDaemon) {
+            tasksToRun.add("--daemon")
+            gcCollector.useDaemon()
+        }
 
         results = new PerformanceResults(
                 testId: testId,
