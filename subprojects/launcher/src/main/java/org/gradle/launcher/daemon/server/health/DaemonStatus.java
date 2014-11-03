@@ -28,7 +28,7 @@ class DaemonStatus {
     boolean isDaemonTired(DaemonStats stats) {
         if (JavaVersion.current().isJava8Compatible()) {
             //TODO SF, until I figure out the CI failures. Also make the test work with all javas.
-            return true;
+            return false;
         }
         String expireAt = System.getProperty(EXPIRE_AT_PROPERTY, "85");
         int threshold = parseValue(expireAt);
