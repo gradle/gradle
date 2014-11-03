@@ -104,7 +104,6 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
         TestResultProcessor processor = new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector);
 
-        //TODO SF ugly, refactor, unit test coverage
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
 

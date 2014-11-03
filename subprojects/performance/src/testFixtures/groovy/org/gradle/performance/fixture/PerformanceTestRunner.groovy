@@ -40,14 +40,16 @@ public class PerformanceTestRunner {
     String testProject
     int runs
     int warmUpRuns
+    boolean useDaemon
 
     //sub runs 'inside' a run. Useful for tests with the daemon
     int subRuns
 
     List<String> tasksToRun = []
+    private GCLoggingCollector gcCollector = new GCLoggingCollector()
     DataCollector dataCollector = new CompositeDataCollector(
             new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
-            new GCLoggingCollector())
+            gcCollector)
     List<String> args = []
     List<String> gradleOpts = []
 
@@ -61,6 +63,11 @@ public class PerformanceTestRunner {
     PerformanceResults run() {
         assert !targetVersions.empty
         assert testId
+
+        if (useDaemon) {
+            tasksToRun.add("--daemon")
+            gcCollector.useDaemon()
+        }
 
         results = new PerformanceResults(
                 testId: testId,
@@ -120,6 +127,7 @@ public class PerformanceTestRunner {
     void runNow(GradleDistribution dist, File projectDir, MeasuredOperationList results, int subRuns) {
         def operation = timer.measure { MeasuredOperation operation ->
             subRuns.times {
+                println "Sub-run ${it+1}..."
                 //creation of executer is included in measuer operation
                 //this is not ideal but it does not prevent us from finding performance regressions
                 //because extra time is equally added to all executions
@@ -128,7 +136,9 @@ public class PerformanceTestRunner {
                 executer.run()
             }
         }
-        executerProvider.executer(this, dist, projectDir).withTasks("--stop").run()
+        if (useDaemon) {
+            executerProvider.executer(this, dist, projectDir).withTasks("--stop").run()
+        }
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }

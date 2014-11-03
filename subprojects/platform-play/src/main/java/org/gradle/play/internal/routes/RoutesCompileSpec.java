@@ -37,7 +37,7 @@ public class RoutesCompileSpec implements PlayCompileSpec, Serializable {
         this.additionalImports.addAll(additionalImports);
         generateReverseRoute = true;
         generateRefReverseRouter = true;
-        namespaceReverseRouter = false;
+        namespaceReverseRouter = true;
     }
 
     public Iterable<File> getSources() {

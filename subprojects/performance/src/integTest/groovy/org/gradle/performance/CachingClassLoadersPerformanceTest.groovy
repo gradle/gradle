@@ -34,7 +34,8 @@ class CachingClassLoadersPerformanceTest extends AbstractPerformanceTest {
         runner.gradleOpts = ["-Dorg.gradle.caching.classloaders=true"]
         runner.testId = "caching classloaders build $testProject"
         runner.testProject = testProject
-        runner.tasksToRun = ['clean', 'build', '--daemon']
+        runner.useDaemon = true
+        runner.tasksToRun = ['clean', 'build']
         runner.maxExecutionTimeRegression = maxTimeReg
         runner.maxMemoryRegression = maxMemReg
         runner.targetVersions = ['last']
@@ -48,6 +49,6 @@ class CachingClassLoadersPerformanceTest extends AbstractPerformanceTest {
         where:
         testProject       | maxTimeReg    | maxMemReg
         "small"           | millis(2000)  | DataAmount.kbytes(-150)
-        "multi"           | millis(2000)  | DataAmount.mbytes(-8)
+        "multi"           | millis(5000)  | DataAmount.mbytes(0)
     }
 }
