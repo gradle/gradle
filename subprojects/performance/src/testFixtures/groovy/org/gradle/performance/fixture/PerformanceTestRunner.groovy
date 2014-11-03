@@ -127,6 +127,7 @@ public class PerformanceTestRunner {
     void runNow(GradleDistribution dist, File projectDir, MeasuredOperationList results, int subRuns) {
         def operation = timer.measure { MeasuredOperation operation ->
             subRuns.times {
+                println "Sub-run ${it+1}..."
                 //creation of executer is included in measuer operation
                 //this is not ideal but it does not prevent us from finding performance regressions
                 //because extra time is equally added to all executions
