@@ -254,7 +254,8 @@ class ModelSchemaExtractorTest extends Specification {
         void setManaged(SingleProperty name)
     }
 
-    @Managed interface SelfReferencing {
+    @Managed
+    interface SelfReferencing {
         SelfReferencing getSelf()
     }
 
@@ -263,28 +264,47 @@ class ModelSchemaExtractorTest extends Specification {
         extract(SelfReferencing).properties.self.type == ModelType.of(SelfReferencing)
     }
 
-    @Managed interface A1 {
+    @Managed
+    interface A1 {
         A1 getA();
+
         B1 getB();
+
         C1 getC();
+
         D1 getD();
     }
-    @Managed interface B1 {
+
+    @Managed
+    interface B1 {
         A1 getA();
+
         B1 getB();
+
         C1 getC();
+
         D1 getD();
     }
-    @Managed interface C1 {
+
+    @Managed
+    interface C1 {
         A1 getA();
+
         B1 getB();
+
         C1 getC();
+
         D1 getD();
     }
-    @Managed interface D1 {
+
+    @Managed
+    interface D1 {
         A1 getA();
+
         B1 getB();
+
         C1 getC();
+
         D1 getD();
     }
 
@@ -347,6 +367,16 @@ $type
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName]). The type was analyzed due to the following dependencies:
 $type
 \\--- $SetterOnly.name""")
+    }
+
+    interface SpecialManagedSet<T> extends ManagedSet<T> {}
+
+    def "extensions managed sets are not supported"() {
+        given:
+        def type = new ModelType<SpecialManagedSet<A1>>() {}
+
+        expect:
+        fail type, "subtyping $ManagedSet.name is not supported"
     }
 
     def "managed sets of managed set are not supported"() {

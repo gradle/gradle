@@ -43,6 +43,9 @@ public class ManagedSetSchemaExtractionStrategy extends AbstractModelSchemaExtra
         if (type.isHasWildcardTypeVariables()) {
             throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()), context);
         }
+        if (!type.getRawClass().equals(ManagedSet.class)) {
+            throw new InvalidManagedModelElementTypeException(type, String.format("subtyping %s is not supported", ManagedSet.class.getName()), context);
+        }
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(typeVariables.get(0))) {
             throw new InvalidManagedModelElementTypeException(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()), context);
         }
@@ -70,12 +73,14 @@ public class ManagedSetSchemaExtractionStrategy extends AbstractModelSchemaExtra
             return Cast.uncheckedCast(createManagedSetInstance(elementSchema));
         }
 
-        private <E> DefaultManagedSet<E> createManagedSetInstance(final ModelSchema<E> elementSchema) {
+        private <E> ManagedSet<E> createManagedSetInstance(final ModelSchema<E> elementSchema) {
             Factory<E> factory = new Factory<E>() {
                 public E create() {
                     return elementSchema.createInstance();
                 }
             };
+
+            // Safe because we verified above that the type is exactly a ManagedSet
             return new DefaultManagedSet<E>(factory);
         }
     }
