@@ -298,17 +298,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         !invoked
     }
 
-    def "complains if rule has no parameters"() {
-        when:
-        processor.all { -> }
-
-        then:
-        InvalidUserCodeException e = thrown()
-        e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
-        e.cause instanceof RuleActionValidationException
-        e.cause.message == "Rule action closure must declare at least one parameter."
-    }
-
     def "complains if first parameter type isn't assignment compatible with ComponentMetadataDetails"() {
         when:
         processor.all { String s -> }

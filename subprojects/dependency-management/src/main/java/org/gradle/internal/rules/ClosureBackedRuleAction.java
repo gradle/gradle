@@ -42,31 +42,33 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
         copy.setResolveStrategy(Closure.DELEGATE_FIRST);
         copy.setDelegate(subject);
 
-        Object[] argList = new Object[inputs.size() + 1];
-        argList[0] = subject;
-        int i = 1;
-        for (Object arg : inputs) {
-            argList[i++] = arg;
+        if (closure.getMaximumNumberOfParameters() == 0) {
+            copy.call();
+        } else {
+            Object[] argList = new Object[inputs.size() + 1];
+            argList[0] = subject;
+            int i = 1;
+            for (Object arg : inputs) {
+                argList[i++] = arg;
+            }
+            copy.call(argList);
         }
-        copy.call(argList);
     }
 
     private List<Class<?>> parseInputTypes(Closure<?> closure) {
         Class<?>[] parameterTypes = closure.getParameterTypes();
-
-        if (parameterTypes.length == 0) {
-            throw new RuleActionValidationException("Rule action closure must declare at least one parameter.");
-        }
-
         List<Class<?>> inputTypes = Lists.newArrayList();
 
-        if (parameterTypes[0] != subjectType) {
-            throw new RuleActionValidationException(String.format("First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
+        if (parameterTypes.length != 0) {
+            if (parameterTypes[0].isAssignableFrom(subjectType)) {
+                for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
+                    inputTypes.add(parameterType);
+                }
+            } else {
+                throw new RuleActionValidationException(String.format("First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
+            }
         }
 
-        for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
-            inputTypes.add(parameterType);
-        }
         return inputTypes;
     }
 

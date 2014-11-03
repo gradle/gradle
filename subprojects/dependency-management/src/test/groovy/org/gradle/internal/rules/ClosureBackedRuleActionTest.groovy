@@ -55,17 +55,54 @@ class ClosureBackedRuleActionTest extends Specification {
         called
     }
 
-    def "fails to construct with zero arg closure"() {
+    def "can construct with zero arg closure"() {
         given:
+        def called = false
+        String thing = "1"
         def closure = { ->
+            called = true
+            assert delegate.is(thing)
         }
 
         when:
-        action(closure)
+        action(closure).execute(thing, [])
 
         then:
-        def e = thrown RuleActionValidationException
-        e.message == "Rule action closure must declare at least one parameter."
+        called
+    }
+
+    def "can construct with empty arg closure"() {
+        given:
+        def called = false
+        String thing = "1"
+        def closure = {
+            called = true
+            assert it.is(thing)
+            assert delegate.is(thing)
+        }
+
+        when:
+        action(closure).execute(thing, [])
+
+        then:
+        called
+    }
+
+    def "can construct with untyped single arg closure"() {
+        given:
+        def called = false
+        String thing = "1"
+        def closure = { subject ->
+            called = true
+            assert subject.is(thing)
+            assert delegate.is(thing)
+        }
+
+        when:
+        action(closure).execute(thing, [])
+
+        then:
+        called
     }
 
     def "fails to construct with incorrect subject type"() {
