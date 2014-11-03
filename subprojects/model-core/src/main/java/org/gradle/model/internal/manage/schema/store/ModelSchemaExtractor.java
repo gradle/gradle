@@ -31,10 +31,10 @@ import java.util.Queue;
 @ThreadSafe
 public class ModelSchemaExtractor {
 
-    private final static List<ModelSchemaExtractionHandler<?>> EXTRACTION_HANDLERS = ImmutableList.of(
-            ManagedTypeModelSchemaExtractionHandler.getInstance(),
-            ManagedSetSchemaExtractionHandler.getInstance(),
-            new UnmanagedTypeSchemaExtractionHandler()
+    private final static List<ModelSchemaExtractionStrategy<?>> EXTRACTION_STRATEGIES = ImmutableList.of(
+            ManagedTypeModelSchemaExtractionStrategy.getInstance(),
+            ManagedSetSchemaExtractionStrategy.getInstance(),
+            new UnmanagedTypeSchemaExtractionStrategy()
     );
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
@@ -69,10 +69,10 @@ public class ModelSchemaExtractor {
             return new ModelSchemaExtractionResult<T>(cached);
         }
 
-        ModelSchemaExtractionHandler<?> handler = Iterables.find(EXTRACTION_HANDLERS, new Predicate<ModelSchemaExtractionHandler<?>>() {
-            public boolean apply(ModelSchemaExtractionHandler<?> candidate) {
+        ModelSchemaExtractionStrategy<?> strategy = Iterables.find(EXTRACTION_STRATEGIES, new Predicate<ModelSchemaExtractionStrategy<?>>() {
+            public boolean apply(ModelSchemaExtractionStrategy<?> candidate) {
                 if (candidate.getType().isAssignableFrom(type)) {
-                    ModelSchemaExtractionHandler<? super T> castCandidate = Cast.uncheckedCast(candidate);
+                    ModelSchemaExtractionStrategy<? super T> castCandidate = Cast.uncheckedCast(candidate);
                     return castCandidate.getSpec().isSatisfiedBy(type);
                 } else {
                     return false;
@@ -80,8 +80,8 @@ public class ModelSchemaExtractor {
             }
         });
 
-        ModelSchemaExtractionHandler<? super T> castHandler = Cast.uncheckedCast(handler);
-        ModelSchemaExtractionResult<T> schemaExtraction = castHandler.extract(type, cache, context);
+        ModelSchemaExtractionStrategy<? super T> castStrategy = Cast.uncheckedCast(strategy);
+        ModelSchemaExtractionResult<T> schemaExtraction = castStrategy.extract(type, cache, context);
         cache.set(type, schemaExtraction.getSchema());
         return schemaExtraction;
     }

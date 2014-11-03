@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 @ThreadSafe
-public class ManagedTypeModelSchemaExtractionHandler<T> implements ModelSchemaExtractionHandler<T> {
+public class ManagedTypeModelSchemaExtractionStrategy<T> implements ModelSchemaExtractionStrategy<T> {
 
     private final ModelType<T> type;
 
@@ -76,12 +76,12 @@ public class ManagedTypeModelSchemaExtractionHandler<T> implements ModelSchemaEx
         return spec;
     }
 
-    private ManagedTypeModelSchemaExtractionHandler(ModelType<T> type) {
+    private ManagedTypeModelSchemaExtractionStrategy(ModelType<T> type) {
         this.type = type;
     }
 
-    public static ManagedTypeModelSchemaExtractionHandler<Object> getInstance() {
-        return new ManagedTypeModelSchemaExtractionHandler<Object>(ModelType.of(Object.class));
+    public static ManagedTypeModelSchemaExtractionStrategy<Object> getInstance() {
+        return new ManagedTypeModelSchemaExtractionStrategy<Object>(ModelType.of(Object.class));
     }
 
     public <R extends T> ModelSchemaExtractionResult<R> extract(final ModelType<R> type, ModelSchemaCache cache, final ModelSchemaExtractionContext context) {

@@ -31,7 +31,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import java.util.List;
 
 @ThreadSafe
-public class ManagedSetSchemaExtractionHandler<T extends ManagedSet<?>> implements ModelSchemaExtractionHandler<T> {
+public class ManagedSetSchemaExtractionStrategy<T extends ManagedSet<?>> implements ModelSchemaExtractionStrategy<T> {
 
     private final ModelType<T> type;
 
@@ -46,12 +46,12 @@ public class ManagedSetSchemaExtractionHandler<T extends ManagedSet<?>> implemen
         return Specs.satisfyAll();
     }
 
-    private ManagedSetSchemaExtractionHandler(ModelType<T> type) {
+    private ManagedSetSchemaExtractionStrategy(ModelType<T> type) {
         this.type = type;
     }
 
-    public static ManagedSetSchemaExtractionHandler<ManagedSet<?>> getInstance() {
-        return new ManagedSetSchemaExtractionHandler<ManagedSet<?>>(new ModelType<ManagedSet<?>>() {});
+    public static ManagedSetSchemaExtractionStrategy<ManagedSet<?>> getInstance() {
+        return new ManagedSetSchemaExtractionStrategy<ManagedSet<?>>(new ModelType<ManagedSet<?>>() {});
     }
 
     public <R extends T> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {

@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema.store;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.ModelType;
 
-public interface ModelSchemaExtractionHandler<T> {
+public interface ModelSchemaExtractionStrategy<T> {
 
     public ModelType<T> getType();
 

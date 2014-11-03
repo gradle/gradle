@@ -22,7 +22,7 @@ import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
 
 @ThreadSafe
-public class UnmanagedTypeSchemaExtractionHandler implements ModelSchemaExtractionHandler<Object> {
+public class UnmanagedTypeSchemaExtractionStrategy implements ModelSchemaExtractionStrategy<Object> {
 
     private final ModelType<Object> type = ModelType.of(Object.class);
 

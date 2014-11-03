@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-import static org.gradle.model.internal.manage.schema.store.ManagedTypeModelSchemaExtractionHandler.SUPPORTED_UNMANAGED_TYPES
+import static ManagedTypeModelSchemaExtractionStrategy.SUPPORTED_UNMANAGED_TYPES
 
 class ModelSchemaExtractorTest extends Specification {
 
