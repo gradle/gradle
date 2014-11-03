@@ -16,48 +16,58 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.Lists;
+import org.gradle.internal.SystemProperties;
 import org.gradle.model.internal.core.ModelType;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Deque;
 
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
-    private static String createContextPathStringRepresentation(ModelSchemaExtractionContext context, ModelType<?> type) {
+    private static String createPathString(ModelSchemaExtractionContext<?> extractionContext) {
         StringBuilder prefix = new StringBuilder();
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
 
-        List<String> contextPathElements = context.getContextPathElements();
-        writer.println(contextPathElements.get(0));
+        Deque<String> descriptions = Lists.newLinkedList();
+        ModelSchemaExtractionContext<?> current = extractionContext;
+        while (current != null) {
+            descriptions.push(current.getDescription());
+            current = current.getParent();
+        }
 
-        Iterator<String> iterator = contextPathElements.listIterator(1);
-        while(iterator.hasNext()) {
+        writer.println(descriptions.pop());
+
+        while (!descriptions.isEmpty()) {
             writer.print(prefix);
             writer.print("\\--- ");
-            writer.println(iterator.next());
-            prefix.append("     ");
+            writer.print(descriptions.pop());
+
+            if (!descriptions.isEmpty()) {
+                prefix.append(SystemProperties.getLineSeparator()).append("     ");
+            }
         }
-        writer.print(prefix);
-        writer.print("\\--- ");
-        writer.print(type);
+
         return out.toString();
     }
 
-    private static String getMessage(ModelType<?> type, String message, ModelSchemaExtractionContext context) {
+    private static String getMessage(ModelSchemaExtractionContext<?> extractionContext, String message) {
+        ModelType<?> type = extractionContext.getType();
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
         writer.print("Invalid managed model type " + type + ": " + message);
-        if (context != null) {
+
+        if (extractionContext.getParent() != null) {
             writer.println(". The type was analyzed due to the following dependencies:");
-            writer.print(createContextPathStringRepresentation(context, type));
+            writer.print(createPathString(extractionContext));
         }
         return out.toString();
     }
 
-    public InvalidManagedModelElementTypeException(ModelType<?> type, String message, ModelSchemaExtractionContext context) {
-        super(getMessage(type, message, context));
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
+        super(getMessage(extractionContext, message));
     }
+
 }

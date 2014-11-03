@@ -26,13 +26,13 @@ public class ModelSchemaExtractionResult<T> {
 
     private ModelSchema<T> schema;
 
-    private Iterable<? extends ModelSchemaExtractionContext> dependencies;
+    private Iterable<? extends ModelSchemaExtractionContext<?>> dependencies;
 
     public ModelSchemaExtractionResult(ModelSchema<T> schema) {
-        this(schema, Collections.<ModelSchemaExtractionContext>emptyList());
+        this(schema, Collections.<ModelSchemaExtractionContext<?>>emptyList());
     }
 
-    public ModelSchemaExtractionResult(ModelSchema<T> schema, Iterable<? extends ModelSchemaExtractionContext> dependencies) {
+    public ModelSchemaExtractionResult(ModelSchema<T> schema, Iterable<? extends ModelSchemaExtractionContext<?>> dependencies) {
         this.schema = schema;
         this.dependencies = dependencies;
     }
@@ -41,7 +41,7 @@ public class ModelSchemaExtractionResult<T> {
         return schema;
     }
 
-    public Iterable<? extends ModelSchemaExtractionContext> getDependencies() {
+    public Iterable<? extends ModelSchemaExtractionContext<?>> getDependencies() {
         return dependencies;
     }
 }

@@ -69,8 +69,9 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
         };
     }
 
-    public <R> ModelSchemaExtractionResult<R> extract(final ModelType<R> type, ModelSchemaCache cache, final ModelSchemaExtractionContext context) {
-        validateType(type, context);
+    public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
+        ModelType<R> type = extractionContext.getType();
+        validateType(type, extractionContext);
 
         List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
         if (methodList.isEmpty()) {
@@ -85,7 +86,7 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
         for (Method method : methodList) {
             String name = method.getName();
             if (methods.containsKey(name)) {
-                throw invalidMethod(type, name, "overloaded methods are not supported", context);
+                throw invalidMethod(extractionContext, name, "overloaded methods are not supported");
             }
             methods.put(name, method);
         }
@@ -97,19 +98,19 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
             Method method = methods.get(methodName);
             if (methodName.startsWith("get") && !methodName.equals("get")) {
                 if (method.getParameterTypes().length != 0) {
-                    throw invalidMethod(type, methodName, "getter methods cannot take parameters", context);
+                    throw invalidMethod(extractionContext, methodName, "getter methods cannot take parameters");
                 }
 
                 Character getterPropertyNameFirstChar = methodName.charAt(3);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-                    throw invalidMethod(type, methodName, "the 4th character of the getter method name must be an uppercase character", context);
+                    throw invalidMethod(extractionContext, methodName, "the 4th character of the getter method name must be an uppercase character");
                 }
 
                 ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
                 if (isManaged(returnType)) {
-                    properties.add(extractPropertyOfManagedType(cache, type, methods, methodName, returnType, handled, context));
+                    properties.add(extractPropertyOfManagedType(cache, methods, methodName, returnType, handled, extractionContext));
                 } else {
-                    properties.add(extractPropertyOfUnmanagedType(type, methods, methodName, returnType, handled, context));
+                    properties.add(extractPropertyOfUnmanagedType(methods, methodName, returnType, handled, extractionContext));
                 }
                 handled.add(methodName);
             }
@@ -119,37 +120,37 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
 
         // TODO - should call out valid getters without setters
         if (!methodNames.isEmpty()) {
-            throw new InvalidManagedModelElementTypeException(type, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "])", context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "])");
         }
 
         ManagedTypeInstantiator<R> elementInstantiator = new ManagedTypeInstantiator<R>();
         ModelSchema<R> schema = new ModelSchema<R>(type, properties, elementInstantiator);
-        Iterable<? extends ModelSchemaExtractionContext> dependencies = getModelSchemaDependencies(properties, type, context);
+        Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = getModelSchemaDependencies(properties, extractionContext);
         return new ModelSchemaExtractionResult<R>(schema, dependencies);
     }
 
-    private <R> Iterable<? extends ModelSchemaExtractionContext> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties, final ModelType<R> type,
-                                                                                            final ModelSchemaExtractionContext context) {
+    private Iterable<? extends ModelSchemaExtractionContext<?>> getModelSchemaDependencies(Iterable<ModelProperty<?>> properties,
+                                                                                    final ModelSchemaExtractionContext<?> extractionContext) {
         Iterable<ModelProperty<?>> managedProperties = Iterables.filter(properties, new Predicate<ModelProperty<?>>() {
             public boolean apply(ModelProperty<?> input) {
                 return input.isManaged();
             }
         });
-        return Iterables.transform(managedProperties, new Function<ModelProperty<?>, ModelSchemaExtractionContext>() {
-            public ModelSchemaExtractionContext apply(ModelProperty<?> property) {
-                return new PropertyExtractionContext(type, property, context);
+        return Iterables.transform(managedProperties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
+            public ModelSchemaExtractionContext<?> apply(ModelProperty<?> property) {
+                return extractionContext.child(property.getType(), String.format("property '%s'", property.getName()));
             }
         });
     }
 
-    private <P> ModelProperty<P> extractPropertyOfManagedType(final ModelSchemaCache schemaCache, ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<P> propertyType,
-                                                              List<String> handled, ModelSchemaExtractionContext context) {
+    private <P> ModelProperty<P> extractPropertyOfManagedType(final ModelSchemaCache schemaCache, Map<String, Method> methods, String getterName, final ModelType<P> propertyType,
+                                                              List<String> handled, ModelSchemaExtractionContext<?> extractionContext) {
         String propertyNameCapitalized = getterName.substring(3);
         String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
         String setterName = "set" + propertyNameCapitalized;
 
         if (methods.containsKey(setterName)) {
-            validateSetter(type, propertyType, methods.get(setterName), context);
+            validateSetter(extractionContext, propertyType, methods.get(setterName));
             handled.add(setterName);
             return new ModelProperty<P>(propertyName, propertyType, true);
         } else {
@@ -163,15 +164,15 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
         }
     }
 
-    private <P> ModelProperty<P> extractPropertyOfUnmanagedType(ModelType<?> type, Map<String, Method> methods, String getterName, final ModelType<P> propertyType, List<String> handled, ModelSchemaExtractionContext context) {
+    private <P> ModelProperty<P> extractPropertyOfUnmanagedType(Map<String, Method> methods, String getterName, final ModelType<P> propertyType, List<String> handled, ModelSchemaExtractionContext<?> extractionContext) {
         Class<?> boxedType = BOXED_REPLACEMENTS.get(propertyType);
         if (boxedType != null) {
-            throw invalidMethod(type, getterName, String.format("%s is not a supported property type, use %s instead", propertyType, boxedType.getName()), context);
+            throw invalidMethod(extractionContext, getterName, String.format("%s is not a supported property type, use %s instead", propertyType, boxedType.getName()));
         }
         if (!isSupportedUnmanagedType(propertyType)) {
             String supportedTypes = Joiner.on(", ").join(SUPPORTED_UNMANAGED_TYPES);
             String message = String.format("%s is not a supported property type, only managed and the following unmanaged types are supported: %s", propertyType, supportedTypes);
-            throw invalidMethod(type, getterName, message, context);
+            throw invalidMethod(extractionContext, getterName, message);
         }
 
         String propertyNameCapitalized = getterName.substring(3);
@@ -179,28 +180,28 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
         String setterName = "set" + propertyNameCapitalized;
 
         if (!methods.containsKey(setterName)) {
-            throw invalidMethod(type, getterName, "no corresponding setter for getter", context);
+            throw invalidMethod(extractionContext, getterName, "no corresponding setter for getter");
         }
 
-        validateSetter(type, propertyType, methods.get(setterName), context);
+        validateSetter(extractionContext, propertyType, methods.get(setterName));
         handled.add(setterName);
         return new ModelProperty<P>(propertyName, propertyType);
     }
 
-    private void validateSetter(ModelType<?> type, ModelType<?> propertyType, Method setter, ModelSchemaExtractionContext context) {
+    private void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, Method setter) {
         if (!setter.getReturnType().equals(void.class)) {
-            throw invalidMethod(type, setter.getName(), "setter method must have void return type", context);
+            throw invalidMethod(extractionContext, setter.getName(), "setter method must have void return type");
         }
 
         Type[] setterParameterTypes = setter.getGenericParameterTypes();
         if (setterParameterTypes.length != 1) {
-            throw invalidMethod(type, setter.getName(), "setter method must have exactly one parameter", context);
+            throw invalidMethod(extractionContext, setter.getName(), "setter method must have exactly one parameter");
         }
 
         ModelType<?> setterType = ModelType.of(setterParameterTypes[0]);
         if (!setterType.equals(propertyType)) {
             String message = "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")";
-            throw invalidMethod(type, setter.getName(), message, context);
+            throw invalidMethod(extractionContext, setter.getName(), message);
         }
     }
 
@@ -212,19 +213,19 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
         });
     }
 
-    public void validateType(ModelType<?> type, ModelSchemaExtractionContext context) {
+    public void validateType(ModelType<?> type, ModelSchemaExtractionContext<?> extractionContext) {
         Class<?> typeClass = type.getConcreteClass();
 
         if (!typeClass.isInterface()) {
-            throw new InvalidManagedModelElementTypeException(type, "must be defined as an interface", context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, "must be defined as an interface");
         }
 
         if (typeClass.getInterfaces().length > 0) {
-            throw new InvalidManagedModelElementTypeException(type, "cannot extend other types", context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, "cannot extend other types");
         }
 
         if (typeClass.getTypeParameters().length > 0) {
-            throw new InvalidManagedModelElementTypeException(type, "cannot be a parameterized type", context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, "cannot be a parameterized type");
         }
     }
 
@@ -277,7 +278,7 @@ public class ManagedTypeModelSchemaExtractionStrategy extends AbstractModelSchem
         }
     }
 
-    private InvalidManagedModelElementTypeException invalidMethod(ModelType<?> type, String methodName, String message, ModelSchemaExtractionContext context) {
-        return new InvalidManagedModelElementTypeException(type, message + " (method: " + methodName + ")", context);
+    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String methodName, String message) {
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (method: " + methodName + ")");
     }
 }

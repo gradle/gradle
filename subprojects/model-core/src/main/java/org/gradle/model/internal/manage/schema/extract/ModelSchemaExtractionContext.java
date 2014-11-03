@@ -16,12 +16,42 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelType;
 
-import java.util.List;
+public class ModelSchemaExtractionContext<T> {
 
-public interface ModelSchemaExtractionContext {
-    ModelType<?> getType();
+    private final ModelSchemaExtractionContext<?> parent;
+    private final ModelType<T> type;
+    private final String description;
 
-    List<String> getContextPathElements();
+    private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description) {
+        this.parent = parent;
+        this.type = type;
+        this.description = description;
+    }
+
+    public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
+        return new ModelSchemaExtractionContext<T>(null, type, null);
+    }
+
+    /**
+     * null if this is the root of the extraction
+     */
+    @Nullable
+    public ModelSchemaExtractionContext<?> getParent() {
+        return parent;
+    }
+
+    public ModelType<T> getType() {
+        return type;
+    }
+
+    public String getDescription() {
+        return description == null ? type.toString() : String.format("%s (%s)", description, type);
+    }
+
+    public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description) {
+        return new ModelSchemaExtractionContext<C>(this, type, description);
+    }
 }

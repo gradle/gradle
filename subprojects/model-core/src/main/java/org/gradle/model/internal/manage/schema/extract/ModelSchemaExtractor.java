@@ -38,32 +38,27 @@ public class ModelSchemaExtractor {
     );
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
-        ModelSchemaExtractionResult<T> schemaExtraction = extractSchema(type, cache, null);
-        Queue<ModelSchemaExtractionContext> unsatisfiedDependencies = Lists.newLinkedList();
-
-        pushUnsatisfiedDependencies(schemaExtraction.getDependencies(), unsatisfiedDependencies, cache);
-
-        ModelSchemaExtractionContext dependency = unsatisfiedDependencies.poll();
-        while (dependency != null) {
-            ModelSchemaExtractionResult<?> nextSchema;
-            nextSchema = extractSchema(dependency.getType(), cache, dependency);
-
+        Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
+        ModelSchemaExtractionContext<?> extractionContext = ModelSchemaExtractionContext.root(type);
+        while (extractionContext != null) {
+            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, cache);
             pushUnsatisfiedDependencies(nextSchema.getDependencies(), unsatisfiedDependencies, cache);
-            dependency = unsatisfiedDependencies.poll();
+            extractionContext = unsatisfiedDependencies.poll();
         }
 
-        return schemaExtraction.getSchema();
+        return cache.get(type);
     }
 
-    private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext> allDependencies, Queue<ModelSchemaExtractionContext> dependencyQueue, final ModelSchemaCache cache) {
-        Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext>() {
-            public boolean apply(ModelSchemaExtractionContext dependency) {
+    private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
+        Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
+            public boolean apply(ModelSchemaExtractionContext<?> dependency) {
                 return cache.get(dependency.getType()) == null;
             }
         }));
     }
 
-    private <T> ModelSchemaExtractionResult<T> extractSchema(final ModelType<T> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
+    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+        final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
             return new ModelSchemaExtractionResult<T>(cached);
@@ -81,7 +76,7 @@ public class ModelSchemaExtractor {
         });
 
         ModelSchemaExtractionStrategy<? super T> castStrategy = Cast.uncheckedCast(strategy);
-        ModelSchemaExtractionResult<T> schemaExtraction = castStrategy.extract(type, cache, context);
+        ModelSchemaExtractionResult<T> schemaExtraction = castStrategy.extract(extractionContext, cache);
         cache.set(type, schemaExtraction.getSchema());
         return schemaExtraction;
     }

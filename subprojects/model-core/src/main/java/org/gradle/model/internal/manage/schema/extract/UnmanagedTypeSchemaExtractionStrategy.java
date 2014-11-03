@@ -33,8 +33,8 @@ public class UnmanagedTypeSchemaExtractionStrategy extends AbstractModelSchemaEx
         };
     }
 
-    public <R> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
-        throw new UnmanagedModelElementTypeException(type, context);
+    public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
+        throw new UnmanagedModelElementTypeException(extractionContext);
     }
 
 }

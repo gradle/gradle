@@ -352,7 +352,7 @@ class ModelSchemaExtractorTest extends Specification {
         InvalidManagedModelElementTypeException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $Object.name: not a managed type. The type was analyzed due to the following dependencies:
 $type
-\\--- $Object.name""")
+\\--- element type ($Object.name)""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
@@ -366,7 +366,7 @@ $type
         InvalidManagedModelElementTypeException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName]). The type was analyzed due to the following dependencies:
 $type
-\\--- $SetterOnly.name""")
+\\--- element type ($SetterOnly.name)""")
     }
 
     interface SpecialManagedSet<T> extends ManagedSet<T> {}

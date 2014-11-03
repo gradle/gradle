@@ -34,29 +34,33 @@ public class ManagedSetSchemaExtractionStrategy extends AbstractModelSchemaExtra
     private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
     };
 
-    public <R extends ManagedSet<?>> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context) {
+    public <R extends ManagedSet<?>> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
+        ModelType<R> type = extractionContext.getType();
         List<ModelType<?>> typeVariables = type.getTypeVariables();
 
         if (typeVariables.isEmpty()) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()), context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()));
         }
         if (type.isHasWildcardTypeVariables()) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()), context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
         }
         if (!type.getRawClass().equals(ManagedSet.class)) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("subtyping %s is not supported", ManagedSet.class.getName()), context);
-        }
-        if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(typeVariables.get(0))) {
-            throw new InvalidManagedModelElementTypeException(type, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()), context);
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("subtyping %s is not supported", ManagedSet.class.getName()));
         }
 
-        ModelSchema<R> schema = createSchema(type, cache);
-        return new ModelSchemaExtractionResult<R>(schema, ImmutableList.of(new ManagedSetElementTypeExtractionContext(type, context)));
+        ModelType<?> elementType = typeVariables.get(0);
+
+        if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(elementType)) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
+        }
+
+        ModelSchema<R> schema = createSchema(extractionContext, cache);
+        return new ModelSchemaExtractionResult<R>(schema, ImmutableList.of(extractionContext.child(elementType, "element type")));
     }
 
-    private <R extends ManagedSet<?>> ModelSchema<R> createSchema(ModelType<R> type, ModelSchemaCache cache) {
+    private <R extends ManagedSet<?>> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
         ManagedSetInstantiator<R> elementInstantiator = new ManagedSetInstantiator<R>(cache);
-        return new ModelSchema<R>(type, elementInstantiator);
+        return new ModelSchema<R>(extractionContext.getType(), elementInstantiator);
     }
 
     private class ManagedSetInstantiator<S> implements Transformer<S, ModelSchema<S>> {

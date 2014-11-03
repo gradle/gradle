@@ -25,5 +25,5 @@ public interface ModelSchemaExtractionStrategy<T> {
 
     public Spec<? super ModelType<? extends T>> getSpec();
 
-    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelType<R> type, ModelSchemaCache cache, ModelSchemaExtractionContext context);
+    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache);
 }

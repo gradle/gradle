@@ -372,9 +372,9 @@ class ModelRuleInspectorTest extends Specification {
         e.message == "Declaration of model rule $inspected.name#bar($managedType.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type. The type was analyzed due to the following dependencies:
-${managedType.name}.managedWithNestedInvalidManagedType
-\\--- ${nestedManagedType.name}.invalidManaged
-     \\--- $invalidTypeName""")
+${managedType.name}
+\\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
+     \\--- property 'invalidManaged' ($invalidTypeName)""")
 
         where:
         inspected                                                   | managedType                                    | nestedManagedType
