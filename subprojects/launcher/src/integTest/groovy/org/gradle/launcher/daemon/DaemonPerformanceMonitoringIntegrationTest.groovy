@@ -24,30 +24,33 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         executer.requireIsolatedDaemons()
     }
 
-    def "leaky build is happy"() {
-        file("gradle.properties") << ("org.gradle.jvmargs=-Xmx30m"
+    def "when build leaks more than available memory the daemon is expired eagerly"() {
+        expect:
+        daemonIsExpiredEagerly("-Xmx30m")
+    }
+
+    def "when build leaks within available memory the daemon is not expired"() {
+        expect:
+        !daemonIsExpiredEagerly("-Xmx100m")
+    }
+
+    private boolean daemonIsExpiredEagerly(String xmx) {
+        file("gradle.properties") << ("org.gradle.jvmargs=$xmx"
                 + " -Dorg.gradle.caching.classloaders=true"
                 + " -Dorg.gradle.daemon.performance.logging=true")
 
-        when:
-        def daemonsUsed = runManyLeakyBuilds(20)
-
-        then:
-        daemonsUsed > 1  //feature actually works and expires tired daemons
-        daemonsUsed <= 5 //feature does not fork new daemon for each build
-    }
-
-    //invokes leaky build x times and returns number of daemons used
-    private int runManyLeakyBuilds(int x) {
         setupLeakyBuild()
         int newDaemons = 0
-        for (int i = 0; i < x; i++) {
+        for (int i = 0; i < 10; i++) {
             def r = run()
             if (r.output.contains("Starting build in new daemon [memory: ")) {
                 newDaemons++;
             }
+            if (newDaemons > 1) {
+                return true
+            }
         }
-        newDaemons
+        return false
     }
 
     private void setupLeakyBuild() {
@@ -57,11 +60,12 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
             class Counter {
                 static int x
             }
-            Counter.x ++
+            Counter.x++
 
+            //simulate the leak, with each build local map will be bigger
             def map = [:]
             (Counter.x * 1000).times {
-                map.put(it, "foo" * 200)
+                map.put(it, "foo" * 400)
             }
 
             println "Build: " + Counter.x
