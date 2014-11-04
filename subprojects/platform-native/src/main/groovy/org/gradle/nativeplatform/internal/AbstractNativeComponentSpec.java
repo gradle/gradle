@@ -15,73 +15,20 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.Action;
+import com.google.common.collect.Sets;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.PolymorphicDomainObjectContainer;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.ObjectFile;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.TransformationFileType;
+import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.GUtil;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
-    private final FunctionalSourceSet mainSourceSet;
-    private final ComponentSpecIdentifier id;
-    private final DomainObjectSet<BinarySpec> binaries;
-    private final DomainObjectSet<NativeBinarySpec> nativeBinaries;
-    private final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
-
+public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, ComponentSpecInternal {
     private String baseName;
-
-    public AbstractNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
-        this.mainSourceSet = mainSourceSet;
-        this.id = id;
-        this.binaries = new DefaultDomainObjectSet<BinarySpec>(NativeBinarySpec.class);
-        this.nativeBinaries = this.binaries.withType(NativeBinarySpec.class);
-        this.inputTypes.add(ObjectFile.class);
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    public String getName() {
-        return id.getName();
-    }
-
-    public String getProjectPath() {
-        return id.getProjectPath();
-    }
-
-    public FunctionalSourceSet getSources() {
-        return mainSourceSet;
-    }
-
-    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
-        action.execute(mainSourceSet);
-    }
-
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
-    }
-
-    public DomainObjectSet<BinarySpec> getBinaries() {
-        return binaries;
-    }
-
-    public DomainObjectSet<NativeBinarySpec> getNativeBinaries() {
-        return nativeBinaries;
-    }
 
     public String getBaseName() {
         return GUtil.elvis(baseName, getName());
@@ -91,8 +38,13 @@ public abstract class AbstractNativeComponentSpec implements NativeComponentSpec
         this.baseName = baseName;
     }
 
+    public DomainObjectSet<NativeBinarySpec> getNativeBinaries() {
+        return getBinaries().withType(NativeBinarySpec.class);
+    }
 
     public Set<Class<? extends TransformationFileType>> getInputTypes() {
+        Set<Class<? extends TransformationFileType>> inputTypes = Sets.newHashSet();
+        inputTypes.add(ObjectFile.class);
         return inputTypes;
     }
 }

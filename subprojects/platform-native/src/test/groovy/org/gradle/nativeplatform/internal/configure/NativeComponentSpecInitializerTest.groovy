@@ -29,11 +29,13 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
+    def instantiator = new DirectInstantiator()
     def toolChains = Mock(NativeToolChainRegistryInternal)
     def toolChain = Mock(NativeToolChainInternal)
     def toolProvider = Mock(PlatformToolProvider)
@@ -46,7 +48,7 @@ class NativeComponentSpecInitializerTest extends Specification {
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator(), Stub(ProjectSourceSet));
-    def component = new DefaultNativeExecutableSpec(id, mainSourceSet)
+    def component = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
 
     def "does not use variant dimension names for single valued dimensions"() {
         def platforms = Mock(PlatformContainer)

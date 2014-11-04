@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ class DefaultNativeComponentTest extends Specification {
 
     def setup(){
         mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator(), Stub(ProjectSourceSet))
-        component = new TestNativeComponentSpec(id, mainSourceSet)
+        component = BaseComponentSpec.create(TestNativeComponentSpec, id, mainSourceSet, instantiator)
     }
 
     def "flavors can be chosen and will replace default flavor"() {
@@ -47,11 +47,7 @@ class DefaultNativeComponentTest extends Specification {
         component.chooseFlavors([flavor("flavor1"), flavor("flavor2"), flavor("flavor3"), flavor("flavor4")] as Set)*.name == ["flavor1", "flavor2", "flavor3"]
     }
 
-    class TestNativeComponentSpec extends AbstractTargetedNativeComponentSpec {
-        TestNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet mainSourceSet) {
-            super(id, mainSourceSet)
-        }
-
+    static class TestNativeComponentSpec extends AbstractTargetedNativeComponentSpec {
         String getDisplayName() {
             return "test component"
         }

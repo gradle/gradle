@@ -24,6 +24,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class NativeLibrarySpecFactory implements NamedDomainObjectFactory<NativeLibrarySpec> {
@@ -40,6 +41,6 @@ public class NativeLibrarySpecFactory implements NamedDomainObjectFactory<Native
     public NativeLibrarySpec create(String name) {
         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
         FunctionalSourceSet languageSourceSets = instantiator.newInstance(DefaultFunctionalSourceSet.class, name, instantiator, sources);
-        return instantiator.newInstance(DefaultNativeLibrarySpec.class, id, languageSourceSets);
+        return BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, languageSourceSets, instantiator);
     }
 }

@@ -15,20 +15,13 @@
  */
 package org.gradle.nativeplatform.test.cunit.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec implements CUnitTestSuiteSpec, ComponentSpecInternal {
-    private final NativeComponentSpec testedComponent;
-
-    public DefaultCUnitTestSuiteSpec(ComponentSpecIdentifier id, NativeComponentSpec testedComponent, FunctionalSourceSet sourceSet) {
-        super(id, sourceSet);
-        this.testedComponent = testedComponent;
-    }
+    private NativeComponentSpec testedComponent;
 
     public String getDisplayName() {
         return String.format("cunit test suite '%s'", getName());
@@ -36,5 +29,9 @@ public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec imple
 
     public NativeComponentSpec getTestedComponent() {
         return testedComponent;
+    }
+
+    public void setTestedComponent(NativeComponentSpec testedComponent) {
+        this.testedComponent = testedComponent;
     }
 }

@@ -47,6 +47,7 @@ import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
@@ -90,7 +91,9 @@ public class CUnitPlugin implements Plugin<Project> {
             String path = testedComponent.getProjectPath();
             ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
             FunctionalSourceSet testSuiteSourceSet = createCUnitSources(instantiator, suiteName, projectSourceSet, fileResolver);
-            return instantiator.newInstance(DefaultCUnitTestSuiteSpec.class, id, testedComponent, testSuiteSourceSet);
+            CUnitTestSuiteSpec testSuiteSpec = BaseComponentSpec.create(DefaultCUnitTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
+            testSuiteSpec.setTestedComponent(testedComponent);
+            return testSuiteSpec;
         }
 
         private FunctionalSourceSet createCUnitSources(final Instantiator instantiator, final String suiteName, ProjectSourceSet projectSourceSet, final FileResolver fileResolver) {

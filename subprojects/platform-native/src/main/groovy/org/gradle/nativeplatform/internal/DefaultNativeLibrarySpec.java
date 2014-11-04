@@ -16,16 +16,10 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
-import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.nativeplatform.NativeLibrarySpec;
 
 public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements NativeLibrarySpec {
-    public DefaultNativeLibrarySpec(ComponentSpecIdentifier id, FunctionalSourceSet sourceSet) {
-        super(id, sourceSet);
-    }
-
     public String getDisplayName() {
         return String.format("native library '%s'", getName());
     }

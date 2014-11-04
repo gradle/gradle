@@ -24,6 +24,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.nativeplatform.NativeExecutableSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class NativeExecutableSpecFactory implements NamedDomainObjectFactory<NativeExecutableSpec> {
@@ -40,6 +41,6 @@ public class NativeExecutableSpecFactory implements NamedDomainObjectFactory<Nat
     public NativeExecutableSpec create(String name) {
         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
         FunctionalSourceSet languageSourceSets = instantiator.newInstance(DefaultFunctionalSourceSet.class, name, instantiator, sources);
-        return instantiator.newInstance(DefaultNativeExecutableSpec.class, id, languageSourceSets);
+        return BaseComponentSpec.create(DefaultNativeExecutableSpec.class, id, languageSourceSets, instantiator);
     }
 }
