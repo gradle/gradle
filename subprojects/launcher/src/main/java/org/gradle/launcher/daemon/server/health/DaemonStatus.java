@@ -28,7 +28,7 @@ class DaemonStatus {
     boolean isDaemonTired(DaemonStats stats) {
         String expireAt = System.getProperty(EXPIRE_AT_PROPERTY);
         int threshold = parseValue(expireAt, DEFAULT_EXPIRE_AT);
-        return threshold != 0 && stats.getMemoryUsed() == 100 && stats.getCurrentPerformance() <= threshold;
+        return threshold != 0 && stats.getCurrentPerformance() <= threshold;
     }
 
     private static int parseValue(String expireAt, int defaultValue) {

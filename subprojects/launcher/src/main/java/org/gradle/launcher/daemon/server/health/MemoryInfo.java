@@ -19,7 +19,13 @@ package org.gradle.launcher.daemon.server.health;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
-class GCStats {
+class MemoryInfo {
+
+    private final long totalMemory; //this does not change
+
+    MemoryInfo() {
+        totalMemory = Runtime.getRuntime().maxMemory();
+    }
 
     /**
      * Approx. time spent in gc. See {@link GarbageCollectorMXBean}
@@ -33,5 +39,23 @@ class GCStats {
             }
         }
         return garbageCollectionTime;
+    }
+
+    /**
+     * Max memory that this process can commit in bytes.
+     * Always returns the same value because maximum memory is determined at jvm start.
+     */
+    long getMaxMemory() {
+        return totalMemory;
+    }
+
+    /**
+     * Currently committed memory of this process in bytes.
+     * May return different value depending on how the heap has expanded.
+     * The returned value is <= {@link #getMaxMemory()}
+     */
+    long getCommittedMemory() {
+        //querying runtime for each invocation
+        return Runtime.getRuntime().totalMemory();
     }
 }
