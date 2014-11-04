@@ -61,7 +61,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private void useStandardConfig() {
         buildFile << """
             libraries {
-                hello {}
+                hello {
+                    targetPlatform "x86"
+                }
             }
 
             binaries.withType(CUnitTestSuiteBinarySpec) {
@@ -126,7 +128,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         buildFile << """
             libraries {
-                hello {}
+                hello {
+                    targetPlatform "x86"
+                }
             }
             model {
                 testSuites {
