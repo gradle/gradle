@@ -1174,8 +1174,9 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
             </sample>
             <para>
-                Note that a <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails"/> argument is <emphasis>always</emphasis> required when
-                declaring a component metadata rule but the Ivy metadata argument is optional.
+                Note that a <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails"/> argument is <emphasis>always</emphasis> required as the first
+                parameter when declaring a component metadata rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any
+                order.
             </para>
             <para>
                 Lastly, component metadata rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
@@ -1232,8 +1233,9 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="component-selection-with-metadata" />
             </sample>
             <para>
-                Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required when
-                declaring a component selection rule but the metadata arguments are optional.
+                Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required as the first
+                parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared
+                in any order.
             </para>
             <para>
                 Lastly, component selection rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
