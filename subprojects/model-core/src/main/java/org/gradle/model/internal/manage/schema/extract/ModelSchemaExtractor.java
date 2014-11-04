@@ -16,34 +16,47 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.List;
 import java.util.Queue;
 
+import static org.gradle.internal.SystemProperties.getLineSeparator;
+
 @ThreadSafe
 public class ModelSchemaExtractor {
 
-    private final static List<ModelSchemaExtractionStrategy<?>> EXTRACTION_STRATEGIES = ImmutableList.<ModelSchemaExtractionStrategy<?>>of(
-            new ManagedTypeModelSchemaExtractionStrategy(),
-            new ManagedSetSchemaExtractionStrategy(),
-            new UnmanagedTypeSchemaExtractionStrategy()
+    private final static List<ModelSchemaExtractionStrategy> EXTRACTION_STRATEGIES = ImmutableList.of(
+            new PrimitiveStrategy(),
+            new JdkValueTypeStrategy(),
+            new StructStrategy(),
+            new ManagedSetStrategy()
     );
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+        List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
         ModelSchemaExtractionContext<?> extractionContext = ModelSchemaExtractionContext.root(type);
+        validations.add(extractionContext);
+
         while (extractionContext != null) {
             ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, cache);
-            pushUnsatisfiedDependencies(nextSchema.getDependencies(), unsatisfiedDependencies, cache);
+            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = nextSchema.getDependencies();
+            Iterables.addAll(validations, dependencies);
+            pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
             extractionContext = unsatisfiedDependencies.poll();
+        }
+
+        for (ModelSchemaExtractionContext<?> validationContext : validations) {
+            validationContext.validate();
         }
 
         return cache.get(type);
@@ -64,21 +77,35 @@ public class ModelSchemaExtractor {
             return new ModelSchemaExtractionResult<T>(cached);
         }
 
-        ModelSchemaExtractionStrategy<?> strategy = Iterables.find(EXTRACTION_STRATEGIES, new Predicate<ModelSchemaExtractionStrategy<?>>() {
-            public boolean apply(ModelSchemaExtractionStrategy<?> candidate) {
-                if (candidate.getType().isAssignableFrom(type)) {
-                    ModelSchemaExtractionStrategy<? super T> castCandidate = Cast.uncheckedCast(candidate);
-                    return castCandidate.getSpec().isSatisfiedBy(type);
-                } else {
-                    return false;
-                }
+        for (ModelSchemaExtractionStrategy strategy : EXTRACTION_STRATEGIES) {
+            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, cache);
+            if (result != null) {
+                cache.set(type, result.getSchema());
+                return result;
             }
-        });
+        }
 
-        ModelSchemaExtractionStrategy<? super T> castStrategy = Cast.uncheckedCast(strategy);
-        ModelSchemaExtractionResult<T> schemaExtraction = castStrategy.extract(extractionContext, cache);
-        cache.set(type, schemaExtraction.getSchema());
-        return schemaExtraction;
+        throw new UnmanagedModelElementTypeException(extractionContext,
+                "type is unsupported." + getLineSeparator()
+                        + "The following types are supported:" + getLineSeparator()
+                        + getSupportedTypesString()
+        );
+    }
+
+    private String getSupportedTypesString() {
+        return Joiner.on(getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
+            public String apply(String input) {
+                return " - " + input;
+            }
+        }));
+    }
+
+    private Iterable<String> getSupportedTypes() {
+        return Iterables.concat(Iterables.transform(EXTRACTION_STRATEGIES, new Function<ModelSchemaExtractionStrategy, Iterable<String>>() {
+            public Iterable<String> apply(ModelSchemaExtractionStrategy input) {
+                return input.getSupportedTypes();
+            }
+        }));
     }
 
 }

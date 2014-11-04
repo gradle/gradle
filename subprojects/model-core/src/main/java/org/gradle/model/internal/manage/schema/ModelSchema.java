@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema;
 
 import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelType;
 
 import java.util.Collections;
@@ -26,17 +25,31 @@ import java.util.Collections;
 @ThreadSafe
 public class ModelSchema<T> {
 
-    private final ModelType<T> type;
-    private final ImmutableSortedMap<String, ModelProperty<?>> properties;
-    private final Transformer<T, ModelSchema<T>> instantiator;
-
-    public ModelSchema(ModelType<T> type, Transformer<T, ModelSchema<T>> elementInstantiator) {
-        this(type, Collections.<ModelProperty<?>>emptyList(), elementInstantiator);
+    public static enum Kind {
+        VALUE, // at the moment we are conflating this with unstructured primitives
+        COLLECTION,
+        STRUCT // type is guaranteed to be an interface
     }
 
-    public ModelSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Transformer<T, ModelSchema<T>> instantiator) {
+    private final ModelType<T> type;
+    private final Kind kind;
+    private final ImmutableSortedMap<String, ModelProperty<?>> properties;
+
+    public static <T> ModelSchema<T> value(ModelType<T> type) {
+        return new ModelSchema<T>(type, Kind.VALUE, Collections.<ModelProperty<?>>emptySet());
+    }
+
+    public static <T> ModelSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties) {
+        return new ModelSchema<T>(type, Kind.STRUCT, properties);
+    }
+
+    public static <T> ModelSchema<T> collection(ModelType<T> type) {
+        return new ModelSchema<T>(type, Kind.COLLECTION, Collections.<ModelProperty<?>>emptySet());
+    }
+
+    private ModelSchema(ModelType<T> type, Kind kind, Iterable<ModelProperty<?>> properties) {
         this.type = type;
-        this.instantiator = instantiator;
+        this.kind = kind;
 
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
@@ -49,11 +62,12 @@ public class ModelSchema<T> {
         return type;
     }
 
+    public Kind getKind() {
+        return kind;
+    }
+
     public ImmutableSortedMap<String, ModelProperty<?>> getProperties() {
         return properties;
     }
 
-    public T createInstance() {
-        return instantiator.transform(this);
-    }
 }

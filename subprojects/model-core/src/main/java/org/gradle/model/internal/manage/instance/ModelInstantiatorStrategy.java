@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.state;
+package org.gradle.model.internal.manage.instance;
 
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.api.Nullable;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
-public class UnexpectedModelPropertyTypeException extends RuntimeException{
+public interface ModelInstantiatorStrategy {
 
-    public UnexpectedModelPropertyTypeException(String propertyName, ModelType<?> owner, ModelType<?> expected, ModelType<?> actual) {
-        super(String.format("Expected property '%s' for type '%s' to be of type '%s' but it actually is of type '%s'", propertyName, owner, expected, actual));
-    }
+    @Nullable
+    <T> T newInstance(ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator instantiator);
+
 }

@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.Lists;
-import org.gradle.internal.SystemProperties;
 import org.gradle.model.internal.core.ModelType;
 
 import java.io.PrintWriter;
@@ -27,7 +26,7 @@ import java.util.Deque;
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
     private static String createPathString(ModelSchemaExtractionContext<?> extractionContext) {
-        StringBuilder prefix = new StringBuilder();
+        StringBuilder prefix = new StringBuilder("  ");
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
 
@@ -46,7 +45,8 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
             writer.print(descriptions.pop());
 
             if (!descriptions.isEmpty()) {
-                prefix.append(SystemProperties.getLineSeparator()).append("     ");
+                writer.println();
+                prefix.append("  ");
             }
         }
 
@@ -60,9 +60,11 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
         writer.print("Invalid managed model type " + type + ": " + message);
 
         if (extractionContext.getParent() != null) {
-            writer.println(". The type was analyzed due to the following dependencies:");
+            writer.println();
+            writer.println("The type was analyzed due to the following dependencies:");
             writer.print(createPathString(extractionContext));
         }
+
         return out.toString();
     }
 

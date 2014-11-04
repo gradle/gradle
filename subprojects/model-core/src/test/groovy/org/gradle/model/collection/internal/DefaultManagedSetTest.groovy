@@ -19,23 +19,29 @@ package org.gradle.model.collection.internal
 import org.gradle.internal.Factory
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.manage.instance.DefaultModelInstantiator
 import org.gradle.model.internal.manage.schema.ModelSchema
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaCache
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import spock.lang.Specification
 
 class DefaultManagedSetTest extends Specification {
 
+    def schemaStore = new DefaultModelSchemaStore()
+    def instantiator = new DefaultModelInstantiator(schemaStore)
+
     @Managed
     static interface Person {
         String getName()
+
         void setName(String name)
     }
 
     def <T> DefaultManagedSet<T> createManagedSet(Class<T> elementClass) {
-        ModelSchema<T> schema = new ModelSchemaExtractor().extract(ModelType.of(elementClass), new ModelSchemaCache())
+        ModelSchema<T> elementSchema = schemaStore.getSchema(ModelType.of(elementClass))
         Factory<T> factory = Mock(Factory) {
-            create() >> { schema.createInstance() }
+            create() >> {
+                instantiator.newInstance(elementSchema)
+            }
         }
         new DefaultManagedSet<T>(factory)
     }

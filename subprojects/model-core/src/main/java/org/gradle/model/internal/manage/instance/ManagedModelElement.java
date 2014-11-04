@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.state;
+package org.gradle.model.internal.manage.instance;
 
 import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;

@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.api.Nullable;
 
-public interface ModelSchemaExtractionStrategy<T> {
+public interface ModelSchemaExtractionStrategy {
 
-    public ModelType<T> getType();
+    @Nullable
+    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
 
-    public Spec<? super ModelType<? extends T>> getSpec();
+    Iterable<String> getSupportedTypes();
 
-    public <R extends T> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache);
 }

@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 public class UnmanagedModelElementTypeException extends InvalidManagedModelElementTypeException {
-    public UnmanagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext) {
-        super(extractionContext, "not a managed type");
+    public UnmanagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
+        super(extractionContext, message);
     }
 }

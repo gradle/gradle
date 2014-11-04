@@ -26,8 +26,6 @@ import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-import static ManagedTypeModelSchemaExtractionStrategy.SUPPORTED_UNMANAGED_TYPES
-
 class ModelSchemaExtractorTest extends Specification {
 
     def extractor = new ModelSchemaExtractor()
@@ -36,7 +34,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "has to be annotated with @Managed"() {
         expect:
-        fail NotAnnotatedInterface, Pattern.quote("not a managed type")
+        fail NotAnnotatedInterface, Pattern.quote("type is unsupported")
     }
 
     @Managed
@@ -90,7 +88,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "must be symmetrical"() {
         expect:
-        fail OnlyGetter, "no corresponding setter"
+        fail OnlyGetter, "read only property 'name' has non managed type java.lang.String, only managed types can be used"
     }
 
     @Managed
@@ -177,8 +175,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "only selected unmanaged property types are allowed"() {
         expect:
-        fail NonStringProperty,
-                Pattern.quote("$Object.name is not a supported property type, only managed and the following unmanaged types are supported: ${SUPPORTED_UNMANAGED_TYPES.join(", ")} (method: getName)")
+        fail NonStringProperty, Object, Pattern.quote("type is unsupported")
     }
 
     @Managed
@@ -190,8 +187,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "byte property types are not allowed and there is no suggested replacement"() {
         expect:
-        fail BytePrimitiveProperty,
-                Pattern.quote("byte is not a supported property type, only managed and the following unmanaged types are supported: ${SUPPORTED_UNMANAGED_TYPES.join(", ")} (method: getByteProperty)")
+        fail BytePrimitiveProperty, byte.class, Pattern.quote("type is unsupported")
     }
 
     @Unroll
@@ -202,24 +198,24 @@ class ModelSchemaExtractorTest extends Specification {
 
             @Managed
             interface PrimitiveProperty {
-                $primitiveType getPrimitiveProperty()
+                $primitiveType.name getPrimitiveProperty()
 
-                void setPrimitiveProperty($primitiveType value)
+                void setPrimitiveProperty($primitiveType.name value)
             }
         """
 
         then:
-        fail interfaceWithPrimitiveProperty, Pattern.quote("$primitiveType is not a supported property type, use $boxedType.name instead (method: getPrimitiveProperty)")
+        fail interfaceWithPrimitiveProperty, primitiveType, Pattern.quote("type is not supported, please use $boxedType.name instead")
 
         where:
         primitiveType | boxedType
-        "boolean"     | Boolean
-        "char"        | Integer
-        "float"       | Double
-        "long"        | Long
-        "short"       | Integer
-        "int"         | Integer
-        "double"      | Double
+        boolean.class | Boolean
+        char.class    | Integer
+        float.class   | Double
+        long.class    | Long
+        short.class   | Integer
+        int.class     | Integer
+        double.class  | Double
 
     }
 
@@ -350,9 +346,14 @@ class ModelSchemaExtractorTest extends Specification {
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $Object.name: not a managed type. The type was analyzed due to the following dependencies:
+        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $Object.name: type is unsupported.
+The following types are supported:
+ - JDK value types: String, Boolean, Integer, Long, Double, BigInteger, BigDecimal
+ - interfaces annotated with org.gradle.model.Managed
+ - org.gradle.model.collection.ManagedSet<?> of a managed type
+The type was analyzed due to the following dependencies:
 $type
-\\--- element type ($Object.name)""")
+  \\--- element type ($Object.name)""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
@@ -364,9 +365,10 @@ $type
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName]). The type was analyzed due to the following dependencies:
+        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName]).
+The type was analyzed due to the following dependencies:
 $type
-\\--- element type ($SetterOnly.name)""")
+  \\--- element type ($SetterOnly.name)""")
     }
 
     interface SpecialManagedSet<T> extends ManagedSet<T> {}
@@ -387,22 +389,26 @@ $type
         fail type, "$ManagedSet.name cannot be used as type parameter of $ManagedSet.name"
     }
 
+    private void fail(extractType, String msgPattern) {
+        fail(extractType, extractType, msgPattern)
+    }
+
+    private void fail(extractType, errorType, String msgPattern) {
+        try {
+            extract(extractType)
+            throw new AssertionError("schema extraction from ${getName(extractType)} should failed with message: $msgPattern")
+        } catch (InvalidManagedModelElementTypeException e) {
+            assert e.message.startsWith("Invalid managed model type ${getName(errorType)}: ")
+            assert e.message =~ msgPattern
+        }
+    }
+
     private ModelSchema<?> extract(ModelType<?> modelType) {
         extractor.extract(modelType, new ModelSchemaCache())
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {
         extract(ModelType.of(clazz))
-    }
-
-    private void fail(def clazzOrModelType, String msgPattern) {
-        try {
-            extract(clazzOrModelType)
-            throw new AssertionError("schema extraction from ${getName(clazzOrModelType)} should failed with message: $msgPattern")
-        } catch (InvalidManagedModelElementTypeException e) {
-            assert e.message.startsWith("Invalid managed model type ${getName(clazzOrModelType)}: ")
-            assert e.message =~ msgPattern
-        }
     }
 
     private String getName(ModelType<?> modelType) {

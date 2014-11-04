@@ -22,7 +22,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -254,5 +256,33 @@ public abstract class ModelType<T> {
                 throw new IllegalStateException("T for Parameter<T> MUST be a type variable");
             }
         }
+    }
+
+    public static abstract class Specs {
+
+        public static Spec<ModelType<?>> isAssignableTo(final ModelType<?> type) {
+            return new Spec<ModelType<?>>() {
+                public boolean isSatisfiedBy(ModelType<?> element) {
+                    return type.isAssignableFrom(element);
+                }
+            };
+        }
+
+        public static Spec<ModelType<?>> isAssignableFrom(final ModelType<?> type) {
+            return new Spec<ModelType<?>>() {
+                public boolean isSatisfiedBy(ModelType<?> element) {
+                    return element.isAssignableFrom(type);
+                }
+            };
+        }
+
+        public static Spec<ModelType<?>> isAssignableToAny(final Iterable<ModelType<?>> types) {
+            return new Spec<ModelType<?>>() {
+                public boolean isSatisfiedBy(ModelType<?> element) {
+                    return CollectionUtils.any(types, isAssignableFrom(element));
+                }
+            };
+        }
+
     }
 }

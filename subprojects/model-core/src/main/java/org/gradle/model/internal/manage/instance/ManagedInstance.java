@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.manage.instance;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.model.internal.core.ModelType;
-
-public abstract class AbstractModelSchemaExtractionStrategy<T> implements ModelSchemaExtractionStrategy<T> {
-
-    private final ModelType<T> type = new ModelType<T>(getClass()) {
-    };
-
-    public ModelType<T> getType() {
-        return type;
-    }
-
-    public Spec<? super ModelType<? extends T>> getSpec() {
-        return Specs.satisfyAll();
-    }
+/**
+ * A marker interface that is implemented by instances of managed model types
+ */
+public interface ManagedInstance {
 }

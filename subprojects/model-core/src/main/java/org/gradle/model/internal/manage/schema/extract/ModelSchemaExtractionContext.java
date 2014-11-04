@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Actions;
 import org.gradle.model.internal.core.ModelType;
 
 public class ModelSchemaExtractionContext<T> {
@@ -24,15 +26,17 @@ public class ModelSchemaExtractionContext<T> {
     private final ModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
+    private final Action<? super ModelSchemaExtractionContext<T>> validator;
 
-    private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description) {
+    private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchemaExtractionContext<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
+        this.validator = validator;
     }
 
     public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
-        return new ModelSchemaExtractionContext<T>(null, type, null);
+        return new ModelSchemaExtractionContext<T>(null, type, null, Actions.doNothing());
     }
 
     /**
@@ -52,6 +56,15 @@ public class ModelSchemaExtractionContext<T> {
     }
 
     public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description) {
-        return new ModelSchemaExtractionContext<C>(this, type, description);
+        return child(type, description, Actions.doNothing());
     }
+
+    public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchemaExtractionContext<C>> validator) {
+        return new ModelSchemaExtractionContext<C>(this, type, description, validator);
+    }
+
+    public void validate() {
+        validator.execute(this);
+    }
+
 }

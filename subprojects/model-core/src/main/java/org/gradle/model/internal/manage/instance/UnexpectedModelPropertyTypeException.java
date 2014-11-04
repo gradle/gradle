@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.state;
+package org.gradle.model.internal.manage.instance;
 
-/**
- * A marker interface that is implemented by instances of managed model types
- */
-public interface ManagedInstance {
+import org.gradle.model.internal.core.ModelType;
+
+public class UnexpectedModelPropertyTypeException extends RuntimeException{
+
+    public UnexpectedModelPropertyTypeException(String propertyName, ModelType<?> owner, ModelType<?> expected, ModelType<?> actual) {
+        super(String.format("Expected property '%s' for type '%s' to be of type '%s' but it actually is of type '%s'", propertyName, owner, expected, actual));
+    }
 }

@@ -18,8 +18,10 @@ package org.gradle.model.internal.manage.state
 
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.manage.schema.extract.ExtractingModelSchemaStore
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
+import org.gradle.model.internal.manage.instance.DefaultModelInstantiator
+import org.gradle.model.internal.manage.instance.ManagedModelElement
+import org.gradle.model.internal.manage.instance.UnexpectedModelPropertyTypeException
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,14 +29,15 @@ import java.beans.Introspector
 
 class ManagedModelElementTest extends Specification {
 
-    def schemas = new ExtractingModelSchemaStore(new ModelSchemaExtractor())
+    def schemas = new DefaultModelSchemaStore()
+    def instantiator = new DefaultModelInstantiator(schemas)
 
     def <T> ManagedModelElement<T> createElement(Class<T> elementClass) {
         new ManagedModelElement<MultipleProps>(schemas.getSchema(ModelType.of(elementClass)))
     }
 
     def <T> T createInstance(Class<T> elementClass) {
-        schemas.getSchema(ModelType.of(elementClass)).createInstance()
+        instantiator.newInstance(schemas.getSchema(ModelType.of(elementClass)))
     }
 
     @Managed

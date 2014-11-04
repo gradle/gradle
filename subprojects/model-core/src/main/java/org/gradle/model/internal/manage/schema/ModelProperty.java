@@ -17,8 +17,6 @@
 package org.gradle.model.internal.manage.schema;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelType;
 
 @ThreadSafe
@@ -26,22 +24,16 @@ public class ModelProperty<T> {
 
     private final String name;
     private final ModelType<T> type;
-    private final Factory<T> initialValueProvider;
-    private final boolean managed;
+    private final boolean writable;
 
-    public ModelProperty(String name, ModelType<T> type) {
-        this(name, type, false);
-    }
-
-    public ModelProperty(String name, ModelType<T> type, boolean managed) {
-        this(name, type, managed, Factories.<T>constantNull());
-    }
-
-    public ModelProperty(String name, ModelType<T> type, boolean managed, Factory<T> initialValueProvider) {
+    private ModelProperty(ModelType<T> type, String name, boolean writable) {
         this.name = name;
         this.type = type;
-        this.initialValueProvider = initialValueProvider;
-        this.managed = managed;
+        this.writable = writable;
+    }
+
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable) {
+        return new ModelProperty<T>(type, name, writable);
     }
 
     public String getName() {
@@ -52,11 +44,8 @@ public class ModelProperty<T> {
         return type;
     }
 
-    public boolean isManaged() {
-        return managed;
+    public boolean isWritable() {
+        return writable;
     }
 
-    public T getInitialValue() {
-        return initialValueProvider.create();
-    }
 }

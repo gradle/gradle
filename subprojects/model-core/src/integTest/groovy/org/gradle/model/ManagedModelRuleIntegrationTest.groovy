@@ -92,7 +92,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Declaration of model rule RulePlugin#createPerson(Person) is invalid")
-        failure.assertHasCause("Invalid managed model type Person: no corresponding setter for getter (method: getName)")
+        failure.assertHasCause("Invalid managed model type Person: read only property 'name' has non managed type java.lang.String, only managed types can be used")
     }
 
     def "provides a useful error message when setting an incompatible type on a managed instance in Groovy"() {

@@ -19,10 +19,10 @@ package org.gradle.model.internal.manage.schema.extract
 import org.gradle.model.internal.core.ModelType
 import spock.lang.Specification
 
-class ExtractingModelSchemaStoreTest extends Specification {
+class DefaultModelSchemaStoreTest extends Specification {
 
     def "can get schema"() {
-        def store = new ExtractingModelSchemaStore(new ModelSchemaExtractor())
+        def store = new DefaultModelSchemaStore()
 
         // intentionally use two different “instances” of the same type
         def type1 = ModelType.of(SimpleManagedType)

@@ -22,15 +22,10 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 @NotThreadSafe
-public class ExtractingModelSchemaStore implements ModelSchemaStore {
+public class DefaultModelSchemaStore implements ModelSchemaStore {
 
     private final ModelSchemaCache cache = new ModelSchemaCache();
-    private final ModelSchemaExtractor extractor;
-
-    public ExtractingModelSchemaStore(ModelSchemaExtractor extractor) {
-        this.extractor = extractor;
-    }
-
+    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
         return extractor.extract(type, cache);

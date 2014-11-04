@@ -314,6 +314,7 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(NonManagedVoidReturning, registry, dependencies)
 
         then:
+
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$NonManagedVoidReturning.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument"
     }
@@ -332,7 +333,7 @@ class ModelRuleInspectorTest extends Specification {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule $InvalidManagedVoidReturning.name#bar($ManagedAnnotatedClass.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface"
+        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface."
     }
 
     static class NoArgumentVoidReturning {
@@ -371,10 +372,11 @@ class ModelRuleInspectorTest extends Specification {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule $inspected.name#bar($managedType.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type. The type was analyzed due to the following dependencies:
+        e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
+The type was analyzed due to the following dependencies:
 ${managedType.name}
-\\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
-     \\--- property 'invalidManaged' ($invalidTypeName)""")
+  \\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
+    \\--- property 'invalidManaged' ($invalidTypeName)""")
 
         where:
         inspected                                                   | managedType                                    | nestedManagedType

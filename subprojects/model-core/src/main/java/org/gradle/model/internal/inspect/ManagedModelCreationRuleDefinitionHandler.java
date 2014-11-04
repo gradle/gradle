@@ -22,12 +22,13 @@ import org.gradle.api.specs.Spec;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.extract.ExtractingModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
+import org.gradle.model.internal.manage.instance.DefaultModelInstantiator;
+import org.gradle.model.internal.manage.instance.ModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.extract.UnmanagedModelElementTypeException;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
+import org.gradle.model.internal.manage.schema.extract.UnmanagedModelElementTypeException;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -35,7 +36,8 @@ import java.util.List;
 @NotThreadSafe
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final ModelSchemaStore store = new ExtractingModelSchemaStore(new ModelSchemaExtractor());
+    private final ModelSchemaStore store = new DefaultModelSchemaStore();
+    private final ModelInstantiator modelInstantiator = new DefaultModelInstantiator(store);
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());
@@ -70,7 +72,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        Transformer<T, Inputs> transformer = new ManagedModelRuleInvokerBackedTransformer<T>(modelSchema, ruleDefinition.getRuleInvoker(), inputs);
+        Transformer<T, Inputs> transformer = new ManagedModelRuleInvokerBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), inputs);
         return ModelCreators.of(ModelReference.of(modelPath, managedType), transformer)
                 .descriptor(descriptor)
                 .inputs(inputs)
@@ -91,17 +93,19 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
     private static class ManagedModelRuleInvokerBackedTransformer<T> implements Transformer<T, Inputs> {
 
         private final ModelSchema<T> modelSchema;
+        private final ModelInstantiator modelInstantiator;
         private final ModelRuleInvoker<?> ruleInvoker;
         private final List<ModelReference<?>> inputReferences;
 
-        private ManagedModelRuleInvokerBackedTransformer(ModelSchema<T> modelSchema, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences) {
+        private ManagedModelRuleInvokerBackedTransformer(ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences) {
+            this.modelInstantiator = modelInstantiator;
             this.ruleInvoker = ruleInvoker;
             this.inputReferences = inputReferences;
             this.modelSchema = modelSchema;
         }
 
         public T transform(Inputs inputs) {
-            T instance = modelSchema.createInstance();
+            T instance = modelInstantiator.newInstance(modelSchema);
             Object[] args = new Object[inputs.size() + 1];
             args[0] = instance;
             for (int i = 0; i < inputs.size(); i++) {
