@@ -62,6 +62,6 @@ public class GeneratedArchiveBuildOutcomeComparisonResult extends BuildOutcomeCo
     }
 
     public boolean isOutcomesAreIdentical() {
-        return getComparisonResultType().equals(ComparisonResultType.EQUAL);
+        return getComparisonResultType().equals(ComparisonResultType.EQUAL) || getComparisonResultType().equals(ComparisonResultType.NON_EXISTENT);
     }
 }

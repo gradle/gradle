@@ -68,22 +68,18 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
             }
         });
 
-        SortedSet<ArchiveEntryComparison> entryComparisons = new TreeSet<ArchiveEntryComparison>(new Comparator<ArchiveEntryComparison>() {
-            public int compare(ArchiveEntryComparison o1, ArchiveEntryComparison o2) {
-                return o1.getPath().compareTo(o2.getPath());
-            }
-        });
+        SortedSet<ArchiveEntryComparison> entryComparisons = new TreeSet<ArchiveEntryComparison>();
 
         for (ArchiveEntry sourceOnly : diff.leftOnly) {
-            entryComparisons.add(new ArchiveEntryComparison(sourceOnly.getPath(), sourceOnly, null));
+            entryComparisons.add(new ArchiveEntryComparison(sourceOnly.getSortPath(), sourceOnly.getPath(), sourceOnly, null));
         }
 
         for (CollectionUtils.SetDiff.Pair<ArchiveEntry> pair : diff.common) {
-            entryComparisons.add(new ArchiveEntryComparison(pair.left.getPath(), pair.left, pair.right));
+            entryComparisons.add(new ArchiveEntryComparison(pair.left.getSortPath(), pair.left.getPath(), pair.left, pair.right));
         }
 
         for (ArchiveEntry targetOnly : diff.rightOnly) {
-            entryComparisons.add(new ArchiveEntryComparison(targetOnly.getPath(), null, targetOnly));
+            entryComparisons.add(new ArchiveEntryComparison(targetOnly.getSortPath(), targetOnly.getPath(), null, targetOnly));
         }
 
         return new GeneratedArchiveBuildOutcomeComparisonResult(association, entryComparisons);

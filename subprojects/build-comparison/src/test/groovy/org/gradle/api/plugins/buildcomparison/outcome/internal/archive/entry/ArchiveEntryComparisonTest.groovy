@@ -25,12 +25,13 @@ class ArchiveEntryComparisonTest extends Specification {
         new ArchiveEntry(attrs)
     }
 
+    def sortPath
     def path
     def from = entry(path: path, size: 10)
     def to = entry(path: path, size: 10)
 
-    ArchiveEntryComparison comparison(String path = path, ArchiveEntry from = from, ArchiveEntry to = to) {
-        new ArchiveEntryComparison(path, from, to)
+    ArchiveEntryComparison comparison(String sortPath = sortPath, String path = path, ArchiveEntry from = from, ArchiveEntry to = to) {
+        new ArchiveEntryComparison(sortPath, path, from, to)
     }
 
 
@@ -58,7 +59,7 @@ class ArchiveEntryComparisonTest extends Specification {
         comparison().comparisonResultType == ComparisonResultType.SOURCE_ONLY
     }
 
-    def "from or to must be null"() {
+    def "from or to must be non null"() {
         given:
         from = null
         to = null
@@ -68,5 +69,44 @@ class ArchiveEntryComparisonTest extends Specification {
 
         then:
         thrown IllegalArgumentException
+    }
+
+    def comparable() {
+        given:
+        sortPath = "a"
+        def a = comparison()
+        sortPath = "b"
+        def b = comparison()
+
+        expect:
+        a.compareTo(b) < 0
+        b.compareTo(a) > 0
+
+        when:
+        sortPath = null
+        path = "a"
+        b = comparison()
+
+        then:
+        a.compareTo(b) == 0
+        b.compareTo(a) == 0
+
+        when:
+        sortPath = "A"
+        path = null
+        b = comparison()
+
+        then:
+        a.compareTo(b) == 0
+        b.compareTo(a) == 0
+
+        when:
+        a = b
+        sortPath = "b"
+        b = comparison()
+
+        then:
+        a.compareTo(b) < 0
+        b.compareTo(a) > 0
     }
 }

@@ -16,12 +16,25 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry;
 
+import java.util.Collection;
+import java.util.Collections;
+
 public class ArchiveEntry {
 
+    private String sortPath;
     private String path;
     private boolean directory;
     private long size = -1;
     private long crc = -1;
+    private Collection<ArchiveEntry> subEntries;
+
+    public String getSortPath() {
+        return sortPath;
+    }
+
+    public void setSortPath(String sortPath) {
+        this.sortPath = sortPath;
+    }
 
     public String getPath() {
         return path;
@@ -55,6 +68,14 @@ public class ArchiveEntry {
         this.crc = crc;
     }
 
+    public Collection<ArchiveEntry> getSubEntries() {
+        return subEntries == null ? Collections.<ArchiveEntry>emptyList() : subEntries;
+    }
+
+    public void setSubEntries(Collection<ArchiveEntry> subEntries) {
+        this.subEntries = subEntries;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -66,13 +87,18 @@ public class ArchiveEntry {
 
         ArchiveEntry that = (ArchiveEntry) o;
 
-        if (crc != that.crc) {
+        if (subEntries != null ? !subEntries.equals(that.subEntries) : that.subEntries != null) {
+            return false;
+        }
+        // if there are subEntries and they are equal, ignore the crc
+        if ((crc != that.crc) && (subEntries == null)) {
             return false;
         }
         if (directory != that.directory) {
             return false;
         }
-        if (size != that.size) {
+        // if there are subEntries and they are equal, ignore the size
+        if ((size != that.size) && (subEntries == null)) {
             return false;
         }
         //noinspection RedundantIfStatement
@@ -87,8 +113,12 @@ public class ArchiveEntry {
     public int hashCode() {
         int result = path != null ? path.hashCode() : 0;
         result = 31 * result + (directory ? 1 : 0);
-        result = 31 * result + (int) (size ^ (size >>> 32));
-        result = 31 * result + (int) (crc ^ (crc >>> 32));
+        // if there are subEntries and they are equal, ignore the size and crc
+        if (subEntries == null) {
+            result = 31 * result + (int) (size ^ (size >>> 32));
+            result = 31 * result + (int) (crc ^ (crc >>> 32));
+        }
+        result = 31 * result + (subEntries != null ? subEntries.hashCode() : 0);
         return result;
     }
 }

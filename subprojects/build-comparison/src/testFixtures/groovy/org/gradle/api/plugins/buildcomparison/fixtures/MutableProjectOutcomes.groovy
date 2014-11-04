@@ -59,7 +59,7 @@ class MutableProjectOutcomes implements ProjectOutcomes {
             }
 
             String getTaskPath() {
-                "$path:$taskName"
+                taskName ? "$path:$taskName" : ''
             }
 
             String getTypeIdentifier() {

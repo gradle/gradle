@@ -60,6 +60,7 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
         given:
         ProjectOutcomesBuilder builder = new ProjectOutcomesBuilder()
         ProjectOutcomes projectOutput = builder.build(dir.testDirectory) {
+            addFile "preBuilt.jar", UNKNOWN_ARTIFACT.typeIdentifier, ""
             createChild("a") {
                 addFile "a1", JAR_ARTIFACT.typeIdentifier
             }
@@ -83,8 +84,8 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
         def outcomes = transformer.transform(projectOutput).collectEntries { [it.name, it] }
 
         then:
-        outcomes.size() == 5
-        outcomes.keySet().toList().sort() == [":a:a1", ":b:b1", ":b:b2", ":c:a:ca1", ":c:a:ca2"]
+        outcomes.size() == 6
+        outcomes.keySet().toList().sort() == [":a:a1", ":b:b1", ":b:b2", ":c:a:ca1", ":c:a:ca2", "preBuilt.jar"]
         outcomes[":a:a1"] instanceof GeneratedArchiveBuildOutcome
         outcomes[":a:a1"].archiveFile.name == "a1"
         outcomes[":b:b1"] instanceof GeneratedArchiveBuildOutcome
@@ -92,6 +93,7 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
         outcomes[":b:b2"] instanceof GeneratedArchiveBuildOutcome
         outcomes[":c:a:ca1"] instanceof GeneratedArchiveBuildOutcome
         outcomes[":c:a:ca2"] instanceof UnknownBuildOutcome
+        outcomes["preBuilt.jar"] instanceof UnknownBuildOutcome
     }
 
     List<GradleBuildOutcome> allBuildOutcomes(ProjectOutcomes outcomes, List<GradleBuildOutcome> collector = []) {

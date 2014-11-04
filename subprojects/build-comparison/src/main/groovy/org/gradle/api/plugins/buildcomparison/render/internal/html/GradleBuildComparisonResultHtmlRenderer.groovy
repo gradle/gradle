@@ -67,8 +67,8 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             body {
                 div("class": "text-container") {
                     renderHeading(result, context)
-                    renderOutcomeComparisons(result, context)
                     renderUncomparedOutcomes(result, context)
+                    renderOutcomeComparisons(result, context)
                 }
             }
         }
@@ -88,15 +88,16 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                 h2 "Uncompared ${side} outcomes"
                 p "Uncompared ${side} build outcomes are outcomes that were not matched with a ${other} build outcome."
 
+                def sortedUncompareds = uncompareds.sort { it.name }
                 ol {
-                    for (uncompared in uncompareds) {
+                    for (uncompared in sortedUncompareds) {
                         li {
-                            a(href: "#${uncompared.name}", uncompared.name)
+                            a("class": context.diffClass(false), href: "#${uncompared.name}", uncompared.name)
                         }
                     }
                 }
 
-                for (uncompared in uncompareds) {
+                for (uncompared in sortedUncompareds) {
                     BuildOutcomeRenderer renderer = outcomeRenderers.getRenderer(uncompared.getClass())
 
                     if (renderer == null) {
@@ -116,24 +117,50 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             h2 "Compared build outcomes"
             p "Compared build outcomes are outcomes that have been identified as being intended to be the same between the target and source build."
 
+            def comparisons = result.comparisons.sort { name it }
             ol {
-                for (comparison in result.comparisons) {
-                    li {
-                        // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
-                        a("class": context.diffClass(comparison.outcomesAreIdentical), href: "#${name(comparison)}", name(comparison))
+                for (comparison in comparisons) {
+                    if (!comparison.outcomesAreIdentical) {
+                        li {
+                            // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
+                            a("class": context.diffClass(comparison.outcomesAreIdentical), href: "#${name(comparison)}", name(comparison))
+                        }
+                    }
+                }
+                for (comparison in comparisons) {
+                    if (comparison.outcomesAreIdentical) {
+                        li {
+                            // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
+                            a("class": context.diffClass(true), href: "#${name(comparison)}", name(comparison))
+                        }
                     }
                 }
             }
 
-            for (BuildOutcomeComparisonResult comparison in result.comparisons) {
-                BuildOutcomeComparisonResultRenderer renderer = comparisonRenderers.getRenderer(comparison.getClass())
+            for (BuildOutcomeComparisonResult comparison in comparisons) {
+                if (!comparison.outcomesAreIdentical) {
+                    BuildOutcomeComparisonResultRenderer renderer = comparisonRenderers.getRenderer(comparison.getClass())
 
-                if (renderer == null) {
-                    throw new IllegalArgumentException(String.format("Cannot find renderer for build outcome comparison result type: %s", comparison.getClass()))
+                    if (renderer == null) {
+                        throw new IllegalArgumentException(String.format("Cannot find renderer for build outcome comparison result type: %s", comparison.getClass()))
+                    }
+
+                    div("class": "build-outcome-comparison text-container", id: name(comparison)) {
+                        renderer.render(comparison, context)
+                    }
                 }
+            }
+            for (BuildOutcomeComparisonResult comparison in comparisons) {
+                if (comparison.outcomesAreIdentical) {
+                    BuildOutcomeComparisonResultRenderer renderer = comparisonRenderers.getRenderer(comparison.getClass())
 
-                div("class": "build-outcome-comparison text-container", id: name(comparison)) {
-                    renderer.render(comparison, context)
+                    if (renderer == null) {
+                        throw new IllegalArgumentException(String.format("Cannot find renderer for build outcome comparison result type: %s", comparison.getClass()))
+                    }
+
+                    div("class": "build-outcome-comparison text-container", id: name(comparison)) {
+                        renderer.render(comparison, context)
+                    }
                 }
             }
         }
