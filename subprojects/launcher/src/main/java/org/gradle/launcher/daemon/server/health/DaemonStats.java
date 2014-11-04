@@ -27,7 +27,9 @@ class DaemonStats {
 
     private final Clock totalTime;
     private final TimeProvider timeProvider;
-    private final MemoryInfo memory;
+    private final GCStats gcStats;
+    private final long committedMemory;
+    private final long maxMemory;
 
     private int buildCount;
     private long currentBuildStart;
@@ -35,13 +37,16 @@ class DaemonStats {
     private int currentPerformance;
 
     DaemonStats() {
-        this(new Clock(), new TrueTimeProvider(), new MemoryInfo());
+        this(Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory(),
+                new Clock(), new TrueTimeProvider(), new GCStats());
     }
 
-    DaemonStats(Clock startTime, TimeProvider timeProvider, MemoryInfo memory) {
+    DaemonStats(long committedMemory, long maxMemory, Clock startTime, TimeProvider timeProvider, GCStats gcStats) {
+        this.committedMemory = committedMemory;
+        this.maxMemory = maxMemory;
         this.totalTime = startTime;
         this.timeProvider = timeProvider;
-        this.memory = memory;
+        this.gcStats = gcStats;
     }
 
     /**
@@ -57,12 +62,12 @@ class DaemonStats {
      */
     void buildFinished() {
         allBuildsTime += timeProvider.getCurrentTime() - currentBuildStart;
-        currentPerformance = performance(allBuildsTime, memory);
+        currentPerformance = performance(allBuildsTime, gcStats);
     }
 
-    private static int performance(long totalTime, MemoryInfo memoryInfo) {
+    private static int performance(long totalTime, GCStats gcStats) {
         //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
-        return 100 - NumberUtil.percentOf(memoryInfo.getCollectionTime(), totalTime);
+        return 100 - NumberUtil.percentOf(gcStats.getCollectionTime(), totalTime);
     }
 
     /**
@@ -77,10 +82,10 @@ class DaemonStats {
      */
     String getHealthInfo() {
         if (buildCount == 1) {
-            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memory.getMaxMemory()));
+            return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(maxMemory));
         } else {
             return format("Starting %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), currentPerformance, getMemoryUsed(), NumberUtil.formatBytes(memory.getMaxMemory()));
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), currentPerformance, getMemoryUsed(), NumberUtil.formatBytes(maxMemory));
         }
     }
 
@@ -88,6 +93,6 @@ class DaemonStats {
      * 0-100, the percentage of memory used of total memory available to the process
      */
     int getMemoryUsed() {
-        return NumberUtil.percentOf(memory.getCommittedMemory(), memory.getMaxMemory());
+        return NumberUtil.percentOf(committedMemory, maxMemory);
     }
 }

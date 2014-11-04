@@ -24,12 +24,10 @@ class DaemonStatsTest extends Specification {
 
     def clock = Stub(Clock)
     def time = Stub(TimeProvider)
-    def memory = Stub(MemoryInfo)
+    def gcStats = Stub(GCStats)
 
     def "consumes first build"() {
-        def stats = new DaemonStats(clock, Stub(TimeProvider), memory)
-        memory.getCommittedMemory() >> 5000000
-        memory.getMaxMemory() >> 10000000
+        def stats = new DaemonStats(5000000, 10000000, clock, Stub(TimeProvider), gcStats)
 
         when:
         stats.buildStarted()
@@ -42,12 +40,9 @@ class DaemonStatsTest extends Specification {
     def "consumes subsequent builds"() {
         clock.getTime() >> "3 mins"
         time.getCurrentTime() >>> [1, 1001]
+        gcStats.getCollectionTime() >> 25
 
-        memory.getCollectionTime() >> 25
-        memory.getCommittedMemory() >> 5000000
-        memory.getMaxMemory() >> 10000000
-
-        def stats = new DaemonStats(clock, time, memory)
+        def stats = new DaemonStats(5000000, 10000000, clock, time, gcStats)
 
         when:
         stats.buildStarted()
