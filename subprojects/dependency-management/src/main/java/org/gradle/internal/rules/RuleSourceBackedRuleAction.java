@@ -16,6 +16,7 @@
 
 package org.gradle.internal.rules;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -46,25 +47,39 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
                 return element.isAnnotationPresent(Mutate.class);
             }
         });
-        if (mutateMethods.size() != 1) {
-            throw invalid(ruleSourceType, "must have at exactly one method annotated with @Mutate");
+        List<String> reasons = Lists.newArrayList();
+
+        if (mutateMethods.size() == 0) {
+            reasons.add("must have at exactly one method annotated with @Mutate");
+        } else {
+            if (mutateMethods.size() > 1) {
+                reasons.add("more than one method is annotated with @Mutate");
+            }
+
+            for (Method ruleMethod : mutateMethods) {
+                if (ruleMethod.getReturnType() != Void.TYPE) {
+                    reasons.add(String.format("rule method '%s' must return void", ruleMethod.getName()));
+                }
+                Type[] parameterTypes = ruleMethod.getGenericParameterTypes();
+                if (parameterTypes.length == 0 || !subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
+                    reasons.add(String.format("first parameter of rule method '%s' must be of type %s", ruleMethod.getName(), subjectType));
+                }
+            }
         }
-        Method ruleMethod = mutateMethods.get(0);
-        if (ruleMethod.getReturnType() != Void.TYPE) {
-            throw invalid(ruleSourceType, "rule method must return void");
+
+        if (reasons.size() > 0) {
+            throw invalid(ruleSourceType, reasons);
         }
-        Type[] parameterTypes = ruleMethod.getGenericParameterTypes();
-        if (parameterTypes.length == 0) {
-            throw invalid(ruleSourceType, "rule method must have at least one parameter");
-        }
-        if (!subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
-            throw invalid(ruleSourceType, String.format("first parameter of rule method must be of type %s", subjectType));
-        }
-        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), ruleMethod));
+
+        return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), mutateMethods.get(0)));
     }
 
-    private static RuntimeException invalid(ModelType<?> source, String reason) {
-        return new InvalidModelRuleDeclarationException("Type " + source + " is not a valid model rule source: " + reason);
+    private static RuntimeException invalid(ModelType<?> source, List<String> reasons) {
+        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid model rule source: ", source));
+        for (String reason : reasons) {
+            errorString.append(String.format("\n- %s", reason));
+        }
+        return new InvalidModelRuleDeclarationException(errorString.toString());
     }
 
     public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {
