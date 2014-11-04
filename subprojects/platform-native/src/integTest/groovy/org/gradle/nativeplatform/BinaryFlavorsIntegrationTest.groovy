@@ -209,7 +209,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
 
         then:
         fails "germanMainExecutable"
-        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatforms.defaultName}', buildType: 'debug']")
+        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatforms.defaultPlatformName}', buildType: 'debug']")
     }
 
     def "fails with reasonable error message when trying to target an unknown flavor"() {

@@ -208,6 +208,6 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         fails "releaseMainExecutable"
 
         then:
-        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatforms.defaultName}', buildType: 'release']")
+        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatforms.defaultPlatformName}', buildType: 'release']")
     }
 }

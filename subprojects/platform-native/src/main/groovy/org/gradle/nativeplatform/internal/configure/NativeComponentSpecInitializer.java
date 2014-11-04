@@ -56,7 +56,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
         List<String> targetPlatformNames = targetedComponent.getTargetPlatforms();
         if (targetPlatformNames.isEmpty()) {
-            targetPlatformNames = Collections.singletonList(NativePlatforms.getDefaultName());
+            targetPlatformNames = Collections.singletonList(NativePlatforms.getDefaultPlatformName());
         }
         List<NativePlatform> targetPlatforms = platforms.chooseFromTargets(NativePlatform.class, targetPlatformNames);
 

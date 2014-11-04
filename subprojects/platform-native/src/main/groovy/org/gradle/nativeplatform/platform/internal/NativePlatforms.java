@@ -91,7 +91,7 @@ public class NativePlatforms {
         return String.format("%s_%s", os, arch);
     }
 
-    public static String getDefaultName() {
+    public static String getDefaultPlatformName() {
         NativePlatformInternal defaultPlatform = new DefaultNativePlatform("default");
         OperatingSystemInternal os = defaultPlatform.getOperatingSystem();
         ArchitectureInternal architecture = defaultPlatform.getArchitecture();

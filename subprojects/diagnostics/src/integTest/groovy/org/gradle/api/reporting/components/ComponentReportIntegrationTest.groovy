@@ -27,7 +27,7 @@ class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
-    private String currentNative = NativePlatforms.defaultName
+    private String currentNative = NativePlatforms.defaultPlatformName
     //TODO freekh: this test feels completely uneccessary. The reason is that each time we change how we want the report to be, we have to update the test. It still hasn't actually caught an actual error
     //SF - I generally agree. If there is some interesting logic that is useful to validate at the level of report content, I would cover it in unit tests. I would probably leave one smoke integration test for the report contents.
 

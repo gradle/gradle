@@ -60,7 +60,7 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultName}'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation."))
     }
 
@@ -79,7 +79,7 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultName}'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation."))
     }
 }
