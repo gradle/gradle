@@ -36,6 +36,7 @@ public class ModelSchemaExtractor {
 
     private final static List<ModelSchemaExtractionStrategy> EXTRACTION_STRATEGIES = ImmutableList.of(
             new PrimitiveStrategy(),
+            new EnumStrategy(),
             new JdkValueTypeStrategy(),
             new StructStrategy(),
             new ManagedSetStrategy()

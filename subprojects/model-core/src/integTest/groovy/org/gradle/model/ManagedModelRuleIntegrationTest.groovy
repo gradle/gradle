@@ -587,4 +587,56 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Rules#s(java.lang.String) is not a valid model rule method: a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.")
     }
 
+    def "can use enums in managed model elements"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            enum Gender {
+                FEMALE, MALE, OTHER
+            }
+
+            @Managed
+            interface Person {
+              String getName()
+              void setName(String string)
+
+              Gender getGender()
+              void setGender(Gender gender)
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void p1(Person p1) {}
+            }
+
+            apply type: Rules
+
+            model {
+              p1 {
+                gender = "MALE" // relying on Groovy enum coercion here
+              }
+
+              tasks {
+                create("printGender") {
+                  it.doLast {
+                    println "gender: " + $("p1").gender
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printGender"
+
+        and:
+        output.contains 'gender: MALE'
+    }
+
 }

@@ -347,6 +347,7 @@ class ModelSchemaExtractorTest extends Specification {
         InvalidManagedModelElementTypeException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $Object.name: type is unsupported.
 The following types are supported:
+ - enum types
  - JDK value types: String, Boolean, Integer, Long, Double, BigInteger, BigDecimal
  - interfaces annotated with org.gradle.model.Managed
  - org.gradle.model.collection.ManagedSet<?> of a managed type
@@ -404,6 +405,16 @@ $type
         expect:
         fail MyBigInteger, Pattern.quote("subclasses of java.math.BigInteger are not supported")
         fail MyBigDecimal, Pattern.quote("subclasses of java.math.BigDecimal are not supported")
+    }
+
+    static enum MyEnum {
+        A,B,C
+    }
+
+    def "can extract enum"() {
+        expect:
+        extract(MyEnum).kind == ModelSchema.Kind.VALUE
+        extract(MyEnum).properties.isEmpty()
     }
 
     private void fail(extractType, String msgPattern) {
