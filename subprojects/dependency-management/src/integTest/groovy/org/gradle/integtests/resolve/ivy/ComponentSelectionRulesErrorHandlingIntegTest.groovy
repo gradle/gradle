@@ -41,7 +41,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(19)
-        failure.assertHasCause("Could not apply component selection rule.")
+        failure.assertHasCause("There was an error while evaluating a component selection rule.")
         failure.assertHasCause("Could not find method foo()")
     }
 
@@ -98,7 +98,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(18)
-        failure.assertHasCause("Could not apply component selection rule.")
+        failure.assertHasCause("There was an error while evaluating a component selection rule.")
         failure.assertHasCause("From test")
     }
 
@@ -188,7 +188,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(30)
-        failure.assertHasCause("Could not apply component selection rule.")
+        failure.assertHasCause("There was an error while evaluating a component selection rule.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 }

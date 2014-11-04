@@ -237,7 +237,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "Could not apply component selection rule."
+        e.message == "There was an error while evaluating a component selection rule."
         e.cause.message == "From test"
     }
 

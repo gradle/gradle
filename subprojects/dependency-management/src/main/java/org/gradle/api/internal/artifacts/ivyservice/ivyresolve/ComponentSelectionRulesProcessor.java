@@ -35,7 +35,7 @@ import java.util.List;
 
 public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
-    private static final String USER_CODE_ERROR = "Could not apply component selection rule.";
+    private static final String USER_CODE_ERROR = "There was an error while evaluating a component selection rule.";
 
     private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs = new Spec<SpecRuleAction<? super ComponentSelection>>() {
         public boolean isSatisfiedBy(SpecRuleAction<? super ComponentSelection> element) {

@@ -92,22 +92,24 @@ class RuleSourceBackedRuleActionTest extends Specification {
         action = RuleSourceBackedRuleAction.create(listType, ruleSource)
 
         then:
-        def e = thrown InvalidModelRuleDeclarationException
-        e.message.startsWith("Type ${ruleSource.class.name} is not a valid model rule source:")
-        def messageReasons = getReasons(e.message)
+        def e = thrown RuleActionValidationException
+        def cause = e.cause
+        cause instanceof InvalidModelRuleDeclarationException
+        cause.message.startsWith("Type ${ruleSource.class.name} is not a valid model rule source:")
+        def messageReasons = getReasons(cause.message)
         messageReasons.size() == reasons.size()
         messageReasons.sort() == reasons.sort()
 
         where:
         ruleSource                                | reasons
-        new RuleSourceWithNoMethod()              | [ "must have at exactly one method annotated with @Mutate" ]
-        new RuleSourceWithNoMutateMethod()        | [ "must have at exactly one method annotated with @Mutate" ]
-        new RuleSourceWithMultipleMutateMethods() | [ "more than one method is annotated with @Mutate" ]
+        new RuleSourceWithNoMethod()              | [ "must have at exactly one method annotated with @org.gradle.model.Mutate" ]
+        new RuleSourceWithNoMutateMethod()        | [ "must have at exactly one method annotated with @org.gradle.model.Mutate" ]
+        new RuleSourceWithMultipleMutateMethods() | [ "more than one method is annotated with @org.gradle.model.Mutate" ]
         new RuleSourceWithDifferentSubjectClass() | [ "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>" ]
         new RuleSourceWithDifferentSubjectType()  | [ "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>" ]
         new RuleSourceWithNoSubject()             | [ "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>" ]
         new RuleSourceWithReturnValue()           | [ "rule method 'theRule' must return void" ]
-        new RuleSourceWithMultipleIssues()        | [ "more than one method is annotated with @Mutate", "rule method 'theRule' must return void", "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>", "first parameter of rule method 'anotherRule' must be of type java.util.List<java.lang.String>" ]
+        new RuleSourceWithMultipleIssues()        | [ "more than one method is annotated with @org.gradle.model.Mutate", "rule method 'theRule' must return void", "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>", "first parameter of rule method 'anotherRule' must be of type java.util.List<java.lang.String>" ]
     }
 
     def getReasons(String message) {
@@ -120,6 +122,7 @@ class RuleSourceBackedRuleActionTest extends Specification {
         }
         return reasons
     }
+
     static class RuleSourceWithNoMethod {}
 
     static class RuleSourceWithNoMutateMethod {

@@ -50,10 +50,10 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         List<String> reasons = Lists.newArrayList();
 
         if (mutateMethods.size() == 0) {
-            reasons.add("must have at exactly one method annotated with @Mutate");
+            reasons.add("must have at exactly one method annotated with @org.gradle.model.Mutate");
         } else {
             if (mutateMethods.size() > 1) {
-                reasons.add("more than one method is annotated with @Mutate");
+                reasons.add("more than one method is annotated with @org.gradle.model.Mutate");
             }
 
             for (Method ruleMethod : mutateMethods) {
@@ -79,7 +79,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         for (String reason : reasons) {
             errorString.append(String.format("\n- %s", reason));
         }
-        return new InvalidModelRuleDeclarationException(errorString.toString());
+        return new RuleActionValidationException(null, new InvalidModelRuleDeclarationException(errorString.toString()));
     }
 
     public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {
