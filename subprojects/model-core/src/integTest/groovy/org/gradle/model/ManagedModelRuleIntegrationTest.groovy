@@ -564,4 +564,27 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains 'people: p1, p2, p3'
     }
+
+    def "cannot use value type as subject of void model rule"() {
+        given:
+        when:
+        buildScript '''
+            import org.gradle.model.*
+
+            @RuleSource
+            class Rules {
+              @Model
+              void s(String s) {}
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Rules#s(java.lang.String) is not a valid model rule method: a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.")
+    }
+
 }

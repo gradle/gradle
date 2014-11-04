@@ -68,6 +68,10 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
     private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition, ModelPath modelPath) {
         ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
+        if (modelSchema.getKind().equals(ModelSchema.Kind.VALUE)) {
+            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
+        }
+
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
