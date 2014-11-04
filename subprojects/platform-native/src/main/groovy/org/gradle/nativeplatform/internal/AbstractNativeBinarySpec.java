@@ -16,13 +16,6 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.PolymorphicDomainObjectContainer;
-import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -30,6 +23,7 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
@@ -38,88 +32,63 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelElement implements NativeBinarySpecInternal {
-    private final NativeComponentSpec component;
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
+public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DefaultTool linker = new DefaultTool();
     private final DefaultTool staticLibArchiver = new DefaultTool();
     private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
-    private final PlatformToolProvider toolProvider;
-    private final BinaryNamingScheme namingScheme;
-    private final Flavor flavor;
-    private final NativeToolChain toolChain;
-    private final NativePlatform targetPlatform;
-    private final BuildType buildType;
-    private final NativeDependencyResolver resolver;
-    private boolean buildable;
-
-    protected AbstractNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, NativeToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform targetPlatform,
-                                       BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        this.component = owner;
-        this.toolProvider = toolProvider;
-        this.namingScheme = namingScheme;
-        this.flavor = flavor;
-        this.toolChain = toolChain;
-        this.targetPlatform = targetPlatform;
-        this.buildType = buildType;
-        this.buildable = true;
-        this.resolver = resolver;
-        setBinarySources(((ComponentSpecInternal) component).getSources().copy(namingScheme.getLifecycleTaskName()));
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
+    private NativeComponentSpec component;
+    private PlatformToolProvider toolProvider;
+    private BinaryNamingScheme namingScheme;
+    private Flavor flavor;
+    private NativeToolChain toolChain;
+    private NativePlatform targetPlatform;
+    private BuildType buildType;
+    private NativeDependencyResolver resolver;
 
     public String getDisplayName() {
         return namingScheme.getDescription();
-    }
-
-    public String getName() {
-        return namingScheme.getLifecycleTaskName();
     }
 
     public NativeComponentSpec getComponent() {
         return component;
     }
 
+    public void setComponent(NativeComponentSpec component) {
+        this.component = component;
+        setBinarySources(((ComponentSpecInternal) component).getSources().copy(getName()));
+    }
+
     public Flavor getFlavor() {
         return flavor;
+    }
+
+    public void setFlavor(Flavor flavor) {
+        this.flavor = flavor;
     }
 
     public NativeToolChain getToolChain() {
         return toolChain;
     }
 
+    public void setToolChain(NativeToolChain toolChain) {
+        this.toolChain = toolChain;
+    }
+
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
+    }
+
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = targetPlatform;
     }
 
     public BuildType getBuildType() {
         return buildType;
     }
 
-    public FunctionalSourceSet getBinarySources() {
-        return sourceSets.getMainSources();
-    }
-
-    public void setBinarySources(FunctionalSourceSet sources) {
-        sourceSets.setMainSources(sources);
-    }
-
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets.getSources();
-    }
-
-    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
-        action.execute(sourceSets.getMainSources());
-    }
-
-    // TODO:DAZ Remove this
-    public void source(Object source) {
-        sourceSets.source(source);
+    public void setBuildType(BuildType buildType) {
+        this.buildType = buildType;
     }
 
     public Tool getLinker() {
@@ -140,6 +109,10 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
 
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
+    }
+
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
     }
 
     public Collection<NativeDependencySet> getLibs() {
@@ -172,17 +145,11 @@ public abstract class AbstractNativeBinarySpec extends AbstractBuildableModelEle
         return toolProvider;
     }
 
-    public boolean isBuildable() {
-        return buildable;
+    public void setPlatformToolProvider(PlatformToolProvider toolProvider) {
+        this.toolProvider = toolProvider;
     }
 
-    public void setBuildable(boolean buildable) {
-        this.buildable = buildable;
+    public void setResolver(NativeDependencyResolver resolver) {
+        this.resolver = resolver;
     }
-
-    public boolean isLegacyBinary() {
-        return false;
-    }
-
-
 }

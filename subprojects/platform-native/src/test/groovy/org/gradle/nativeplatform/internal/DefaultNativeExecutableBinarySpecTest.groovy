@@ -15,11 +15,11 @@
  */
 
 package org.gradle.nativeplatform.internal
-
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
+import org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
@@ -30,14 +30,15 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
+    def instantiator = new DirectInstantiator()
     def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
 
     def "has useful string representation"() {
         given:
-        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"), new DefaultFunctionalSourceSet("name", new DirectInstantiator(), Stub(ProjectSourceSet)), new DirectInstantiator())
+        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"), new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
 
         when:
-        def binary = new DefaultNativeExecutableBinarySpec(executable, new DefaultFlavor("flavorOne"), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativePlatform), Stub(BuildType), namingScheme, Mock(NativeDependencyResolver))
+        def binary = DefaultNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, instantiator, executable, namingScheme, Mock(NativeDependencyResolver), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
 
         then:
         binary.toString() == "executable 'bigOne:executable'"

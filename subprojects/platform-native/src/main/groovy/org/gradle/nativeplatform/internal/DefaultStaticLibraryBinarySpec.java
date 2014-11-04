@@ -18,15 +18,7 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinary;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,11 +29,6 @@ import java.util.Set;
 public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private File staticLibraryFile;
-
-    public DefaultStaticLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider, NativePlatform platform,
-                                          BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(library, flavor, toolChain, toolProvider, platform, buildType, namingScheme, resolver);
-    }
 
     public File getStaticLibraryFile() {
         return staticLibraryFile;

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.internal
-
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
@@ -29,10 +28,11 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
+
+import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
 
 class NativeBinarySpecTest extends Specification {
     def instantiator = new DirectInstantiator()
@@ -183,7 +183,7 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestNativeBinarySpec(owner, flavor, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
+        return create(TestNativeBinarySpec, instantiator, owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, flavor)
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {
@@ -192,14 +192,8 @@ class NativeBinarySpecTest extends Specification {
         }
     }
 
-    class TestNativeBinarySpec extends AbstractNativeBinarySpec {
+   static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
-
-        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider, NativePlatform targetPlatform, BuildType buildType,
-                   BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-            super(owner, flavor, toolChain, toolProvider, targetPlatform, buildType, namingScheme, resolver)
-            this.owner = owner
-        }
 
         String getOutputFileName() {
             return null

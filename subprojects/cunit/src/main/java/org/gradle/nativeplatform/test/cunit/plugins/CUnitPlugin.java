@@ -168,7 +168,7 @@ public class CUnitPlugin implements Plugin<Project> {
 
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
-            return instantiator.newInstance(DefaultCUnitTestSuiteBinary.class, cUnitTestSuite, testedBinary, namingScheme, resolver);
+            return DefaultCUnitTestSuiteBinary.create(cUnitTestSuite, (NativeBinarySpecInternal) testedBinary, namingScheme, resolver, instantiator);
         }
 
         private void configure(DefaultCUnitTestSuiteBinary testBinary, File buildDir) {
