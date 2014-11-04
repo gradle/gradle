@@ -216,7 +216,6 @@ class ModelSchemaExtractorTest extends Specification {
         short.class   | Integer
         int.class     | Integer
         double.class  | Double
-
     }
 
     @Managed
@@ -387,6 +386,24 @@ $type
 
         expect:
         fail type, "$ManagedSet.name cannot be used as type parameter of $ManagedSet.name"
+    }
+
+    static class MyBigInteger extends BigInteger {
+        MyBigInteger(String s) {
+            super(s)
+        }
+    }
+
+    static class MyBigDecimal extends BigDecimal {
+        MyBigDecimal(String s) {
+            super(s)
+        }
+    }
+
+    def "cannot subclass non final value type"() {
+        expect:
+        fail MyBigInteger, Pattern.quote("subclasses of java.math.BigInteger are not supported")
+        fail MyBigDecimal, Pattern.quote("subclasses of java.math.BigDecimal are not supported")
     }
 
     private void fail(extractType, String msgPattern) {

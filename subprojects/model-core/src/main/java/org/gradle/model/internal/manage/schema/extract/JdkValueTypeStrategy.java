@@ -30,8 +30,7 @@ import java.util.List;
 
 public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
 
-    // Assuming that all types in this list are immutable and final
-    public final static List<ModelType<?>> SUPPORTED_TYPES = ImmutableList.<ModelType<?>>of(
+    private final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
             ModelType.of(String.class),
             ModelType.of(Boolean.class),
             ModelType.of(Integer.class),
@@ -41,17 +40,29 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
             ModelType.of(BigDecimal.class)
     );
 
+    // Expected to be a subset of above
+    private final static List<ModelType<?>> NON_FINAL_TYPES = ImmutableList.<ModelType<?>>of(
+            ModelType.of(BigInteger.class),
+            ModelType.of(BigDecimal.class)
+    );
+
     public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
         ModelType<R> type = extractionContext.getType();
-        if (SUPPORTED_TYPES.contains(type)) {
+        if (TYPES.contains(type)) {
             return new ModelSchemaExtractionResult<R>(ModelSchema.value(type));
         } else {
+            for (ModelType<?> nonFinalType : NON_FINAL_TYPES) {
+                if (nonFinalType.isAssignableFrom(type)) {
+                    throw new InvalidManagedModelElementTypeException(extractionContext, "subclasses of " + nonFinalType + " are not supported");
+                }
+            }
+
             return null;
         }
     }
 
     public Iterable<String> getSupportedTypes() {
-        return Collections.singleton("JDK value types: " + Joiner.on(", ").join(Iterables.transform(SUPPORTED_TYPES, new Function<ModelType<?>, Object>() {
+        return Collections.singleton("JDK value types: " + Joiner.on(", ").join(Iterables.transform(TYPES, new Function<ModelType<?>, Object>() {
             public Object apply(ModelType<?> input) {
                 return input.getRawClass().getSimpleName();
             }
