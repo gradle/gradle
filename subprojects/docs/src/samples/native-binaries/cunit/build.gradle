@@ -27,7 +27,9 @@ model {
 }
 
 libraries {
-    operators {}
+    operators {
+        targetPlatform "x86"
+    }
 }
 // START SNIPPET configure-test-binary
 binaries.withType(CUnitTestSuiteBinarySpec) {
