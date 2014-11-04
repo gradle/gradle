@@ -279,12 +279,15 @@ model {
     platforms {
         osx {
             operatingSystem "osx"
+            architecture "x86"
         }
         windows {
             operatingSystem "windows"
+            architecture "x86"
         }
         linux {
             operatingSystem "linux"
+            architecture "x86"
         }
     }
     components {
@@ -301,11 +304,11 @@ binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
 
         then:
         if (os.windows) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 windows" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "i386 windows" * 2
         } else if (os.linux) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 linux" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "i386 linux" * 2
         } else if (os.macOsX) {
-            executable("build/binaries/mainExecutable/main").exec().out == "amd64 os x" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "i386 os x" * 2
         } else {
             throw new AssertionError("Unexpected operating system")
         }
