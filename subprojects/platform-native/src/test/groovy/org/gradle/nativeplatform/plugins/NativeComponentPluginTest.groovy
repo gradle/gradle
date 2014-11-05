@@ -15,8 +15,9 @@
  */
 
 package org.gradle.nativeplatform.plugins
-
 import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -33,7 +34,11 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link and install task for executable"() {
         when:
-        project.executables.create "test"
+        project.model {
+            components {
+                test(NativeExecutableSpec)
+            }
+        }
         project.evaluate()
 
         then:
@@ -57,7 +62,11 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link task and static archive task for library"() {
         when:
-        project.libraries.create "test"
+        project.model {
+            components {
+                test(NativeLibrarySpec)
+            }
+        }
         project.evaluate()
 
         then:

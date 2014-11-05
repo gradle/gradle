@@ -59,8 +59,12 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds default flavor to every binary"() {
         when:
-        project.executables.create "exe"
-        project.libraries.create "lib"
+        project.model {
+            components {
+                exe(NativeExecutableSpec)
+                lib(NativeLibrarySpec)
+            }
+        }
         project.evaluate()
 
         then:
@@ -95,11 +99,17 @@ class NativeComponentModelPluginTest extends Specification {
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
-        def executable = project.executables.create "test"
-        executable.targetPlatforms "platform"
+        project.model {
+            components {
+                test(NativeExecutableSpec) {
+                    targetPlatform "platform"
+                }
+            }
+        }
         project.evaluate()
 
         then:
+        NativeExecutableSpec executable = one(project.componentSpecs) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'testExecutable'
@@ -123,11 +133,17 @@ class NativeComponentModelPluginTest extends Specification {
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
-        def library = project.libraries.create "test"
-        library.targetPlatforms "platform"
+        project.model {
+            components {
+                test(NativeLibrarySpec) {
+                    targetPlatform "platform"
+                }
+            }
+        }
         project.evaluate()
 
         then:
+        NativeLibrarySpec library = one(project.componentSpecs) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'testSharedLibrary'
@@ -159,8 +175,12 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates lifecycle task for each binary"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
-        def executable = project.executables.create "exe"
-        def library = project.libraries.create "lib"
+        project.model {
+            components {
+                exe(NativeExecutableSpec)
+                lib(NativeLibrarySpec)
+            }
+        }
         project.evaluate()
 
         then:

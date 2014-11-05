@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.cunit
-
 import org.gradle.language.c.plugins.CPlugin
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
+import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.TestSuiteContainer
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitPlugin
 import org.gradle.util.TestUtil
@@ -27,12 +27,14 @@ class CUnitTest extends Specification {
     final def project = TestUtil.createRootProject();
 
     def "check the correct binary type are created for the test suite"() {
-        given:
-        project.apply(plugin: CPlugin)
-        project.libraries.create("main")
-
         when:
+        project.apply(plugin: CPlugin)
         project.apply(plugin: CUnitPlugin)
+        project.model {
+            components {
+                main(NativeLibrarySpec)
+            }
+        }
         project.evaluate()
 
         then:
