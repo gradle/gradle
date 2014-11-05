@@ -23,6 +23,8 @@ import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -39,11 +41,12 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         when:
         dsl {
             apply plugin: pluginClass
-            executables {
-                exe {}
-            }
-            libraries {
-                lib {}
+
+            model {
+                components {
+                    exe(NativeExecutableSpec)
+                    lib(NativeLibrarySpec)
+                }
             }
         }
 
@@ -74,30 +77,30 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         given:
         dsl {
             apply plugin: pluginClass
-            libraries{
-                lib {
-                    sources {
-                        "$pluginName" {
-                            source {
-                                srcDirs "d3"
-                            }
-                            exportedHeaders {
-                                srcDirs "h3"
+
+            model {
+                components {
+                    lib(NativeLibrarySpec) {
+                        sources {
+                            "$pluginName" {
+                                source {
+                                    srcDirs "d3"
+                                }
+                                exportedHeaders {
+                                    srcDirs "h3"
+                                }
                             }
                         }
                     }
-                }
-            }
-
-            executables {
-                exe {
-                    sources {
-                        "$pluginName" {
-                            source {
-                                srcDirs "d1", "d2"
-                            }
-                            exportedHeaders {
-                                srcDirs "h1", "h2"
+                    exe(NativeExecutableSpec) {
+                        sources {
+                            "$pluginName" {
+                                source {
+                                    srcDirs "d1", "d2"
+                                }
+                                exportedHeaders {
+                                    srcDirs "h1", "h2"
+                                }
                             }
                         }
                     }
@@ -125,16 +128,18 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         touch("src/test/anotherOne/file.o")
         dsl {
             apply plugin: pluginClass
-            executables {
-                test {
-                    binaries.all { NativeBinary binary ->
-                        binary."${pluginName}Compiler".define "NDEBUG"
-                        binary."${pluginName}Compiler".define "LEVEL", "1"
-                        binary."${pluginName}Compiler".args "ARG1", "ARG2"
-                    }
-                    sources {
-                        anotherOne(sourceSetClass) {}
-                        emptyOne(sourceSetClass) {}
+            model {
+                components {
+                    test(NativeExecutableSpec) {
+                        binaries.all { NativeBinary binary ->
+                            binary."${pluginName}Compiler".define "NDEBUG"
+                            binary."${pluginName}Compiler".define "LEVEL", "1"
+                            binary."${pluginName}Compiler".args "ARG1", "ARG2"
+                        }
+                        sources {
+                            anotherOne(sourceSetClass) {}
+                            emptyOne(sourceSetClass) {}
+                        }
                     }
                 }
             }

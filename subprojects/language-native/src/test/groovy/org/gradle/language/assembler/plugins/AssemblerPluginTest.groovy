@@ -20,10 +20,7 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.nativeplatform.NativeBinary
-import org.gradle.nativeplatform.NativeExecutableBinarySpec
-import org.gradle.nativeplatform.SharedLibraryBinarySpec
-import org.gradle.nativeplatform.StaticLibraryBinarySpec
+import org.gradle.nativeplatform.*
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -35,8 +32,10 @@ class AssemblerPluginTest extends Specification {
         when:
         dsl {
             apply plugin: AssemblerPlugin
-            executables {
-                exe {}
+            model {
+                components {
+                    exe(NativeExecutableSpec)
+                }
             }
         }
 
@@ -54,12 +53,14 @@ class AssemblerPluginTest extends Specification {
         given:
         dsl {
             apply plugin: AssemblerPlugin
-            executables {
-                exe {
-                    sources {
-                        asm {
-                            source {
-                                srcDirs "d1", "d2"
+            model {
+                components {
+                    exe(NativeExecutableSpec) {
+                        sources {
+                            asm {
+                                source {
+                                    srcDirs "d1", "d2"
+                                }
                             }
                         }
                     }
@@ -78,14 +79,16 @@ class AssemblerPluginTest extends Specification {
         dsl {
             apply plugin: AssemblerPlugin
 
-            executables {
-                test {
-                    sources {
-                        anotherOne(AssemblerSourceSet) {}
-                        emptyOne(AssemblerSourceSet) {}
-                    }
-                    binaries.all { NativeBinary binary ->
-                        binary.assembler.args "ARG1", "ARG2"
+            model {
+                components {
+                    test(NativeExecutableSpec) {
+                        sources {
+                            anotherOne(AssemblerSourceSet) {}
+                            emptyOne(AssemblerSourceSet) {}
+                        }
+                        binaries.all { NativeBinary binary ->
+                            binary.assembler.args "ARG1", "ARG2"
+                        }
                     }
                 }
             }
@@ -113,20 +116,22 @@ class AssemblerPluginTest extends Specification {
         touch("src/test/anotherOne/dummy.s")
         dsl {
             apply plugin: AssemblerPlugin
-            libraries {
-                test {
-                    sources {
-                        anotherOne(AssemblerSourceSet) {}
-                        emptyOne(AssemblerSourceSet) {}
-                    }
-                    binaries.all {
-                        assembler.args "ARG1", "ARG2"
-                    }
-                    binaries.withType(SharedLibraryBinarySpec) {
-                        assembler.args "SHARED1", "SHARED2"
-                    }
-                    binaries.withType(StaticLibraryBinarySpec) {
-                        assembler.args "STATIC1", "STATIC2"
+            model {
+                components {
+                    test(NativeLibrarySpec) {
+                        sources {
+                            anotherOne(AssemblerSourceSet) {}
+                            emptyOne(AssemblerSourceSet) {}
+                        }
+                        binaries.all {
+                            assembler.args "ARG1", "ARG2"
+                        }
+                        binaries.withType(SharedLibraryBinarySpec) {
+                            assembler.args "SHARED1", "SHARED2"
+                        }
+                        binaries.withType(StaticLibraryBinarySpec) {
+                            assembler.args "STATIC1", "STATIC2"
+                        }
                     }
                 }
             }
