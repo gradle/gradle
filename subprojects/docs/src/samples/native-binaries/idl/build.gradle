@@ -7,13 +7,15 @@ task idl(type: DummyIdlCompiler) {
 }
 
 
-executables {
-    main {
-        sources {
-            idlOutput(CSourceSet) {
-                generatedBy tasks.idl
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                idlOutput(CSourceSet) {
+                    generatedBy tasks.idl
+                }
+                c.lib sources.idlOutput
             }
-            c.lib idlOutput
         }
     }
 }
