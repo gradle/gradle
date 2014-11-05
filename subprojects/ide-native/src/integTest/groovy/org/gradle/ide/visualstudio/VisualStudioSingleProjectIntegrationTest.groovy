@@ -628,10 +628,10 @@ model {
             targetPlatform "win32", "x64"
         }
     }
-    binaries.all {
-        rcCompiler.define "TEST"
-        rcCompiler.define "foo", "bar"
-    }
+}
+binaries.all {
+    rcCompiler.define "TEST"
+    rcCompiler.define "foo", "bar"
 }
 """
 
