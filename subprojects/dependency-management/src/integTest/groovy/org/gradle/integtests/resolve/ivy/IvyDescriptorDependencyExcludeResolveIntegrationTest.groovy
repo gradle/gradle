@@ -20,14 +20,15 @@ import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+/**
+ * Demonstrates the use of Ivy dependency excludes. For all test cases the exclude rules are applied to dependency "b".
+ */
 class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDescriptorExcludeResolveIntegrationTest {
     /**
      * Dependency exclude by using a combination of module exclude rules.
      *
      * Dependency graph:
      * a -> b, c
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Unroll
     def "dependency exclude with matching #name"() {
@@ -59,8 +60,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d
      * c -> e
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Unroll
     def "transitive dependency exclude with matching #name"() {
@@ -92,8 +91,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      *
      * Dependency graph:
      * a -> b, c
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Ignore("Exclude does not work for artifacts of the same module")
     @Unroll
@@ -134,8 +131,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d
      * c -> e
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Ignore("Exclude of all artifacts (*) does not work for artifacts of the same module")
     @Unroll
@@ -178,8 +173,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d -> f
      * c -> e
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Ignore("Exclude rule with a name attribute excludes matching module and not artifacts")
     @Unroll
@@ -223,22 +216,20 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d
      * c -> e
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Ignore("Exclude rule with a name attribute excludes matching module and not artifacts")
     @Unroll
     def "transitive dependency exclude having multiple artifacts with matching #name"() {
         given:
         ivyRepo.module('d')
-               .artifact([:])
-               .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
-               .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
-               .publish()
+                .artifact([:])
+                .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
+                .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
+                .publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
-        IvyModule moduleA = ivyRepo.module('a')
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
         addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
         moduleA.publish()
 
@@ -251,14 +242,14 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         where:
         name                              | excludeAttributes                                                         | resolvedJars
         'all names'                       | [name: '*']                                                               | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'name'                            | [name: 'd']                                                               | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+        'name'                            | [name: 'd']                                                               | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'name and type'                   | [name: 'd', type: 'jar']                                                  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
-        'name and ext'                    | [name: 'd', ext: 'jar']                                                   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+        'name and ext'                    | [name: 'd', ext: 'jar']                                                   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'name, type and ext'              | [name: 'd', type: 'jar', ext: 'jar']                                      | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
-        'org and name'                    | [org: 'org.gradle.test', name: 'd']                                       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+        'org and name'                    | [org: 'org.gradle.test', name: 'd']                                       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'org, name and type'              | [org: 'org.gradle.test', name: 'd', type: 'jar']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, name, type and ext'         | [org: 'org.gradle.test', name: 'd', type: 'jar', ext: 'jar']              | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
-        'org, module and name'            | [org: 'org.gradle.test', module: 'd', name: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+        'org, module and name'            | [org: 'org.gradle.test', module: 'd', name: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'org, module, name and type'      | [org: 'org.gradle.test', module: 'd', name: 'd', type: 'jar']             | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, module, name, type and ext' | [org: 'org.gradle.test', module: 'd', name: 'd', type: 'jar', ext: 'jar'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
     }
@@ -270,8 +261,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d
      * c -> d
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Unroll
     def "transitive diamond dependency exclude for single path with matching #name"() {
@@ -306,8 +295,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d
      * c -> d
-     *
-     * Exclude rules are applied to dependency "b".
      */
     @Unroll
     def "transitive diamond dependency exclude for all paths with matching #name"() {
