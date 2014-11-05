@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
@@ -75,6 +76,10 @@ public class IvyUtil {
         synchronized (MODULE_ID_LOCK) {
             return ModuleId.newInstance(org, name);
         }
+    }
+
+    public static ArtifactId createArtifactId(String org, String module, String name, String type, String ext) {
+        return new ArtifactId(createModuleId(org, module), name, type, ext);
     }
 
     public static DefaultModuleDescriptor createModuleDescriptor(DependencyDescriptor dependencyDescriptor) {

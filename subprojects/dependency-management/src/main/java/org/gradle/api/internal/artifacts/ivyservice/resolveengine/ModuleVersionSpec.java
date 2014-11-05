@@ -37,7 +37,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleI
  * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
  * evicts a version that depends on the given version). </p>
  */
-public abstract class ModuleVersionSpec implements Spec<ModuleId> {
+public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<ModuleVersionSpec> {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
 
     public static ModuleVersionSpec forExcludes(ExcludeRule... excludeRules) {
@@ -57,7 +57,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
     /**
      * Returns a spec that accepts the union of those module versions that are accepted by this spec and the given spec.
      */
-    public final ModuleVersionSpec union(ModuleVersionSpec other) {
+    public ModuleVersionSpec union(ModuleVersionSpec other) {
         if (other == this) {
             return this;
         }
@@ -125,7 +125,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
     /**
      * Returns a spec that accepts the intersection of those module versions that are accepted by this spec and the given spec.
      */
-    public final ModuleVersionSpec intersect(ModuleVersionSpec other) {
+    public ModuleVersionSpec intersect(ModuleVersionSpec other) {
         if (other == this) {
             return this;
         }
