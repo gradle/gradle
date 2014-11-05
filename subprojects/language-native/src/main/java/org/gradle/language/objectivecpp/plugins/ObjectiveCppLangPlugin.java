@@ -28,6 +28,8 @@ import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 
 import java.util.Collections;
 import java.util.Map;
@@ -39,7 +41,18 @@ import java.util.Map;
 public class ObjectiveCppLangPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.getExtensions().getByType(LanguageRegistry.class).add(new ObjectiveCpp());
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new ObjectiveCpp());
+        }
     }
 
     private static class ObjectiveCpp extends NativeLanguageRegistration<ObjectiveCppSourceSet> {

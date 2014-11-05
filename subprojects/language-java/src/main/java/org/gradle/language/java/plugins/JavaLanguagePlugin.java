@@ -31,6 +31,8 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 
@@ -47,7 +49,18 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.apply(Collections.singletonMap("plugin", JvmResourcesPlugin.class));
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Java());
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new Java());
+        }
     }
 
     private static class Java implements LanguageRegistration<JavaSourceSet> {

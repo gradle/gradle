@@ -55,8 +55,6 @@ class ComponentModelBasePluginTest extends Specification {
 
     def "registers language sourceset factory and created default source set for component"() {
         setup:
-        project.apply(plugin: ComponentModelBasePlugin)
-        project.languages.add(new TestLanguageRegistration())
 
         def componentSpecInternal = Mock(ComponentSpecInternal)
         _ * componentSpecInternal.name >> "testComponent"
@@ -68,6 +66,12 @@ class ComponentModelBasePluginTest extends Specification {
         _ * componentSpecInternal.source >> WrapUtil.toDomainObjectSet(LanguageSourceSet)
 
         when:
+        project.apply(plugin: ComponentModelBasePlugin)
+        project.model {
+            languages {
+                add(new TestLanguageRegistration())
+            }
+        }
         project.componentSpecs.add(componentSpecInternal)
         project.evaluate()
 

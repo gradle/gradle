@@ -72,10 +72,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
 
-        // TODO:DAZ Remove this extension
-        project.getExtensions().create("languages", DefaultLanguageRegistry.class);
-
-        // TODO:DAZ Remove this extension
+        // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         modelRegistry.create(
                 ModelCreators.of(ModelReference.of("components", DefaultComponentSpecContainer.class), components)
@@ -92,8 +89,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     @RuleSource
     static class Rules {
         @Model
-        LanguageRegistry languages(ExtensionContainer extensions) {
-            return extensions.getByType(LanguageRegistry.class);
+        LanguageRegistry languages(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageRegistry.class);
         }
 
         @Mutate
@@ -200,6 +197,5 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 functionalSourceSet.maybeCreate(languageRegistration.getName(), languageRegistration.getSourceSetType());
             }
         }
-        
     }
 }

@@ -27,6 +27,8 @@ import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
 import org.gradle.language.rc.plugins.internal.WindowsResourcesCompileTaskConfig;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinarySpec;
 
@@ -41,7 +43,18 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.getExtensions().getByType(LanguageRegistry.class).add(new WindowsResources());
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new WindowsResources());
+        }
     }
 
     private static class WindowsResources extends NativeLanguageRegistration<WindowsResourceSet> {

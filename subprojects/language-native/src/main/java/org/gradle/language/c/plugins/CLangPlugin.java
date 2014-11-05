@@ -28,6 +28,8 @@ import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 
 import java.util.Collections;
 import java.util.Map;
@@ -40,7 +42,18 @@ public class CLangPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.getExtensions().getByType(LanguageRegistry.class).add(new C());
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new C());
+        }
     }
 
     private static class C extends NativeLanguageRegistration<CSourceSet> {

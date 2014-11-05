@@ -16,6 +16,9 @@
 
 package org.gradle.test.fixtures.plugin
 
+import org.gradle.language.base.internal.LanguageRegistry
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelType
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,10 +34,12 @@ abstract class AbstractLanguagePluginSpec extends Specification{
     def "registers #language in language registration"() {
         when:
         project.pluginManager.apply(pluginClass)
+        project.evaluate()
+
 
         then:
-        // project.languages is not a NamedObjectContainer
-        def languageRegistration = project.languages.find { it.name == language }
+        def languageRegistry = project.modelRegistry.get(new ModelPath("languages"), ModelType.of(LanguageRegistry))
+        def languageRegistration = languageRegistry.find { it.name == language }
 
         languageRegistration != null
         languageRegistration.sourceSetType == languageSourceSet

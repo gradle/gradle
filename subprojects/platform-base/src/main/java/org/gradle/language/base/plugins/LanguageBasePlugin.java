@@ -63,16 +63,14 @@ public class LanguageBasePlugin implements Plugin<Project> {
         target.apply(Collections.singletonMap("plugin", LifecycleBasePlugin.class));
 
         target.getExtensions().create("sources", DefaultProjectSourceSet.class);
-        DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 
+        DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         modelRegistry.create(
                 ModelCreators.of(ModelReference.of("binaries", BinaryContainer.class), binaries)
                         .simpleDescriptor("Project.<init>.binaries()")
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(binaries, BinarySpec.class))
                         .build()
         );
-
-
     }
 
     /**

@@ -28,6 +28,8 @@ import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 
 import java.util.Collections;
 import java.util.Map;
@@ -39,7 +41,18 @@ import java.util.Map;
 public class CppLangPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Cpp());
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new Cpp());
+        }
     }
 
     private static class Cpp extends NativeLanguageRegistration<CppSourceSet> {

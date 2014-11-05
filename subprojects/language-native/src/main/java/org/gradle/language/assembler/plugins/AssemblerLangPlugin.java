@@ -26,6 +26,8 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultTool;
 
 import java.util.Collections;
@@ -39,7 +41,18 @@ public class AssemblerLangPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Assembler());
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new Assembler());
+        }
     }
 
     private static class Assembler extends NativeLanguageRegistration<AssemblerSourceSet> {
