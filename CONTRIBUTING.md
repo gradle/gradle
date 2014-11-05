@@ -16,7 +16,7 @@ This is the general process for contributing code to the Gradle project.
 
 1. Complete and electronically sign a [Gradleware CLA](http://www.gradleware.com/contributor-agreement).
 You'll need to sign one of these before any code contributions can be accepted into the Gradle codebase.
-2. Before starting to work on a feature or a fix, it's generally a good idea to open a discussion about your proposed changes on the Gradle Developer List (dev@gradle.codehaus.org). 
+2. Before starting to work on a feature or a fix, it's generally a good idea to open a discussion about your proposed changes on the [Gradle Developer List](https://groups.google.com/forum/#!forum/gradle-dev).
 Doing so helps to ensure that:
     1. You understand how your proposed changes fit with the strategic goals of the Gradle project.
     2. You can get feedback on your proposed changes, and suggestions as to the best approach to implementation.
@@ -34,15 +34,15 @@ All code contributions should contain the following:
 
 1. Unit Tests (we love Spock) for any logic introduced.
 2. Integration Test coverage of the bug/feature at the level of build execution.
-3. Documentation coverage in the UserGuide, DSL Reference and JavaDocs where appropriate.
+3. Documentation coverage in the user guide, DSL Reference and JavaDocs where appropriate.
 4. Javadoc `@author` tags and committer names are not used in the codebase (contributions are recognised in the commit history and release notes)
 
 If you're not sure where to start, ask on the developer list. There's likely a number of existing examples to help get you going.
 
-Try to ensure that your code & tests will run successfully on Java 5, and on both *nix and Windows platforms. 
+Try to ensure that your code & tests will run successfully on Java 6, and on both *nix and Windows platforms.
 The [Gradle CI](http://builds.gradle.org/) will verify this, but it helps if things work first time.
 
-1. Avoid using features introduced in Java 1.6 or later
+1. Avoid using features introduced in Java 1.7 or later
 2. Be careful to normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful utility functions for this purpose.
 
 ## Creating Commits And Writing Commit Messages
