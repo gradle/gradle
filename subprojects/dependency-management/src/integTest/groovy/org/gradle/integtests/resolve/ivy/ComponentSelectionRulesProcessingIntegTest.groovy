@@ -112,6 +112,104 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         file("libs/api-1.1.jar").assertIsCopyOf(mavenModule.artifactFile)
     }
 
+    def "maven parent pom is not affected by selection rules" () {
+        mavenRepo.module("org", "parent_dep", "1.2").publish()
+        mavenRepo.module("org", "child_dep", "1.7").publish()
+
+        def parent = mavenRepo.module("org", "parent", "1.0")
+        parent.hasPackaging('pom')
+        parent.dependsOn("org", "parent_dep", "1.2")
+        parent.publish()
+
+        def child = mavenRepo.module("org", "child", "1.0")
+        child.dependsOn("org", "child_dep", "1.7")
+        child.parent("org", "parent", "1.0")
+        child.publish()
+
+        buildFile << """
+            configurations { conf }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            def fired = []
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection ->
+                            logger.warn("fired for \${selection.candidate.module}")
+                            fired << "\${selection.candidate.module}"
+                        }
+
+                        withModule('org:parent') { ComponentSelection selection ->
+                            logger.warn("rejecting parent")
+                            selection.reject("Rejecting parent")
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                conf "org:child:1.0"
+            }
+
+            task resolveConf << {
+                configurations.conf.files
+                assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+            }
+        """
+
+        expect:
+        succeeds "resolveConf"
+    }
+
+    def "ivy extension module is not affected by selection rules" () {
+        ivyRepo.module("org", "parent_dep", "1.2").publish()
+        ivyRepo.module("org", "child_dep", "1.7").publish()
+
+        def parent = ivyRepo.module("org", "parent", "1.0").dependsOn("org", "parent_dep", "1.2").publish()
+        def child = ivyRepo.module("org", "child", "1.0")
+        child.dependsOn("org", "child_dep", "1.7")
+        child.extendsFrom(organisation: "org", module: "parent", revision: "1.0")
+        child.publish()
+
+        buildFile << """
+            configurations { conf }
+            repositories {
+                ivy { url "${ivyRepo.uri}" }
+            }
+
+            def fired = []
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection ->
+                            logger.warn("fired for \${selection.candidate.module}")
+                            fired << "\${selection.candidate.module}"
+                        }
+
+                        withModule('org:parent') { ComponentSelection selection ->
+                            logger.warn("rejecting parent")
+                            selection.reject("Rejecting parent")
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                conf "org:child:1.0"
+            }
+
+            task resolveConf << {
+                configurations.conf.files
+                assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+            }
+        """
+
+        expect:
+        succeeds "resolveConf"
+    }
+
     def "component metadata is requested only once for rules that do require it" () {
         buildFile << """
             $httpBaseBuildFile
