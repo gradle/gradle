@@ -44,8 +44,8 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds model extensions"() {
         expect:
-        project.nativeRuntime.executables instanceof NamedDomainObjectContainer
-        project.nativeRuntime.libraries instanceof NamedDomainObjectContainer
+        project.executables instanceof NamedDomainObjectContainer
+        project.libraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)) != null
         project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
         project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
@@ -59,8 +59,8 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds default flavor to every binary"() {
         when:
-        project.nativeRuntime.executables.create "exe"
-        project.nativeRuntime.libraries.create "lib"
+        project.executables.create "exe"
+        project.libraries.create "lib"
         project.evaluate()
 
         then:
@@ -95,7 +95,7 @@ class NativeComponentModelPluginTest extends Specification {
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
-        def executable = project.nativeRuntime.executables.create "test"
+        def executable = project.executables.create "test"
         executable.targetPlatforms "platform"
         project.evaluate()
 
@@ -123,7 +123,7 @@ class NativeComponentModelPluginTest extends Specification {
                 .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
                 .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
-        def library = project.nativeRuntime.libraries.create "test"
+        def library = project.libraries.create "test"
         library.targetPlatforms "platform"
         project.evaluate()
 
@@ -159,8 +159,8 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates lifecycle task for each binary"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
-        def executable = project.nativeRuntime.executables.create "exe"
-        def library = project.nativeRuntime.libraries.create "lib"
+        def executable = project.executables.create "exe"
+        def library = project.libraries.create "lib"
         project.evaluate()
 
         then:

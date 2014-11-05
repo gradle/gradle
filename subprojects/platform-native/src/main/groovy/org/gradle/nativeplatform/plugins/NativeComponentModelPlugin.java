@@ -80,10 +80,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         components.registerFactory(NativeLibrarySpec.class, new NativeLibrarySpecFactory(instantiator, sources, project));
         NamedDomainObjectContainer<NativeLibrarySpec> nativeLibraries = components.containerWithType(NativeLibrarySpec.class);
 
-        project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
-
         // TODO:DAZ Remove these: should not pollute the global namespace
-        project.getExtensions().add("nativeComponents", components.withType(NativeComponentSpec.class));
         project.getExtensions().add("executables", nativeExecutables);
         project.getExtensions().add("libraries", nativeLibraries);
     }

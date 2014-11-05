@@ -32,7 +32,7 @@ class CprojectSettingsSpec extends Specification {
     def "wire in includes"() {
         given:
         project.apply plugin: 'cpp-exe'
-        settings.binary = project.nativeRuntime.executables.main
+        settings.binary = project.executables.main
         descriptor.loadDefaults()
 
         expect:

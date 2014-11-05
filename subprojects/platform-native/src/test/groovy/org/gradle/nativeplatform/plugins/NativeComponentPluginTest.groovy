@@ -33,7 +33,7 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link and install task for executable"() {
         when:
-        project.nativeRuntime.executables.create "test"
+        project.executables.create "test"
         project.evaluate()
 
         then:
@@ -57,7 +57,7 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link task and static archive task for library"() {
         when:
-        project.nativeRuntime.libraries.create "test"
+        project.libraries.create "test"
         project.evaluate()
 
         then:
