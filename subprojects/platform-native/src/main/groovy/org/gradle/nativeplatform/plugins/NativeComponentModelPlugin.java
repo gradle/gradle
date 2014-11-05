@@ -194,7 +194,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Mutate
+        @Finalize // This should be @Mutate for each component in a container, rather than finalizing the container itself
         void configureGeneratedSourceSets(ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs) {
                 for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
@@ -210,7 +210,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
+        @Finalize // This is providing defaults for each component in the container, but the only mechanism for now is to finalize the collection
         public void applyHeaderSourceSetConventions(ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs) {
                 DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();

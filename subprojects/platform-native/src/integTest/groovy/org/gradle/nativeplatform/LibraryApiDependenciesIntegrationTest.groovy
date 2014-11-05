@@ -37,7 +37,6 @@ binaries.withType(StaticLibraryBinarySpec) {
 """
     }
 
-    // TODO:DAZ Migrate this
     @Unroll
     def "can use api linkage via #notationName notation"() {
         given:
@@ -49,23 +48,23 @@ binaries.withType(StaticLibraryBinarySpec) {
 
         and:
         buildFile << """
-            libraries {
-                helloApi {}
-                hello {
-                    sources {
-                        cpp.lib ${notation}
-                    }
-                }
+model {
+    components { comp ->
+        helloApi(NativeLibrarySpec)
+        hello(NativeLibrarySpec) {
+            sources {
+                cpp.lib ${notation}
             }
-            executables {
-                main {
-                    sources {
-                        cpp.lib ${notation}
-                        cpp.lib library: 'hello'
-                    }
-                }
+        }
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib ${notation}
+                cpp.lib library: 'hello'
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable"
@@ -75,7 +74,7 @@ binaries.withType(StaticLibraryBinarySpec) {
 
         where:
         notationName | notation
-        "direct"     | "libraries.helloApi.api"
+        "direct"     | "comp.helloApi.api"
         "map"        | "library: 'helloApi', linkage: 'api'"
     }
 

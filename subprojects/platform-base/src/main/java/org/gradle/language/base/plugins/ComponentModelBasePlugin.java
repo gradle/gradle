@@ -149,8 +149,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-        // Needs to run after NativeComponentModelPlugin.Rules.configureGeneratedSourceSets()
+        @Finalize // This is setting defaults for each component in the container. Should not be finalizing the container.
         void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs) {
                 for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
