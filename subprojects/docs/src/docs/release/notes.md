@@ -67,7 +67,7 @@ To use ANTLR version 3 or 4 in a build, an according antlr dependency must be de
         antlr 'org.antlr:antlr4:4.3'
     }
   
-This feature was contributed by [Rob Upcraft] (https://github.com/upcrob).
+This feature was contributed by [Rob Upcraft](https://github.com/upcrob).
 
 ### AntlrTask running in separate process
 
@@ -75,7 +75,17 @@ The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) is now
 executed in a separate process. This allows more fine grained control over memory settings just for the ANTLR process.
 See [Antlr Plugin](userguide/antlrPlugin.html) for further details. 
 
-This feature was also contributed by [Rob Upcraft] (https://github.com/upcrob).
+This feature was also contributed by [Rob Upcraft](https://github.com/upcrob).
+
+### Build Comparison plugin now compares nested archives
+
+The [Build Comparison plugin](userguide/comparing_builds.html) has been improved in this release to compare entries of nested archives.
+Previously, when comparing an archive all archive entries were treated as binary blobs.
+Now, entries of archive entries are inspected recursively where possible.
+That is, archive entries that are themselves archives are compared entry by entry.
+A common type of nested archive is a WAR file containing JAR files.
+
+This feature was contributed by [Björn Kautler](https://github.com/Vampire).
 
 ### Daemon health - TODO
 
@@ -143,10 +153,7 @@ We would like to thank the following community members for making contributions 
 * [Greg Chrystall](https://github.com/ported) - idea plugin generates wrong sources jar for multi artifacts dependencies (GRADLE-3170)
 * [Rob Upcraft](https://github.com/upcrob) - add support for ANTLR v3 and v4 to antlr plugin (GRADLE-902)
 * [Andreas Schmid](https://github.com/aaschmid) - changes to Eclipse classpath generating when using WTP (GRADLE-1422) 
-
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Björn Kautler](https://github.com/Vampire) - improvements to Build Comparison plugin
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
