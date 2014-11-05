@@ -17,21 +17,20 @@
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry;
 
 import org.gradle.api.plugins.buildcomparison.compare.internal.ComparisonResultType;
+import org.gradle.util.GUtil;
 
 public class ArchiveEntryComparison implements Comparable<ArchiveEntryComparison> {
 
-    private final String sortPath;
-    private final String path;
+    private final ArchiveEntry.Path path;
     private final ArchiveEntry source;
     private final ArchiveEntry target;
 
-    public ArchiveEntryComparison(String sortPath, String path, ArchiveEntry source, ArchiveEntry target) {
+    public ArchiveEntryComparison(ArchiveEntry source, ArchiveEntry target) {
         if (source == null && target == null) {
             throw new IllegalArgumentException("Both 'from' and 'to' cannot be null");
         }
 
-        this.sortPath = sortPath;
-        this.path = path;
+        this.path = GUtil.elvis(source, target).getPath();
         this.source = source;
         this.target = target;
     }
@@ -47,11 +46,7 @@ public class ArchiveEntryComparison implements Comparable<ArchiveEntryComparison
         }
     }
 
-    public String getSortPath() {
-        return sortPath;
-    }
-
-    public String getPath() {
+    public ArchiveEntry.Path getPath() {
         return path;
     }
 
@@ -63,9 +58,8 @@ public class ArchiveEntryComparison implements Comparable<ArchiveEntryComparison
         return target;
     }
 
+    @SuppressWarnings("NullableProblems")
     public int compareTo(ArchiveEntryComparison o) {
-        String sortPath = this.sortPath == null ? path : this.sortPath;
-        String otherSortPath = o.sortPath == null ? o.path : o.sortPath;
-        return sortPath.compareToIgnoreCase(otherSortPath);
+        return path.compareTo(o.path);
     }
 }

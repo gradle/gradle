@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
@@ -87,5 +88,17 @@ class ArchiveEntryTest extends Specification {
         a1 != a2
         a2 != a1
         a1.hashCode() != a2.hashCode()
+    }
+
+    def "path ordering"() {
+        expect:
+        path("a") == path("a")
+        path("a") < path("a", "a")
+        path("z") > path("a", "a")
+        path("a", "a") < path("a", "b")
+    }
+
+    static ArchiveEntry.Path path(String... components) {
+        new ArchiveEntry.Path(ImmutableList.copyOf(components))
     }
 }

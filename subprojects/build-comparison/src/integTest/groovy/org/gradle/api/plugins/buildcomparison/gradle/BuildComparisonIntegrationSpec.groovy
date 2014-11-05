@@ -26,7 +26,8 @@ import org.junit.Rule
 
 class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
-    @Rule TestResources testResources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources testResources = new TestResources(temporaryFolder)
 
     @Override
     String getPluginName() {
@@ -73,7 +74,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         rows["sourceSub.zip"] == "entry does not exist in target build archive"
         rows["targetSub.zip"] == "entry does not exist in source build archive"
         rows["differentSub.zip"] == "entry in the source build is 688 bytes - in the target build it is 689 bytes (+1)"
-        rows["jar:differentSub.zip!/a.txt"] == "entry in the source build is 0 bytes - in the target build it is 1 bytes (+1)"
+        rows["differentSub.zip!/a.txt"] == "entry in the source build is 0 bytes - in the target build it is 1 bytes (+1)"
 
         and:
         storedFile("source").exists()

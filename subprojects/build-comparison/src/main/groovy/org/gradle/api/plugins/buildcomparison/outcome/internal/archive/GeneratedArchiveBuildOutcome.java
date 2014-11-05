@@ -51,4 +51,5 @@ public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
     public String getRootRelativePath() {
         return rootRelativePath;
     }
+
 }

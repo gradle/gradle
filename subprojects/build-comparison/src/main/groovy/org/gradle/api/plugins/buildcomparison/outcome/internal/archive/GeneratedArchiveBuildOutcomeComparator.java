@@ -64,8 +64,8 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
             targetEntries = Collections.emptySet();
         }
 
-        CollectionUtils.SetDiff<ArchiveEntry> diff = CollectionUtils.diffSetsBy(sourceEntries, targetEntries, new Transformer<String, ArchiveEntry>() {
-            public String transform(ArchiveEntry entry) {
+        CollectionUtils.SetDiff<ArchiveEntry> diff = CollectionUtils.diffSetsBy(sourceEntries, targetEntries, new Transformer<ArchiveEntry.Path, ArchiveEntry>() {
+            public ArchiveEntry.Path transform(ArchiveEntry entry) {
                 return entry.getPath();
             }
         });
@@ -73,15 +73,15 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
         SortedSet<ArchiveEntryComparison> entryComparisons = new TreeSet<ArchiveEntryComparison>();
 
         for (ArchiveEntry sourceOnly : diff.leftOnly) {
-            entryComparisons.add(new ArchiveEntryComparison(sourceOnly.getSortPath(), sourceOnly.getPath(), sourceOnly, null));
+            entryComparisons.add(new ArchiveEntryComparison(sourceOnly, null));
         }
 
         for (CollectionUtils.SetDiff.Pair<ArchiveEntry> pair : diff.common) {
-            entryComparisons.add(new ArchiveEntryComparison(pair.left.getSortPath(), pair.left.getPath(), pair.left, pair.right));
+            entryComparisons.add(new ArchiveEntryComparison(pair.left, pair.right));
         }
 
         for (ArchiveEntry targetOnly : diff.rightOnly) {
-            entryComparisons.add(new ArchiveEntryComparison(targetOnly.getSortPath(), targetOnly.getPath(), null, targetOnly));
+            entryComparisons.add(new ArchiveEntryComparison(null, targetOnly));
         }
 
         return new GeneratedArchiveBuildOutcomeComparisonResult(association, entryComparisons);

@@ -66,8 +66,7 @@ class FileToArchiveEntrySetTransformerTest extends Specification {
 
         then:
         entrySet.size() == 6
-        entrySet*.path.sort() == ["dir1/", "dir1/f2.txt", "dir1/f3.txt", "dir2/", "dir2/f4.txt", "f1.txt"]
-        entrySet*.sortPath.sort() == ["dir1/", "dir1/f2.txt", "dir1/f3.txt", "dir2/", "dir2/f4.txt", "f1.txt"]
+        entrySet*.path.sort()*.toString() == ["dir1/", "dir1/f2.txt", "dir1/f3.txt", "dir2/", "dir2/f4.txt", "f1.txt"]
     }
 
     def "can handle empty zip file"() {
@@ -101,45 +100,27 @@ class FileToArchiveEntrySetTransformerTest extends Specification {
 
         then:
         entrySet.size() == 20
-        entrySet*.path.sort() == ["dir1/",
-                                  "dir1/f2.txt",
-                                  "dir1/f3.txt",
-                                  "dir2/",
-                                  "dir2/f4.txt",
-                                  "f1.txt",
-                                  "jar:jar:sub.zip!/subSub.zip!/dir1/",
-                                  "jar:jar:sub.zip!/subSub.zip!/dir1/h2.txt",
-                                  "jar:jar:sub.zip!/subSub.zip!/dir1/h3.txt",
-                                  "jar:jar:sub.zip!/subSub.zip!/dir2/",
-                                  "jar:jar:sub.zip!/subSub.zip!/dir2/h4.txt",
-                                  "jar:jar:sub.zip!/subSub.zip!/h1.txt",
-                                  "jar:sub.zip!/dir1/",
-                                  "jar:sub.zip!/dir1/g2.txt",
-                                  "jar:sub.zip!/dir1/g3.txt",
-                                  "jar:sub.zip!/dir2/",
-                                  "jar:sub.zip!/dir2/g4.txt",
-                                  "jar:sub.zip!/g1.txt",
-                                  "jar:sub.zip!/subSub.zip",
-                                  "sub.zip"]
-        entrySet*.sortPath.sort() == ["dir1/",
-                                      "dir1/f2.txt",
-                                      "dir1/f3.txt",
-                                      "dir2/",
-                                      "dir2/f4.txt",
-                                      "f1.txt",
-                                      "sub.zip",
-                                      "sub.zip::dir1/",
-                                      "sub.zip::dir1/g2.txt",
-                                      "sub.zip::dir1/g3.txt",
-                                      "sub.zip::dir2/",
-                                      "sub.zip::dir2/g4.txt",
-                                      "sub.zip::g1.txt",
-                                      "sub.zip::subSub.zip",
-                                      "sub.zip::subSub.zip::dir1/",
-                                      "sub.zip::subSub.zip::dir1/h2.txt",
-                                      "sub.zip::subSub.zip::dir1/h3.txt",
-                                      "sub.zip::subSub.zip::dir2/",
-                                      "sub.zip::subSub.zip::dir2/h4.txt",
-                                      "sub.zip::subSub.zip::h1.txt"]
+        entrySet*.path.sort()*.toString() == [
+                "dir1/",
+                "dir1/f2.txt",
+                "dir1/f3.txt",
+                "dir2/",
+                "dir2/f4.txt",
+                "f1.txt",
+                "sub.zip",
+                "sub.zip!/dir1/",
+                "sub.zip!/dir1/g2.txt",
+                "sub.zip!/dir1/g3.txt",
+                "sub.zip!/dir2/",
+                "sub.zip!/dir2/g4.txt",
+                "sub.zip!/g1.txt",
+                "sub.zip!/subSub.zip",
+                "sub.zip!/subSub.zip!/dir1/",
+                "sub.zip!/subSub.zip!/dir1/h2.txt",
+                "sub.zip!/subSub.zip!/dir1/h3.txt",
+                "sub.zip!/subSub.zip!/dir2/",
+                "sub.zip!/subSub.zip!/dir2/h4.txt",
+                "sub.zip!/subSub.zip!/h1.txt"
+        ]
     }
 }
