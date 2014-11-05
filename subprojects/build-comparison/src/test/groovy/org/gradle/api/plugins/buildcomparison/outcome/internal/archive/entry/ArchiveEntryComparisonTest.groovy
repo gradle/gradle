@@ -22,11 +22,11 @@ import spock.lang.Specification
 class ArchiveEntryComparisonTest extends Specification {
 
     ArchiveEntry entry(Map attrs) {
-        new ArchiveEntry(attrs)
+       ArchiveEntry.of(attrs)
     }
 
     def sortPath
-    def path
+    def path = "path"
     def from = entry(path: path, size: 10)
     def to = entry(path: path, size: 10)
 
@@ -40,7 +40,7 @@ class ArchiveEntryComparisonTest extends Specification {
         comparison().comparisonResultType == ComparisonResultType.EQUAL
 
         when:
-        from.size += 1
+        from = entry(path: path, size: 11)
 
         then:
         comparison().comparisonResultType == ComparisonResultType.UNEQUAL

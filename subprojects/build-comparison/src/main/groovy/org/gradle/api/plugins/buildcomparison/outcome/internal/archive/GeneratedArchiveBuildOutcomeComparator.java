@@ -20,20 +20,22 @@ import org.gradle.api.Transformer;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociation;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry;
-import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ZipEntryToArchiveEntryTransformer;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.FileToArchiveEntrySetTransformer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeComparator<GeneratedArchiveBuildOutcome, GeneratedArchiveBuildOutcomeComparisonResult> {
 
     private final Transformer<Set<ArchiveEntry>, File> archiveToEntriesTransformer;
 
     public GeneratedArchiveBuildOutcomeComparator() {
-        this(new FileToArchiveEntrySetTransformer(new ZipEntryToArchiveEntryTransformer()));
+        this(new FileToArchiveEntrySetTransformer());
     }
 
     GeneratedArchiveBuildOutcomeComparator(Transformer<Set<ArchiveEntry>, File> archiveToEntriesTransformer) {

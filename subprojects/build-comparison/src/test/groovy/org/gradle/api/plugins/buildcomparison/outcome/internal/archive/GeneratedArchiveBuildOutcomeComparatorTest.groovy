@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Transformer
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
@@ -29,7 +30,8 @@ import static org.gradle.api.plugins.buildcomparison.compare.internal.Comparison
 
 class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
 
     def transformer = Mock(Transformer)
     def comparator = new GeneratedArchiveBuildOutcomeComparator(transformer)
@@ -42,7 +44,7 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     }
 
     ArchiveEntry entry(Map attrs) {
-        new ArchiveEntry(attrs)
+        ArchiveEntry.of(attrs)
     }
 
     void mockEntries(File archive, ArchiveEntry... entries) {
@@ -60,27 +62,27 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
                 entry(path: "d1/f2"), // only in from
                 entry(path: "d2/"), // only in from
                 entry(path: "f2"), // only in from
-                entry(path: "sourceSub.zip", subEntries: [ // only in from
+                entry(path: "sourceSub.zip", subEntries: ImmutableSet.of( // only in from
                         entry(path: "jar:sourceSub.zip!/a.txt"), // only in from
                         entry(path: "jar:sourceSub.zip!/b/"), // only in from
                         entry(path: "jar:sourceSub.zip!/b/c.txt") // only in from
-                ]), // only in from
+                )), // only in from
                 entry(path: "jar:sourceSub.zip!/a.txt"), // only in from
                 entry(path: "jar:sourceSub.zip!/b/"), // only in from
                 entry(path: "jar:sourceSub.zip!/b/c.txt"), // only in from
-                entry(path: "sameSub.zip", subEntries: [
+                entry(path: "sameSub.zip", subEntries: ImmutableSet.of(
                         entry(path: "jar:sameSub.zip!/a.txt"),
                         entry(path: "jar:sameSub.zip!/b/"),
                         entry(path: "jar:sameSub.zip!/b/c.txt")
-                ]),
+                )),
                 entry(path: "jar:sameSub.zip!/a.txt"),
                 entry(path: "jar:sameSub.zip!/b/"),
                 entry(path: "jar:sameSub.zip!/b/c.txt"),
-                entry(path: "differentSub.zip", subEntries: [
+                entry(path: "differentSub.zip", subEntries: ImmutableSet.of(
                         entry(path: "jar:differentSub.zip!/a.txt", size: 0),
                         entry(path: "jar:differentSub.zip!/b/"),
                         entry(path: "jar:differentSub.zip!/b/c.txt")
-                ]),
+                )),
                 entry(path: "jar:differentSub.zip!/a.txt", size: 0),
                 entry(path: "jar:differentSub.zip!/b/"),
                 entry(path: "jar:differentSub.zip!/b/c.txt")
@@ -94,27 +96,27 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
                 entry(path: "d1/f3"), // only in to
                 entry(path: "d3/"), // only in to
                 entry(path: "f3"), // only in to
-                entry(path: "targetSub.zip", subEntries: [ // only in to
+                entry(path: "targetSub.zip", subEntries: ImmutableSet.of( // only in to
                         entry(path: "jar:targetSub.zip!/a.txt"), // only in to
                         entry(path: "jar:targetSub.zip!/b/"), // only in to
                         entry(path: "jar:targetSub.zip!/b/c.txt") // only in to
-                ]), // only in from
+                )), // only in from
                 entry(path: "jar:targetSub.zip!/a.txt"), // only in to
                 entry(path: "jar:targetSub.zip!/b/"), // only in to
                 entry(path: "jar:targetSub.zip!/b/c.txt"), // only in to
-                entry(path: "sameSub.zip", subEntries: [
+                entry(path: "sameSub.zip", subEntries: ImmutableSet.of(
                         entry(path: "jar:sameSub.zip!/a.txt"),
                         entry(path: "jar:sameSub.zip!/b/"),
                         entry(path: "jar:sameSub.zip!/b/c.txt")
-                ]),
+                )),
                 entry(path: "jar:sameSub.zip!/a.txt"),
                 entry(path: "jar:sameSub.zip!/b/"),
                 entry(path: "jar:sameSub.zip!/b/c.txt"),
-                entry(path: "differentSub.zip", subEntries: [
+                entry(path: "differentSub.zip", subEntries: ImmutableSet.of(
                         entry(path: "jar:differentSub.zip!/a.txt", size: 1),
                         entry(path: "jar:differentSub.zip!/b/"),
                         entry(path: "jar:differentSub.zip!/b/c.txt")
-                ]),
+                )),
                 entry(path: "jar:differentSub.zip!/a.txt", size: 1),
                 entry(path: "jar:differentSub.zip!/b/"),
                 entry(path: "jar:differentSub.zip!/b/c.txt")

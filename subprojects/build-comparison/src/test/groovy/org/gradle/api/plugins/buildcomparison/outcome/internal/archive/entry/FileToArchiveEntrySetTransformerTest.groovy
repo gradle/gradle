@@ -27,7 +27,7 @@ class FileToArchiveEntrySetTransformerTest extends Specification {
     TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     Set<ArchiveEntry> entrySet
 
-    def transformer = new FileToArchiveEntrySetTransformer(new ZipEntryToArchiveEntryTransformer())
+    def transformer = new FileToArchiveEntrySetTransformer()
 
     TestFile contents
     TestFile zip
@@ -45,7 +45,11 @@ class FileToArchiveEntrySetTransformerTest extends Specification {
         subSubZip = dir.file("subZipContents/subSub.zip")
     }
 
-    def createZip(TestFile contents, TestFile zip, Closure c = {}) {
+    def createZip(TestFile contents, TestFile zip) {
+        createZip(contents, zip) {}
+    }
+
+    def createZip(TestFile contents, TestFile zip, @DelegatesTo(TestFile) Closure c) {
         contents.with(c)
         contents.zipTo(zip)
         entrySet = transformer.transform(zip)
