@@ -144,6 +144,25 @@ These methods have no useful purpose.
 - The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been replaced with `all`.
 - Arguments to metadata rules must now have a typed `ComponentMetadataDetails` argument as the first argument.
 
+### Major to incubating 'native-component' and 'jvm-component' plugins
+
+As we develop a new configuration and component model for Gradle, we are also developing an underlying infrastructure to allow
+the easy implementation of plugins supporting new platforms (native/jvm/javascript) and languages (C/C++/Java/Scala/CoffeeScript).
+
+This version of Gradle takes a big step in that direction, by migrating the existing component-based plugins to sit on top of this
+new infrastructure. This includes the incubating 'jvm-component' and 'java-lang' plugins, as well as all of the plugins providing
+support for building native applications.
+
+Due to this, the DSL for defining native executables and libraries has fundamentally changed. The `executables` and `libraries` containers
+have been removed, and components are now added by type to the `components` container owned by the model registry. Another major change is
+that source sets for a component are now declared directly within the component definition, instead of being configured on the `sources` block.
+
+Please take a look at the sample applications found in `samples/native-binaries` to get a better idea of how you may migrate your Gradle build
+file to the new syntax.
+
+Note that this functionality is a work-in-progress, and in some cases it may be preferable to remain on an earlier version of Gradle until
+it has stabilised.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

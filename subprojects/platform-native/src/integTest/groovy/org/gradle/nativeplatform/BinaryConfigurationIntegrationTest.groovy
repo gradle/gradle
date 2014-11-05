@@ -110,7 +110,7 @@ model {
 apply plugin: "cpp"
 
 model {
-    components {
+    components { comp ->
         hello(NativeLibrarySpec) {
             binaries.all {
                 cppCompiler.define 'ENABLE_GREETING'
@@ -118,7 +118,7 @@ model {
         }
         main(NativeExecutableSpec) {
             binaries.all {
-                lib libraries.hello.static
+                lib comp.hello.static
             }
         }
     }
@@ -166,7 +166,7 @@ model {
 apply plugin: "cpp"
 
 model {
-    components {
+    components { comp ->
         util(NativeLibrarySpec) {
             sources {
                 cpp {
@@ -181,7 +181,7 @@ model {
                 }
             }
             binaries.all {
-                source libraries.util.sources.cpp
+                source comp.util.sources.cpp
             }
         }
     }

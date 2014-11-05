@@ -59,15 +59,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-
-        ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);
-        NamedDomainObjectContainer<NativeExecutableSpec> nativeExecutables = components.containerWithType(NativeExecutableSpec.class);
-
-        NamedDomainObjectContainer<NativeLibrarySpec> nativeLibraries = components.containerWithType(NativeLibrarySpec.class);
-
-        // TODO:DAZ Remove these: should not pollute the global namespace
-        project.getExtensions().add("executables", nativeExecutables);
-        project.getExtensions().add("libraries", nativeLibraries);
     }
 
     /**

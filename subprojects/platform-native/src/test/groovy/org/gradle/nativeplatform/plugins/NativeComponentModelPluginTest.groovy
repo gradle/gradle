@@ -16,21 +16,20 @@
 
 package org.gradle.nativeplatform.plugins
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
-import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -44,8 +43,6 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds model extensions"() {
         expect:
-        project.executables instanceof NamedDomainObjectContainer
-        project.libraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)) != null
         project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
         project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
