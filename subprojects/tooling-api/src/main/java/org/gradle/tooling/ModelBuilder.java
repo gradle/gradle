@@ -111,6 +111,12 @@ public interface ModelBuilder<T> extends LongRunningOperation {
     ModelBuilder<T> addProgressListener(ProgressListener listener);
 
     /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    ModelBuilder<T> withCancellationToken(CancellationToken cancellationToken);
+
+    /**
      * Specifies the tasks to execute before building the model. By default, no tasks are executed.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
