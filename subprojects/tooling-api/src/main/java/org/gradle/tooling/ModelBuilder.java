@@ -114,6 +114,7 @@ public interface ModelBuilder<T> extends LongRunningOperation {
      * {@inheritDoc}
      * @since 2.3
      */
+    @Incubating
     ModelBuilder<T> withCancellationToken(CancellationToken cancellationToken);
 
     /**
