@@ -17,7 +17,9 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelType
 import spock.lang.Specification
 
 class DefaultModelRegistryTest extends Specification {
@@ -41,5 +43,14 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can maybe get non existing"() {
+        when:
+        registry.get(ModelPath.path("foo"), ModelType.untyped())
+
+        then:
+        thrown IllegalStateException
+        registry.find(ModelPath.path("foo"), ModelType.untyped()) == null
     }
 }

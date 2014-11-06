@@ -73,12 +73,9 @@ public class ComponentReport extends DefaultTask {
             components.addAll(componentSpecs);
         }
 
-        try {
-            TestSuiteContainer testSuites = getModelRegistry().get(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
+        TestSuiteContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
+        if (testSuites != null) {
             components.addAll(testSuites);
-        } catch (IllegalStateException e) {
-            // TODO - need a better contract here
-            // Ignore for now
         }
 
         renderer.renderComponents(components);

@@ -79,6 +79,10 @@ public abstract class ModelType<T> {
         }
     }
 
+    public static ModelType<Object> untyped() {
+        return UNTYPED;
+    }
+
     public static <T> ModelType<T> of(Class<T> clazz) {
         return new Simple<T>(TypeToken.of(clazz));
     }

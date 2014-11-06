@@ -174,13 +174,23 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public <T> T get(ModelPath path, ModelType<T> type) {
-        ModelElement element = get(path);
-        ModelView<? extends T> typed = assertView(element, type, "get(ModelPath, ModelType)");
-        return typed.getInstance();
+        return toType(type, require(path), "get(ModelPath, ModelType)");
+    }
+
+    public <T> T find(ModelPath path, ModelType<T> type) {
+        return toType(type, get(path), "find(ModelPath, ModelType)");
+    }
+
+    private <T> T toType(ModelType<T> type, ModelElement element, String msg) {
+        if (element == null) {
+            return null;
+        } else {
+            return assertView(element, type, msg).getInstance();
+        }
     }
 
     public ModelElement element(ModelPath path) {
-        return get(path);
+        return require(path);
     }
 
     public ModelState state(ModelPath path) {
@@ -265,9 +275,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         Transformer<List<ModelPath>, List<ModelPath>> passThrough = Transformers.noOpTransformer();
 
         return hasModelPath(candidate, mutators.values(), extractInputPaths)
-               || hasModelPath(candidate, usedMutators.values(), passThrough)
-               || hasModelPath(candidate, finalizers.values(), extractInputPaths)
-               || hasModelPath(candidate, usedFinalizers.values(), passThrough);
+                || hasModelPath(candidate, usedMutators.values(), passThrough)
+                || hasModelPath(candidate, finalizers.values(), extractInputPaths)
+                || hasModelPath(candidate, usedFinalizers.values(), passThrough);
     }
 
     private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
@@ -286,16 +296,28 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ImmutableSet.<ModelPath>builder().addAll(creations.keySet()).build();
     }
 
+    private ModelElement require(ModelPath path) {
+        ModelElement element = get(path);
+        if (element == null) {
+            throw new IllegalStateException("No model element at '" + path + "'");
+        }
+        return element;
+    }
+
     private ModelElement get(ModelPath path) {
         if (store.containsKey(path)) {
             return store.get(path);
         }
 
-        inCreation = removeCreator(path);
-        try {
-            return createAndClose(inCreation);
-        } finally {
-            inCreation = null;
+        inCreation = creations.remove(path);
+        if (inCreation == null) {
+            return null;
+        } else {
+            try {
+                return createAndClose(inCreation);
+            } finally {
+                inCreation = null;
+            }
         }
     }
 
@@ -314,7 +336,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         Set<ModelPath> promisedPaths = getPromisedPaths();
         for (ModelPath modelPath : promisedPaths) {
             if (path.isDirectChild(modelPath)) {
-                get(modelPath);
+                require(modelPath);
             }
         }
     }
@@ -351,15 +373,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
         } else {
             return view;
-        }
-    }
-
-    private BoundModelCreator removeCreator(ModelPath path) {
-        BoundModelCreator creator = creations.remove(path);
-        if (creator == null) {
-            throw new IllegalStateException("No creator for '" + path + "'");
-        } else {
-            return creator;
         }
     }
 

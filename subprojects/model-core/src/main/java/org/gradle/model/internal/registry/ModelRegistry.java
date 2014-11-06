@@ -23,6 +23,9 @@ public interface ModelRegistry extends ModelRuleRegistrar {
 
     public <T> T get(ModelPath path, ModelType<T> type);
 
+    @Nullable
+    <T> T find(ModelPath path, ModelType<T> type);
+
     public ModelElement element(ModelPath path);
 
     @Nullable // if not registered/known
