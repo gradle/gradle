@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -31,9 +32,11 @@ public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
     private final RepositoryChainAdapter adapter;
     private final DynamicVersionResolver dynamicVersionResolver;
+    private final ComponentSelectionRules componentSelectionRules;
 
-    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal versionSelectionRules) {
-        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(versionComparator, versionSelectorScheme, versionSelectionRules);
+    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules) {
+        this.componentSelectionRules = componentSelectionRules;
+        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
         dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
@@ -54,6 +57,10 @@ public class UserResolverChain implements RepositoryChain {
 
     public ArtifactResolver getArtifactResolver() {
         return artifactResolver;
+    }
+
+    public ComponentSelectionRules getComponentSelectionRules() {
+        return componentSelectionRules;
     }
 
     public void add(ModuleComponentRepository repository) {
