@@ -9,7 +9,7 @@ model {
         main(NativeExecutableSpec) {
             sources {
                 cpp {
-                    lib libraries.hello
+                    lib library: 'hello'
                 }
             }
         }
