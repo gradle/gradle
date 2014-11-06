@@ -49,12 +49,12 @@ model {
         }
         hello(NativeLibrarySpec) {
             binaries.all {
-                lib libraries.greetings.static
+                lib library: 'greetings', linkage: 'static'
             }
         }
         main(NativeExecutableSpec) {
             binaries.all {
-                lib libraries.hello
+                lib library: 'hello'
             }
         }
     }
@@ -142,7 +142,7 @@ model {
         main(NativeExecutableSpec) {
             targetFlavors "english", "german"
             binaries.all {
-                lib libraries.hello
+                lib library: 'hello'
             }
         }
     }

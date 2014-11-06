@@ -25,7 +25,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             binaries.all {
-                lib libraries.hello
+                lib library: 'hello'
             }
         }
     }

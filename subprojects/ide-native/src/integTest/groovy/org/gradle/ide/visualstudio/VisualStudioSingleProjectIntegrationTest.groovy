@@ -229,7 +229,7 @@ model {
         main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
-                cpp.lib libraries.hello.static
+                cpp.lib library: 'hello', linkage: 'static'
             }
         }
     }
@@ -270,7 +270,7 @@ model {
         main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
-                cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
         }
     }
@@ -313,13 +313,13 @@ model {
         hello(NativeLibrarySpec) {
            targetPlatform "win32", "x64"
             sources {
-                cpp.lib libraries.greetings.static
+                cpp.lib library: 'greetings', linkage: 'static'
             }
         }
         main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
-                cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
         }
     }
@@ -367,14 +367,14 @@ model {
         main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
-                cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
         }
         mainStatic(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
                 cpp.source.srcDirs "src/main/cpp"
-                cpp.lib libraries.hello.static
+                cpp.lib library: 'hello', linkage: 'static'
             }
         }
     }
@@ -414,7 +414,7 @@ model {
         main(NativeExecutableSpec) {
             targetPlatform "win32", "x64"
             sources {
-                cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
         }
         mainRelease(NativeExecutableSpec) {
@@ -422,7 +422,7 @@ model {
             targetBuildTypes "release"
             sources {
                 cpp.source.srcDirs "src/main/cpp"
-                cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
         }
     }
@@ -924,7 +924,7 @@ model {
             targetPlatform "win32"
             targetBuildTypes "release"
             sources {
-                cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
         }
     }

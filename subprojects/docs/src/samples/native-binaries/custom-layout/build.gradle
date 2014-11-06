@@ -48,7 +48,7 @@ model {
 // END SNIPPET cpp-sources
             binaries.all {
                 // Each executable binary produced uses the 'hello' static library binary
-                lib libraries.hello.static
+                lib library: 'hello', linkage: 'static'
             }
         }
     }

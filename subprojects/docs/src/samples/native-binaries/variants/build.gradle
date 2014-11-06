@@ -34,7 +34,7 @@ model {
         main(NativeExecutableSpec) {
             targetPlatform "x86", "x64"
             sources {
-                cpp.lib libraries.hello.static
+                cpp.lib library: 'hello', linkage: 'static'
             }
         }
     }

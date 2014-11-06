@@ -66,11 +66,11 @@ model {
 apply plugin: 'c'
 
 model {
-    components {
+    components { comp ->
         library(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             sources {
-                c.lib libraries.library.sources.c
+                c.lib comp.library.sources.c
             }
         }
     }
@@ -126,11 +126,11 @@ model {
 apply plugin: 'cpp'
 
 model {
-    components {
+    components { comp ->
         extra(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             sources {
-                cpp.lib libraries.extra.sources.cpp
+                cpp.lib comp.extra.sources.cpp
             }
         }
     }
@@ -153,11 +153,11 @@ model {
 apply plugin: 'cpp'
 
 model {
-    components {
+    components { comp ->
         extra(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             binaries.all {
-                lib libraries.extra.sources.cpp
+                lib comp.extra.sources.cpp
             }
         }
     }

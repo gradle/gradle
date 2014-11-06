@@ -69,7 +69,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             components {
                 main(NativeExecutableSpec) {
                     binaries.all {
-                        lib libraries.hello
+                        lib library: 'hello'
                     }
                 }
                 hello(NativeLibrarySpec) {
@@ -327,7 +327,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         def snapshot = executable.snapshot()
 
         when:
-        buildFile.text = buildFile.text.replaceFirst("lib libraries.hello", "lib libraries.hello.static")
+        buildFile.text = buildFile.text.replace("lib library: 'hello'", "lib library: 'hello', linkage: 'static'")
         run "mainExecutable"
 
         then:
