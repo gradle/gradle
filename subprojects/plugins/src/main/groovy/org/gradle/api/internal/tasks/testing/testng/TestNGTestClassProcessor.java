@@ -106,7 +106,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
-
+            //For suites execution, we're emitting an artificial started/completed event that wraps the actual test execution
+            //This is required for consistency with non-suites execution and correct behavior of output capturing
             Object rootId = idGenerator.generateId();
             TestDescriptorInternal rootSuite = new DefaultTestSuiteDescriptor(rootId, options.getDefaultTestName());
             TestResultProcessor decorator = new AttachParentTestResultProcessor(processor);
