@@ -83,7 +83,7 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
         return getThis();
     }
 
-    public LongRunningOperation withCancellationToken(CancellationToken cancellationToken) {
+    public T withCancellationToken(CancellationToken cancellationToken) {
         operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
         return getThis();
     }
