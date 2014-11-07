@@ -134,17 +134,69 @@
         <section id="plugins_dsl_limitations">
             <title>Limitations of the plugins DSL</title>
             <para>
-                There are some limitations when using this syntax:
+                The new way to add plugins to a project is much more than a more convenient syntax. The new DSL is processed very
+                differently to the old one. The new mechanism allows Gradle to determine the plugins in use very early and very
+                quickly. This allows Gradle to do smart things such as:
             </para>
             <itemizedlist>
-                <listitem>Only project build scripts can contain a <code>plugins {}</code> block (i.e. they cannot be used in init scripts,
-                    settings scripts or script plugins).</listitem>
-                <listitem>The <code>plugins {}</code> block must be at the top level of the script (i.e. it cannot be nested inside other blocks).</listitem>
+                <listitem>Optimize the loading and reuse of plugin classes.</listitem>
+                <listitem>Allow different plugins to use different versions of dependencies.</listitem>
+                <listitem>Provide editors detailed information about the potential properties and values in the buildscript for
+                editing assistance.</listitem>
             </itemizedlist>
             <para>
-                The implication of the second item above is that the <code>plugins {}</code> block cannot be used inside something like an <code>allprojects {}</code> block to apply a
-                plugin to multiple projects at once.  Future versions of Gradle will provide an equivalent mechanism based on the new syntax for this.
+                This requires that plugins be specified in a way that Gradle can easily and quickly extract, before executing the
+                rest of the build script. It also requires that the definition of plugins to use be somewhat static.
             </para>
+            <para>
+                There are some key differences between the new plugin mechanism and the “traditional” <code>apply()</code> method
+                mechanism. There are also some constraints, some of which are temporary limitations while the mechanism is still
+                being developed and some are inherent to the new approach.
+            </para>
+            <section>
+                <title>Constrained Syntax</title>
+                <para>
+                    The new <code>plugins {}</code> block does not support arbitrary Groovy code. It is constrained, in order to be idempotent
+                    (produce the same result every time) and side effect free (safe for Gradle to execute at any time).
+                </para>
+                <para>
+                    The form is:
+                </para>
+                <programlisting>
+plugins {
+    id «plugin id» version «plugin version»
+}
+                </programlisting>
+                <para>
+                    Where <literal>«plugin version»</literal> and <literal>«plugin id»</literal> must be constant, literal, strings.
+                    No other statements are allowed; their presence will cause a compilation error.
+                </para>
+                <para>
+                    The <code>plugins {}</code> block must also be a top level statement in the buildscript. It cannot be nested inside
+                    another construct (e.g. an if-statement or for-loop).
+                </para>
+            </section>
+            <section>
+                <title>Can only be used in build scripts</title>
+                <para>
+                    The <code>plugins {}</code> block can currently only be used in a project's build script. It cannot be used in
+                    script plugins, the settings.gradle file or init scripts.
+                </para>
+                <para>
+                    <emphasis>Future versions of Gradle will remove this restriction.</emphasis>
+                </para>
+            </section>
+            <section>
+                <title>Cannot be used in conjunction with subprojects {}, allprojects {}, etc</title>
+                <para>
+                    It is not possible to use the familiar pattern of applying a plugin to multiple projects at once using <code>subprojects {}</code>,
+                    etc at the moment. There is currently no mechanism for applying a plugin to multiple projects at once. At the moment, each
+                    project that requires a plugin must declare so in the <code>plugins {}</code> block in its buildscript.
+                </para>
+                <para>
+                    <emphasis>Future versions of Gradle will remove this restriction.</emphasis>
+                </para>
+            </section>
             <para>
                 If the restrictions of the new syntax are prohibitive, the recommended approach is to use the <link linkend="sec:external_dependencies">buildscript block</link>
                 to configure external plugin dependencies and to apply them as described <link linkend="sec:applying_binary_plugins">above</link> .
