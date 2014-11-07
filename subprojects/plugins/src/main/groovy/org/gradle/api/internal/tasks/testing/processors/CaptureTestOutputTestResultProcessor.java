@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.logging.StandardOutputRedirector;
 
@@ -30,11 +32,15 @@ import java.util.Map;
  */
 public class CaptureTestOutputTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor processor;
-    private final StandardOutputRedirector outputRedirector;
+    private final TestOutputRedirector outputRedirector;
     private Object rootId;
     private Map<Object, Object> parents = new HashMap<Object, Object>();
 
     public CaptureTestOutputTestResultProcessor(TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
+        this(processor, new TestOutputRedirector(processor, outputRedirector));
+    }
+
+    CaptureTestOutputTestResultProcessor(TestResultProcessor processor, TestOutputRedirector outputRedirector) {
         this.processor = processor;
         this.outputRedirector = outputRedirector;
     }
@@ -42,14 +48,13 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     public void started(final TestDescriptorInternal test, TestStartEvent event) {
         processor.started(test, event);
 
-        //should redirect output for every particular test
-        redirectOutputFor(test.getId());
+        outputRedirector.setOutputOwner(test.getId());
 
         if (rootId == null) {
+            outputRedirector.startRedirecting();
             rootId = test.getId();
-            outputRedirector.start();
         } else {
-            Object parentId = event.getParentId(); //TODO SF coverage
+            Object parentId = event.getParentId();
             if (parentId == null) {
                 //if we don't know the parent we will use the top suite
                 //this way we always have and id to attach logging events for
@@ -63,22 +68,16 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         if (testId.equals(rootId)) {
             //when root suite is completed we stop redirecting
             try {
-                outputRedirector.stop();
+                outputRedirector.stopRedirecting();
             } finally {
                 rootId = null;
             }
         } else {
-            Object parent = parents.remove(testId);
             //when test is completed we should redirect output for the parent
             //so that log events emitted during @AfterSuite, @AfterClass are processed
-            redirectOutputFor(parent);
+            outputRedirector.setOutputOwner(parents.remove(testId));
         }
         processor.completed(testId, event);
-    }
-
-    private void redirectOutputFor(final Object testId) {
-        outputRedirector.redirectStandardOutputTo(new Forwarder(testId, TestOutputEvent.Destination.StdOut));
-        outputRedirector.redirectStandardErrorTo(new Forwarder(testId, TestOutputEvent.Destination.StdErr));
     }
 
     public void output(Object testId, TestOutputEvent event) {
@@ -87,22 +86,5 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
 
     public void failure(Object testId, Throwable result) {
         processor.failure(testId, result);
-    }
-
-    class Forwarder implements StandardOutputListener {
-        private final Object testId;
-        private final TestOutputEvent.Destination dest;
-
-        public Forwarder(Object testId, TestOutputEvent.Destination dest) {
-            this.testId = testId;
-            this.dest = dest;
-        }
-
-        public void onOutput(CharSequence output) {
-            if (testId == null) {
-                throw new RuntimeException("Unable send output event from test executor. Please report this problem. Destination: " + dest + ", event: " + output.toString());
-            }
-            processor.output(testId, new DefaultTestOutputEvent(dest, output.toString()));
-        }
     }
 }

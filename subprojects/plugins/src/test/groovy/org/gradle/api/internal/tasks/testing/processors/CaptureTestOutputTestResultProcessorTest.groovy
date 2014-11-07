@@ -16,96 +16,89 @@
 
 package org.gradle.api.internal.tasks.testing.processors
 
-import org.gradle.api.tasks.testing.TestOutputEvent
-import org.gradle.logging.StandardOutputRedirector
-import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
+import spock.lang.Specification
+import spock.lang.Subject
 
 class CaptureTestOutputTestResultProcessorTest extends Specification {
-    def TestResultProcessor target = Mock()
-    def StandardOutputRedirector redirector = Mock()
-    def processor = new CaptureTestOutputTestResultProcessor(target, redirector)
 
-    def capturesStdOutputAndStdErrorWhileTestIsExecuting() {
-        TestDescriptorInternal test = Mock()
-        TestStartEvent startEvent = Mock()
-        TestCompleteEvent completeEvent = Mock()
-        String testId = 'id'
-        _ * test.getId() >> testId
-        def stdoutListener
-        def stderrListener
+    TestResultProcessor target = Mock()
+    TestOutputRedirector redirector = Mock()
+    @Subject processor = new CaptureTestOutputTestResultProcessor(target, redirector)
+
+    def "starts capturing output"() {
+        def suite = new DefaultTestSuiteDescriptor("1", "Foo")
+        def event = new TestStartEvent(1)
 
         when:
-        processor.started(test, startEvent)
+        processor.started(suite, event)
 
-        then:
-        1 * target.started(test, startEvent)
-        1 * redirector.redirectStandardOutputTo(!null) >> { args -> stdoutListener = args[0] }
-        1 * redirector.redirectStandardErrorTo(!null) >> { args -> stderrListener = args[0] }
-        1 * redirector.start()
-
-        when:
-        stdoutListener.onOutput('this is stdout')
-        stderrListener.onOutput('this is stderr')
-
-        then:
-        1 * target.output(testId, { TestOutputEvent event ->
-            event.destination == TestOutputEvent.Destination.StdOut && event.message == 'this is stdout'
-        })
-        1 * target.output(testId, { TestOutputEvent event ->
-            event.destination == TestOutputEvent.Destination.StdErr && event.message == 'this is stderr' })
-
-        when:
-        processor.completed(testId, completeEvent)
-
-        then:
-        1 * redirector.stop()
-        1 * target.completed(testId, completeEvent)
+        then: 1 * target.started(suite, event)
+        then: 1 * redirector.setOutputOwner("1")
+        then: 1 * redirector.startRedirecting()
+        0 * _
     }
 
-    def "configures redirector for suite and test"() {
-        //this test is not beautiful and it is also very strict.
-        //it's to avoid tricky bugs related to not having correct test ids passed onto the 'output' events
-        //it is covered in the integration tests but I decided to have hardcore mocking test for this algorithm as well :)
-        given:
-        def suite = new DefaultTestClassDescriptor("1", "DogTest");
-        def test = new DefaultTestClassDescriptor("1.1", "shouldBark");
+    def "starts capturing only on first test"() {
+        def test = new DefaultTestDescriptor("2", "Bar", "Baz")
+        def testEvent = new TestStartEvent(2, "1")
 
-        when:
-        processor.started(suite, Mock(TestStartEvent))
+        processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
+
+        when: processor.started(test, testEvent)
 
         then:
-        1 * redirector.start()
+        1 * target.started(test, testEvent)
+        1 * redirector.setOutputOwner("2")
+        0 * _
+    }
 
-        1 * redirector.redirectStandardErrorTo({ it.testId == '1' })
-        1 * redirector.redirectStandardOutputTo({ it.testId == '1' })
+    def "when test completes its parent will be the owner of output"() {
+        def test = new DefaultTestDescriptor("2", "Bar", "Baz")
+        def testEvent = new TestStartEvent(2, "99")
+        def complete = new TestCompleteEvent(1)
 
-        0 * redirector._
+        processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
+        processor.started(test, testEvent)
 
-        when:
-        processor.started(test, Mock(TestStartEvent))
-
-        then:
-        1 * redirector.redirectStandardErrorTo({ it.testId == '1.1' })
-        1 * redirector.redirectStandardOutputTo({ it.testId == '1.1' })
-
-        0 * redirector._
-
-        when:
-        processor.completed('1.1', Mock(TestCompleteEvent))
+        when: processor.completed("2", complete)
 
         then:
-        1 * redirector.redirectStandardErrorTo({ it.testId == '1' })
-        1 * redirector.redirectStandardOutputTo({ it.testId == '1' })
+        1 * redirector.setOutputOwner("99")
+        1 * target.completed("2", complete)
+        0 * _
+    }
 
-        0 * redirector._
+    def "when test without parent completes the root suite be the owner of output"() {
+        def test = new DefaultTestDescriptor("2", "Bar", "Baz")
+        def testEvent = new TestStartEvent(2, null)
+        def complete = new TestCompleteEvent(1)
 
-        when:
-        processor.completed('1', Mock(TestCompleteEvent))
+        processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
+        processor.started(test, testEvent)
+
+        when: processor.completed("2", complete)
 
         then:
+        1 * redirector.setOutputOwner("1")
+        1 * target.completed("2", complete)
+        0 * _
+    }
 
-        1 * redirector.stop()
-        0 * redirector._
+    def "stops redirecting when suite is completed"() {
+        def test = new DefaultTestDescriptor("2", "Bar", "Baz")
+        def testEvent = new TestStartEvent(2, null)
+        def complete = new TestCompleteEvent(1)
+
+        processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
+        processor.started(test, testEvent)
+        processor.completed("2", complete)
+
+        when: processor.completed("1", complete)
+
+        then:
+        1 * redirector.stopRedirecting()
+        1 * target.completed("1", complete)
+        0 * _
     }
 }
