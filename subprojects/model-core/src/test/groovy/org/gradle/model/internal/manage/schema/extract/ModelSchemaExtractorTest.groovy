@@ -32,9 +32,9 @@ class ModelSchemaExtractorTest extends Specification {
 
     static interface NotAnnotatedInterface {}
 
-    def "has to be annotated with @Managed"() {
+    def "unmanaged type"() {
         expect:
-        fail NotAnnotatedInterface, Pattern.quote("type is unsupported")
+        extract(NotAnnotatedInterface).kind == ModelSchema.Kind.UNMANAGED
     }
 
     @Managed
@@ -175,7 +175,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "only selected unmanaged property types are allowed"() {
         expect:
-        fail NonStringProperty, Object, Pattern.quote("type is unsupported")
+        fail NonStringProperty, Pattern.quote("an unmanaged type")
     }
 
     @Managed
@@ -187,7 +187,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "byte property types are not allowed and there is no suggested replacement"() {
         expect:
-        fail BytePrimitiveProperty, byte.class, Pattern.quote("type is unsupported")
+        fail BytePrimitiveProperty, Pattern.quote("an unmanaged type")
     }
 
     @Unroll
@@ -345,15 +345,12 @@ class ModelSchemaExtractorTest extends Specification {
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $Object.name: type is unsupported.
-The following types are supported:
+        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ManagedSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
+Supported types:
  - enum types
  - JDK value types: String, Boolean, Integer, Long, Double, BigInteger, BigDecimal
- - interfaces annotated with org.gradle.model.Managed
  - org.gradle.model.collection.ManagedSet<?> of a managed type
-The type was analyzed due to the following dependencies:
-$type
-  \\--- element type ($Object.name)""")
+ - interfaces annotated with org.gradle.model.Managed""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
@@ -408,7 +405,7 @@ $type
     }
 
     static enum MyEnum {
-        A,B,C
+        A, B, C
     }
 
     def "can extract enum"() {

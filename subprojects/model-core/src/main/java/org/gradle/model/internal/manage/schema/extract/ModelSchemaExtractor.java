@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
@@ -34,12 +35,18 @@ import static org.gradle.internal.SystemProperties.getLineSeparator;
 @ThreadSafe
 public class ModelSchemaExtractor {
 
-    private final static List<ModelSchemaExtractionStrategy> EXTRACTION_STRATEGIES = ImmutableList.of(
+    private final Factory<String> supportedTypeDescriptions = new Factory<String>() {
+        public String create() {
+            return getSupportedTypesDescription();
+        }
+    };
+    private final List<ModelSchemaExtractionStrategy> strategies = ImmutableList.of(
             new PrimitiveStrategy(),
             new EnumStrategy(),
             new JdkValueTypeStrategy(),
-            new StructStrategy(),
-            new ManagedSetStrategy()
+            new ManagedSetStrategy(supportedTypeDescriptions),
+            new StructStrategy(supportedTypeDescriptions),
+            new UnmanagedStrategy()
     );
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
@@ -78,7 +85,7 @@ public class ModelSchemaExtractor {
             return new ModelSchemaExtractionResult<T>(cached);
         }
 
-        for (ModelSchemaExtractionStrategy strategy : EXTRACTION_STRATEGIES) {
+        for (ModelSchemaExtractionStrategy strategy : strategies) {
             ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, cache);
             if (result != null) {
                 cache.set(type, result.getSchema());
@@ -86,14 +93,11 @@ public class ModelSchemaExtractor {
             }
         }
 
-        throw new UnmanagedModelElementTypeException(extractionContext,
-                "type is unsupported." + getLineSeparator()
-                        + "The following types are supported:" + getLineSeparator()
-                        + getSupportedTypesString()
-        );
+        // Should never get here, the last strategy should be a catch all
+        throw new IllegalStateException("No extraction strategy found for type: " + type);
     }
 
-    private String getSupportedTypesString() {
+    private String getSupportedTypesDescription() {
         return Joiner.on(getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
             public String apply(String input) {
                 return " - " + input;
@@ -102,9 +106,9 @@ public class ModelSchemaExtractor {
     }
 
     private Iterable<String> getSupportedTypes() {
-        return Iterables.concat(Iterables.transform(EXTRACTION_STRATEGIES, new Function<ModelSchemaExtractionStrategy, Iterable<String>>() {
+        return Iterables.concat(Iterables.transform(strategies, new Function<ModelSchemaExtractionStrategy, Iterable<String>>() {
             public Iterable<String> apply(ModelSchemaExtractionStrategy input) {
-                return input.getSupportedTypes();
+                return input.getSupportedManagedTypes();
             }
         }));
     }

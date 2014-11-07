@@ -61,7 +61,7 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    public Iterable<String> getSupportedTypes() {
+    public Iterable<String> getSupportedManagedTypes() {
         return Collections.singleton("JDK value types: " + Joiner.on(", ").join(Iterables.transform(TYPES, new Function<ModelType<?>, Object>() {
             public Object apply(ModelType<?> input) {
                 return input.getRawClass().getSimpleName();

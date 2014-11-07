@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -39,7 +40,13 @@ import java.util.Map;
 @ThreadSafe
 public class StructStrategy implements ModelSchemaExtractionStrategy {
 
-    public Iterable<String> getSupportedTypes() {
+    private final Factory<String> supportedTypeDescriptions;
+
+    public StructStrategy(Factory<String> supportedTypeDescriptions) {
+        this.supportedTypeDescriptions = supportedTypeDescriptions;
+    }
+
+    public Iterable<String> getSupportedManagedTypes() {
         return Collections.singleton("interfaces annotated with " + Managed.class.getName());
     }
 
@@ -118,8 +125,16 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     private <R, P> ModelSchemaExtractionContext<P> toExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
         return parentContext.child(property.getType(), String.format("property '%s'", property.getName()), new Action<ModelSchemaExtractionContext<P>>() {
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
+                ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
+
+                if (propertySchema.getKind() == ModelSchema.Kind.UNMANAGED) {
+                    throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                            "type %s cannot be used for property '%s' as it is an unmanaged type.%n%s",
+                            property.getType(), property.getName(), supportedTypeDescriptions.create()
+                    ));
+                }
+
                 if (!property.isWritable()) {
-                    ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
                     if (!propertySchema.getKind().equals(ModelSchema.Kind.STRUCT)) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format("read only property '%s' has non managed type %s, only managed types can be used", property.getName(), property.getType()));
                     }

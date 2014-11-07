@@ -28,7 +28,6 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
-import org.gradle.model.internal.manage.schema.extract.UnmanagedModelElementTypeException;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -72,6 +71,11 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
 
+        String description = String.format("a void returning model element creation rule has to take an instance of a managed type as the first argument");
+        if (modelSchema.getKind() == ModelSchema.Kind.UNMANAGED) {
+            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
+        }
+
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
@@ -86,9 +90,6 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition) {
         try {
             return store.getSchema(managedType);
-        } catch (UnmanagedModelElementTypeException e) {
-            String description = String.format("a void returning model element creation rule has to take an instance of a managed type as the first argument");
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description, e);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
         }

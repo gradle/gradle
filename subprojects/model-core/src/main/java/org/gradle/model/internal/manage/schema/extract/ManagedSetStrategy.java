@@ -18,6 +18,8 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -30,8 +32,13 @@ public class ManagedSetStrategy implements ModelSchemaExtractionStrategy {
 
     private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
     };
+    private final Factory<String> supportedTypeDescriptions;
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    public ManagedSetStrategy(Factory<String> supportedTypeDescriptions) {
+        this.supportedTypeDescriptions = supportedTypeDescriptions;
+    }
+
+    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache) {
         ModelType<T> type = extractionContext.getType();
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(type)) {
             if (!type.getRawClass().equals(ManagedSet.class)) {
@@ -53,13 +60,25 @@ public class ManagedSetStrategy implements ModelSchemaExtractionStrategy {
             }
 
             ModelSchema<T> schema = ModelSchema.collection(extractionContext.getType());
-            return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(extractionContext.child(elementType, "element type")));
+            ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
+                public void execute(ModelSchemaExtractionContext<?> context) {
+                    ModelSchema<?> typeParamSchema = cache.get(context.getType());
+
+                    if (typeParamSchema.getKind() == ModelSchema.Kind.UNMANAGED) {
+                        throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
+                                "cannot create a managed set of type %s as it is an unmanaged type.%nSupported types:%n%s",
+                                context.getType(), supportedTypeDescriptions.create()
+                        ));
+                    }
+                }
+            });
+            return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
         } else {
             return null;
         }
     }
 
-    public Iterable<String> getSupportedTypes() {
+    public Iterable<String> getSupportedManagedTypes() {
         return Collections.singleton(MANAGED_SET_MODEL_TYPE + " of a managed type");
     }
 }

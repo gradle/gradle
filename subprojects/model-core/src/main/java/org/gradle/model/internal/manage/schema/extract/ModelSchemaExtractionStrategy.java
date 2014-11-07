@@ -23,6 +23,6 @@ public interface ModelSchemaExtractionStrategy {
     @Nullable
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
 
-    Iterable<String> getSupportedTypes();
+    Iterable<String> getSupportedManagedTypes();
 
 }

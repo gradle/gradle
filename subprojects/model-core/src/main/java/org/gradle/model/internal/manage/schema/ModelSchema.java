@@ -28,7 +28,8 @@ public class ModelSchema<T> {
     public static enum Kind {
         VALUE, // at the moment we are conflating this with unstructured primitives
         COLLECTION,
-        STRUCT // type is guaranteed to be an interface
+        STRUCT, // type is guaranteed to be an interface
+        UNMANAGED // some type we know nothing about
     }
 
     private final ModelType<T> type;
@@ -45,6 +46,10 @@ public class ModelSchema<T> {
 
     public static <T> ModelSchema<T> collection(ModelType<T> type) {
         return new ModelSchema<T>(type, Kind.COLLECTION, Collections.<ModelProperty<?>>emptySet());
+    }
+
+    public static <T> ModelSchema<T> unmanaged(ModelType<T> type) {
+        return new ModelSchema<T>(type, Kind.UNMANAGED, Collections.<ModelProperty<?>>emptySet());
     }
 
     private ModelSchema(ModelType<T> type, Kind kind, Iterable<ModelProperty<?>> properties) {

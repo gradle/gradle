@@ -16,24 +16,16 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.Collections;
 
-public class EnumStrategy implements ModelSchemaExtractionStrategy {
-
+public class UnmanagedStrategy implements ModelSchemaExtractionStrategy {
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
-        ModelType<T> type = extractionContext.getType();
-        if (type.getRawClass().isEnum()) {
-            return new ModelSchemaExtractionResult<T>(ModelSchema.value(type));
-        } else {
-            return null;
-        }
+        return new ModelSchemaExtractionResult<T>(ModelSchema.unmanaged(extractionContext.getType()));
     }
 
     public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton("enum types");
+        return Collections.emptyList();
     }
-
 }

@@ -47,7 +47,7 @@ public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
         return null;
     }
 
-    public Iterable<String> getSupportedTypes() {
+    public Iterable<String> getSupportedManagedTypes() {
         return Collections.emptySet();
     }
 

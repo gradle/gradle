@@ -280,7 +280,7 @@ public abstract class ModelType<T> {
             };
         }
 
-        public static Spec<ModelType<?>> isAssignableToAny(final Iterable<ModelType<?>> types) {
+        public static Spec<ModelType<?>> isAssignableToAny(final Iterable<? extends ModelType<?>> types) {
             return new Spec<ModelType<?>>() {
                 public boolean isSatisfiedBy(ModelType<?> element) {
                     return CollectionUtils.any(types, isAssignableFrom(element));
