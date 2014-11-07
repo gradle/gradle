@@ -18,21 +18,35 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2841")
-    def "captures logging from static initializers"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { jcenter() }
-            dependencies { testCompile "org.testng:testng:${TestNGCoverage.NEWEST}" }
-            test {
-                useTestNG()
-                onOutput { id, event -> println "captured " + event.message }
+    @Ignore
+    def "captures output from logging tools"() {
+        TestNGCoverage.enableTestNG(buildFile)
+
+        file("src/test/java/FooTest.java") << """
+            import org.testng.annotations.*;
+
+            public class FooTest {
+                static { System.out.println("cool output from initializer"); }
+                @Test public void foo() { System.out.println("cool output from test"); }
             }
         """
+
+        when: run("test")
+        then:
+        result.output.contains("captured cool output from test")
+        result.output.contains("captured cool output from initializer")
+    }
+
+    @Issue("GRADLE-2841")
+    def "captures logging from static initializers"() {
+        TestNGCoverage.enableTestNG(buildFile)
+        buildFile << "test.onOutput { id, event -> println 'captured ' + event.message }"
 
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;

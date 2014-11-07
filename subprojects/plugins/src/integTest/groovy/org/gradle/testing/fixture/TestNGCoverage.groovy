@@ -19,4 +19,16 @@ package org.gradle.testing.fixture;
 class TestNGCoverage {
     final static String NEWEST = '6.8.7'
     final static String[] STANDARD_COVERAGE = ['5.14.10', NEWEST]
+
+    /**
+     * Adds java plugin and configures TestNG support in given build script file.
+     */
+    static void enableTestNG(File buildFile) {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { jcenter() }
+            dependencies { testCompile "org.testng:testng:${NEWEST}" }
+            test.useTestNG()
+        """
+    }
 }
