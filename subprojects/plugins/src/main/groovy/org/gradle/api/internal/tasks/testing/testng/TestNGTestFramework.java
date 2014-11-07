@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
@@ -100,7 +99,7 @@ public class TestNGTestFramework implements TestFramework {
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles,
-                    serviceRegistry.get(IdGenerator.class), new JULRedirector());
+                    serviceRegistry.get(IdGenerator.class));
         }
     }
 }

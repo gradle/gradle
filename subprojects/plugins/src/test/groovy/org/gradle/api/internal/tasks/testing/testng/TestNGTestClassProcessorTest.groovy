@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.id.LongIdGenerator
-import org.gradle.logging.StandardOutputRedirector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.testng.ITestContext
@@ -43,7 +42,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(dir.testDirectory), new DefaultTestFilter()])
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector)
+    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator())
 
     void process(Class ... clazz) {
         classProcessor.startProcessing(processor)
@@ -235,7 +234,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), {} as StandardOutputRedirector)
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator())
 
         when:
         classProcessor.startProcessing(processor)

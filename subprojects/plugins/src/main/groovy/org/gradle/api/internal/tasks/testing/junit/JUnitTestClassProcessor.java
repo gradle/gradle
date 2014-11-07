@@ -33,18 +33,15 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final IdGenerator<?> idGenerator;
     private final ActorFactory actorFactory;
-    private final StandardOutputRedirector outputRedirector;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private final JUnitSpec spec;
     private JUnitTestClassExecuter executer;
     private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory,
-                                   StandardOutputRedirector standardOutputRedirector) {
+    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory) {
         this.idGenerator = idGenerator;
         this.spec = spec;
         this.actorFactory = actorFactory;
-        this.outputRedirector = standardOutputRedirector;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {

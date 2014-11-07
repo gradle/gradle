@@ -116,7 +116,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
+            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class));
         }
     }
 }

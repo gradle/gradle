@@ -40,17 +40,14 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final TestNGSpec options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
-    private final StandardOutputRedirector outputRedirector;
     private ClassLoader applicationClassLoader;
     private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator,
-                                    StandardOutputRedirector outputRedirector) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
-        this.outputRedirector = outputRedirector;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
