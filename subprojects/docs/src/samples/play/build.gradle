@@ -1,0 +1,17 @@
+plugins {
+	id 'play-application'
+}
+
+model {
+	components {
+    	myApp(PlayApplicationSpec)
+    }
+}
+
+repositories{
+    jcenter()
+    maven{
+        name = "typesafe-maven-release"
+        url = "http://repo.typesafe.com/typesafe/maven-releases"
+    }
+}
