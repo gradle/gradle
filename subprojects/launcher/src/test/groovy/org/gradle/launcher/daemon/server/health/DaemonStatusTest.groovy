@@ -22,7 +22,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.DEFAULT_EXPIRE_AT
 import static org.gradle.launcher.daemon.server.health.DaemonStatus.EXPIRE_AT_PROPERTY
 
 class DaemonStatusTest extends Specification {
@@ -31,15 +30,6 @@ class DaemonStatusTest extends Specification {
     def stats = Mock(DaemonStats)
 
     @Rule SetSystemProperties props = new SetSystemProperties()
-
-    def "uses default tired threshold"() {
-        stats.getCurrentPerformance() >> DEFAULT_EXPIRE_AT
-        def betterStats = Mock(DaemonStats) { getCurrentPerformance() >> DEFAULT_EXPIRE_AT + 1 }
-
-        expect:
-        status.isDaemonTired(stats)
-        !status.isDaemonTired(betterStats)
-    }
 
     def "validates supplied threshold value"() {
         System.setProperty(EXPIRE_AT_PROPERTY, "foo")
