@@ -52,7 +52,7 @@
                 Multiple script plugins (of either form) can be applied to a given build.
             </para>
         </section>
-        <section>
+        <section id="sec:applying_binary_plugins">
             <title>Binary plugins</title>
             <sample id="useJavaPlugin" dir="java/quickstart" title="Applying a binary plugin">
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
@@ -131,6 +131,25 @@
         <para>
             See <apilink class="org.gradle.plugin.use.PluginDependenciesSpec" /> for more information on using the Plugin DSL.
         </para>
+        <section id="plugins_dsl_limitations">
+            <title>Limitations of the plugins DSL</title>
+            <para>
+                There are some limitations when using this syntax:
+            </para>
+            <itemizedlist>
+                <listitem>Only project build scripts can contain a <code>plugins {}</code> block (i.e. they cannot be used in init scripts,
+                    settings scripts or script plugins).</listitem>
+                <listitem>The <code>plugins {}</code> block must be at the top level of the script (i.e. it cannot be nested inside other blocks).</listitem>
+            </itemizedlist>
+            <para>
+                The implication of the second item above is that the <code>plugins {}</code> block cannot be used inside something like an <code>allprojects {}</code> block to apply a
+                plugin to multiple projects at once.  Future versions of Gradle will provide an equivalent mechanism based on the new syntax for this.
+            </para>
+            <para>
+                If the restrictions of the new syntax are prohibitive, the recommended approach is to use the <link linkend="sec:external_dependencies">buildscript block</link>
+                to configure external plugin dependencies and to apply them as described <link linkend="sec:applying_binary_plugins">above</link> .
+            </para>
+        </section>
     </section>
     <section>
         <title>Finding community plugins</title>
