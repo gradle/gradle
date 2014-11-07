@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProce
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
-import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.*;

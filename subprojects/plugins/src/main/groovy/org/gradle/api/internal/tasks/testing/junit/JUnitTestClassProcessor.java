@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProce
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.slf4j.Logger;
