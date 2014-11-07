@@ -79,12 +79,8 @@ Binaries
         when:
         succeeds("assemble")
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":routesCompileMyAppBinary UP-TO-DATE
-:twirlCompileMyAppBinary UP-TO-DATE
-:scalaCompileMyAppBinary UP-TO-DATE
-:createMyAppBinaryJar
-:myAppBinary
-:assemble"""));
+        executed(":createMyAppBinaryJar", ":myAppBinary", ":assemble")
+        skipped(":routesCompileMyAppBinary" , ":twirlCompileMyAppBinary", ":scalaCompileMyAppBinary")
         and:
         file("build/jars/myApp/myAppBinary.jar").exists()
     }
