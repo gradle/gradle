@@ -37,7 +37,9 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
         model {
             components {
-                myApp(PlayApplicationSpec)
+                myApp(PlayApplicationSpec){
+                    playVersion '2.10-2.3.5'
+                }
             }
         }
 

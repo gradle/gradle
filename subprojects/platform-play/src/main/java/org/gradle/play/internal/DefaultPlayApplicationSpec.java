@@ -20,4 +20,13 @@ import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.play.PlayApplicationSpec;
 
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
+    String playVersion;
+
+    public String getPlayVersion() {
+        return playVersion;
+    }
+
+    public void playVersion(String playVersion) {
+        this.playVersion = playVersion;
+    }
 }
