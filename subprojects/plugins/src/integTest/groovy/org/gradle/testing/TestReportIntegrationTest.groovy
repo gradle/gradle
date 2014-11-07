@@ -39,11 +39,11 @@ public class LoggingTest {
     @org.junit.Test
     public void test() {
         if (System.getProperty("LogLessStuff", "false").equals("true")) {
-            System.out.print("stdout.");
-            System.err.print("stderr.");
+            System.out.println("stdout.");
+            System.err.println("stderr.");
         } else {
-            System.out.print("This is stdout.");
-            System.err.print("This is stderr.");
+            System.out.println("This is stdout.");
+            System.err.println("This is stderr.");
         }
     }
 }
@@ -54,16 +54,16 @@ public class LoggingTest {
 
         then:
         def result = new HtmlTestExecutionResult(testDirectory)
-        result.testClass("LoggingTest").assertStdout(equalTo("This is stdout."))
-        result.testClass("LoggingTest").assertStderr(equalTo("This is stderr."))
+        result.testClass("LoggingTest").assertStdout(equalTo("This is stdout.\n"))
+        result.testClass("LoggingTest").assertStderr(equalTo("This is stderr.\n"))
 
         when:
         executer.withArguments("-DLogLessStuff=true")
         run "test"
 
         then:
-        result.testClass("LoggingTest").assertStdout(equalTo("stdout."))
-        result.testClass("LoggingTest").assertStderr(equalTo("stderr."))
+        result.testClass("LoggingTest").assertStdout(equalTo("stdout.\n"))
+        result.testClass("LoggingTest").assertStderr(equalTo("stderr.\n"))
     }
 
     @UsesSample("testing/testReport")
