@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -32,7 +31,7 @@ public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
     private final RepositoryChainAdapter adapter;
     private final DynamicVersionResolver dynamicVersionResolver;
-    private final ComponentSelectionRules componentSelectionRules;
+    private final ComponentSelectionRulesInternal componentSelectionRules;
 
     public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules) {
         this.componentSelectionRules = componentSelectionRules;
@@ -59,7 +58,7 @@ public class UserResolverChain implements RepositoryChain {
         return artifactResolver;
     }
 
-    public ComponentSelectionRules getComponentSelectionRules() {
+    public ComponentSelectionRulesInternal getComponentSelectionRules() {
         return componentSelectionRules;
     }
 

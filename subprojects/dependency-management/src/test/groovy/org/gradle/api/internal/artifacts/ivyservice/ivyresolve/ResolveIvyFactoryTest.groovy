@@ -104,8 +104,9 @@ class ResolveIvyFactoryTest extends Specification {
             assert r instanceof ResolveIvyFactory.ParentModuleLookupResolver
             parentModuleLookupResolver = r
         }
-        // Validate that the parent repository chain selection rules are different
+        // Validate that the parent repository chain selection rules are different and empty
         parentModuleLookupResolver.repositoryChain.componentSelectionRules != resolver.componentSelectionRules
+        parentModuleLookupResolver.repositoryChain.componentSelectionRules.rules.size() == 0
     }
 
     def externalResourceResolverSpy() {
