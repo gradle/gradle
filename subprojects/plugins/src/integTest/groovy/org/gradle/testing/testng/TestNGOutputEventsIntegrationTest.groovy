@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is
 
 class TestNGOutputEventsIntegrationTest extends AbstractIntegrationSpec {
 
-    def "attaches output events to correct test descriptors"() {
+    def setup() {
         buildFile << """
             apply plugin: "java"
             repositories { jcenter() }
@@ -58,7 +58,36 @@ class TestNGOutputEventsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+    }
 
+    def "attaches events to correct test descriptors of a suite"() {
+        buildFile << "test.useTestNG { suites 'suite.xml' }"
+
+        file("suite.xml") << """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="AwesomeSuite">
+  <test name='The Foo Test'><classes><class name='FooTest'/></classes></test>
+</suite>"""
+
+        when: run "test"
+
+        then:
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("FooTest")
+
+        /**
+         * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
+         */
+
+        clazz.assertTestCaseStderr("m1", is("m1 err\n"))
+        clazz.assertTestCaseStderr("m2", is("m2 err\n"))
+        clazz.assertTestCaseStdout("m1", is("m1 out\n"))
+        clazz.assertTestCaseStdout("m2", is("m2 out\n"))
+        clazz.assertStderr(is(""))
+        clazz.assertStdout(is(""))
+    }
+
+    def "attaches output events to correct test descriptors"() {
         when: run "test"
 
         then:
