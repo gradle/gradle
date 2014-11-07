@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.id.IdGenerator;
@@ -102,15 +101,13 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
         }
 
-        TestResultProcessor processor = new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector);
-
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
             //For suites execution, we're emitting an artificial started/completed event that wraps the actual test execution
             //This is required for consistency with non-suites execution and correct behavior of output capturing
             Object rootId = idGenerator.generateId();
             TestDescriptorInternal rootSuite = new DefaultTestSuiteDescriptor(rootId, options.getDefaultTestName());
-            TestResultProcessor decorator = new AttachParentTestResultProcessor(processor);
+            TestResultProcessor decorator = new AttachParentTestResultProcessor(resultProcessor);
             decorator.started(rootSuite, new TestStartEvent(System.currentTimeMillis()));
             testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(decorator, idGenerator)));
             try {
@@ -120,7 +117,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
-            testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(processor, idGenerator)));
+            testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator)));
             testNg.run();
         }
     }

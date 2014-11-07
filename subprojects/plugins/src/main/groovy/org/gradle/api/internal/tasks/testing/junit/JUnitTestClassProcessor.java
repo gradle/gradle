@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
@@ -51,7 +50,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Build a result processor chain
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
-        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector));
+        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(resultProcessor);
         TestClassExecutionEventGenerator eventGenerator = new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, timeProvider);
 
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe

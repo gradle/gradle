@@ -21,6 +21,9 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.logging.StandardOutputRedirector;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A {@link org.gradle.api.internal.tasks.testing.TestResultProcessor} which redirect stdout and stderr during the
  * execution of a test suite.
@@ -28,7 +31,8 @@ import org.gradle.logging.StandardOutputRedirector;
 public class CaptureTestOutputTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor processor;
     private final StandardOutputRedirector outputRedirector;
-    private Object suiteId;
+    private Object rootId;
+    private Map<Object, Object> parents = new HashMap<Object, Object>();
 
     public CaptureTestOutputTestResultProcessor(TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
         this.processor = processor;
@@ -41,26 +45,33 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         //should redirect output for every particular test
         redirectOutputFor(test.getId());
 
-        //currently our test reports include std out/err per test class (aka suite) not per test method (aka test)
-        //for historical reasons. Therefore we only start/stop redirector per suite.
-        if (suiteId != null) {
-            return;
+        if (rootId == null) {
+            rootId = test.getId();
+            outputRedirector.start();
+        } else {
+            Object parentId = event.getParentId(); //TODO SF coverage
+            if (parentId == null) {
+                //if we don't know the parent we will use the top suite
+                //this way we always have and id to attach logging events for
+                parentId = rootId;
+            }
+            parents.put(test.getId(), parentId);
         }
-        suiteId = test.getId();
-        outputRedirector.start();
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        if (testId.equals(suiteId)) {
-            //when suite is completed we no longer redirect for this suite
+        if (testId.equals(rootId)) {
+            //when root suite is completed we stop redirecting
             try {
                 outputRedirector.stop();
             } finally {
-                suiteId = null;
+                rootId = null;
             }
         } else {
-            //when test is completed, should redirect output for the 'suite' to log things like @AfterSuite, etc.
-            redirectOutputFor(suiteId);
+            Object parent = parents.remove(testId);
+            //when test is completed we should redirect output for the parent
+            //so that log events emitted during @AfterSuite, @AfterClass are processed
+            redirectOutputFor(parent);
         }
         processor.completed(testId, event);
     }

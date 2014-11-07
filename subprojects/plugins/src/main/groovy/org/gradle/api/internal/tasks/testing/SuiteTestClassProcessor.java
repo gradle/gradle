@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
+import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
 
@@ -34,7 +36,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
 
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
-            resultProcessor = new AttachParentTestResultProcessor(testResultProcessor);
+            resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(testResultProcessor, new JULRedirector()));
             resultProcessor.started(suiteDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
