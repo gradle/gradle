@@ -19,6 +19,7 @@ package org.gradle.play.internal.routes;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
+import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
 
 import java.io.File;
 import java.util.Arrays;

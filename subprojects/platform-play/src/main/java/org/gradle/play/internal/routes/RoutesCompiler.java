@@ -17,135 +17,24 @@
 package org.gradle.play.internal.routes;
 
 import com.google.common.base.Function;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.play.internal.ScalaUtil;
+import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable {
-    private final RoutesCompilerVersion routesCompilerVersion;
-
-    public RoutesCompiler(String routesCompilerVersion) {
-        this.routesCompilerVersion = RoutesCompilerVersion.parse(routesCompilerVersion);
-    }
-
-    private enum RoutesCompilerVersion {
-        V_22X,
-        V_23X;
-
-        public static RoutesCompilerVersion parse(String version) {
-            if (version == null) {
-                throw new InvalidUserDataException("There is no version of the Play Routes Compiler detected");
-            }
-
-            if (version.matches("2\\.2\\..*?")) {
-                return V_22X;
-            } else if (version.matches("2\\.3\\..*?")) {
-                return V_23X;
-            }
-            throw new InvalidUserDataException("Could not find a compatible Play version for Routes Compiler. This plugin is compatible with: 2.3.x, 2.2.x");
-        }
-    }
-
-    private static Function<Object[], Object> createCompileFunction(ClassLoader cl, RoutesCompilerVersion routesCompilerVersion) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-        switch (routesCompilerVersion) {
-            case V_22X:
-                return ScalaUtil.scalaObjectFunction(
-                        cl,
-                        "play.router.RoutesCompiler",
-                        "compile",
-                        new Class<?>[]{
-                                File.class, //input
-                                File.class,
-                                cl.loadClass("scala.collection.Seq"),
-                                boolean.class,
-                                boolean.class
-                        }
-                );
-            case V_23X:
-                return ScalaUtil.scalaObjectFunction(
-                        cl,
-                        "play.router.RoutesCompiler",
-                        "compile",
-                        new Class<?>[]{
-                                File.class, //input
-                                File.class,
-                                cl.loadClass("scala.collection.Seq"),
-                                boolean.class,
-                                boolean.class,
-                                boolean.class
-                        }
-                );
-
-            default:
-                throw new InvalidUserDataException("Could not find a compatible Play version for Routes Compiler. This plugin is compatible with: 2.3.x, 2.2.x");
-        }
-
-    }
-
-    private Object[] createCompileParameters(File sourceFile, RoutesCompilerVersion routesCompilerVersion, RoutesCompileSpec spec, ClassLoader cl) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        File generatedDirectory = spec.getDestinationDir();
-        Boolean generateReverseRoute= spec.getGenerateReverseRoute();
-        boolean generateRefReverseRouter = spec.isGenerateRefReverseRouter();
-        boolean namespaceReverseRouter = spec.isNamespaceReverseRouter();
-
-        switch (routesCompilerVersion) {
-            case V_22X:
-                return  new Object[]{
-                    sourceFile,
-                    generatedDirectory,
-                    getAdditiontalImportsAsScalaSeq(cl, spec),
-                    generateReverseRoute,
-                    namespaceReverseRouter
-                };
-            case V_23X:
-                return new Object[]{
-                    sourceFile,
-                    generatedDirectory,
-                    getAdditiontalImportsAsScalaSeq(cl, spec),
-                    generateReverseRoute,
-                    generateRefReverseRouter,
-                    namespaceReverseRouter
-                };
-
-            default:
-                throw new RuntimeException("Could not find a compatible Play version for Routes Compiler. This plugin is compatible with: 2.3.x, 2.2.x");
-        }
-    }
-
-    private Object getAdditiontalImportsAsScalaSeq(ClassLoader cl, RoutesCompileSpec spec) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        List<String> additionalImports = new ArrayList<String>();
-        additionalImports.addAll(spec.getAdditionalImports());
-
-        Class<?> bufferClass = cl.loadClass("scala.collection.mutable.ListBuffer");
-        Object buffer = bufferClass.newInstance();
-        Method bufferPlusEq = bufferClass.getMethod("$plus$eq", Object.class);
-
-        if (additionalImports != null) {
-            for (String additionalImport : additionalImports) {
-                bufferPlusEq.invoke(buffer, additionalImport);
-            }
-        }
-        return buffer;
-    }
-
     public WorkResult execute(RoutesCompileSpec spec) {
         boolean didWork = false;
 
         try {
             ClassLoader cl = getClass().getClassLoader();
             Iterable<File> sources = spec.getSources();
-            Function<Object[], Object> compile = createCompileFunction(cl, routesCompilerVersion);
+            Function<Object[], Object> compile = spec.getCompilerMethod(cl);
             for (File sourceFile : sources) {
-                Object ret = compile.apply(createCompileParameters(sourceFile, routesCompilerVersion, spec, cl));
+                Object ret = compile.apply(spec.createCompileParameters(cl, sourceFile));
                 if (ret != null && ret instanceof Boolean) {
                     didWork = (Boolean) ret || didWork;
                 } else {

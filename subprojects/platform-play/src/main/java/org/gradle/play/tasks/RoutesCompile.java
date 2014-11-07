@@ -27,8 +27,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.routes.DaemonRoutesCompiler;
-import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
+import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
+import org.gradle.play.internal.routes.RoutesCompilerVersion;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,6 +58,8 @@ public class RoutesCompile  extends SourceTask {
     private List<String> additionalImports = new ArrayList<String>();
 
     private String routesCompilerVersion;
+    private boolean javaProject;
+    private boolean namespaceReverseRouter;
 
     void setCompiler(Compiler<RoutesCompileSpec> compiler) {
         this.compiler = compiler;
@@ -130,7 +134,9 @@ public class RoutesCompile  extends SourceTask {
         if(compiler==null){
             compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
         }
-        RoutesCompileSpec spec = generateSpec(getSource().getFiles());
+
+        RoutesCompilerVersion version = RoutesCompilerVersion.parse(getRoutesCompilerVersion());
+        RoutesCompileSpec spec = RoutesCompileSpecFactory.create(getSource().getFiles(), getOutputDirectory(), getAdditionalImports(), isNamespaceReverseRouter(), isJavaProject(), version);
         compiler.execute(spec);
     }
 
@@ -144,19 +150,27 @@ public class RoutesCompile  extends SourceTask {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
 
-            RoutesCompiler playRoutesCompiler = new RoutesCompiler(getRoutesCompilerVersion());
+            RoutesCompiler playRoutesCompiler = new RoutesCompiler();
             compiler = new DaemonRoutesCompiler(projectInternal.getProjectDir(), playRoutesCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
 
         }
         return compiler;
     }
 
-    private RoutesCompileSpec generateSpec(Set<File> files) {
-        return new RoutesCompileSpec(files, getOutputDirectory(), getAdditionalImports());
-    }
-
     void setCleaner(RoutesStaleOutputCleaner cleaner) {
         this.cleaner = cleaner;
+    }
+
+    public boolean isJavaProject() {
+        return javaProject;
+    }
+
+    public void setJavaProject(boolean javaProject) {
+        this.javaProject = javaProject;
+    }
+
+    public boolean isNamespaceReverseRouter() {
+        return namespaceReverseRouter;
     }
 
     private static class RoutesStaleOutputCleaner {
@@ -191,7 +205,7 @@ public class RoutesCompile  extends SourceTask {
             } else if (splits.length == 2 && splits[1].equals("routes")) {
                 return getRoutesFiles(new File(destinationDir, splits[0]));
             } else {
-                throw new IllegalArgumentException("Could not split " + inputFileName + " route compatible. Try to exclude this file (" + inputFile.getAbsolutePath()+") from Play routes.");
+                throw new IllegalArgumentException("Found a route file not matching pattern: could not split " + inputFileName + " into namespaces. Try to exclude this file (" + inputFile.getAbsolutePath()+") from Play routes.");
             }
         }
     }

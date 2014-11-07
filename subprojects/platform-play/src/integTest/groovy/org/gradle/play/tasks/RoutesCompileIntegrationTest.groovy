@@ -73,7 +73,7 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds("routesCompile")
         then:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala",
-                "foo/controllers/foo/routes.java", "foo/controllers/routes.java", "foo/routes_reverseRouting.scala", "foo/routes_routing.scala")
+                "controllers/foo/routes.java", "foo/routes_reverseRouting.scala", "foo/routes_routing.scala")
 
         when:
         file("conf/foo.routes").delete()

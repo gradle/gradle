@@ -214,7 +214,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(RoutesCompile routesCompile) {
                     routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
                     routesCompile.setAdditionalImports(new ArrayList<String>());
-                    routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf/routes"));
+                    routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
+                    routesCompile.include("*.routes");
+                    routesCompile.include("routes");
                     binary.builtBy(routesCompile);
                 }
             });

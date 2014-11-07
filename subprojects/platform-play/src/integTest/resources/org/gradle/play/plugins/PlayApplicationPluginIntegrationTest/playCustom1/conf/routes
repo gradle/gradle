@@ -1,0 +1,6 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+->  /scala     scala.Routes
+->  /java      java.Routes

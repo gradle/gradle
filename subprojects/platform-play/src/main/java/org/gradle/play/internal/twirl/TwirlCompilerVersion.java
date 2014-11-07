@@ -52,16 +52,26 @@ enum TwirlCompilerVersion {
         return defaultAdditionalImports;
     }
 
-    static class DEFAULTS {
-        static final String V_22X_DEFAULT_IMPORTS = "import play.api.templates._\n"
-                + "import play.api.templates.PlayMagic._\n"
-                + "import models._\n"
-                + "import controllers._\n"
-                + "import play.api.i18n._\n"
-                + "import play.api.mvc._\n"
-                + "import play.api.data._\n"
-                + "import views.html._";
+    //TODO: use either the Scala or the Java import.
+    //TODO: fix hardcoded html format
+    private static String defaultScalaImports22x(String format) {
+        return String.format("import play.api.templates._; import play.api.templates.PlayMagic._; import models._; import controllers._; import play.api.i18n._; import play.api.mvc._; import play.api.data._; import views.%s._;", format);
+    }
+    private static String defaultJavaImports22x(String format) {
+        return String.format("import play.api.templates._; import play.api.templates.PlayMagic._; import models._; import controllers._; import play.api.i18n._; import play.api.mvc._; import play.api.data._; import views.%s._;", format);
+    }
 
-        static final String V_102_DEFAULT_IMPORTS = "import controllers._";
+    private static String defaultScalaImports102(String format) {
+        return String.format("import models._;import controllers._;import play.api.i18n._;import play.api.mvc._;import play.api.data._;import views.%s._;", "html");
+    }
+
+    private static String defaultJavaImports102(String format) {
+        return String.format("import models._;import controllers._;import java.lang._;import java.util._;import scala.collection.JavaConversions._;import scala.collection.JavaConverters._;import play.api.i18n._;import play.core.j.PlayMagicForJava._;import play.mvc._;import play.data._;import play.api.data.Field;import play.mvc.Http.Context.Implicit._;import views.%s._;", "html");
+    }
+
+    static class DEFAULTS {
+        static final String V_22X_DEFAULT_IMPORTS = defaultScalaImports22x("html");
+
+        static final String V_102_DEFAULT_IMPORTS = defaultScalaImports102("html");
     }
 }

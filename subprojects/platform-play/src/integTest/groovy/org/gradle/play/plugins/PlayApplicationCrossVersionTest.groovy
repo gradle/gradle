@@ -93,4 +93,44 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
         then:
         skipped(":createMyAppBinaryJar", ":twirlCompileMyAppBinary")
     }
+
+
+    def "can build play certain customized apps"() {
+        given:
+        resources.maybeCopy("PlayApplicationPluginIntegrationTest/playCustom1")
+        buildFile << """
+        repositories{
+            jcenter()
+            maven{
+                name = "typesafe-maven-release"
+                url = "http://repo.typesafe.com/typesafe/maven-releases"
+            }
+
+            dependencies{
+                playAppCompile '${version.playDependency}'
+                twirl '${version.twirlDependency}'
+                playRoutes '${version.routesDependency}'
+            }
+        }
+"""
+        when:
+        executer.withArgument("-i")
+        succeeds("assemble")
+        then:
+        executed(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")
+        def jarTestFixture = new JarTestFixture(file("build/jars/myApp/myAppBinary.jar"))
+        jarTestFixture.assertContainsFile("Routes.class")
+        jarTestFixture.assertContainsFile("views/html/index.class")
+        jarTestFixture.assertContainsFile("views/html/main.class")
+        jarTestFixture.assertContainsFile("controllers/Application.class")
+        jarTestFixture.assertContainsFile("images/favicon.png")
+        jarTestFixture.assertContainsFile("stylesheets/main.css")
+        jarTestFixture.assertContainsFile("javascripts/hello.js")
+        jarTestFixture.assertContainsFile("application.conf")
+
+        when:
+        succeeds("createMyAppBinaryJar")
+        then:
+        skipped(":createMyAppBinaryJar", ":twirlCompileMyAppBinary")
+    }
 }
