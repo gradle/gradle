@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
@@ -26,6 +27,15 @@ import java.io.File;
  */
 @Incubating
 public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    public interface NativeBinaryTasks extends NativeBinarySpec.NativeBinaryTasks {
+        /**
+         * The create static library task.
+         */
+        Task getCreateStaticLib();
+    }
     /**
      * The static library file.
      */
@@ -40,4 +50,9 @@ public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
      * Add some additional files required at link time.
      */
     void additionalLinkFiles(FileCollection files);
+
+    /**
+     * {@inheritDoc}
+     */
+    NativeBinaryTasks getTasks();
 }

@@ -88,6 +88,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 runTask.getInputs().files(installTask.getOutputs().getFiles());
                 runTask.setExecutable(installTask.getRunScript().getPath());
                 runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
+
+                testBinary.getTasks().add(runTask);
             }
         }
     }

@@ -21,11 +21,15 @@ import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +40,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DefaultTool linker = new DefaultTool();
     private final DefaultTool staticLibArchiver = new DefaultTool();
-    private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
     private NativeComponentSpec component;
     private PlatformToolProvider toolProvider;
     private BinaryNamingScheme namingScheme;
@@ -99,9 +102,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return staticLibArchiver;
     }
 
-    public NativeBinaryTasks getTasks() {
-        return tasks;
-    }
+    public abstract NativeBinaryTasks getTasks();
 
     public NativeBinaryTasks getNativeBinaryTasks() {
         return getTasks();
@@ -151,5 +152,16 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    public static class DefaultNativeBinaryTasks extends DefaultBinaryTasksCollection implements NativeBinaryTasks {
+        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
+            super(binary);
+        }
+
+        public ObjectFilesToBinary getCreateOrLink() {
+            ObjectFilesToBinary link = findSingleTaskWithType(AbstractLinkTask.class);
+            return link == null ? findSingleTaskWithType(CreateStaticLibrary.class) : link;
+        }
     }
 }

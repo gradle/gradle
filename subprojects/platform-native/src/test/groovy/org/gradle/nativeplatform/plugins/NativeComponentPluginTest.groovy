@@ -50,7 +50,6 @@ class NativeComponentPluginTest extends Specification {
             it.targetPlatform == testExecutable.targetPlatform
             it.linkerArgs == testExecutable.linker.args
         }
-        testExecutable.tasks.createStaticLib == null
 
         and:
         def lifecycleTask = project.tasks.testExecutable
@@ -78,7 +77,6 @@ class NativeComponentPluginTest extends Specification {
             it.targetPlatform == sharedLibraryBinary.targetPlatform
             it.linkerArgs == sharedLibraryBinary.linker.args
         }
-        sharedLibraryBinary.tasks.createStaticLib == null
 
         and:
         def sharedLibTask = project.tasks.testSharedLibrary
@@ -93,7 +91,6 @@ class NativeComponentPluginTest extends Specification {
             it.targetPlatform == staticLibraryBinary.targetPlatform
             it.staticLibArgs == staticLibraryBinary.staticLibArchiver.args
         }
-        staticLibraryBinary.tasks.link == null
 
         and:
         def staticLibTask = project.tasks.testStaticLibrary

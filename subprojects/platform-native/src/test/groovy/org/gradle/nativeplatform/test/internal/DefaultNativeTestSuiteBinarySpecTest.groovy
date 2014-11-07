@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.internal
+package org.gradle.nativeplatform.test.internal
 
-import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.util.TestUtil
-import spock.lang.Specification;
+import spock.lang.Specification
 
-class DefaultNativeBinaryTasksTest extends Specification {
-    def tasks = new DefaultNativeBinaryTasks()
+class DefaultNativeTestSuiteBinarySpecTest extends Specification {
+    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultNativeBinaryTasks()
 
-    def "returns null for link, createStaticLib and builder when none defined"() {
+    def "returns null for link, builder and run when none defined"() {
         expect:
         tasks.link == null
-        tasks.createStaticLib == null
         tasks.createOrLink == null
+        tasks.run == null
     }
 
     def "returns link task when defined"() {
@@ -38,18 +38,18 @@ class DefaultNativeBinaryTasksTest extends Specification {
 
         then:
         tasks.link == linkTask
-        tasks.createStaticLib == null
         tasks.createOrLink == linkTask
+        tasks.run == null
     }
 
-    def "returns create task when defined"() {
+    def "returns run task when defined"() {
         when:
-        final createTask = TestUtil.createTask(CreateStaticLibrary)
-        tasks.add(createTask)
+        final runTask = TestUtil.createTask(RunTestExecutable)
+        tasks.add(runTask)
 
         then:
         tasks.link == null
-        tasks.createStaticLib == createTask
-        tasks.createOrLink == createTask
+        tasks.createOrLink == null
+        tasks.run == runTask
     }
 }
