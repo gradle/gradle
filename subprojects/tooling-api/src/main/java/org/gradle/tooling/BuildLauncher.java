@@ -167,6 +167,13 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher addProgressListener(ProgressListener listener);
 
     /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    BuildLauncher withCancellationToken(CancellationToken cancellationToken);
+
+    /**
      * Executes the build, blocking until it is complete.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support build execution.
