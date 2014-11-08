@@ -26,7 +26,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class AbstractLongRunningOperation<T extends LongRunningOperation> implements LongRunningOperation {
+public abstract class AbstractLongRunningOperation<SELF extends AbstractLongRunningOperation<SELF>> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
 
@@ -36,54 +36,54 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
         operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
     }
 
-    protected abstract T getThis();
+    protected abstract SELF getThis();
 
     protected final ConsumerOperationParameters getConsumerOperationParameters() {
         ConnectionParameters connectionParameters = this.connectionParameters;
         return operationParamsBuilder.setParameters(connectionParameters).build();
     }
 
-    public T withArguments(String... arguments) {
+    public SELF withArguments(String... arguments) {
         operationParamsBuilder.setArguments(arguments);
         return getThis();
     }
 
-    public T setStandardOutput(OutputStream outputStream) {
+    public SELF setStandardOutput(OutputStream outputStream) {
         operationParamsBuilder.setStdout(outputStream);
         return getThis();
     }
 
-    public T setStandardError(OutputStream outputStream) {
+    public SELF setStandardError(OutputStream outputStream) {
         operationParamsBuilder.setStderr(outputStream);
         return getThis();
     }
 
-    public T setStandardInput(InputStream inputStream) {
+    public SELF setStandardInput(InputStream inputStream) {
         operationParamsBuilder.setStdin(inputStream);
         return getThis();
     }
 
-    public T setColorOutput(boolean colorOutput) {
+    public SELF setColorOutput(boolean colorOutput) {
         operationParamsBuilder.setColorOutput(colorOutput);
         return getThis();
     }
 
-    public T setJavaHome(File javaHome) {
+    public SELF setJavaHome(File javaHome) {
         operationParamsBuilder.setJavaHome(javaHome);
         return getThis();
     }
 
-    public T setJvmArguments(String... jvmArguments) {
+    public SELF setJvmArguments(String... jvmArguments) {
         operationParamsBuilder.setJvmArguments(jvmArguments);
         return getThis();
     }
 
-    public T addProgressListener(ProgressListener listener) {
+    public SELF addProgressListener(ProgressListener listener) {
         operationParamsBuilder.addProgressListener(listener);
         return getThis();
     }
 
-    public T withCancellationToken(CancellationToken cancellationToken) {
+    public SELF withCancellationToken(CancellationToken cancellationToken) {
         operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
         return getThis();
     }
