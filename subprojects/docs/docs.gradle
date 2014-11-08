@@ -308,7 +308,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     classpath = configurations.userGuideTask
 }
 
-def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
+def javaApiUrl = "https://docs.oracle.com/javase/1.5.0/docs/api/"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
 
 task javadocAll(type: Javadoc) {
