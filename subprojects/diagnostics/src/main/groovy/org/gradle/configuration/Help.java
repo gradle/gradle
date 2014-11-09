@@ -86,6 +86,10 @@ public class Help extends DefaultTask {
         output.text("To see a list of command-line options, run ");
         metaData.describeCommand(output.withStyle(UserInput), "--help");
         output.println();
+        output.println();
+        output.text("To see more details about a task, run ");
+        metaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
+        output.println();
     }
 
     @Option(option = "task", description = "The task to show help for.")
