@@ -60,7 +60,7 @@ public interface LongRunningOperation {
     LongRunningOperation setStandardError(OutputStream outputStream);
 
     /**
-     * Specifies whether to use colored (ansi encoded) output for logging
+     * Specifies whether to use colored (ANSI encoded) output for logging.
      *
      * @param colorOutput {@code true} to request color output (using ANSI encoding).
      * @return this
