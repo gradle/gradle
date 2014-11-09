@@ -68,7 +68,7 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ComponentSpecContainer componentSpecs = project.getExtensions().findByType(ComponentSpecContainer.class);
+        ComponentSpecContainer componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
         if (componentSpecs != null) {
             components.addAll(componentSpecs);
         }
@@ -80,11 +80,11 @@ public class ComponentReport extends DefaultTask {
 
         renderer.renderComponents(components);
 
-        ProjectSourceSet sourceSets = project.getExtensions().findByType(ProjectSourceSet.class);
+        ProjectSourceSet sourceSets = getModelRegistry().find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet.class));
         if (sourceSets != null) {
             renderer.renderSourceSets(sourceSets);
         }
-        BinaryContainer binaries = project.getExtensions().findByType(BinaryContainer.class);
+        BinaryContainer binaries = getModelRegistry().find(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
         if (binaries != null) {
             renderer.renderBinaries(binaries);
         }
