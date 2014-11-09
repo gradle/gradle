@@ -93,6 +93,13 @@ public interface BuildLauncher extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    BuildLauncher setColorOutput(boolean colorOutput);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-7
      */
     BuildLauncher setStandardInput(InputStream inputStream);

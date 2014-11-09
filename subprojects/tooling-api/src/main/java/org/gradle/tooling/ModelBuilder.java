@@ -88,6 +88,13 @@ public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    ModelBuilder<T> setColorOutput(boolean colorOutput);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-7
      */
     ModelBuilder<T> setStandardInput(InputStream inputStream);

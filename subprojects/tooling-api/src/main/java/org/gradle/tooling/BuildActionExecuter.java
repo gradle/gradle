@@ -53,6 +53,13 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      * {@inheritDoc}
      * @since 2.3
      */
+    @Incubating
+    BuildActionExecuter<T> setColorOutput(boolean colorOutput);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
     BuildActionExecuter<T> setStandardInput(InputStream inputStream);
 
     /**
