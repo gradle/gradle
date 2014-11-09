@@ -15,7 +15,6 @@
  */
 
 package org.gradle.play
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
@@ -24,8 +23,10 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample playSample = new Sample(temporaryFolder, "play")
 
-    def setup(){
-        buildFile << """
+    def "can build play sample"() {
+        given:
+        sample playSample
+        playSample.dir.file("build.gradle") << """
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.fork = true
             scalaCompileOptions.useAnt = false
@@ -37,11 +38,6 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
             fork = true
             forkOptions.memoryMaximumSize =  "256m"
         }"""
-    }
-
-    def "can build play sample"() {
-        given:
-        sample playSample
         expect:
         succeeds "assemble"
     }
