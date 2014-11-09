@@ -26,6 +26,23 @@ import org.gradle.util.GradleVersion
 
 import java.util.regex.Pattern
 
+def removeDodgyCacheFiles(File dir) {
+    if (dir.directory) {
+        for (File cacheDir: dir.listFiles()) {
+            if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
+                continue
+            }
+            for (String name: ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+                def stateDir = new File(cacheDir, name)
+                if (stateDir.directory) {
+                    println "Removing old cache directory : ${stateDir}"
+                    delete(stateDir)
+                }
+            }
+        }
+    }
+}
+
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
@@ -77,12 +94,18 @@ project(":") {
                 return candidateVersion.snapshot && candidateVersion < testedVersion
             }
 
+            // Remove state for old versions of Gradle that we're unlikely to ever require again
             removeOldVersionsFromDir(file("buildSrc/.gradle"), expireTaskCache)
             removeOldVersionsFromDir(file(".gradle"), expireTaskCache)
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/daemon"), expireIntegTestCache)
+
+            // Remove old distributions used by wrapper that we're unlikely to ever require again
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache, "gradle-", "-bin")
             delete(file("intTestHomeDir/worker-1/wrapper/dists/dist"))
+
+            // Remove caches that weren't multi-process safe and may be corrupt
+            removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
         }
     }
 }
