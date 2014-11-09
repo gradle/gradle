@@ -124,8 +124,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 }
             };
 
-            platforms.registerDefaultFactory(nativePlatformFactory);
             platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
+
+            // TODO:DAZ This is only here for backward compatibility: platforms should be typed on creation, I think.
+            platforms.registerFactory(Platform.class, nativePlatformFactory);
         }
 
         // TODO:DAZ Migrate to @BinaryType and @ComponentBinaries

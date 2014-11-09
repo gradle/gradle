@@ -33,7 +33,7 @@ import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 import java.util.*;
 
-public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> { //TODO: move to platform.base too?
+public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final NativeToolChainRegistryInternal toolChainRegistry;
     private final PlatformContainer platforms;

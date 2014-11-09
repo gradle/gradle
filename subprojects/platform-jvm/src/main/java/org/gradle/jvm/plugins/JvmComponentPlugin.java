@@ -183,7 +183,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
     }
 
-    //TODO: Refactor out common code for Native and Jvm
     private static class MarkBinariesBuildable implements Action<JarBinarySpec> {
         public void execute(JarBinarySpec jarBinarySpec) {
             JavaToolChainInternal toolChain = (JavaToolChainInternal) jarBinarySpec.getToolChain();
