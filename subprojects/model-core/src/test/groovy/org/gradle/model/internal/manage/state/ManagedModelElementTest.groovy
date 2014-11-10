@@ -33,7 +33,7 @@ class ManagedModelElementTest extends Specification {
     def instantiator = new DefaultModelInstantiator(schemas)
 
     def <T> ManagedModelElement<T> createElement(Class<T> elementClass) {
-        new ManagedModelElement<MultipleProps>(schemas.getSchema(ModelType.of(elementClass)))
+        new ManagedModelElement<T>(schemas.getSchema(ModelType.of(elementClass)), schemas, instantiator)
     }
 
     def <T> T createInstance(Class<T> elementClass) {

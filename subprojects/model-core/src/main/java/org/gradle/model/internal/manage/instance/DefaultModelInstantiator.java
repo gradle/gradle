@@ -24,7 +24,7 @@ public class DefaultModelInstantiator implements ModelInstantiator {
 
     private final Iterable<ModelInstantiatorStrategy> instantiators = ImmutableList.of(
             new ManagedSetInstantiatorStrategy(),
-            new StructModelInstantiator()
+            new StructModelInstantiator(new ManagedProxyFactory())
     );
 
     private final ModelSchemaStore schemaStore;
