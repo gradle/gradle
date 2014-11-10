@@ -16,10 +16,10 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.play.PlayToolChain;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.platform.PlayPlatform;
 
-public class DefaultPlayToolChain implements PlayToolChain {
+public class DefaultPlayToolChain implements PlayToolChainInternal {
 
     private final PlayPlatform platform;
 
@@ -33,5 +33,9 @@ public class DefaultPlayToolChain implements PlayToolChain {
 
     public String getDisplayName() {
         return String.format("Play Toolchain (Play %s, Scala %s, JDK %s (%s))", platform.getPlayVersion(), platform.getScalaVersion(), platform.getJavaVersion().getMajorVersion(), platform.getJavaVersion());
+    }
+
+    public ToolProvider select(PlayPlatform targetPlatform) {
+        return null;
     }
 }

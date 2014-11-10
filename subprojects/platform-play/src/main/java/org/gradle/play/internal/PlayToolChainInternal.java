@@ -16,16 +16,9 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.play.PlayApplicationSpec;
+import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
+import org.gradle.play.PlayToolChain;
+import org.gradle.play.platform.PlayPlatform;
 
-public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
-    String playVersion;
-
-    public String getPlayVersion() {
-        return playVersion;
-    }
-    public void playVersion(String playVersion) {
-        this.playVersion = playVersion;
-    }
+public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
 }

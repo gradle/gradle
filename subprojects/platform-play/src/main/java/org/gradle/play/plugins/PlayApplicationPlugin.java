@@ -182,11 +182,12 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         @ComponentBinaries
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, @Path("buildDir") final File buildDir) {
+            final String playVersion = componentSpec.getPlayVersion() != null ? componentSpec.getPlayVersion() : "2.3.5";
             binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>() {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     JavaVersion currentJava = JavaVersion.current();
-                    DefaultPlayPlatform playPlatform = new DefaultPlayPlatform(componentSpec.getPlayVersion(), componentSpec.getScalaVersion(), currentJava);
+                    DefaultPlayPlatform playPlatform = new DefaultPlayPlatform(playVersion, currentJava);
                     playBinaryInternal.setTargetPlatform(playPlatform);
                     playBinaryInternal.setToolChain(new DefaultPlayToolChain(playPlatform));
                     playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
@@ -228,9 +229,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(ScalaCompile scalaCompile) {
 
                     scalaCompile.setDestinationDir(compileOutputDirectory);
-
                     scalaCompile.setSource("app");
-
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 

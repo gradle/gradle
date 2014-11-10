@@ -16,6 +16,7 @@
 
 package org.gradle.play.platform.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.play.platform.PlayPlatform;
 
@@ -24,10 +25,20 @@ public class DefaultPlayPlatform implements PlayPlatform {
     private String scalaVersion;
     private final JavaVersion javaVersion;
 
-    public DefaultPlayPlatform(String playVersion, String scalaVersion, JavaVersion javaVersion) {
+    public DefaultPlayPlatform(String playVersion, JavaVersion javaVersion) {
         this.playVersion = playVersion;
-        this.scalaVersion = scalaVersion;
+        this.scalaVersion = calculateDefaultScalaVersion(playVersion);
         this.javaVersion = javaVersion;
+    }
+
+    private String calculateDefaultScalaVersion(String playVersion) {
+        if(playVersion.startsWith("2.2")){
+            return "2.10";
+        }else if(playVersion.startsWith("2.3")){
+            return "2.11";
+        }else {
+            throw new GradleException("Unsupported Play Version");
+        }
     }
 
     public String getPlayVersion() {

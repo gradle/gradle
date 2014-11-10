@@ -39,7 +39,6 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
             components {
                 myApp(PlayApplicationSpec){
                     playVersion '2.3.5'
-                    scalaVersion '2.10'
                 }
             }
         }
@@ -75,7 +74,7 @@ Binaries
     DefaultPlayApplicationBinarySpec 'myAppBinary'
         build using task: :myAppBinary
         platform: PlayPlatform2.3.5
-        tool chain: Play Toolchain (Play 2.3.5, Scala 2.10, JDK ${javaVersion.majorVersion} (${javaVersion.toString()})"""))
+        tool chain: Play Toolchain (Play 2.3.5, Scala 2.11, JDK ${javaVersion.majorVersion} (${javaVersion.toString()})"""))
     }
 
     def "builds play binary"() {

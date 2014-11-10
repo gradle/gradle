@@ -25,8 +25,5 @@ import org.gradle.platform.base.ComponentSpec;
 @Incubating
 public interface PlayApplicationSpec extends ComponentSpec {
     String getPlayVersion();
-    String getScalaVersion();
-
     void playVersion(String playVersion);
-    void scalaVersion(String playVersion);
 }
