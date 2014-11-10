@@ -14,24 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal;
+package org.gradle.play.platform.internal;
 
-import org.gradle.play.PlayToolChain;
+import org.gradle.api.JavaVersion;
 import org.gradle.play.platform.PlayPlatform;
 
-public class DefaultPlayToolChain implements PlayToolChain {
+public class DefaultPlayPlatform implements PlayPlatform {
+    private final String playVersion;
+    private final JavaVersion javaVersion;
 
-    private final PlayPlatform platform;
+    public DefaultPlayPlatform(String playVersion, JavaVersion javaVersion) {
+        this.playVersion = playVersion;
+        this.javaVersion = javaVersion;
+    }
 
-    public DefaultPlayToolChain(PlayPlatform playPlatform) {
-        this.platform = playPlatform;
+    public String getPlayVersion() {
+        return playVersion;
+    }
+
+    public JavaVersion getJavaVersion() {
+        return javaVersion;
     }
 
     public String getName() {
-        return String.format("PlayToolchain%s", platform.getPlayVersion());
+        return String.format("PlayFramework%s", playVersion);
     }
 
     public String getDisplayName() {
-        return String.format("Play Toolchain %s (JDK %s (%s))", platform.getPlayVersion(), platform.getJavaVersion().getMajorVersion(), platform.getJavaVersion());
+        return String.format("Play Framework %s (JDK %s (%s))", playVersion, javaVersion.getMajorVersion(), javaVersion);
     }
+
 }

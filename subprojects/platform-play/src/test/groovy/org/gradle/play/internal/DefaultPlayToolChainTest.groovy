@@ -17,16 +17,21 @@
 package org.gradle.play.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.play.platform.PlayPlatform
 import spock.lang.Specification
 
 class DefaultPlayToolChainTest extends Specification {
 
+    PlayPlatform platform = Mock()
+
     def "provides meaningful name"() {
         given:
-        def toolChain = new DefaultPlayToolChain(playVersion, JavaVersion.current())
+        def toolChain = new DefaultPlayToolChain(platform)
+        when:
+        1 * platform.getPlayVersion() >> playVersion
 
-        expect:
-        toolChain.getName() == "PlayFramework$playVersion"
+        then:
+        toolChain.getName() == "PlayToolchain$playVersion"
 
         where:
         playVersion << ["2.10-2.3.2", "2.11-2.3.5"]
@@ -34,14 +39,18 @@ class DefaultPlayToolChainTest extends Specification {
 
     def "provides meaningful displayname"() {
         given:
-        def toolChain = new DefaultPlayToolChain(playVersion, javaVersion)
-        expect:
+        def toolChain = new DefaultPlayToolChain(platform)
+
+        when:
+        1 * platform.getPlayVersion() >> playVersion
+        2 * platform.getJavaVersion() >> javaVersion
+        then:
         toolChain.getDisplayName() == expectedOutput
 
         where:
         playVersion  | javaVersion             | expectedOutput
-        "2.10-2.3.2" | JavaVersion.VERSION_1_6 | "Play Framework 2.10-2.3.2 (JDK 6 (1.6))"
-        "2.10-2.3.5" | JavaVersion.VERSION_1_7 | "Play Framework 2.10-2.3.5 (JDK 7 (1.7))"
-        "2.11-2.3.5" | JavaVersion.VERSION_1_8 | "Play Framework 2.11-2.3.5 (JDK 8 (1.8))"
+        "2.10-2.3.2" | JavaVersion.VERSION_1_6 | "Play Toolchain 2.10-2.3.2 (JDK 6 (1.6))"
+        "2.10-2.3.5" | JavaVersion.VERSION_1_7 | "Play Toolchain 2.10-2.3.5 (JDK 7 (1.7))"
+        "2.11-2.3.5" | JavaVersion.VERSION_1_8 | "Play Toolchain 2.11-2.3.5 (JDK 8 (1.8))"
     }
 }

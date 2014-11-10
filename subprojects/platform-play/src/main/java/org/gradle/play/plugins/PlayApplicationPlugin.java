@@ -29,7 +29,6 @@ import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -41,6 +40,7 @@ import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayToolChain;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.platform.internal.DefaultPlayPlatform;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.WrapUtil;
@@ -186,8 +186,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                     JavaVersion currentJava = JavaVersion.current();
-                    playBinaryInternal.setTargetPlatform(new DefaultJavaPlatform(currentJava));
-                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(componentSpec.getPlayVersion(), currentJava));
+                    DefaultPlayPlatform playPlatform = new DefaultPlayPlatform(componentSpec.getPlayVersion(), currentJava);
+                    playBinaryInternal.setTargetPlatform(playPlatform);
+                    playBinaryInternal.setToolChain(new DefaultPlayToolChain(playPlatform));
                     playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
                 }
             });

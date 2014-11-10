@@ -16,18 +16,18 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.PlayToolChain;
+import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
-    private JavaPlatform platform;
+    private PlayPlatform platform;
     private PlayToolChain toolChain;
     private File jarFile;
 
-    public JavaPlatform getTargetPlatform() {
+    public PlayPlatform getTargetPlatform() {
         return platform;
     }
 
@@ -39,7 +39,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return jarFile;
     }
 
-    public void setTargetPlatform(JavaPlatform platform) {
+    public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
     }
 

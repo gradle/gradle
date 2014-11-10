@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.play;
+package org.gradle.play.platform;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.play.platform.PlayPlatform;
-
-import java.io.File;
+import org.gradle.api.JavaVersion;
+import org.gradle.platform.base.Platform;
 
 /**
- * Represents a binary artifact that is the result of building a play component.
- */
-@Incubating
-@HasInternalProtocol
-public interface PlayApplicationBinarySpec extends BinarySpec {
-    PlayPlatform getTargetPlatform();
-    PlayToolChain getToolChain();
-    File getJarFile();
+ * Defines and configures a Play Framework environment including versions of Play, Scala and Java.
+ * */
+public interface PlayPlatform extends Platform{
+
+    public String getPlayVersion();
+
+    public JavaVersion getJavaVersion();
 }
