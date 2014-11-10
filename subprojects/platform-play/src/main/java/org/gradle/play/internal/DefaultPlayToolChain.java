@@ -32,6 +32,6 @@ public class DefaultPlayToolChain implements PlayToolChain {
     }
 
     public String getDisplayName() {
-        return String.format("Play Toolchain %s (JDK %s (%s))", platform.getPlayVersion(), platform.getJavaVersion().getMajorVersion(), platform.getJavaVersion());
+        return String.format("Play Toolchain (Play %s, Scala %s, JDK %s (%s))", platform.getPlayVersion(), platform.getScalaVersion(), platform.getJavaVersion().getMajorVersion(), platform.getJavaVersion());
     }
 }

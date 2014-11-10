@@ -34,7 +34,7 @@ class DefaultPlayToolChainTest extends Specification {
         toolChain.getName() == "PlayToolchain$playVersion"
 
         where:
-        playVersion << ["2.10-2.3.2", "2.11-2.3.5"]
+        playVersion << ["2.3.2", "2.3.5"]
     }
 
     def "provides meaningful displayname"() {
@@ -43,14 +43,15 @@ class DefaultPlayToolChainTest extends Specification {
 
         when:
         1 * platform.getPlayVersion() >> playVersion
+        1 * platform.getScalaVersion() >> scalaVersion
         2 * platform.getJavaVersion() >> javaVersion
         then:
         toolChain.getDisplayName() == expectedOutput
 
         where:
-        playVersion  | javaVersion             | expectedOutput
-        "2.10-2.3.2" | JavaVersion.VERSION_1_6 | "Play Toolchain 2.10-2.3.2 (JDK 6 (1.6))"
-        "2.10-2.3.5" | JavaVersion.VERSION_1_7 | "Play Toolchain 2.10-2.3.5 (JDK 7 (1.7))"
-        "2.11-2.3.5" | JavaVersion.VERSION_1_8 | "Play Toolchain 2.11-2.3.5 (JDK 8 (1.8))"
+        playVersion | scalaVersion | javaVersion             | expectedOutput
+        "2.3.2"     | "2.10"       | JavaVersion.VERSION_1_6 | "Play Toolchain (Play 2.3.2, Scala 2.10, JDK 6 (1.6))"
+        "2.3.5"     | "2.10"       | JavaVersion.VERSION_1_7 | "Play Toolchain (Play 2.3.5, Scala 2.10, JDK 7 (1.7))"
+        "2.3.5"     | "2.11"       | JavaVersion.VERSION_1_8 | "Play Toolchain (Play 2.3.5, Scala 2.11, JDK 8 (1.8))"
     }
 }

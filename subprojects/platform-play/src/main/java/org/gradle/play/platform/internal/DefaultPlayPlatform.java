@@ -21,10 +21,12 @@ import org.gradle.play.platform.PlayPlatform;
 
 public class DefaultPlayPlatform implements PlayPlatform {
     private final String playVersion;
+    private String scalaVersion;
     private final JavaVersion javaVersion;
 
-    public DefaultPlayPlatform(String playVersion, JavaVersion javaVersion) {
+    public DefaultPlayPlatform(String playVersion, String scalaVersion, JavaVersion javaVersion) {
         this.playVersion = playVersion;
+        this.scalaVersion = scalaVersion;
         this.javaVersion = javaVersion;
     }
 
@@ -32,16 +34,20 @@ public class DefaultPlayPlatform implements PlayPlatform {
         return playVersion;
     }
 
+    public String getScalaVersion() {
+        return scalaVersion;
+    }
+
     public JavaVersion getJavaVersion() {
         return javaVersion;
     }
 
     public String getName() {
-        return String.format("PlayFramework%s", playVersion);
+        return String.format("PlayPlatform%s", playVersion);
     }
 
     public String getDisplayName() {
-        return String.format("Play Framework %s (JDK %s (%s))", playVersion, javaVersion.getMajorVersion(), javaVersion);
+        return String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, javaVersion.getMajorVersion(), javaVersion);
     }
 
 }

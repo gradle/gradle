@@ -21,12 +21,21 @@ import org.gradle.play.PlayApplicationSpec;
 
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
     String playVersion;
+    String scalaVersion;
 
     public String getPlayVersion() {
         return playVersion;
     }
 
+    public String getScalaVersion() {
+        return scalaVersion;
+    }
+
     public void playVersion(String playVersion) {
         this.playVersion = playVersion;
+    }
+
+    public void scalaVersion(String scalaVersion) {
+        this.scalaVersion = scalaVersion;
     }
 }
