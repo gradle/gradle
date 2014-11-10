@@ -26,7 +26,7 @@ idea {
         wildcards += ['?*.gradle']
 
         languageLevel = '1.5'
-
+        vcs = 'Git'
         ipr {
             withXml { provider ->
                 // Exclude resource directories from compilation and add them back in as classpath resources
@@ -63,10 +63,6 @@ idea {
                         excludeSource("jdk6", sourceFolder)
                     }
                 }
-
-                // Use git
-                def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
-                vcsConfig.mapping[0].'@vcs' = 'Git'
 
                 // Set gradle home
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
