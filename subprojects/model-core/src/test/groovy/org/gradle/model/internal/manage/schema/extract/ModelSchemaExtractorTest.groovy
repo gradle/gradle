@@ -368,9 +368,7 @@ $type
   \\--- element type ($SetterOnly.name)""")
     }
 
-    interface SpecialManagedSet<T> extends ManagedSet<T> {}
-
-    def "extensions managed sets are not supported"() {
+    def "specializations of managed set are not supported"() {
         given:
         def type = new ModelType<SpecialManagedSet<A1>>() {}
 
