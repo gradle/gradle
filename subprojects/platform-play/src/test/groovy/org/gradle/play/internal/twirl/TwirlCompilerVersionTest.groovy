@@ -16,13 +16,14 @@
 
 package org.gradle.play.internal.twirl
 
+import org.gradle.play.internal.twirl.spec.TwirlCompilerVersion
 import spock.lang.Specification
 
 class TwirlCompilerVersionTest extends Specification {
 
     def "parser detects 1.0.2 version"(){
         expect:
-        TwirlCompilerVersion.parse("1.0.2") == TwirlCompilerVersion.V_102
+        TwirlCompilerVersion.parse("1.0.2") == TwirlCompilerVersion.V_10X
     }
 
     def "parser detects to 2.2.x versions"(){
@@ -32,10 +33,4 @@ class TwirlCompilerVersionTest extends Specification {
         TwirlCompilerVersion.parse("2.2.5") == TwirlCompilerVersion.V_22X
     }
 
-    def "parser defaults to 1.0.2 version"(){
-        expect:
-        TwirlCompilerVersion.parse("2.3.5") == TwirlCompilerVersion.V_102
-        TwirlCompilerVersion.parse("someValue") == TwirlCompilerVersion.V_102
-        TwirlCompilerVersion.parse("") == TwirlCompilerVersion.V_102
-    }
 }

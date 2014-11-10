@@ -27,10 +27,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.routes.DaemonRoutesCompiler;
-import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
+import org.gradle.play.internal.routes.spec.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
-import org.gradle.play.internal.routes.RoutesCompilerVersion;
+import org.gradle.play.internal.routes.spec.RoutesCompilerVersion;
 
 import java.io.File;
 import java.util.ArrayList;

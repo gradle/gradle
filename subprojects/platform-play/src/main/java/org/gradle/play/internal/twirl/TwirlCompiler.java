@@ -20,42 +20,30 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.play.internal.ScalaUtil;
+import org.gradle.play.internal.scala.reflection.util.ScalaOptionInvocationWrapper;
+import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
- * Twirl compiler uses reflection to load and invoke TwirlCompiler$
+ * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
+ * See spec.versions for individual methods
  */
 public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
-
-    private TwirlCompilerVersionedInvocationSpecBuilder invocationSpecBuilder;
-
-    public TwirlCompiler(TwirlCompilerVersionedInvocationSpecBuilder invocationSpecBuilder){
-        this.invocationSpecBuilder = invocationSpecBuilder;
-    }
 
     public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
-            VersionedInvocationSpec invocationSpec = invocationSpecBuilder.build(spec);
-            Function<Object[], Object> compile = ScalaUtil.scalaObjectFunction(getClass().getClassLoader(),
-                    invocationSpec.getVersion().getCompilerClassname(),
-                    "compile",
-                    invocationSpec.getParameterTypes());
-
-
+            ClassLoader cl = getClass().getClassLoader();
+            Function<Object[], Object> compile = spec.getCompileMethod(cl);
             Iterable<File> sources = spec.getSources();
             for (File sourceFile : sources) {
-                Object[] parameters  = invocationSpec.getParameter(sourceFile.getCanonicalFile());
-                Object result = compile.apply(parameters);
-                Method resultIsDefined = result.getClass().getMethod("isDefined");
-                if ((Boolean) resultIsDefined.invoke(result)) {
-                    File createdFile = (File) result.getClass().getMethod("get").invoke(result);
-                    outputFiles.add(createdFile);
+                Object result = compile.apply(spec.createCompileParameters(cl, sourceFile));
+                ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
+                if (maybeFile.isDefined()) {
+                    outputFiles.add(maybeFile.get());
                 }
             }
         } catch (Exception e) {

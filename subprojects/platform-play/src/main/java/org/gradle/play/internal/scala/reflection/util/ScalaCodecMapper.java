@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl;
+package org.gradle.play.internal.scala.reflection.util;
 
 import com.google.common.base.Function;
-import org.gradle.play.internal.ScalaUtil;
 
 import java.io.Serializable;
 
 public class ScalaCodecMapper implements Serializable{
-    public Object map(String codec) {
-        ClassLoader cl = getClass().getClassLoader();
+    public static String getClassName() {
+        return "scala.io.Codec";
+    }
+
+    public static Object create(ClassLoader cl, String codec) {
         Function<Object[], Object> ioCodec = ScalaUtil.scalaObjectFunction(cl,
-                "scala.io.Codec",
+                getClassName(),
                 "apply",
                 new Class<?>[]{
                         String.class

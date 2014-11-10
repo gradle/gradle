@@ -20,9 +20,9 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec> {
@@ -36,7 +36,7 @@ public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(TwirlCompileSpec spec) {
-        List<String> twirlPackages = Arrays.asList("play.templates", "play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
+        List<String> twirlPackages = spec.getClassLoaderPackages();
         return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(), spec.getCompileClasspath(), twirlPackages);
     }
 }

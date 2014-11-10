@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal;
+package org.gradle.play.internal.scala.reflection.util;
 
 import com.google.common.base.Function;
 import org.gradle.internal.UncheckedException;

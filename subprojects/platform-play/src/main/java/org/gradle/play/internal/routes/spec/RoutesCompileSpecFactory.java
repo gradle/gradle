@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes;
-
-import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
-import org.gradle.play.internal.routes.spec.versions.RoutesCompileSpecV22X;
-import org.gradle.play.internal.routes.spec.versions.RoutesCompileSpecV23X;
+package org.gradle.play.internal.routes.spec;
 
 import java.io.File;
 import java.util.List;

@@ -29,8 +29,10 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
-import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
+import org.gradle.play.internal.twirl.spec.TwirlCompilerVersion;
+import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
+import org.gradle.play.internal.twirl.spec.TwirlCompileSpecFactory;
 
 import java.io.File;
 import java.util.HashSet;
@@ -173,7 +175,7 @@ public class TwirlCompile extends SourceTask {
         }
     }
 
-    private String detectCompilerVersion() {
+    public String detectCompilerVersion() {
         final Pattern versionPattern = Pattern.compile("(templates-compiler|twirl-compiler)_(\\d+\\.\\d+)-(\\d+\\.\\d+\\.\\d).jar");
         for (File file : getCompilerClasspath()) {
             Matcher matcher = versionPattern.matcher(file.getName());
@@ -200,7 +202,11 @@ public class TwirlCompile extends SourceTask {
     }
 
     private TwirlCompileSpec generateSpec(Set<File> sourceFiles, String compilerClassName) {
-        return new TwirlCompileSpec(getSourceDirectory(), sourceFiles, getCompilerClasspath().getFiles(), getOutputDirectory(), compilerClassName, fork);
+        return TwirlCompileSpecFactory.create(getSourceDirectory(), sourceFiles, getOutputDirectory(), getCompilerClasspath().getFiles(), fork, useJavaDefaults(), TwirlCompilerVersion.parse(compilerClassName));
+    }
+
+    private boolean useJavaDefaults() {
+        return false; //TODO: add this as a configurable parameter
     }
 
     void setCleaner(TwirlStaleOutputCleaner cleaner) {

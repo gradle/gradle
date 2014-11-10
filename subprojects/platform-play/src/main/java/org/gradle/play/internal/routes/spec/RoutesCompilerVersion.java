@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes;
+package org.gradle.play.internal.routes.spec;
 
 import org.gradle.api.InvalidUserDataException;
 
@@ -24,7 +24,7 @@ public enum RoutesCompilerVersion {
 
     public static RoutesCompilerVersion parse(String version) {
         if (version == null) {
-            throw new InvalidUserDataException("There is no version of the Play Routes Compiler detected");
+            throw new InvalidUserDataException("No version (version is null) of the Play Routes Compiler detected");
         }
 
         if (version.matches("2\\.2\\..*?")) {

@@ -17,8 +17,6 @@
 package org.gradle.play.internal.routes.spec;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,27 +32,15 @@ public abstract class DefaultRoutesCompileSpec implements RoutesCompileSpec {
 
     protected abstract List<String> defaultJavaImports();
 
-    protected Object getAdditiontalImportsAsScalaSeq(ClassLoader cl, RoutesCompileSpec spec) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        List<String> additionalImports = new ArrayList<String>();
-        additionalImports.addAll(spec.getAdditionalImports());
-
-        Class<?> bufferClass = cl.loadClass("scala.collection.mutable.ListBuffer");
-        Object buffer = bufferClass.newInstance();
-        Method bufferPlusEq = bufferClass.getMethod("$plus$eq", Object.class);
-
-        if (additionalImports != null) {
-            for (String additionalImport : additionalImports) {
-                bufferPlusEq.invoke(buffer, additionalImport);
-            }
-        }
-        return buffer;
+    public DefaultRoutesCompileSpec(Iterable<File> sources, File destinationDir, boolean javaProject) {
+        this(sources, destinationDir, null, javaProject);
     }
 
-    public DefaultRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean isJavaProject) {
+    public DefaultRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean javaProject) {
         this.sources = sources;
         this.destinationDir = destinationDir;
-        if (additionalImports.isEmpty()) {
-            if (isJavaProject) {
+        if (additionalImports == null) {
+            if (javaProject) {
                 this.additionalImports.addAll(defaultJavaImports());
             } else {
                 this.additionalImports.addAll(defaultScalaImports());

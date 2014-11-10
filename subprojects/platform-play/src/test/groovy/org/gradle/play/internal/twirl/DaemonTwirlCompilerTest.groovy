@@ -18,6 +18,7 @@ package org.gradle.play.internal.twirl
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
 import org.gradle.api.tasks.compile.BaseForkOptions
+import org.gradle.play.internal.twirl.spec.TwirlCompileSpec
 import spock.lang.Specification
 
 class DaemonTwirlCompilerTest extends Specification {
@@ -26,16 +27,6 @@ class DaemonTwirlCompilerTest extends Specification {
     def compilerDaemonFactory = Mock(CompilerDaemonFactory)
     def spec = Mock(TwirlCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
-
-    def "shares play compiler package"() {
-        given:
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, forkOptions)
-        when:
-        def options = compiler.toDaemonOptions(spec);
-        then:
-        options.getSharedPackages().asList().contains("play.templates")
-        options.getSharedPackages().asList().contains("play.twirl.compiler")
-    }
 
     def "passes compileclasspath to daemon options"() {
         given:

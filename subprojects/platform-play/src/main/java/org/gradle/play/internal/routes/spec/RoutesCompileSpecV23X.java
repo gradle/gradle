@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec.versions;
+package org.gradle.play.internal.routes.spec;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.gradle.play.internal.ScalaUtil;
-import org.gradle.play.internal.routes.spec.DefaultRoutesCompileSpec;
+import org.gradle.play.internal.scala.reflection.util.ScalaListBuffer;
+import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -42,13 +42,13 @@ public class RoutesCompileSpecV23X extends DefaultRoutesCompileSpec {
         return javaImports;
     }
 
-    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, boolean isJavaProject) {
-        super(sources, destinationDir, additionalImports, isJavaProject);
+    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, boolean javaProject) {
+        super(sources, destinationDir, additionalImports, javaProject);
         this.generateRefReverseRouter = generateRefReverseRouter;
     }
 
 
-    public Function<Object[], Object> getCompilerMethod(ClassLoader cl) throws ClassNotFoundException {
+    public Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
         return ScalaUtil.scalaObjectFunction(
                 cl,
                 "play.router.RoutesCompiler",
@@ -68,7 +68,7 @@ public class RoutesCompileSpecV23X extends DefaultRoutesCompileSpec {
         return new Object[] {
                 file,
                 getDestinationDir(),
-                getAdditiontalImportsAsScalaSeq(cl, this),
+                ScalaListBuffer.fromList(cl, getAdditionalImports()),
                 getGenerateReverseRoute(),
                 getGenerateRefReverseRouter(),
                 getNamespaceReverseRouter()

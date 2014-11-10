@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
 
 import java.io.File;
 
@@ -44,7 +45,7 @@ public class TwirlCompilerFactory implements CompilerFactory<TwirlCompileSpec> {
         } else {
             daemonFactory = inProcessCompilerDaemonFactory;
         }
-        Compiler<TwirlCompileSpec> compiler = new DaemonTwirlCompiler(workingDirectory, new TwirlCompiler(new TwirlCompilerVersionedInvocationSpecBuilder()), daemonFactory, forkOptions);
+        Compiler<TwirlCompileSpec> compiler = new DaemonTwirlCompiler(workingDirectory, new TwirlCompiler(), daemonFactory, forkOptions);
         return compiler;
     }
 }

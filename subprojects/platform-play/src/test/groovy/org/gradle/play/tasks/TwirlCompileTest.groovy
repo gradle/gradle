@@ -35,7 +35,7 @@ class TwirlCompileTest extends Specification {
         def outputDir = Mock(File);
         compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
-        compile.setCompilerClasspath(project.files([]))
+        compile.setCompilerClasspath(project.files(["twirl-compiler_2.10-1.0.2.jar"]))
         when:
         compile.compile(withNonIncrementalInputs())
         then:
@@ -52,7 +52,7 @@ class TwirlCompileTest extends Specification {
         def outputDir = new File("outputDir");
         compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
-        compile.setCompilerClasspath(project.files([]))
+        compile.setCompilerClasspath(project.files(["twirl-compiler_2.10-1.0.2.jar"]))
         def outputCleaner = Spy(TwirlCompile.TwirlStaleOutputCleaner, constructorArgs: [outputDir])
         compile.setCleaner(outputCleaner)
         when:
@@ -60,7 +60,6 @@ class TwirlCompileTest extends Specification {
         then:
         1 * outputCleaner.execute(_)
         1 * twirlCompiler.execute(_)
-
     }
 
     IncrementalTaskInputs withDeletedInputFile() {

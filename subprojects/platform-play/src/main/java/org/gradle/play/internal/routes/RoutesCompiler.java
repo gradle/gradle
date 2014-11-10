@@ -32,7 +32,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
         try {
             ClassLoader cl = getClass().getClassLoader();
             Iterable<File> sources = spec.getSources();
-            Function<Object[], Object> compile = spec.getCompilerMethod(cl);
+            Function<Object[], Object> compile = spec.getCompileMethod(cl);
             for (File sourceFile : sources) {
                 Object ret = compile.apply(spec.createCompileParameters(cl, sourceFile));
                 if (ret != null && ret instanceof Boolean) {

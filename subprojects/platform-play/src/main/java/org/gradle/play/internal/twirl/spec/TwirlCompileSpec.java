@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec;
+package org.gradle.play.internal.twirl.spec;
 
 import com.google.common.base.Function;
 import org.gradle.play.internal.PlayCompileSpec;
@@ -22,10 +22,16 @@ import org.gradle.play.internal.PlayCompileSpec;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
-public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
+public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
+    boolean isFork();
 
     Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
     Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+
+    List<String> getClassLoaderPackages();
+
+    Iterable<File> getCompileClasspath();
 }
