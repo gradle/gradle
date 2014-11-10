@@ -15,7 +15,7 @@
  */
 
 /**
- * Base plugins that add support for JVM runtime.
+ * Plugins that add support for the Play framework.
  */
 @Incubating
 package org.gradle.play.plugins;
