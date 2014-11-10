@@ -83,9 +83,11 @@ class ResolveIvyFactoryTest extends Specification {
     }
 
     def "sets parent resolver with different selection rules when repository is external" () {
+        def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
+
         def configuration = Stub(ConfigurationInternal) {
             getResolutionStrategy() >> Stub(ResolutionStrategyInternal) {
-                getComponentSelection() >> Stub(ComponentSelectionRulesInternal)
+                getComponentSelection() >> componentSelectionRules
             }
         }
 
@@ -93,20 +95,22 @@ class ResolveIvyFactoryTest extends Specification {
         def repositories = Lists.newArrayList(Stub(ResolutionAwareRepository) {
             createResolver() >> spyResolver
         })
-        def parentModuleLookupResolver
 
         when:
         def resolver = resolveIvyFactory.create(configuration, repositories, Stub(ComponentMetadataProcessor))
 
         then:
-        resolver instanceof UserResolverChain
-        1 * spyResolver.setRepositoryChain(_) >> { RepositoryChain r ->
-            assert r instanceof ResolveIvyFactory.ParentModuleLookupResolver
-            parentModuleLookupResolver = r
+        assert resolver instanceof UserResolverChain
+        resolver.componentSelectionRules == componentSelectionRules
+
+        1 * spyResolver.setRepositoryChain(_) >> { RepositoryChain parentResolver ->
+            assert parentResolver instanceof ResolveIvyFactory.ParentModuleLookupResolver
+            // Validate that the parent repository chain selection rules are different and empty
+            def parentComponentSelectionRules = parentResolver.delegate.componentSelectionRules
+            assert parentComponentSelectionRules != componentSelectionRules
+            assert parentComponentSelectionRules.rules.empty
+
         }
-        // Validate that the parent repository chain selection rules are different and empty
-        parentModuleLookupResolver.repositoryChain.componentSelectionRules != resolver.componentSelectionRules
-        parentModuleLookupResolver.repositoryChain.componentSelectionRules.rules.size() == 0
     }
 
     def externalResourceResolverSpy() {

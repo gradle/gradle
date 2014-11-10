@@ -85,14 +85,14 @@ public class ResolveIvyFactory {
 
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        UserResolverChain userResolverChain = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection());
-        ParentModuleLookupResolver parentLookupResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, cacheLockingManager);
+        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection());
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             if (baseRepository instanceof ExternalResourceResolver) {
-                ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentLookupResolver);
+                ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentModuleResolver);
             }
 
             // TODO:DAZ In theory we could update this so that _all_ repositories are wrapped in a cache:
@@ -112,11 +112,12 @@ public class ResolveIvyFactory {
                 moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
             }
             moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
-            userResolverChain.add(moduleComponentRepository);
-            parentLookupResolver.getRepositoryChain().add(moduleComponentRepository);
+
+            moduleResolver.add(moduleComponentRepository);
+            parentModuleResolver.add(moduleComponentRepository);
         }
 
-        return userResolverChain;
+        return moduleResolver;
     }
 
     /**
@@ -124,15 +125,15 @@ public class ResolveIvyFactory {
      */
     private static class ParentModuleLookupResolver implements RepositoryChain, DependencyToComponentResolver, ArtifactResolver {
         private final CacheLockingManager cacheLockingManager;
-        private final UserResolverChain repositoryChain;
+        private final UserResolverChain delegate;
 
         public ParentModuleLookupResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, CacheLockingManager cacheLockingManager) {
-            this.repositoryChain = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules());
+            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules());
             this.cacheLockingManager = cacheLockingManager;
         }
 
-        public UserResolverChain getRepositoryChain() {
-            return repositoryChain;
+        public void add(ModuleComponentRepository moduleComponentRepository) {
+            delegate.add(moduleComponentRepository);
         }
 
         public ComponentMetaDataResolver getComponentMetaDataResolver() {
@@ -154,7 +155,7 @@ public class ResolveIvyFactory {
         public void resolve(final DependencyMetaData dependency, final BuildableComponentResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", dependency), new Runnable() {
                 public void run() {
-                    repositoryChain.getDependencyResolver().resolve(dependency, result);
+                    delegate.getDependencyResolver().resolve(dependency, result);
                 }
             });
         }
@@ -162,7 +163,7 @@ public class ResolveIvyFactory {
         public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s for %s", artifactType, component), new Runnable() {
                 public void run() {
-                    repositoryChain.getArtifactResolver().resolveModuleArtifacts(component, artifactType, result);
+                    delegate.getArtifactResolver().resolveModuleArtifacts(component, artifactType, result);
                 }
             });
         }
@@ -170,7 +171,7 @@ public class ResolveIvyFactory {
         public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s for %s", usage, component), new Runnable() {
                 public void run() {
-                    repositoryChain.getArtifactResolver().resolveModuleArtifacts(component, usage, result);
+                    delegate.getArtifactResolver().resolveModuleArtifacts(component, usage, result);
                 }
             });
         }
@@ -178,7 +179,7 @@ public class ResolveIvyFactory {
         public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
                 public void run() {
-                    repositoryChain.getArtifactResolver().resolveArtifact(artifact, moduleSource, result);
+                    delegate.getArtifactResolver().resolveArtifact(artifact, moduleSource, result);
                 }
             });
         }
