@@ -21,29 +21,36 @@ import java.io.OutputStream;
 
 public interface LoggingOutputInternal extends LoggingOutput {
     /**
-     * Add standard output and error as logging destinations.
+     * Adds System.out and System.err as logging destinations.
      */
-    void addStandardOutputAndError();
+    void attachSystemOutAndErr();
 
     /**
-     * Removes standard output and error from logging destinations.
+     * Adds the current processes' stdout and stderr as logging destinations. The output will also include colorized text and status bar when one of these
+     * is connected to a console.
+     *
+     * <p>Removes standard output and/or error as a side-effect.
      */
-    void removeStandardOutputAndError();
+    void attachProcessConsole(boolean colorOutput);
 
     /**
-     * Adds the console as logging destination, if available.
-     * removes standard output and/or error as a side-effect
+     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings
+     * and encoded using the system character encoding. The output also includes colorized text and status bar encoded using ANSI control sequences.
+     *
+     * <p>Removes standard output and/or error as a side-effect.
      */
-    void attachConsole(boolean colorOutput);
+    void attachAnsiConsole(OutputStream outputStream);
 
     /**
-     * Adds a console as a logging destination. Assumes the given output stream is attached to an ANSI aware console.
-     * removes standard output and/or error as a side-effect
+     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and
+     * encoded using the system character encoding.
      */
-    void attachConsole(OutputStream outputStream);
-
     void addStandardOutputListener(OutputStream outputStream);
 
+    /**
+     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stderr logging formatted according to the current logging settings and
+     * encoded using the system character encoding.
+     */
     void addStandardErrorListener(OutputStream outputStream);
 
     void addOutputEventListener(OutputEventListener listener);

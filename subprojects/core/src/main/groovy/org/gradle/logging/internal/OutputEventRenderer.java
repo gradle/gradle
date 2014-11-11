@@ -65,14 +65,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return originalStdErr;
     }
 
-    public void attachConsole(boolean colorOutput) {
+    public void attachProcessConsole(boolean colorOutput) {
         synchronized (lock) {
             colourMap.setUseColor(colorOutput);
             consoleConfigureAction.execute(this);
         }
     }
 
-    public void attachConsole(OutputStream outputStream) {
+    public void attachAnsiConsole(OutputStream outputStream) {
         synchronized (lock) {
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             DefaultColorMap colourMap = new DefaultColorMap();
@@ -82,7 +82,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         }
     }
 
-    public void addStandardOutputAndError() {
+    public void attachSystemOutAndErr() {
         addStandardOutputListener();
         addStandardErrorListener();
     }
