@@ -53,11 +53,10 @@ class LogToClient extends BuildCommandOnly {
             }
         };
 
-        LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
+        LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         loggingOutput.addOutputEventListener(listener);
-        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
-
         try {
+            LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
             execution.proceed();
         } finally {
             loggingOutput.removeOutputEventListener(listener);
