@@ -31,11 +31,7 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.AnsiConsole;
-import org.gradle.logging.internal.Console;
-import org.gradle.logging.internal.DefaultColorMap;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.logging.internal.*;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -123,7 +119,7 @@ public class ProviderConnection {
             loggingServices = this.loggingServices;
             executer = embeddedExecutor;
         } else {
-            if (Boolean.TRUE.equals(operationParameters.isColorOutput())) {
+            if (Boolean.TRUE.equals(operationParameters.isColorOutput(null))) {
                 PrintStream outStr = new PrintStream(operationParameters.getStandardOutput());
                 DefaultColorMap colourMap = new DefaultColorMap();
                 colourMap.setUseColor(true);

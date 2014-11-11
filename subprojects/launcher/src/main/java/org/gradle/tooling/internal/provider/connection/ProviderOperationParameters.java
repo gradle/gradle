@@ -50,7 +50,7 @@ public interface ProviderOperationParameters {
 
     Boolean isEmbedded();
 
-    Boolean isColorOutput();
+    Boolean isColorOutput(Boolean defaultValue);
 
     OutputStream getStandardOutput();
 
