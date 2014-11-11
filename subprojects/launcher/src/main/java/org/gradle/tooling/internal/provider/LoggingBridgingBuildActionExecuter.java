@@ -40,7 +40,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
     public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         loggingManager.removeAllOutputEventListeners();
-        if(actionParameters.isColorOutput() != null && actionParameters.isColorOutput()) {
+        if (Boolean.TRUE.equals(actionParameters.isColorOutput(null))) {
             loggingManager.attachConsole(true);
         } else {
             if (actionParameters.getStandardOutput() != null) {

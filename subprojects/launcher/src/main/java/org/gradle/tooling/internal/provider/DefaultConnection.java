@@ -29,10 +29,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
-import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
-import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.tooling.internal.provider.connection.ProviderOperationParametersMixIn;
+import org.gradle.tooling.internal.provider.connection.*;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,6 +184,6 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {
-        return adapter.adapt(ProviderOperationParameters.class, buildParameters, ProviderOperationParametersMixIn.class);
+        return adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
     }
 }
