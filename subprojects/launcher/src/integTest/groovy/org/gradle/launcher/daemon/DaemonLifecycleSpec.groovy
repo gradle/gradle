@@ -229,28 +229,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         busy()
     }
 
-    def "existing idle background daemons are used"() {
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-        
-        when:
-        completeBuild()
-        
-        then:
-        idle()
-
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-    }
-
     def "a new daemon is started if all existing are busy"() {
         when:
         startBuild()
