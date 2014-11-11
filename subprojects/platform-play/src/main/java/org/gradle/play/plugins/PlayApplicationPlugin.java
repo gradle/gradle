@@ -30,10 +30,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.play.PlayApplicationBinarySpec;
@@ -54,20 +51,18 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * Plugin for Play Framework component support.
- * Registers the {@link org.gradle.play.PlayApplicationSpec} component type for
- * the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
  */
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_SCALA_BINARY_VERSION = "2.10";
     public static final String DEFAULT_PLAY_VERSION = "2.3.5";
     public static final String PLAY_GROUP = "com.typesafe.play";
-    public static final String DEFAULT_PLAY_DEPENDENCY = PLAY_GROUP+":play_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
+    public static final String DEFAULT_PLAY_DEPENDENCY = PLAY_GROUP + ":play_" + DEFAULT_SCALA_BINARY_VERSION + ":" + DEFAULT_PLAY_VERSION;
     public static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
     public static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
-    public static final String PLAY_ROUTES_DEPENDENCY_NAME =  "routes-compiler";
-    public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = PLAY_GROUP+":"+PLAY_ROUTES_DEPENDENCY_NAME+"_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
+    public static final String PLAY_ROUTES_DEPENDENCY_NAME = "routes-compiler";
+    public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = PLAY_GROUP + ":" + PLAY_ROUTES_DEPENDENCY_NAME + "_" + DEFAULT_SCALA_BINARY_VERSION + ":" + DEFAULT_PLAY_VERSION;
     public static final String PLAY_ROUTES_CONFIGURATION_NAME = "playRoutes";
     public static final String PLAY_MAIN_CLASS = "play.core.server.NettyServer";
     private ProjectInternal project;
@@ -83,7 +78,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         final Configuration playAppCompileClasspath = createConfigurationWithDefaultDependency(PLAYAPP_COMPILE_CONFIGURATION_NAME, DEFAULT_PLAY_DEPENDENCY);
         playAppCompileClasspath.setDescription("The dependencies to be used for Scala compilation of a Play application.");
 
-        project.getTasks().withType(ScalaCompile.class).all(new Action<ScalaCompile>(){
+        project.getTasks().withType(ScalaCompile.class).all(new Action<ScalaCompile>() {
             public void execute(ScalaCompile scalaCompile) {
                 scalaCompile.getConventionMapping().map("classpath", new Callable<FileCollection>() {
                     public FileCollection call() throws Exception {
@@ -99,8 +94,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
     private static String detectRoutesCompilerVersion(Configuration routesConfiguration) {
         String routesCompilerVersion = null;
-        for (Dependency dep: routesConfiguration.getDependencies()) {
-            if (dep.getGroup().equals(PlayApplicationPlugin.PLAY_GROUP) && dep.getName().startsWith(PlayApplicationPlugin.PLAY_ROUTES_DEPENDENCY_NAME)){
+        for (Dependency dep : routesConfiguration.getDependencies()) {
+            if (dep.getGroup().equals(PlayApplicationPlugin.PLAY_GROUP) && dep.getName().startsWith(PlayApplicationPlugin.PLAY_ROUTES_DEPENDENCY_NAME)) {
                 routesCompilerVersion = dep.getVersion();
                 break;
             }
@@ -116,7 +111,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         routesConfiguration.setVisible(false);
         routesConfiguration.setDescription("The dependencies to be used Play Routes compilation.");
 
-        project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>(){
+        project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>() {
             public void execute(RoutesCompile routesCompile) {
                 final Configuration routesConfiguration = project.getConfigurations().getByName(PLAY_ROUTES_CONFIGURATION_NAME);
                 routesCompile.getConventionMapping().map("routesCompilerVersion", new Callable<String>() {
@@ -157,7 +152,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     static class Rules {
 
         @Model
-        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry){
+        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(PlayToolChainInternal.class);
         }
 
@@ -182,7 +177,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal, @Path("buildDir") final File buildDir) {
 
             String targetPlayVersion = componentSpec.getPlayVersion();
-            if(targetPlayVersion == null){
+            if (targetPlayVersion == null) {
                 targetPlayVersion = "2.3.5";
             }
 
@@ -266,9 +261,16 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             });
         }
 
+        @Finalize
+        void failOnMultiplePlayComponents(ComponentSpecContainer container) {
+            if (container.withType(PlayApplicationSpec.class).size() >= 2) {
+                throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
+            }
+        }
+
         @Mutate
         void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
-            for(final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)){
+            for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, JavaExec.class, new Action<JavaExec>() {
                     public void execute(JavaExec javaExec) {
