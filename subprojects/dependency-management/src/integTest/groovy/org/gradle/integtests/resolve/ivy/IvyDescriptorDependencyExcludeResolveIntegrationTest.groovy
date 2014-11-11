@@ -26,69 +26,7 @@ import spock.lang.Unroll
  */
 class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDescriptorExcludeResolveIntegrationTest {
     /**
-     * Dependency exclude by using a combination of module exclude rules.
-     *
-     * Dependency graph:
-     * a -> b, c
-     */
-    @Unroll
-    def "dependency exclude with matching #name"() {
-        given:
-        ivyRepo.module('b').publish()
-        ivyRepo.module('c').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        moduleA.publish()
-
-        when:
-        succeeds 'check'
-
-        then:
-        file('libs').assertHasDescendants(['a-1.0.jar', 'c-1.0.jar'] as String[])
-
-        where:
-        name                  | excludeAttributes
-        'all modules'         | [module: '*']
-        'module'              | [module: 'b']
-        'org and all modules' | [org: 'org.gradle.test', module: '*']
-        'org and module'      | [org: 'org.gradle.test', module: 'b']
-    }
-
-    /**
-     * Transitive dependency exclude by using a combination of module exclude rules.
-     *
-     * Dependency graph:
-     * a -> b, c
-     * b -> d
-     * c -> e
-     */
-    @Unroll
-    def "transitive dependency exclude with matching #name"() {
-        given:
-        ivyRepo.module('d').publish()
-        ivyRepo.module('b').dependsOn('d').publish()
-        ivyRepo.module('e').publish()
-        ivyRepo.module('c').dependsOn('e').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        moduleA.publish()
-
-        when:
-        succeeds 'check'
-
-        then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
-
-        where:
-        name                      | excludeAttributes                      | resolvedJars
-        'all modules'             | [module: '*']                          | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'module'                  | [module: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'org and all modules'     | [org: 'org.gradle.test', module: '*']  | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'org and module'          | [org: 'org.gradle.test', module: 'd']  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-    }
-
-    /**
-     * Dependency exclude for a single artifact by using a combination of name exclude rules.
+     * Dependency exclude for a single artifact by using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -110,6 +48,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         where:
         name                              | excludeAttributes
+        'all modules'                     | [module: '*']
+        'module'                          | [module: 'b']
+        'org and all modules'             | [org: 'org.gradle.test', module: '*']
+        'org and module'                  | [org: 'org.gradle.test', module: 'b']
         'all names'                       | [name: '*']
         'wildcard name'                   | [name: 'b*']
         'name'                            | [name: 'b']
@@ -125,7 +67,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Exclude of transitive dependency with a single artifact by using a combination of name exclude rules.
+     * Exclude of transitive dependency with a single artifact by using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -151,6 +93,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         where:
         name                              | excludeAttributes                                                         | resolvedJars
+        'all modules'                     | [module: '*']                                                             | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'module'                          | [module: 'd']                                                             | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'org and all modules'             | [org: 'org.gradle.test', module: '*']                                     | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'org and module'                  | [org: 'org.gradle.test', module: 'd']                                     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'all names'                       | [name: '*']                                                               | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'wildcard name'                   | [name: 'd*']                                                              | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'name'                            | [name: 'd']                                                               | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
@@ -208,7 +154,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Exclude of transitive dependency with multiple artifacts by using a combination of name exclude rules.
+     * Exclude of transitive dependency with multiple artifacts by using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -238,6 +184,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         where:
         name                              | excludeAttributes                                                         | resolvedJars
+        'all modules'                     | [module: '*']                                                             | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'module'                          | [module: 'd']                                                             | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'org and all modules'             | [org: 'org.gradle.test', module: '*']                                     | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'org and module'                  | [org: 'org.gradle.test', module: 'd']                                     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'all names'                       | [name: '*']                                                               | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'name'                            | [name: 'd']                                                               | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'name and type'                   | [name: 'd', type: 'jar']                                                  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
@@ -252,7 +202,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Transitive diamond dependency exclude for a single path by using a combination of module or name exclude rules.
+     * Transitive diamond dependency exclude for a single path by using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -286,7 +236,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Transitive diamond dependency exclude for all paths by using a combination of module or name exclude rules.
+     * Transitive diamond dependency exclude for all paths by using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
