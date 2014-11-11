@@ -17,6 +17,8 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LoggingOutput;
 
+import java.io.OutputStream;
+
 public interface LoggingOutputInternal extends LoggingOutput {
     /**
      * Add standard output and error as logging destinations.
@@ -33,6 +35,16 @@ public interface LoggingOutputInternal extends LoggingOutput {
      * removes standard output and/or error as a side-effect
      */
     void attachConsole(boolean colorOutput);
+
+    /**
+     * Adds a console as a logging destination. Assumes the given output stream is attached to an ANSI aware console.
+     * removes standard output and/or error as a side-effect
+     */
+    void attachConsole(OutputStream outputStream);
+
+    void addStandardOutputListener(OutputStream outputStream);
+
+    void addStandardErrorListener(OutputStream outputStream);
 
     void addOutputEventListener(OutputEventListener listener);
 
