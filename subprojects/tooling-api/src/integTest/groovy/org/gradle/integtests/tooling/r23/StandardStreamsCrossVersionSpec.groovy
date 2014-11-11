@@ -93,6 +93,8 @@ task log << {
         output.toString().contains("lifecycle logging-${uuid}")
         output.toString().contains("quiet logging-${uuid}")
         error.toString().contains("error logging-${uuid}")
+
+        and:
         !stdOutAndErr.stdOut.contains(uuid)
         !stdOutAndErr.stdErr.contains(uuid)
     }
@@ -118,6 +120,8 @@ task log {
 
         then:
         output.toString().contains("UP-TO-DATE" + escapeHeader)
+
+        and:
         !stdOutAndErr.stdOut.contains(escapeHeader)
         !stdOutAndErr.stdErr.contains(escapeHeader)
     }
@@ -143,12 +147,13 @@ task log {
 
         then:
         !output.toString().contains(escapeHeader)
+
+        and:
         !stdOutAndErr.stdOut.contains(escapeHeader)
         !stdOutAndErr.stdErr.contains(escapeHeader)
     }
 
     @ToolingApiVersion(">=2.3")
-    @TargetGradleVersion(">=2.3")
     def "can specify color output when output is being ignored"() {
         file("build.gradle") << """
 task log {
