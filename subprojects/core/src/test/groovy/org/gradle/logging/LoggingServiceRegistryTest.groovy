@@ -192,6 +192,30 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
     }
 
+    def routesStyledTextToListenersWhenStarted() {
+        StandardOutputListener listener = Mock()
+
+        when:
+        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
+
+        when:
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
+        loggingManager.start()
+
+        def textOutput = registry.get(StyledTextOutputFactory).create("category")
+        textOutput.println("info")
+
+        then:
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        0 * listener._
+    }
+
     def routesLoggingOutputToOriginalSystemOutAndErrWhenStarted() {
         given:
         def logger = LoggerFactory.getLogger("category")
@@ -263,12 +287,53 @@ class LoggingServiceRegistryTest extends Specification {
         System.err == outputs.stdErrPrintStream
     }
 
-    def canCreateANestedRegistry() {
+    def doesNotMessWithJavaUtilLoggingWhenNested() {
         given:
-        def registry = LoggingServiceRegistry.newEmbeddableLogging()
+        def registry = LoggingServiceRegistry.newNestedLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.level = LogLevel.WARN
+        loggingManager.start()
+        def logger = Logger.getLogger("category")
 
-        expect:
-        def child = registry.newLogging()
-        child != null
+        when:
+        logger.warning("warning")
+        logger.severe("error")
+
+        then:
+        outputs.stdOut == ''
+        outputs.stdErr == ''
+    }
+
+    def doesNotMessWithSystemOutputAndErrorWhenNested() {
+        when:
+        def registry = LoggingServiceRegistry.newNestedLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.level = LogLevel.WARN
+        loggingManager.start()
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
+    }
+
+    def doesNotRouteToSystemOutAndErrorWhenNested() {
+        StandardOutputListener listener = Mock()
+
+        when:
+        def registry = LoggingServiceRegistry.newNestedLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.start()
+
+        def textOutput = registry.get(StyledTextOutputFactory).create("category")
+        textOutput.println("info")
+
+        then:
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        0 * listener._
+
+        and:
+        outputs.stdOut == ''
+        outputs.stdErr == ''
     }
 }

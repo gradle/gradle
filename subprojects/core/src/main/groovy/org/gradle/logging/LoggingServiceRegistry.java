@@ -93,17 +93,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     /**
-     * Creates a set of logging services to set up a new logging scope without attaching the output event renderer to
-     * standard streams.
+     * Creates a set of logging services to set up a new logging scope without an existing scope. Does not configure any state or route output to any destinations.
      */
-    public static LoggingServiceRegistry newToolingApiLogging() {
-        return new NestedToolingLogging();
-    }
-
-    /**
-     * Creates a set of logging services to set up a new logging scope. Does not configure any static state.
-     */
-    public LoggingServiceRegistry newLogging() {
+    public static LoggingServiceRegistry newNestedLogging() {
         return new NestedLogging();
     }
 
@@ -184,9 +176,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
                     new NoOpLoggingSystem(),
                     new NoOpLoggingSystem());
         }
-    }
 
-    private static class NestedToolingLogging extends NestedLogging {
         protected OutputEventRenderer createOutputEventRenderer() {
             return new OutputEventRenderer(Actions.doNothing());
         }
