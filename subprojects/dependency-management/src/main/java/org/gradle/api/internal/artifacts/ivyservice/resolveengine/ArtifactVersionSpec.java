@@ -23,21 +23,21 @@ import org.gradle.api.specs.Spec;
 
 import java.util.*;
 
-public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<ArtifactIdSpec> {
+public abstract class ArtifactVersionSpec implements Spec<ArtifactId>, Mergeable<ArtifactVersionSpec> {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
 
-    public static ArtifactIdSpec forExcludes(ExcludeRule... excludeRules) {
+    public static ArtifactVersionSpec forExcludes(ExcludeRule... excludeRules) {
         return forExcludes(Arrays.asList(excludeRules));
     }
 
-    public static ArtifactIdSpec forExcludes(Collection<ExcludeRule> excludeRules) {
+    public static ArtifactVersionSpec forExcludes(Collection<ExcludeRule> excludeRules) {
         if (excludeRules.isEmpty()) {
             return ALL_SPEC;
         }
         return new ExcludeRuleBackedSpec(excludeRules);
     }
 
-    public ArtifactIdSpec union(ArtifactIdSpec other) {
+    public ArtifactVersionSpec union(ArtifactVersionSpec other) {
         if (other == this) {
             return this;
         }
@@ -47,12 +47,12 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
         if (this == ALL_SPEC) {
             return this;
         }
-        List<ArtifactIdSpec> specs = new ArrayList<ArtifactIdSpec>();
+        List<ArtifactVersionSpec> specs = new ArrayList<ArtifactVersionSpec>();
         unpackUnion(specs);
         other.unpackUnion(specs);
         for (int i = 0; i < specs.size();) {
-            ArtifactIdSpec spec = specs.get(i);
-            ArtifactIdSpec merged = null;
+            ArtifactVersionSpec spec = specs.get(i);
+            ArtifactVersionSpec merged = null;
             for (int j = i + 1; j < specs.size(); j++) {
                 merged = spec.doUnion(specs.get(j));
                 if (merged != null) {
@@ -72,15 +72,15 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
         return new UnionSpec(specs);
     }
 
-    protected void unpackUnion(Collection<ArtifactIdSpec> specs) {
+    protected void unpackUnion(Collection<ArtifactVersionSpec> specs) {
         specs.add(this);
     }
 
-    protected ArtifactIdSpec doUnion(ArtifactIdSpec other) {
+    protected ArtifactVersionSpec doUnion(ArtifactVersionSpec other) {
         return null;
     }
 
-    public ArtifactIdSpec intersect(ArtifactIdSpec other) {
+    public ArtifactVersionSpec intersect(ArtifactVersionSpec other) {
         if (other == this) {
             return this;
         }
@@ -93,11 +93,11 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
         return doIntersection(other);
     }
 
-    protected ArtifactIdSpec doIntersection(ArtifactIdSpec other) {
+    protected ArtifactVersionSpec doIntersection(ArtifactVersionSpec other) {
         return new IntersectSpec(this, other);
     }
 
-    private static class AcceptAllSpec extends ArtifactIdSpec {
+    private static class AcceptAllSpec extends ArtifactVersionSpec {
         @Override
         public String toString() {
             return "{accept-all}";
@@ -108,15 +108,15 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
         }
     }
 
-    private static abstract class CompositeSpec extends ArtifactIdSpec {
-        abstract Collection<ArtifactIdSpec> getSpecs();
+    private static abstract class CompositeSpec extends ArtifactVersionSpec {
+        abstract Collection<ArtifactVersionSpec> getSpecs();
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("{");
             builder.append(getClass().getSimpleName());
-            for (ArtifactIdSpec spec : getSpecs()) {
+            for (ArtifactVersionSpec spec : getSpecs()) {
                 builder.append(' ');
                 builder.append(spec);
             }
@@ -126,19 +126,19 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
     }
 
     private static class IntersectSpec extends CompositeSpec {
-        private final List<ArtifactIdSpec> specs;
+        private final List<ArtifactVersionSpec> specs;
 
-        private IntersectSpec(ArtifactIdSpec... specs) {
+        private IntersectSpec(ArtifactVersionSpec... specs) {
             this.specs = Arrays.asList(specs);
         }
 
         @Override
-        Collection<ArtifactIdSpec> getSpecs() {
+        Collection<ArtifactVersionSpec> getSpecs() {
             return specs;
         }
 
         public boolean isSatisfiedBy(ArtifactId element) {
-            for (ArtifactIdSpec spec : specs) {
+            for (ArtifactVersionSpec spec : specs) {
                 if (!spec.isSatisfiedBy(element)) {
                     return false;
                 }
@@ -148,7 +148,7 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
     }
 
     static class ExcludeRuleBackedSpec extends CompositeSpec {
-        private final Set<ArtifactIdSpec> excludeSpecs = new HashSet<ArtifactIdSpec>();
+        private final Set<ArtifactVersionSpec> excludeSpecs = new HashSet<ArtifactVersionSpec>();
 
         private ExcludeRuleBackedSpec(Iterable<ExcludeRule> excludeRules) {
             for (ExcludeRule rule : excludeRules) {
@@ -156,17 +156,17 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
             }
         }
 
-        public ExcludeRuleBackedSpec(Collection<ArtifactIdSpec> specs) {
+        public ExcludeRuleBackedSpec(Collection<ArtifactVersionSpec> specs) {
             this.excludeSpecs.addAll(specs);
         }
 
         @Override
-        Collection<ArtifactIdSpec> getSpecs() {
+        Collection<ArtifactVersionSpec> getSpecs() {
             return excludeSpecs;
         }
 
         public boolean isSatisfiedBy(ArtifactId element) {
-            for (ArtifactIdSpec excludeSpec : excludeSpecs) {
+            for (ArtifactVersionSpec excludeSpec : excludeSpecs) {
                 if (excludeSpec.isSatisfiedBy(element)) {
                     return false;
                 }
@@ -175,7 +175,7 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
         }
 
         @Override
-        protected ArtifactIdSpec doUnion(ArtifactIdSpec other) {
+        protected ArtifactVersionSpec doUnion(ArtifactVersionSpec other) {
             if (!(other instanceof ExcludeRuleBackedSpec)) {
                 return super.doUnion(other);
             }
@@ -186,18 +186,18 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
             }
 
             // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
-            for (ArtifactIdSpec excludeSpec : excludeSpecs) {
+            for (ArtifactVersionSpec excludeSpec : excludeSpecs) {
                 if (excludeSpec instanceof ExcludeRuleSpec) {
                     return super.doUnion(other);
                 }
             }
-            for (ArtifactIdSpec excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
+            for (ArtifactVersionSpec excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
                 if (excludeSpec instanceof ExcludeRuleSpec) {
                     return super.doUnion(other);
                 }
             }
 
-            List<ArtifactIdSpec> merged = new ArrayList<ArtifactIdSpec>();
+            List<ArtifactVersionSpec> merged = new ArrayList<ArtifactVersionSpec>();
 
             if (merged.isEmpty()) {
                 return ALL_SPEC;
@@ -207,24 +207,24 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
     }
 
     static class UnionSpec extends CompositeSpec {
-        private final List<ArtifactIdSpec> specs;
+        private final List<ArtifactVersionSpec> specs;
 
-        public UnionSpec(List<ArtifactIdSpec> specs) {
+        public UnionSpec(List<ArtifactVersionSpec> specs) {
             this.specs = specs;
         }
 
         @Override
-        Collection<ArtifactIdSpec> getSpecs() {
+        Collection<ArtifactVersionSpec> getSpecs() {
             return specs;
         }
 
         @Override
-        protected void unpackUnion(Collection<ArtifactIdSpec> specs) {
+        protected void unpackUnion(Collection<ArtifactVersionSpec> specs) {
             specs.addAll(this.specs);
         }
 
         public boolean isSatisfiedBy(ArtifactId element) {
-            for (ArtifactIdSpec spec : specs) {
+            for (ArtifactVersionSpec spec : specs) {
                 if (spec.isSatisfiedBy(element)) {
                     return true;
                 }
@@ -234,7 +234,7 @@ public abstract class ArtifactIdSpec implements Spec<ArtifactId>, Mergeable<Arti
         }
     }
 
-    static class ExcludeRuleSpec extends ArtifactIdSpec {
+    static class ExcludeRuleSpec extends ArtifactVersionSpec {
         private final ExcludeRule rule;
 
         public ExcludeRuleSpec(ExcludeRule rule) {

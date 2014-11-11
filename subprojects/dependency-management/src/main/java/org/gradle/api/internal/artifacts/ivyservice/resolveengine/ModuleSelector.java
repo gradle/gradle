@@ -23,11 +23,11 @@ import java.util.Collection;
 
 public class ModuleSelector implements Mergeable<ModuleSelector> {
     private final ModuleVersionSpec moduleVersionSpec;
-    private final ArtifactIdSpec artifactIdSpec;
+    private final ArtifactVersionSpec artifactVersionSpec;
 
-    public ModuleSelector(ModuleVersionSpec moduleVersionSpec, ArtifactIdSpec artifactIdSpec) {
+    public ModuleSelector(ModuleVersionSpec moduleVersionSpec, ArtifactVersionSpec artifactVersionSpec) {
         this.moduleVersionSpec = moduleVersionSpec;
-        this.artifactIdSpec = artifactIdSpec;
+        this.artifactVersionSpec = artifactVersionSpec;
     }
 
     public static ModuleSelector forExcludes(ExcludeRule... excludeRules) {
@@ -36,7 +36,7 @@ public class ModuleSelector implements Mergeable<ModuleSelector> {
 
     public static ModuleSelector forExcludes(Collection<ExcludeRule> excludeRules) {
         ModuleVersionSpec mSpec = ModuleVersionSpec.forExcludes(excludeRules);
-        ArtifactIdSpec aSpec = ArtifactIdSpec.forExcludes(excludeRules);
+        ArtifactVersionSpec aSpec = ArtifactVersionSpec.forExcludes(excludeRules);
         return new ModuleSelector(mSpec, aSpec);
     }
 
@@ -44,19 +44,19 @@ public class ModuleSelector implements Mergeable<ModuleSelector> {
         return moduleVersionSpec;
     }
 
-    public ArtifactIdSpec getArtifactIdSpec() {
-        return artifactIdSpec;
+    public ArtifactVersionSpec getArtifactVersionSpec() {
+        return artifactVersionSpec;
     }
 
     public ModuleSelector union(ModuleSelector moduleSelector) {
         ModuleVersionSpec mSpec = moduleVersionSpec.union(moduleSelector.getModuleVersionSpec());
-        ArtifactIdSpec aSpec = artifactIdSpec.union(moduleSelector.getArtifactIdSpec());
+        ArtifactVersionSpec aSpec = artifactVersionSpec.union(moduleSelector.getArtifactVersionSpec());
         return new ModuleSelector(mSpec, aSpec);
     }
 
     public ModuleSelector intersect(ModuleSelector moduleSelector) {
         ModuleVersionSpec mSpec = moduleVersionSpec.intersect(moduleSelector.getModuleVersionSpec());
-        ArtifactIdSpec aSpec = artifactIdSpec.intersect(moduleSelector.getArtifactIdSpec());
+        ArtifactVersionSpec aSpec = artifactVersionSpec.intersect(moduleSelector.getArtifactVersionSpec());
         return new ModuleSelector(mSpec, aSpec);
     }
 }

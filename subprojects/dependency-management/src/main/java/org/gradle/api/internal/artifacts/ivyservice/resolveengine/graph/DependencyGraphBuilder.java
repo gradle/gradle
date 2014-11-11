@@ -283,8 +283,8 @@ public class DependencyGraphBuilder {
         public ModuleSelector getSelector() {
             String[] configurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
             ModuleVersionSpec moduleVersionSelector = ModuleVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
-            ArtifactIdSpec artifactIdSelector = ArtifactIdSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
-            return new ModuleSelector(moduleVersionSelector, artifactIdSelector).intersect(selectorSpec);
+            ArtifactVersionSpec artifactVersionSelector = ArtifactVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
+            return new ModuleSelector(moduleVersionSelector, artifactVersionSelector).intersect(selectorSpec);
         }
 
         public ComponentSelector getRequested() {
@@ -651,7 +651,7 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
-        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ArtifactIdSpec artifactIdSpec) {
+        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ArtifactVersionSpec artifactVersionSpec) {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
@@ -662,7 +662,7 @@ public class DependencyGraphBuilder {
                     ModuleId moduleId = ModuleId.newInstance(id.getModuleGroup(), id.getModuleName());
                     ArtifactId artifactId = new ArtifactId(moduleId, artifact.getName().getName(), artifact.getName().getType(), artifact.getName().getExtension());
 
-                    if(artifactIdSpec.isSatisfiedBy(artifactId)) {
+                    if(artifactVersionSpec.isSatisfiedBy(artifactId)) {
                         artifacts.add(builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
                     }
                 }

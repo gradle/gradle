@@ -25,13 +25,13 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createArtifac
 
 class ModuleSelectorTest extends Specification {
     ModuleVersionSpec moduleVersionSpec = createModuleVersionSpec()
-    ArtifactIdSpec artifactIdSpec = createArtifactIdSpec()
-    ModuleSelector moduleSelector = new ModuleSelector(moduleVersionSpec, artifactIdSpec)
+    ArtifactVersionSpec artifactVersionSpec = createArtifactVersionSpec()
+    ModuleSelector moduleSelector = new ModuleSelector(moduleVersionSpec, artifactVersionSpec)
 
     def "specs are accessible"() {
         expect:
         moduleSelector.moduleVersionSpec == moduleVersionSpec
-        moduleSelector.artifactIdSpec == artifactIdSpec
+        moduleSelector.artifactVersionSpec == artifactVersionSpec
     }
 
     def "can create module selector for empty list of excludes"() {
@@ -41,7 +41,7 @@ class ModuleSelectorTest extends Specification {
         then:
         moduleSelector
         moduleSelector.moduleVersionSpec
-        moduleSelector.artifactIdSpec
+        moduleSelector.artifactVersionSpec
     }
 
     def "can create module selector for list of excludes"() {
@@ -55,13 +55,13 @@ class ModuleSelectorTest extends Specification {
         then:
         moduleSelector
         moduleSelector.moduleVersionSpec
-        moduleSelector.artifactIdSpec
+        moduleSelector.artifactVersionSpec
     }
 
     def "union of two module selectors"() {
         ModuleVersionSpec otherModuleVersionSpec = createModuleVersionSpec()
-        ArtifactIdSpec otherArtifactIdSpec = createArtifactIdSpec()
-        ModuleSelector otherModuleSelector = new ModuleSelector(otherModuleVersionSpec, otherArtifactIdSpec)
+        ArtifactVersionSpec otherArtifactVersionSpec = createArtifactVersionSpec()
+        ModuleSelector otherModuleSelector = new ModuleSelector(otherModuleVersionSpec, otherArtifactVersionSpec)
 
         when:
         ModuleSelector mergedModuleSelector = moduleSelector.union(otherModuleSelector)
@@ -69,13 +69,13 @@ class ModuleSelectorTest extends Specification {
         then:
         mergedModuleSelector
         1 * moduleVersionSpec.union(otherModuleSelector.moduleVersionSpec) >> ModuleVersionSpec.forExcludes()
-        1 * artifactIdSpec.union(otherModuleSelector.artifactIdSpec) >> ArtifactIdSpec.forExcludes()
+        1 * artifactVersionSpec.union(otherModuleSelector.artifactVersionSpec) >> ArtifactVersionSpec.forExcludes()
     }
 
     def "intersection of two module selectors"() {
         ModuleVersionSpec otherModuleVersionSpec = createModuleVersionSpec()
-        ArtifactIdSpec otherArtifactIdSpec = createArtifactIdSpec()
-        ModuleSelector otherModuleSelector = new ModuleSelector(otherModuleVersionSpec, otherArtifactIdSpec)
+        ArtifactVersionSpec otherArtifactVersionSpec = createArtifactVersionSpec()
+        ModuleSelector otherModuleSelector = new ModuleSelector(otherModuleVersionSpec, otherArtifactVersionSpec)
 
         when:
         ModuleSelector mergedModuleSelector = moduleSelector.intersect(otherModuleSelector)
@@ -83,7 +83,7 @@ class ModuleSelectorTest extends Specification {
         then:
         mergedModuleSelector
         1 * moduleVersionSpec.intersect(otherModuleSelector.moduleVersionSpec) >> ModuleVersionSpec.forExcludes()
-        1 * artifactIdSpec.intersect(otherModuleSelector.artifactIdSpec) >> ArtifactIdSpec.forExcludes()
+        1 * artifactVersionSpec.intersect(otherModuleSelector.artifactVersionSpec) >> ArtifactVersionSpec.forExcludes()
     }
 
     private ModuleVersionSpec createModuleVersionSpec() {
@@ -94,11 +94,11 @@ class ModuleSelectorTest extends Specification {
         }
     }
 
-    private ArtifactIdSpec createArtifactIdSpec() {
-        Spy(ArtifactIdSpec) {
+    private ArtifactVersionSpec createArtifactVersionSpec() {
+        Spy(ArtifactVersionSpec) {
             isSatisfiedBy(_) >> false
-            union(_) >> ArtifactIdSpec.forExcludes()
-            intersect(_) >> ArtifactIdSpec.forExcludes()
+            union(_) >> ArtifactVersionSpec.forExcludes()
+            intersect(_) >> ArtifactVersionSpec.forExcludes()
         }
     }
 

@@ -25,9 +25,9 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createArtifactId
 
-class ArtifactIdSpecTest extends Specification {
+class ArtifactVersionSpecTest extends Specification {
     def "accepts all artifacts by default"() {
-        def spec = ArtifactIdSpec.forExcludes()
+        def spec = ArtifactVersionSpec.forExcludes()
 
         expect:
         spec.isSatisfiedBy(createArtifactId("org", "module", "test", "jar", "jar"))
@@ -39,7 +39,7 @@ class ArtifactIdSpecTest extends Specification {
         def rule3 = excludeAnyArtifactsRule("org2", "*")
         def rule4 = excludeAnyArtifactsRule("*", "module4")
         def rule5 = regExpExcludeAnyArtifactsRule("regexp-\\d+", "module\\d+")
-        def spec = ArtifactIdSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
+        def spec = ArtifactVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
         !spec.isSatisfiedBy(createArtifactId("org", "module", "a", "jar", "jar"))
@@ -61,7 +61,7 @@ class ArtifactIdSpecTest extends Specification {
         def rule6 = excludeAnyModuleArtifactsRule("f", "sources", "*")
         def rule7 = excludeAnyModuleArtifactsRule("g", "jar", "war")
         def rule8 = regExpExcludeAnyModuleArtifactsRule("regexp-\\d+", "jar", "jar")
-        def spec = ArtifactIdSpec.forExcludes(rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8)
+        def spec = ArtifactVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8)
 
         expect:
         !spec.isSatisfiedBy(createArtifactId("org", "module", "a", "jar", "jar"))
@@ -83,8 +83,8 @@ class ArtifactIdSpecTest extends Specification {
     def "union accepts all artifacts when one spec has empty set of exclude rules"() {
         def rule1 = excludeAnyModuleArtifactsRule("a", "jar", "jar")
         def rule2 = excludeAnyModuleArtifactsRule("b", "jar", "jar")
-        def spec = ArtifactIdSpec.forExcludes(rule1, rule2)
-        def spec2 = ArtifactIdSpec.forExcludes()
+        def spec = ArtifactVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ArtifactVersionSpec.forExcludes()
 
         expect:
         spec.union(spec2) == spec2
@@ -94,7 +94,7 @@ class ArtifactIdSpecTest extends Specification {
     def "union of a spec with itself returns the original spec"() {
         def rule1 = excludeAnyModuleArtifactsRule("a", "jar", "jar")
         def rule2 = excludeAnyModuleArtifactsRule("b", "jar", "jar")
-        def spec = ArtifactIdSpec.forExcludes(rule1, rule2)
+        def spec = ArtifactVersionSpec.forExcludes(rule1, rule2)
 
         expect:
         spec.union(spec) == spec
@@ -103,8 +103,8 @@ class ArtifactIdSpecTest extends Specification {
     def "intersection accepts those artifacts accepted by other spec when one spec has empty set of exclude rules"() {
         def rule1 = excludeAnyModuleArtifactsRule("a", "jar", "jar")
         def rule2 = excludeAnyModuleArtifactsRule("b", "jar", "jar")
-        def spec = ArtifactIdSpec.forExcludes(rule1, rule2)
-        def spec2 = ArtifactIdSpec.forExcludes()
+        def spec = ArtifactVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ArtifactVersionSpec.forExcludes()
 
         expect:
         spec.intersect(spec2) == spec
@@ -114,7 +114,7 @@ class ArtifactIdSpecTest extends Specification {
     def "intersection of a spec with itself returns the original spec"() {
         def rule1 = excludeAnyModuleArtifactsRule("a", "jar", "jar")
         def rule2 = excludeAnyModuleArtifactsRule("b", "jar", "jar")
-        def spec = ArtifactIdSpec.forExcludes(rule1, rule2)
+        def spec = ArtifactVersionSpec.forExcludes(rule1, rule2)
 
         expect:
         spec.intersect(spec) == spec
