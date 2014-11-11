@@ -16,18 +16,22 @@
 
 package org.gradle.play.internal.twirl;
 
+import org.gradle.api.tasks.compile.BaseForkOptions;
+
 import java.io.File;
 
 public class DefaultTwirlCompileSpec implements TwirlCompileSpec{
     private final File sourceDirectory;
     private final Iterable<File> sources;
     private final File destinationDir;
+    private BaseForkOptions forkOptions;
     private final boolean javaProject;
 
-    public DefaultTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, boolean javaProject) {
+    public DefaultTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, BaseForkOptions forkOptions, boolean javaProject) {
         this.sourceDirectory = sourceDirectory;
         this.sources = sources;
         this.destinationDir = destinationDir;
+        this.forkOptions = forkOptions;
         this.javaProject = javaProject;
     }
 
@@ -47,5 +51,7 @@ public class DefaultTwirlCompileSpec implements TwirlCompileSpec{
         return sourceDirectory;
     }
 
-
+    public BaseForkOptions getForkOptions() {
+        return forkOptions;
+    }
 }

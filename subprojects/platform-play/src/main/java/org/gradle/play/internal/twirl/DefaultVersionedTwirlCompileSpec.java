@@ -16,18 +16,20 @@
 
 package org.gradle.play.internal.twirl;
 
+import org.gradle.api.tasks.compile.BaseForkOptions;
+
 import java.io.File;
 
 public abstract class DefaultVersionedTwirlCompileSpec extends DefaultTwirlCompileSpec {
     private final String additionalImports;
     private final String formatterType;
 
-    public DefaultVersionedTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, boolean javaProject) {
-        this(sourceDirectory, sources, destinationDir, null, null, javaProject);
+    public DefaultVersionedTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, BaseForkOptions forkOptions, boolean javaProject) {
+        this(sourceDirectory, sources, destinationDir, null, null, forkOptions, javaProject);
     }
 
-    public DefaultVersionedTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, String additionalImports, String formatterType, boolean javaProject) {
-        super(sourceDirectory, sources, destinationDir, javaProject);
+    public DefaultVersionedTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, String additionalImports, String formatterType, BaseForkOptions forkOptions, boolean javaProject) {
+        super(sourceDirectory, sources, destinationDir, forkOptions, javaProject);
         if (additionalImports != null) {
             this.additionalImports = additionalImports;
         } else {

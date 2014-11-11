@@ -124,7 +124,7 @@ public class TwirlCompile extends SourceTask {
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(getSourceDirectory(), getSource().getFiles(), getOutputDirectory(), useJavaDefaults());
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(getSourceDirectory(), getSource().getFiles(), getOutputDirectory(), getForkOptions(), useJavaDefaults());
         if (!inputs.isIncremental()) {
             if (compiler == null) {
                 compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(spec), getOutputs());
