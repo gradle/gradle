@@ -47,5 +47,9 @@ class PlayCoverage {
         String toString(){
             "${playVersion}_${scalaBinaryVersion}";
         }
+
+        String getPlayVersion() {
+            return playVersion
+        }
     }
 }

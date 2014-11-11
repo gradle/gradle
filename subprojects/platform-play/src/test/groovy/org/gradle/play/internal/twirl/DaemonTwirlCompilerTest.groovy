@@ -15,24 +15,21 @@
  */
 
 package org.gradle.play.internal.twirl
-
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
 import org.gradle.api.tasks.compile.BaseForkOptions
-import org.gradle.play.internal.twirl.spec.TwirlCompileSpec
 import spock.lang.Specification
 
 class DaemonTwirlCompilerTest extends Specification {
     def workingDirectory = Mock(File)
     def delegate = Mock(TwirlCompiler)
     def compilerDaemonFactory = Mock(CompilerDaemonFactory)
-    def spec = Mock(TwirlCompileSpec)
+    def spec = Mock(VersionedTwirlCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
 
     def "passes compileclasspath to daemon options"() {
         given:
         def classpath = someClasspath()
-        1 * spec.getCompileClasspath() >> classpath
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, forkOptions)
+        def compiler = new DaemonTwirlCompiler(workingDirectory, classpath, delegate, compilerDaemonFactory, forkOptions)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
@@ -41,7 +38,7 @@ class DaemonTwirlCompilerTest extends Specification {
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonTwirlCompiler(workingDirectory, delegate, compilerDaemonFactory, forkOptions)
+        def compiler = new DaemonTwirlCompiler(workingDirectory, someClasspath(), delegate, compilerDaemonFactory, forkOptions)
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"

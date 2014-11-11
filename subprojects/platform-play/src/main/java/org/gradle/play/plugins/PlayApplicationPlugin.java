@@ -29,6 +29,8 @@ import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -38,15 +40,17 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
-import org.gradle.play.internal.DefaultPlayToolChain;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.platform.internal.DefaultPlayPlatform;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.platform.DefaultPlayPlatform;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -58,11 +62,8 @@ import java.util.concurrent.Callable;
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_SCALA_BINARY_VERSION = "2.10";
     public static final String DEFAULT_PLAY_VERSION = "2.3.5";
-    public static final String DEFAULT_PLAY_ID = DEFAULT_SCALA_BINARY_VERSION+"-"+DEFAULT_PLAY_VERSION;
     public static final String PLAY_GROUP = "com.typesafe.play";
     public static final String DEFAULT_PLAY_DEPENDENCY = PLAY_GROUP+":play_"+DEFAULT_SCALA_BINARY_VERSION+":"+DEFAULT_PLAY_VERSION;
-    public static final String DEFAULT_TWIRL_DEPENDENCY = PLAY_GROUP+":twirl-compiler_"+DEFAULT_SCALA_BINARY_VERSION+":1.0.2";
-    public static final String TWIRL_CONFIGURATION_NAME = "twirl";
     public static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
     public static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
     public static final String PLAY_ROUTES_DEPENDENCY_NAME =  "routes-compiler";
@@ -74,7 +75,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.apply(WrapUtil.toMap("type", ScalaBasePlugin.class));
         this.project = project;
-        setupTwirlCompilation();
         setupRoutesCompilation();
         setupPlayAppClasspath();
     }
@@ -95,20 +95,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         final Configuration playAppRuntimeClasspath = project.getConfigurations().create(PLAYAPP_RUNTIME_CONFIGURATION_NAME);
         playAppRuntimeClasspath.extendsFrom(playAppCompileClasspath);
-    }
-
-    private void setupTwirlCompilation() {
-        Configuration twirlConfiguration = createConfigurationWithDefaultDependency(TWIRL_CONFIGURATION_NAME, DEFAULT_TWIRL_DEPENDENCY);
-        twirlConfiguration.setDescription("The dependencies to be used Play Twirl template compilation.");
-        project.getTasks().withType(TwirlCompile.class).all(new Action<TwirlCompile>(){
-            public void execute(TwirlCompile twirlCompile) {
-                twirlCompile.getConventionMapping().map("compilerClasspath", new Callable<FileCollection>() {
-                    public FileCollection call() throws Exception {
-                        return project.getConfigurations().getByName(TWIRL_CONFIGURATION_NAME);
-                    }
-                });
-            }
-        });
     }
 
     private static String detectRoutesCompilerVersion(Configuration routesConfiguration) {
@@ -170,6 +156,17 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     @RuleSource
     static class Rules {
 
+        @Model
+        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry){
+            return serviceRegistry.get(PlayToolChainInternal.class);
+        }
+
+        @Mutate
+        public void createPlayPlatforms(PlatformContainer platforms) {
+            platforms.add(new DefaultPlayPlatform("2.2.3", "2.10", "2.2.3", JavaVersion.current()));
+            platforms.add(new DefaultPlayPlatform("2.3.5", "2.11", "1.0.2", JavaVersion.current()));
+        }
+
         @ComponentType
         void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationSpec.class);
@@ -180,31 +177,37 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
         }
 
-        @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, @Path("buildDir") final File buildDir) {
-            final String playVersion = componentSpec.getPlayVersion() != null ? componentSpec.getPlayVersion() : "2.3.5";
-            JavaVersion currentJava = JavaVersion.current();
-            final DefaultPlayPlatform playPlatform = new DefaultPlayPlatform(playVersion, currentJava);
 
-            binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>() {
-                public void execute(PlayApplicationBinarySpec playBinary) {
-                    DefaultPlayToolChain toolChain = new DefaultPlayToolChain(playPlatform);
-                    PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
-                    playBinaryInternal.setTargetPlatform(playPlatform);
-                    playBinaryInternal.setToolChain(toolChain);
-                    playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
-                }
-            });
+        @ComponentBinaries
+        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal, @Path("buildDir") final File buildDir) {
+
+            List<String> targetPlatforms = componentSpec.getTargetPlatforms();
+            if(targetPlatforms.isEmpty()){
+                targetPlatforms.add(new DefaultPlayPlatform("2.3.5", "2.11", "1.0.2", JavaVersion.current()).getName());
+            }
+
+            List<PlayPlatform> selectedPlatforms = platforms.chooseFromTargets(PlayPlatform.class, targetPlatforms);
+            for (final PlayPlatform selectedPlatform : selectedPlatforms) {
+                binaries.create(String.format("%sBinary", componentSpec.getName(), selectedPlatform.getName()), new Action<PlayApplicationBinarySpec>() {
+                    public void execute(PlayApplicationBinarySpec playBinary) {
+                        PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
+                        playBinaryInternal.setTargetPlatform(selectedPlatform);
+                        playBinaryInternal.setToolChain(playToolChainInternal);
+                        playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
+                    }
+                });
+            }
         }
 
         @BinaryTasks
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             final File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
             final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
 
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                 public void execute(TwirlCompile twirlCompile) {
+                    twirlCompile.setPlatform(binary.getTargetPlatform());
                     twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
                     twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
                     twirlCompile.setSource(twirlCompile.getSourceDirectory());

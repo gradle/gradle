@@ -15,19 +15,18 @@
  */
 
 package org.gradle.play.tasks
-
 import org.gradle.api.Action
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
-import org.gradle.play.internal.twirl.TwirlCompiler
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+import org.gradle.language.base.internal.compile.Compiler
 
 class TwirlCompileTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
     TwirlCompile compile = project.tasks.create("twirlCompile", TwirlCompile)
-    TwirlCompiler twirlCompiler = Mock(TwirlCompiler)
+    Compiler<TwirlCompile> twirlCompiler = Mock(Compiler)
     IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)
 
     def "invokes twirl compiler"(){
@@ -35,7 +34,6 @@ class TwirlCompileTest extends Specification {
         def outputDir = Mock(File);
         compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
-        compile.setCompilerClasspath(project.files(["twirl-compiler_2.10-1.0.2.jar"]))
         when:
         compile.compile(withNonIncrementalInputs())
         then:
@@ -52,7 +50,6 @@ class TwirlCompileTest extends Specification {
         def outputDir = new File("outputDir");
         compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
-        compile.setCompilerClasspath(project.files(["twirl-compiler_2.10-1.0.2.jar"]))
         def outputCleaner = Spy(TwirlCompile.TwirlStaleOutputCleaner, constructorArgs: [outputDir])
         compile.setCleaner(outputCleaner)
         when:

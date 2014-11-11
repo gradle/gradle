@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl.spec;
+package org.gradle.play.internal.twirl;
 
 import org.gradle.api.InvalidUserDataException;
 

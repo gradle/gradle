@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl
+package org.gradle.play.toolchain;
 
-import spock.lang.Specification
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.ToolChain;
 
-class TwirlCompilerVersionTest extends Specification {
-
-    def "parser detects 1.0.2 version"(){
-        expect:
-        TwirlCompilerVersion.parse("1.0.2") == TwirlCompilerVersion.V_10X
-    }
-
-    def "parser detects to 2.2.x versions"(){
-        expect:
-        TwirlCompilerVersion.parse("2.2.3") == TwirlCompilerVersion.V_22X
-        TwirlCompilerVersion.parse("2.2.4") == TwirlCompilerVersion.V_22X
-        TwirlCompilerVersion.parse("2.2.5") == TwirlCompilerVersion.V_22X
-    }
-
+/**
+ * A set of tools for building applications
+ * using the Play Framework.
+ */
+@Incubating
+@HasInternalProtocol
+public interface PlayToolChain extends ToolChain{
 }

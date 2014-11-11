@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl.spec;
+package org.gradle.play.internal.twirl;
 
 import com.google.common.base.Function;
 import org.gradle.play.internal.scala.reflection.util.ScalaCodecMapper;
@@ -25,15 +25,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-public class TwirlCompileSpecV10X extends DefaultTwirlCompileSpec {
+public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec implements VersionedTwirlCompileSpec {
 
+    private final String scalaVersion;
+    private final String twirlVersion;
     private String codec = "UTF-8";
 
     private boolean inclusiveDots;
     private boolean useOldParser;
 
-    public TwirlCompileSpecV10X(File sourceDirectory, Iterable<File> sources, File destinationDir, Iterable<File> compileClasspath, boolean fork, boolean javaProject) {
-        super(sourceDirectory, sources, destinationDir, compileClasspath, fork, javaProject);
+    public TwirlCompileSpecV10X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, boolean javaProject, String twirlVersion, String scalaVersion) {
+        super(sourceDirectory, sources, destinationDirectory, javaProject);
+        this.scalaVersion = scalaVersion;
+        this.twirlVersion = twirlVersion;
     }
 
     protected String defaultFormatterType() {
@@ -98,4 +102,8 @@ public class TwirlCompileSpecV10X extends DefaultTwirlCompileSpec {
     public List<String> getClassLoaderPackages() {
         return Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
     };
+
+    public Object getDependencyNotation() {
+        return String.format("com.typesafe.play:twirl-compiler_%s:%s", scalaVersion, twirlVersion);
+    }
 }

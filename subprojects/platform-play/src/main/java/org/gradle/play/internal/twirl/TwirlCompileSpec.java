@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.play;
+package org.gradle.play.internal.twirl;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.ToolChain;
+import org.gradle.play.internal.spec.PlayCompileSpec;
 
-/**
- * A set of tools for building applications
- * using the Play Framework.
- */
-@Incubating
-@HasInternalProtocol
-public interface PlayToolChain extends ToolChain{
+import java.io.File;
+import java.io.Serializable;
+
+public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
+    Iterable<File> getSources();
+    File getSourceDirectory();
+    boolean isJavaProject();
+    File getDestinationDir();
 }

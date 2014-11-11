@@ -18,14 +18,19 @@ package org.gradle.play.internal;
 
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
-    String playVersion;
+    private List<String> targetPlatforms = new ArrayList<String>();
 
-    public String getPlayVersion() {
-        return playVersion;
+    public List<String> getTargetPlatforms() {
+        return targetPlatforms;
     }
-    public void playVersion(String playVersion) {
-        this.playVersion = playVersion;
+
+    public void targetPlatform(String... targets) {
+        targetPlatforms.addAll(CollectionUtils.toList(targets));
     }
 }

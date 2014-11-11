@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl.spec;
+package org.gradle.play.internal.twirl;
 
 import com.google.common.base.Function;
 import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
@@ -24,10 +24,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-public class TwirlCompileSpecV22X extends DefaultTwirlCompileSpec {
+public class TwirlCompileSpecV22X extends DefaultVersionedTwirlCompileSpec implements VersionedTwirlCompileSpec {
 
-    public TwirlCompileSpecV22X(File sourceDirectory, Iterable<File> sources, File destinationDir, Iterable<File> compileClasspath, boolean fork, boolean javaProject) {
-        super(sourceDirectory, sources, destinationDir, compileClasspath, fork, javaProject);
+    private final String twirlVersion;
+    private final String scalaVersion;
+
+    public TwirlCompileSpecV22X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, boolean javaProject, String twirlVersion, String scalaVersion) {
+        super(sourceDirectory, sources, destinationDirectory, javaProject);
+        this.twirlVersion = twirlVersion;
+        this.scalaVersion = scalaVersion;
     }
 
     @Override
@@ -72,5 +77,8 @@ public class TwirlCompileSpecV22X extends DefaultTwirlCompileSpec {
 
     public List<String> getClassLoaderPackages() {
         return Arrays.asList("play.templates");
+    }
+    public Object getDependencyNotation() {
+        return String.format("com.typesafe.play:templates-compiler_%s:%s", scalaVersion, twirlVersion);
     }
 }

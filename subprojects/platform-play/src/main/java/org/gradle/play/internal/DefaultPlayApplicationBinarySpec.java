@@ -17,21 +17,21 @@
 package org.gradle.play.internal;
 
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.play.PlayToolChain;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 
 import java.io.File;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private PlayPlatform platform;
-    private PlayToolChain toolChain;
+    private PlayToolChainInternal toolChain;
     private File jarFile;
 
     public PlayPlatform getTargetPlatform() {
         return platform;
     }
 
-    public PlayToolChain getToolChain() {
+    public PlayToolChainInternal getToolChain() {
         return toolChain;
     }
 
@@ -43,7 +43,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         this.platform = platform;
     }
 
-    public void setToolChain(PlayToolChain toolChain) {
+    public void setToolChain(PlayToolChainInternal toolChain) {
         this.toolChain = toolChain;
     }
 

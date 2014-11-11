@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
 

@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.play.internal.spec.PlayCompileSpec;
 
 public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
