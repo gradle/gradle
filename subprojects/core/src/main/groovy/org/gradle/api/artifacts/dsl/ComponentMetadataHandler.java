@@ -130,4 +130,18 @@ public interface ComponentMetadataHandler {
      * @return this
      */
     ComponentMetadataHandler withModule(Object id, Object ruleSource);
+
+    /**
+      * Adds a rule to modify the metadata of depended-on software components.
+     *
+     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
+     */
+     void eachComponent(Action<? super ComponentMetadataDetails> rule);
+
+     /**
+      * Adds a rule to modify the metadata of depended-on software components.
+      *
+      * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
+      */
+     void eachComponent(Closure<?> rule);
 }
