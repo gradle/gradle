@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.MatcherHelper;
@@ -550,7 +551,15 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
-            return MatcherHelper.matches(rule.getMatcher(), rule.getId().getModuleId(), element);
+            ArtifactId artifactId = rule.getId();
+            return MatcherHelper.matches(rule.getMatcher(), artifactId.getModuleId(), element)
+                   && matchesAnyExpression(artifactId.getName())
+                   && matchesAnyExpression(artifactId.getType())
+                   && matchesAnyExpression(artifactId.getExt());
+        }
+
+        private boolean matchesAnyExpression(String attribute) {
+            return PatternMatcher.ANY_EXPRESSION.equals(attribute);
         }
     }
 }

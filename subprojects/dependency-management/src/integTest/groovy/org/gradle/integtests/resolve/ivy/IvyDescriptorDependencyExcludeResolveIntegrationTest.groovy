@@ -17,11 +17,12 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.test.fixtures.ivy.IvyModule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 /**
  * Demonstrates the use of Ivy dependency excludes. For all test cases the exclude rules are applied to dependency "b".
+ *
+ * @see <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact-exclude.html">Ivy reference documentation</a>
  */
 class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDescriptorExcludeResolveIntegrationTest {
     /**
@@ -92,7 +93,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * Dependency graph:
      * a -> b, c
      */
-    @Ignore("Exclude does not work for artifacts of the same module")
     @Unroll
     def "dependency exclude having single artifact with matching #name"() {
         given:
@@ -132,7 +132,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d
      * c -> e
      */
-    @Ignore("Exclude of all artifacts (*) does not work for artifacts of the same module")
     @Unroll
     def "transitive dependency exclude having single artifact with matching #name"() {
         given:
@@ -174,7 +173,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d -> f
      * c -> e
      */
-    @Ignore("Exclude rule with a name attribute excludes matching module and not artifacts")
     @Unroll
     def "transitive dependency exclude having single artifact with matching #name does not exclude its transitive module"() {
         given:
@@ -217,7 +215,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d
      * c -> e
      */
-    @Ignore("Exclude rule with a name attribute excludes matching module and not artifacts")
     @Unroll
     def "transitive dependency exclude having multiple artifacts with matching #name"() {
         given:
@@ -319,8 +316,8 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'module'              | [module: 'd']                         | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'org and all modules' | [org: 'org.gradle.test', module: '*'] | ['a-1.0.jar']
         'org and module'      | [org: 'org.gradle.test', module: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        //'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        //'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     private void addExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {

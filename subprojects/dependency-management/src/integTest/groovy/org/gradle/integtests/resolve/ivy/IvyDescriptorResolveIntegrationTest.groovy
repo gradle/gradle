@@ -16,8 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
-import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -236,39 +234,5 @@ task syncMerged(type: Sync) {
 
         then:
         file("libs").assertHasDescendants(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar'] as String[])
-    }
-
-    @Ignore
-    @Issue("GRADLE-3147")
-    def "module exclude using artifact attribute only excludes specified artifact from dependencies"() {
-        given:
-        ivyRepo.module("b").publish()
-        ivyRepo.module("c").publish()
-        ivyRepo.module("a")
-               .dependsOn("b", "c")
-               .withXml {
-                    asNode().dependencies[0].appendNode("exclude", [artifact: "b"])
-                }
-               .publish()
-
-        and:
-        buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile "org.gradle.test:a:1.0"
-}
-
-task check(type: Sync) {
-    into "libs"
-    from configurations.compile
-}
-"""
-
-        when:
-        succeeds "check"
-
-        then:
-        file("libs").assertHasDescendants(['a-1.0.jar', 'c-1.0.jar'] as String[])
     }
 }
