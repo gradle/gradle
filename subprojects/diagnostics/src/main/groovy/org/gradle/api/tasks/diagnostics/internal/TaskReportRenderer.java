@@ -19,6 +19,8 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.Path;
@@ -56,7 +58,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     public void showDetail(boolean detail) {
         this.detail = detail;
     }
-    
+
     /**
      * Writes the default task names for the current project.
      *
@@ -145,9 +147,17 @@ public class TaskReportRenderer extends TextReportRenderer {
     @Override
     public void complete() {
         if (!detail) {
-            getTextOutput().println();
-            getTextOutput().text("To see all tasks and more detail, run with ").style(UserInput).text("--all.");
-            getTextOutput().println();
+            StyledTextOutput output = getTextOutput();
+            BuildClientMetaData clientMetaData = getClientMetaData();
+
+            output.println();
+            output.text("To see all tasks and more detail, run ");
+            clientMetaData.describeCommand(output.withStyle(UserInput), "tasks --all");
+            output.println();
+            output.println();
+            output.text("To see more detail about a task, run ");
+            clientMetaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
+            output.println();
         }
         super.complete();
     }

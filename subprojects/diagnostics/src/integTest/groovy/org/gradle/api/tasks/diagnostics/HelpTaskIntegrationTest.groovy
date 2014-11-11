@@ -45,7 +45,7 @@ To see a list of available tasks, run gradle tasks
 
 To see a list of command-line options, run gradle --help
 
-To see more details about a task, run gradle help --task <task>
+To see more detail about a task, run gradle help --task <task>
 
 BUILD SUCCESSFUL
 """))
