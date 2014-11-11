@@ -1,3 +1,15 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.dm.gradle:gradle-bundle-plugin:0.5'
+    }
+}
+
+apply plugin: 'bundle'
+
 import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
@@ -56,6 +68,20 @@ task jarjarJar(type: JarJarJar) {
     keep('org.gradle.tooling.**')
 }
 
+bundle {
+    instruction 'Import-Package', 'org.slf4j'
+    instruction 'Export-Package', '!org.gradle.tooling.internal.*,!org.gradle.tooling.model.internal.*,org.gradle.tooling.*'
+}
+
+task publishJar(type: Zip) {
+    appendix = "bundle"
+    destinationDir = jar.destinationDir
+    extension = 'jar'
+    dependsOn jar, jarjarJar
+    from(zipTree(jarjarJar.getArchivePath()), { exclude 'META-INF/MANIFEST.MF'})
+    from(zipTree(jar.getArchivePath()), { include 'META-INF/MANIFEST.MF'})
+}
+
 sourceJar{
     configurations.compile.allDependencies.withType(ProjectDependency).each {
         from it.dependencyProject.sourceSets.main.groovy.srcDirs
@@ -64,11 +90,11 @@ sourceJar{
 }
 
 artifacts {
-    publishCompileWithProjectJar jarjarJar
-    publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
+    publishCompileWithProjectJar publishJar
+    publishRuntime file: publishJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: publishJar
 }
 
-configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
+configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask != publishJar } }
 
 eclipse {
     classpath {
