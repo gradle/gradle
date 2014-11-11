@@ -412,12 +412,11 @@ public class ProtocolToModelAdapter implements Serializable {
 
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
-            if (invocation.found()) {
+            if (invocation.found() || invocation.getParameterTypes().length != 1) {
                 return;
             }
 
-            boolean getter = GETTER_METHOD.matcher(invocation.getName()).matches();
-            if (!getter || invocation.getParameterTypes().length != 1) {
+            if (!GETTER_METHOD.matcher(invocation.getName()).matches() && !IS_METHOD.matcher(invocation.getName()).matches()) {
                 return;
             }
 
