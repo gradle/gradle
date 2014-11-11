@@ -87,7 +87,7 @@ public class Help extends DefaultTask {
         metaData.describeCommand(output.withStyle(UserInput), "--help");
         output.println();
         output.println();
-        output.text("To see more details about a task, run ");
+        output.text("To see more detail about a task, run ");
         metaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
         output.println();
     }

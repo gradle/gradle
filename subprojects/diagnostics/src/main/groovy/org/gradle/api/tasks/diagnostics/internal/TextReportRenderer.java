@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.StreamingStyledTextOutput;
@@ -32,9 +33,14 @@ import java.io.IOException;
  * <p>A basic {@link ReportRenderer} which writes out a text report.
  */
 public class TextReportRenderer implements ReportRenderer {
+    private BuildClientMetaData clientMetaData;
     private StyledTextOutput textOutput;
     private TextReportBuilder builder;
     private boolean close;
+
+    public void setClientMetaData(BuildClientMetaData clientMetaData) {
+        this.clientMetaData = clientMetaData;
+    }
 
     public void setOutput(StyledTextOutput textOutput) {
         setWriter(textOutput, false);
@@ -86,11 +92,16 @@ public class TextReportRenderer implements ReportRenderer {
         }
     }
 
-    public TextReportBuilder getBuilder() {
-        return builder;
+    public BuildClientMetaData getClientMetaData() {
+        return clientMetaData;
     }
 
     public StyledTextOutput getTextOutput() {
         return textOutput;
     }
+
+    public TextReportBuilder getBuilder() {
+        return builder;
+    }
+
 }
