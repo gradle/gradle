@@ -359,10 +359,10 @@ class ModuleVersionSpecTest extends Specification {
     }
 
     def excludeRule(String org, String module) {
-        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "ivy", "ivy", "ivy"), ExactPatternMatcher.INSTANCE, [:])
+        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "*", "*", "*"), ExactPatternMatcher.INSTANCE, [:])
     }
 
     def regExpExcludeRule(String org, String module) {
-        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "ivy", "ivy", "ivy"), RegexpPatternMatcher.INSTANCE, [:])
+        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "*", "*", "*"), RegexpPatternMatcher.INSTANCE, [:])
     }
 }
