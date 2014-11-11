@@ -4,7 +4,6 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 public class Main {
@@ -26,17 +25,11 @@ public class Main {
             // Configure the build
             BuildLauncher launcher = connection.newBuild();
             launcher.forTasks("help");
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-            launcher.setStandardOutput(outputStream);
-            launcher.setStandardError(errorStream);
+            launcher.setStandardOutput(System.out);
+            launcher.setStandardError(System.err);
 
             // Run the build
             launcher.run();
-
-            // Process the outputs
-            System.out.println(outputStream.toString());
-            System.err.println(errorStream.toString());
         } finally {
             // Clean up
             connection.close();
