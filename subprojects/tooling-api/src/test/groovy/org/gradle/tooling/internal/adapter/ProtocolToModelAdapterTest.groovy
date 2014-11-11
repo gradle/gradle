@@ -219,6 +219,16 @@ class ProtocolToModelAdapterTest extends Specification {
         model.getConfig("default") == "default"
     }
 
+    def "can use safe getter for boolean properties"() {
+        TestProtocolModel protocolModel = Mock()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+
+        then:
+        model.isThing(true)
+    }
+
     def "mapper can register method invoker to override getter method"() {
         MethodInvoker methodInvoker = Mock()
         Action mapper = Mock()
@@ -439,6 +449,8 @@ interface TestModel {
     boolean isConfigSupported()
 
     String getConfig(String defaultValue)
+
+    Boolean isThing(Boolean defaultValue)
 
     DomainObjectSet<? extends TestProject> getChildren()
 
