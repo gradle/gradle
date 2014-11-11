@@ -236,6 +236,10 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     // /ignore uncompiled twirl templates
                     scalaCompile.exclude("**/*.html");
 
+                    // use zinc compiler per default
+                    scalaCompile.getScalaCompileOptions().setFork(true);
+                    scalaCompile.getScalaCompileOptions().setUseAnt(true);
+
                     //handle twirl compiler output
                     scalaCompile.dependsOn(twirlCompileTaskName);
 
