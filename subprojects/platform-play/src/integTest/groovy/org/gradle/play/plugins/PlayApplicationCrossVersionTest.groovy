@@ -73,16 +73,18 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
         when:
         succeeds("assemble")
         then:
-        executed(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")
-        def jarTestFixture = new JarTestFixture(file("build/jars/myApp/myAppBinary.jar"))
-        jarTestFixture.assertContainsFile("Routes.class")
-        jarTestFixture.assertContainsFile("views/html/index.class")
-        jarTestFixture.assertContainsFile("views/html/main.class")
-        jarTestFixture.assertContainsFile("controllers/Application.class")
-        jarTestFixture.assertContainsFile("images/favicon.png")
-        jarTestFixture.assertContainsFile("stylesheets/main.css")
-        jarTestFixture.assertContainsFile("javascripts/hello.js")
-        jarTestFixture.assertContainsFile("application.conf")
+        executedAndNotSkipped(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")
+
+        and:
+        jar("build/jars/myApp/myAppBinary.jar").containsDescendants(
+                "Routes.class",
+                "views/html/index.class",
+                "views/html/main.class",
+                "controllers/Application.class",
+                "images/favicon.png",
+                "stylesheets/main.css",
+                "javascripts/hello.js",
+                "application.conf")
 
         when:
         succeeds("createMyAppBinaryJar")
@@ -97,20 +99,26 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
         when:
         succeeds("assemble")
         then:
-        executed(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")
-        def jarTestFixture = new JarTestFixture(file("build/jars/myApp/myAppBinary.jar"))
-        jarTestFixture.assertContainsFile("Routes.class")
-        jarTestFixture.assertContainsFile("views/html/index.class")
-        jarTestFixture.assertContainsFile("views/html/main.class")
-        jarTestFixture.assertContainsFile("controllers/Application.class")
-        jarTestFixture.assertContainsFile("images/favicon.png")
-        jarTestFixture.assertContainsFile("stylesheets/main.css")
-        jarTestFixture.assertContainsFile("javascripts/hello.js")
-        jarTestFixture.assertContainsFile("application.conf")
+        executedAndNotSkipped(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")
+
+        and:
+        jar("build/jars/myApp/myAppBinary.jar").containsDescendants(
+                "Routes.class",
+                "views/html/index.class",
+                "views/html/main.class",
+                "controllers/Application.class",
+                "images/favicon.png",
+                "stylesheets/main.css",
+                "javascripts/hello.js",
+                "application.conf")
 
         when:
         succeeds("createMyAppBinaryJar")
         then:
         skipped(":createMyAppBinaryJar", ":twirlCompileMyAppBinary")
+    }
+
+    JarTestFixture jar(String fileName) {
+        new JarTestFixture(file(fileName))
     }
 }
