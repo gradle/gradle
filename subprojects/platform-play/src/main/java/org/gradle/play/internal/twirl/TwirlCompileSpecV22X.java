@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import com.google.common.base.Function;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
 
 import java.io.File;
@@ -29,8 +30,8 @@ public class TwirlCompileSpecV22X extends DefaultVersionedTwirlCompileSpec imple
     private final String twirlVersion;
     private final String scalaVersion;
 
-    public TwirlCompileSpecV22X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, boolean javaProject, String twirlVersion, String scalaVersion) {
-        super(sourceDirectory, sources, destinationDirectory, javaProject);
+    public TwirlCompileSpecV22X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, BaseForkOptions forkOptions, boolean javaProject, String twirlVersion, String scalaVersion) {
+        super(sourceDirectory, sources, destinationDirectory, forkOptions, javaProject);
         this.twirlVersion = twirlVersion;
         this.scalaVersion = scalaVersion;
     }

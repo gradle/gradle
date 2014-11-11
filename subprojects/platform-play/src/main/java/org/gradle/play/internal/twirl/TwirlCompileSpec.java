@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.twirl;
 
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
@@ -26,4 +27,6 @@ public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     File getSourceDirectory();
     boolean isJavaProject();
     File getDestinationDir();
+    BaseForkOptions getForkOptions();
+
 }

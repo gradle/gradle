@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import com.google.common.base.Function;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.play.internal.scala.reflection.util.ScalaCodecMapper;
 import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
 
@@ -34,8 +35,8 @@ public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec imple
     private boolean inclusiveDots;
     private boolean useOldParser;
 
-    public TwirlCompileSpecV10X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, boolean javaProject, String twirlVersion, String scalaVersion) {
-        super(sourceDirectory, sources, destinationDirectory, javaProject);
+    public TwirlCompileSpecV10X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, BaseForkOptions forkOptions, boolean javaProject, String twirlVersion, String scalaVersion) {
+        super(sourceDirectory, sources, destinationDirectory, forkOptions, javaProject);
         this.scalaVersion = scalaVersion;
         this.twirlVersion = twirlVersion;
     }
