@@ -9,6 +9,12 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Log changes
+
+* Remove `LoggingManager.logLevel` property. Managing the log level should not be a concern of the build logic.
+* Remove `Project.getLogging()` method. Would be replaced by the existing `logging` property on `Script` and `Task`.
+* Move internal types `StandardOutputCapture`, `StandardOutputRedirector` and `LoggingManagerInternal` into an internal package.
+
 ## Archive tasks + base plugin
 
 * Move defaults for output directory and other attributes from the base plugin to an implicitly applied plugin, so that they are applied to all instances.
