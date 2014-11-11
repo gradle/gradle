@@ -60,7 +60,7 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
 
-    def "runs compiler incrementally"(){
+    def "runs compiler multiple times"(){
         when:
         withRoutesTemplate()
         then:
