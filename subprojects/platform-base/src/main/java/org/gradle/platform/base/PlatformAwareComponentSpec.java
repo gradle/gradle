@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Defines Platform specific operations for ComponentSpecs
  */
-public interface PlatformAwareComponentSpec {
+public interface PlatformAwareComponentSpec extends ComponentSpec{
     /**
      * Get the names of the targeted platforms that this component should be built for.
      *
