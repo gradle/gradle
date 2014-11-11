@@ -25,6 +25,7 @@ import java.util.List;
 
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
     private List<String> targetPlatforms = new ArrayList<String>();
+    private String playVersion;
 
     public List<String> getTargetPlatforms() {
         return targetPlatforms;
@@ -32,5 +33,13 @@ public class DefaultPlayApplicationSpec extends BaseComponentSpec implements Pla
 
     public void targetPlatform(String... targets) {
         targetPlatforms.addAll(CollectionUtils.toList(targets));
+    }
+
+    public String getPlayVersion() {
+        return playVersion;
+    }
+
+    public void playVersion(String playVersion) {
+        this.playVersion = playVersion;
     }
 }
