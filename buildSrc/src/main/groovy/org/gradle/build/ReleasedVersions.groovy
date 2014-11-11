@@ -39,6 +39,10 @@ class ReleasedVersions {
 
     private void download() {
         if (offline) {
+            if (!destFile.isFile()) {
+                throw new RuntimeException("The versions info file (${destFile.name}) does not exist from a previous build and cannot be downloaded (due to --offline switch).\n"
+                                           + "After running 'clean', build must be executed once online before going offline")
+            }
             LOGGER.warn("Versions information will not be downloaded because --offline switch is used.\n"
                     + "Without the version information certain integration tests may fail or use outdated version details.")
             return
