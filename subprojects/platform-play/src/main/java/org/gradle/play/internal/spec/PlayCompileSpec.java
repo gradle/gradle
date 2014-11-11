@@ -21,7 +21,5 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import java.io.File;
 
 public interface PlayCompileSpec extends CompileSpec {
-
     File getDestinationDir();
-
 }

@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec;
+package org.gradle.play.internal.routes;
 
-import com.google.common.base.Function;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
-
-    Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
-    Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+    BaseForkOptions getForkOptions();
+    boolean isJavaProject();
+    public List<String> getAdditionalImports();
+    public boolean isNamespaceReverseRouter();
 }

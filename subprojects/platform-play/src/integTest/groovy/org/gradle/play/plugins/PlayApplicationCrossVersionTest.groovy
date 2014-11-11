@@ -51,7 +51,6 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
 
             dependencies{
                 playAppCompile '${version.playDependency}'
-                playRoutes '${version.routesDependency}'
             }
         }
 

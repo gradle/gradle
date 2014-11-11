@@ -26,7 +26,5 @@ public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
     File getSourceDirectory();
     boolean isJavaProject();
-    File getDestinationDir();
     BaseForkOptions getForkOptions();
-
 }

@@ -27,11 +27,12 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
-import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
-import org.gradle.play.internal.twirl.TwirlCompiler;
-import org.gradle.play.internal.twirl.TwirlCompileSpec;
-import org.gradle.play.internal.twirl.TwirlCompileSpecFactory;
-import org.gradle.play.internal.twirl.VersionedTwirlCompileSpec;
+import org.gradle.play.internal.routes.DaemonRoutesCompiler;
+import org.gradle.play.internal.routes.RoutesCompiler;
+import org.gradle.play.internal.routes.VersionedRoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
+import org.gradle.play.internal.twirl.*;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.WrapUtil;
@@ -75,12 +76,24 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
                 TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec)spec;
                 VersionedTwirlCompileSpec versionedSpec = TwirlCompileSpecFactory.create(twirlCompileSpec, targetPlatform);
                 Dependency compilerDependency = dependencyHandler.create(versionedSpec.getDependencyNotation());
-
                 Configuration templateCompilerClasspath = configurationContainer.detachedConfiguration(compilerDependency);
+
                 DaemonTwirlCompiler compiler = new DaemonTwirlCompiler(fileResolver.resolve("."), templateCompilerClasspath.getFiles(), new TwirlCompiler(), compilerDaemonManager, new BaseForkOptions());
                 @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) new MappingSpecCompiler<TwirlCompileSpec, VersionedTwirlCompileSpec>(compiler, WrapUtil.toMap(twirlCompileSpec, versionedSpec));
                 return twirlCompileSpecCompiler;
             }
+            if(spec instanceof RoutesCompileSpec){
+                RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec)spec;
+
+                VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, false, targetPlatform);
+                Dependency compilerDependency = dependencyHandler.create(versionedSpec.getDependencyNotation());
+                Configuration routesCompilerClasspath = configurationContainer.detachedConfiguration(compilerDependency);
+
+                DaemonRoutesCompiler compiler = new DaemonRoutesCompiler(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, routesCompilerClasspath.getFiles());
+                @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
+                return routesSpecCompiler;
+            }
+
             return null;
         }
 

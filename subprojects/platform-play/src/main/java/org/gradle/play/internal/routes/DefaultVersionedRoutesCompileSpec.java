@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec;
+package org.gradle.play.internal.routes;
+
+import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class DefaultRoutesCompileSpec implements RoutesCompileSpec {
+public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCompileSpec implements VersionedRoutesCompileSpec{
     private final Iterable<File> sources;
     private final File destinationDir;
     private final List<String> additionalImports = new ArrayList<String>();
     private final boolean generateReverseRoute;
     private final boolean namespaceReverseRouter;
+    private final String scalaVersion;
+
+    private final String playVersion;
 
 
     protected abstract List<String> defaultScalaImports();
 
     protected abstract List<String> defaultJavaImports();
 
-    public DefaultRoutesCompileSpec(Iterable<File> sources, File destinationDir, boolean javaProject) {
-        this(sources, destinationDir, null, javaProject);
-    }
-
-    public DefaultRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean javaProject) {
+    public DefaultVersionedRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports, BaseForkOptions forkOptions, boolean javaProject, PlayPlatform playPlatform) {
+        super(sources, destinationDir, additionalImports, false, forkOptions, javaProject);
+        this.scalaVersion = "2.10";
+        this.playVersion = playPlatform.getPlayVersion();
         this.sources = sources;
         this.destinationDir = destinationDir;
         if (additionalImports == null) {
@@ -70,5 +75,17 @@ public abstract class DefaultRoutesCompileSpec implements RoutesCompileSpec {
 
     public boolean getNamespaceReverseRouter() {
         return namespaceReverseRouter;
+    }
+
+    public String getPlayVersion() {
+        return playVersion;
+    }
+
+    public String getScalaVersion() {
+        return scalaVersion;
+    }
+
+    public Object getDependencyNotation() {
+        return  String.format("com.typesafe.play:routes-compiler_%s:%s", getScalaVersion(), getPlayVersion());
     }
 }

@@ -19,14 +19,13 @@ package org.gradle.play.internal.routes;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
-import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DaemonRoutesCompiler extends AbstractDaemonCompiler<RoutesCompileSpec> {
+public class DaemonRoutesCompiler extends AbstractDaemonCompiler<VersionedRoutesCompileSpec> {
     private final Iterable<File> compilerClasspath;
 
     public DaemonRoutesCompiler(File projectDir, RoutesCompiler playRoutesCompiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath) {
@@ -36,7 +35,7 @@ public class DaemonRoutesCompiler extends AbstractDaemonCompiler<RoutesCompileSp
 
     @Override
     @SuppressWarnings("unchecked")
-    protected DaemonForkOptions toDaemonOptions(RoutesCompileSpec spec) {
+    protected DaemonForkOptions toDaemonOptions(VersionedRoutesCompileSpec spec) {
         List<String> routesPackages = Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching");
         return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, routesPackages);
     }

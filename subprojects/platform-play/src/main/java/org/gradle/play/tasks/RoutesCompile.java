@@ -16,36 +16,29 @@
 
 package org.gradle.play.tasks;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
-import org.gradle.play.internal.routes.DaemonRoutesCompiler;
-import org.gradle.play.internal.routes.spec.RoutesCompileSpecFactory;
-import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
-import org.gradle.play.internal.routes.RoutesCompiler;
-import org.gradle.play.internal.routes.spec.RoutesCompilerVersion;
+import org.gradle.play.internal.routes.DefaultRoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Task for compiling routes templates
- * */
-public class RoutesCompile  extends SourceTask {
-
-    /**
-     * FileCollection presenting the twirl compiler classpath.
-     */
-    private FileCollection compilerClasspath;
+ */
+public class RoutesCompile extends SourceTask {
 
     /**
      * Target directory for the compiled route files.
@@ -57,25 +50,16 @@ public class RoutesCompile  extends SourceTask {
      */
     private List<String> additionalImports = new ArrayList<String>();
 
-    private String routesCompilerVersion;
     private boolean javaProject;
     private boolean namespaceReverseRouter;
+    private PlayPlatform platform;
+    private BaseForkOptions forkOptions;
 
     void setCompiler(Compiler<RoutesCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
     private Compiler<RoutesCompileSpec> compiler;
-    private RoutesStaleOutputCleaner cleaner;
-
-    @InputFiles
-    public FileCollection getCompilerClasspath() {
-        return compilerClasspath;
-    }
-
-    public void setCompilerClasspath(FileCollection compilerClasspath) {
-        this.compilerClasspath = compilerClasspath;
-    }
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -112,53 +96,22 @@ public class RoutesCompile  extends SourceTask {
         this.additionalImports.addAll(additionalImports);
     }
 
-    /**
-     * Specifies the version for the Play Routes compiler.
-     */
-    public void setRoutesCompilerVersion(String routesCompilerVersion) {
-        this.routesCompilerVersion = routesCompilerVersion;
-    }
-
-    /**
-     * Returns the version used for the Play Routes compiler.
-     *
-     * @return The version of the Play Routes compiler.
-     */
-    public String getRoutesCompilerVersion() {
-        return routesCompilerVersion;
-    }
-
 
     @TaskAction
     void compile() {
-        if(compiler==null){
-            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports(), isNamespaceReverseRouter(), getForkOptions(), isJavaProject());
+        if (compiler == null) {
+            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(spec), getOutputs());
         }
-
-        RoutesCompilerVersion version = RoutesCompilerVersion.parse(getRoutesCompilerVersion());
-        RoutesCompileSpec spec = RoutesCompileSpecFactory.create(getSource().getFiles(), getOutputDirectory(), getAdditionalImports(), isNamespaceReverseRouter(), isJavaProject(), version);
         compiler.execute(spec);
     }
 
-    /**
-     * For now just using InProcessCompilerDaemon.
-     *
-     * TODO allow forked compiler
-     * */
-    private Compiler<RoutesCompileSpec> getCompiler() {
+    private Compiler<RoutesCompileSpec> getCompiler(RoutesCompileSpec spec) {
         if (compiler == null) {
-            ProjectInternal projectInternal = (ProjectInternal) getProject();
-            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-
-            RoutesCompiler playRoutesCompiler = new RoutesCompiler();
-            compiler = new DaemonRoutesCompiler(projectInternal.getProjectDir(), playRoutesCompiler, inProcessCompilerDaemonFactory, getCompilerClasspath().getFiles());
-
+            ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
+            compiler = select.newCompiler(spec);
         }
         return compiler;
-    }
-
-    void setCleaner(RoutesStaleOutputCleaner cleaner) {
-        this.cleaner = cleaner;
     }
 
     public boolean isJavaProject() {
@@ -173,40 +126,25 @@ public class RoutesCompile  extends SourceTask {
         return namespaceReverseRouter;
     }
 
-    private static class RoutesStaleOutputCleaner {
-        private final File destinationDir;
+    public void setPlatform(PlayPlatform platform) {
+        this.platform = platform;
+    }
 
-        public RoutesStaleOutputCleaner(File destinationDir) {
-            this.destinationDir = destinationDir;
-        }
+    /**
+     * Returns the tool chain that will be used to compile the routes source.
+     *
+     * @return The tool chain.
+     */
+    @Incubating
+    @Inject
+    public PlayToolChain getToolChain() {
+        throw new UnsupportedOperationException();
+    }
 
-        public void execute(Set<File> staleSources) {
-            for (File removedInputFile : staleSources) {
-                Set<File> staleOutputFiles = calculateOutputFiles(removedInputFile);
-                for (File staleOutputFile: staleOutputFiles) {
-                    staleOutputFile.delete();
-                }
-            }
+    public BaseForkOptions getForkOptions() {
+        if(forkOptions == null){
+            forkOptions = new BaseForkOptions();
         }
-
-        private Set<File> getRoutesFiles(File root) {
-            return Sets.newHashSet(
-                    new File(new File(root, "controllers"), "routes.java"),
-                    new File(root, "routes_reverseRouting.scala"),
-                    new File(root, "routes_routing.scala")
-            );
-        }
-
-        Set<File> calculateOutputFiles(File inputFile) {
-            String inputFileName = inputFile.getName();
-            String[] splits = inputFileName.split("\\.");
-            if (splits.length == 1 && splits[0].equals("routes")) {
-                return getRoutesFiles(destinationDir);
-            } else if (splits.length == 2 && splits[1].equals("routes")) {
-                return getRoutesFiles(new File(destinationDir, splits[0]));
-            } else {
-                throw new IllegalArgumentException("Found a route file not matching pattern: could not split " + inputFileName + " into namespaces. Try to exclude this file (" + inputFile.getAbsolutePath()+") from Play routes.");
-            }
-        }
+        return forkOptions;
     }
 }

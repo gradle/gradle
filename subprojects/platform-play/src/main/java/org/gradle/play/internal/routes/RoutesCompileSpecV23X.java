@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec;
+package org.gradle.play.internal.routes;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.play.internal.scala.reflection.util.ScalaListBuffer;
 import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
+import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public class RoutesCompileSpecV23X extends DefaultRoutesCompileSpec {
+public class RoutesCompileSpecV23X extends DefaultVersionedRoutesCompileSpec {
     private final boolean generateRefReverseRouter;
+
+    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, BaseForkOptions forkOptions, boolean javaProject, PlayPlatform playPlatform) {
+        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playPlatform);
+        this.generateRefReverseRouter = generateRefReverseRouter;
+    }
 
     public boolean getGenerateRefReverseRouter() {
         return generateRefReverseRouter;
@@ -41,12 +48,6 @@ public class RoutesCompileSpecV23X extends DefaultRoutesCompileSpec {
         javaImports.add("play.libs.F");
         return javaImports;
     }
-
-    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, boolean javaProject) {
-        super(sources, destinationDir, additionalImports, javaProject);
-        this.generateRefReverseRouter = generateRefReverseRouter;
-    }
-
 
     public Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
         return ScalaUtil.scalaObjectFunction(
