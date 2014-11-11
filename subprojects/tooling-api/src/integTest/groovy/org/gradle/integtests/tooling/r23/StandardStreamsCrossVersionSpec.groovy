@@ -16,60 +16,24 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.tooling.fixture.*
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestOutputStream
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
-@TargetGradleVersion(">=2.3")
 class StandardStreamsCrossVersionSpec extends ToolingApiSpecification {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
+    def escapeHeader = "\u001b["
 
     def setup() {
         toolingApi.requireDaemons()
     }
 
-    def "logging is not sent to stderr/stdout if using custom output streams"() {
-        String uuid = UUID.randomUUID().toString()
-        file("build.gradle") << """
-task log << {
-    println "waiting-${uuid}"
-    println "connecting to ${server.uri}"
-    new URL("${server.uri}").text
-    println "finished-${uuid}"
-}
-"""
-
-        when:
-        def resultHandler = new TestResultHandler()
-        def output = new TestOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.standardOutput = output
-            build.forTasks("log")
-            build.run(resultHandler)
-            server.waitFor()
-            ConcurrentTestUtil.poll {
-                // Need to poll, as logging output is delivered asynchronously to client
-                assert output.toString().contains("waiting-" + uuid)
-            }
-            assert !output.toString().contains("finished-" + uuid)
-            server.release()
-            resultHandler.finished()
-        }
-
-        then:
-        output.toString().contains("waiting-" + uuid)
-        output.toString().contains("finished-" + uuid)
-        !stdOutAndErr.stdOut.contains("waiting-" + uuid)
-        !stdOutAndErr.stdOut.contains("finished-" + uuid)
-    }
-
-    @ToolingApiVersion(">=2.3")
-    def "connector can redirect logging from System.out and err"() {
+    @TargetGradleVersion(">=2.3")
+    def "logging is not sent to System.out or System.err"() {
         String uuid = UUID.randomUUID().toString()
         file("build.gradle") << """
 project.logger.error("error logging-${uuid}");
@@ -80,15 +44,39 @@ project.logger.info ("info logging-${uuid}");
 project.logger.debug("debug logging-${uuid}");
 
 task log << {
-    println "waiting-${uuid}"
-    println "connecting to ${server.uri}"
-    new URL("${server.uri}").text
-    println "finished-${uuid}"
+    println "task logging-${uuid}"
 }
 """
 
         when:
-        def resultHandler = new TestResultHandler()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.forTasks("log")
+            build.run()
+        }
+
+        then:
+        !stdOutAndErr.stdOut.contains(uuid)
+        !stdOutAndErr.stdErr.contains(uuid)
+    }
+
+    @TargetGradleVersion(">=2.3")
+    def "logging is not sent to System.out or System.err when using custom output streams"() {
+        String uuid = UUID.randomUUID().toString()
+        file("build.gradle") << """
+project.logger.error("error logging-${uuid}");
+project.logger.warn("warn logging-${uuid}");
+project.logger.lifecycle("lifecycle logging-${uuid}");
+project.logger.quiet("quiet logging-${uuid}");
+project.logger.info ("info logging-${uuid}");
+project.logger.debug("debug logging-${uuid}");
+
+task log << {
+    println "task logging-${uuid}"
+}
+"""
+
+        when:
         def output = new TestOutputStream()
         def error = new TestOutputStream()
         withConnection { ProjectConnection connection ->
@@ -96,68 +84,87 @@ task log << {
             build.standardOutput = output
             build.standardError = error
             build.forTasks("log")
-            build.run(resultHandler)
-            server.waitFor()
-            ConcurrentTestUtil.poll {
-                // Need to poll, as logging output is delivered asynchronously to client
-                assert output.toString().contains("waiting-" + uuid)
-            }
-            assert !output.toString().contains("finished-" + uuid)
-            server.release()
-            resultHandler.finished()
+            build.run()
         }
 
         then:
-        output.toString().contains("waiting-" + uuid)
-        output.toString().contains("finished-" + uuid)
+        output.toString().contains("task logging-" + uuid)
         output.toString().contains("warn logging-${uuid}")
         output.toString().contains("lifecycle logging-${uuid}")
         output.toString().contains("quiet logging-${uuid}")
         error.toString().contains("error logging-${uuid}")
-        !stdOutAndErr.stdOut.contains("-" + uuid)
-        !stdOutAndErr.stdErr.contains("-" + uuid)
+        !stdOutAndErr.stdOut.contains(uuid)
+        !stdOutAndErr.stdErr.contains(uuid)
     }
 
     @ToolingApiVersion(">=2.3")
+    @TargetGradleVersion(">=2.3")
     def "can specify color output"() {
-        String uuid = UUID.randomUUID().toString()
         file("build.gradle") << """
-task uptodate {
+task log {
     outputs.upToDateWhen { true }
 }
-task log(dependsOn: uptodate) << {
-    println "waiting-${uuid}"
-    println "connecting to ${server.uri}"
-    new URL("${server.uri}").text
-    println "finished-${uuid}"
-}
 """
-        // def escapeHeader = "" + Ansi.FIRST_ESC_CHAR + Ansi.SECOND_ESC_CHAR
-        def escapeHeader = "" + (char) 27 + '['
 
         when:
-        def resultHandler = new TestResultHandler()
         def output = new TestOutputStream()
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
             build.standardOutput = output
             build.colorOutput = true
             build.forTasks("log")
-            build.run(resultHandler)
-            server.waitFor()
-            ConcurrentTestUtil.poll {
-                // Need to poll, as logging output is delivered asynchronously to client
-                assert output.toString().contains("waiting-" + uuid)
-            }
-            assert !output.toString().contains("finished-" + uuid)
-            server.release()
-            resultHandler.finished()
+            build.run()
         }
 
         then:
-        output.toString().contains("waiting-" + uuid)
-        output.toString().contains("finished-" + uuid)
         output.toString().contains("UP-TO-DATE" + escapeHeader)
+        !stdOutAndErr.stdOut.contains(escapeHeader)
+        !stdOutAndErr.stdErr.contains(escapeHeader)
+    }
+
+    @ToolingApiVersion(">=2.3")
+    @TargetGradleVersion("<2.3")
+    def "can specify color output when target version does not support colored output"() {
+        file("build.gradle") << """
+task log {
+    outputs.upToDateWhen { true }
+}
+"""
+
+        when:
+        def output = new TestOutputStream()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.standardOutput = output
+            build.colorOutput = true
+            build.forTasks("log")
+            build.run()
+        }
+
+        then:
+        !output.toString().contains(escapeHeader)
+        !stdOutAndErr.stdOut.contains(escapeHeader)
+        !stdOutAndErr.stdErr.contains(escapeHeader)
+    }
+
+    @ToolingApiVersion(">=2.3")
+    @TargetGradleVersion(">=2.3")
+    def "can specify color output when output is being ignored"() {
+        file("build.gradle") << """
+task log {
+    outputs.upToDateWhen { true }
+}
+"""
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.colorOutput = true
+            build.forTasks("log")
+            build.run()
+        }
+
+        then:
         !stdOutAndErr.stdOut.contains(escapeHeader)
         !stdOutAndErr.stdErr.contains(escapeHeader)
     }
