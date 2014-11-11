@@ -28,8 +28,6 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
         sample playSample
         playSample.dir.file("build.gradle") << """
         tasks.withType(ScalaCompile) {
-            scalaCompileOptions.fork = true
-            scalaCompileOptions.useAnt = false
             scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
             scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
         }
