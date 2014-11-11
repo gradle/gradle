@@ -59,6 +59,13 @@ class ArchiveTestFixture {
         this
     }
 
+    def containsDescendants(String... relativePaths) {
+        for (String path : relativePaths) {
+            assertContainsFile(path)
+        }
+        this
+    }
+
     /**
      * Asserts that there is exactly one file present with the given path, and that this file has the given content.
      */
