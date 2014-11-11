@@ -132,7 +132,7 @@ repositories {
         buildFile << """
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
+        all { details ->
             details.changing = true
         }
     }

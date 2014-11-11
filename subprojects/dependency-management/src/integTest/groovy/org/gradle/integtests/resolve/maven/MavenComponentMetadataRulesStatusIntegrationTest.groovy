@@ -47,9 +47,9 @@ dependencies {
     compile 'group1:projectA:1.0'
     compile 'group2:projectB:2.0-SNAPSHOT'
     components {
-        all { ComponentMetadataDetails details ->
-            assert details.status == details.id.name == "projectA" ? "release" : "integration"
-            assert details.statusScheme == ['integration', 'milestone', 'release']
+        all {
+            assert it.status == it.id.name == "projectA" ? "release" : "integration"
+            assert it.statusScheme == ['integration', 'milestone', 'release']
         }
     }
 }

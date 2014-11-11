@@ -85,7 +85,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return new SpecRuleAction<ComponentMetadataDetails>(ruleAction, Specs.<ComponentMetadataDetails>satisfyAll());
     }
 
-    private SpecRuleAction<? super ComponentMetadataDetails> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentMetadataDetails> ruleAction) {
+    private SpecRuleAction<? super ComponentMetadataDetails> createSpecRuleActionForModule(Object id, RuleAction<? super ComponentMetadataDetails> ruleAction) {
         ModuleIdentifier moduleIdentifier;
 
         try {
@@ -111,15 +111,15 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(rule)));
+        return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromAction(rule)));
     }
 
     public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
+        return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
     public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
+        return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
     public void processMetadata(MutableModuleComponentResolveMetaData metadata) {

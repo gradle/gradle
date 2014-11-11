@@ -1174,12 +1174,11 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
             </sample>
             <para>
-                Note that a <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails"/> argument is <emphasis>always</emphasis> required as the first
-                parameter when declaring a component metadata rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any
-                order.
+                Note that any rule that declares specific arguments must <emphasis>always</emphasis> include a <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails"/> argument
+                as the first argument. The second Ivy metadata argument is optional.
             </para>
             <para>
-                Lastly, component metadata rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
+                Component metadata rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
                 is any object that contains exactly one method that defines the rule action and is annotated with <literal>@Mutate</literal>.
             </para>
             <para>

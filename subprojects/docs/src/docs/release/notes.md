@@ -35,8 +35,6 @@ as well as for all modules.  Furthermore, rules can now also be specified as `ru
         }
     }
 
-Note that a typed `ComponentMetadataDetails` parameter is required for every rule.
-
 See the [userguide section](userguide/dependency_management.html#component_metadata_rules) on component metadata rules for further information.
 
 ### New PluginAware methods for detecting the presence of plugins
