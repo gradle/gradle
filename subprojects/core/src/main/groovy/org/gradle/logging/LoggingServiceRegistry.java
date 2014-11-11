@@ -50,7 +50,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Does nothing until started.</p>
      *
-     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachConsole(boolean)} to enable this.</p>
+     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(boolean)} to enable this.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
         return new CommandLineLogging();
@@ -134,7 +134,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected OutputEventRenderer createOutputEventRenderer() {
         OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
-        renderer.addStandardOutputAndError();
+        renderer.attachSystemOutAndErr();
         return renderer;
     }
 
@@ -157,7 +157,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private static class CommandLineLogging extends ChildProcessLogging {
         protected OutputEventRenderer createOutputEventRenderer() {
             OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction());
-            renderer.addStandardOutputAndError();
+            renderer.attachSystemOutAndErr();
             return renderer;
         }
     }

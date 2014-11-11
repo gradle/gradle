@@ -82,10 +82,10 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
 
     }
 
-    public void attachConsole(boolean colorOutput) {
+    public void attachProcessConsole(boolean colorOutput) {
     }
 
-    public void attachConsole(OutputStream outputStream) {
+    public void attachAnsiConsole(OutputStream outputStream) {
     }
 
     public void addStandardOutputListener(OutputStream outputStream) {
@@ -94,7 +94,7 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
     public void addStandardErrorListener(OutputStream outputStream) {
     }
 
-    public void addStandardOutputAndError() {
+    public void attachSystemOutAndErr() {
     }
 
     public void removeStandardOutputAndError() {

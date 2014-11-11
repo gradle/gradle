@@ -36,7 +36,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsToStdOut() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.onOutput(event('message', LogLevel.INFO))
 
         then:
@@ -46,7 +46,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersErrorLogEventsToStdErr() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.onOutput(event('message', LogLevel.ERROR))
 
         then:
@@ -69,7 +69,7 @@ class OutputEventRendererTest extends OutputSpecification {
     def rendersLogEventsToStdOutandStdErrWhenLogLevelIsDebug() {
         when:
         renderer.configure(LogLevel.DEBUG)
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
         renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
 
@@ -184,7 +184,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersProgressEvents() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.onOutput(start(loggingHeader: 'description'))
         renderer.onOutput(complete('status'))
 
@@ -195,7 +195,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def doesNotRendersProgressEventsForLogLevelQuiet() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.configure(LogLevel.QUIET)
         renderer.onOutput(start('description'))
         renderer.onOutput(complete('status'))
@@ -258,7 +258,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.addConsole(console, true, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
@@ -271,7 +271,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def attachesConsoleWhenOnlyStdOutIsAttachedToConsole() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.addConsole(console, true, false, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
@@ -284,7 +284,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def attachesConsoleWhenOnlyStdErrIsAttachedToConsole() {
         when:
-        renderer.addStandardOutputAndError()
+        renderer.attachSystemOutAndErr()
         renderer.addConsole(console, false, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))

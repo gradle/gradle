@@ -144,7 +144,7 @@ public class DaemonMain extends EntryPoint {
 
         //after redirecting we need to add the new std out/err to the renderer singleton
         //so that logging gets its way to the daemon log:
-        loggingManager.addStandardOutputAndError();
+        loggingManager.attachSystemOutAndErr();
 
         //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
         //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)

@@ -158,19 +158,17 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public void removeAllOutputEventListeners() { loggingOutput.removeAllOutputEventListeners(); }
 
-    public void attachConsole(boolean colorOutput) {
-        loggingOutput.attachConsole(colorOutput);
+    public void attachProcessConsole(boolean colorOutput) {
+        loggingOutput.attachProcessConsole(colorOutput);
     }
 
-    public void attachConsole(OutputStream outputStream) {
-        loggingOutput.attachConsole(outputStream);
+    public void attachAnsiConsole(OutputStream outputStream) {
+        loggingOutput.attachAnsiConsole(outputStream);
     }
 
-    public void addStandardOutputAndError() {
-        loggingOutput.addStandardOutputAndError();
+    public void attachSystemOutAndErr() {
+        loggingOutput.attachSystemOutAndErr();
     }
-
-    public void removeStandardOutputAndError() { loggingOutput.removeStandardOutputAndError(); }
 
     private static class StartableLoggingSystem implements Stoppable {
         private final LoggingSystem loggingSystem;

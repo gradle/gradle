@@ -44,7 +44,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         loggingManager.removeAllOutputEventListeners();
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
-            loggingManager.attachConsole(actionParameters.getStandardOutput());
+            loggingManager.attachAnsiConsole(actionParameters.getStandardOutput());
         } else {
             if (actionParameters.getStandardOutput() != null) {
                 loggingManager.addStandardOutputListener(actionParameters.getStandardOutput());
