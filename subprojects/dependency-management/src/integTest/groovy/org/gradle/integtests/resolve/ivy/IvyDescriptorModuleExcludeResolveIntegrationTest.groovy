@@ -21,7 +21,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 /**
- * Demonstrates the use of Ivy module excludes. For all test cases the exclude rules are applied to dependency "b".
+ * Demonstrates the use of Ivy module excludes.
  *
  * @see <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/exclude.html">Ivy reference documentation</a>
  */
@@ -43,10 +43,10 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                                  | excludeAttributes                                                             | resolvedJars
@@ -88,10 +88,10 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                                  | excludeAttributes                                                             | resolvedJars
@@ -134,10 +134,10 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                                  | excludeAttributes                                                             | resolvedJars
@@ -179,10 +179,10 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                                  | excludeAttributes                                                             | resolvedJars
@@ -201,6 +201,74 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'org, module and artifact'            | [org: 'org.gradle.test', module: 'd', artifact: 'd']                          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'org, module, artifact and type'      | [org: 'org.gradle.test', module: 'd', artifact: 'd', type: 'jar']             | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
         'org, module, artifact, type and ext' | [org: 'org.gradle.test', module: 'd', artifact: 'd', type: 'jar', ext: 'jar'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+    }
+
+    /**
+     * Transitive diamond module exclude for a single path by using a combination of exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     */
+    @Unroll
+    def "transitive diamond module exclude for single path with matching #name"() {
+        given:
+        ivyRepo.module('d').publish()
+        IvyModule moduleB = ivyRepo.module('b').dependsOn('d')
+        addExcludeRuleToModule(moduleB, excludeAttributes)
+        moduleB.publish()
+        ivyRepo.module('c').dependsOn('d').publish()
+        ivyRepo.module('a').dependsOn('b').dependsOn('c').publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar'])
+
+        where:
+        name                  | excludeAttributes
+        'all modules'         | [module: '*']
+        'module'              | [module: 'd']
+        'org and all modules' | [org: 'org.gradle.test', module: '*']
+        'org and module'      | [org: 'org.gradle.test', module: 'd']
+        //'artifact'            | [artifact: 'd']
+        //'org and artifact'    | [org: 'org.gradle.test', artifact: 'd']
+    }
+
+    /**
+     * Transitive diamond module exclude for all paths by using a combination of exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     */
+    @Unroll
+    def "transitive diamond module exclude for all paths with matching #name"() {
+        given:
+        ivyRepo.module('d').publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('c').dependsOn('d').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        addExcludeRuleToModule(moduleA, excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+
+        where:
+        name                  | excludeAttributes                       | resolvedJars
+        'all modules'         | [module: '*']                           | ['a-1.0.jar']
+        'module'              | [module: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'org and all modules' | [org: 'org.gradle.test', module: '*']   | ['a-1.0.jar']
+        'org and module'      | [org: 'org.gradle.test', module: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'artifact'            | [artifact: 'd']                         | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'org and artifact'    | [org: 'org.gradle.test', artifact: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {

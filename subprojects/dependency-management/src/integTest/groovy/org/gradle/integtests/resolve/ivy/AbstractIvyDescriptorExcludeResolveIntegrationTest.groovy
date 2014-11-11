@@ -38,9 +38,17 @@ dependencies {
 }
 
 task check(type: Sync) {
-    into 'libs'
     from configurations.compile
+    into 'libs'
 }
 """
+    }
+
+    protected void succeedsDependencyResolution() {
+        succeeds 'check'
+    }
+
+    protected void assertResolvedFiles(List<String> files) {
+        file('libs').assertHasDescendants(files as String[])
     }
 }
