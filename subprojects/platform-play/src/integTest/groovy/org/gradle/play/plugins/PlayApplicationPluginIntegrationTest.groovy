@@ -37,8 +37,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
         model {
             components {
-                myApp(PlayApplicationSpec){
-                }
+                myApp(PlayApplicationSpec)
             }
         }
 
@@ -50,7 +49,6 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         }
 
         tasks.withType(TwirlCompile){
-            fork = true
             forkOptions.memoryInitialSize =  "256m"
             forkOptions.memoryMaximumSize =  "512m"
         }
@@ -58,6 +56,32 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register PlayApplicationSpec component"() {
+        when:
+        succeeds "components"
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+DefaultPlayApplicationSpec 'myApp'
+----------------------------------
+
+Source sets
+    No source sets.
+
+Binaries
+    DefaultPlayApplicationBinarySpec 'myAppBinary'
+        build using task: :myAppBinary
+        platform: PlayPlatform2.3.5
+        tool chain: Default Play Toolchain"""))
+    }
+
+    def "cannot have multiple PlayApplicationSpec component"() {
+        given:
+        buildFile << """
+        model {
+            components {
+                myOtherApp(PlayApplicationSpec)
+            }
+        }
+"""
         when:
         succeeds "components"
         then:

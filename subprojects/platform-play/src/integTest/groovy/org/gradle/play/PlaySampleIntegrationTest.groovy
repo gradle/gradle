@@ -35,7 +35,6 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
         }
 
         tasks.withType(TwirlCompile){
-            fork = true
             forkOptions.memoryMaximumSize =  "256m"
         }"""
         expect:

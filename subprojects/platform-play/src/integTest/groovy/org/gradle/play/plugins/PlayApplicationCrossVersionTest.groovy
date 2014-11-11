@@ -37,7 +37,7 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
         model {
             components {
                 myApp(PlayApplicationSpec){
-                    targetPlatform "PlayPlatform${version.playVersion}"
+                    playVersion "${version.playVersion}"
                 }
             }
         }

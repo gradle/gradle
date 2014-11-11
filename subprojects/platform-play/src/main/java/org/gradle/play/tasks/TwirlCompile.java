@@ -53,8 +53,6 @@ public class TwirlCompile extends SourceTask {
      */
     private File sourceDirectory;
 
-    private boolean fork;
-
     private BaseForkOptions forkOptions;
 
     private Compiler<TwirlCompileSpec> compiler;
@@ -112,14 +110,6 @@ public class TwirlCompile extends SourceTask {
     public void setSourceDirectory(File sourceDirectory) {
         this.sourceDirectory = sourceDirectory;
         this.setSource(sourceDirectory);
-    }
-
-    public boolean isFork() {
-        return fork;
-    }
-
-    public void setFork(boolean fork) {
-        this.fork = fork;
     }
 
     @TaskAction

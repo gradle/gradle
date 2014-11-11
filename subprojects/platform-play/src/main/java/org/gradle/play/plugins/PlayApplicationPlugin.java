@@ -181,14 +181,14 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @ComponentBinaries
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal, @Path("buildDir") final File buildDir) {
 
-            List<String> targetPlatforms = componentSpec.getTargetPlatforms();
-            if(targetPlatforms.isEmpty()){
-                targetPlatforms.add(new DefaultPlayPlatform("2.3.5", "2.11", "1.0.2", JavaVersion.current()).getName());
+            String targetPlayVersion = componentSpec.getPlayVersion();
+            if(targetPlayVersion == null){
+                targetPlayVersion = "2.3.5";
             }
 
-            List<PlayPlatform> selectedPlatforms = platforms.chooseFromTargets(PlayPlatform.class, targetPlatforms);
+            List<PlayPlatform> selectedPlatforms = platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
             for (final PlayPlatform selectedPlatform : selectedPlatforms) {
-                binaries.create(String.format("%sBinary", componentSpec.getName(), selectedPlatform.getName()), new Action<PlayApplicationBinarySpec>() {
+                binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>() {
                     public void execute(PlayApplicationBinarySpec playBinary) {
                         PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                         playBinaryInternal.setTargetPlatform(selectedPlatform);
