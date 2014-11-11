@@ -30,20 +30,26 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         }
 
         configurations{
-            playRun
+            playRunConf
         }
 
         dependencies{
-            playRun "com.typesafe.play:play_2.10:2.2.3"
+            playRunConf {
+              "com.typesafe.play:play_2.10:2.2.3"
+              "com.typesafe.play:docs_2.10:2.2.3"
+            }
         }
 
-        task run(type:PlayRun){
-            classpath = playRun
+        task playRun(type:PlayRun){
+            classpath = configurations.playRunConf
         }
 """
     }
 
     def "can execute play run task"(){
-        succeeds("run")
+        when:
+        succeeds("playRun")
+        then:
+        executed(":myApp")
     }
 }

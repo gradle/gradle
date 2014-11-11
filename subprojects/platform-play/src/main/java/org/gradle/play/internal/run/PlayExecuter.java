@@ -16,12 +16,35 @@
 
 package org.gradle.play.internal.run;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 public class PlayExecuter {
     public PlayRunResult run(PlayRunSpec spec) {
-        System.out.println("Running _PLAY_ APP");
+        ClassLoader cl = getClass().getClassLoader();
+        try {
+            Class<?> mainClass = cl.loadClass("play.core.server.NettyServer");
+            Class<?> buildLinkClass = cl.loadClass("play.core.SBTLink"); //cl.loadClass("play.core.BuildLink");
+            Class<?> buildDocHandlerClass = cl.loadClass("play.core.SBTDocHandler"); //cl.loadClass("play.core.BuildDocHandler");
 
-        // per reflection
-        // new NettyServer(args)
+            ClassLoader docsClassLoader = cl; //TODO: split into seperate classpaths!
+            Class<?> docHandlerFactoryClass = docsClassLoader.loadClass("play.docs.BuildDocHandlerFactory");
+            Method factoryMethod = docHandlerFactoryClass.getMethod("empty");
+            Object buildDocHandler = factoryMethod.invoke(null);
+
+            Method runMethod = mainClass.getMethod("mainDevHttpMode", buildLinkClass, buildDocHandlerClass, Integer.class);
+            Object buildLink = Proxy.newProxyInstance(cl, new java.lang.Class[]{buildLinkClass}, new InvocationHandler() {
+
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    return null;
+                }
+            });
+            //runMethod.invoke(null, )
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         return new PlayRunResult();
     }
