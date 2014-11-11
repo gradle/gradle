@@ -1196,10 +1196,14 @@ someroot/[artifact]-[revision].[ext]
         <section id="component_selection_rules">
             <title>Component Selection Rules</title>
             <para>
-                Component selection rules define how versions should be selected when multiple versions are available that match a given set of
-                coordinates.  Rules are applied against every available version and allow the version to be explicitly rejected by rule.  This
-                allows Gradle to ignore versions that do not satisfy conditions set by the rule.
+                Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector.
+                Rules are applied against every available version and allow the version to be explicitly rejected by rule.
+                This allows Gradle to ignore any component instance that does not satisfy conditions set by the rule. Examples include:
             </para>
+            <itemizedlist>
+                <listitem>For a dynamic version like '1.+' certain versions may be explicitly rejected from selection</listitem>
+                <listitem>For a static version like '1.4' an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.</listitem>
+            </itemizedlist>
             <para>
                 Rules are configured via the <apilink class="org.gradle.api.artifacts.ComponentSelectionRules"/> object.  Each rule configured
                 will be called with a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> object as an argument which contains information
