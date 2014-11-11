@@ -20,9 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 /**
  * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
@@ -67,6 +69,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         synchronized (lock) {
             colourMap.setUseColor(colorOutput);
             consoleConfigureAction.execute(this);
+        }
+    }
+
+    public void attachConsole(OutputStream outputStream) {
+        synchronized (lock) {
+            OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+            DefaultColorMap colourMap = new DefaultColorMap();
+            colourMap.setUseColor(true);
+            Console console = new AnsiConsole(writer, writer, colourMap, true);
+            addConsole(console, true, true, new FallbackConsoleMetaData());
         }
     }
 
@@ -191,6 +203,15 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
             stdoutListeners.add(listener);
         }
     }
+
+    public void addStandardOutputListener(OutputStream outputStream) {
+        addStandardOutputListener(new StreamBackedStandardOutputListener(outputStream));
+    }
+
+    public void addStandardErrorListener(OutputStream outputStream) {
+        addStandardErrorListener(new StreamBackedStandardOutputListener(outputStream));
+    }
+
 
     public void removeStandardOutputListener(StandardOutputListener listener) {
         synchronized (lock) {

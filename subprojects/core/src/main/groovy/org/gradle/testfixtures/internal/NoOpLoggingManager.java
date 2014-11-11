@@ -20,6 +20,8 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEventListener;
 
+import java.io.OutputStream;
+
 public class NoOpLoggingManager implements LoggingManagerInternal {
     private LogLevel level = LogLevel.LIFECYCLE;
     private LogLevel stdoutLevel = LogLevel.LIFECYCLE;
@@ -81,6 +83,15 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
     }
 
     public void attachConsole(boolean colorOutput) {
+    }
+
+    public void attachConsole(OutputStream outputStream) {
+    }
+
+    public void addStandardOutputListener(OutputStream outputStream) {
+    }
+
+    public void addStandardErrorListener(OutputStream outputStream) {
     }
 
     public void addStandardOutputAndError() {

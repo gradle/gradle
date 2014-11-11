@@ -29,11 +29,11 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
     private static boolean useAnsiOutput = "true".equalsIgnoreCase(System.getProperty("org.gradle.ansi", "false"));
 
     public void execute(OutputEventRenderer renderer) {
-        ConsoleMetaData consoleMetaData = null;
-        if(useAnsiOutput) {
+        ConsoleMetaData consoleMetaData;
+        if (useAnsiOutput) {
             consoleMetaData = new FallbackConsoleMetaData();
         } else {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+            ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
             consoleMetaData = consoleDetector.getConsole();
         }
         if (consoleMetaData == null) {

@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
+import java.io.OutputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -123,6 +124,14 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         }
     }
 
+    public void addStandardOutputListener(OutputStream outputStream) {
+        addStandardOutputListener(new StreamBackedStandardOutputListener(outputStream));
+    }
+
+    public void addStandardErrorListener(OutputStream outputStream) {
+        addStandardErrorListener(new StreamBackedStandardOutputListener(outputStream));
+    }
+
     public void removeStandardOutputListener(StandardOutputListener listener) {
         if (stdoutListeners.remove(listener) && started) {
             loggingOutput.removeStandardOutputListener(listener);
@@ -151,6 +160,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public void attachConsole(boolean colorOutput) {
         loggingOutput.attachConsole(colorOutput);
+    }
+
+    public void attachConsole(OutputStream outputStream) {
+        loggingOutput.attachConsole(outputStream);
     }
 
     public void addStandardOutputAndError() {
