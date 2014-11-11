@@ -18,7 +18,6 @@ package org.gradle.play.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.file.FileCollection;
@@ -38,9 +37,9 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.platform.DefaultPlayPlatform;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.play.internal.platform.DefaultPlayPlatform;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
 import org.gradle.util.WrapUtil;
@@ -61,16 +60,12 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final String DEFAULT_PLAY_DEPENDENCY = PLAY_GROUP + ":play_" + DEFAULT_SCALA_BINARY_VERSION + ":" + DEFAULT_PLAY_VERSION;
     public static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
     public static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
-    public static final String PLAY_ROUTES_DEPENDENCY_NAME = "routes-compiler";
-    public static final String DEFAULT_PLAY_ROUTES_DEPENDENCY = PLAY_GROUP + ":" + PLAY_ROUTES_DEPENDENCY_NAME + "_" + DEFAULT_SCALA_BINARY_VERSION + ":" + DEFAULT_PLAY_VERSION;
-    public static final String PLAY_ROUTES_CONFIGURATION_NAME = "playRoutes";
     public static final String PLAY_MAIN_CLASS = "play.core.server.NettyServer";
     private ProjectInternal project;
 
     public void apply(final ProjectInternal project) {
         project.apply(WrapUtil.toMap("type", ScalaBasePlugin.class));
         this.project = project;
-        setupRoutesCompilation();
         setupPlayAppClasspath();
     }
 
@@ -90,43 +85,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         final Configuration playAppRuntimeClasspath = project.getConfigurations().create(PLAYAPP_RUNTIME_CONFIGURATION_NAME);
         playAppRuntimeClasspath.extendsFrom(playAppCompileClasspath);
-    }
-
-    private static String detectRoutesCompilerVersion(Configuration routesConfiguration) {
-        String routesCompilerVersion = null;
-        for (Dependency dep : routesConfiguration.getDependencies()) {
-            if (dep.getGroup().equals(PlayApplicationPlugin.PLAY_GROUP) && dep.getName().startsWith(PlayApplicationPlugin.PLAY_ROUTES_DEPENDENCY_NAME)) {
-                routesCompilerVersion = dep.getVersion();
-                break;
-            }
-        }
-        if (routesCompilerVersion == null) {
-            throw new InvalidUserDataException("Could not find a routes compiler version for in dependencies: " + routesConfiguration.getDependencies());
-        }
-        return routesCompilerVersion;
-    }
-
-    private void setupRoutesCompilation() {
-        Configuration routesConfiguration = createConfigurationWithDefaultDependency(PLAY_ROUTES_CONFIGURATION_NAME, DEFAULT_PLAY_ROUTES_DEPENDENCY);
-        routesConfiguration.setVisible(false);
-        routesConfiguration.setDescription("The dependencies to be used Play Routes compilation.");
-
-        project.getTasks().withType(RoutesCompile.class).all(new Action<RoutesCompile>() {
-            public void execute(RoutesCompile routesCompile) {
-                final Configuration routesConfiguration = project.getConfigurations().getByName(PLAY_ROUTES_CONFIGURATION_NAME);
-                routesCompile.getConventionMapping().map("routesCompilerVersion", new Callable<String>() {
-                    public String call() throws Exception {
-                        return detectRoutesCompilerVersion(routesConfiguration);
-                    }
-                });
-
-                routesCompile.getConventionMapping().map("compilerClasspath", new Callable<FileCollection>() {
-                    public FileCollection call() throws Exception {
-                        return routesConfiguration;
-                    }
-                });
-            }
-        });
     }
 
     private Configuration createConfigurationWithDefaultDependency(String configurationName, final String defaultDependency) {
@@ -214,6 +172,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
+                    routesCompile.setPlatform(binary.getTargetPlatform());
                     routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
                     routesCompile.setAdditionalImports(new ArrayList<String>());
                     routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
@@ -280,7 +239,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     public void execute(JavaExec javaExec) {
                         javaExec.dependsOn(binary.getBuildTask());
                         javaExec.setMain(PLAY_MAIN_CLASS);
-
                         Project project = javaExec.getProject();
                         FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
                         javaExec.setClasspath(classpath);

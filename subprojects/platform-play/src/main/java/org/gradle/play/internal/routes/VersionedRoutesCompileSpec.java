@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal;
+package org.gradle.play.internal.routes;
 
-import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.play.PlayApplicationSpec;
+import com.google.common.base.Function;
 
-public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
-    private String playVersion;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
-    public String getPlayVersion() {
-        return playVersion;
-    }
-    public void playVersion(String playVersion) {
-        this.playVersion = playVersion;
-    }
+public interface VersionedRoutesCompileSpec extends RoutesCompileSpec {
+    Object getDependencyNotation();
+    Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
+    Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 }

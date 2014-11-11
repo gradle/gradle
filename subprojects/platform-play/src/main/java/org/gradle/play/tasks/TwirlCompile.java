@@ -163,7 +163,7 @@ public class TwirlCompile extends SourceTask {
     }
 
     /**
-     * Returns the tool chain that will be used to compile the Java source.
+     * Returns the tool chain that will be used to compile the twirl source.
      *
      * @return The tool chain.
      */

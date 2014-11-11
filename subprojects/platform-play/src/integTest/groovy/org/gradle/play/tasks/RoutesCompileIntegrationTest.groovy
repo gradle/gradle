@@ -25,27 +25,22 @@ class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
     def destinationDir = file(destinationDirPath)
 
     def setup(){
+
         buildFile << """
+        plugins {
+           id 'play-application'
+        }
+
         repositories{
-            ivy {
-                url "http://repo.typesafe.com/typesafe/releases/"
-                layout "maven"
+            jcenter()
+            maven{
+                name = "typesafe-maven-release"
+                url = "http://repo.typesafe.com/typesafe/maven-releases"
             }
         }
 
-        configurations{
-            playRoutes
-        }
-
-        dependencies{
-            playRoutes "com.typesafe.play:routes-compiler_2.10:2.3.5"
-            playRoutes "org.scala-lang:scala-library:2.10.4"
-            playRoutes "commons-io:commons-io:2.0.1"
-        }
-
         task routesCompile(type:RoutesCompile) {
-            compilerClasspath = configurations.playRoutes
-            routesCompilerVersion = "2.3.5"
+            platform = new ${org.gradle.play.internal.platform.DefaultPlayPlatform.class.name}('2.3.5', '2.10', '1.0.2', JavaVersion.current())
             outputDirectory = file('build/routes')
         }
 """

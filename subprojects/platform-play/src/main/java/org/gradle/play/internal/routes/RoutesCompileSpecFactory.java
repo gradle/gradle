@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec;
+package org.gradle.play.internal.routes;
 
-import java.io.File;
-import java.util.List;
-import java.util.Set;
+import org.gradle.play.platform.PlayPlatform;
 
 public class RoutesCompileSpecFactory {
 
-    public static RoutesCompileSpec create(Set<File> files, File outputDirectory, List<String> additionalImports, boolean namespaceReverseRouter,  boolean javaProject, RoutesCompilerVersion version) {
+    public static VersionedRoutesCompileSpec create(RoutesCompileSpec spec, boolean namespaceReverseRouter, PlayPlatform playPlatform) {
+        RoutesCompilerVersion version = RoutesCompilerVersion.parse(playPlatform.getPlayVersion());
         switch (version){
             case V_22X:
-                return new RoutesCompileSpecV22X(files, outputDirectory, additionalImports, javaProject);
+                return new RoutesCompileSpecV22X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), spec.getForkOptions(), spec.isJavaProject(), playPlatform);
             case V_23X:
-                return new RoutesCompileSpecV23X(files, outputDirectory, additionalImports, namespaceReverseRouter, javaProject);
+                return new RoutesCompileSpecV23X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), namespaceReverseRouter, spec.getForkOptions(), spec.isJavaProject(), playPlatform);
             default:
                 throw new RuntimeException("Could not create routes compile spec for version: " + version);
         }

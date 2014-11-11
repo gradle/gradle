@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes.spec;
+package org.gradle.play.internal.routes;
 
 import org.gradle.api.InvalidUserDataException;
 

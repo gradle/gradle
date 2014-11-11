@@ -20,15 +20,13 @@ import com.google.common.base.Function;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.play.internal.routes.spec.RoutesCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable {
-    public WorkResult execute(RoutesCompileSpec spec) {
+public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Serializable {
+    public WorkResult execute(VersionedRoutesCompileSpec spec) {
         boolean didWork = false;
-
         try {
             ClassLoader cl = getClass().getClassLoader();
             Iterable<File> sources = spec.getSources();
