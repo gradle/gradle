@@ -25,10 +25,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
+import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
@@ -141,6 +138,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('spock')
             sharedClassLoader.allowPackage('org.spockframework')
             sharedClassLoader.allowClass(SetSystemProperties)
+            sharedClassLoader.allowClass(RedirectStdOutAndErr)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
             sharedClassLoader.allowPackage('org.gradle.test.fixtures')
             sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')
