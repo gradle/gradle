@@ -42,12 +42,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String MODULE = "module"
 
     // For testing ModuleMetadataProcessor capabilities
-    def processor = new DefaultComponentMetadataHandler(new DirectInstantiator())
+    def handler = new DefaultComponentMetadataHandler(new DirectInstantiator())
 
     // For testing ComponentMetadataHandler capabilities
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
     NotationParser<Object, String> notationParser = Mock(NotationParser)
-    def handler = new DefaultComponentMetadataHandler(new DirectInstantiator(), adapter, notationParser)
+    def mockedHandler = new DefaultComponentMetadataHandler(new DirectInstantiator(), adapter, notationParser)
     def ruleAction = Stub(RuleAction)
 
     def "add action rule that applies to all components" () {
@@ -57,45 +57,45 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.all action
+        mockedHandler.all action
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
 
         and:
-        handler.rules.size() == 1
-        handler.rules[0].action == (ruleAction)
-        handler.rules[0].spec == Specs.satisfyAll()
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec == Specs.satisfyAll()
     }
 
     def "add closure rule that applies to all components" () {
         def closure = { ComponentMetadataDetails cmd -> }
 
         when:
-        handler.all closure
+        mockedHandler.all closure
 
         then:
         1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
 
         and:
-        handler.rules.size() == 1
-        handler.rules[0].action == (ruleAction)
-        handler.rules[0].spec == Specs.satisfyAll()
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec == Specs.satisfyAll()
     }
 
     def "add rule source rule that applies to all components" () {
         def ruleSource = new Object()
 
         when:
-        handler.all(ruleSource)
+        mockedHandler.all(ruleSource)
 
         then:
         1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
 
         and:
-        handler.rules.size() == 1
-        handler.rules[0].action == (ruleAction)
-        handler.rules[0].spec == Specs.satisfyAll()
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec == Specs.satisfyAll()
     }
 
     def "add action rule that applies to module" () {
@@ -106,16 +106,16 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        handler.withModule(notation, action)
+        mockedHandler.withModule(notation, action)
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
         1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
-        handler.rules.size() == 1
-        handler.rules[0].action == (ruleAction)
-        handler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "add closure rule that applies to module" () {
@@ -123,16 +123,16 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        handler.withModule(notation, closure)
+        mockedHandler.withModule(notation, closure)
 
         then:
         1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
         1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
-        handler.rules.size() == 1
-        handler.rules[0].action == (ruleAction)
-        handler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "add rule source rule that applies to module" () {
@@ -140,21 +140,21 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def notation = "${GROUP}:${MODULE}"
 
         when:
-        handler.withModule(notation, ruleSource)
+        mockedHandler.withModule(notation, ruleSource)
 
         then:
         1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
         1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
-        handler.rules.size() == 1
-        handler.rules[0].action == (ruleAction)
-        handler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "propagates error creating rule for closure" () {
         when:
-        handler.all { }
+        mockedHandler.all { }
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -168,7 +168,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def action = Mock(Action)
 
         when:
-        handler.all action
+        mockedHandler.all action
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -180,7 +180,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     def "propagates error creating rule for rule source" () {
         when:
-        handler.all(new Object())
+        mockedHandler.all(new Object())
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -198,7 +198,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        processor.processMetadata(metadata)
+        handler.processMetadata(metadata)
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -214,12 +214,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def closuresCalled = []
 
         when:
-        processor.all { ComponentMetadataDetails cmd -> closuresCalled << 1 }
-        processor.all { ComponentMetadataDetails cmd -> closuresCalled << 2 }
-        processor.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
+        handler.all { ComponentMetadataDetails cmd -> closuresCalled << 1 }
+        handler.all { ComponentMetadataDetails cmd -> closuresCalled << 2 }
+        handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
 
         and:
-        processor.processMetadata(metadata)
+        handler.processMetadata(metadata)
 
         then:
         closuresCalled.sort() == [ 1, 2, 3 ]
@@ -232,12 +232,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatusScheme() >> ["integration", "release"]
         }
         def capturedDetails = null
-        processor.all { ComponentMetadataDetails details ->
+        handler.all { ComponentMetadataDetails details ->
             capturedDetails = details
         }
 
         when:
-        processor.processMetadata(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -262,12 +262,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getBranch() >> "someBranch"
         }
         def capturedDescriptor = null
-        processor.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
+        handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             capturedDescriptor = descriptor
         }
 
         when:
-        processor.processMetadata(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -287,12 +287,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         def invoked = false
-        processor.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
+        handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             invoked = true
         }
 
         when:
-        processor.processMetadata(metadata)
+        handler.processMetadata(metadata)
 
         then:
         !invoked
@@ -300,7 +300,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     def "complains if first parameter type isn't assignment compatible with ComponentMetadataDetails"() {
         when:
-        processor.all { String s -> }
+        handler.all { String s -> }
 
         then:
         InvalidUserCodeException e = thrown()
@@ -317,7 +317,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        processor.all { ComponentMetadataDetails details, String str -> }
+        handler.all { ComponentMetadataDetails details, String str -> }
 
         then:
         InvalidUserCodeException e = thrown()
@@ -340,14 +340,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def capturedDescriptor1 = null
         def capturedDescriptor2 = null
 
-        processor.all { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
+        handler.all { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
             capturedDetails1 = details1
             capturedDescriptor1 = descriptor1
             capturedDescriptor2 = descriptor2
         }
 
         when:
-        processor.processMetadata(metadata)
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()

@@ -127,7 +127,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
+        all { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.branch == '${sq(branch)}'
             details.statusScheme = [ '${sq(status)}' ]

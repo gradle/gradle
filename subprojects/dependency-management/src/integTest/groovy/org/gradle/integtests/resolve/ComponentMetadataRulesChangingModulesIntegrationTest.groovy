@@ -40,7 +40,7 @@ configurations {
 dependencies {
     modules("org.test:moduleA:1.0") { changing = true }
     components {
-        all { ComponentMetadataDetails details ->
+        all { details ->
             assert !details.changing
         }
     }
@@ -64,7 +64,7 @@ configurations {
 dependencies {
     modules "org.test:moduleA:$version"
     components {
-        all { ComponentMetadataDetails details ->
+        all { details ->
             assert !details.changing
         }
     }
@@ -94,7 +94,7 @@ configurations {
 dependencies {
     modules("org.test:moduleA:1.0")
     components {
-        all { ComponentMetadataDetails details -> details.changing = true }
+        all { details -> details.changing = true }
     }
 }
 task resolve << {
@@ -119,7 +119,7 @@ task resolve << {
 
         when:
         buildFile << """
-dependencies.components.all { ComponentMetadataDetails details -> details.changing = false }
+dependencies.components.all { details -> details.changing = false }
 """
         snapshot = artifact.snapshot()
         server.resetExpectations()
@@ -143,7 +143,7 @@ configurations {
 dependencies {
     modules("org.test:moduleA:1.0") { changing = true }
     components {
-        all { ComponentMetadataDetails details -> details.changing = false }
+        all { details -> details.changing = false }
     }
 }
 task resolve << {
