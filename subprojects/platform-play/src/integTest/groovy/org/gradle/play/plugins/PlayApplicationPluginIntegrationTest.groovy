@@ -73,30 +73,19 @@ Binaries
         tool chain: Default Play Toolchain"""))
     }
 
-    def "cannot have multiple PlayApplicationSpec component"() {
+    def "cannot register two PlayApplicationSpec components"() {
         given:
         buildFile << """
         model {
-            components {
-                myOtherApp(PlayApplicationSpec)
-            }
+             components {
+                 myOtherApp(PlayApplicationSpec)
+             }
         }
 """
         when:
-        succeeds "components"
+        fails "components"
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-DefaultPlayApplicationSpec 'myApp'
-----------------------------------
-
-Source sets
-    No source sets.
-
-Binaries
-    DefaultPlayApplicationBinarySpec 'myAppBinary'
-        build using task: :myAppBinary
-        platform: PlayPlatform2.3.5
-        tool chain: Default Play Toolchain"""))
+        errorOutput.contains("> Multiple components of type 'PlayApplicationSpec' are not supported.")
     }
 
     def "builds play binary"() {
