@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Unroll
 
 /**
- * Demonstrates the use of Ivy dependency excludes. For all test cases the exclude rules are applied to dependency "b".
+ * Demonstrates the use of Ivy dependency excludes.
  *
  * @see <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact-exclude.html">Ivy reference documentation</a>
  */
@@ -41,10 +41,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(['a-1.0.jar', 'c-1.0.jar'] as String[])
+        assertResolvedFiles(['a-1.0.jar', 'c-1.0.jar'])
 
         where:
         name                              | excludeAttributes
@@ -86,10 +86,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                              | excludeAttributes                                                         | resolvedJars
@@ -132,10 +132,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                              | excludeAttributes                                                         | resolvedJars
@@ -177,10 +177,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                              | excludeAttributes                                                         | resolvedJars
@@ -220,10 +220,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                  | excludeAttributes                     | resolvedJars
@@ -255,10 +255,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         moduleA.publish()
 
         when:
-        succeeds 'check'
+        succeedsDependencyResolution()
 
         then:
-        file('libs').assertHasDescendants(resolvedJars as String[])
+        assertResolvedFiles(resolvedJars)
 
         where:
         name                  | excludeAttributes                     | resolvedJars
