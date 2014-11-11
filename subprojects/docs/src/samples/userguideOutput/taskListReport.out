@@ -26,4 +26,6 @@ projects - Displays the sub-projects of root project 'projectReports'.
 properties - Displays the properties of root project 'projectReports'.
 tasks - Displays the tasks runnable from root project 'projectReports' (some of the displayed tasks may belong to subprojects).
 
-To see all tasks and more detail, run with --all.
+To see all tasks and more detail, run gradle tasks --all
+
+To see more detail about a task, run gradle help --task <task>
