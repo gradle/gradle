@@ -17,7 +17,7 @@
 package org.gradle.play.internal.routes.spec;
 
 import com.google.common.base.Function;
-import org.gradle.play.internal.PlayCompileSpec;
+import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;

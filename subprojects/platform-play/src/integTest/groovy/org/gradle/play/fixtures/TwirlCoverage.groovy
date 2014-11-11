@@ -16,20 +16,26 @@
 
 package org.gradle.play.fixtures
 
+import org.gradle.api.JavaVersion
+import org.gradle.play.platform.PlayPlatform
+import org.gradle.play.internal.platform.DefaultPlayPlatform
+
 class TwirlCoverage {
-    static final TwirlTemplateVersion LATEST = new TwirlTemplateVersion(version:"1.0.2", dependency: "com.typesafe.play:twirl-compiler_2.10:1.0.2")
-    static final TwirlTemplateVersion PLAY_223_COMPLIANT = new TwirlTemplateVersion(version: "2.2.3", dependency: "com.typesafe.play:templates-compiler_2.10:2.2.3")
-    static final TwirlTemplateVersion PLAY_224_COMPLIANT = new TwirlTemplateVersion(version: "2.2.4", dependency: "com.typesafe.play:templates-compiler_2.10:2.2.4")
-    static final TwirlTemplateVersion PLAY_225_COMPLIANT = new TwirlTemplateVersion(version: "2.2.5", dependency: "com.typesafe.play:templates-compiler_2.10:2.2.5")
+    static final TwirlTemplateVersion LATEST = new TwirlTemplateVersion(new DefaultPlayPlatform("2.3.6", "2.11", "1.0.2", JavaVersion.current()))
+    static final TwirlTemplateVersion PLAY_233_COMPLIANT = new TwirlTemplateVersion(new DefaultPlayPlatform("2.3.5", "2.11", "1.0.2", JavaVersion.current()))
+    static final TwirlTemplateVersion PLAY_223_COMPLIANT = new TwirlTemplateVersion(new DefaultPlayPlatform("2.2.3", "2.10", "2.2.3", JavaVersion.current()))
+
     static final TwirlTemplateVersion[] DEFAULT = [LATEST, PLAY_223_COMPLIANT];
-    static final TwirlTemplateVersion[] ALL = [LATEST, PLAY_223_COMPLIANT, PLAY_224_COMPLIANT, PLAY_225_COMPLIANT];
 
     static class TwirlTemplateVersion{
-        String dependency
-        String version
+        PlayPlatform platform
+
+        public TwirlTemplateVersion(PlayPlatform platform){
+            this.platform = platform
+        }
 
         String toString() {
-            version
+            platform.getTwirlVersion()
         }
     }
 

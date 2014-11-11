@@ -24,6 +24,10 @@ import org.gradle.play.fixtures.TwirlCoverage
 class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
     def setup(){
         buildFile << """
+        plugins {
+           id 'play-application'
+        }
+
         repositories{
             jcenter()
             maven{
@@ -32,20 +36,15 @@ class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
             }
         }
 
-        configurations{
-            twirl
-        }
-
-        dependencies{
-            twirl '${version.dependency}'
-        }
-
+        /**
+          * @TODO it should be simpler to select a platform explicitly
+          */
         task twirlCompile(type:TwirlCompile){
-            compilerClasspath = configurations.twirl
+            platform = new ${org.gradle.play.internal.platform.DefaultPlayPlatform.class.name}('${version.platform.playVersion}', '${version.platform.scalaVersion}', '${version.platform.twirlVersion}', JavaVersion.current())
+
             outputDirectory = file('build/twirl')
             sourceDirectory = file('./app')
 
-            fork = true
             forkOptions.memoryInitialSize =  "256m"
             forkOptions.memoryMaximumSize =  "512m"
         }

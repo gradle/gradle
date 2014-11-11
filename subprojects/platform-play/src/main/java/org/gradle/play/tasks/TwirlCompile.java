@@ -17,10 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -28,17 +25,18 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
-import org.gradle.play.internal.twirl.spec.TwirlCompilerVersion;
-import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
-import org.gradle.play.internal.twirl.spec.TwirlCompileSpecFactory;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.internal.twirl.DefaultTwirlCompileSpec;
+import org.gradle.play.internal.twirl.TwirlCompileSpec;
+import org.gradle.play.platform.PlayPlatform;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Task for compiling twirl templates
@@ -46,18 +44,12 @@ import java.util.regex.Pattern;
 public class TwirlCompile extends SourceTask {
 
     /**
-     * FileCollection presenting the twirl compiler classpath.
-     */
-    private FileCollection compilerClasspath;
-
-    /**
      * Target directory for the compiled template files.
      */
     private File outputDirectory;
 
     /**
-     * Source directory for the template files.
-     * Used to find the relative path of templates.
+     * Source directory for the template files. Used to find the relative path of templates.
      */
     private File sourceDirectory;
 
@@ -68,11 +60,10 @@ public class TwirlCompile extends SourceTask {
     private Compiler<TwirlCompileSpec> compiler;
 
     private TwirlStaleOutputCleaner cleaner;
-
+    private PlayPlatform platform;
 
     /**
-     * fork options for the twirl compiler.
-     * Forked compilation must be enabled by setting fork = true first
+     * fork options for the twirl compiler. Forked compilation must be enabled by setting fork = true first
      */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
@@ -83,15 +74,6 @@ public class TwirlCompile extends SourceTask {
 
     void setCompiler(Compiler<TwirlCompileSpec> compiler) {
         this.compiler = compiler;
-    }
-
-      @InputFiles
-    public FileCollection getCompilerClasspath() {
-        return compilerClasspath;
-    }
-
-    public void setCompilerClasspath(FileCollection compilerClasspath) {
-        this.compilerClasspath = compilerClasspath;
     }
 
     /**
@@ -113,10 +95,8 @@ public class TwirlCompile extends SourceTask {
         this.outputDirectory = outputDirectory;
     }
 
-
     /**
-     * Returns the root directory where sources are found.
-     * Used to find the relative path of templates.
+     * Returns the root directory where sources are found. Used to find the relative path of templates.
      *
      * @return The root directory for sources.
      */
@@ -125,8 +105,7 @@ public class TwirlCompile extends SourceTask {
     }
 
     /**
-     * Specifies the root directory where sources are found.
-     * Used to find the relative path of templates.
+     * Specifies the root directory where sources are found. Used to find the relative path of templates.
      *
      * @param sourceDirectory TThe root directory for sources.
      */
@@ -145,10 +124,9 @@ public class TwirlCompile extends SourceTask {
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-        String compilerVersion = detectCompilerVersion();
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(getSourceDirectory(), getSource().getFiles(), getOutputDirectory(), useJavaDefaults());
         if (!inputs.isIncremental()) {
-            TwirlCompileSpec spec = generateSpec(getSource().getFiles(), compilerVersion);
-            if(compiler==null){
+            if (compiler == null) {
                 compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(spec), getOutputs());
             }
             compiler.execute(spec);
@@ -170,39 +148,16 @@ public class TwirlCompile extends SourceTask {
                 cleaner = new TwirlStaleOutputCleaner(getOutputDirectory());
             }
             cleaner.execute(staleOutputFiles);
-            TwirlCompileSpec spec = generateSpec(sourcesToCompile, compilerVersion);
             getCompiler(spec).execute(spec);
         }
     }
 
-    public String detectCompilerVersion() {
-        final Pattern versionPattern = Pattern.compile("(templates-compiler|twirl-compiler)_(\\d+\\.\\d+)-(\\d+\\.\\d+\\.\\d).jar");
-        for (File file : getCompilerClasspath()) {
-            Matcher matcher = versionPattern.matcher(file.getName());
-            if(matcher.matches()){
-                return matcher.group(3);
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * For now just using InProcessCompilerDaemon.
-     *
-     * TODO allow forked compiler
-     */
     private Compiler<TwirlCompileSpec> getCompiler(TwirlCompileSpec spec) {
         if (compiler == null) {
-            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-            compiler = new TwirlCompilerFactory(getProject().getProjectDir(), compilerDaemonManager, inProcessCompilerDaemonFactory, getForkOptions()).newCompiler(spec);
+            ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
+            compiler = select.newCompiler(spec);
         }
         return compiler;
-    }
-
-    private TwirlCompileSpec generateSpec(Set<File> sourceFiles, String compilerClassName) {
-        return TwirlCompileSpecFactory.create(getSourceDirectory(), sourceFiles, getOutputDirectory(), getCompilerClasspath().getFiles(), fork, useJavaDefaults(), TwirlCompilerVersion.parse(compilerClassName));
     }
 
     private boolean useJavaDefaults() {
@@ -213,6 +168,21 @@ public class TwirlCompile extends SourceTask {
         this.cleaner = cleaner;
     }
 
+    public void setPlatform(PlayPlatform platform) {
+        this.platform = platform;
+    }
+
+    /**
+     * Returns the tool chain that will be used to compile the Java source.
+     *
+     * @return The tool chain.
+     */
+    @Incubating
+    @Inject
+    public PlayToolChain getToolChain() {
+        // Implementation is generated
+        throw new UnsupportedOperationException();
+    }
 
     private static class TwirlStaleOutputCleaner {
         private final File destinationDir;

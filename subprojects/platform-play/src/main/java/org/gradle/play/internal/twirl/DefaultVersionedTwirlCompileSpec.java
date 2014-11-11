@@ -14,35 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl.spec;
+package org.gradle.play.internal.twirl;
 
 import java.io.File;
 
-public abstract class DefaultTwirlCompileSpec implements TwirlCompileSpec {
-    private final File sourceDirectory;
-    private final Iterable<File> sources;
-    private final boolean fork;
-    private final boolean javaProject;
-    private final File destinationDir;
+public abstract class DefaultVersionedTwirlCompileSpec extends DefaultTwirlCompileSpec {
     private final String additionalImports;
     private final String formatterType;
-    private final Iterable<File> compileClasspath;
 
-    public Iterable<File> getSources() {
-        return sources;
+    public DefaultVersionedTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, boolean javaProject) {
+        this(sourceDirectory, sources, destinationDir, null, null, javaProject);
     }
 
-    public DefaultTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, Iterable<File> compileClasspath, boolean fork, boolean javaProject) {
-        this(sourceDirectory, sources, destinationDir, null, null, compileClasspath, fork, javaProject);
-    }
-
-    public DefaultTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, String additionalImports, String formatterType, Iterable<File> compileClasspath, boolean fork, boolean javaProject) {
-        this.sources = sources;
-        this.destinationDir = destinationDir;
-        this.sourceDirectory = sourceDirectory;
-        this.compileClasspath = compileClasspath;
-        this.fork = fork;
-        this.javaProject = javaProject;
+    public DefaultVersionedTwirlCompileSpec(File sourceDirectory, Iterable<File> sources, File destinationDir, String additionalImports, String formatterType, boolean javaProject) {
+        super(sourceDirectory, sources, destinationDir, javaProject);
         if (additionalImports != null) {
             this.additionalImports = additionalImports;
         } else {
@@ -60,18 +45,6 @@ public abstract class DefaultTwirlCompileSpec implements TwirlCompileSpec {
         }
     }
 
-    public File getDestinationDir(){
-        return destinationDir;
-    }
-
-    public File getSourceDirectory() {
-        return sourceDirectory;
-    }
-
-    public boolean isFork() {
-        return fork;
-    }
-
     protected abstract String defaultFormatterType();
     protected abstract String defaultJavaAdditionalImports(String format);
     protected abstract String defaultScalaAdditionalImports(String format);
@@ -82,14 +55,5 @@ public abstract class DefaultTwirlCompileSpec implements TwirlCompileSpec {
 
     public String getAdditionalImports() {
         return this.additionalImports;
-    }
-
-
-    public Iterable<File> getCompileClasspath() {
-        return compileClasspath;
-    }
-
-    public boolean isJavaProject() {
-        return javaProject;
     }
 }

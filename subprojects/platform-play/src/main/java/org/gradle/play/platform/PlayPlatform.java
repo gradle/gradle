@@ -28,5 +28,7 @@ public interface PlayPlatform extends Platform{
 
     public String getScalaVersion();
 
+    public String getTwirlVersion();
+
     public JavaVersion getJavaVersion();
 }

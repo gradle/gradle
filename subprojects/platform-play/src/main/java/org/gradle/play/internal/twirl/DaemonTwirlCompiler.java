@@ -20,23 +20,24 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
 
 import java.io.File;
 import java.util.List;
 
-public class DaemonTwirlCompiler extends AbstractDaemonCompiler<TwirlCompileSpec> {
+public class DaemonTwirlCompiler extends AbstractDaemonCompiler<VersionedTwirlCompileSpec> {
+    private final Iterable<File> compilerClasspath;
     private final BaseForkOptions forkOptions;
 
-    public DaemonTwirlCompiler(File projectDir, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory, BaseForkOptions forkOptions) {
+    public DaemonTwirlCompiler(File projectDir, Iterable<File> compilerClasspath, TwirlCompiler twirlCompiler, CompilerDaemonFactory compilerDaemonFactory, BaseForkOptions forkOptions) {
         super(projectDir, twirlCompiler, compilerDaemonFactory);
+        this.compilerClasspath = compilerClasspath;
         this.forkOptions = forkOptions;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected DaemonForkOptions toDaemonOptions(TwirlCompileSpec spec) {
+    protected DaemonForkOptions toDaemonOptions(VersionedTwirlCompileSpec spec) {
         List<String> twirlPackages = spec.getClassLoaderPackages();
-        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(), spec.getCompileClasspath(), twirlPackages);
+        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(), compilerClasspath, twirlPackages);
     }
 }

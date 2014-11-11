@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal;
+package org.gradle.play.internal.spec;
 
 import org.gradle.language.base.internal.compile.CompileSpec;
 

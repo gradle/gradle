@@ -15,43 +15,32 @@
  */
 
 package org.gradle.play.internal
-
-import org.gradle.api.JavaVersion
-import org.gradle.play.platform.PlayPlatform
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
+import org.gradle.play.internal.toolchain.DefaultPlayToolChain
 import spock.lang.Specification
 
 class DefaultPlayToolChainTest extends Specification {
 
-    PlayPlatform platform = Mock()
+    FileResolver fileResolver = Mock()
+    CompilerDaemonManager compilerDaemonManager = Mock()
+    ConfigurationContainer configurationContainer = Mock()
+    DependencyHandler dependencyHandler = Mock()
 
     def "provides meaningful name"() {
         given:
-        def toolChain = new DefaultPlayToolChain(platform)
-        when:
-        1 * platform.getPlayVersion() >> playVersion
-
-        then:
-        toolChain.getName() == "PlayToolchain$playVersion"
-
-        where:
-        playVersion << ["2.3.2", "2.3.5"]
+        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
+        expect:
+        toolChain.getName() == "PlayToolchain"
     }
 
     def "provides meaningful displayname"() {
         given:
-        def toolChain = new DefaultPlayToolChain(platform)
+        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
 
-        when:
-        1 * platform.getPlayVersion() >> playVersion
-        1 * platform.getScalaVersion() >> scalaVersion
-        2 * platform.getJavaVersion() >> javaVersion
-        then:
-        toolChain.getDisplayName() == expectedOutput
-
-        where:
-        playVersion | scalaVersion | javaVersion             | expectedOutput
-        "2.3.2"     | "2.10"       | JavaVersion.VERSION_1_6 | "Play Toolchain (Play 2.3.2, Scala 2.10, JDK 6 (1.6))"
-        "2.3.5"     | "2.10"       | JavaVersion.VERSION_1_7 | "Play Toolchain (Play 2.3.5, Scala 2.10, JDK 7 (1.7))"
-        "2.3.5"     | "2.11"       | JavaVersion.VERSION_1_8 | "Play Toolchain (Play 2.3.5, Scala 2.11, JDK 8 (1.8))"
+        expect:
+        toolChain.getDisplayName() == "Default Play Toolchain"
     }
 }

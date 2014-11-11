@@ -17,13 +17,14 @@
 package org.gradle.play.internal;
 
 import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.PlayToolChain;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 
 import java.io.File;
 
 public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec {
     void setTargetPlatform(PlayPlatform platform);
-    void setToolChain(PlayToolChain toolChain);
+    void setToolChain(PlayToolChainInternal toolChain);
+    PlayToolChainInternal getToolChain();
     void setJarFile(File file);
 }

@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.play.platform.internal;
+package org.gradle.play.internal.platform;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.play.platform.PlayPlatform;
 
 public class DefaultPlayPlatform implements PlayPlatform {
     private final String playVersion;
     private String scalaVersion;
+    private String twirlVersion;
     private final JavaVersion javaVersion;
 
-    public DefaultPlayPlatform(String playVersion, JavaVersion javaVersion) {
+    public DefaultPlayPlatform(String playVersion, String scalaVersion, String twirlVersion, JavaVersion javaVersion) {
         this.playVersion = playVersion;
-        this.scalaVersion = calculateDefaultScalaVersion(playVersion);
+        this.scalaVersion = scalaVersion;
+        this.twirlVersion = twirlVersion;
         this.javaVersion = javaVersion;
-    }
-
-    private String calculateDefaultScalaVersion(String playVersion) {
-        if(playVersion.startsWith("2.2")){
-            return "2.10";
-        }else if(playVersion.startsWith("2.3")){
-            return "2.11";
-        }else {
-            throw new GradleException("Unsupported Play Version");
-        }
     }
 
     public String getPlayVersion() {
@@ -61,4 +52,7 @@ public class DefaultPlayPlatform implements PlayPlatform {
         return String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, javaVersion.getMajorVersion(), javaVersion);
     }
 
+    public String getTwirlVersion() {
+        return twirlVersion;
+    }
 }

@@ -13,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.play.internal;
-
-import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
-import org.gradle.play.PlayToolChain;
-import org.gradle.play.platform.PlayPlatform;
-
-public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
-}
+/**
+ * Defines tools that can build play applications.
+ */
+package org.gradle.play.toolchain;

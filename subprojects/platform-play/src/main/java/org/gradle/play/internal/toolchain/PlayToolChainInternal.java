@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal;
+package org.gradle.play.internal.toolchain;
 
-import org.gradle.play.PlayToolChain;
+import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
+import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.play.platform.PlayPlatform;
 
-public class DefaultPlayToolChain implements PlayToolChain {
-
-    private final PlayPlatform platform;
-
-    public DefaultPlayToolChain(PlayPlatform playPlatform) {
-        this.platform = playPlatform;
-    }
-
-    public String getName() {
-        return String.format("PlayToolchain%s", platform.getPlayVersion());
-    }
-
-    public String getDisplayName() {
-        return String.format("Play Toolchain (Play %s, Scala %s, JDK %s (%s))", platform.getPlayVersion(), platform.getScalaVersion(), platform.getJavaVersion().getMajorVersion(), platform.getJavaVersion());
-    }
+public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
 }

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl.spec;
+package org.gradle.play.internal.twirl;
 
-import java.io.File;
-import java.util.Set;
+import org.gradle.play.platform.PlayPlatform;
 
 public class TwirlCompileSpecFactory {
-    public static TwirlCompileSpec create(File sourceDirectory, Set<File> files, File outputDirectory, Iterable<File> compileClasspath, boolean fork, boolean javaProject, TwirlCompilerVersion version) {
+    public static VersionedTwirlCompileSpec create(TwirlCompileSpec spec, PlayPlatform playPlatform) {
+        TwirlCompilerVersion version = TwirlCompilerVersion.parse(playPlatform.getTwirlVersion());
         switch (version) {
             case V_22X:
-                return new TwirlCompileSpecV22X(sourceDirectory, files, outputDirectory, compileClasspath, fork, javaProject);
+                return new TwirlCompileSpecV22X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaVersion());
             case V_10X:
-                return new TwirlCompileSpecV10X(sourceDirectory, files, outputDirectory, compileClasspath, fork, javaProject);
+                return new TwirlCompileSpecV10X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaVersion());
             default:
                 throw new RuntimeException("Could not create Play Twirl compile spec for version: " + version);
         }

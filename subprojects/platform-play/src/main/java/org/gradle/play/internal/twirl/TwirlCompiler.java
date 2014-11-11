@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.scala.reflection.util.ScalaOptionInvocationWrapper;
-import org.gradle.play.internal.twirl.spec.TwirlCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
@@ -31,9 +30,9 @@ import java.util.ArrayList;
  * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
  * See spec.versions for individual methods
  */
-public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
+public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Serializable {
 
-    public WorkResult execute(TwirlCompileSpec spec) {
+    public WorkResult execute(VersionedTwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
             ClassLoader cl = getClass().getClassLoader();
