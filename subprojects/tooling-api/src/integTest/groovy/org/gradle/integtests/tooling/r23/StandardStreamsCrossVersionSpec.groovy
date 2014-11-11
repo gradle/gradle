@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
 @TargetGradleVersion(">=2.3")
