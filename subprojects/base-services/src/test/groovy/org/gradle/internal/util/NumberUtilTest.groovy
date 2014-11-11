@@ -54,16 +54,16 @@ class NumberUtilTest extends Specification {
         formatBytes(0) == "0 B"
         formatBytes(1) == "1 B"
         formatBytes(999) == "999 B"
-        formatBytes(1000) == "1.0 kB"
-        formatBytes(1001) == "1.0 kB"
-        formatBytes(1501) == "1.5 kB"
-        formatBytes(1999) == "2.0 kB"
-        formatBytes(-1999) == "-2.0 kB"
-        formatBytes(1000000) == "1.0 MB"
-        formatBytes(1000000000) == "1.0 GB"
-        formatBytes(1000000000000) == "1.0 TB"
-        formatBytes(1000000000000000) == "1.0 PB"
-        formatBytes(1000000000000000000) == "1.0 EB"
+        formatBytes(1000) == String.format("%.1f kB", 1.0)
+        formatBytes(1001) == String.format("%.1f kB", 1.0)
+        formatBytes(1501) == String.format("%.1f kB", 1.5)
+        formatBytes(1999) == String.format("%.1f kB", 2.0)
+        formatBytes(-1999) == String.format("%.1f kB", -2.0)
+        formatBytes(1000000) == String.format("%.1f MB", 1.0)
+        formatBytes(1000000000) == String.format("%.1f GB", 1.0)
+        formatBytes(1000000000000) == String.format("%.1f TB", 1.0)
+        formatBytes(1000000000000000) == String.format("%.1f PB", 1.0)
+        formatBytes(1000000000000000000) == String.format("%.1f EB", 1.0)
     }
 
     def "knows ordinal"() {
