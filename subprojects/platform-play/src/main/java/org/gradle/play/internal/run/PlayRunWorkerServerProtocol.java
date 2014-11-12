@@ -16,27 +16,7 @@
 
 package org.gradle.play.internal.run;
 
-import java.io.Serializable;
+import org.gradle.internal.concurrent.Stoppable;
 
-public class PlayRunResult implements Serializable{
-    private final Exception exception;
-    private boolean successful;
-
-    public PlayRunResult(boolean success){
-        this.successful = success;
-        this.exception = null;
-    }
-
-    public PlayRunResult(Exception exception){
-        this.successful = false;
-        this.exception = exception;
-    }
-
-    public boolean isSuccessful() {
-        return successful;
-    }
-
-    public Exception getException() {
-        return exception;
-    }
+public interface PlayRunWorkerServerProtocol extends Stoppable {
 }

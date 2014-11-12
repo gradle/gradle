@@ -16,14 +16,29 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.internal.UncheckedException;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+
 public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
 
-    public PlayRunResult getResult() {
-        return new PlayRunResult();
-    }
+    private final BlockingQueue<PlayRunResult> runResults = new SynchronousQueue<PlayRunResult>();
 
     public void executed(PlayRunResult result) {
-        System.out.println("result = " + result);
+        try {
+            runResults.put(result);
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    public PlayRunResult getResult() {
+        try {
+            return runResults.take();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public void updateStatus(String name) {

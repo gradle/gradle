@@ -16,27 +16,19 @@
 
 package org.gradle.play.internal.run;
 
-import java.io.Serializable;
+import org.gradle.process.internal.WorkerProcess;
 
-public class PlayRunResult implements Serializable{
-    private final Exception exception;
-    private boolean successful;
+public class PlayApplicationRunnerToken {
+    private WorkerProcess process;
+    private final PlayRunWorkerServerProtocol playRunWorkerServerProtocol;
 
-    public PlayRunResult(boolean success){
-        this.successful = success;
-        this.exception = null;
+    public PlayApplicationRunnerToken(WorkerProcess process, PlayRunWorkerServerProtocol playRunWorkerServerProtocol) {
+        this.process = process;
+        this.playRunWorkerServerProtocol = playRunWorkerServerProtocol;
     }
 
-    public PlayRunResult(Exception exception){
-        this.successful = false;
-        this.exception = exception;
-    }
-
-    public boolean isSuccessful() {
-        return successful;
-    }
-
-    public Exception getException() {
-        return exception;
+    public void stop(){
+        playRunWorkerServerProtocol.stop();
+        process.waitForStop();
     }
 }

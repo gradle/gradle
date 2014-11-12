@@ -18,10 +18,9 @@ package org.gradle.play.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
-import org.gradle.play.internal.run.PlayRunResult;
+import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.run.PlayRunWorkerManager;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -37,6 +36,8 @@ public class PlayRun extends ConventionTask {
     private FileCollection classpath;
     private FileCollection playAppClasspath;
 
+    private int httpPort;
+
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
@@ -45,10 +46,18 @@ public class PlayRun extends ConventionTask {
         return classpath;
     }
 
+    private PlayApplicationRunnerToken runnerToken;
+
     @TaskAction public void run(){
         PlayRunSpec spec = generateSpec();
         PlayRunWorkerManager manager = new PlayRunWorkerManager();
-        PlayRunResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getClasspath(), spec);
+        runnerToken = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getClasspath(), spec);
+    }
+
+    public void stop(){
+        if(runnerToken!=null){
+            runnerToken.stop();
+        }
     }
 
     @Inject
@@ -66,5 +75,13 @@ public class PlayRun extends ConventionTask {
 
     public void setPlayAppClasspath(FileCollection playAppClasspath) {
         this.playAppClasspath = playAppClasspath;
+    }
+
+    public int getHttpPort() {
+        return httpPort;
+    }
+
+    public void setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
     }
 }
