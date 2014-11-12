@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl
+package org.gradle.play.internal.toolchain
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
 import org.gradle.api.tasks.compile.BaseForkOptions
+import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.play.internal.spec.VersionedPlayCompileSpec
 import spock.lang.Specification
 
-class DaemonTwirlCompilerTest extends Specification {
+class DaemonPlayCompilerTest extends Specification {
+
     def workingDirectory = Mock(File)
-    def delegate = Mock(TwirlCompiler)
+    def delegate = Mock(Compiler)
     def compilerDaemonFactory = Mock(CompilerDaemonFactory)
-    def spec = Mock(VersionedTwirlCompileSpec)
+    def spec = Mock(VersionedPlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
+
+    def setup(){
+        _ * spec.getForkOptions() >> forkOptions
+    }
 
     def "passes compileclasspath to daemon options"() {
         given:
         def classpath = someClasspath()
-        def compiler = new DaemonTwirlCompiler(workingDirectory, classpath, delegate, compilerDaemonFactory, forkOptions)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, classpath)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
@@ -38,7 +45,7 @@ class DaemonTwirlCompilerTest extends Specification {
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonTwirlCompiler(workingDirectory, someClasspath(), delegate, compilerDaemonFactory, forkOptions)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, someClasspath())
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"
@@ -49,6 +56,6 @@ class DaemonTwirlCompilerTest extends Specification {
     }
 
     def someClasspath() {
-       [Mock(File), Mock(File)]
+        [Mock(File), Mock(File)]
     }
 }
