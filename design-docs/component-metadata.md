@@ -83,6 +83,10 @@ empty set of component selection rules.
 
 # Later milestones
 
+## Don't apply component meta-data rules to parent pom references
+
+Also pom import, ivy extends and so on.
+
 ## Dependency reports should indicate reasons for candidate selection (e.g. why other candidates were rejected).
 
 ## Add DSL to allow resolution strategy to be applied to all resolution
