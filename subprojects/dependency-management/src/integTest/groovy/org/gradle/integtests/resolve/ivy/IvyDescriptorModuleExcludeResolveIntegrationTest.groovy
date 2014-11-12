@@ -233,8 +233,8 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'module'              | [module: 'd']
         'org and all modules' | [org: 'org.gradle.test', module: '*']
         'org and module'      | [org: 'org.gradle.test', module: 'd']
-        //'artifact'            | [artifact: 'd']
-        //'org and artifact'    | [org: 'org.gradle.test', artifact: 'd']
+        'artifact'            | [artifact: 'd']
+        'org and artifact'    | [org: 'org.gradle.test', artifact: 'd']
     }
 
     /**
