@@ -633,6 +633,7 @@ public class DependencyGraphBuilder {
         private final ResolveState resolveState;
         private ModuleSelector previousTraversal;
         private Set<ResolvedArtifact> artifacts;
+        private boolean requiresArtifactResolution = true;
 
         private ConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
             this.moduleRevision = moduleRevision;
@@ -652,11 +653,13 @@ public class DependencyGraphBuilder {
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ArtifactVersionSpec artifactVersionSpec) {
-            if (artifacts == null) {
+            if (requiresArtifactResolution) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
                 resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
+
+                boolean unsatisfiedArtifactSpec = false;
 
                 for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
                     ModuleId moduleId = ModuleId.newInstance(id.getModuleGroup(), id.getModuleName());
@@ -664,8 +667,12 @@ public class DependencyGraphBuilder {
 
                     if(artifactVersionSpec.isSatisfiedBy(artifactId)) {
                         artifacts.add(builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
+                    } else {
+                        unsatisfiedArtifactSpec = true;
                     }
                 }
+
+                requiresArtifactResolution = unsatisfiedArtifactSpec;
             }
             return artifacts;
         }
