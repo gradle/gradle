@@ -16,13 +16,7 @@
 
 package org.gradle.play.internal.routes;
 
-import com.google.common.base.Function;
+import org.gradle.play.internal.spec.VersionedPlayCompileSpec;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-
-public interface VersionedRoutesCompileSpec extends RoutesCompileSpec {
-    Object getDependencyNotation();
-    Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
-    Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+public interface VersionedRoutesCompileSpec extends RoutesCompileSpec, VersionedPlayCompileSpec {
 }

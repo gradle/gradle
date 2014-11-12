@@ -16,15 +16,7 @@
 
 package org.gradle.play.internal.twirl;
 
-import com.google.common.base.Function;
+import org.gradle.play.internal.spec.VersionedPlayCompileSpec;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-
-public interface VersionedTwirlCompileSpec extends TwirlCompileSpec{
-    Object getDependencyNotation();
-    Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
-    Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
-    List<String> getClassLoaderPackages();
+public interface VersionedTwirlCompileSpec extends TwirlCompileSpec, VersionedPlayCompileSpec {
 }

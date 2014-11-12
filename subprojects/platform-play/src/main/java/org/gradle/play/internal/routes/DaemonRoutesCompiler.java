@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class DaemonRoutesCompiler extends AbstractDaemonCompiler<VersionedRoutes
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(VersionedRoutesCompileSpec spec) {
-        List<String> routesPackages = Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching");
+        List<String> routesPackages = spec.getClassLoaderPackages();
         return new DaemonForkOptions(null, null, Collections.EMPTY_LIST, compilerClasspath, routesPackages);
     }
 }
