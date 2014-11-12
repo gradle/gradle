@@ -47,6 +47,7 @@ class TestOutputRedirector {
     }
 
     void setOutputOwner(Object testId) {
+        assert testId != null;
         outForwarder.outputOwner = testId;
         errForwarder.outputOwner = testId;
     }
