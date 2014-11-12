@@ -235,13 +235,15 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
-                tasks.create(runTaskName, JavaExec.class, new Action<JavaExec>() {
-                    public void execute(JavaExec javaExec) {
-                        javaExec.dependsOn(binary.getBuildTask());
-                        javaExec.setMain(PLAY_MAIN_CLASS);
-                        Project project = javaExec.getProject();
+                tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
+                    public void execute(PlayRun playRun) {
+                        playRun.dependsOn(binary.getBuildTask());
+
+                        Project project = playRun.getProject();
                         FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
-                        javaExec.setClasspath(classpath);
+                        classpath.add(project.files(binary.getJarFile()).plus(project.getConfigurations().getByName("playRunConf")));
+                        playRun.setClasspath(classpath); //TODO: not correct - should be only playRunCOnf
+                        playRun.setPlayAppClasspath(classpath);
                     }
                 });
             }

@@ -16,12 +16,35 @@
 
 package org.gradle.play.internal.run;
 
+import java.io.File;
 import java.io.Serializable;
 
 public class PlayRunSpec implements Serializable{
+
     private String maxHeapSize;
+    private final Iterable<File> classpath;
+    private final File projectPath;
+    private final Iterable<File> projectClasspath;
+
+    public PlayRunSpec(Iterable<File> classpath, File projectPath, Iterable<File> projectClasspath) {
+        this.classpath = classpath;
+        this.projectPath = projectPath;
+        this.projectClasspath = projectClasspath;
+    }
 
     public String getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    public Iterable<File> getClasspath() {
+        return classpath;
+    }
+
+    public Object getProjectPath() {
+        return projectPath;
+    }
+
+    public Iterable<File> getProjectClasspath() {
+        return projectClasspath;
     }
 }

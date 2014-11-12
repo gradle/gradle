@@ -16,8 +16,10 @@
 
 package org.gradle.play.tasks;
 
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
 import org.gradle.play.internal.run.PlayRunResult;
@@ -34,6 +36,7 @@ public class PlayRun extends ConventionTask {
 
 
     private FileCollection classpath;
+    private FileCollection playAppClasspath;
 
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
@@ -55,6 +58,14 @@ public class PlayRun extends ConventionTask {
     }
 
     private PlayRunSpec generateSpec() {
-        return new PlayRunSpec();
+        return new PlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), getPlayAppClasspath().getFiles());
+    }
+
+    public FileCollection getPlayAppClasspath() {
+        return playAppClasspath;
+    }
+
+    public void setPlayAppClasspath(FileCollection playAppClasspath) {
+        this.playAppClasspath = playAppClasspath;
     }
 }

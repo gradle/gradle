@@ -16,36 +16,71 @@
 
 package org.gradle.play.internal.run;
 
+import com.google.common.base.Function;
+
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
+
+import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.jar.JarFile;
 
 public class PlayExecuter {
-    public PlayRunResult run(PlayRunSpec spec) {
+    public void run(final PlayRunSpec spec) {
         ClassLoader cl = getClass().getClassLoader();
         try {
-            Class<?> mainClass = cl.loadClass("play.core.server.NettyServer");
-            Class<?> buildLinkClass = cl.loadClass("play.core.SBTLink"); //cl.loadClass("play.core.BuildLink");
-            Class<?> buildDocHandlerClass = cl.loadClass("play.core.SBTDocHandler"); //cl.loadClass("play.core.BuildDocHandler");
+            Class<?> buildLinkClass = cl.loadClass("play.core.BuildLink"); //cl.loadClass("play.core.SBTLink");  //2.2.x
+            Class<?> buildDocHandlerClass = cl.loadClass("play.core.BuildDocHandler"); //cl.loadClass("play.core.SBTDocHandler");  //2.2.x
 
             ClassLoader docsClassLoader = cl; //TODO: split into seperate classpaths!
-            Class<?> docHandlerFactoryClass = docsClassLoader.loadClass("play.docs.BuildDocHandlerFactory");
-            Method factoryMethod = docHandlerFactoryClass.getMethod("empty");
-            Object buildDocHandler = factoryMethod.invoke(null);
+            Class<?> docHandlerFactoryClass = docsClassLoader.loadClass("play.docs.BuildDocHandlerFactory"); // docsClassLoader.loadClass("play.docs.SBTDocHandlerFactory");
 
-            Method runMethod = mainClass.getMethod("mainDevHttpMode", buildLinkClass, buildDocHandlerClass, Integer.class);
+            Method factoryMethod = docHandlerFactoryClass.getMethod("fromJar", JarFile.class, String.class);
+
+            File docJarFile = null;
+            for (File file: spec.getClasspath()) {
+                if (file.getName().startsWith("play-docs")) {
+                    docJarFile = file;
+                    break;
+                }
+            }
+
+            JarFile docJar = new JarFile(docJarFile);
+            Object buildDocHandler = factoryMethod.invoke(null, docJar, "play/docs/content");
+
+            Function<Object[], Object> runMethod = ScalaUtil.scalaObjectFunction(cl, "play.core.server.NettyServer", "mainDevHttpMode", new Class<?>[]{
+                    buildLinkClass, buildDocHandlerClass, int.class
+            });
             Object buildLink = Proxy.newProxyInstance(cl, new java.lang.Class[]{buildLinkClass}, new InvocationHandler() {
 
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    if (method.getName().equals("projectPath")) {
+                        return spec.getProjectPath();
+                    } else if (method.getName().equals("reload")) {
+                        DefaultClassPath projectClasspath = new DefaultClassPath(spec.getProjectClasspath());
+                        URLClassLoader classLoader = new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}));
+                        System.out.println(projectClasspath);
+                        return classLoader;
+                    }
+                    //TODO: all methods
                     return null;
                 }
             });
-            //runMethod.invoke(null, )
-
+            Integer port = 9000;
+            Object server = runMethod.apply(new Object[]{
+                    buildLink,
+                    buildDocHandler,
+                    port
+            }); //TODO: add server close
+            while (true) {
+                Thread.sleep(100);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        return new PlayRunResult();
     }
 }

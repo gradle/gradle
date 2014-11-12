@@ -43,11 +43,10 @@ public class PlayRunWorkerManager {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
         builder.applicationClasspath(playAppClasspath);
-        builder.sharedPackages(Arrays.asList("org.gradle.play.internal.run"));
+        builder.sharedPackages(Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala"));
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
-
         WorkerProcess process = builder.worker(new PlayWorkerServer(spec)).build();
         return process;
     }
