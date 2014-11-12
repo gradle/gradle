@@ -41,7 +41,7 @@ In this milestone we are not dealing with:
 
 The goal is to get something working pretty quickly, and work to improve the configurability and discoverability over time.
 
-## Feature: Developer builds and runs the Play Application created by “play new”
+## Feature: Developer builds, tests and runs the Play Application created by “play new”
 
 ### Story: Build author declares and builds a Play application component
 

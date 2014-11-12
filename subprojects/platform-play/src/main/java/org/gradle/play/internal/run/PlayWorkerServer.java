@@ -17,6 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -41,9 +42,10 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, Serializa
             String name = ManagementFactory.getRuntimeMXBean().getName();
             clientProtocol.updateStatus(name);
             PlayExecuter playExcutor = new PlayExecuter();
-            return playExcutor.run(spec);
+            playExcutor.run(spec);
+            return new PlayRunResult(); //TODO:
         } catch (Exception e) {
-            return new PlayRunResult();
+            throw new RuntimeException(e);
         }
     }
 }

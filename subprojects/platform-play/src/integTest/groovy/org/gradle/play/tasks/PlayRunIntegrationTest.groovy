@@ -16,11 +16,25 @@
 
 package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 
 class PlayRunIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup(){
         buildFile << """
+        plugins {
+            id 'play-application'
+        }
+
+        model {
+            components {
+                myApp(PlayApplicationSpec)
+            }
+        }
+
         repositories{
             jcenter()
             maven{
@@ -34,21 +48,16 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         }
 
         dependencies{
-            playRunConf {
-              "com.typesafe.play:play_2.10:2.2.3"
-              "com.typesafe.play:docs_2.10:2.2.3"
-            }
-        }
-
-        task playRun(type:PlayRun){
-            classpath = configurations.playRunConf
+            playRunConf "com.typesafe.play:play_2.10:2.3.5"
+            playRunConf "com.typesafe.play:play-docs_2.10:2.3.5"
         }
 """
     }
 
     def "can execute play run task"(){
+        resources.maybeCopy("PlayRunIntegrationTest/playNew")
         when:
-        succeeds("playRun")
+        succeeds("runMyApp")
         then:
         executed(":myApp")
     }
