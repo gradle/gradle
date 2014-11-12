@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
@@ -240,8 +241,10 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         playRun.dependsOn(binary.getBuildTask());
 
                         Project project = playRun.getProject();
+                        Configuration playRunConf = project.getConfigurations().create("playRunConf");
+                        playRunConf.getDependencies().add(new DefaultClientModule("com.typesafe.play", "play-docs_"+DEFAULT_SCALA_BINARY_VERSION, DEFAULT_PLAY_VERSION));
                         FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
-                        classpath.add(project.files(binary.getJarFile()).plus(project.getConfigurations().getByName("playRunConf")));
+                        classpath.add(project.files(binary.getJarFile()).plus(playRunConf));
                         playRun.setClasspath(classpath); //TODO: not correct - should be only playRunCOnf
                         playRun.setPlayAppClasspath(classpath);
                     }
