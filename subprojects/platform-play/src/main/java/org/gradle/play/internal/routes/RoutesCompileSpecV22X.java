@@ -19,8 +19,8 @@ package org.gradle.play.internal.routes;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.internal.scala.reflection.util.ScalaListBuffer;
-import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
+import org.gradle.scala.internal.reflect.ScalaListBuffer;
+import org.gradle.scala.internal.reflect.ScalaUtil;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;

@@ -19,7 +19,7 @@ package org.gradle.play.internal.run;
 import com.google.common.base.Function;
 
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
+import org.gradle.scala.internal.reflect.ScalaUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
