@@ -18,12 +18,15 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Timeout
 
 class PlayRunIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup(){
+        int httpPort = 9000
         buildFile << """
         plugins {
             id 'play-application'
@@ -43,22 +46,59 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        configurations{
-            playRunConf
+        dependencies{
+
         }
 
-        dependencies{
-            playRunConf "com.typesafe.play:play_2.10:2.3.5"
-            playRunConf "com.typesafe.play:play-docs_2.10:2.3.5"
+        model {
+            tasks.runMyAppBinary {
+                String content;
+                doFirst{
+                    Thread.start{
+                        available("http://localhost:$httpPort")
+                        content = new URL("http://localhost:$httpPort").text
+                        stop()
+                    }
+                }
+                doLast{
+                    assert content.contains("Your new application is ready.")
+                }
+            }
+        }
+
+        def stop() {
+          URL url = new URL("http://localhost:$httpPort/stop")
+          try {
+            url.text
+          } catch (IOException e) {
+            //pass
+          }
+        }
+
+        def available(String theUrl, int timeout = 30000) {
+            URL url = new URL(theUrl)
+            long expiry = System.currentTimeMillis() + timeout
+            while (System.currentTimeMillis() <= expiry) {
+                try {
+                    url.text
+                    return
+                } catch (IOException e) {
+                    // continue
+                }
+                Thread.sleep(200)
+            }
+            throw new RuntimeException("Timeout waiting for \$theUrl to become available.");
         }
 """
     }
 
+    @Timeout(60)
+    @Ignore
     def "can execute play run task"(){
         resources.maybeCopy("PlayRunIntegrationTest/playNew")
         when:
         succeeds("runMyApp")
         then:
-        executed(":myApp")
+        executed(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":scalaCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":runMyAppBinary")
     }
 }
