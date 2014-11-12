@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -26,17 +27,20 @@ import java.io.File;
 import java.util.Arrays;
 
 public class PlayRunWorkerManager {
-    public PlayRunResult runWorker(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, PlayRunSpec spec) {
+    public PlayApplicationRunnerToken runWorker(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, PlayRunSpec spec) {
         WorkerProcess process = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
         process.start();
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
+        PlayRunWorkerServerProtocol playRunWorkerServerProtocol = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
         process.getConnection().connect();
-
         PlayRunResult result = clientCallBack.getResult();
-        process.waitForStop();
-        return result;
+        if(result.isSuccessful()){
+            return new PlayApplicationRunnerToken(process, playRunWorkerServerProtocol);
+        }else{
+            throw new GradleException("Unable to start Play application.", result.getException());
+        }
     }
 
     private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection playAppClasspath, PlayRunSpec spec) {

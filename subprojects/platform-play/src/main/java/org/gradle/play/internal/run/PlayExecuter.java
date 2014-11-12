@@ -77,10 +77,7 @@ public class PlayExecuter {
                     buildLink,
                     buildDocHandler,
                     port
-            }); //TODO: add server close
-            while (true) {
-                Thread.sleep(100);
-            }
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

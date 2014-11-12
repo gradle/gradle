@@ -17,23 +17,34 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.CountDownLatch;
 
-public class PlayWorkerServer implements Action<WorkerProcessContext>, Serializable {
+public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
     private PlayRunSpec spec;
+
+    private volatile CountDownLatch stop;
 
     public PlayWorkerServer(PlayRunSpec spec) {
         this.spec = spec;
     }
 
     public void execute(WorkerProcessContext context) {
+        stop = new CountDownLatch(1);
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
+        context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
         final PlayRunResult result = execute(clientProtocol);
         clientProtocol.executed(result);
+        try {
+            stop.await();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public PlayRunResult execute(PlayRunWorkerClientProtocol clientProtocol) {
@@ -42,9 +53,14 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, Serializa
             clientProtocol.updateStatus(name);
             PlayExecuter playExcutor = new PlayExecuter();
             playExcutor.run(spec);
-            return new PlayRunResult(); //TODO:
+            return new PlayRunResult(true);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return new PlayRunResult(e);
         }
     }
+
+    public void stop() {
+        stop.countDown();
+    }
+
 }
