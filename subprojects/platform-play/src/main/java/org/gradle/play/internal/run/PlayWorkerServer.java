@@ -17,7 +17,6 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.Serializable;

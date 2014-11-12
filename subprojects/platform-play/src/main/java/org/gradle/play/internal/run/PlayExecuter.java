@@ -56,7 +56,7 @@ public class PlayExecuter {
             Function<Object[], Object> runMethod = ScalaUtil.scalaObjectFunction(cl, "play.core.server.NettyServer", "mainDevHttpMode", new Class<?>[]{
                     buildLinkClass, buildDocHandlerClass, int.class
             });
-            Object buildLink = Proxy.newProxyInstance(cl, new java.lang.Class[]{buildLinkClass}, new InvocationHandler() {
+            Object buildLink = Proxy.newProxyInstance(cl, new java.lang.Class<?>[]{buildLinkClass}, new InvocationHandler() {
 
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                     if (method.getName().equals("projectPath")) {
