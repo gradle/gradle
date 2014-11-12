@@ -58,11 +58,6 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
             scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
             scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
         }
-
-        tasks.withType(TwirlCompile) {
-            forkOptions.memoryInitialSize =  "256m"
-            forkOptions.memoryMaximumSize =  "512m"
-        }
 """
     }
 
