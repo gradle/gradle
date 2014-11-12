@@ -22,13 +22,18 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
+import org.gradle.play.internal.routes.RoutesCompiler;
+import org.gradle.play.internal.routes.VersionedRoutesCompileSpec;
 import org.gradle.play.internal.spec.VersionedPlayCompileSpec;
-import org.gradle.play.internal.routes.*;
-import org.gradle.play.internal.twirl.*;
+import org.gradle.play.internal.twirl.TwirlCompileSpec;
+import org.gradle.play.internal.twirl.TwirlCompileSpecFactory;
+import org.gradle.play.internal.twirl.TwirlCompiler;
+import org.gradle.play.internal.twirl.VersionedTwirlCompileSpec;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.WrapUtil;
@@ -72,17 +77,13 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             if (spec instanceof TwirlCompileSpec) {
                 TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec)spec;
                 VersionedTwirlCompileSpec versionedSpec = TwirlCompileSpecFactory.create(twirlCompileSpec, targetPlatform);
-
-                DaemonTwirlCompiler compiler = new DaemonTwirlCompiler(fileResolver.resolve("."), resolveClasspath(versionedSpec), new TwirlCompiler(), compilerDaemonManager, new BaseForkOptions());
+                DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec));
                 @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) new MappingSpecCompiler<TwirlCompileSpec, VersionedTwirlCompileSpec>(compiler, WrapUtil.toMap(twirlCompileSpec, versionedSpec));
                 return twirlCompileSpecCompiler;
-            }
-            if(spec instanceof RoutesCompileSpec){
+            } else if(spec instanceof RoutesCompileSpec){
                 RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec)spec;
-
                 VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, targetPlatform);
-
-                DaemonRoutesCompiler compiler = new DaemonRoutesCompiler(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec));
+                DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec));
                 @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
                 return routesSpecCompiler;
             }
@@ -103,7 +104,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
 
         }
 
-        private class MappingSpecCompiler<T extends CompileSpec, V extends CompileSpec> implements Compiler<T>  {
+        private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T>  {
             private Compiler<V> delegate;
             private final Map<T, V> mapping;
 

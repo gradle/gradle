@@ -17,6 +17,8 @@
 package org.gradle.play.internal.spec;
 
 import com.google.common.base.Function;
+import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -25,9 +27,10 @@ import java.util.List;
 /**
  * A spec that provides version depending compiler metadata.
  * */
-public interface VersionedPlayCompileSpec {
+public interface VersionedPlayCompileSpec extends CompileSpec{
     Object getDependencyNotation();
     Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
     Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
     List<String> getClassLoaderPackages();
+    BaseForkOptions getForkOptions();
 }
