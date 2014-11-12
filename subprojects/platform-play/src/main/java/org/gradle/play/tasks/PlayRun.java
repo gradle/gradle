@@ -16,7 +16,6 @@
 
 package org.gradle.play.tasks;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 
