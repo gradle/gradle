@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.logging.StandardOutputRedirector;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A {@link org.gradle.api.internal.tasks.testing.TestResultProcessor} which redirect stdout and stderr during the
@@ -34,7 +34,7 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     private final TestResultProcessor processor;
     private final TestOutputRedirector outputRedirector;
     private Object rootId;
-    private Map<Object, Object> parents = new HashMap<Object, Object>();
+    private Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
 
     public CaptureTestOutputTestResultProcessor(TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
         this(processor, new TestOutputRedirector(processor, outputRedirector));
@@ -75,7 +75,8 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         } else {
             //when test is completed we should redirect output for the parent
             //so that log events emitted during @AfterSuite, @AfterClass are processed
-            outputRedirector.setOutputOwner(parents.remove(testId));
+            Object newOwner = parents.remove(testId);
+            outputRedirector.setOutputOwner(newOwner);
         }
         processor.completed(testId, event);
     }

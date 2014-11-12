@@ -17,13 +17,11 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({[TestNGCoverage.NEWEST]})
-public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
+public class TestNGParallelSuiteIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3190")
     def "runs with multiple parallel threads"() {
@@ -31,7 +29,7 @@ public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationS
             apply plugin: 'java'
             repositories { jcenter() }
             dependencies {
-                testCompile 'org.testng:testng:$version'
+                testCompile 'org.testng:testng:$TestNGCoverage.NEWEST'
             }
             test {
               useTestNG {
@@ -44,7 +42,7 @@ public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationS
         200.times { x ->
             file("src/test/java/Foo${x}Test.java") << """
                 public class Foo${x}Test {
-                    @org.testng.annotations.Test public void pass() {
+                    @org.testng.annotations.Test public void test() {
                         for (int i=0; i<20; i++) {
                             System.out.println("" + i + " - foo ${x} - " + Thread.currentThread().getId());
                         }
