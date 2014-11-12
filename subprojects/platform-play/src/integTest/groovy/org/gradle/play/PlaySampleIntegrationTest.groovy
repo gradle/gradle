@@ -30,7 +30,8 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
             scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-        }   forkOptions.memoryMaximumSize =  "256m"
+            forkOptions.memoryMaximumSize =  "256m"
+        }
         """
         expect:
         succeeds "assemble"
