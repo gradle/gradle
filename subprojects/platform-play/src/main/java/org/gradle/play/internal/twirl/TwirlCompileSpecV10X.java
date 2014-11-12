@@ -16,10 +16,10 @@
 
 package org.gradle.play.internal.twirl;
 
-import com.google.common.base.Function;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.scala.internal.reflect.ScalaCodecMapper;
-import org.gradle.scala.internal.reflect.ScalaUtil;
+import org.gradle.scala.internal.reflect.ScalaMethod;
+import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -69,21 +69,19 @@ public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec imple
         this.codec = codec;
     }
 
-    public Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
-        return ScalaUtil.scalaObjectFunction(
+    public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
+        return ScalaReflectionUtil.scalaMethod(
                 cl,
                 "play.twirl.compiler.TwirlCompiler",
                 "compile",
-                new Class<?>[]{
-                        File.class,
-                        File.class,
-                        File.class,
-                        String.class,
-                        String.class,
-                        cl.loadClass(ScalaCodecMapper.getClassName()),
-                        boolean.class,
-                        boolean.class
-                }
+                File.class,
+                File.class,
+                File.class,
+                String.class,
+                String.class,
+                cl.loadClass(ScalaCodecMapper.getClassName()),
+                boolean.class,
+                boolean.class
         );
     }
 

@@ -16,10 +16,10 @@
 
 package org.gradle.play.internal.twirl;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaOptionInvocationWrapper;
 
 import java.io.File;
@@ -36,10 +36,10 @@ public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Seria
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
             ClassLoader cl = getClass().getClassLoader();
-            Function<Object[], Object> compile = spec.getCompileMethod(cl);
+            ScalaMethod compile = spec.getCompileMethod(cl);
             Iterable<File> sources = spec.getSources();
             for (File sourceFile : sources) {
-                Object result = compile.apply(spec.createCompileParameters(cl, sourceFile));
+                Object result = compile.invoke(spec.createCompileParameters(cl, sourceFile));
                 ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
                 if (maybeFile.isDefined()) {
                     outputFiles.add(maybeFile.get());
