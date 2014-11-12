@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.scala.reflection.util;
+package org.gradle.scala.internal.reflect;
 
 import java.lang.reflect.Method;
 import java.util.List;

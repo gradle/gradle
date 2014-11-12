@@ -18,8 +18,8 @@ package org.gradle.play.internal.twirl;
 
 import com.google.common.base.Function;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.internal.scala.reflection.util.ScalaCodecMapper;
-import org.gradle.play.internal.scala.reflection.util.ScalaUtil;
+import org.gradle.scala.internal.reflect.ScalaCodecMapper;
+import org.gradle.scala.internal.reflect.ScalaUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

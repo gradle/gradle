@@ -18,6 +18,6 @@
  * Internal helper methods and classes to handle Scala through reflection
  */
 @Incubating
-package org.gradle.play.internal.scala.reflection.util;
+package org.gradle.scala.internal.reflect;
 
 import org.gradle.api.Incubating;

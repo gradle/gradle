@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.play.internal.scala.reflection.util.ScalaOptionInvocationWrapper;
+import org.gradle.scala.internal.reflect.ScalaOptionInvocationWrapper;
 
 import java.io.File;
 import java.io.Serializable;
