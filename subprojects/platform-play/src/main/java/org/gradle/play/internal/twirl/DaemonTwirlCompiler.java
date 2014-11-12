@@ -37,7 +37,7 @@ public class DaemonTwirlCompiler extends AbstractDaemonCompiler<VersionedTwirlCo
     @Override
     @SuppressWarnings("unchecked")
     protected DaemonForkOptions toDaemonOptions(VersionedTwirlCompileSpec spec) {
-        List<String> twirlPackages = spec.getClassLoaderPackages();
-        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(), compilerClasspath, twirlPackages);
+        List<String> packages = spec.getClassLoaderPackages();
+        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(), compilerClasspath, packages);
     }
 }

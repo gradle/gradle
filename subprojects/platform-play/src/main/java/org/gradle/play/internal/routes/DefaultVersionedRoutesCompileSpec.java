@@ -21,6 +21,7 @@ import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCompileSpec implements VersionedRoutesCompileSpec{
@@ -87,5 +88,9 @@ public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCom
 
     public Object getDependencyNotation() {
         return  String.format("com.typesafe.play:routes-compiler_%s:%s", getScalaVersion(), getPlayVersion());
+    }
+
+    public List<String> getClassLoaderPackages() {
+        return Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching");
     }
 }
