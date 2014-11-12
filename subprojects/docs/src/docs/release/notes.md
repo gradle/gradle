@@ -138,16 +138,12 @@ All other mutative methods of `PluginContainer` are deprecated without replaceme
 
 These methods have no useful purpose.   
 
-<!--
-### Example deprecation
--->
+### Renamed method on ComponentMetadataHandler
+
+- The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been deprecated and replaced with `all`.
+  As this is an incubating feature, the deprecated method will be removed in the next minor release of Gradle.
 
 ## Potential breaking changes
-
-### Changes to incubating component metadata rules
-
-- The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been replaced with `all`.
-- Arguments to metadata rules must now have a typed `ComponentMetadataDetails` argument as the first argument.
 
 ### Major to incubating 'native-component' and 'jvm-component' plugins
 
