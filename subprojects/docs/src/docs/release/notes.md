@@ -164,6 +164,15 @@ file to the new syntax.
 Note that this functionality is a work-in-progress, and in some cases it may be preferable to remain on an earlier version of Gradle until
 it has stabilised.
 
+### Ivy dependency exclude rules
+
+Previous versions of Gradle improperly handled the `name` attribute for [dependency exclude rules](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact-exclude.html).
+Instead of excluding the matching artifact(s), the whole module was excluded. This behavior has been fixed with this version of Gradle. Keep in mind that this change
+may cause a slightly different dependency resolution behavior if you heavily rely on Ivy excludes.
+
+In this context, we also fixed the incorrect handling of the `artifact` attribute for [module exclude rules](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/exclude.html). For
+more information see [GRADLE-3147](https://issues.gradle.org/browse/GRADLE-3147).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
