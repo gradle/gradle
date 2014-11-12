@@ -1,31 +1,6 @@
 
 # Feature: Component selection rules
 
-## Story: Build script targets component selection rule to particular module
-
-This story adds some convenience DSL to target a selection rule to a particular module:
-
-### User visible changes
-
-    configurations.all {
-        resolutionStrategy {
-            componentSelection {
-                withModule("foo:bar") { ComponentSelection selection ->
-                }
-            }
-        }
-
-### Test cases
-
-- Use rule to control selection of components within a specific module.
-- Multiple rules can target a particular module
-- Rules are not fired for components of non-targeted module.
-- If a rule requires metadata input, that rule does not trigger metadata download for non-targeted modules.
-- Useful error message when:
-    - 'module' value is empty or null
-    - 'module' value does not match `group:module` pattern
-    - 'module' value contains invalid characters: '*', '+', '[', ']', '(', ')', ',' (others?)
-
 ## Story: Add Java API for component metadata rules
 
 This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and component metadata rules, and adds an API
