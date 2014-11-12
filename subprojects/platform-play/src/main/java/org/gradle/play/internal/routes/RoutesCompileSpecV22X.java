@@ -16,12 +16,12 @@
 
 package org.gradle.play.internal.routes;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.scala.internal.reflect.ScalaListBuffer;
-import org.gradle.scala.internal.reflect.ScalaUtil;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.scala.internal.reflect.ScalaListBuffer;
+import org.gradle.scala.internal.reflect.ScalaMethod;
+import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -43,18 +43,17 @@ public class RoutesCompileSpecV22X extends DefaultVersionedRoutesCompileSpec {
         super(sources, destinationDir, additionalImports, forkOptions, javaProject, playPlatform);
     }
 
-    public Function<Object[], Object> getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
-        return ScalaUtil.scalaObjectFunction(
+    public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
+        return ScalaReflectionUtil.scalaMethod(
                 cl,
                 "play.router.RoutesCompiler",
                 "compile",
-                new Class<?>[]{
-                        File.class, //input
-                        File.class,
-                        cl.loadClass("scala.collection.Seq"),
-                        boolean.class,
-                        boolean.class
-                });
+                File.class,
+                File.class,
+                cl.loadClass("scala.collection.Seq"),
+                boolean.class,
+                boolean.class
+        );
     }
 
     public Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

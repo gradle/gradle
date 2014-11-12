@@ -16,10 +16,9 @@
 
 package org.gradle.play.internal.run;
 
-import com.google.common.base.Function;
-
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.scala.internal.reflect.ScalaUtil;
+import org.gradle.scala.internal.reflect.ScalaMethod;
+import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
@@ -53,9 +52,7 @@ public class PlayExecuter {
             JarFile docJar = new JarFile(docJarFile);
             Object buildDocHandler = factoryMethod.invoke(null, docJar, "play/docs/content");
 
-            Function<Object[], Object> runMethod = ScalaUtil.scalaObjectFunction(cl, "play.core.server.NettyServer", "mainDevHttpMode", new Class<?>[]{
-                    buildLinkClass, buildDocHandlerClass, int.class
-            });
+            ScalaMethod runMethod = ScalaReflectionUtil.scalaMethod(cl, "play.core.server.NettyServer", "mainDevHttpMode", buildLinkClass, buildDocHandlerClass, int.class);
             Object buildLink = Proxy.newProxyInstance(cl, new java.lang.Class<?>[]{buildLinkClass}, new InvocationHandler() {
 
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -73,11 +70,7 @@ public class PlayExecuter {
                 }
             });
             Integer port = 9000;
-            Object server = runMethod.apply(new Object[]{
-                    buildLink,
-                    buildDocHandler,
-                    port
-            });
+            Object server = runMethod.invoke(buildLink, buildDocHandler, port);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

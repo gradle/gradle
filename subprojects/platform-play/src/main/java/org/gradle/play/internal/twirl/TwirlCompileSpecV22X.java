@@ -16,9 +16,9 @@
 
 package org.gradle.play.internal.twirl;
 
-import com.google.common.base.Function;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.scala.internal.reflect.ScalaUtil;
+import org.gradle.scala.internal.reflect.ScalaMethod;
+import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -51,18 +51,16 @@ public class TwirlCompileSpecV22X extends DefaultVersionedTwirlCompileSpec imple
         return String.format("import play.api.templates._; import play.api.templates.PlayMagic._; import models._; import controllers._; import play.api.i18n._; import play.api.mvc._; import play.api.data._; import views.%s._;", format);
     }
 
-    public Function<Object[], Object> getCompileMethod(final ClassLoader cl) throws ClassNotFoundException {
-        return ScalaUtil.scalaObjectFunction(
+    public ScalaMethod getCompileMethod(final ClassLoader cl) throws ClassNotFoundException {
+        return ScalaReflectionUtil.scalaMethod(
                 cl,
                 "play.templates.ScalaTemplateCompiler",
                 "compile",
-                new Class<?>[]{
-                        File.class, //input
-                        File.class,
-                        File.class,
-                        String.class,
-                        String.class
-                }
+                File.class,
+                File.class,
+                File.class,
+                String.class,
+                String.class
         );
     }
 

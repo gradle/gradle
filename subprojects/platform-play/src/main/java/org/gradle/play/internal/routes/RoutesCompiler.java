@@ -16,10 +16,10 @@
 
 package org.gradle.play.internal.routes;
 
-import com.google.common.base.Function;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.File;
 import java.io.Serializable;
@@ -30,9 +30,9 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         try {
             ClassLoader cl = getClass().getClassLoader();
             Iterable<File> sources = spec.getSources();
-            Function<Object[], Object> compile = spec.getCompileMethod(cl);
+            ScalaMethod compile = spec.getCompileMethod(cl);
             for (File sourceFile : sources) {
-                Object ret = compile.apply(spec.createCompileParameters(cl, sourceFile));
+                Object ret = compile.invoke(spec.createCompileParameters(cl, sourceFile));
                 if (ret != null && ret instanceof Boolean) {
                     didWork = (Boolean) ret || didWork;
                 } else {
