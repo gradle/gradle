@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashMap;
 import java.util.jar.JarFile;
 
 public class PlayExecuter {
@@ -62,9 +63,10 @@ public class PlayExecuter {
                         return spec.getProjectPath();
                     } else if (method.getName().equals("reload")) {
                         DefaultClassPath projectClasspath = new DefaultClassPath(spec.getProjectClasspath());
-                        URLClassLoader classLoader = new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}));
-                        System.out.println(projectClasspath);
+                        URLClassLoader classLoader = new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}), Thread.currentThread().getContextClassLoader()); //we have to use this classloader because plugins assumes that the classes are in this thread. Still a bit uncertain whether it is a 100%
                         return classLoader;
+                    } else if (method.getName().equals("settings")) {
+                        return new HashMap<String, String>();
                     }
                     //TODO: all methods
                     return null;
