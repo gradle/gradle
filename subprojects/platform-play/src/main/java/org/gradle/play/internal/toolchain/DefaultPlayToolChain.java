@@ -85,7 +85,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             if(spec instanceof RoutesCompileSpec){
                 RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec)spec;
 
-                VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, false, targetPlatform);
+                VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, targetPlatform);
                 Dependency compilerDependency = dependencyHandler.create(versionedSpec.getDependencyNotation());
                 Configuration routesCompilerClasspath = configurationContainer.detachedConfiguration(compilerDependency);
 
