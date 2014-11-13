@@ -69,7 +69,7 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
 
     JacocoReport() {
         reports = instantiator.newInstance(JacocoReportsContainerImpl, this)
-        onlyIf { getExecutionData().every { it.exists() } }
+        onlyIf { getExecutionData().every { it.exists() } } //TODO SF it should be 'any' instead of 'every'
     }
 
     @Inject
