@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,6 +30,7 @@ import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
@@ -49,6 +51,7 @@ import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -152,7 +155,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
 
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
-            final File compileOutputDirectory = new File(buildDir, String.format("classes/%s/app", binary.getName()));
+            final File compileOutputDirectory = new File(buildDir, String.format("classes/%s", binary.getName()));
             tasks.create(scalaCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
                 public void execute(ScalaCompile scalaCompile) {
                     scalaCompile.setDestinationDir(compileOutputDirectory);
@@ -197,8 +200,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.dependsOn(scalaCompileTaskName);
                 }
             });
-
-
         }
 
         @Finalize
@@ -222,6 +223,59 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 //                        classpath.add(project.files(binary.getJarFile()).plus(playRunConf));
 //                        playRun.setClasspath(classpath); //TODO: not correct - should be only playRunCOnf
 //                        playRun.setPlayAppClasspath(classpath);
+                    }
+                });
+//test compile
+                final File testCompileOutputDirectory = new File(buildDir, String.format("testClasses/%s", binary.getName()));
+
+                final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+                ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
+                DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+
+                PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
+                PlayPlatform targetPlatform = binary.getTargetPlatform();
+
+                // TODO the knowledge about platform dependencies should be moved into toolchain/toolprovider
+                Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion()));
+                final Configuration testCompileConfiguration = configurationContainer.detachedConfiguration(playTestDependency);
+
+                Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaBasePlugin.DEFAULT_ZINC_VERSION));
+                final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
+
+                //setup testcompile classpath
+                final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
+                final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
+                tasks.create(testCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
+                    public void execute(ScalaCompile scalaCompile) {
+                        scalaCompile.dependsOn(binary.getBuildTask());
+                        scalaCompile.setClasspath(testCompileClasspath);
+                        scalaCompile.setZincClasspath(zincClasspath);
+                        scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(testCompileClasspath));
+                        scalaCompile.setDestinationDir(testCompileOutputDirectory);
+                        scalaCompile.setSource("test");
+                        scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+                        scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+                        IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+                        incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
+
+                        // use zinc compiler per default
+                        scalaCompile.getScalaCompileOptions().setFork(true);
+                        scalaCompile.getScalaCompileOptions().setUseAnt(false);
+                    }
+                });
+
+                String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
+                tasks.create(testTaskName, Test.class, new Action<Test>() {
+                    public void execute(Test test) {
+                        test.setTestClassesDir(testCompileOutputDirectory);
+                        test.setBinResultsDir(new File(buildDir, String.format("binTestResultsDir/%s", binary.getName())));
+                        test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/test-results", binary.getName())));
+                        test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s/html", binary.getName())));
+                        test.dependsOn(testCompileTaskName);
+                        test.setTestSrcDirs(Arrays.asList(fileResolver.resolve("test")));
+                        test.setWorkingDir(projectIdentifier.getProjectDir());
+                        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testCompileOutputDirectory)));
+
                     }
                 });
 
