@@ -42,11 +42,6 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        tasks.withType(ScalaCompile) {
-            scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
-            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-        }
-
         repositories{
             jcenter()
             maven{
