@@ -23,6 +23,8 @@ versions.commons_io = 'commons-io:commons-io:1.4'
 
 versions.groovy = "2.3.6"
 
+versions.bouncycastle = "1.51"
+
 libraries.ant = dependencies.module('org.apache.ant:ant:1.9.3') {
     dependency 'org.apache.ant:ant-launcher:1.9.3@jar'
 }
@@ -152,6 +154,11 @@ libraries.jmock = [
 ]
 libraries.gson = "com.google.code.gson:gson:2.2.4"
 libraries.sshd = "org.apache.sshd:sshd-core:0.10.0"
+
+libraries.bouncycastle_provider = "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}@jar"
+libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:${versions.bouncycastle}") {
+    dependency libraries.bouncycastle_provider
+}
 
 allprojects {
     configurations.all {
