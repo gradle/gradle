@@ -18,13 +18,14 @@ package org.gradle.play.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
@@ -43,64 +44,20 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
+import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
  */
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
-    public static final String DEFAULT_SCALA_BINARY_VERSION = "2.10";
-    public static final String DEFAULT_PLAY_VERSION = "2.3.5";
-    public static final String PLAY_GROUP = "com.typesafe.play";
-    public static final String DEFAULT_PLAY_DEPENDENCY = PLAY_GROUP + ":play_" + DEFAULT_SCALA_BINARY_VERSION + ":" + DEFAULT_PLAY_VERSION;
-    public static final String PLAYAPP_COMPILE_CONFIGURATION_NAME = "playAppCompile";
-    public static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
-    public static final String PLAY_MAIN_CLASS = "play.core.server.NettyServer";
-    private ProjectInternal project;
 
     public void apply(final ProjectInternal project) {
-        project.apply(WrapUtil.toMap("type", ScalaBasePlugin.class));
-        this.project = project;
-        setupPlayAppClasspath();
-    }
-
-    private void setupPlayAppClasspath() {
-        final Configuration playAppCompileClasspath = createConfigurationWithDefaultDependency(PLAYAPP_COMPILE_CONFIGURATION_NAME, DEFAULT_PLAY_DEPENDENCY);
-        playAppCompileClasspath.setDescription("The dependencies to be used for Scala compilation of a Play application.");
-
-        project.getTasks().withType(ScalaCompile.class).all(new Action<ScalaCompile>() {
-            public void execute(ScalaCompile scalaCompile) {
-                scalaCompile.getConventionMapping().map("classpath", new Callable<FileCollection>() {
-                    public FileCollection call() throws Exception {
-                        return project.getConfigurations().getByName(PLAYAPP_COMPILE_CONFIGURATION_NAME);
-                    }
-                });
-            }
-        });
-
-        final Configuration playAppRuntimeClasspath = project.getConfigurations().create(PLAYAPP_RUNTIME_CONFIGURATION_NAME);
-        playAppRuntimeClasspath.extendsFrom(playAppCompileClasspath);
-    }
-
-    private Configuration createConfigurationWithDefaultDependency(String configurationName, final String defaultDependency) {
-        final Configuration configuration = project.getConfigurations().create(configurationName);
-        configuration.setVisible(false);
-
-        configuration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                DependencySet dependencies = configuration.getDependencies();
-                if (dependencies.isEmpty()) {
-                    dependencies.add(project.getDependencies().create(defaultDependency));
-                }
-            }
-        });
-        return configuration;
     }
 
     /**
@@ -154,7 +111,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             final File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
             final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
@@ -183,13 +140,30 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 }
             });
 
+            //load compile dependencies for scalaCompile
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
+            DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+            PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
+            final Dependency playDependency = dependencyHandler.create(playToolChain.getPlayDependencyNotationForPlatform(binary.getTargetPlatform()));
+            final Configuration appCompileClasspath = configurationContainer.detachedConfiguration(playDependency);
+
+            Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaBasePlugin.DEFAULT_ZINC_VERSION));
+            final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
+
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             final File compileOutputDirectory = new File(buildDir, String.format("classes/%s/app", binary.getName()));
             tasks.create(scalaCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
                 public void execute(ScalaCompile scalaCompile) {
-
                     scalaCompile.setDestinationDir(compileOutputDirectory);
+                    scalaCompile.setClasspath(appCompileClasspath);
+                    scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(appCompileClasspath));
+                    scalaCompile.setZincClasspath(zincClasspath);
                     scalaCompile.setSource("app");
+                    //infer scala classpath
+                    scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+                    scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 
@@ -198,7 +172,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
                     // use zinc compiler per default
                     scalaCompile.getScalaCompileOptions().setFork(true);
-                    scalaCompile.getScalaCompileOptions().setUseAnt(true);
+                    scalaCompile.getScalaCompileOptions().setUseAnt(false);
 
                     //handle twirl compiler output
                     scalaCompile.dependsOn(twirlCompileTaskName);
@@ -223,6 +197,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.dependsOn(scalaCompileTaskName);
                 }
             });
+
+
         }
 
         @Finalize
@@ -233,22 +209,22 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
+        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.dependsOn(binary.getBuildTask());
-
                         Project project = playRun.getProject();
                         Configuration playRunConf = project.getConfigurations().create("playRunConf");
-                        playRunConf.getDependencies().add(new DefaultClientModule("com.typesafe.play", "play-docs_"+DEFAULT_SCALA_BINARY_VERSION, DEFAULT_PLAY_VERSION));
-                        FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
-                        classpath.add(project.files(binary.getJarFile()).plus(playRunConf));
-                        playRun.setClasspath(classpath); //TODO: not correct - should be only playRunCOnf
-                        playRun.setPlayAppClasspath(classpath);
+//                        playRunConf.getDependencies().add(new DefaultClientModule("com.typesafe.play", "play-docs_"+DEFAULT_SCALA_BINARY_VERSION, DEFAULT_PLAY_VERSION));
+//                        FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
+//                        classpath.add(project.files(binary.getJarFile()).plus(playRunConf));
+//                        playRun.setClasspath(classpath); //TODO: not correct - should be only playRunCOnf
+//                        playRun.setPlayAppClasspath(classpath);
                     }
                 });
+
             }
         }
     }
