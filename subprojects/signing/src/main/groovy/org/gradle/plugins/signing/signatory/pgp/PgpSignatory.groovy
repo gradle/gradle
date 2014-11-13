@@ -15,6 +15,10 @@
  */
 package org.gradle.plugins.signing.signatory.pgp
 
+import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder
+import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder
+import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider
+import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPPrivateKey
@@ -42,7 +46,9 @@ class PgpSignatory extends SignatorySupport {
         this.name = name
         this.password = password
         this.secretKey = secretKey
-        this.privateKey = secretKey.extractPrivateKey(password.toCharArray(), BouncyCastleProvider.PROVIDER_NAME)
+
+        PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(password.toCharArray())
+        this.privateKey = secretKey.extractPrivateKey(decryptor)
     }
 
     PgpKeyId getKeyId() {
@@ -50,8 +56,8 @@ class PgpSignatory extends SignatorySupport {
     }
     
     PGPSignatureGenerator createSignatureGenerator() {
-        def generator = new PGPSignatureGenerator(secretKey.publicKey.algorithm, PGPUtil.SHA1, BouncyCastleProvider.PROVIDER_NAME)
-        generator.initSign(PGPSignature.BINARY_DOCUMENT, privateKey)
+        def generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.publicKey.algorithm, PGPUtil.SHA1))
+        generator.init(PGPSignature.BINARY_DOCUMENT, privateKey)
         generator
     }
     
