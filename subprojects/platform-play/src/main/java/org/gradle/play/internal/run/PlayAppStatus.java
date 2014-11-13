@@ -16,27 +16,11 @@
 
 package org.gradle.play.internal.run;
 
-import java.io.Serializable;
-
-public class PlayRunResult implements Serializable{
-    private final Exception exception;
-    private boolean successful;
-
-    public PlayRunResult(boolean success){
-        this.successful = success;
-        this.exception = null;
-    }
-
-    public PlayRunResult(Exception exception){
-        this.successful = false;
-        this.exception = exception;
-    }
-
-    public boolean isSuccessful() {
-        return successful;
-    }
-
-    public Exception getException() {
-        return exception;
-    }
+/**
+ * Created by Rene on 13/11/14.
+ */
+public enum PlayAppStatus {
+    RUNNING,
+    FAILED,
+    STOPPED
 }

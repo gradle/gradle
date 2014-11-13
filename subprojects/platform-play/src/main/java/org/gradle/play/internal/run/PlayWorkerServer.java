@@ -21,7 +21,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcessContext;
 
 import java.io.Serializable;
-import java.lang.management.ManagementFactory;
 import java.util.concurrent.CountDownLatch;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
@@ -38,28 +37,27 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
-        final PlayRunResult result = execute(clientProtocol);
-        clientProtocol.executed(result);
+        final PlayAppLifecycleUpdate result = execute();
         try {
             stop.await();
+            clientProtocol.executed(result);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    public PlayRunResult execute(PlayRunWorkerClientProtocol clientProtocol) {
+    public PlayAppLifecycleUpdate execute() {
         try {
-            String name = ManagementFactory.getRuntimeMXBean().getName();
-            clientProtocol.updateStatus(name);
             PlayExecuter playExcutor = new PlayExecuter();
             playExcutor.run(spec);
-            return new PlayRunResult(true);
+            return new PlayAppLifecycleUpdate(true);
         } catch (Exception e) {
-            return new PlayRunResult(e);
+            return new PlayAppLifecycleUpdate(e);
         }
     }
 
     public void stop() {
+        System.out.println("Stopping the play application...");
         stop.countDown();
     }
 

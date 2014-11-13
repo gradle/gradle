@@ -16,18 +16,32 @@
 
 package org.gradle.play.internal.run;
 
-public class PlayApplicationRunnerToken {
+import java.io.Serializable;
 
-    private final PlayWorkerClient clientCallBack;
+public class PlayAppLifecycleUpdate implements Serializable{
+    private final Exception exception;
+    private boolean successful;
+    private PlayAppStatus status;
 
-    public PlayApplicationRunnerToken(PlayWorkerClient clientCallBack) {
-        this.clientCallBack = clientCallBack;
+    public PlayAppLifecycleUpdate(boolean success){
+        this.successful = success;
+        this.exception = null;
     }
 
-    public PlayAppLifecycleUpdate waitForStop(){
-        PlayAppLifecycleUpdate status = clientCallBack.waitForStop();
+    public PlayAppLifecycleUpdate(Exception exception){
+        this.successful = false;
+        this.exception = exception;
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public Exception getException() {
+        return exception;
+    }
+
+    public PlayAppStatus getStatus() {
         return status;
-
-
     }
 }

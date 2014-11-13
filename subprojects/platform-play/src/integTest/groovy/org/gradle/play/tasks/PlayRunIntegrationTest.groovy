@@ -17,19 +17,21 @@
 package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.UrlValidator
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.junit.Assert
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Timeout
 
 @Ignore
 class PlayRunIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
-    def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+    //def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+    int httpPort = 9000
 
     def setup(){
-        int httpPort = portFinder.nextAvailable
         buildFile << """
         plugins {
             id 'play-application'
@@ -57,21 +59,35 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         model {
             tasks.runMyAppBinary {
                 httpPort = $httpPort
-                doLast{
-                    assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
-                    stop()
-                }
             }
         }
 """
     }
 
-    @Timeout(60)
     def "can execute play run task"(){
+        setup:
         resources.maybeCopy("PlayRunIntegrationTest/playNew")
+
         when:
-        succeeds(":runMyAppBinary")
+        GradleHandle gradleHandle = executer.withTasks(":runMyAppBinary").start()
+
         then:
-        executed(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":scalaCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":runMyAppBinary")
+        UrlValidator.available("http://localhost:$httpPort", "Sample Play App", 120000)
+        assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
+
+        when: "stopping gradle"
+        gradleHandle.abort()
+        then: "play server is stopped too"
+        notAvailable("http://localhost:$httpPort");
+    }
+
+    def notAvailable(String url) {
+        try{
+            new URL(url).text
+            Assert.fail()
+        }catch(ConnectException ex){
+            return true
+        }
+        return false
     }
 }

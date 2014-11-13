@@ -20,6 +20,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.run.PlayRunWorkerManager;
@@ -29,7 +32,7 @@ import javax.inject.Inject;
 
 /**
  * A Task to run a play application.
- * */
+ */
 public class PlayRun extends ConventionTask {
 
 
@@ -48,15 +51,29 @@ public class PlayRun extends ConventionTask {
 
     private PlayApplicationRunnerToken runnerToken;
 
-    @TaskAction public void run(){
-        PlayRunSpec spec = generateSpec();
-        PlayRunWorkerManager manager = new PlayRunWorkerManager();
-        runnerToken = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getClasspath(), spec);
+    @Inject
+    public LoggingManagerInternal getLogging() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
-    public void stop(){
-        if(runnerToken!=null){
-            runnerToken.stop();
+    @TaskAction
+    public void run() {
+        ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
+                .start("Start Play server", "Starting Play");
+
+        PlayRunSpec spec = generateSpec();
+        PlayRunWorkerManager manager = new PlayRunWorkerManager();
+
+        try {
+            runnerToken = manager.start(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getClasspath(), spec);
+            progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
+                    .start(String.format("Run Play App at http://localhost:%d/", getHttpPort()),
+                            String.format("Running at http://localhost:%d/", getHttpPort()));
+            runnerToken.waitForStop();
+        } finally {
+            progressLogger.completed();
         }
     }
 
