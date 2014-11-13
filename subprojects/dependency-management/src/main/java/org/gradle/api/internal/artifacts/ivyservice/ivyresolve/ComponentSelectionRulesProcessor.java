@@ -35,7 +35,6 @@ import java.util.List;
 
 public class ComponentSelectionRulesProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentSelectionRulesProcessor.class);
-    private static final String USER_CODE_ERROR = "There was an error while evaluating a component selection rule.";
 
     private final Spec<SpecRuleAction<? super ComponentSelection>> withNoInputs = new Spec<SpecRuleAction<? super ComponentSelection>>() {
         public boolean isSatisfiedBy(SpecRuleAction<? super ComponentSelection> element) {
@@ -56,7 +55,7 @@ public class ComponentSelectionRulesProcessor {
                 processRule(rule, selection, metadataProvider);
 
                 if (selection.isRejected()) {
-                    LOGGER.info(String.format("Selection of '%s' rejected by component selection rule: %s", selection.getCandidate(), selection.getRejectionReason()));
+                    LOGGER.info(String.format("Selection of %s rejected by component selection rule: %s", selection.getCandidate().getDisplayName(), selection.getRejectionReason()));
                     return false;
                 }
             }
@@ -79,7 +78,7 @@ public class ComponentSelectionRulesProcessor {
         try {
             rule.getAction().execute(selection, inputValues);
         } catch (Exception e) {
-            throw new InvalidUserCodeException(USER_CODE_ERROR, e);
+            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component selection rule for %s.", selection.getCandidate().getDisplayName()), e);
         }
     }
 

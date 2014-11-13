@@ -47,7 +47,6 @@ import java.util.Set;
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor {
     private final Instantiator instantiator;
 
-    private static final String USER_CODE_ERROR = "Could not apply component metadata rule.";
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
     private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules = Sets.newLinkedHashSet();
     private final RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter;
@@ -177,7 +176,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         try {
             specRuleAction.getAction().execute(details, inputs);
         } catch (Exception e) {
-            throw new InvalidUserCodeException(USER_CODE_ERROR, e);
+            throw new InvalidUserCodeException(String.format("Could not apply component metadata rule for %s.", details.getId()), e);
         }
     }
 

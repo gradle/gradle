@@ -41,7 +41,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(19)
-        failure.assertHasCause("There was an error while evaluating a component selection rule.")
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("Could not find method foo()")
     }
 
@@ -78,7 +78,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
                                                "[org.gradle.api.artifacts.ComponentMetadata, org.gradle.api.artifacts.ivy.IvyModuleDescriptor]."
     }
 
-    def "produces sensible error when rule throws an exception" () {
+    def "produces sensible error when closure rule throws an exception" () {
         buildFile << """
             $baseBuildFile
 
@@ -100,7 +100,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(18)
-        failure.assertHasCause("There was an error while evaluating a component selection rule.")
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("From test")
     }
 
@@ -190,7 +190,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(30)
-        failure.assertHasCause("There was an error while evaluating a component selection rule.")
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 }

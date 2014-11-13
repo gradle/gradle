@@ -230,15 +230,16 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "produces sensible error when rule action throws exception" () {
         def metadataProvider = Mock(MetadataProvider)
+        def failure = new Exception("From test")
 
         when:
-        rule { ComponentSelection selection -> throw new Exception("From test")}
+        rule { ComponentSelection selection -> throw failure }
         apply(metadataProvider)
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "There was an error while evaluating a component selection rule."
-        e.cause.message == "From test"
+        e.message == "There was an error while evaluating a component selection rule for group:module:version."
+        e.cause == failure
     }
 
     def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {

@@ -369,6 +369,42 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         succeeds 'checkConf'
     }
 
+    def "can provide component selection rule as closure" () {
+        buildFile << """
+            $baseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            configurations.conf {
+                resolutionStrategy {
+                    componentSelection {
+                        all {
+                            candidates << candidate.version
+                        }
+                        all { details ->
+                            candidates << details.candidate.version
+                        }
+                        all { def details ->
+                            candidates << details.candidate.version
+                        }
+                        all { ComponentSelection details ->
+                            candidates << details.candidate.version
+                        }
+                    }
+                }
+            }
+
+            resolveConf.doLast {
+                assert candidates == ['1.2', '1.2', '1.2', '1.2']
+            }
+        """
+
+        expect:
+        succeeds 'resolveConf'
+    }
+
     def "can provide component selection rule as rule source"() {
         buildFile << """
             $baseBuildFile
@@ -397,7 +433,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             class Select11 {
                 def candidates = []
 
-                @org.gradle.model.Mutate
+                @Mutate
                 void select(ComponentSelection selection) {
                     if (selection.candidate.version != '1.1') {
                         selection.reject("not 1.1")
