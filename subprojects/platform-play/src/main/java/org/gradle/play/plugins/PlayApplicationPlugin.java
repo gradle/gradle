@@ -59,6 +59,7 @@ import java.util.List;
  */
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
+    private final static String DEFAULT_PLAY_VERSION = "2.3.5";
 
     public void apply(final ProjectInternal project) {
     }
@@ -78,7 +79,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void createPlayPlatforms(PlatformContainer platforms) {
             platforms.add(new DefaultPlayPlatform("2.2.3", "2.10", "2.2.3", JavaVersion.current()));
-            platforms.add(new DefaultPlayPlatform("2.3.5", "2.11", "1.0.2", JavaVersion.current()));
+            platforms.add(new DefaultPlayPlatform(DEFAULT_PLAY_VERSION, "2.11", "1.0.2", JavaVersion.current()));
         }
 
         @ComponentType
@@ -97,7 +98,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
             String targetPlayVersion = componentSpec.getPlayVersion();
             if (targetPlayVersion == null) {
-                targetPlayVersion = "2.3.5";
+                targetPlayVersion = DEFAULT_PLAY_VERSION;
             }
 
             List<PlayPlatform> selectedPlatforms = platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
