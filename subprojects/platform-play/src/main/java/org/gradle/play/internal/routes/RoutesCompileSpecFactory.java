@@ -30,6 +30,5 @@ public class RoutesCompileSpecFactory {
             default:
                 throw new RuntimeException("Could not create routes compile spec for version: " + version);
         }
-
     }
 }
