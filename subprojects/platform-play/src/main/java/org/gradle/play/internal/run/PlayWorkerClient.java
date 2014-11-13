@@ -23,25 +23,35 @@ import java.util.concurrent.SynchronousQueue;
 
 public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
 
-    private final BlockingQueue<PlayRunResult> runResults = new SynchronousQueue<PlayRunResult>();
+    private final BlockingQueue<PlayAppLifecycleUpdate> startEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
+    private final BlockingQueue<PlayAppLifecycleUpdate> stopEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
-    public void executed(PlayRunResult result) {
+    public void executed(PlayAppLifecycleUpdate update) {
         try {
-            runResults.put(result);
+            PlayAppStatus status = update.getStatus();
+            if(status == PlayAppStatus.RUNNING || status == PlayAppStatus.FAILED){
+                startEvent.put(update);
+            }else{
+                stopEvent.put(update);
+            }
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    public PlayRunResult getResult() {
+    public PlayAppLifecycleUpdate waitForRunning() {
         try {
-            return runResults.take();
+            return startEvent.take();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    public void updateStatus(String name) {
-        System.out.println("update from play process: = " + name);
+    public PlayAppLifecycleUpdate waitForStop() {
+        try {
+            return stopEvent.take();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

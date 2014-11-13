@@ -17,7 +17,5 @@
 package org.gradle.play.internal.run;
 
 public interface PlayRunWorkerClientProtocol {
-    void executed(PlayRunResult result);
-
-    void updateStatus(String name);
+    void executed(PlayAppLifecycleUpdate result);
 }
