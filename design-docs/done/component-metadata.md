@@ -553,3 +553,19 @@ This story adds some convenience DSL to target a selection rule to a particular 
     - 'module' value is empty or null
     - 'module' value does not match `group:module` pattern
     - 'module' value contains invalid characters: '*', '+', '[', ']', '(', ')', ',' (others?)
+
+## Story: Don't apply component selection rules to parent pom references
+
+- Filtering applies to parent poms. It should apply only to those components that are candidates to be included in the graph.
+  Same is probably true for imported poms and imported ivy files.
+
+### Implementation
+
+When constructing `ResolveIvyFactory.ParentModuleLookupResolver` we should instantiate a separate `UserResolverChain` instance with an
+empty set of component selection rules.
+
+### Test cases
+
+- Resolve a POM that has a parent POM that would be rejected by a component selection rule
+   - i.e. rule that reject all components for module 'group:my-parent', where that is the parent of resolved module
+- Resolve an Ivy file that imports another ivy module that would be rejected by component selection rule
