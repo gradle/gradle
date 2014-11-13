@@ -26,12 +26,6 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
     def "can build play sample"() {
         given:
         sample playSample
-        playSample.dir.file("build.gradle") << """
-        tasks.withType(ScalaCompile) {
-            scalaCompileOptions.forkOptions.memoryMaximumSize = '1g'
-            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-        }
-        """
         expect:
         succeeds "assemble"
     }
