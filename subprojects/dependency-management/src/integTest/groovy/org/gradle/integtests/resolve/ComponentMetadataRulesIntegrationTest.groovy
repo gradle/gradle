@@ -47,7 +47,6 @@ task resolve {
 """
     }
 
-
     def "rule receives correct metadata"() {
         repo.module('org.test', 'projectA', '1.0').publish().allowAll()
         buildFile <<
@@ -127,13 +126,13 @@ dependencies {
             dependencies {
                 components {
                     all { ComponentMetadataDetails details ->
-                        rulesInvoked << 1
+                        rulesInvoked << details.id.version
                     }
                     all {
-                        rulesInvoked << 11
+                        rulesInvoked << id.version
                     }
                     all { details ->
-                        rulesInvoked << 111
+                        rulesInvoked << details.id.version
                     }
                     all(new ActionRule('rulesInvoked': rulesInvoked))
                     all(new RuleObject('rulesInvoked': rulesInvoked))
@@ -144,7 +143,7 @@ dependencies {
                 List rulesInvoked
 
                 void execute(ComponentMetadataDetails details) {
-                    rulesInvoked << 2
+                    rulesInvoked << details.id.version
                 }
             }
 
@@ -153,11 +152,11 @@ dependencies {
 
                 @org.gradle.model.Mutate
                 void execute(ComponentMetadataDetails details) {
-                    rulesInvoked << 3
+                    rulesInvoked << details.id.version
                 }
             }
 
-            resolve.doLast { assert rulesInvoked.sort() == [ 1, 2, 3, 11, 111 ] }
+            resolve.doLast { assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ] }
         """
 
         expect:
