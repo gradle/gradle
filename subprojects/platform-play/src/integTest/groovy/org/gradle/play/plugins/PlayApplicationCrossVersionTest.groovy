@@ -37,7 +37,7 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
         model {
             components {
                 myApp(PlayApplicationSpec){
-                    playVersion "${version.playVersion}"
+                    playVersion "${version}"
                 }
             }
         }
@@ -48,10 +48,6 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
                 name = "typesafe-maven-release"
                 url = "http://repo.typesafe.com/typesafe/maven-releases"
             }
-
-            dependencies{
-                playAppCompile '${version.playDependency}'
-            }
         }
 """
     }
@@ -60,6 +56,7 @@ class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
         given:
         resources.maybeCopy("PlayApplicationPluginIntegrationTest/playNew")
         when:
+        executer.withArgument("-i")
         succeeds("assemble")
         then:
         executedAndNotSkipped(":routesCompileMyAppBinary", ":twirlCompileMyAppBinary", ":createMyAppBinaryJar", ":myAppBinary", ":assemble")

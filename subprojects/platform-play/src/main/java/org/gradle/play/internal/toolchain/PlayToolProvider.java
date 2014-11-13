@@ -16,11 +16,7 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
-import org.gradle.play.platform.PlayPlatform;
-import org.gradle.play.toolchain.PlayToolChain;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
-public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
-    public PlayToolProvider select(PlayPlatform targetPlatform);
-
+public interface PlayToolProvider extends ToolProvider{
 }

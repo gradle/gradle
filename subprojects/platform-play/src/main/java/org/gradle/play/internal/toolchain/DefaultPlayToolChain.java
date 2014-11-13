@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.RoutesCompiler;
@@ -62,14 +61,19 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         return String.format("Default Play Toolchain");
     }
 
-    public ToolProvider select(PlayPlatform targetPlatform) {
-        return new PlayToolProvider(targetPlatform);
+    public PlayToolProvider select(PlayPlatform targetPlatform) {
+        return new DefaultPlayToolProvider(targetPlatform);
     }
 
-    private class PlayToolProvider implements ToolProvider {
+    public String getPlayDependencyNotationForPlatform(PlayPlatform playPlatform) {
+        String playDependencyNotation = String.format("com.typesafe.play:play_%s:%s", playPlatform.getScalaVersion(), playPlatform.getPlayVersion());
+        return playDependencyNotation;
+    }
+
+    private class DefaultPlayToolProvider implements PlayToolProvider {
         private PlayPlatform targetPlatform;
 
-        public PlayToolProvider(PlayPlatform targetPlatform) {
+        public DefaultPlayToolProvider(PlayPlatform targetPlatform) {
             this.targetPlatform = targetPlatform;
         }
 
