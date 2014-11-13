@@ -98,14 +98,6 @@ Add a `play-application` plugin that provides Play application component:
 
 - Reasonable default memory settings for forked compilation
 
-#### Open issues (later stories)
-
-- Separate language plugin for Scala
-- Full incremental compile test coverage for Scala & Twirl
-- Full incremental build test coverage for Scala, Twirl & Routes
-- Invert relationship between ':diagnostics' project and ':play-framework' project. Need to inject renderer.
-- Twirl & Routes compilers prefer Java types in generated sources (i.e. SBT enablePlugins(PlayJava))
-
 ### Story: Developer runs Play application
 
 Extend the Play support to allow the Play application to be executed.
@@ -118,12 +110,19 @@ At this stage, only the default generated Play application is supported, with a 
 #### Test cases
 
 - verify that play app can be built and executed with play version 2.3.5 and 2.2.3
+- Can configure port for launched PlayApp: default is 9000
 
-### Story: Add support for multiple play versions
+### Story: Basic support for multiple play versions
 
-- Adapt TwirlCompile task to support play 2.2.3 compliant template compiler
-- Adapt RoutesCompile task to support play 2.2.3 compliant routes compiler
-- Add test fixture to allow multi version play integration tests
+- Can build play application with Play 2.2.3 on Scala 2.10, and Play 2.3.5 on Scala 2.11
+
+#### Test cases
+
+- Verify building and running the 'play new' app with Scala 2.2.3 and Scala 2.3.5
+
+#### Open issues
+
+- Compile Scala wrappers around different Play versions, and load these via reflection
 
 ### Story: Developer tests the Play new application
 
@@ -140,55 +139,6 @@ At this stage, only the default generated Play application is supported, with a 
 #### Open issues
 
 - Model test suites
-
-## Feature: Developer chooses target Play, Scala and/or Java platform
-
-### Story: Compilation and building is incremental with respect to changes in Play platform
-
-### Story: Build author declares target Play platform
-
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                targetPlatform play: "2.3.6"
-                targetPlatform play: "2.2.3"
-            }
-        }
-    }
-
-
-#### Test cases
-
-- For each supported Play version: 2.2.3, 2.3.5, 2.3.6
-    - Can assemble Play application
-    - Can run Play application
-    - Can test Play application
-- Can build & test multiple Play application variants in single build invocation
-    - `gradle assemble` builds all variants
-    - `gradle test` tests all variants
-- Play version implies Scala version and Java version
-- Play version should be visible in components report and dependencies reports.
-
-### Story: Build author declares target Scala platform
-
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                targetPlatform play: "2.3.5", scala: "2.11"
-            }
-        }
-    }
-
-
-### Story: Build author declares target Java platform for Play application
-
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                targetPlatform play: "2.3.5", scala: "2.11", java: "1.8"
-            }
-        }
-    }
 
 ## Feature: Developer builds Play application with custom Java, Scala, routes and templates
 
@@ -275,6 +225,10 @@ Extend the Play support to allow full control over compilation of Scala and Java
     - Change in ToolChain triggers recompilation
     - Removal of Scala/Java source files removes classes from the Play app
 
+#### Open issues
+
+- Ability for Twirl & Routes compilers to prefer Java types in generated sources (i.e. SBT enablePlugins(PlayJava))
+
 ### Story: Developer configures template sources for Play application
 
 Add a TwirlSourceSet and permit multiple instances in a Play application
@@ -288,6 +242,7 @@ Add a TwirlSourceSet and permit multiple instances in a Play application
 - Source generation and compilation should be incremental and remove stale outputs.
 
 #### Open issues
+
 - handle non html templates
 
 ### Story: Developer defines routes for Play application
@@ -303,6 +258,7 @@ Add a RoutesSourceSet and permit multiple instances in a Play application
 - Source generation and compilation should be incremental and remove stale outputs.
 
 #### Open issues
+
 - handle .routes files
 
 ## Feature: Developer includes compiled assets in Play application (Javascript, LESS, CoffeeScript)
@@ -356,6 +312,81 @@ Play plugin:
 
 - Integration with existing Gradle javascript plugins.
 
+## Feature: Developer chooses target Play, Scala and/or Java platform
+
+### Story: Compilation and building is incremental with respect to changes in Play platform
+
+### Story: Execute Play integration tests against all supported Play platforms
+
+- Most Play integration tests should be able to run against different supported platforms
+    - Developer build should run against single version by default
+    - CI should run against all supported versions (using '-PtestAllPlatforms=true')
+
+### Story: Build author declares target Play platform
+
+    model {
+        components {
+            play(PlayApplicationSpec) {
+                platform play: "2.3.6"
+                platform play: "2.2.3"
+            }
+        }
+    }
+
+#### Test cases
+
+- For each supported Play version: 2.2.3, 2.3.5, 2.3.6
+    - Can assemble Play application
+    - Can run Play application
+    - Can test Play application
+- Can build & test multiple Play application variants in single build invocation
+    - `gradle assemble` builds all variants
+    - `gradle test` tests all variants
+- Play version implies Scala version and Java version
+- Play version should be visible in components report and dependencies reports.
+
+### Story: Build author declares target Scala platform
+
+    model {
+        components {
+            play(PlayApplicationSpec) {
+                platform play: "2.3.5", scala: "2.11"
+            }
+        }
+    }
+
+
+### Story: Build author declares target Java platform for Play application
+
+    model {
+        components {
+            play(PlayApplicationSpec) {
+                platform play: "2.3.5", scala: "2.11", java: "1.8"
+            }
+        }
+    }
+
+### Story: New target platform DSL for JVM components
+
+    model {
+        components {
+            jvmLib(JvmLibrarySpec) {
+                platform java: "1.8"
+            }
+        }
+    }
+
+### Story: New target platform DSL for native components
+
+    model {
+        components {
+            nativeLib(NativeLibrarySpec) {
+                platform os: "windows", arch: "x86"
+            }
+        }
+    }
+
+
 ## Feature: Developer builds and runs Play application
 
 Introduce some lifecycle tasks to allow the developer to run or start the Play application. For example, the
@@ -396,6 +427,7 @@ Play plugin:
 
 ## Further features
 
+- Internal mechanism for plugin to inject renderer(s) into components report.
 - Model language transformations, and change Play support to allow a Play application to take any JVM language as input.
 - Declare dependencies on other Java/Scala libraries
 - Control joint compilation of sources based on source set dependencies.
