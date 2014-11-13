@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.play.platform;
+package org.gradle.play.internal.platform;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.platform.base.Platform;
+import org.gradle.model.Managed;
+import org.gradle.play.platform.PlayPlatform;
 
-/**
- * Defines and configures a Play Framework environment including versions of Play, Scala and Java.
- * */
-public interface PlayPlatform extends Platform {
+@Managed
+public interface PlayPlatformInternal extends PlayPlatform {
 
-    public String getPlayVersion();
+    void setName(String name);
 
-    public String getScalaVersion();
+    void setDisplayName(String displayName);
 
-    public String getTwirlVersion();
+    void setPlayVersion(String playVersion);
 
-    public JavaVersion getJavaVersion();
+    void setScalaVersion(String scalaVersion);
+
+    void setTwirlVersion(String twirlVersion);
+
+    void setJavaVersion(JavaVersion javaVersion);
 }

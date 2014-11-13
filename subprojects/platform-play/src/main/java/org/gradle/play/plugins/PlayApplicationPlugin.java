@@ -44,7 +44,7 @@ import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.ScalaSources;
-import org.gradle.play.internal.platform.DefaultPlayPlatform;
+import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
@@ -81,10 +81,29 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             return serviceRegistry.get(PlayToolChainInternal.class);
         }
 
+        @Model
+        void play223(PlayPlatformInternal platform) {
+            initializePlatform(platform, "2.2.3", "2.10", "2.2.3");
+        }
+
+        @Model
+        void play235(PlayPlatformInternal platform) {
+            initializePlatform(platform, "2.3.5", "2.11", "1.0.2");
+        }
+
+        private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
+            platform.setName("PlayPlatform" + playVersion);
+            platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
+            platform.setPlayVersion(playVersion);
+            platform.setScalaVersion(scalaVersion);
+            platform.setTwirlVersion(twirlVersion);
+            platform.setJavaVersion(JavaVersion.current());
+        }
+
         @Mutate
-        public void createPlayPlatforms(PlatformContainer platforms) {
-            platforms.add(new DefaultPlayPlatform("2.2.3", "2.10", "2.2.3", JavaVersion.current()));
-            platforms.add(new DefaultPlayPlatform(DEFAULT_PLAY_VERSION, "2.11", "1.0.2", JavaVersion.current()));
+        public void createPlayPlatforms(PlatformContainer platforms, @Path("play223") PlayPlatformInternal play223, @Path("play235") PlayPlatformInternal play235) {
+            platforms.add(play223);
+            platforms.add(play235);
         }
 
         @ComponentType
