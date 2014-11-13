@@ -27,7 +27,5 @@ public class PlayApplicationRunnerToken {
     public PlayAppLifecycleUpdate waitForStop(){
         PlayAppLifecycleUpdate status = clientCallBack.waitForStop();
         return status;
-
-
     }
 }

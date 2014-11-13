@@ -57,8 +57,6 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     public void stop() {
-        System.out.println("Stopping the play application...");
         stop.countDown();
     }
-
 }
