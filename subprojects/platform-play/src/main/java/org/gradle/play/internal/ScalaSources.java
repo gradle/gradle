@@ -26,6 +26,6 @@ import javax.inject.Inject;
 public class ScalaSources extends AbstractLanguageSourceSet {
     @Inject
     public ScalaSources(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, "Generated scala source", new DefaultSourceDirectorySet("gensrc", fileResolver));
+        super(name, parent, "Scala source", new DefaultSourceDirectorySet("gensrc", fileResolver));
     }
 }
