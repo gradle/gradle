@@ -176,7 +176,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         try {
             specRuleAction.getAction().execute(details, inputs);
         } catch (Exception e) {
-            throw new InvalidUserCodeException(String.format("Could not apply component metadata rule for %s.", details.getId()), e);
+            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", details.getId()), e);
         }
     }
 
