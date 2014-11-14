@@ -27,6 +27,8 @@ public interface ModelRegistry extends ModelRegistrar {
     @Nullable
     <T> T find(ModelPath path, ModelType<T> type);
 
+    ModelRegistrySearchResult search(ModelPath path);
+
     public ModelNode node(ModelPath path);
 
     void remove(ModelPath path);
