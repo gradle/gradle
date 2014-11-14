@@ -89,8 +89,8 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
     }
 
     public Object getDocsDependencyNotation() {
-        return String.format("com.typesafe.play:play-docs_%s:%s", "2.10", playVersion);
-    } //TODO should be scalaVersion
+        return String.format("com.typesafe.play:play-docs_%s:%s", scalaVersion, playVersion);
+    }
 
     public Iterable<String> getSharedPackages() {
         return Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
