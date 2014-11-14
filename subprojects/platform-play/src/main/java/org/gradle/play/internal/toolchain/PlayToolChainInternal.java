@@ -23,8 +23,6 @@ import org.gradle.play.toolchain.PlayToolChain;
 
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.run.PlayRunWorkerManager;
-import org.gradle.play.toolchain.PlayToolChain;
-import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
