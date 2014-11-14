@@ -16,13 +16,18 @@
 
 package org.gradle.play.internal;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.JvmClasses;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
+import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
+    private final JvmClasses classesDir = new DefaultJvmClasses();
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
@@ -49,5 +54,30 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public void setJarFile(File file) {
         this.jarFile = file;
+    }
+
+    public JvmClasses getClasses() {
+        return classesDir;
+    }
+
+    private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
+        private final Set<File> resourceDirs = Sets.newHashSet();
+        private File classesDir;
+
+        public File getClassesDir() {
+            return classesDir;
+        }
+
+        public void setClassesDir(File classesDir) {
+            this.classesDir = classesDir;
+        }
+
+        public Set<File> getResourceDirs() {
+            return Sets.newHashSet(resourceDirs);
+        }
+
+        public void addResourceDir(File resourceDir) {
+            resourceDirs.add(resourceDir);
+        }
     }
 }
