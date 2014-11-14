@@ -26,7 +26,7 @@ import org.gradle.util.TextUtil
 import org.junit.Rule
 
 @TargetCoverage({PlayCoverage.DEFAULT})
-class PlayApplicationCrossVersionTest extends MultiVersionIntegrationSpec{
+class PlayApplicationMultiVersionTest extends MultiVersionIntegrationSpec{
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
