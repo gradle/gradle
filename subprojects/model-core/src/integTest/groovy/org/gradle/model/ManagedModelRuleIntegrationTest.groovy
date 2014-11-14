@@ -694,4 +694,50 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains("fromPlugin: foo")
         output.contains("fromScript: foo")
     }
+
+    def "managed model interface can extend other interface"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Named {
+                String getName();
+                void setName(String name);
+            }
+
+            @Managed
+            interface NamedThing extends Named {
+                String getValue();
+                void setValue(String value);
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void namedThing(NamedThing namedThing) {
+                    namedThing.name = "name"
+                    namedThing.value = "value"
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, NamedThing namedThing) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $namedThing.name, value: $namedThing.value"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: name, value: value")
+    }
 }

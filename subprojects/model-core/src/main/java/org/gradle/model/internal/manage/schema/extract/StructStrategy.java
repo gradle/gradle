@@ -18,6 +18,8 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -41,8 +43,10 @@ import java.util.Map;
 public class StructStrategy implements ModelSchemaExtractionStrategy {
 
     private final Factory<String> supportedTypeDescriptions;
+    private final ModelSchemaExtractor extractor;
 
-    public StructStrategy(Factory<String> supportedTypeDescriptions) {
+    public StructStrategy(ModelSchemaExtractor extractor, Factory<String> supportedTypeDescriptions) {
+        this.extractor = extractor;
         this.supportedTypeDescriptions = supportedTypeDescriptions;
     }
 
@@ -55,9 +59,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         if (type.getRawClass().isAnnotationPresent(Managed.class)) {
             validateType(type, extractionContext);
 
+            Iterable<ModelProperty<?>> superTypeProperties = extractSuperTypeProperties(extractionContext, cache);
+
             List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
             if (methodList.isEmpty()) {
-                return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type, Collections.<ModelProperty<?>>emptyList()));
+                return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type, superTypeProperties));
             }
 
             List<ModelProperty<?>> properties = Lists.newLinkedList();
@@ -110,19 +116,46 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 throw new InvalidManagedModelElementTypeException(extractionContext, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "]).");
             }
 
-            ModelSchema<R> schema = ModelSchema.struct(type, properties);
+            ModelSchema<R> schema = ModelSchema.struct(type, Iterables.concat(properties, superTypeProperties));
 
-            return new ModelSchemaExtractionResult<R>(schema, Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
+            Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
                 public ModelSchemaExtractionContext<?> apply(final ModelProperty<?> property) {
-                    return toExtractionContext(extractionContext, property, cache);
+                    return toPropertyExtractionContext(extractionContext, property, cache);
                 }
-            }));
+            });
+            return new ModelSchemaExtractionResult<R>(schema, propertyDependencies);
         } else {
             return null;
         }
     }
 
-    private <R, P> ModelSchemaExtractionContext<P> toExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
+    private <R> Iterable<ModelSchema<? super R>> extractSuperTypeSchemas(final ModelSchemaExtractionContext<R> parentContext, Iterable<ModelType<? super R>> superTypes, final ModelSchemaCache cache) {
+        return Iterables.transform(superTypes, new Function<ModelType<? super R>, ModelSchema<? super R>>() {
+            public ModelSchema<? super R> apply(ModelType<? super R> superType) {
+                return extractor.extract(parentContext.child(superType, "super type"), cache);
+            }
+        });
+    }
+
+    private <R> Iterable<ModelProperty<?>> extractSuperTypeProperties(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
+        Iterable<ModelSchema<? super R>> superTypeSchemas = extractSuperTypeSchemas(extractionContext, extractionContext.getType().getSuperTypes(), cache);
+        Optional<ModelSchema<? super R>> unmanagedSuperTypeSchema = Iterables.tryFind(superTypeSchemas, new Predicate<ModelSchema<? super R>>() {
+            public boolean apply(ModelSchema<? super R> superTypeSchema) {
+                return superTypeSchema.getKind() != ModelSchema.Kind.STRUCT;
+            }
+        });
+        if (unmanagedSuperTypeSchema.isPresent()) {
+            String message = String.format("extends %s but extending unmanaged types is not supported", unmanagedSuperTypeSchema.get().getType());
+            throw new InvalidManagedModelElementTypeException(extractionContext, message);
+        }
+        return Iterables.concat(Iterables.transform(superTypeSchemas, new Function<ModelSchema<? super R>, Iterable<ModelProperty<?>>>() {
+            public Iterable<ModelProperty<?>> apply(ModelSchema<? super R> superTypeSchema) {
+                return superTypeSchema.getProperties().values();
+            }
+        }));
+    }
+
+    private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
         return parentContext.child(property.getType(), String.format("property '%s'", property.getName()), new Action<ModelSchemaExtractionContext<P>>() {
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
                 ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
@@ -165,10 +198,6 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
         if (!typeClass.isInterface()) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "must be defined as an interface.");
-        }
-
-        if (typeClass.getInterfaces().length > 0) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, "cannot extend other types.");
         }
 
         if (typeClass.getTypeParameters().length > 0) {

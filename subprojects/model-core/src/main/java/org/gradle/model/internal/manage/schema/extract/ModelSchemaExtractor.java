@@ -45,14 +45,14 @@ public class ModelSchemaExtractor {
             new EnumStrategy(),
             new JdkValueTypeStrategy(),
             new ManagedSetStrategy(supportedTypeDescriptions),
-            new StructStrategy(supportedTypeDescriptions),
+            new StructStrategy(this, supportedTypeDescriptions),
             new UnmanagedStrategy()
     );
 
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+    public <T> ModelSchema<T> extract(ModelSchemaExtractionContext<T> context, ModelSchemaCache cache) {
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
-        ModelSchemaExtractionContext<?> extractionContext = ModelSchemaExtractionContext.root(type);
+        ModelSchemaExtractionContext<?> extractionContext = context;
         validations.add(extractionContext);
 
         while (extractionContext != null) {
@@ -67,7 +67,11 @@ public class ModelSchemaExtractor {
             validationContext.validate();
         }
 
-        return cache.get(type);
+        return cache.get(context.getType());
+    }
+
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+        return extract(ModelSchemaExtractionContext.root(type), cache);
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {

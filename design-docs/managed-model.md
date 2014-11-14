@@ -288,6 +288,7 @@ Notes:
 - Can get/set properties of super type(s)
 - Can depend on super type as input and subject
 - Two different types can extend same parent
+- Cannot extend managed set type
 
 ### Managed model type has property of collection of managed types
 

@@ -17,6 +17,7 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
@@ -201,6 +202,19 @@ public abstract class ModelType<T> {
         }
 
         return false;
+    }
+
+    public Iterable<ModelType<? super T>> getSuperTypes() {
+        Iterable<TypeToken<? super T>> superTypes = Iterables.filter(typeToken.getTypes(), new Predicate<TypeToken<? super T>>() {
+            public boolean apply(TypeToken<? super T> type) {
+                return !typeToken.equals(type);
+            }
+        });
+        return Iterables.transform(superTypes, new Function<TypeToken<? super T>, ModelType<? super T>>() {
+            public ModelType<? super T> apply(TypeToken<? super T> superType) {
+                return ModelType.toModelType(superType);
+            }
+        });
     }
 
     @Override

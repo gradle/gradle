@@ -46,11 +46,11 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface EmptyInterfaceWithParent extends Serializable {}
+    static interface EmptyInterfaceWithUnmanagedParent extends Serializable {}
 
-    def "cannot extend"() {
+    def "cannot extend unmanaged types"() {
         expect:
-        fail EmptyInterfaceWithParent, "cannot extend other types"
+        fail EmptyInterfaceWithUnmanagedParent, "extends $Serializable.name but extending unmanaged types is not supported"
     }
 
     @Managed
@@ -243,13 +243,6 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface ManagedPropertyWithSetter {
-        SingleProperty getManaged()
-
-        void setManaged(SingleProperty name)
-    }
-
-    @Managed
     interface SelfReferencing {
         SelfReferencing getSelf()
     }
@@ -312,6 +305,21 @@ class ModelSchemaExtractorTest extends Specification {
 
         where:
         type << [A1, B1, C1, D1]
+    }
+
+    @Managed
+    static interface WithInheritedProperties extends SingleProperty {
+        Integer getCount()
+
+        void setCount(Integer count)
+    }
+
+    def "can extract inherited properties"() {
+        when:
+        def properties = extract(WithInheritedProperties).properties.values()
+
+        then:
+        properties*.name == ["count", "name"]
     }
 
 
