@@ -16,18 +16,16 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
-import org.gradle.play.platform.PlayPlatform;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 
-import java.io.File;
+import javax.inject.Inject;
 
-public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec, BinarySpecInternal {
-    void setTargetPlatform(PlayPlatform platform);
-    void setToolChain(PlayToolChainInternal toolChain);
-    PlayToolChainInternal getToolChain();
-    void setJarFile(File file);
-    void setGeneratedScala(LanguageSourceSet scalaSources);
+// TODO:DAZ This is a temporary (untyped) implementation of LanguageSourceSet
+public class ScalaSources extends AbstractLanguageSourceSet {
+    @Inject
+    public ScalaSources(String name, String parent, FileResolver fileResolver) {
+        super(name, parent, "Generated scala source", new DefaultSourceDirectorySet("gensrc", fileResolver));
+    }
 }

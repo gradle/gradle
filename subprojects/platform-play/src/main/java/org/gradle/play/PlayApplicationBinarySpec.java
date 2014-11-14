@@ -18,6 +18,7 @@ package org.gradle.play;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
@@ -35,4 +36,6 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
     File getJarFile();
 
     JvmClasses getClasses();
+
+    LanguageSourceSet getGeneratedScala();
 }

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UrlValidator
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.util.AvailablePortFinder
 import org.junit.Assert
 import org.junit.Rule
 import spock.lang.Ignore
@@ -28,7 +29,7 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
-    def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+    def portFinder = AvailablePortFinder.createPrivate()
     int httpPort = portFinder.nextAvailable
 
     def setup(){
