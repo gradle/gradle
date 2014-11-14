@@ -40,7 +40,8 @@ class ArchiveTestFixture {
     def assertContainsFile(String relativePath, int occurrences) {
         assertContainsFile(relativePath)
         def actualOccurrences = filesByRelativePath.get(relativePath).size()
-        assertEquals(String.format("Incorrect count for file '%s': expected %s, got %s"), occurrences, actualOccurrences)
+        def failureMessage = String.format("Incorrect count for file '%s': expected %s, got %s", relativePath, occurrences, actualOccurrences)
+        assertEquals(failureMessage, occurrences, actualOccurrences)
         this
     }
 
