@@ -61,7 +61,8 @@ DefaultPlayApplicationSpec 'myApp'
 ----------------------------------
 
 Source sets
-    No source sets.
+    Scala source 'myApp:appSources'
+        app
 
 Binaries
     DefaultPlayApplicationBinarySpec 'myAppBinary'

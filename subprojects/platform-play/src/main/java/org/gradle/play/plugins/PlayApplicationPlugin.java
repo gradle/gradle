@@ -98,6 +98,22 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
         }
 
+        @Mutate
+        void configureDefaultPlaySources(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
+            components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
+                public void execute(PlayApplicationSpec playComponent) {
+                    // TODO:DAZ Scala source set type should be registered
+                    ScalaSources appSources = new ScalaSources("appSources", playComponent.getName(), serviceRegistry.get(FileResolver.class));
+                    // Compile everything under /app, except for raw twirl templates
+                    // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
+                    appSources.getSource().srcDir("app");
+                    appSources.getSource().exclude("**/*.html");
+
+                    ((ComponentSpecInternal) playComponent).getSources().add(appSources);
+                }
+            });
+        }
+
         @Finalize
         void failOnMultiplePlayComponents(ComponentSpecContainer container) {
             if (container.withType(PlayApplicationSpec.class).size() >= 2) {
@@ -126,17 +142,10 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
                         JvmClasses classes = playBinary.getClasses();
                         classes.setClassesDir(new File(buildDir, String.format("classes/%s", binaryName)));
+
+                        // TODO:DAZ These should be configured on the component
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "public"));
-
-                        // TODO:DAZ This should be configured on the component
-                        // TODO:DAZ Scala source set type should be registered
-                        ScalaSources appSources = new ScalaSources("appSources", binaryName, serviceRegistry.get(FileResolver.class));
-                        // Compile everything under /app, except for raw twirl templates
-                        // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
-                        appSources.getSource().srcDir("app");
-                        appSources.getSource().exclude("**/*.html");
-                        playBinary.source(appSources);
 
                         ScalaSources genSources = new ScalaSources("genSources", binaryName, serviceRegistry.get(FileResolver.class));
                         playBinaryInternal.setGeneratedScala(genSources);
@@ -163,7 +172,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     twirlCompile.setPlatform(binary.getTargetPlatform());
                     twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
                     twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
-                    twirlCompile.setSource(twirlCompile.getSourceDirectory());
                     twirlCompile.include("**/*.html");
 
                     binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
@@ -225,7 +233,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     scalaCompile.getScalaCompileOptions().setFork(true);
                     scalaCompile.getScalaCompileOptions().setUseAnt(false);
 
-                    // TODO:DAZ Should be typed for scala
+                    // TODO:DAZ Source sets should be typed for scala
                     for (LanguageSourceSet appSources : binary.getSource()) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
@@ -255,6 +263,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             });
         }
 
+        // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
+        // TODO:Rene/Freekh Break this up a little
         @Mutate
         void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
