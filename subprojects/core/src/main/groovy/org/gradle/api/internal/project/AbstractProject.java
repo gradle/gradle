@@ -247,7 +247,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         taskContainer.whenObjectRemoved(new Action<Task>() {
             public void execute(Task task) {
-                modelRegistry.remove(TaskContainerInternal.MODEL_PATH.child(task.getName()));
+                ModelPath path = TaskContainerInternal.MODEL_PATH.child(task.getName());
+                if (path.equals(modelRegistry.search(path).getReachedPath())) {
+                    modelRegistry.remove(path);
+                }
             }
         });
 

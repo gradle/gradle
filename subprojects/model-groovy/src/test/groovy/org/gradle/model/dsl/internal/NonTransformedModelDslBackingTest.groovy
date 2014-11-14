@@ -19,6 +19,7 @@ package org.gradle.model.dsl.internal
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class NonTransformedModelDslBackingTest extends Specification {
@@ -45,6 +46,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
+    @Ignore("needs to be rewritten to not try and insert at a nested path")
     def "can use property accessors in DSL to build model object path"() {
         given:
         register("foo.bar", [])

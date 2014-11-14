@@ -18,6 +18,7 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
@@ -28,6 +29,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
     }
 
+    @Ignore("needs to be rewritten to not insert at a nested path")
     @Unroll
     def "rules are detected when model path is a straight property reference chain - #path"() {
         given:

@@ -188,6 +188,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    public ModelRegistrySearchResult search(ModelPath path) {
+        return modelGraph.search(path);
+    }
+
     public ModelNode node(ModelPath path) {
         return require(path);
     }
