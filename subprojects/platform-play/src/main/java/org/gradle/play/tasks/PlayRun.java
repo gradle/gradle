@@ -16,6 +16,7 @@
 
 package org.gradle.play.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
@@ -23,9 +24,10 @@ import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.play.internal.run.PlayApplicationRunnerToken;
-import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.run.PlayRunWorkerManager;
+import org.gradle.play.internal.run.*;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import javax.inject.Inject;
@@ -37,19 +39,11 @@ public class PlayRun extends ConventionTask {
 
 
     private FileCollection classpath;
-    private FileCollection playAppClasspath;
 
     private int httpPort;
 
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
-
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
     private PlayApplicationRunnerToken runnerToken;
+    private PlayPlatform targetPlatform;
 
     @Inject
     public LoggingManagerInternal getLogging() {
@@ -63,14 +57,17 @@ public class PlayRun extends ConventionTask {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Start Play server", "Starting Play");
 
-        PlayRunSpec spec = generateSpec();
-        PlayRunWorkerManager manager = new PlayRunWorkerManager();
+        int httpPort = getHttpPort();
+
+        PlayRunSpec spec = new DefaultPlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), httpPort);
+        PlayRunWorkerManager manager = ((PlayToolChainInternal) getToolChain()).getWorkerManager(getWorkerProcessBuilderFactory(), getTargetPlatform(), spec);
 
         try {
-            runnerToken = manager.start(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getClasspath(), spec);
+            runnerToken = manager.start();
+
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                    .start(String.format("Run Play App at http://localhost:%d/", getHttpPort()),
-                            String.format("Running at http://localhost:%d/", getHttpPort()));
+                    .start(String.format("Run Play App at http://localhost:%d/", httpPort),
+                            String.format("Running at http://localhost:%d/", httpPort));
             runnerToken.waitForStop();
         } finally {
             progressLogger.completed();
@@ -82,16 +79,12 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
-    private PlayRunSpec generateSpec() {
-        return new PlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), getPlayAppClasspath().getFiles());
+    public void setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
     }
 
-    public FileCollection getPlayAppClasspath() {
-        return playAppClasspath;
-    }
-
-    public void setPlayAppClasspath(FileCollection playAppClasspath) {
-        this.playAppClasspath = playAppClasspath;
+    public FileCollection getClasspath() {
+        return classpath;
     }
 
     public int getHttpPort() {
@@ -100,5 +93,20 @@ public class PlayRun extends ConventionTask {
 
     public void setHttpPort(int httpPort) {
         this.httpPort = httpPort;
+    }
+
+    @Incubating
+    @Inject
+    public PlayToolChain getToolChain() {
+        // Implementation is generated
+        throw new UnsupportedOperationException();
+    }
+
+    public void setTargetPlatform(PlayPlatform targetPlatform) {
+        this.targetPlatform = targetPlatform;
+    }
+
+    public PlayPlatform getTargetPlatform() {
+        return targetPlatform;
     }
 }

@@ -17,22 +17,28 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.Action;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcessContext;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
-    private PlayRunSpec spec;
+
+    private VersionedPlayRunSpec spec;
+    private final Iterable<File> docsClasspath;
 
     private volatile CountDownLatch stop;
 
-    public PlayWorkerServer(PlayRunSpec spec) {
+    public PlayWorkerServer(VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
         this.spec = spec;
+        this.docsClasspath = docsClasspath;
     }
 
     public void execute(WorkerProcessContext context) {
+
         stop = new CountDownLatch(1);
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
@@ -49,9 +55,10 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     public PlayAppLifecycleUpdate execute() {
         try {
             PlayExecuter playExcutor = new PlayExecuter();
-            playExcutor.run(spec);
+            playExcutor.run(spec, docsClasspath);
             return new PlayAppLifecycleUpdate(true);
         } catch (Exception e) {
+            Logging.getLogger(this.getClass()).error("Failed to run Play", e);
             return new PlayAppLifecycleUpdate(e);
         }
     }
