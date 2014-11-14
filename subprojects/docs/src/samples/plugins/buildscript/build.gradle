@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-plugin
-plugins {
-    id 'java'
+// START SNIPPET buildscript_block
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.4.1"
+    }
 }
-// END SNIPPET use-plugin
 
-// START SNIPPET use-community-plugin
-plugins {
-    id "com.jfrog.bintray" version "0.4.1"
-}
-// END SNIPPET use-community-plugin
+apply plugin: "com.jfrog.bintray"
+// END SNIPPET buildscript_block
+
+
