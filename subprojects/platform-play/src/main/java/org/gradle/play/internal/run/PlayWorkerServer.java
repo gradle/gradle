@@ -38,7 +38,6 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     public void execute(WorkerProcessContext context) {
-
         stop = new CountDownLatch(1);
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
