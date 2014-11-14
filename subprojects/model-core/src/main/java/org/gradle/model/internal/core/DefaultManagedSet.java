@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection.internal;
+package org.gradle.model.internal.core;
 
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;

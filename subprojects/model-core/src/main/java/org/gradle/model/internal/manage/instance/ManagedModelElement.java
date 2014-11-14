@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.instance;
 import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;

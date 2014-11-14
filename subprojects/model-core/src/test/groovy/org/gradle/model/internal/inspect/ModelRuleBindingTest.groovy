@@ -17,8 +17,8 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
-import org.gradle.model.internal.core.IdentityModelProjection
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.core.UnmanagedModelProjection
+import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
@@ -136,7 +136,7 @@ class ModelRuleBindingTest extends Specification {
                 Integer.name,
                 "parameter 1",
                 true,
-                [IdentityModelProjection.description(ModelType.of(String))]
+                [UnmanagedModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message
@@ -170,7 +170,7 @@ class ModelRuleBindingTest extends Specification {
                 Integer.name,
                 "parameter 2",
                 false,
-                [IdentityModelProjection.description(ModelType.of(String))]
+                [UnmanagedModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message

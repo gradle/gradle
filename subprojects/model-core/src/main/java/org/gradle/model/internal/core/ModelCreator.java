@@ -26,9 +26,9 @@ public interface ModelCreator {
 
     ModelPromise getPromise();
 
-    ModelAdapter create(Inputs inputs);
+    ModelCreationContext create(Inputs inputs);
 
-    List<ModelReference<?>> getInputs();
+    List<? extends ModelReference<?>> getInputs();
 
     ModelRuleDescriptor getDescriptor();
 

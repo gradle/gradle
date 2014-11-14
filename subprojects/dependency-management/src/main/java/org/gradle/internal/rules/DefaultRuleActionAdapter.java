@@ -19,7 +19,7 @@ package org.gradle.internal.rules;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
 public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule for '%s'.";

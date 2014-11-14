@@ -26,7 +26,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.test.TestSuiteContainer;
 import org.gradle.platform.base.BinaryContainer;

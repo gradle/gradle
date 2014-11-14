@@ -23,10 +23,7 @@ import groovy.lang.MissingPropertyException;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -66,7 +63,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                 return ModelReference.untyped(modelPath);
             }
 
-            public void mutate(Object object, Inputs inputs) {
+            public void mutate(ModelNode modelNode, Object object, Inputs inputs) {
                 new ClosureBackedAction<Object>(action).execute(object);
             }
 

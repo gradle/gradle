@@ -18,7 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.inspect.AbstractAnnotationDrivenMethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.platform.base.InvalidComponentModelException;

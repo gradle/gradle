@@ -19,6 +19,7 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.Matchers
+import spock.lang.Ignore
 
 class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +43,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Model
-                void createPerson(Person person, String name) {
+                void createPerson(Person person, @Path("name") String name) {
                     person.name = name
                 }
 
@@ -241,12 +242,12 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
             @RuleSource
             class RulePlugin {
                 @Model
-                void createOs(OperatingSystem os) {
+                void os(OperatingSystem os) {
                   os.name = "windows"
                 }
 
                 @Model
-                void createPlatform(Platform platform, OperatingSystem os) {
+                void createPlatform(Platform platform, @Path("os") OperatingSystem os) {
                   platform.displayName = "Microsoft Windows"
                   platform.operatingSystem = os
                 }
@@ -639,4 +640,58 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'gender: MALE'
     }
 
+    @Ignore("not yet supported - we don't know about the nested property until the parent is created. Should know about it on registration.")
+    def "rule can target property of managed element"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Platform {
+                OperatingSystem getOperatingSystem()
+            }
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void platform(Platform platform) {
+                  platform.operatingSystem.name = "foo"
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, OperatingSystem os) {
+                  tasks.create("fromPlugin") {
+                    it.doLast { println "fromPlugin: $os.name" }
+                  }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                  create("fromScript") {
+                    it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                  }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromPlugin", "fromScript"
+
+        and:
+        output.contains("fromPlugin: foo")
+        output.contains("fromScript: foo")
+    }
 }

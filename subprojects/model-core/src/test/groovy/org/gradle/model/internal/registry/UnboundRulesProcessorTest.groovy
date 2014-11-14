@@ -20,7 +20,7 @@ import org.gradle.api.Transformer
 import org.gradle.internal.Transformers
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.unbound.UnboundRule

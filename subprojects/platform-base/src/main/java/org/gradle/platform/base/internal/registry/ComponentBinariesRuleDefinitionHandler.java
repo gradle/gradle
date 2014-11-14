@@ -19,16 +19,14 @@ package org.gradle.platform.base.internal.registry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.DefaultCollectionBuilder;
-import org.gradle.model.entity.internal.NamedEntityInstantiator;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.DefaultCollectionBuilder;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 
 public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<ComponentBinaries> {
@@ -55,7 +53,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
     }
 
     private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
-        modelRegistry.mutate(new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition, modelRegistry));
+        modelRegistry.mutate(new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition));
     }
 
     private <R> void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition) {
@@ -67,27 +65,23 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
     private class ComponentBinariesRule<R, S extends BinarySpec> extends CollectionBuilderBasedRule<R, S, ComponentSpec, BinaryContainer> {
 
         private final Class<? extends ComponentSpec> componentType;
-        private final ModelRegistry modelRegistry;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<BinaryContainer> subject, final Class<? extends ComponentSpec> componentType, final Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
+        public ComponentBinariesRule(ModelReference<BinaryContainer> subject, final Class<? extends ComponentSpec> componentType, final Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
             super(subject, componentType, ruleDefinition, ModelReference.of(ComponentSpecContainer.class));
             this.componentType = componentType;
             this.binaryType = binaryType;
-            this.modelRegistry = modelRegistry;
         }
 
-        public void mutate(final BinaryContainer binaries, final Inputs inputs) {
+        public void mutate(ModelNode modelNode, final BinaryContainer binaries, final Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
                 NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(binaryType, componentSpec, binaries);
                 CollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
-                        getSubject().getPath(),
                         namedEntityInstantiator,
                         new SimpleModelRuleDescriptor("Project.<init>.binaries()"),
-                        inputs,
-                        modelRegistry);
+                        modelNode);
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
             }
         }

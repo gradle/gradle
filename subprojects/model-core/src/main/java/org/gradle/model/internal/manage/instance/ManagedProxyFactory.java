@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.instance;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

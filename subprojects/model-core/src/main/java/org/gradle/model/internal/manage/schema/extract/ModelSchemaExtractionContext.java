@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
 public class ModelSchemaExtractionContext<T> {
 

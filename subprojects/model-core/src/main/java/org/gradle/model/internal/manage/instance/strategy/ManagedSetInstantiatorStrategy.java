@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.instance;
+package org.gradle.model.internal.manage.instance.strategy;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
-import org.gradle.model.collection.internal.DefaultManagedSet;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.DefaultManagedSet;
+import org.gradle.model.internal.manage.instance.ModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.type.ModelType;
 
 public class ManagedSetInstantiatorStrategy implements ModelInstantiatorStrategy {
 

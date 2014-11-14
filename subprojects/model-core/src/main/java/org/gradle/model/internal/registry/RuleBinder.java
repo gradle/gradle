@@ -37,7 +37,7 @@ import java.util.List;
 public class RuleBinder<T> {
 
     private final ModelReference<T> subjectReference;
-    private final List<ModelReference<?>> inputReferences;
+    private final List<? extends ModelReference<?>> inputReferences;
 
     private final ModelRuleDescriptor descriptor;
 
@@ -48,7 +48,7 @@ public class RuleBinder<T> {
     private ModelBinding<T> subjectBinding;
     private List<ModelBinding<?>> inputBindings;
 
-    public RuleBinder(@Nullable ModelReference<T> subjectReference, List<ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Action<? super RuleBinder<T>> onBind) {
+    public RuleBinder(@Nullable ModelReference<T> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Action<? super RuleBinder<T>> onBind) {
         this.subjectReference = subjectReference;
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
@@ -64,7 +64,7 @@ public class RuleBinder<T> {
         return subjectReference;
     }
 
-    public List<ModelReference<?>> getInputReferences() {
+    public List<? extends ModelReference<?>> getInputReferences() {
         return inputReferences;
     }
 

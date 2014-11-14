@@ -19,7 +19,7 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.Project
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.CustomRuleSource
 import org.gradle.testfixtures.ProjectBuilder

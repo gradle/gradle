@@ -17,11 +17,13 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
@@ -46,8 +48,9 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        Transformer<T, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(ruleDefinition.getRuleInvoker(), descriptor, references);
+        Transformer<Action<ModelNode>, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
         modelRegistry.create(ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
+                .withProjection(new UnmanagedModelProjection<T>(returnType, true, true))
                 .descriptor(descriptor)
                 .inputs(references)
                 .build());
@@ -57,34 +60,40 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         return String.format("%s and returning a model element", super.getDescription());
     }
 
-    private static class ModelRuleInvokerBackedTransformer<T> implements Transformer<T, Inputs> {
+    private static class ModelRuleInvokerBackedTransformer<T> implements Transformer<Action<ModelNode>, Inputs> {
 
+        private final ModelType<T> type;
         private final ModelRuleDescriptor descriptor;
         private final ModelRuleInvoker<T> ruleInvoker;
         private final List<ModelReference<?>> inputReferences;
 
-        private ModelRuleInvokerBackedTransformer(ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
+        private ModelRuleInvokerBackedTransformer(ModelType<T> type, ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
+            this.type = type;
             this.descriptor = descriptor;
             this.ruleInvoker = ruleInvoker;
             this.inputReferences = inputReferences;
         }
 
-        public T transform(Inputs inputs) {
-            T instance;
-            if (inputs.size() == 0) {
-                instance = ruleInvoker.invoke();
-            } else {
-                Object[] args = new Object[inputs.size()];
-                for (int i = 0; i < inputs.size(); i++) {
-                    args[i] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
-                }
+        public Action<ModelNode> transform(final Inputs inputs) {
+            return new Action<ModelNode>() {
+                public void execute(ModelNode modelNode) {
+                    T instance;
+                    if (inputs.size() == 0) {
+                        instance = ruleInvoker.invoke();
+                    } else {
+                        Object[] args = new Object[inputs.size()];
+                        for (int i = 0; i < inputs.size(); i++) {
+                            args[i] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
+                        }
 
-                instance = ruleInvoker.invoke(args);
-            }
-            if (instance == null) {
-                throw new ModelRuleExecutionException(descriptor, "rule returned null");
-            }
-            return instance;
+                        instance = ruleInvoker.invoke(args);
+                    }
+                    if (instance == null) {
+                        throw new ModelRuleExecutionException(descriptor, "rule returned null");
+                    }
+                    modelNode.setPrivateData(type, instance);
+                }
+            };
         }
     }
 }

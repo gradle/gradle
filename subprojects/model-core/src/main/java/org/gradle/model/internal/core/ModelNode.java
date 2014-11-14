@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.project;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-/**
- * Realizes the project tasks by getting the closed task container from the model registry.
- */
-public class TaskModelRealizingConfigurationAction implements Action<ProjectInternal> {
+import java.util.Map;
 
-    public void execute(ProjectInternal projectInternal) {
-        projectInternal.getModelRegistry().get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
-    }
+public interface ModelNode {
+
+    ModelPath getCreationPath();
+
+    ModelRuleDescriptor getCreationDescriptor();
+
+    ModelPromise getPromise();
+
+    ModelAdapter getAdapter();
+
+    ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
+
+    Map<String, ? extends ModelNode> getLinks();
+
+    <T> T getPrivateData(ModelType<T> type);
+
+    <T> void setPrivateData(ModelType<T> type, T object);
 
 }

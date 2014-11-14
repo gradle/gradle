@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.instance;
 
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
 public class UnexpectedModelPropertyTypeException extends RuntimeException{
 

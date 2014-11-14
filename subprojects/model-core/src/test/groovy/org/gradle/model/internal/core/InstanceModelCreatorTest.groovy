@@ -16,28 +16,31 @@
 
 package org.gradle.model.internal.core
 
-import org.gradle.model.internal.registry.DefaultInputs
+import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class InstanceModelCreatorTest extends Specification {
 
     def "can retrieve instance via exact type"() {
         when:
+        def registry = new DefaultModelRegistry()
         def string = "foo"
-        def creator = ModelCreators.of(ModelReference.of(String), string).simpleDescriptor("string").build()
-        def adapter = creator.create(new DefaultInputs([]))
+        def path = ModelPath.path("s")
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, String), string).simpleDescriptor("string").build())
+        def node = registry.node(path)
+        def adapter = node.adapter
 
         then:
-        adapter.asReadOnly(ModelType.of(List)) == null
-        adapter.asReadOnly(ModelType.of(String)).instance.is(string)
-        adapter.asReadOnly(ModelType.of(CharSequence)).instance.is(string)
-        asWritable(adapter, List) == null
-        asWritable(adapter, String).instance.is(string)
-        asWritable(adapter, CharSequence).instance.is(string)
+        adapter.asReadOnly(ModelType.of(List), node) == null
+        adapter.asReadOnly(ModelType.of(String), node).instance.is(string)
+        adapter.asReadOnly(ModelType.of(CharSequence), node).instance.is(string)
+        asWritable(node, List) == null
+        asWritable(node, String).instance.is(string)
+        asWritable(node, CharSequence).instance.is(string)
     }
 
-    private static <T> ModelView<T> asWritable(ModelAdapter adapter, Class<T> type) {
-        def reference = ModelReference.of("foo", type)
-        adapter.asWritable(new ModelBinding(reference, reference.path), null, null, null)  // can null these because we know they aren't used
+    private static <T> ModelView<T> asWritable(ModelNode node, Class<T> type) {
+        node.adapter.asWritable(ModelType.of(type), null, null, node)
     }
 }

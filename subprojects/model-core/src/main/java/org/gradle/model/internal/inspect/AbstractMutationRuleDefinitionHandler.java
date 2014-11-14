@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -73,7 +74,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
             return inputs;
         }
 
-        public void mutate(T object, Inputs inputs) {
+        public void mutate(ModelNode modelNode, T object, Inputs inputs) {
             Object[] args = new Object[1 + this.inputs.size()];
             args[0] = object;
             for (int i = 0; i < inputs.size(); ++i) {

@@ -22,7 +22,7 @@ import org.gradle.model.dsl.internal.transform.SourceLocation
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
@@ -35,7 +35,7 @@ class TransformedModelDslBackingTest extends Specification {
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.of(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
     }
 
     def "can add rules via dsl"() {

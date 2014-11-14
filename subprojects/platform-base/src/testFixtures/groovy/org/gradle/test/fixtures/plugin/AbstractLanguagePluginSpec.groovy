@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.plugin
 
 import org.gradle.language.base.internal.LanguageRegistry
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll

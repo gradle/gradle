@@ -18,16 +18,15 @@ package org.gradle.model;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 @Incubating
 public class ModelViewClosedException extends GradleException {
 
-    public ModelViewClosedException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+    public ModelViewClosedException(ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         super(String.format(
-                "Attempt to mutate closed view of model '%s' of type '%s' given to rule '%s'", path, type, ruleDescriptor
+                "Attempt to mutate closed view of model of type '%s' given to rule '%s'", type, ruleDescriptor
         ));
     }
 

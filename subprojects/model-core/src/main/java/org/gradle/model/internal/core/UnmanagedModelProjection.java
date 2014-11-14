@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.core;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 
 @ThreadSafe
-public class ModelSchemaCache {
+public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
-    private final Cache<ModelType<?>, ModelSchema<?>> cache = CacheBuilder.newBuilder().build();
-
-    @Nullable
-    public <T> ModelSchema<T> get(ModelType<T> type) {
-        return Cast.uncheckedCast(cache.getIfPresent(type));
+    public UnmanagedModelProjection(ModelType<M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
+        super(type, canBeViewedAsReadOnly, canBeViewedAsWritable);
     }
 
-    public <T> void set(ModelType<T> type, ModelSchema<T> schema) {
-        cache.put(type, schema);
+    @Override
+    protected ModelView<M> toView(ModelNode modelNode, boolean writable) {
+        M instance = modelNode.getPrivateData(getType());
+        return InstanceModelView.of(getType(), instance);
     }
 
 }
