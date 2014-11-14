@@ -147,6 +147,34 @@ Binaries
                 ":createMyAppBinaryJar", ":myAppBinary", ":compileMyAppBinaryTests", ":testMyAppBinary")
     }
 
+    def "reports failing run play app tests"() {
+        given:
+        resources.maybeCopy("PlayApplicationPluginIntegrationTest/playNew")
+        resources.maybeCopy("PlayApplicationPluginIntegrationTest/playFailingTests")
+        when:
+        fails("testMyAppBinary")
+        then:
+
+        output.contains(TextUtil.toPlatformLineSeparators("""
+FailingApplicationSpec > Application should::render the index page FAILED
+    org.specs2.reporter.SpecFailureAssertionFailedError
+"""))
+
+        output.contains(TextUtil.toPlatformLineSeparators("""
+FailingIntegrationSpec > Application should::work from within a browser FAILED
+    org.specs2.reporter.SpecFailureAssertionFailedError
+"""))
+        errorOutput.contains("6 tests completed, 2 failed")
+        errorOutput.contains("> There were failing tests.")
+
+        def result = new JUnitXmlTestExecutionResult(testDirectory, "build/reports/test/myAppBinary")
+        result.assertTestClassesExecuted("ApplicationSpec", "IntegrationSpec", "FailingApplicationSpec", "FailingIntegrationSpec")
+        result.testClass("ApplicationSpec").assertTestCount(2, 0, 0)
+        result.testClass("IntegrationSpec").assertTestCount(1, 0, 0)
+        result.testClass("FailingIntegrationSpec").assertTestCount(1, 1, 0)
+        result.testClass("FailingApplicationSpec").assertTestCount(2, 1, 0)
+    }
+
     JarTestFixture jar(String fileName) {
         new JarTestFixture(file(fileName))
     }
