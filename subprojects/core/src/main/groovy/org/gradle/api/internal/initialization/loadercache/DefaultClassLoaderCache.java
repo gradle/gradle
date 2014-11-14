@@ -29,6 +29,10 @@ import java.util.concurrent.ExecutionException;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
 
+    public int getSize() {
+        return cache.asMap().size();
+    }
+
     public static class Key {
         private final ClassLoader parent;
         private final ClassPathSnapshot classPathSnapshot;

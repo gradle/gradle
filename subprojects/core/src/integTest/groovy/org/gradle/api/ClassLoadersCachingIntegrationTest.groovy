@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -24,6 +25,8 @@ import spock.lang.IgnoreIf
 //classloaders are cached in process so the test only makes sense if gradle invocations share the process
 @IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
 class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
+
+    def cacheSizePerRun = []
 
     def setup() {
         executer.requireIsolatedDaemons()
@@ -35,11 +38,33 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 println project.path + " cached: " + !StaticState.set.add(project.path)
             }
+            def cache = project.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
+            println "### cache size: " + cache.size
         """
     }
 
-    private boolean isCached(String projectPath = ":") { output.contains("$projectPath cached: true") }
-    private boolean isNotCached(String projectPath = ":") { output.contains("$projectPath cached: false") }
+    private boolean isCached(String projectPath = ":") {
+        assertCacheSize()
+        output.contains("$projectPath cached: true")
+    }
+
+    private boolean isNotCached(String projectPath = ":") {
+        assertCacheSize()
+        output.contains("$projectPath cached: false")
+    }
+
+    private void assertCacheSize() {
+        assert cacheSizePerRun.size() > 1
+        assert cacheSizePerRun[-1] == cacheSizePerRun[-2]
+    }
+
+    ExecutionResult run(String... tasks) {
+        def result = super.run(tasks)
+        def m = output =~ /(?s).*### cache size: (\d+).*/
+        m.matches()
+        cacheSizePerRun << m.group(1)
+        result
+    }
 
     def "classloader is cached"() {
         when:
