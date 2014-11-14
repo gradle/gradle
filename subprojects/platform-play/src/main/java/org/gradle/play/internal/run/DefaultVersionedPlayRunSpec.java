@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.jar.JarFile;
 
@@ -88,6 +89,10 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
     }
 
     public Object getDocsDependencyNotation() {
-        return String.format("com.typesafe.play:play-docs_%s:%s", scalaVersion, playVersion);
+        return String.format("com.typesafe.play:play-docs_%s:%s", "2.10", playVersion);
+    } //TODO should be scalaVersion
+
+    public Iterable<String> getSharedPackages() {
+        return Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
     }
 }

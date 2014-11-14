@@ -17,7 +17,6 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -25,7 +24,8 @@ import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayRunWorkerManager {
     private final File workingDir;
@@ -58,9 +58,17 @@ public class PlayRunWorkerManager {
     private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, Iterable<File> docsClasspath, VersionedPlayRunSpec spec) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
-        builder.applicationClasspath(spec.getClasspath());
+        //TODO freekh: we should try to avoid this, but we have to use the same classloader for docs and the rest @see
+        List<File> combinedClasspath = new ArrayList<File>();
+        for (File file: docsClasspath) {
+            combinedClasspath.add(file);
+        }
+        for (File file: spec.getClasspath()) {
+            combinedClasspath.add(file);
+        }
+        builder.applicationClasspath(combinedClasspath);
         builder.setLogLevel(LogLevel.DEBUG);
-        builder.sharedPackages(Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala")); //TODO freekh: spec.getSharedPackages()
+        builder.sharedPackages(spec.getSharedPackages());
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());

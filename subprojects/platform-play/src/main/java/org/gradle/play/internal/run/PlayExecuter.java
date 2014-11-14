@@ -16,13 +16,10 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.jar.JarFile;
 
 public class PlayExecuter {
@@ -40,7 +37,7 @@ public class PlayExecuter {
     public void run(VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
-            ClassLoader docsClassLoader = new URLClassLoader(new DefaultClassPath(docsClasspath).getAsURLs().toArray(new URL[]{}), classLoader);
+            ClassLoader docsClassLoader = getClass().getClassLoader();
 
             Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, getDocJar(docsClasspath));
             ScalaMethod runMethod = spec.getNettyServerDevHttpMethod(classLoader, docsClassLoader);
