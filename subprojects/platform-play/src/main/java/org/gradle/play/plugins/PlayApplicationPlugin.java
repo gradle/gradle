@@ -60,7 +60,6 @@ import java.util.List;
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     private final static String DEFAULT_PLAY_VERSION = "2.3.5";
-    public static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
     public static final int DEFAULT_HTTP_PORT = 9000;
 
     public void apply(final ProjectInternal project) {
@@ -217,21 +216,27 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @Mutate
         void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+                final File testCompileOutputDirectory = new File(buildDir, String.format("testClasses/%s", binary.getName()));
+                final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+                final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
+                final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
                         playRun.setTargetPlatform(binary.getTargetPlatform());
                         Project project = playRun.getProject();
-                        playRun.setClasspath(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME)); //TODO move to ToolChain
+
+                        //TODO move to ToolChain:
+                        Dependency playDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", binary.getTargetPlatform().getScalaVersion(), binary.getTargetPlatform().getPlayVersion()));
+                        final Configuration playCompileConfiguration = configurationContainer.detachedConfiguration(playDependency);
+                        playRun.setClasspath(playCompileConfiguration);
+
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });
 
-                final File testCompileOutputDirectory = new File(buildDir, String.format("testClasses/%s", binary.getName()));
-                final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-                ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
-                DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
 
                 PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
                 PlayPlatform targetPlatform = binary.getTargetPlatform();
