@@ -35,6 +35,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
+import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
@@ -99,26 +100,41 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             if (targetPlayVersion == null) {
                 targetPlayVersion = DEFAULT_PLAY_VERSION;
             }
-
             return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+        }
+        @Finalize
+        void failOnMultiplePlayComponents(ComponentSpecContainer container) {
+            if (container.withType(PlayApplicationSpec.class).size() >= 2) {
+                throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
+            }
         }
 
         @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal, @Path("buildDir") final File buildDir) {
+        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
+                            PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
+                            @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
             for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
-                binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>() {
+                final String name = String.format("%sBinary", componentSpec.getName());
+                binaries.create(name, new Action<PlayApplicationBinarySpec>() {
                     public void execute(PlayApplicationBinarySpec playBinary) {
                         PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
                         playBinaryInternal.setTargetPlatform(chosenPlatform);
                         playBinaryInternal.setToolChain(playToolChainInternal);
+
                         playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
+
+                        JvmClasses classes = playBinary.getClasses();
+                        classes.setClassesDir(new File(buildDir, String.format("classes/%s", name)));
+                        classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
+                        classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "public"));
                     }
                 });
             }
         }
 
         @BinaryTasks
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+                                ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             final File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
             final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
@@ -130,7 +146,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
                     twirlCompile.setSource(twirlCompile.getSourceDirectory());
                     twirlCompile.include("**/*.html");
-                    binary.builtBy(twirlCompile);
+                    // TODO Model the intermediate sourceset
+                    binary.getClasses().builtBy(twirlCompile);
                 }
             });
 
@@ -143,7 +160,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
                     routesCompile.include("*.routes");
                     routesCompile.include("routes");
-                    binary.builtBy(routesCompile);
+                    // TODO Model the intermediate sourceset
+                    binary.getClasses().builtBy(routesCompile);
                 }
             });
 
@@ -159,14 +177,13 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
 
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
-            final File compileOutputDirectory = new File(buildDir, String.format("classes/%s", binary.getName()));
             tasks.create(scalaCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
                 public void execute(ScalaCompile scalaCompile) {
-                    scalaCompile.setDestinationDir(compileOutputDirectory);
+                    scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
                     scalaCompile.setClasspath(appCompileClasspath);
                     scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(appCompileClasspath));
                     scalaCompile.setZincClasspath(zincClasspath);
-                    scalaCompile.setSource("app");
+
                     //infer scala classpath
                     scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
                     scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
@@ -174,43 +191,41 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 
-                    // /ignore uncompiled twirl templates
-                    scalaCompile.exclude("**/*.html");
-
                     // use zinc compiler per default
                     scalaCompile.getScalaCompileOptions().setFork(true);
                     scalaCompile.getScalaCompileOptions().setUseAnt(false);
 
-                    //handle twirl compiler output
+                    // Compile everything under /app, except for raw twirl templates
+                    // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
+                    scalaCompile.source("app");
+                    scalaCompile.exclude("**/*.html");
+
                     scalaCompile.dependsOn(twirlCompileTaskName);
-
-                    //handle routes compiler
-                    scalaCompile.dependsOn(routesCompileTaskName);
-
                     scalaCompile.source(twirlCompilerOutputDirectory);
+
+                    scalaCompile.dependsOn(routesCompileTaskName);
                     scalaCompile.source(routesCompilerOutputDirectory);
+
+                    binary.getClasses().builtBy(scalaCompile);
                 }
             });
+        }
 
+        @BinaryTasks
+        void createJarTask(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
             String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
-                    jar.from(compileOutputDirectory);
-                    jar.from("public"); //TODO freekh: should be possible to configure configurable
-                    jar.from("conf");  //TODO freekh: should be possible to configure configurable
-                    // CollectionBuilder api currently does not allow autowiring for tasks
-                    jar.dependsOn(scalaCompileTaskName);
+
+                    jar.from(binary.getClasses().getClassesDir());
+                    for (File resourceDir : binary.getClasses().getResourceDirs()) {
+                        jar.from(resourceDir);
+                    }
+                    jar.dependsOn(binary.getClasses());
                 }
             });
-        }
-
-        @Finalize
-        void failOnMultiplePlayComponents(ComponentSpecContainer container) {
-            if (container.withType(PlayApplicationSpec.class).size() >= 2) {
-                throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
-            }
         }
 
         @Mutate

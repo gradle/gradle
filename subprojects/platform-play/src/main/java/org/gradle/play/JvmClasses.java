@@ -16,23 +16,35 @@
 
 package org.gradle.play;
 
+import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.play.platform.PlayPlatform;
-import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
+import java.util.Set;
 
 /**
- * Represents a binary artifact that is the result of building a play component.
+ * A set of classes and resources that operate together.
  */
 @Incubating
-@HasInternalProtocol
-public interface PlayApplicationBinarySpec extends BinarySpec {
-    PlayPlatform getTargetPlatform();
-    PlayToolChain getToolChain();
-    File getJarFile();
+// TODO:DAZ Move this to platform-jvm
+public interface JvmClasses extends BuildableModelElement {
+    /**
+     * The classes directory for this binary.
+     */
+    File getClassesDir();
 
-    JvmClasses getClasses();
+    /**
+     * Sets the classes directory for this binary.
+     */
+    void setClassesDir(File classesDir);
+
+    /**
+     * A set of resource directories for this binary.
+     */
+    Set<File> getResourceDirs();
+
+    /**
+     * Add a resource directory to this binary.
+     */
+    void addResourceDir(File resourceDir);
 }
