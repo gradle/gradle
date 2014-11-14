@@ -18,6 +18,7 @@ package org.gradle.play.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
@@ -28,6 +29,7 @@ import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
+    private LanguageSourceSet generatedScala;
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
@@ -58,6 +60,14 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public JvmClasses getClasses() {
         return classesDir;
+    }
+
+    public LanguageSourceSet getGeneratedScala() {
+        return generatedScala;
+    }
+
+    public void setGeneratedScala(LanguageSourceSet scalaSources) {
+        this.generatedScala = scalaSources;
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

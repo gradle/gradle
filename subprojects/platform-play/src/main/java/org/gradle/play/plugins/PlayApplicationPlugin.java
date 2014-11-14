@@ -32,15 +32,19 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.ScalaSources;
 import org.gradle.play.internal.platform.DefaultPlayPlatform;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -94,14 +98,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
         }
 
-
-        private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
-            String targetPlayVersion = componentSpec.getPlayVersion();
-            if (targetPlayVersion == null) {
-                targetPlayVersion = DEFAULT_PLAY_VERSION;
-            }
-            return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
-        }
         @Finalize
         void failOnMultiplePlayComponents(ComponentSpecContainer container) {
             if (container.withType(PlayApplicationSpec.class).size() >= 2) {
@@ -112,59 +108,93 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @ComponentBinaries
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
                             PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
-                            @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
+                            final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
             for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
-                final String name = String.format("%sBinary", componentSpec.getName());
-                binaries.create(name, new Action<PlayApplicationBinarySpec>() {
+                final String binaryName = String.format("%sBinary", componentSpec.getName());
+                binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
                     public void execute(PlayApplicationBinarySpec playBinary) {
                         PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
+
+                        // TODO:DAZ This shouldn't be required: should be part of infrastructure
+                        FunctionalSourceSet binarySourceSet = ((ComponentSpecInternal) componentSpec).getSources().copy(binaryName);
+                        playBinaryInternal.setBinarySources(binarySourceSet);
+
                         playBinaryInternal.setTargetPlatform(chosenPlatform);
                         playBinaryInternal.setToolChain(playToolChainInternal);
 
                         playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
 
                         JvmClasses classes = playBinary.getClasses();
-                        classes.setClassesDir(new File(buildDir, String.format("classes/%s", name)));
+                        classes.setClassesDir(new File(buildDir, String.format("classes/%s", binaryName)));
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "public"));
+
+                        // TODO:DAZ This should be configured on the component
+                        // TODO:DAZ Scala source set type should be registered
+                        ScalaSources appSources = new ScalaSources("appSources", binaryName, serviceRegistry.get(FileResolver.class));
+                        // Compile everything under /app, except for raw twirl templates
+                        // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
+                        appSources.getSource().srcDir("app");
+                        appSources.getSource().exclude("**/*.html");
+                        playBinary.source(appSources);
+
+                        ScalaSources genSources = new ScalaSources("genSources", binaryName, serviceRegistry.get(FileResolver.class));
+                        playBinaryInternal.setGeneratedScala(genSources);
                     }
                 });
             }
         }
 
-        @BinaryTasks
-        void createCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
-            final File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
-            final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
+        private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
+            String targetPlayVersion = componentSpec.getPlayVersion();
+            if (targetPlayVersion == null) {
+                targetPlayVersion = DEFAULT_PLAY_VERSION;
+            }
+            return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+        }
 
+        @BinaryTasks
+        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+                                final ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+            final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                 public void execute(TwirlCompile twirlCompile) {
+                    File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
                     twirlCompile.setPlatform(binary.getTargetPlatform());
                     twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
                     twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
                     twirlCompile.setSource(twirlCompile.getSourceDirectory());
                     twirlCompile.include("**/*.html");
-                    // TODO Model the intermediate sourceset
-                    binary.getClasses().builtBy(twirlCompile);
+
+                    binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
+                    binary.getGeneratedScala().builtBy(twirlCompile);
                 }
             });
+        }
 
+        @BinaryTasks
+        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+                                final ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
+                    final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
                     routesCompile.setPlatform(binary.getTargetPlatform());
                     routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
                     routesCompile.setAdditionalImports(new ArrayList<String>());
                     routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
                     routesCompile.include("*.routes");
                     routesCompile.include("routes");
-                    // TODO Model the intermediate sourceset
-                    binary.getClasses().builtBy(routesCompile);
+
+                    binary.getGeneratedScala().getSource().srcDir(routesCompilerOutputDirectory);
+                    binary.getGeneratedScala().builtBy(routesCompile);
                 }
             });
+        }
 
+        @BinaryTasks
+        void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+                                ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             //load compile dependencies for scalaCompile
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
@@ -195,16 +225,13 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     scalaCompile.getScalaCompileOptions().setFork(true);
                     scalaCompile.getScalaCompileOptions().setUseAnt(false);
 
-                    // Compile everything under /app, except for raw twirl templates
-                    // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
-                    scalaCompile.source("app");
-                    scalaCompile.exclude("**/*.html");
-
-                    scalaCompile.dependsOn(twirlCompileTaskName);
-                    scalaCompile.source(twirlCompilerOutputDirectory);
-
-                    scalaCompile.dependsOn(routesCompileTaskName);
-                    scalaCompile.source(routesCompilerOutputDirectory);
+                    // TODO:DAZ Should be typed for scala
+                    for (LanguageSourceSet appSources : binary.getSource()) {
+                        scalaCompile.source(appSources.getSource());
+                        scalaCompile.dependsOn(appSources);
+                    }
+                    scalaCompile.source(binary.getGeneratedScala().getSource());
+                    scalaCompile.dependsOn(binary.getGeneratedScala());
 
                     binary.getClasses().builtBy(scalaCompile);
                 }
