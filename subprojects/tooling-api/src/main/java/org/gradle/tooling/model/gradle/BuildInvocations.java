@@ -33,16 +33,17 @@ import org.gradle.tooling.model.TaskSelector;
  */
 @Incubating
 public interface BuildInvocations extends Model {
-    /*
+    /**
      * Returns tasks selectors that can be used to execute a build.
      *
+     * Selector is a {@link org.gradle.tooling.model.Launchable} that requests to build all tasks with a given name in context of some project and all its subprojects.
      * @return The task selectors.
      * @since 1.12
      */
     @Incubating
     DomainObjectSet<? extends TaskSelector> getTaskSelectors();
 
-    /*
+    /**
      * Returns the tasks that can be used to execute a build.
      *
      * @return The tasks.
