@@ -285,10 +285,12 @@ Notes:
 
 - Can extend more than one interface
 - Error message produced when super type is not a “manageable” type indicates the original (sub) type (and the rule that caused it to be extracted)
-- Can get/set properties of super type(s)
+- ~~Can get/set properties of super type(s)~~
 - Can depend on super type as input and subject
 - Two different types can extend same parent
-- Cannot extend managed set type
+- Property conflicts between super types are detected:
+  - different types for the same name
+  - same type but one is read only and the other is writable 
 
 ### Managed model type has property of collection of managed types
 

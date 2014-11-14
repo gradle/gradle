@@ -79,7 +79,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
 
-        if (modelSchema.getKind() == ModelSchema.Kind.UNMANAGED) {
+        if (!modelSchema.getKind().isManaged()) {
             String description = String.format("a void returning model element creation rule has to take an instance of a managed type as the first argument");
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
         }

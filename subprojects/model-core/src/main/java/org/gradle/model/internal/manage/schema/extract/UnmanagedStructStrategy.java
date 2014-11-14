@@ -16,34 +16,29 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
-import org.gradle.model.Managed;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 
-@ThreadSafe
-public class StructStrategy extends StructStrategySupport {
-
-    public StructStrategy(ModelSchemaExtractor extractor, Factory<String> supportedTypeDescriptions) {
+public class UnmanagedStructStrategy extends StructStrategySupport {
+    public UnmanagedStructStrategy(ModelSchemaExtractor extractor, Factory<String> supportedTypeDescriptions) {
         super(extractor, supportedTypeDescriptions);
     }
 
     public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton("interfaces annotated with " + Managed.class.getName());
+        return Collections.emptyList();
     }
 
     @Override
     protected <R> ModelSchema<R> createModelSchema(ModelType<R> type, Iterable<ModelProperty<?>> properties) {
-        return ModelSchema.struct(type, properties);
+        return ModelSchema.unmanagedStruct(type, properties);
     }
 
     @Override
     protected <R> boolean handlesType(ModelType<R> type) {
-        return type.getRawClass().isAnnotationPresent(Managed.class);
+        return type.getConcreteClass().isInterface();
     }
-
 }

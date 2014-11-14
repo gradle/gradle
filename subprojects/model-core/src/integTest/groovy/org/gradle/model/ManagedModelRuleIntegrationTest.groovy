@@ -701,7 +701,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            @Managed
             interface Named {
                 String getName();
                 void setName(String name);

@@ -29,7 +29,22 @@ public class ModelSchema<T> {
         VALUE, // at the moment we are conflating this with unstructured primitives
         COLLECTION,
         STRUCT, // type is guaranteed to be an interface
-        UNMANAGED // some type we know nothing about
+        UNMANAGED_STRUCT(false), // an interface that is not annotated with @Managed but would otherwise be a valid managed type
+        UNMANAGED(false); // some type we know nothing about
+
+        private final boolean isManaged;
+
+        private Kind() {
+            this(true);
+        }
+
+        private Kind(boolean isManaged) {
+            this.isManaged = isManaged;
+        }
+
+        public boolean isManaged() {
+            return isManaged;
+        }
     }
 
     private final ModelType<T> type;
@@ -42,6 +57,10 @@ public class ModelSchema<T> {
 
     public static <T> ModelSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties) {
         return new ModelSchema<T>(type, Kind.STRUCT, properties);
+    }
+
+    public static <T> ModelSchema<T> unmanagedStruct(ModelType<T> type, Iterable<ModelProperty<?>> properties) {
+        return new ModelSchema<T>(type, Kind.UNMANAGED_STRUCT, properties);
     }
 
     public static <T> ModelSchema<T> collection(ModelType<T> type) {

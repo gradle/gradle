@@ -31,10 +31,12 @@ class ModelSchemaExtractorTest extends Specification {
     def extractor = new ModelSchemaExtractor()
 
     static interface NotAnnotatedInterface {}
+    static class NotAnnotatedClass {}
 
-    def "unmanaged type"() {
+    def "unmanaged types"() {
         expect:
-        extract(NotAnnotatedInterface).kind == ModelSchema.Kind.UNMANAGED
+        !extract(NotAnnotatedInterface).kind.managed
+        !extract(NotAnnotatedClass).kind.managed
     }
 
     @Managed
@@ -43,14 +45,6 @@ class ModelSchemaExtractorTest extends Specification {
     def "must be interface"() {
         expect:
         fail EmptyStaticClass, "must be defined as an interface"
-    }
-
-    @Managed
-    static interface EmptyInterfaceWithUnmanagedParent extends Serializable {}
-
-    def "cannot extend unmanaged types"() {
-        expect:
-        fail EmptyInterfaceWithUnmanagedParent, "extends $Serializable.name but extending unmanaged types is not supported"
     }
 
     @Managed
@@ -317,6 +311,27 @@ class ModelSchemaExtractorTest extends Specification {
     def "can extract inherited properties"() {
         when:
         def properties = extract(WithInheritedProperties).properties.values()
+
+        then:
+        properties*.name == ["count", "name"]
+    }
+
+    static interface SinglePropertyNotAnnotated {
+        String getName()
+
+        void setName(String name)
+    }
+
+    @Managed
+    static interface WithInheritedPropertiesFromNotAnnotated extends SinglePropertyNotAnnotated {
+        Integer getCount()
+
+        void setCount(Integer count)
+    }
+
+    def "can extract inherited properties from an interface not annotated with @Managed"() {
+        when:
+        def properties = extract(WithInheritedPropertiesFromNotAnnotated).properties.values()
 
         then:
         properties*.name == ["count", "name"]
