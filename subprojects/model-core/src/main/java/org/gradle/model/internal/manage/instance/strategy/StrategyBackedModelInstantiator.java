@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.instance;
+package org.gradle.model.internal.manage.instance.strategy;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.instance.ModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
-public class DefaultModelInstantiator implements ModelInstantiator {
+public class StrategyBackedModelInstantiator implements ModelInstantiator {
 
-    private final Iterable<ModelInstantiatorStrategy> instantiators = ImmutableList.of(
-            new ManagedSetInstantiatorStrategy(),
-            new StructModelInstantiator(new ManagedProxyFactory())
-    );
-
+    private final Iterable<ModelInstantiatorStrategy> instantiators;
     private final ModelSchemaStore schemaStore;
 
-    public DefaultModelInstantiator(ModelSchemaStore schemaStore) {
+    public StrategyBackedModelInstantiator(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.schemaStore = schemaStore;
+        this.instantiators = ImmutableList.of(
+                new ManagedSetInstantiatorStrategy(),
+                new StructModelInstantiator(proxyFactory)
+        );
     }
 
     public <T> T newInstance(ModelSchema<T> schema) {

@@ -17,7 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.lang.annotation.Annotation;

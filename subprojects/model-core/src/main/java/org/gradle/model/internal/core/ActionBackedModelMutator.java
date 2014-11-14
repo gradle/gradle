@@ -45,7 +45,7 @@ public class ActionBackedModelMutator<T> implements ModelMutator<T> {
         return subject;
     }
 
-    public void mutate(T object, Inputs inputs) {
+    public void mutate(ModelNode modelNode, T object, Inputs inputs) {
         action.execute(object);
     }
 

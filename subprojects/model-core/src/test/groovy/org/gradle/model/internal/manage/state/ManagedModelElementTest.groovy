@@ -17,8 +17,9 @@
 package org.gradle.model.internal.manage.state
 
 import org.gradle.model.Managed
-import org.gradle.model.internal.core.ModelType
-import org.gradle.model.internal.manage.instance.DefaultModelInstantiator
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory
+import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator
 import org.gradle.model.internal.manage.instance.ManagedModelElement
 import org.gradle.model.internal.manage.instance.UnexpectedModelPropertyTypeException
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -30,7 +31,7 @@ import java.beans.Introspector
 class ManagedModelElementTest extends Specification {
 
     def schemas = new DefaultModelSchemaStore()
-    def instantiator = new DefaultModelInstantiator(schemas)
+    def instantiator = new StrategyBackedModelInstantiator(schemas, new ManagedProxyFactory())
 
     def <T> ManagedModelElement<T> createElement(Class<T> elementClass) {
         new ManagedModelElement<T>(schemas.getSchema(ModelType.of(elementClass)), schemas, instantiator)

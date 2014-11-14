@@ -18,7 +18,7 @@ package org.gradle.internal.rules
 
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Mutate
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference

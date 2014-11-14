@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.instance;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+public interface ModelRegistrar {
 
-public interface ModelInstantiatorStrategy {
+    public void create(ModelCreator creator);
 
-    @Nullable
-    <T> T newInstance(ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator instantiator);
+    public <T> void mutate(ModelMutator<T> mutator);
+
+    public <T> void finalize(ModelMutator<T> mutator);
 
 }

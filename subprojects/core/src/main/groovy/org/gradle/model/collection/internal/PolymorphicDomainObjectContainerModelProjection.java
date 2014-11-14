@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.collection.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -22,21 +22,26 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.CollectionBuilderModelView;
-import org.gradle.model.collection.internal.DefaultCollectionBuilder;
-import org.gradle.model.entity.internal.NamedEntityInstantiator;
+import org.gradle.model.internal.core.CollectionBuilderModelView;
+import org.gradle.model.internal.core.DefaultCollectionBuilder;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelProjection;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
 
-public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection<C> {
+public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
     private final C container;
     private final Class<M> itemType;
 
-    public PolymorphicDomainObjectContainerModelProjection(C container, final Class<M> itemType) {
+    public PolymorphicDomainObjectContainerModelProjection(C container, Class<M> itemType) {
         this.container = container;
         this.itemType = itemType;
     }
@@ -54,32 +59,31 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return false;
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar, C instance) {
-        ModelType<T> targetType = binding.getReference().getType();
+    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode node) {
         if (canBeViewedAsWritable(targetType)) {
             ModelType<?> targetItemType = targetType.getTypeVariables().get(0);
             if (targetItemType.getRawClass().isAssignableFrom(itemType)) { // item type is super of base
-                return toView(binding, sourceDescriptor, inputs, modelRuleRegistrar, itemType);
+                return toView(sourceDescriptor, node, itemType, container);
             } else { // item type is sub type
                 Class<? extends M> subType = targetItemType.getRawClass().asSubclass(itemType);
-                return toView(binding, sourceDescriptor, inputs, modelRuleRegistrar, subType);
+                return toView(sourceDescriptor, node, subType, container);
             }
         } else {
             return null;
         }
     }
 
-    private <T, S extends M> ModelView<? extends T> toView(ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRuleRegistrar, Class<S> itemType) {
-        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(binding.getPath(), new Instantiator<S>(itemType, container), sourceDescriptor, inputs, modelRuleRegistrar);
+    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, ModelNode node, Class<S> itemType, C container) {
+        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new Instantiator<S>(itemType, container), sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, ModelType.of(itemType)).build();
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, binding.getPath(), sourceDescriptor);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, C instance) {
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode) {
         return null;
     }
 

@@ -20,10 +20,12 @@ import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultInputs
 import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
@@ -64,14 +66,18 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
 
     def registry = new DefaultModelRegistry()
     def reference = ModelReference.of("container", ThingContainer)
-    def creator = ModelCreators.of(reference, container)
+    def creator = ModelCreators.bridgedInstance(reference, container)
             .simpleDescriptor("container")
             .withProjection(new PolymorphicDomainObjectContainerModelProjection(container, NamedThing))
             .build()
-    def adapter = creator.create(new DefaultInputs([]))
+    ModelAdapter adapter
+    ModelNode node
+    ModelType<ThingContainer> containerModelType = ModelType.of(ThingContainer)
 
     def setup() {
         registry.create(creator)
+        node = registry.node(ModelPath.path("container"))
+        adapter = node.adapter
     }
 
     private registerSpecialCreator() {
@@ -82,13 +88,13 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
 
     def "can view as read types"() {
         expect:
-        adapter.asReadOnly(ModelType.of(ThingContainer)).instance.is(container)
-        adapter.asReadOnly(builderType) == null // only a writable type
+        adapter.asReadOnly(containerModelType, node).instance.is(container)
+        adapter.asReadOnly(builderType, node) == null // only a writable type
     }
 
     def "can view as write types"() {
         expect:
-        adapter.asWritable(ModelBinding.of(reference), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry).instance.is(container)
+        adapter.asWritable(containerModelType, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), node).instance.is(container)
         asBuilder().instance instanceof CollectionBuilder
         asSubBuilder().instance instanceof CollectionBuilder
     }
@@ -136,9 +142,9 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
         def promise = creator.promise
 
         then:
-        promise.readableTypeDescriptions.toList() == [IdentityModelProjection.description(ModelType.of(ThingContainer))]
+        promise.readableTypeDescriptions.toList() == [UnmanagedModelProjection.description(ModelType.of(ThingContainer))]
         promise.writableTypeDescriptions.toList() == [
-                IdentityModelProjection.description(ModelType.of(ThingContainer)),
+                UnmanagedModelProjection.description(ModelType.of(ThingContainer)),
                 PolymorphicDomainObjectContainerModelProjection.getBuilderTypeDescriptionForCreatableTypes([NamedThing])
         ]
 
@@ -146,18 +152,18 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
         registerSpecialCreator()
 
         then:
-        promise.readableTypeDescriptions.toList() == [IdentityModelProjection.description(ModelType.of(ThingContainer))]
+        promise.readableTypeDescriptions.toList() == [UnmanagedModelProjection.description(ModelType.of(ThingContainer))]
         promise.writableTypeDescriptions.toList() == [
-                IdentityModelProjection.description(ModelType.of(ThingContainer)),
+                UnmanagedModelProjection.description(ModelType.of(ThingContainer)),
                 PolymorphicDomainObjectContainerModelProjection.getBuilderTypeDescriptionForCreatableTypes([NamedThing, SpecialNamedThing])
         ]
     }
 
     def ModelView<? extends CollectionBuilder<SpecialNamedThing>> asSubBuilder() {
-        adapter.asWritable(ModelBinding.of(ModelReference.of(reference.path, subBuilderType)), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry)
+        adapter.asWritable(subBuilderType, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), node)
     }
 
     def ModelView<? extends CollectionBuilder<NamedThing>> asBuilder() {
-        adapter.asWritable(ModelBinding.of(ModelReference.of(reference.path, builderType)), new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), registry)
+        adapter.asWritable(builderType, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), node)
     }
 }

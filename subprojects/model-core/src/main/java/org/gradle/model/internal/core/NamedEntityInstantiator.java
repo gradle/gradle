@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,14 @@
 
 package org.gradle.model.internal.core;
 
-import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.internal.type.ModelType;
 
-@ThreadSafe
-public class ModelState {
+public interface NamedEntityInstantiator<T> {
 
-    public enum Status {
-        // TODO probably need to capture iterim states (e.g. MUTATING)
-        PENDING,
-        IN_CREATION,
-        FINALIZED
-    }
+    ModelType<T> getType();
 
-    private final ModelPath path;
-    private final Status status;
+    T create(String name);
 
-    public ModelState(ModelPath path, Status status) {
-        this.path = path;
-        this.status = status;
-    }
-
-    public ModelPath getPath() {
-        return path;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
+    <S extends T> S create(String name, Class<S> type);
 
 }

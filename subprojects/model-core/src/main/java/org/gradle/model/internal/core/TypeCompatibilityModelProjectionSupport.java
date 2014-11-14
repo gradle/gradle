@@ -17,21 +17,27 @@
 package org.gradle.model.internal.core;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 
 @ThreadSafe
-public class IdentityModelProjection<M> implements ModelProjection<M> {
+public abstract class TypeCompatibilityModelProjectionSupport<M> implements ModelProjection {
 
-    private final ModelType<? super M> type;
+    private final ModelType<M> type;
     private final boolean canBeViewedAsReadOnly;
     private final boolean canBeViewedAsWritable;
 
-    public IdentityModelProjection(ModelType<? super M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
+    public TypeCompatibilityModelProjectionSupport(ModelType<M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
         this.type = type;
         this.canBeViewedAsReadOnly = canBeViewedAsReadOnly;
         this.canBeViewedAsWritable = canBeViewedAsWritable;
+    }
+
+    protected ModelType<M> getType() {
+        return type;
     }
 
     public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
@@ -42,26 +48,24 @@ public class IdentityModelProjection<M> implements ModelProjection<M> {
         return canBeViewedAsReadOnly && targetType.isAssignableFrom(type);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelBinding<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry, M instance) {
-        if (canBeViewedAsWritable(reference.getReference().getType())) {
-            return view(instance);
+
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode modelNode) {
+        if (canBeViewedAsWritable(type)) {
+            return Cast.uncheckedCast(toView(modelNode, true));
         } else {
             return null;
         }
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> targetType, M instance) {
-        if (canBeViewedAsReadOnly(targetType)) {
-            return view(instance);
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode) {
+        if (canBeViewedAsReadOnly(type)) {
+            return Cast.uncheckedCast(toView(modelNode, false));
         } else {
             return null;
         }
     }
 
-    private <T> ModelView<? extends T> view(M instance) {
-        @SuppressWarnings("unchecked") ModelView<? extends T> cast = (ModelView<? extends T>) InstanceModelView.of(type, instance);
-        return cast;
-    }
+    protected abstract ModelView<M> toView(ModelNode modelNode, boolean writable);
 
     public Iterable<String> getWritableTypeDescriptions() {
         if (canBeViewedAsWritable) {

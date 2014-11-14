@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.model.internal.type.ModelType;
+
 public interface ModelPromise {
 
     <T> boolean asWritable(ModelType<T> type);

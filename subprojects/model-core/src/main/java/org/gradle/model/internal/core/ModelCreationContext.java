@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,24 @@
 
 package org.gradle.model.internal.core;
 
-public interface ModelRuleRegistrar {
+import org.gradle.api.Action;
 
-    public void create(ModelCreator creator);
+public class ModelCreationContext {
 
-    public <T> void mutate(ModelMutator<T> mutator);
+    private final ModelAdapter adapter;
+    private final Action<? super ModelNode> initiatiser;
 
-    public <T> void finalize(ModelMutator<T> mutator);
+    public ModelCreationContext(ModelAdapter adapter, Action<? super ModelNode> initiatiser) {
+        this.adapter = adapter;
+        this.initiatiser = initiatiser;
+    }
+
+    public ModelAdapter getAdapter() {
+        return adapter;
+    }
+
+    public Action<? super ModelNode> getInitiatiser() {
+        return initiatiser;
+    }
 
 }

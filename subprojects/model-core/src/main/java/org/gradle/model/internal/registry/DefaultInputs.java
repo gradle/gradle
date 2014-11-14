@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 

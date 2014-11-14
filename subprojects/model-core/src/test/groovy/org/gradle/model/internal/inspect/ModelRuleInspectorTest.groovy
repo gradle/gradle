@@ -16,12 +16,18 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.model.*
-import org.gradle.model.internal.core.*
+import org.gradle.model.Finalize
+import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.model.Model
+import org.gradle.model.Mutate
+import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -63,9 +69,6 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(SimpleModelCreationRuleInferredName, registry, dependencies)
 
         then:
-        def state = registry.state(new ModelPath("modelPath"))
-        state.status == ModelState.Status.PENDING
-
         def element = registry.get(ModelPath.path("modelPath"), ModelType.of(ModelThing))
         element.name == "foo"
     }
@@ -97,10 +100,10 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(ParameterizedModel, registry, dependencies)
 
         then:
-        registry.element(ModelPath.path("strings")).promise.asReadOnly(new ModelType<List<String>>() {})
-        registry.element(ModelPath.path("superStrings")).promise.asReadOnly(new ModelType<List<? super String>>() {})
-        registry.element(ModelPath.path("extendsStrings")).promise.asReadOnly(new ModelType<List<? extends String>>() {})
-        registry.element(ModelPath.path("wildcard")).promise.asReadOnly(new ModelType<List<?>>() {})
+        registry.node(ModelPath.path("strings")).promise.asReadOnly(new ModelType<List<String>>() {})
+        registry.node(ModelPath.path("superStrings")).promise.asReadOnly(new ModelType<List<? super String>>() {})
+        registry.node(ModelPath.path("extendsStrings")).promise.asReadOnly(new ModelType<List<? extends String>>() {})
+        registry.node(ModelPath.path("wildcard")).promise.asReadOnly(new ModelType<List<?>>() {})
     }
 
     static class HasGenericModelRule {
@@ -146,8 +149,8 @@ class ModelRuleInspectorTest extends Specification {
     def "type variables of model type are captured"() {
         when:
         inspector.inspect(ConcreteGenericModelType, registry, dependencies)
-        def element = registry.element(new ModelPath("strings"))
-        def type = element.adapter.asReadOnly(new ModelType<List<String>>() {}).type
+        def node = registry.node(new ModelPath("strings"))
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node).type
 
         then:
         type.parameterized
@@ -164,8 +167,8 @@ class ModelRuleInspectorTest extends Specification {
     def "type variables of model type are captured when method is generic in interface"() {
         when:
         inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry, dependencies)
-        def element = registry.element(new ModelPath("strings"))
-        def type = element.adapter.asReadOnly(new ModelType<List<String>>() {}).type
+        def node = registry.node(new ModelPath("strings"))
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node).type
 
         then:
         type.parameterized
@@ -224,13 +227,15 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.of(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
 
         when:
         inspector.inspect(MutationRules, registry, dependencies)
 
+
         then:
-        registry.element(path).adapter.asReadOnly(type).instance.sort() == ["1", "2"]
+        def node = registry.node(path)
+        node.adapter.asReadOnly(type, node).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules {
@@ -258,13 +263,14 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.of(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registry, dependencies)
 
         then:
-        registry.element(path).adapter.asReadOnly(type).instance == ["1", "2"]
+        def node = registry.node(path)
+        node.adapter.asReadOnly(type, node).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {
@@ -272,8 +278,8 @@ class ModelRuleInspectorTest extends Specification {
         def stringListType = new ModelType<List<String>>() {}
         def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.of(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build())
-        registry.create(ModelCreators.of(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
 
         when:
         inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)

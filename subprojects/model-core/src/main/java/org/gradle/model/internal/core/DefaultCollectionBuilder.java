@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection.internal;
+package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
@@ -22,27 +22,25 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.entity.internal.NamedEntityInstantiator;
-import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
+
+import java.util.Collections;
+import java.util.Set;
 
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
-    private final ModelPath collectionPath;
     private final NamedEntityInstantiator<T> instantiator;
     private final ModelRuleDescriptor sourceDescriptor;
-    private final Inputs implicitInputs;
-    private final ModelRuleRegistrar ruleRegistrar;
+    private final ModelNode modelNode;
 
-    public DefaultCollectionBuilder(ModelPath collectionPath, NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, Inputs implicitInputs, ModelRuleRegistrar ruleRegistrar) {
-        this.collectionPath = collectionPath;
+    public DefaultCollectionBuilder(NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, ModelNode modelNode) {
         this.instantiator = instantiator;
         this.sourceDescriptor = sourceDescriptor;
-        this.implicitInputs = implicitInputs;
-        this.ruleRegistrar = ruleRegistrar;
+        this.modelNode = modelNode;
     }
 
     public void create(final String name) {
@@ -62,7 +60,6 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S extends T> void doCreate(final String name, ModelType<S> type, Action<? super S> configAction, Factory<? extends S> factory) {
-        ModelReference<S> modelReference = ModelReference.of(collectionPath.child(name), type);
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -70,12 +67,16 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        ruleRegistrar.create(
-                ModelCreators.of(modelReference, new CreateAndConfigureFactory<S>(factory, configAction))
-                        .descriptor(descriptor)
-                        .inputs(implicitInputs.getReferences())
-                        .build()
-        );
+        // TODO reuse pooled projections/promises/adapters
+        Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new UnmanagedModelProjection<S>(type, true, true));
+        ModelPromise promise = new ProjectionBackedModelPromise(projections);
+        ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
+
+        ModelNode childNode = modelNode.addLink(name, descriptor, promise, adapter);
+
+        S s = factory.create();
+        configAction.execute(s);
+        childNode.setPrivateData(type, s);
     }
 
     private class CustomTypeFactory<S extends T> implements Factory<S> {
@@ -104,20 +105,4 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         }
     }
 
-    private static class CreateAndConfigureFactory<T> implements Factory<T> {
-
-        private final Factory<? extends T> factory;
-        private final Action<? super T> action;
-
-        private CreateAndConfigureFactory(Factory<? extends T> factory, Action<? super T> action) {
-            this.factory = factory;
-            this.action = action;
-        }
-
-        public T create() {
-            T t = factory.create();
-            action.execute(t);
-            return t;
-        }
-    }
 }

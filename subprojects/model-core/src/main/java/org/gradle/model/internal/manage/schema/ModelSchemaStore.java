@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
 public interface ModelSchemaStore {
 

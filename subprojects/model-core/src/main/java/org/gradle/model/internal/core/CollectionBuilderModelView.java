@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model.collection.internal;
+package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
-import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 @NotThreadSafe
 public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>> {
@@ -31,15 +29,13 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
     private final ModelType<CollectionBuilder<T>> type;
     private final CollectionBuilder<T> rawInstance;
     private final CollectionBuilder<T> instance = new Decorator();
-    private final ModelPath path;
     private final ModelRuleDescriptor ruleDescriptor;
 
     private boolean closed;
 
-    public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelPath path, ModelRuleDescriptor ruleDescriptor) {
+    public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
         this.type = type;
         this.rawInstance = rawInstance;
-        this.path = path;
         this.ruleDescriptor = ruleDescriptor;
     }
 
@@ -78,7 +74,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
 
         private void assertNotClosed() {
             if (closed) {
-                throw new ModelViewClosedException(path, type, ruleDescriptor);
+                throw new ModelViewClosedException(type, ruleDescriptor);
             }
         }
     }

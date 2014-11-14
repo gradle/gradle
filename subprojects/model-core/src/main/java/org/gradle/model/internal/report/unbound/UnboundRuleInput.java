@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Arrays;
 import java.util.Collection;

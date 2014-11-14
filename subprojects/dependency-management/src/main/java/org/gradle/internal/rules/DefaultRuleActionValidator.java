@@ -17,7 +17,7 @@
 package org.gradle.internal.rules;
 
 import org.gradle.api.Transformer;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;

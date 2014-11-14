@@ -59,10 +59,13 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -173,13 +176,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
+                ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .simpleDescriptor("Project.<init>.serviceRegistry()")
                         .build()
         );
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("buildDir", File.class), new Factory<File>() {
+                ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
                     public File create() {
                         return getBuildDir();
                     }
@@ -189,13 +192,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
+                ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .simpleDescriptor("Project.<init>.projectIdentifier()")
                         .build()
         );
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("extensions", ExtensionContainer.class), new Factory<ExtensionContainer>() {
+                ModelCreators.unmanagedInstance(ModelReference.of("extensions", ExtensionContainer.class), new Factory<ExtensionContainer>() {
                     public ExtensionContainer create() {
                         return getExtensions();
                     }
@@ -204,27 +207,43 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build()
         );
 
+        final ModelType<TaskContainer> taskContainerModelType = ModelType.of(TaskContainer.class);
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of(TaskContainerInternal.MODEL_PATH, ModelType.of(TaskContainer.class)), taskContainer)
+                ModelCreators.of(
+                        ModelReference.of(TaskContainerInternal.MODEL_PATH, taskContainerModelType),
+                        new Transformer<Action<? super ModelNode>, Inputs>() {
+                            public Action<? super ModelNode> transform(Inputs inputs) {
+                                return new Action<ModelNode>() {
+                                    public void execute(final ModelNode modelNode) {
+                                        modelNode.setPrivateData(taskContainerModelType, taskContainer);
+                                        taskContainer.all(new Action<Task>() {
+                                            public void execute(final Task task) {
+                                                final String name = task.getName();
+
+                                                if (!modelNode.getLinks().containsKey(name)) {
+                                                    UnmanagedModelProjection<Task> projection = new UnmanagedModelProjection<Task>(ModelType.typeOf(task), true, true);
+                                                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(projection);
+
+                                                    modelNode.addLink(
+                                                            name,
+                                                            new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
+                                                            new ProjectionBackedModelPromise(projections),
+                                                            new ProjectionBackedModelAdapter(projections)
+                                                    ).setPrivateData(ModelType.typeOf(task), task);
+                                                }
+                                            }
+                                        });
+                                    }
+                                };
+                            }
+                        }
+                )
                         .simpleDescriptor("Project.<init>.tasks()")
+                        .withProjection(new UnmanagedModelProjection<TaskContainer>(taskContainerModelType, true, true))
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<TaskContainerInternal, Task>(taskContainer, Task.class))
-                        .build());
+                        .build()
+        );
 
-        taskContainer.all(new Action<Task>() {
-            public void execute(final Task task) {
-                final String name = task.getName();
-                final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
-
-                ModelState state = modelRegistry.state(modelPath);
-                if (state == null || state.getStatus() != ModelState.Status.IN_CREATION) {
-                    modelRegistry.create(
-                            ModelCreators.of(ModelReference.of(modelPath, ModelType.typeOf(task)), task)
-                                    .simpleDescriptor("Project.<init>.tasks." + name + "()")
-                                    .build()
-                    );
-                }
-            }
-        });
 
         taskContainer.whenObjectRemoved(new Action<Task>() {
             public void execute(Task task) {

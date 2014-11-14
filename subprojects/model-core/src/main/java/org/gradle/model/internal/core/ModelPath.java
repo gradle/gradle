@@ -19,24 +19,38 @@ package org.gradle.model.internal.core;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 @ThreadSafe
-public class ModelPath {
+public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     public static final String SEPARATOR = ".";
     public static final Splitter PATH_SPLITTER = Splitter.on('.');
     public static final Joiner PATH_JOINER = Joiner.on('.');
 
     private final String path;
+    private final List<String> components;
 
     public ModelPath(String path) {
         this.path = path;
+        this.components = PATH_SPLITTER.splitToList(path);
+    }
+
+    public ModelPath(Collection<String> parts) {
+        this.path = PATH_JOINER.join(parts);
+        this.components = ImmutableList.copyOf(parts);
+    }
+
+    public int compareTo(ModelPath other) {
+        return path.compareTo(other.path);
     }
 
     @Override
@@ -56,6 +70,18 @@ public class ModelPath {
     @Override
     public int hashCode() {
         return path.hashCode();
+    }
+
+    public int getDepth() {
+        return components.size();
+    }
+
+    public List<String> getComponents() {
+        return components;
+    }
+
+    public Iterator<String> iterator() {
+        return components.iterator();
     }
 
     @Override
