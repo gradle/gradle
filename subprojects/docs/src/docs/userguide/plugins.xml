@@ -25,6 +25,26 @@
     <para>
         In this chapter we will discuss how to use plugins and the terminology and concepts surrounding plugins.
     </para>
+    <section>
+        <title>What plugins do</title>
+        <para>
+            Applying a plugin to a project allows the plugin to extend the project's capabilities. It can do things
+            such as:
+        </para>
+        <itemizedlist>
+            <listitem>Extend the Gradle model (e.g. add new DSL elements that can be configured)</listitem>
+            <listitem>Configure the project according to conventions (e.g. add new tasks or configure sensible defaults)</listitem>
+            <listitem>Apply specific configuration (e.g. add organizational repositories or enforce standards)</listitem>
+        </itemizedlist>
+        <para>
+            By applying plugins, rather than adding logic to the project build script, we can reap a number of benefits.  Applying plugins:
+        </para>
+        <itemizedlist>
+            <listitem>Promotes reuse and reduces the overhead of maintaining similar logic across multiple projects</listitem>
+            <listitem>Allows a higher degree of modularization, enhancing comprehensibility and organization</listitem>
+            <listitem>Encapsulates imperative logic and allows build scripts to be as declarative as possible</listitem>
+        </itemizedlist>
+    </section>
     <section id="sec:types_of_plugins">
         <title>Types of plugins</title>
         <para>
@@ -40,6 +60,8 @@
         <title>Applying plugins</title>
         <para>
             Plugins are said to be <emphasis>applied</emphasis>, which is done via the <apilink class="org.gradle.api.Project" method="apply(java.util.Map)" /> method.
+            The application of plugins is <emphasis>idempotent</emphasis>. That is, the same plugin can be applied multiple times. If the plugin
+            has previously been applied, any further applications are safe and will have no effect.
         </para>
         <section>
             <title>Script plugins</title>
@@ -58,26 +80,22 @@
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
             </sample>
             <para>
-                Core plugins register a short name. In the above case, we are using the short name
-                ‘<literal>java</literal>’ to apply the <apilink class="org.gradle.api.plugins.JavaPlugin" />.
-                Plugins also have a <emphasis>plugin id</emphasis> that takes a fully qualified
-                form like <literal>com.github.foo.bar</literal>, although some legacy plugins may still utilize
-                the short, unqualified form.
+                Plugins can be applied using a <emphasis>plugin id</emphasis>.  The plugin id serves as a unique identifier
+                for a given plugin.  Core plugins register a short name that can be used as the plugin id. In the above case, we are
+                using the short name ‘<literal>java</literal>’ to apply the <apilink class="org.gradle.api.plugins.JavaPlugin" />.
+                Community plugins, on the other hand, use a fully qualified form for the plugin id (e.g. <literal>com.github.foo.bar</literal>),
+                although some legacy plugins may still utilize a short, unqualified form.
             </para>
             <para>
-                This method can also accept a class to identify the plugin:
+                Rather than using a plugin id, plugins can also be applied by simply specifying the class of the plugin:
             </para>
             <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a binary plugin by type">
                 <sourcefile file="build.gradle" snippet="apply-by-type"/>
             </sample>
             <para>
                 The <literal>JavaPlugin</literal> symbol in the above sample refers to the the <apilink class="org.gradle.api.plugins.JavaPlugin"/>.
-                This class does not strictly need to be import as the <literal>org.gradle.api.plugins</literal> package is automatically imported in all build scripts
+                This class does not strictly need to be imported as the <literal>org.gradle.api.plugins</literal> package is automatically imported in all build scripts
                 (see <xref linkend='ide_support'/>). Furthermore, it is not necessary to append <literal>.class</literal> to identify a class literal in Groovy as it is in Java.
-            </para>
-            <para>
-                The application of plugins is <emphasis>idempotent</emphasis>. That is, a plugin can be applied multiple times. If the plugin
-                has previously been applied, any further applications will have no effect.
             </para>
             <section>
                 <title>Locations of binary plugins</title>
@@ -90,7 +108,7 @@
                 <itemizedlist>
                     <listitem>Defining the plugin as an inline class declaration inside a build script.</listitem>
                     <listitem>Defining the plugin as a source file under the buildSrc directory in the project.</listitem>
-                    <listitem>Including the plugin from an external jar defined as a buildscript dependency (see <xref linkend="sec:external_dependencies" />).</listitem>
+                    <listitem>Including the plugin from an external jar defined as a buildscript dependency (see <xref linkend="sec:applying_plugins_buildscript" />).</listitem>
                     <listitem>Including the plugin from the plugin portal using the plugins DSL (see <xref linkend="sec:plugins_block" />).</listitem>
                 </itemizedlist>
                 <para>
@@ -98,6 +116,17 @@
                 </para>
             </section>
         </section>
+    </section>
+    <section id="sec:applying_plugins_buildscript">
+        <title>Applying plugins with the buildscript block</title>
+        <para>
+            Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the
+            build script classpath and then applying the plugin.  External jars can be added to the build script classpath
+            using the <code>buildscript {}</code> block as described in <xref linkend="sec:external_dependencies" />.
+        </para>
+        <sample id="applyPluginBuildscript" dir="plugins/buildscript" title="Applying a plugin with the buildscript block">
+            <sourcefile file="build.gradle" snippet="buildscript_block" />
+        </sample>
     </section>
     <section id="sec:plugins_block">
         <title>Applying plugins with the plugins DSL</title>
@@ -115,13 +144,13 @@
         <para>
             To apply a core plugin, the short name can be used:
         </para>
-        <sample id="useJavaPluginDSL" dir="plugin-dsl" title="Applying a core plugin">
+        <sample id="useJavaPluginDSL" dir="plugins/dsl" title="Applying a core plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>
             To apply a community plugin from the portal, the fully qualified plugin id must be used:
         </para>
-        <sample id="useCommunityPluginDSL" dir="plugin-dsl" title="Applying a community plugin">
+        <sample id="useCommunityPluginDSL" dir="plugins/dsl" title="Applying a community plugin">
             <sourcefile file="build.gradle" snippet="use-community-plugin"/>
         </sample>
         <para>
@@ -198,8 +227,8 @@ plugins {
                 </para>
             </section>
             <para>
-                If the restrictions of the new syntax are prohibitive, the recommended approach is to use the <link linkend="sec:external_dependencies">buildscript block</link>
-                to configure external plugin dependencies and to apply them as described <link linkend="sec:applying_binary_plugins">above</link> .
+                If the restrictions of the new syntax are prohibitive, the recommended approach is to apply plugins using the
+                <link linkend="sec:applying_plugins_buildscript">buildscript {} block</link>.
             </para>
         </section>
     </section>
@@ -209,90 +238,6 @@ plugins {
             Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities.
             The Gradle <ulink url="http://plugins.gradle.org">plugin portal</ulink> provides an interface for searching and
             exploring community plugins.
-        </para>
-    </section>
-    <section>
-        <title>What plugins do</title>
-        <para>
-            Applying a plugin to the project allows the plugin to extend the project's capabilities. It can do things
-            such as:
-        </para>
-        <itemizedlist>
-            <listitem>Add tasks to the project (e.g. compile, test)</listitem>
-            <listitem>Pre-configure added tasks with useful defaults.</listitem>
-            <listitem>Add dependency configurations to the project (see <xref linkend="configurations"/>).</listitem>
-            <listitem>Add new properties and methods to existing type via extensions.</listitem>
-        </itemizedlist>
-        <para>
-            Let's check this out:
-        </para>
-        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Tasks added by a plugin">
-            <sourcefile file="build.gradle" snippet="apply-by-id"/>
-            <output args="-q show"/>
-        </sample>
-        <para>
-            The Java plugin has added a <literal>compileJava</literal> task and a <literal>processResources</literal> task
-            to the project and configured the <literal>destinationDir</literal> property of both of these tasks.
-        </para>
-    </section>
-    <section id='sub:more_about_convention_objects'>
-        <title>Conventions</title>
-        <para>
-            Plugins can pre-configure the project in smart ways to support convention-over-configuration. Gradle
-            provides mechanisms and sophisticated support and it's a key ingredient in powerful-yet-concise build scripts.
-        </para>
-        <para>
-            We saw in the example above that the Java plugins adds a task named <literal>compileJava</literal> that has
-            a property named <literal>destinationDir</literal> (that configures where the compiled Java source should be placed).
-            The Java plugin defaults this property to point to <literal>build/classes/main</literal> in the project directory.
-            This is an example of convention-over-configuration via a <emphasis>reasonable default</emphasis>.
-        </para>
-        <para>
-            We can change this property simply by giving it a new value.
-        </para>
-        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Changing plugin defaults">
-            <sourcefile file="build.gradle"/>
-            <output args="-q show"/>
-        </sample>
-        <para>
-            However, it's likely that the <literal>compileJava</literal> task is not the only task that needs to know where
-            the class files are. 
-        </para>
-        <para>
-            The Java plugin adds the concept of <emphasis>source sets</emphasis> (see <apilink class="org.gradle.api.tasks.SourceSet" />)
-            to describe the aspects of a set of source files, one aspect being where the class files should be written to when they are compiled.
-            The Java plugin maps the <literal>destinationDir</literal> property of the <literal>compileJava</literal> task to this aspect of the source set.
-        </para>
-        <para>
-            We can change where the class files are written to by configuring the source set.
-        </para>
-        <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention" title="Plugin convention object">
-            <sourcefile file="build.gradle"/>
-            <output args="-q show"/>
-        </sample>
-        <para>
-            In the example above, we applied the Java plugin which, among other things, did the following:
-        </para>
-        <itemizedlist>
-            <listitem>Added a new domain object type: <apilink class="org.gradle.api.tasks.SourceSet" /></listitem>
-            <listitem>Configured a <literal>main</literal> source set with default (i.e. conventional) values for properties</listitem>
-            <listitem>Configured supporting tasks to use these properties to perform work</listitem>
-        </itemizedlist>
-        <para>
-            All of this happened during the “<literal>apply plugin: "java"</literal>” step. In the example above, we <emphasis>changed</emphasis>
-            the desired location of the class files after this conventional configuration had been performed. Notice by the output with the example
-            that the value for <literal>compileJava.destinationDir</literal> also changed to reflect the configuration change.
-        </para>
-        <para>
-            Consider the case where another task needs to consume the class files. If this task is configured to use the value from
-            <literal>sourceSets.main.output.classesDir</literal>, then changing it in this location will update this
-            new task in addition to the <literal>compileJava</literal> task whenever it is changed.
-        </para>
-        <para>
-            This ability to configure properties of objects to reflect the value of another object's task at all times (i.e. even when it changes) is
-            known as “<emphasis>convention mapping</emphasis>”. It allows Gradle to provide conciseness through convention-over-configuration and
-            sensible defaults yet not require complete reconfiguration if a conventional default needs to be changed. Without this, in the example above,
-            we would have had to reconfigure every object that needs to work with the class files.
         </para>
     </section>
     <section>
