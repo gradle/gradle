@@ -28,8 +28,20 @@ import java.io.File;
 import java.util.Arrays;
 
 public class PlayRunWorkerManager {
-    public PlayApplicationRunnerToken start(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, PlayRunSpec spec) {
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
+    private final File workingDir;
+    private final Factory<WorkerProcessBuilder> workerFactory;
+    private final VersionedPlayRunSpec spec;
+    private final Iterable<File>  docsClasspath;
+
+    public PlayRunWorkerManager(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
+        this.workingDir = workingDir;
+        this.workerFactory = workerFactory;
+        this.spec = spec;
+        this.docsClasspath = docsClasspath;
+    }
+
+    public PlayApplicationRunnerToken start() {
+        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, docsClasspath, spec);
         process.start();
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();
@@ -43,16 +55,16 @@ public class PlayRunWorkerManager {
         }
     }
 
-    private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection playAppClasspath, PlayRunSpec spec) {
+    private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, Iterable<File> docsClasspath, VersionedPlayRunSpec spec) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
-        builder.applicationClasspath(playAppClasspath);
+        builder.applicationClasspath(spec.getClasspath());
         builder.setLogLevel(LogLevel.DEBUG);
-        builder.sharedPackages(Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala"));
+        builder.sharedPackages(Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala")); //TODO freekh: spec.getSharedPackages()
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
-        WorkerProcess process = builder.worker(new PlayWorkerServer(spec)).build();
+        WorkerProcess process = builder.worker(new PlayWorkerServer(spec, docsClasspath)).build();
         return process;
     }
 }

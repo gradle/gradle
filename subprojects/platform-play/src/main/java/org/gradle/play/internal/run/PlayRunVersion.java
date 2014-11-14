@@ -16,14 +16,22 @@
 
 package org.gradle.play.internal.run;
 
-import java.io.File;
+import org.gradle.api.InvalidUserDataException;
 
-public interface PlayRunSpec {
-    String getMaxHeapSize();
+public enum PlayRunVersion {
+    V_22X,
+    V_23X;
 
-    Iterable<File> getClasspath();
+    public static PlayRunVersion parse(String version) {
+        if (version == null) {
+            throw new InvalidUserDataException("No version (version is null) of the Play Run detected");
+        }
 
-    File getProjectPath();
-
-    int getHttpPort();
+        if (version.matches("2\\.2\\..*?")) {
+            return V_22X;
+        } else if (version.matches("2\\.3\\..*?")) {
+            return V_23X;
+        }
+        throw new InvalidUserDataException("Could not find a compatible Play version for the Run service. This plugin is compatible with: 2.3.x, 2.2.x");
+    }
 }

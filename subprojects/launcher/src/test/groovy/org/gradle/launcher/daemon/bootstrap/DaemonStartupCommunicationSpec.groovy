@@ -33,7 +33,7 @@ class DaemonStartupCommunicationSpec extends Specification {
         then:
         startupInfo.uid == "1234"
         startupInfo.address.canonicalAddress == uuid
-        startupInfo.address.port == 123
+        startupInfo.address.getHttpPort == 123
         startupInfo.address.candidates == addresses
         startupInfo.pid == 123
         startupInfo.diagnostics.pid == 123

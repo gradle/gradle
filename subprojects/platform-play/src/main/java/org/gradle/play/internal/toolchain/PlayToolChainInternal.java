@@ -16,11 +16,18 @@
 
 package org.gradle.play.internal.toolchain;
 
+import org.gradle.internal.Factory;
 import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
+import org.gradle.play.internal.run.PlayRunSpec;
+import org.gradle.play.internal.run.PlayRunWorkerManager;
+import org.gradle.play.toolchain.PlayToolChain;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.process.internal.WorkerProcessBuilder;
+
 public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
     public PlayToolProvider select(PlayPlatform targetPlatform);
-
+    public PlayRunWorkerManager getWorkerManager(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform, PlayRunSpec spec);
 }

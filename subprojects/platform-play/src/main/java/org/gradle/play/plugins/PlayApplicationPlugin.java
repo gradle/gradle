@@ -60,6 +60,8 @@ import java.util.List;
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     private final static String DEFAULT_PLAY_VERSION = "2.3.5";
+    public static final String PLAYAPP_RUNTIME_CONFIGURATION_NAME = "playAppRuntime";
+    public static final int DEFAULT_HTTP_PORT = 9000;
 
     public void apply(final ProjectInternal project) {
     }
@@ -93,20 +95,22 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
 
-        @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal, @Path("buildDir") final File buildDir) {
-
+        private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
             String targetPlayVersion = componentSpec.getPlayVersion();
             if (targetPlayVersion == null) {
                 targetPlayVersion = DEFAULT_PLAY_VERSION;
             }
 
-            List<PlayPlatform> selectedPlatforms = platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
-            for (final PlayPlatform selectedPlatform : selectedPlatforms) {
+            return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+        }
+
+        @ComponentBinaries
+        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal, @Path("buildDir") final File buildDir) {
+            for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
                 binaries.create(String.format("%sBinary", componentSpec.getName()), new Action<PlayApplicationBinarySpec>() {
                     public void execute(PlayApplicationBinarySpec playBinary) {
                         PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
-                        playBinaryInternal.setTargetPlatform(selectedPlatform);
+                        playBinaryInternal.setTargetPlatform(chosenPlatform);
                         playBinaryInternal.setToolChain(playToolChainInternal);
                         playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
                     }
@@ -195,8 +199,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
                     jar.from(compileOutputDirectory);
-                    jar.from("public");
-                    jar.from("conf");
+                    jar.from("public"); //TODO freekh: should be possible to configure configurable
+                    jar.from("conf");  //TODO freekh: should be possible to configure configurable
                     // CollectionBuilder api currently does not allow autowiring for tasks
                     jar.dependsOn(scalaCompileTaskName);
                 }
@@ -216,14 +220,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
-                        playRun.dependsOn(binary.getBuildTask());
+                        playRun.setHttpPort(DEFAULT_HTTP_PORT);
+                        playRun.setTargetPlatform(binary.getTargetPlatform());
                         Project project = playRun.getProject();
-                        Configuration playRunConf = project.getConfigurations().create("playRunConf");
-//                        playRunConf.getDependencies().add(new DefaultClientModule("com.typesafe.play", "play-docs_"+DEFAULT_SCALA_BINARY_VERSION, DEFAULT_PLAY_VERSION));
-//                        FileCollection classpath = project.files(binary.getJarFile()).plus(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME));
-//                        classpath.add(project.files(binary.getJarFile()).plus(playRunConf));
-//                        playRun.setClasspath(classpath); //TODO: not correct - should be only playRunCOnf
-//                        playRun.setPlayAppClasspath(classpath);
+                        playRun.setClasspath(project.getConfigurations().getByName(PLAYAPP_RUNTIME_CONFIGURATION_NAME)); //TODO move to ToolChain
+                        playRun.dependsOn(binary.getBuildTask());
                     }
                 });
 
@@ -275,10 +276,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         test.setTestSrcDirs(Arrays.asList(fileResolver.resolve("test")));
                         test.setWorkingDir(projectIdentifier.getProjectDir());
                         test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testCompileOutputDirectory)));
-
                     }
                 });
-
             }
         }
     }

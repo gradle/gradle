@@ -21,15 +21,13 @@ import org.gradle.integtests.fixtures.UrlValidator
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.junit.Assert
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class PlayRunIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
-    //def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
-    int httpPort = 9000
+    def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+    int httpPort = 9000 //portFinder.nextAvailable
 
     def setup(){
         buildFile << """
@@ -51,11 +49,6 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        dependencies{
-            playAppCompile "com.typesafe.play:play_2.10:2.3.5"
-            playAppRuntime "com.typesafe.play:play-docs_2.10:2.3.5"
-        }
-
         model {
             tasks.runMyAppBinary {
                 httpPort = $httpPort
@@ -74,17 +67,18 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         then:
         UrlValidator.available("http://localhost:$httpPort", "Sample Play App", 120000)
         assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
+        while(true);
 
         when: "stopping gradle"
         gradleHandle.abort()
         then: "play server is stopped too"
-        notAvailable("http://localhost:$httpPort");
+        notAvailable("http://localhost:$httpPort")
     }
 
     def notAvailable(String url) {
         try{
-            new URL(url).text
-            Assert.fail()
+            String text = new URL(url).text
+            Assert.fail("Expected url to be unavailable instead we got:\n$text")
         }catch(ConnectException ex){
             return true
         }
