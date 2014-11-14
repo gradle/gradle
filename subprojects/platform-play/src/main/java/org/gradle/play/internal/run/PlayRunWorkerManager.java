@@ -58,7 +58,7 @@ public class PlayRunWorkerManager {
     private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, Iterable<File> docsClasspath, VersionedPlayRunSpec spec) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
-        //TODO freekh: we should try to avoid this, but we have to use the same classloader for docs and the rest @see
+        //TODO freekh: we should try to avoid this, but we have to use the same classloader for docs also see PlayExecuter
         List<File> combinedClasspath = new ArrayList<File>();
         for (File file: docsClasspath) {
             combinedClasspath.add(file);
