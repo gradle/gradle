@@ -226,9 +226,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 //                        playRun.setPlayAppClasspath(classpath);
                     }
                 });
-//test compile
-                final File testCompileOutputDirectory = new File(buildDir, String.format("testClasses/%s", binary.getName()));
 
+                final File testCompileOutputDirectory = new File(buildDir, String.format("testClasses/%s", binary.getName()));
                 final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
                 ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
                 DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
