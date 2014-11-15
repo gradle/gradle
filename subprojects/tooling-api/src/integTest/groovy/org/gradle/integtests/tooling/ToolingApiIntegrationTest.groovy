@@ -63,7 +63,7 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version.version}'
 
         when:
         toolingApi.withConnector { connector ->
-            connector.useDefaultDistribution()
+            connector.useProjectDistribution()
         }
         toolingApi.withConnection { connection -> connection.newBuild().forTasks('check').run() }
 
@@ -84,7 +84,7 @@ allprojects {
 
         when:
         toolingApi.withConnector { connector ->
-            connector.useDefaultDistribution()
+            connector.useProjectDistribution()
             connector.searchUpwards(true)
             connector.forProjectDirectory(projectDir.file('child'))
         }

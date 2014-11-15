@@ -77,7 +77,7 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
-    public GradleConnector useDefaultDistribution() {
+    public GradleConnector useProjectDistribution() {
         distribution = null;
         return this;
     }
