@@ -192,7 +192,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         @BinaryTasks
         void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                final ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+                                 final ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
@@ -274,14 +274,13 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
-        // TODO:Rene/Freekh Break this up a little
         @Mutate
-        void createPlayApplicationTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-                final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-                final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
-                final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
+            final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
 
+            for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
@@ -297,11 +296,18 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });
+            }
+        }
 
+        @Mutate
+        void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
+            final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
 
-                PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
+            PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
+            for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 PlayPlatform targetPlatform = binary.getTargetPlatform();
-
                 // TODO the knowledge about platform dependencies should be moved into toolchain/toolprovider
                 Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion()));
                 final Configuration testCompileConfiguration = configurationContainer.detachedConfiguration(playTestDependency);
