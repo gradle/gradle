@@ -19,7 +19,9 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.collect.MapMaker;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
@@ -27,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -80,7 +84,17 @@ public class ClasspathInferer {
                 return;
             }
 
-            File classPathRoot = ClasspathUtil.getClasspathForResource(resource, resourceName);
+            File classPathRoot = null;
+            try {
+                classPathRoot = ClasspathUtil.getClasspathForResource(resource, resourceName);
+            } catch (GradleException ex) {
+                try {
+                    classPathRoot = getClasspathForCodeSource(target.getProtectionDomain().getCodeSource().getLocation(), resourceName);
+                } catch (GradleException ex2) {
+                    ex2.printStackTrace();
+                    throw new DefaultMultiCauseException("Cannot determine classpath for resource '" + resourceName + "'", ex, ex2);
+                }
+            }
             dest.add(classPathRoot.toURI().toURL());
 
             // To determine the dependencies of the class, load up the byte code and look for CONSTANT_Class entries in the constant pool
@@ -127,5 +141,33 @@ public class ClasspathInferer {
         } catch (Exception e) {
             throw new GradleException(String.format("Could not determine the class-path for %s.", target), e);
         }
+    }
+
+    private File getClasspathForCodeSource(URL resource, String resourceName) {
+        URI location;
+        try {
+            location = resource.toURI();
+            String path = location.getPath();
+            if (location.getScheme().equals("file")) {
+                if (path.endsWith(".jar")) {
+                    // just assume that resourceName is contained in this JAR
+                    System.err.println("resource is JAR" + location);
+                    return new File(path);
+                }
+                File candidate = new File(path);
+                if (candidate.isDirectory() && new File(candidate, resourceName).exists()) {
+                    System.err.println("resource is directory root " + candidate);
+                    return candidate;
+                }
+                candidate = new File(candidate, "bin");
+                if (candidate.isDirectory() && new File(candidate, resourceName).exists()) {
+                    System.err.println("resource is directory root used by Eclipse PDE " + candidate);
+                    return candidate;
+                }
+            }
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        throw new GradleException(String.format("Cannot determine classpath for resource '%s' from location '%s'.", resourceName, location));
     }
 }
