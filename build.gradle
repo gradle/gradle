@@ -42,7 +42,7 @@ buildTypes {
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
-    // Used for builds to test the code on certain platforms with all version under test
+    // Used for builds to test the code on certain platforms
     platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllPlatforms: true
 
     // Tests using the daemon mode
