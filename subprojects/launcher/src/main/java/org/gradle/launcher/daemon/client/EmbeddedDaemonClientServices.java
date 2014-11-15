@@ -52,7 +52,7 @@ import java.util.UUID;
  */
 public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     public EmbeddedDaemonClientServices() {
-        this(LoggingServiceRegistry.newProcessLogging());
+        this(LoggingServiceRegistry.newCommandLineProcessLogging());
     }
 
     private class EmbeddedDaemonFactory implements Factory<Daemon> {

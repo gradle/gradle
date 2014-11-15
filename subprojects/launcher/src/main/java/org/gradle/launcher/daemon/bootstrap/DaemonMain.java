@@ -77,7 +77,7 @@ public class DaemonMain extends EntryPoint {
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
-        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newProcessLogging();
+        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager);
         File daemonLog = daemonServices.getDaemonLogFile();

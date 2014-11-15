@@ -21,12 +21,12 @@ import java.io.OutputStream;
 
 public interface LoggingOutputInternal extends LoggingOutput {
     /**
-     * Adds System.out and System.err as logging destinations.
+     * Adds System.out and System.err as logging destinations. The output will include plain text only, with no color or dynamic text.
      */
     void attachSystemOutAndErr();
 
     /**
-     * Adds the current processes' stdout and stderr as logging destinations. The output will also include colorized text and status bar when one of these
+     * Adds the current processes' stdout and stderr as logging destinations. The output will also include color and dynamic text when one of these
      * is connected to a console.
      *
      * <p>Removes standard output and/or error as a side-effect.
@@ -35,7 +35,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings
-     * and encoded using the system character encoding. The output also includes colorized text and status bar encoded using ANSI control sequences.
+     * and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences.
      *
      * <p>Removes standard output and/or error as a side-effect.
      */
@@ -53,8 +53,14 @@ public interface LoggingOutputInternal extends LoggingOutput {
      */
     void addStandardErrorListener(OutputStream outputStream);
 
+    /**
+     * Adds the given listener as a logging destination.
+     */
     void addOutputEventListener(OutputEventListener listener);
 
+    /**
+     * Adds the given listener.
+     */
     void removeOutputEventListener(OutputEventListener listener);
 
     /**

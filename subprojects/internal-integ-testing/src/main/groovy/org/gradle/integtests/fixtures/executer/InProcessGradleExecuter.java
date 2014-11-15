@@ -66,7 +66,7 @@ import static org.junit.Assert.*;
 class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
             .displayName("Global services")
-            .parent(LoggingServiceRegistry.newProcessLogging())
+            .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
             .parent(NativeServices.getInstance())
             .provider(new GlobalScopeServices(true))
             .build();

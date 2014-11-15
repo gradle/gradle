@@ -40,12 +40,12 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
 
     /**
-     * Creates a set of logging services which are suitable to use in a command-line process. In particular:
+     * Creates a set of logging services which are suitable to use globally in a process. In particular:
      *
      * <ul>
      *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
      *     <li>Configures slf4j, logback, log4j and java util logging to route log messages through the logging system.</li>
-     *     <li>Routes logging output to the original System.out and System.err.</li>
+     *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
@@ -57,33 +57,18 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     /**
-     * Creates a set of logging services which are suitable to use globally in a process. In particular:
-     *
-     * <ul>
-     *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
-     *     <li>Configures slf4j, logback, log4j and java util logging to route log messages through the logging system.</li>
-     *     <li>Routes logging output to the original System.out and System.err.</li>
-     * </ul>
-     *
-     * <p>Does nothing until started.</p>
-     */
-    public static LoggingServiceRegistry newProcessLogging() {
-        return new ChildProcessLogging();
-    }
-
-    /**
      * Creates a set of logging services which are suitable to use embedded in another application. In particular:
      *
      * <ul>
-     *     <li>Routes logging output to System.out and System.err.</li>
-     *     <li>Configures slf4j and logback.</li>
+     *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
+     *     <li>Configures slf4j, logback and log4j to route log messages through the logging system.</li>
      * </ul>
      *
      * <p>Does not:</p>
      *
      * <ul>
      *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
-     *     <li>Configure log4j or java util logging.</li>
+     *     <li>Configure java util logging.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
@@ -130,7 +115,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return renderer;
     }
 
-    private static class ChildProcessLogging extends LoggingServiceRegistry {
+    private static class CommandLineLogging extends LoggingServiceRegistry {
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
             // Configure logback and java util logging, and capture stdout and stderr
@@ -144,9 +129,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
                     stdout,
                     stderr);
         }
-    }
 
-    private static class CommandLineLogging extends ChildProcessLogging {
         protected OutputEventRenderer createOutputEventRenderer() {
             OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction());
             renderer.attachSystemOutAndErr();
