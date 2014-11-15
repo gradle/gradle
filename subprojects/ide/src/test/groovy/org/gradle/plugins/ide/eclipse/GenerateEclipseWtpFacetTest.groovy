@@ -17,6 +17,8 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
+import org.gradle.plugins.ide.eclipse.model.Facet
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 
 public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
     private eclipseFacet = createTask(GenerateEclipseWtpFacet)
@@ -29,4 +31,19 @@ public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
         return eclipseFacet
     }
 
+    def testFacet_installedFacet() {
+        when:
+        eclipseFacet.facet.facet(name: 'fancyProject', version: '1.3')
+
+        then:
+        eclipseFacet.facet.facets == [new Facet(FacetType.installed, 'fancyProject', '1.3')]
+    }
+
+    def testFacet_fixedFacet() {
+        when:
+        eclipseFacet.facet.facet type: FacetType.fixed, name: 'fancyProject'
+
+        then:
+        eclipseFacet.facet.facets == [new Facet(FacetType.fixed, 'fancyProject', null)]
+    }
 }
