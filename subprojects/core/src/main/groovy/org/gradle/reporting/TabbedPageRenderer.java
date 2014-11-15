@@ -75,6 +75,7 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
                                 .startElement("input")
                                     .attribute("id", "line-wrapping-toggle")
                                     .attribute("type", "checkbox")
+                                    .attribute("autocomplete", "off")
                                 .endElement()
                             .endElement()
                         .endElement()

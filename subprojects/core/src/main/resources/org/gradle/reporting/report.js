@@ -1,10 +1,7 @@
 (function (window, document) {
     "use strict";
 
-    var GRADLE_LINE_WRAPPING_KEY = "gradle.line-wrapping";
-
     var tabs = {};
-    var storage = false;
 
     function changeElementClass(element, classValue) {
         if (element.getAttribute("className")) {
@@ -51,62 +48,6 @@
         return document.getElementById("label-for-line-wrapping-toggle");
     }
 
-    function checkIsStorageAvailable() {
-        try {
-            var key = "testField";
-            var expected = "true";
-            var actual;
-
-            window.localStorage.setItem(key, expected);
-            actual = window.localStorage.getItem(key);
-            window.localStorage.removeItem(key);
-
-            return expected === actual;
-        } catch (exception) {
-            return false;
-        }
-    }
-
-    function storeState(state) {
-        if (storage) {
-            storage.setItem(GRADLE_LINE_WRAPPING_KEY, state.toString());
-        }
-    }
-
-    function getState() {
-        if (storage) {
-            return storage.getItem(GRADLE_LINE_WRAPPING_KEY) === "true";
-        }
-
-        return false;
-    }
-
-    function initializeFromStorage() {
-        var checkBox = getCheckBox();
-        var state = getState();
-
-        if (state) {
-            checkBox.checked = true;
-
-            storeState(true);
-            forAllCodeBlocks(addClass);
-        } else {
-            checkBox.checked = false;
-
-            storeState(false);
-            forAllCodeBlocks(removeClass);
-        }
-    }
-
-    function initStorage() {
-        if ("localStorage" in window) {
-            if (checkIsStorageAvailable()) {
-                storage = window.localStorage;
-                initializeFromStorage();
-            }
-        }
-    }
-
     function forAllCodeBlocks(operation) {
         var codeBlocks;
         var i;
@@ -123,21 +64,19 @@
 
         if (checkBox.checked) {
             forAllCodeBlocks(addClass);
-            storeState(true);
         } else {
             forAllCodeBlocks(removeClass);
-            storeState(false);
         }
     }
 
     function initControls() {
-        if (storage) {
-            var checkBox = getCheckBox();
-            var label = getLabelForCheckBox();
+        var checkBox = getCheckBox();
+        var label = getLabelForCheckBox();
 
-            checkBox.onclick = toggleLineWrapping;
-            removeClass(label, "hidden");
-        }
+        checkBox.onclick = toggleLineWrapping;
+        checkBox.checked = false;
+
+        removeClass(label, "hidden");
     }
 
     function switchTab() {
@@ -240,7 +179,6 @@
 
     window.onload = function() {
         initTabs();
-        initStorage();
         initControls();
     };
 } (window, window.document));
