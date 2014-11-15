@@ -36,6 +36,8 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
     File getJarFile();
 
     JvmClasses getClasses();
+    JvmClasses getTestClasses();
 
     LanguageSourceSet getGeneratedScala();
+    LanguageSourceSet getTestScala();
 }
