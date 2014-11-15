@@ -36,13 +36,13 @@ buildTypes {
     // A full (in-process) test
     developerBuild "check"
 
-    // Used by the first phase of the build pipeline
-    quickTest "runtimeTests", "runtimeIntegTests"
+    // Used by the first phase of the build pipeline, running only last version on multiversion - tests
+    quickTest "runtimeTests", "runtimeIntegTests", multiVersion: "last"
 
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
-    // Used for builds to test the code on certain platforms
+    // Used for builds to test the code on certain platforms with all version under test
     platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllPlatforms: true
 
     // Tests using the daemon mode
