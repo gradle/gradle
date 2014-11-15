@@ -71,7 +71,6 @@ class EclipseWtpFacet {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     List<Facet> facets = []
-    // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
 
     /**
      * Adds a facet.
