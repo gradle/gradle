@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
