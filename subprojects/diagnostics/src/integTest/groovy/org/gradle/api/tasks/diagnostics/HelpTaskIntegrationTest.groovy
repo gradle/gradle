@@ -131,6 +131,41 @@ Descriptions
      (:someproj:hello) hello task from someproj"""))
     }
 
+    def "help for tasks same type different groups"() {
+        setup:
+        settingsFile.text = """
+include ":someproj"
+"""
+        buildFile.text = """
+        task hello {
+            group = "group of root task"
+        }
+        project(":someproj"){
+            task hello {
+                group = "group of subproject task"
+            }
+        }
+"""
+        when:
+        run "help", "--task", "hello"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task information for hello
+
+Paths
+     :hello
+     :someproj:hello
+
+Type
+     Task (org.gradle.api.Task)
+
+Description
+     -
+
+Groups
+     (:hello) group of root task
+     (:someproj:hello) group of subproject task"""))
+    }
+
     def "matchingTasksOfSameType"() {
         setup:
         settingsFile << "include ':subproj1'"
