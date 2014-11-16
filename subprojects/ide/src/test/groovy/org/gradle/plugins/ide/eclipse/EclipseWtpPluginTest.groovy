@@ -102,6 +102,26 @@ class EclipseWtpPluginTest extends Specification {
                 new Facet(FacetType.installed, "jst.ear", "5.0")])
     }
 
+    @Issue(['GRADLE-2186', 'GRADLE-2221'])
+    def applyToJavaProject_shouldAllowToChangeWtpComponentAndFacets() {
+        when:
+        project.apply(plugin: 'java')
+        wtpPlugin.apply(project)
+
+        project.eclipse.wtp {
+            component {
+                deployName = 'ejb-jar'
+            }
+            facet {
+                facet name: 'jst.ejb', version: '3.0'
+            }
+        }
+
+        then:
+        project.eclipse.wtp.component.deployName == 'ejb-jar'
+        checkEclipseWtpFacet([new Facet(FacetType.installed, 'jst.ejb', '3.0')])
+    }
+
     private void checkEclipseWtpComponentForEar() {
         def wtp = project.eclipse.wtp.component
         def eclipseWtpComponent = project.eclipseWtpComponent
