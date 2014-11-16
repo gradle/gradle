@@ -27,7 +27,7 @@ as well as for all modules.  Furthermore, rules can now also be specified as `ru
     }
 
     class CustomStatusRule {
-        @org.gradle.model.Mutate
+        @Mutate
         void setComponentStatus(ComponentMetadataDetails details) {
             if (details.status == "integration") {
                 details.status = "testing"
