@@ -51,16 +51,16 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
-DefaultPlayApplicationSpec 'myApp'
-----------------------------------
+Play Application 'play'
+-----------------------
 
 Source sets
-    Scala source 'myApp:appSources'
+    Scala source 'play:appSources'
         app
 
 Binaries
-    DefaultPlayApplicationBinarySpec 'myAppBinary'
-        build using task: :myAppBinary
+    Play Application Jar 'playBinary'
+        build using task: :playBinary
         platform: PlayPlatform2.3.5
         tool chain: Default Play Toolchain"""))
     }
@@ -87,11 +87,11 @@ Binaries
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(":createMyAppBinaryJar", ":myAppBinary", ":assemble")
-        skipped(":routesCompileMyAppBinary" , ":twirlCompileMyAppBinary", ":scalaCompileMyAppBinary")
+        executedAndNotSkipped(":createPlayBinaryJar", ":playBinary", ":assemble")
+        skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        jar("build/jars/myApp/myAppBinary.jar").hasDescendants()
+        jar("build/jars/play/playBinary.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {

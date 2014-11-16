@@ -22,6 +22,11 @@ import org.gradle.play.PlayApplicationSpec;
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
     private String playVersion;
 
+    @Override
+    protected String getTypeName() {
+        return "Play Application";
+    }
+
     public String getPlayVersion() {
         return playVersion;
     }

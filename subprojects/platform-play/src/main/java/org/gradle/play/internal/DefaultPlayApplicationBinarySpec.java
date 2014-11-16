@@ -36,6 +36,11 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private File jarFile;
     private JvmClasses testClasses = new DefaultJvmClasses();
 
+    @Override
+    protected String getTypeName() {
+        return "Play Application Jar";
+    }
+
     public PlayPlatform getTargetPlatform() {
         return platform;
     }
