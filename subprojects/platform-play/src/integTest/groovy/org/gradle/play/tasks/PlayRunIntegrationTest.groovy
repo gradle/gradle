@@ -38,12 +38,6 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
             id 'play-application'
         }
 
-        model {
-            components {
-                myApp(PlayApplicationSpec)
-            }
-        }
-
         repositories{
             jcenter()
             maven{
@@ -53,7 +47,7 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         }
 
         model {
-            tasks.runMyAppBinary {
+            tasks.runPlayBinary {
                 httpPort = $httpPort
             }
         }
@@ -65,7 +59,7 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         resources.maybeCopy("PlayRunIntegrationTest/playNew")
 
         when:
-        GradleHandle gradleHandle = executer.withTasks(":runMyAppBinary").start()
+        GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
         UrlValidator.available("http://localhost:$httpPort", "Sample Play App", 120000)

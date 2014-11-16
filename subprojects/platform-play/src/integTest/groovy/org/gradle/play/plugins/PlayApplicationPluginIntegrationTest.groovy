@@ -35,12 +35,6 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
             id 'play-application'
         }
 
-        model {
-            components {
-                myApp(PlayApplicationSpec)
-            }
-        }
-
         repositories{
             jcenter()
             maven{

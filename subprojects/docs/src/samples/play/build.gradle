@@ -2,12 +2,6 @@ plugins {
 	id 'play-application'
 }
 
-model {
-	components {
-    	myApp(PlayApplicationSpec)
-    }
-}
-
 repositories{
     jcenter()
     maven{

@@ -93,6 +93,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             builder.defaultImplementation(DefaultPlayApplicationSpec.class);
         }
 
+        @Mutate
+        void createDefaultPlayApp(CollectionBuilder<PlayApplicationSpec> builder) {
+            builder.create("play");
+        }
+
         @BinaryType
         void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
