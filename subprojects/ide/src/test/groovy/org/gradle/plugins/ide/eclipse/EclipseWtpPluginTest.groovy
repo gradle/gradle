@@ -208,14 +208,7 @@ class EclipseWtpPluginTest extends Specification {
     }
 
     private void checkEclipseWtpComponentForEar(def expectedSourceDirs) {
-        def wtp = project.eclipse.wtp.component
-        def eclipseWtpComponent = project.eclipseWtpComponent
-        assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
-        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpComponent)
-        assert eclipseWtpComponent.component == wtp
-        assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
-        assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
-
+        def wtp = checkAndGetEclipseWtpComponent()
         assert wtp.sourceDirs == expectedSourceDirs
         assert wtp.rootConfigurations == [project.configurations.deploy] as Set
         assert wtp.libConfigurations == [project.configurations.earlib] as Set
@@ -239,14 +232,7 @@ class EclipseWtpPluginTest extends Specification {
     }
 
     private void checkEclipseWtpComponentForJava() {
-        def wtp = project.eclipse.wtp.component
-        def eclipseWtpComponent = project.eclipseWtpComponent
-        assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
-        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpComponent)
-        assert eclipseWtpComponent.component == wtp
-        assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
-        assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
-
+        def wtp = checkAndGetEclipseWtpComponent()
         assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
         assert wtp.rootConfigurations == [] as Set
         assert wtp.libConfigurations == [project.configurations.runtime] as Set
@@ -259,14 +245,7 @@ class EclipseWtpPluginTest extends Specification {
     }
 
     private void checkEclipseWtpComponentForWar() {
-        def wtp = project.eclipse.wtp.component
-        def eclipseWtpComponent = project.eclipseWtpComponent
-        assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
-        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpComponent)
-        assert eclipseWtpComponent.component == wtp
-        assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
-        assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
-
+        def wtp = checkAndGetEclipseWtpComponent()
         assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
         assert wtp.rootConfigurations == [] as Set
         assert wtp.libConfigurations == [project.configurations.runtime] as Set
@@ -280,6 +259,17 @@ class EclipseWtpPluginTest extends Specification {
 
     private void checkEclipseClasspath(def configurations) {
         assert project.eclipse.classpath.plusConfigurations == configurations
+    }
+
+    private def checkAndGetEclipseWtpComponent() {
+        def wtp = project.eclipse.wtp.component
+        def eclipseWtpComponent = project.eclipseWtpComponent
+        assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
+        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpComponent)
+        assert eclipseWtpComponent.component == wtp
+        assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
+        assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
+        return wtp
     }
 
     def applyToEarProjectWithoutJavaPlugin_shouldUseAppDirInWtpComponentSource() {
