@@ -115,7 +115,7 @@ public class InetAddressFactory {
                 return localBindingAddress;
             }
         } catch (Exception e) {
-            throw new RuntimeException("Could not determine the a usable local IP for this machine.", e);
+            throw new RuntimeException("Could not determine a usable local IP for this machine.", e);
         }
     }
 
@@ -126,7 +126,7 @@ public class InetAddressFactory {
                 LOGGER.debug("OPENSHIFT IP environment variable {} detected. Using IP address {}.", key, ipAddress);
                 try {
                     return InetAddress.getByName(ipAddress);
-                } catch (Exception e) {
+                } catch (UnknownHostException e) {
                     throw new RuntimeException(String.format("Unable to use OPENSHIFT IP - invalid IP address '%s' specified in environment variable %s.", ipAddress, key), e);
                 }
             }
@@ -209,9 +209,14 @@ public class InetAddressFactory {
             localAddresses.add(fallback);
         }
         if (remoteAddresses.isEmpty()) {
-            InetAddress fallback = InetAddress.getLocalHost();
-            LOGGER.debug("No remote addresses, using fallback {}", fallback);
-            remoteAddresses.add(fallback);
+            try {
+                InetAddress fallback = InetAddress.getLocalHost();
+                LOGGER.debug("No remote addresses, using fallback {}", fallback);
+                remoteAddresses.add(fallback);
+            } catch (UnknownHostException e) {
+                LOGGER.debug("Could not map local host name to remote address, using local addresses instead.");
+                remoteAddresses.addAll(localAddresses);
+            }
         }
         if (multicastInterfaces.isEmpty()) {
             LOGGER.debug("No multicast interfaces, using fallbacks");
