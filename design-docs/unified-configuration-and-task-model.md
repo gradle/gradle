@@ -85,7 +85,7 @@ A mock up:
 
 - `@Model` is not in public API.
 - Can attach `@Model("")` to a method. Should probably complain about the empty string.
-- When an input for a creator rule cannot be bound, the error message does not include any context information.
+- When an input for a creator rule cannot be bound, the error message does not include any diagnostic information.
 - When there is a cycle between creator rules, the error message complains about unbound rules instead of a cyclic dependency.
 - Int test that the constructor of a rule source plugin is not invoked until a rule from that class is required, and is invoked once only.
 - When rule source plugin constructor fails, the error message complains about a failure in the first rule from that class, instead of a failure to create the plugin.
@@ -219,10 +219,10 @@ A mock up:
 
 - `IndexOutOfBoundsException` when type parameter is left off `CollectionBuilder` in the rule parameter list.
 - `CollectionBuilder` is not part of public API.
-- `CollectionBuilder.accept` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
+- `CollectionBuilder.create` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
 - `CollectionBuilder` should have an overload that can accept a rule source class or instance, to allow the configuration rule to have its own inputs that aren't required
 when the task is declared. Should be consistent with pattern used for dependency management rules.
-- Error message when no collection builder of requested type should list available collection types.
+- Error message when no collection builder of requested type should provide more help about what is available.
 - `@Mutate` and `@Finalize` methods can have non-void return type.
 - `@Path("")` can be attached to a rule method parameter.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
@@ -256,7 +256,7 @@ For this story, it is not necessary for the failure message to fully indicate wh
 
 ### Open issues
 
-- Should have a sample that shows the plugin + DSL working together
+- Should have a sample that shows the plugin + DSL working together.
 - Given that a rule creates a task called `thing` then DSL `model { tasks { thing { ... } } }` fails due to a duplicate creator rule, but succeeds when a task `thing`
 does not exist.
 - Error message for unbound rule whose subject is under `tasks` should complain about a missing task. Eg `tasks.thing` should explain that task `thing` is unknown.
