@@ -69,6 +69,9 @@ Options
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
 
+Group
+     help
+
 BUILD SUCCESSFUL"""))
     }
 
@@ -89,6 +92,9 @@ Options
 
 Description
      Displays a help message.
+
+Group
+     help
 
 BUILD SUCCESSFUL"""))
     }
@@ -143,6 +149,9 @@ Type
 Description
      Assembles a jar archive containing the main classes.
 
+Group
+     build
+
 BUILD SUCCESSFUL"""))
 
         when:
@@ -159,6 +168,9 @@ Type
 
 Description
      Assembles a jar archive containing the main classes.
+
+Group
+     build
 
 BUILD SUCCESSFUL"""))
 
@@ -191,6 +203,9 @@ Type
 Description
      a copy operation
 
+Group
+     -
+
 ----------------------
 
 Path
@@ -201,6 +216,9 @@ Type
 
 Description
      an archiving operation
+
+Group
+     -
 
 ----------------------
 

@@ -67,6 +67,7 @@ public class TaskDetailPrinter {
             for (Task task : tasksByType) {
                 pathOutput.withStyle(UserInput).println(task.getPath());
             }
+
             output.println();
             final LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
             typeOutput.println("Type");
@@ -77,6 +78,10 @@ public class TaskDetailPrinter {
 
             output.println();
             printTaskDescription(output, tasksByType);
+
+            output.println();
+            printTaskGroup(output, tasksByType);
+
             if (multipleClasses) {
                 output.println();
                 output.println("----------------------");
@@ -128,6 +133,22 @@ public class TaskDetailPrinter {
             for (Task task : tasks) {
                 descriptorOutput.withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
                 descriptorOutput.println(task.getDescription() == null ? "-" : task.getDescription());
+            }
+        }
+    }
+
+    private void printTaskGroup(StyledTextOutput output, List<Task> tasks) {
+        int differentGroupsCount = differentGroups(tasks);
+        final LinePrefixingStyledTextOutput groupOutput = createIndentedOutput(output, INDENT);
+        groupOutput.println(differentGroupsCount > 1 ? "Groups" : "Group");
+        if (differentGroupsCount == 1) {
+            // all tasks have the same group
+            final Task task = tasks.iterator().next();
+            groupOutput.println(task.getGroup() == null ? "-" : task.getGroup());
+        } else {
+            for (Task task : tasks) {
+                groupOutput.withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
+                groupOutput.println(task.getGroup() == null ? "-" : task.getGroup());
             }
         }
     }
@@ -203,4 +224,15 @@ public class TaskDetailPrinter {
                 })
         ).size();
     }
+
+    private int differentGroups(List<Task> tasks) {
+        return toSet(
+                collect(tasks, new Transformer<String, Task>() {
+                    public String transform(Task original) {
+                        return original.getGroup();
+                    }
+                })
+        ).size();
+    }
+
 }
