@@ -128,7 +128,12 @@ Type
 
 Descriptions
      (:hello) hello task from root
-     (:someproj:hello) hello task from someproj"""))
+     (:someproj:hello) hello task from someproj
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
     }
 
     def "help for tasks same type different groups"() {
@@ -163,7 +168,9 @@ Description
 
 Groups
      (:hello) group of root task
-     (:someproj:hello) group of subproject task"""))
+     (:someproj:hello) group of subproject task
+
+BUILD SUCCESSFUL"""))
     }
 
     def "matchingTasksOfSameType"() {
@@ -287,7 +294,12 @@ Type
      Task (org.gradle.api.Task)
 
 Description
-     a description"""))
+     a description
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
 
     }
 
@@ -325,7 +337,12 @@ Options
                           GHIJKL
 
 Description
-     -"""))
+     -
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
     }
 
     def "listsCommonDynamicAvailableValues"() {
@@ -348,6 +365,12 @@ Options
                             optionB
 
 Description
-     -"""))
+     -
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
     }
+
 }
