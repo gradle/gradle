@@ -44,9 +44,10 @@ public class DefaultMavenPom implements MavenPomInternal {
     }
 
     public String getPackaging() {
-        // Do not use elvis here since the evaluation of determinePackagingFromArtifacts must not
-        // happen if packaging is not null.
-        return packaging != null ? packaging : mavenPublication.determinePackagingFromArtifacts();
+        if (packaging == null) {
+            return mavenPublication.determinePackagingFromArtifacts();
+        }
+        return packaging;
     }
 
     public void setPackaging(String packaging) {

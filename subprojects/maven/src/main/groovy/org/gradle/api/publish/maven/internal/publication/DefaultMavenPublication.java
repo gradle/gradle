@@ -29,7 +29,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
@@ -185,44 +184,46 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public String determinePackagingFromArtifacts() {
-        MavenArtifact mainArtifact = determineMainArtifact(null);
-        if (mainArtifact != null) {
-            return mainArtifact.getExtension();
+        Set<MavenArtifact> unclassifiedArtifacts = getUnclassifiedArtifactsWithExtension();
+        if (unclassifiedArtifacts.size() == 1) {
+            return unclassifiedArtifacts.iterator().next().getExtension();
         }
         return "pom";
     }
 
     private MavenArtifact determineMainArtifact() {
-        return determineMainArtifact(pom.getPackaging());
+        Set<MavenArtifact> unclassifiedArtifacts = getUnclassifiedArtifactsWithExtension();
+        if (unclassifiedArtifacts.isEmpty()) {
+            return null;
+        }
+        if (unclassifiedArtifacts.size() == 1) {
+            // Pom packaging doesn't matter when we have a single unclassified artifact
+            return unclassifiedArtifacts.iterator().next();
+        }
+        for (MavenArtifact unclassifiedArtifact : unclassifiedArtifacts) {
+            // With multiple unclassified artifacts, choose the one with extension matching pom packaging
+            String packaging = pom.getPackaging();
+            if (unclassifiedArtifact.getExtension().equals(packaging)) {
+                return unclassifiedArtifact;
+            }
+        }
+        return null;
     }
 
-    private MavenArtifact determineMainArtifact(final String packaging) {
-        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
-            public boolean isSatisfiedBy(MavenArtifact element) {
-                return hasNoClassifier(element) && artifactPossibleForPackaging(element, packaging);
+    private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
+        return CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
+            public boolean isSatisfiedBy(MavenArtifact mavenArtifact) {
+                return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact);
             }
         });
-        if (candidateMainArtifacts.isEmpty()) {
-            if (packaging == null) {
-                return null;
-            }
-            // Try to find unique artifact even if packaging does not match
-            // This makes it possible to publish artifacts where the packaging is
-            // not equal to the extension of the main artifact
-            return determineMainArtifact(null);
-        }
-        if (candidateMainArtifacts.size() > 1) {
-            throw new InvalidMavenPublicationException(name, "Cannot determine main artifact - multiple artifacts found with empty classifier.");
-        }
-        return candidateMainArtifacts.iterator().next();
     }
 
     private boolean hasNoClassifier(MavenArtifact element) {
         return element.getClassifier() == null || element.getClassifier().length() == 0;
     }
 
-    private boolean artifactPossibleForPackaging(MavenArtifact element, String packaging) {
-        return packaging == null || packaging.equals(element.getExtension());
+    private boolean hasExtension(MavenArtifact element) {
+        return element.getExtension() != null && element.getExtension().length() > 0;
     }
 
     public ModuleVersionIdentifier getCoordinates() {
