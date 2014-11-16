@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
+import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.util.TestUtil
 import spock.lang.Issue
@@ -52,6 +53,24 @@ class EclipseWtpPluginTest extends Specification {
         then:
         project.tasks.eclipse.dependsOn.contains(project.eclipseWtp)
         project.tasks.cleanEclipse.dependsOn.contains(project.cleanEclipseWtp)
+    }
+
+    def applyToJavaProject_shouldHaveWebProjectAndClasspathTask() {
+        when:
+        project.apply(plugin: 'java')
+        project.sourceCompatibility = 1.6
+        wtpPlugin.apply(project)
+
+        then:
+        [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
+            assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
+        }
+        checkEclipseClasspath([project.configurations.testRuntime])
+        checkEclipseWtpComponentForJava()
+        checkEclipseWtpFacet([
+                new Facet(FacetType.fixed, 'jst.java', null),
+                new Facet(FacetType.installed, 'jst.utility', '1.0'),
+                new Facet(FacetType.installed, 'jst.java', '6.0')])
     }
 
      def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
@@ -111,6 +130,7 @@ class EclipseWtpPluginTest extends Specification {
         project.eclipse.wtp {
             component {
                 deployName = 'ejb-jar'
+                property name: 'mood', value: ':-D'
             }
             facet {
                 facet name: 'jst.ejb', version: '3.0'
@@ -119,6 +139,7 @@ class EclipseWtpPluginTest extends Specification {
 
         then:
         project.eclipse.wtp.component.deployName == 'ejb-jar'
+        project.eclipse.wtp.component.properties == [new WbProperty('mood', ':-D')]
         checkEclipseWtpFacet([new Facet(FacetType.installed, 'jst.ejb', '3.0')])
     }
 
@@ -151,6 +172,26 @@ class EclipseWtpPluginTest extends Specification {
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert wtp.facets.sort() == expectedFacets.sort()
+    }
+
+    private void checkEclipseWtpComponentForJava() {
+        def wtp = project.eclipse.wtp.component
+        def eclipseWtpComponent = project.eclipseWtpComponent
+        assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
+        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpComponent)
+        assert eclipseWtpComponent.component == wtp
+        assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
+        assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
+
+        assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
+        assert wtp.rootConfigurations == [] as Set
+        assert wtp.libConfigurations == [project.configurations.runtime] as Set
+        assert wtp.minusConfigurations == [] as Set
+        assert wtp.deployName == project.name
+        assert wtp.contextPath == null
+        assert wtp.resources == []
+        assert wtp.classesDeployPath == "/"
+        assert wtp.libDeployPath == "../"
     }
 
     private void checkEclipseWtpComponentForWar() {
