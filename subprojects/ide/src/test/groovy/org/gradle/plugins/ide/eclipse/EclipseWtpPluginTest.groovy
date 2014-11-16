@@ -25,6 +25,7 @@ import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class EclipseWtpPluginTest extends Specification {
 
@@ -73,7 +74,25 @@ class EclipseWtpPluginTest extends Specification {
                 new Facet(FacetType.installed, 'jst.java', '6.0')])
     }
 
-     def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
+    def applyFirstToJavaProject_shouldHaveWebProjectAndClasspathTask() {
+        when:
+        wtpPlugin.apply(project)
+        project.apply(plugin: 'java')
+        project.sourceCompatibility = 1.7
+
+        then:
+        [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
+            assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
+        }
+        checkEclipseClasspath([project.configurations.testRuntime])
+        checkEclipseWtpComponentForJava()
+        checkEclipseWtpFacet([
+                new Facet(FacetType.fixed, 'jst.java', null),
+                new Facet(FacetType.installed, 'jst.utility', '1.0'),
+                new Facet(FacetType.installed, 'jst.java', '1.7')])
+    }
+
+    def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')
         project.sourceCompatibility = 1.5
@@ -93,6 +112,26 @@ class EclipseWtpPluginTest extends Specification {
                 new Facet(FacetType.installed, "jst.java", "5.0")])
     }
 
+    def applyFirstToWarProject_shouldHaveWebProjectAndClasspathTask() {
+        when:
+        wtpPlugin.apply(project)
+        project.apply(plugin: 'war')
+        project.sourceCompatibility = 1.8
+
+        then:
+        [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
+            assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
+        }
+
+        checkEclipseClasspath([project.configurations.testRuntime])
+        checkEclipseWtpComponentForWar()
+        checkEclipseWtpFacet([
+                new Facet(FacetType.fixed, "jst.java", null),
+                new Facet(FacetType.fixed, "jst.web", null),
+                new Facet(FacetType.installed, "jst.web", "2.4"),
+                new Facet(FacetType.installed, "jst.java", "1.8")])
+    }
+
     @Issue("GRADLE-1770")
     def "wb resource honors web app dir even if configured after plugin appliance"() {
         when:
@@ -104,21 +143,46 @@ class EclipseWtpPluginTest extends Specification {
         project.eclipse.wtp.component.resources == [new WbResource('/', 'foo')]
     }
 
-    def applyToEarProject_shouldHaveWebProjectAndClasspathTask() {
+    @Unroll
+    def 'applyToEarProject in order #plugs should have web project and classpath task'() {
         when:
-        project.apply(plugin: 'java')
-        project.apply(plugin: 'ear')
-        wtpPlugin.apply(project)
+        plugs.each { p ->
+            if (p == 'eclipse-wtp') {
+                wtpPlugin.apply(project)
+            } else {
+                project.apply(plugin: p)
+            }
+        }
 
         then:
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
             assert project.cleanEclipseWtp.dependsOn.contains(it)
         }
-        checkEclipseClasspath([project.configurations.testRuntime])
-        checkEclipseWtpComponentForEar()
+
+        if (plugs.contains('java')) {
+            checkEclipseClasspath([project.configurations.testRuntime])
+            checkEclipseWtpComponentForEar(project.sourceSets.main.allSource.srcDirs)
+        } else {
+            checkEclipseClasspath([])
+            checkEclipseWtpComponentForEar(project.files(project.appDirName) as Set)
+        }
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, "jst.ear", null),
                 new Facet(FacetType.installed, "jst.ear", "5.0")])
+
+        where:
+        plugs << [
+                ['ear', 'eclipse-wtp'],
+                ['eclipse-wtp', 'ear'],
+
+                ['java', 'ear', 'eclipse-wtp'],
+                ['java', 'eclipse-wtp', 'ear'],
+
+                ['ear', 'java', 'eclipse-wtp'],
+                ['ear', 'eclipse-wtp', 'java'],
+
+                ['eclipse-wtp', 'java', 'ear'],
+                ['eclipse-wtp', 'ear', 'java']]
     }
 
     @Issue(['GRADLE-2186', 'GRADLE-2221'])
@@ -143,7 +207,7 @@ class EclipseWtpPluginTest extends Specification {
         checkEclipseWtpFacet([new Facet(FacetType.installed, 'jst.ejb', '3.0')])
     }
 
-    private void checkEclipseWtpComponentForEar() {
+    private void checkEclipseWtpComponentForEar(def expectedSourceDirs) {
         def wtp = project.eclipse.wtp.component
         def eclipseWtpComponent = project.eclipseWtpComponent
         assert eclipseWtpComponent instanceof GenerateEclipseWtpComponent
@@ -152,7 +216,7 @@ class EclipseWtpPluginTest extends Specification {
         assert eclipseWtpComponent.inputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtpComponent.outputFile == project.file('.settings/org.eclipse.wst.common.component')
 
-        assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
+        assert wtp.sourceDirs == expectedSourceDirs
         assert wtp.rootConfigurations == [project.configurations.deploy] as Set
         assert wtp.libConfigurations == [project.configurations.earlib] as Set
         assert wtp.minusConfigurations == [] as Set
