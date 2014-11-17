@@ -205,6 +205,24 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
     }
 
+    def "produces sensible error when rule action throws an exception" () {
+        def failure = new Exception("from test")
+        def metadata = Stub(TestIvyMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+        }
+
+        when:
+        handler.all { throw failure }
+
+        and:
+        handler.processMetadata(metadata)
+
+        then:
+        InvalidUserCodeException e = thrown()
+        e.message == "There was an error while evaluating a component metadata rule for group:module:version."
+        e.cause == failure
+    }
+
     def "all rules get evaluated" () {
         def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
