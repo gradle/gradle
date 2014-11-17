@@ -184,6 +184,7 @@ We would like to thank the following community members for making contributions 
 * [Andreas Schmid](https://github.com/aaschmid) - changes to Eclipse classpath generating when using WTP (GRADLE-1422) 
 * [Björn Kautler](https://github.com/Vampire) - improvements to Build Comparison plugin
 * [Michal Srb](https://github.com/msrb) - update bouncycastle dependency to the latest version
+* [Stefan Wolf](https://github.com/wolfs) - support maven publications that have multiple artifacts without classifier
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
