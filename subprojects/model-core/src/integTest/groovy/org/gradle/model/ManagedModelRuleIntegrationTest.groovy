@@ -739,4 +739,50 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains("name: name, value: value")
     }
+
+    def "can depend on managed super type as input and subject"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            interface Named {
+                String getName();
+                void setName(String name);
+            }
+
+            @Managed
+            interface ManagedNamed extends Named {
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void managedNamed(ManagedNamed namedThing) {
+                }
+
+                @Mutate
+                void setName(Named named) {
+                    named.name = "superclass"
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, Named named) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $named.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: superclass")
+    }
 }

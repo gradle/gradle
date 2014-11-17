@@ -286,7 +286,7 @@ Notes:
 - Can extend more than one interface
 - Error message produced when super type is not a “manageable” type indicates the original (sub) type (and the rule that caused it to be extracted)
 - ~~Can get/set properties of super type(s)~~
-- Can depend on super type as input and subject
+- ~~Can depend on super type as input and subject~~
 - Two different types can extend same parent
 - Property conflicts between super types are detected:
   - different types for the same name
