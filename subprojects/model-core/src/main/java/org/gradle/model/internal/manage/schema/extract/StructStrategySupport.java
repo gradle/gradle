@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -131,13 +132,18 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
         });
     }
 
+    private <R> Iterable<R> removeDuplicates(Iterable<R> iterable) {
+        return ImmutableSet.copyOf(iterable);
+    }
+
     private <R> Iterable<ModelProperty<?>> extractSuperTypeProperties(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
         Iterable<ModelSchema<? super R>> superTypeSchemas = extractSuperTypeSchemas(extractionContext, extractionContext.getType().getSuperTypes(), cache);
-        return Iterables.concat(Iterables.transform(superTypeSchemas, new Function<ModelSchema<? super R>, Iterable<ModelProperty<?>>>() {
+        Iterable<ModelProperty<?>> superTypeProperties = Iterables.concat(Iterables.transform(superTypeSchemas, new Function<ModelSchema<? super R>, Iterable<ModelProperty<?>>>() {
             public Iterable<ModelProperty<?>> apply(ModelSchema<? super R> superTypeSchema) {
                 return superTypeSchema.getProperties().values();
             }
         }));
+        return removeDuplicates(superTypeProperties);
     }
 
     private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {

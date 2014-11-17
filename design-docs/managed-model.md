@@ -283,7 +283,7 @@ Notes:
 
 #### Test Coverage
 
-- Can extend more than one interface
+- ~~Can extend more than one interface~~
 - Error message produced when super type is not a “manageable” type indicates the original (sub) type (and the rule that caused it to be extracted)
 - ~~Can get/set properties of super type(s)~~
 - ~~Can depend on super type as input and subject~~

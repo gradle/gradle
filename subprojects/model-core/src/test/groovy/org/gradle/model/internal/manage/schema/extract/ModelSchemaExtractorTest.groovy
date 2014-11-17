@@ -86,7 +86,7 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface SingleProperty {
+    static interface SingleStringProperty {
         String getName()
 
         void setName(String name)
@@ -94,7 +94,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "extract single property"() {
         when:
-        def properties = extract(SingleProperty).properties
+        def properties = extract(SingleStringProperty).properties
 
         then:
         properties.size() == 1
@@ -302,15 +302,33 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface WithInheritedProperties extends SingleProperty {
+    static interface WithInheritedProperties extends SingleStringProperty {
         Integer getCount()
 
         void setCount(Integer count)
     }
 
-    def "can extract inherited properties"() {
+    def "extracts inherited properties"() {
         when:
         def properties = extract(WithInheritedProperties).properties.values()
+
+        then:
+        properties*.name == ["count", "name"]
+    }
+
+    static interface SingleIntegerProperty {
+        Integer getCount()
+
+        void setCount(Integer count)
+    }
+
+    @Managed
+    static interface WithMultipleParents extends SingleStringProperty, SingleIntegerProperty {
+    }
+
+    def "extracts properties from multiple parents"() {
+        when:
+        def properties = extract(WithMultipleParents).properties.values()
 
         then:
         properties*.name == ["count", "name"]
@@ -320,6 +338,21 @@ class ModelSchemaExtractorTest extends Specification {
         String getName()
 
         void setName(String name)
+    }
+
+    @Managed
+    static interface WithInheritedPropertiesFromGrandparent extends WithInheritedProperties {
+        Boolean getFlag()
+
+        void setFlag(Boolean flag)
+    }
+
+    def "extracts properties from multiple levels of inheritance"() {
+        when:
+        def properties = extract(WithInheritedPropertiesFromGrandparent).properties.values()
+
+        then:
+        properties*.name == ["count", "flag", "name"]
     }
 
     @Managed
