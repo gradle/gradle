@@ -702,14 +702,14 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             interface Named {
-                String getName();
-                void setName(String name);
+                String getName()
+                void setName(String name)
             }
 
             @Managed
             interface NamedThing extends Named {
-                String getValue();
-                void setValue(String value);
+                String getValue()
+                void setValue(String value)
             }
 
             @RuleSource
@@ -747,8 +747,8 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             interface Named {
-                String getName();
-                void setName(String name);
+                String getName()
+                void setName(String name)
             }
 
             @Managed
@@ -784,5 +784,64 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains("name: superclass")
+    }
+
+    def "two managed types can extend the same parent"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            interface Named {
+                String getName()
+                void setName(String name)
+            }
+
+            @Managed
+            interface NamedString extends Named {
+                String getValue()
+                void setValue(String value)
+            }
+
+            @Managed
+            interface NamedInteger extends Named {
+                Integer getValue()
+                void setValue(Integer value)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void namedString(NamedString namedString) {
+                    namedString.name = "string"
+                    namedString.value = "some value"
+                }
+
+                @Model
+                void namedInteger(NamedInteger namedInteger) {
+                    namedInteger.name = "integer"
+                    namedInteger.value = 1234
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, NamedString string, NamedInteger integer) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $string.name, value: $string.value"
+                            println "name: $integer.name, value: $integer.value"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: string, value: some value")
+        output.contains("name: integer, value: 1234")
     }
 }
