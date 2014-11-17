@@ -23,19 +23,15 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ant.EmptyMavenSettingsSupplier;
 import org.gradle.api.publication.maven.internal.ant.MavenSettingsSupplier;
-import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Set;
 
 abstract public class AbstractAntTaskBackedMavenPublisher<T extends InstallDeployTaskSupport> implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
@@ -73,7 +69,7 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends InstallDeplo
         pom.setFile(publication.getPomFile());
         installOrDeployTask.addPom(pom);
 
-        MavenArtifact mainArtifact = determineMainArtifact(publication.getName(), publication.getArtifacts());
+        MavenArtifact mainArtifact = publication.getMainArtifact();
         installOrDeployTask.setFile(mainArtifact == null ? publication.getPomFile() : mainArtifact.getFile());
 
         for (MavenArtifact mavenArtifact : publication.getArtifacts()) {
@@ -86,22 +82,6 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends InstallDeplo
             attachedArtifact.setFile(mavenArtifact.getFile());
         }
     }
-
-    private MavenArtifact determineMainArtifact(String publicationName, Set<MavenArtifact> mavenArtifacts) {
-        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
-            public boolean isSatisfiedBy(MavenArtifact element) {
-                return element.getClassifier() == null || element.getClassifier().length() == 0;
-            }
-        });
-        if (candidateMainArtifacts.isEmpty()) {
-            return null;
-        }
-        if (candidateMainArtifacts.size() > 1) {
-            throw new InvalidMavenPublicationException(publicationName, "Cannot determine main artifact - multiple artifacts found with empty classifier.");
-        }
-        return candidateMainArtifacts.iterator().next();
-    }
-
 
     private void execute(InstallDeployTaskSupport deployTask) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();

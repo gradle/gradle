@@ -27,12 +27,14 @@ public class MavenNormalizedPublication {
     private final File pomFile;
     private final MavenProjectIdentity projectIdentity;
     private final Set<MavenArtifact> artifacts;
+    private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts) {
+    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, MavenArtifact mainArtifact) {
         this.name = name;
         this.pomFile = pomFile;
         this.projectIdentity = projectIdentity;
         this.artifacts = artifacts;
+        this.mainArtifact = mainArtifact;
     }
 
     public String getName() {
@@ -49,5 +51,9 @@ public class MavenNormalizedPublication {
 
     public MavenProjectIdentity getProjectIdentity() {
         return projectIdentity;
+    }
+
+    public MavenArtifact getMainArtifact() {
+        return mainArtifact;
     }
 }
