@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 
 import java.io.File;
 
@@ -25,6 +26,15 @@ import java.io.File;
  */
 @Incubating
 public interface SharedLibraryBinarySpec extends NativeLibraryBinarySpec {
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    public interface NativeBinaryTasks extends NativeBinarySpec.NativeBinaryTasks {
+        /**
+         * The link task.
+         */
+        Task getLink();
+    }
     /**
      * The shared library file.
      */
@@ -44,4 +54,9 @@ public interface SharedLibraryBinarySpec extends NativeLibraryBinarySpec {
      * The shared library link file.
      */
     void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
+
+    /**
+     * {@inheritDoc}
+     */
+    NativeBinaryTasks getTasks();
 }

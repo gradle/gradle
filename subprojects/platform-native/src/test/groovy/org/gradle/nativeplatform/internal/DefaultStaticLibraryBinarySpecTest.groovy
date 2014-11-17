@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.internal
+
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -25,6 +26,7 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentSpec
@@ -32,6 +34,7 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -47,6 +50,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     def buildType = Stub(BuildType)
     final resolver = Stub(NativeDependencyResolver)
     final outputFile = Mock(File)
+    def tasks = new DefaultStaticLibraryBinarySpec.DefaultNativeBinaryTasks()
 
     def "has useful string representation"() {  
         expect:
@@ -114,6 +118,22 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
         expect:
         binary.staticLibraryFile == outputFile
         binary.linkFiles.files == [binary.staticLibraryFile, linkFile1, linkFile2] as Set
+    }
+
+    def "returns null for createStaticLib and builder when none defined"() {
+        expect:
+        tasks.createStaticLib == null
+        tasks.createOrLink == null
+    }
+
+    def "returns create task when defined"() {
+        when:
+        final createTask = TestUtil.createTask(CreateStaticLibrary)
+        tasks.add(createTask)
+
+        then:
+        tasks.createStaticLib == createTask
+        tasks.createOrLink == createTask
     }
 
     private TestFile addSources(DefaultStaticLibraryBinarySpec binary, def headerDir) {

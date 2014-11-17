@@ -194,6 +194,7 @@ class NativeBinarySpecTest extends Specification {
 
    static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
+        def tasks = new AbstractNativeBinarySpec.DefaultNativeBinaryTasks(this)
 
         String getOutputFileName() {
             return null
@@ -203,5 +204,9 @@ class NativeBinarySpecTest extends Specification {
             File binaryOutputDir = getBinaryOutputDir();
             return new File(binaryOutputDir, getOutputFileName());
         }
+
+       NativeBinarySpec.NativeBinaryTasks getTasks() {
+           return tasks;
+       }
     }
 }
