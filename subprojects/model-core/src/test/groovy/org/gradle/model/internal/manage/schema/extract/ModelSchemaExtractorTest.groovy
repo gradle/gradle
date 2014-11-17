@@ -86,7 +86,7 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface SingleStringProperty {
+    static interface SingleStringNameProperty {
         String getName()
 
         void setName(String name)
@@ -94,7 +94,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "extract single property"() {
         when:
-        def properties = extract(SingleStringProperty).properties
+        def properties = extract(SingleStringNameProperty).properties
 
         then:
         properties.size() == 1
@@ -302,7 +302,7 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     @Managed
-    static interface WithInheritedProperties extends SingleStringProperty {
+    static interface WithInheritedProperties extends SingleStringNameProperty {
         Integer getCount()
 
         void setCount(Integer count)
@@ -316,14 +316,14 @@ class ModelSchemaExtractorTest extends Specification {
         properties*.name == ["count", "name"]
     }
 
-    static interface SingleIntegerProperty {
-        Integer getCount()
+    static interface SingleIntegerValueProperty {
+        Integer getValue()
 
-        void setCount(Integer count)
+        void setValue(Integer count)
     }
 
     @Managed
-    static interface WithMultipleParents extends SingleStringProperty, SingleIntegerProperty {
+    static interface WithMultipleParents extends SingleStringNameProperty, SingleIntegerValueProperty {
     }
 
     def "extracts properties from multiple parents"() {
@@ -331,7 +331,7 @@ class ModelSchemaExtractorTest extends Specification {
         def properties = extract(WithMultipleParents).properties.values()
 
         then:
-        properties*.name == ["count", "name"]
+        properties*.name == ["name", "value"]
     }
 
     static interface SinglePropertyNotAnnotated {
@@ -370,6 +370,57 @@ class ModelSchemaExtractorTest extends Specification {
         properties*.name == ["count", "name"]
     }
 
+    static interface SingleStringValueProperty {
+        String getValue()
+
+        void setValue(String value)
+    }
+
+    @Managed
+    static interface ConflictingPropertiesInParents extends SingleIntegerValueProperty, SingleStringValueProperty {
+    }
+
+    def "conflicting properties of super types are detected"() {
+        expect:
+        fail ConflictingPropertiesInParents, Pattern.quote(message)
+
+        where:
+        message = """conflicting definitions of property value - writable of type $Integer.name declared in $SingleIntegerValueProperty.name, writable of type $String.name declared in $SingleStringValueProperty.name"""
+    }
+
+    @Managed
+    static interface ConflictingPropertyWritablity extends SingleStringNameProperty {
+        String getName()
+    }
+
+    def "conflicting property writablity of a parent and a child are detected"() {
+        expect:
+        fail ConflictingPropertyWritablity, Pattern.quote(message)
+
+        where:
+        message = """conflicting definitions of property name - readonly of type $String.name declared in $ConflictingPropertyWritablity.name, writable of type $String.name declared in $SingleStringNameProperty.name"""
+    }
+
+    static interface AnotherSingleStringValueProperty {
+        String getValue()
+
+        void setValue(String value)
+    }
+
+    @Managed
+    static interface SamePropertyInMultipleTypes extends SingleStringValueProperty, AnotherSingleStringValueProperty {
+        String getValue()
+
+        void setValue(String value)
+    }
+
+    def "exact same properties defined in multiple types of the hierarchy are allowed"() {
+        when:
+        def properties = extract(SamePropertyInMultipleTypes).properties.values()
+
+        then:
+        properties*.name == ["value"]
+    }
 
     def "type argument of a managed set has to be specified"() {
         given:

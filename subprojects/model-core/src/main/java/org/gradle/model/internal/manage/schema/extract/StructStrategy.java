@@ -37,8 +37,8 @@ public class StructStrategy extends StructStrategySupport {
     }
 
     @Override
-    protected <R> ModelSchema<R> createModelSchema(ModelType<R> type, Iterable<ModelProperty<?>> properties) {
-        return ModelSchema.struct(type, properties);
+    protected <R> ModelSchema<R> createModelSchema(ModelType<R> type, Iterable<ModelProperty<?>> declaredProperties, Iterable<ModelProperty<?>> inheritedProperties) {
+        return ModelSchema.struct(type, declaredProperties, inheritedProperties);
     }
 
     @Override

@@ -16,12 +16,8 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.base.*;
+import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
@@ -32,6 +28,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,11 +46,11 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
         if (handlesType(type)) {
             validateType(type, extractionContext);
 
-            Iterable<ModelProperty<?>> superTypeProperties = extractSuperTypeProperties(extractionContext, cache);
+            Iterable<ModelProperty<?>> inheritedProperties = extractSuperTypeProperties(extractionContext, cache);
 
             List<Method> methodList = Arrays.asList(type.getRawClass().getDeclaredMethods());
             if (methodList.isEmpty()) {
-                return new ModelSchemaExtractionResult<R>(createModelSchema(type, superTypeProperties));
+                return new ModelSchemaExtractionResult<R>(createModelSchemaIfNoConflicts(extractionContext, type, Collections.<ModelProperty<?>>emptySet(), inheritedProperties, cache));
             }
 
             List<ModelProperty<?>> properties = Lists.newLinkedList();
@@ -106,8 +103,7 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
                 throw new InvalidManagedModelElementTypeException(extractionContext, "only paired getter/setter methods are supported (invalid methods: [" + Joiner.on(", ").join(methodNames) + "]).");
             }
 
-            Iterable<ModelProperty<?>> allProperties = Iterables.concat(properties, superTypeProperties);
-            ModelSchema<R> schema = createModelSchema(type, allProperties);
+            ModelSchema<R> schema = createModelSchemaIfNoConflicts(extractionContext, type, properties, inheritedProperties, cache);
 
             Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
                 public ModelSchemaExtractionContext<?> apply(final ModelProperty<?> property) {
@@ -120,12 +116,32 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
         }
     }
 
-    protected abstract <R> ModelSchema<R> createModelSchema(ModelType<R> type, Iterable<ModelProperty<?>> properties);
+    protected abstract <R> ModelSchema<R> createModelSchema(ModelType<R> type, Iterable<ModelProperty<?>> declaredProperties, Iterable<ModelProperty<?>> inheritedProperties);
 
     protected abstract <R> boolean handlesType(ModelType<R> type);
 
-    private <R> Iterable<ModelSchema<? super R>> extractSuperTypeSchemas(final ModelSchemaExtractionContext<R> parentContext, Iterable<ModelType<? super R>> superTypes, final ModelSchemaCache cache) {
-        return Iterables.transform(superTypes, new Function<ModelType<? super R>, ModelSchema<? super R>>() {
+    private <R> ModelSchema<R> createModelSchemaIfNoConflicts(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type, Iterable<ModelProperty<?>> declaredProperties,
+                                                              Iterable<ModelProperty<?>> inheritedProperties, final ModelSchemaCache cache) {
+        Map<String, ModelProperty<?>> propertiesByName = Maps.newHashMap();
+        Iterable<ModelProperty<?>> notOverwrittenInheritedProperties = filterOverwrittenInheritedProperties(declaredProperties, inheritedProperties);
+        Iterable<ModelProperty<?>> properties = Iterables.concat(declaredProperties, notOverwrittenInheritedProperties);
+        for (ModelProperty<?> property : properties) {
+            String propertyName = property.getName();
+            ModelProperty<?> previous = propertiesByName.get(propertyName);
+            if (previous != null && !previous.equals(property)) {
+                throw incompatibleProperties(propertyName, previous, property, extractionContext, cache);
+            }
+            propertiesByName.put(propertyName, property);
+        }
+        return createModelSchema(type, declaredProperties, notOverwrittenInheritedProperties);
+    }
+
+    private Iterable<ModelProperty<?>> filterOverwrittenInheritedProperties(Iterable<ModelProperty<?>> declaredProperties, Iterable<ModelProperty<?>> inheritedProperties) {
+        return Iterables.filter(inheritedProperties, Predicates.not(Predicates.in(Sets.newHashSet(declaredProperties))));
+    }
+
+    private <R> Iterable<ModelSchema<? super R>> extractSuperTypeSchemas(final ModelSchemaExtractionContext<R> parentContext, final ModelSchemaCache cache) {
+        return Iterables.transform(parentContext.getType().getSuperTypes(), new Function<ModelType<? super R>, ModelSchema<? super R>>() {
             public ModelSchema<? super R> apply(ModelType<? super R> superType) {
                 return extractor.extract(parentContext.child(superType, "super type"), cache);
             }
@@ -137,7 +153,7 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
     }
 
     private <R> Iterable<ModelProperty<?>> extractSuperTypeProperties(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
-        Iterable<ModelSchema<? super R>> superTypeSchemas = extractSuperTypeSchemas(extractionContext, extractionContext.getType().getSuperTypes(), cache);
+        Iterable<ModelSchema<? super R>> superTypeSchemas = extractSuperTypeSchemas(extractionContext, cache);
         Iterable<ModelProperty<?>> superTypeProperties = Iterables.concat(Iterables.transform(superTypeSchemas, new Function<ModelSchema<? super R>, Iterable<ModelProperty<?>>>() {
             public Iterable<ModelProperty<?>> apply(ModelSchema<? super R> superTypeSchema) {
                 return superTypeSchema.getProperties().values();
@@ -198,5 +214,27 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String methodName, String message) {
         return new InvalidManagedModelElementTypeException(extractionContext, message + " (method: " + methodName + ").");
+    }
+
+    private InvalidManagedModelElementTypeException incompatibleProperties(String propertyName, ModelProperty<?> first, ModelProperty<?> second, ModelSchemaExtractionContext<?> extractionContext,
+                                                                           ModelSchemaCache cache) {
+        ImmutableSortedSet<String> descriptions = ImmutableSortedSet.of(describe(first, extractionContext, cache), describe(second, extractionContext, cache));
+        String message = String.format("conflicting definitions of property %s - %s", propertyName, Joiner.on(", ").join(descriptions));
+        return new InvalidManagedModelElementTypeException(extractionContext, message);
+    }
+
+    private <R> ModelType<?> declaringTypeOf(final ModelProperty<?> property, ModelSchemaExtractionContext<R> extractionContext, ModelSchemaCache cache) {
+        ModelType<R> extracted = extractionContext.getType();
+        Optional<ModelSchema<? super R>> declaringSuperTypeSchema = Iterables.tryFind(extractSuperTypeSchemas(extractionContext, cache), new Predicate<ModelSchema<?>>() {
+            public boolean apply(ModelSchema<?> superTypeSchema) {
+                return superTypeSchema.hasDeclaredProperty(property);
+            }
+        });
+        return declaringSuperTypeSchema.isPresent() ? declaringSuperTypeSchema.get().getType() : extracted;
+    }
+
+    private String describe(ModelProperty<?> property, ModelSchemaExtractionContext<?> extractionContext, ModelSchemaCache cache) {
+        String writableDescription = property.isWritable() ? "writable" : "readonly";
+        return String.format("%s of type %s declared in %s", writableDescription, property.getType(), declaringTypeOf(property, extractionContext, cache));
     }
 }

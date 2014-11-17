@@ -48,4 +48,26 @@ public class ModelProperty<T> {
         return writable;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ModelProperty<?> that = (ModelProperty<?>) o;
+
+
+        return name.equals(that.name) && type.equals(that.type) && writable == that.writable;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + Boolean.valueOf(writable).hashCode();
+        return result;
+    }
 }
