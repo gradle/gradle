@@ -309,7 +309,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class NonManagedVoidReturning {
+    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged {
         @Model
         void bar(NonManaged foo) {
         }
@@ -317,15 +317,15 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type of the first argument of void returning model definition has to be @Managed annotated"() {
         when:
-        inspector.inspect(NonManagedVoidReturning, registry, dependencies)
+        inspector.inspect(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged, registry, dependencies)
 
         then:
 
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "$NonManagedVoidReturning.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument"
+        e.message == "$RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument"
     }
 
-    static class InvalidManagedVoidReturning {
+    static class RuleSourceCreatingAClassAnnotatedWithManaged {
         @Model
         void bar(ManagedAnnotatedClass foo) {
         }
@@ -333,16 +333,16 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type of the first argument of void returning model definition has to be a valid managed type"() {
         when:
-        inspector.inspect(InvalidManagedVoidReturning, registry, dependencies)
+        inspector.inspect(RuleSourceCreatingAClassAnnotatedWithManaged, registry, dependencies)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule $InvalidManagedVoidReturning.name#bar($ManagedAnnotatedClass.name) is invalid."
+        e.message == "Declaration of model rule $RuleSourceCreatingAClassAnnotatedWithManaged.name#bar($ManagedAnnotatedClass.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface."
     }
 
-    static class NoArgumentVoidReturning {
+    static class RuleSourceWithAVoidReturningNoArgumentMethod {
         @Model
         void bar() {
         }
@@ -350,20 +350,20 @@ class ModelRuleInspectorTest extends Specification {
 
     def "void returning model definition has to take at least one argument"() {
         when:
-        inspector.inspect(NoArgumentVoidReturning, registry, dependencies)
+        inspector.inspect(RuleSourceWithAVoidReturningNoArgumentMethod, registry, dependencies)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "$NoArgumentVoidReturning.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
+        e.message == "$RuleSourceWithAVoidReturningNoArgumentMethod.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
     }
 
-    static class ManagedWithNestedPropertyOfInvalidManagedTypeVoidReturning {
+    static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType {
         @Model
         void bar(ManagedWithNestedPropertyOfInvalidManagedType foo) {
         }
     }
 
-    static class ManagedWithNestedReferenceOfInvalidManagedTypeVoidReturning {
+    static class RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType {
         @Model
         void bar(ManagedWithNestedReferenceOfInvalidManagedType foo) {
         }
@@ -385,10 +385,34 @@ ${managedType.name}
     \\--- property 'invalidManaged' ($invalidTypeName)""")
 
         where:
-        inspected                                                   | managedType                                    | nestedManagedType
-        ManagedWithNestedPropertyOfInvalidManagedTypeVoidReturning  | ManagedWithNestedPropertyOfInvalidManagedType  | ManagedWithPropertyOfInvalidManagedType
-        ManagedWithNestedReferenceOfInvalidManagedTypeVoidReturning | ManagedWithNestedReferenceOfInvalidManagedType | ManagedWithReferenceOfInvalidManagedType
+        inspected                                                        | managedType                                    | nestedManagedType
+        RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType  | ManagedWithNestedPropertyOfInvalidManagedType  | ManagedWithPropertyOfInvalidManagedType
+        RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType | ManagedWithNestedReferenceOfInvalidManagedType | ManagedWithReferenceOfInvalidManagedType
 
+        invalidTypeName = "$ParametrizedManaged.name<$String.name>"
+    }
+
+    static class RuleSourceCreatingManagedWithNonManageableParent {
+        @Model
+        void bar(ManagedWithNonManageableParent foo) {
+        }
+    }
+
+    def "error message produced when super type is not a manageable type indicates the original (sub) type"() {
+        when:
+        inspector.inspect(RuleSourceCreatingManagedWithNonManageableParent, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.message == "Declaration of model rule $RuleSourceCreatingManagedWithNonManageableParent.name#bar($ManagedWithNonManageableParent.name) is invalid."
+        e.cause instanceof InvalidManagedModelElementTypeException
+        e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
+The type was analyzed due to the following dependencies:
+${ManagedWithNonManageableParent.name}
+  \\--- super type (${ManagedWithPropertyOfInvalidManagedType.name})
+    \\--- property 'invalidManaged' ($invalidTypeName)""")
+
+        where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 }
