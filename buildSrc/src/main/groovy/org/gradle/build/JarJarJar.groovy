@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Input
 class JarJarJar extends Jar {
     @Input def rules = [:]
     @Input def keeps = []
+    @Input def zaps = []
 
     public JarJarJar() {
         doLast {
@@ -64,10 +65,17 @@ class JarJarJar extends Jar {
         keeps << pattern
     }
 
+    void zap(String pattern) {
+        zaps << pattern
+    }
+
     private void writeRuleFile(File ruleFile) {
         ruleFile.withPrintWriter { writer ->
             rules.each {pattern, result ->
                 writer.println("rule ${pattern} ${result}")
+            }
+            zaps.each {pattern ->
+                writer.println("zap ${pattern}")
             }
             keeps.each {pattern ->
                 writer.println("keep ${pattern}")

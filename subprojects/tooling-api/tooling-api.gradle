@@ -1,12 +1,19 @@
 import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
+sourceSets {
+    providerPatch
+}
+
 dependencies {
     compile project(path: ':core', configuration: "publishCompileWithProjectJar")
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
     publishCompile libraries.slf4j_api
+
+    providerPatchCompile(group: 'org.gradle', name: 'gradle-core', version: '1.8')
+    providerPatchCompile libraries.jcip
 
     testFixturesCompile project(':baseServicesGroovy')
     testCompile libraries.groovy
@@ -34,9 +41,17 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
+jar {
+    dependsOn providerPatchClasses
+    from(fileTree("$buildDir/classes/providerPatch"), {
+        into 'patches'
+        // rename '(.*)\\.class', '$1.patch'
+    })
+}
+
 task jarjarJar(type: JarJarJar) {
     appendix = "fat"
-    dependsOn jar
+    dependsOn jar, providerPatchClasses
     doFirst {
         from(zipTree(jar.getArchivePath()))
         (configurations.runtime - configurations.publishCompile).each {
@@ -54,6 +69,9 @@ task jarjarJar(type: JarJarJar) {
     rule('net.**', 'org.gradle.jarjar.@0')
 
     keep('org.gradle.tooling.**')
+
+    zap('org.gradle.tooling.internal.provider.**')
+    zap('patches.org.gradle.tooling.internal.provider.**')
 }
 
 sourceJar{
