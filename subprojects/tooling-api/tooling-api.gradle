@@ -74,6 +74,18 @@ task jarjarJar(type: JarJarJar) {
     zap('patches.org.gradle.tooling.internal.provider.**')
 }
 
+task publishJar(type: Zip) {
+    appendix = "bundle"
+    destinationDir = jar.destinationDir
+    extension = 'jar'
+    dependsOn jar, jarjarJar, providerPatchClasses
+    from zipTree(jarjarJar.getArchivePath())
+    from(fileTree("$buildDir/classes/providerPatch"), {
+        into 'patches'
+        // rename '(.*)\\.class', '$1.patch'
+    })
+}
+
 sourceJar{
     configurations.compile.allDependencies.withType(ProjectDependency).each {
         from it.dependencyProject.sourceSets.main.groovy.srcDirs
@@ -82,11 +94,11 @@ sourceJar{
 }
 
 artifacts {
-    publishCompileWithProjectJar jarjarJar
-    publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
+    publishCompileWithProjectJar publishJar
+    publishRuntime file: publishJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: publishJar
 }
 
-configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
+configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask != publishJar } }
 
 eclipse {
     classpath {

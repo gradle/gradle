@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -30,6 +31,7 @@ import java.util.concurrent.Executors
 
 class DistributionFactoryTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final ExecutorServiceFactory executorFactory = Mock()
@@ -227,6 +229,40 @@ class DistributionFactoryTest extends Specification {
         1 * cancellationToken.addCallback(_)
         IllegalArgumentException e = thrown()
         e.message == "The specified Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
+    }
+
+    def "prepends patched class for Gradle distribution with broken ClasspathInferer"() {
+        System.properties['java.io.tmpdir'] = tmpDir.createDir('custom-tmp-dir').absolutePath
+
+        when:
+        1 * executorFactory.create() >> executor
+
+        File customUserHome = tmpDir.file('customUserHome')
+        def distDir = tmpDir.createDir('dist')
+        distDir.create {
+            "dist-2.1" {
+                lib {
+                    file("a.jar")
+                    // file("gradle-core-x.y.jar")
+                }
+            }
+        }
+        def coreDir = tmpDir.createDir('core')
+        coreDir.file('org/gradle/build-receipt.properties') << """
+versionBase=2.1
+"""
+        coreDir.zipTo(distDir.file("dist-2.1/lib/gradle-core-x.y.jar"))
+
+        def zipFile = tmpDir.file("dist-2.1.zip")
+        distDir.zipTo(zipFile)
+        def dist = factory.getDistribution(zipFile.toURI())
+        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome, cancellationToken)
+
+        then:
+        result.asFiles.size() == 3
+        result.asFiles.name.contains('a.jar')
+        result.asFiles.name.contains('gradle-core-x.y.jar')
+        (result.asFiles.path as Set).every { it.contains('customUserHome') || it.contains('custom-tmp-dir')}
     }
 
     private TestFile createZip(Closure cl) {
