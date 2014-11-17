@@ -16,13 +16,17 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.registry.ModelRegistry;
+import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.ThreadSafe;
 
-public interface MethodRuleDefinitionHandler {
-    Spec<MethodRuleDefinition<?>> getSpec();
+import java.util.List;
 
-    String getDescription();
+@ThreadSafe
+abstract public class MethodRuleDefinitionHandlers {
 
-    <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies);
+    public static List<MethodRuleDefinitionHandler> coreHandlers() {
+        return ImmutableList.<MethodRuleDefinitionHandler>of(
+                new UnmanagedModelCreationRuleDefinitionHandler(), new ManagedModelCreationRuleDefinitionHandler(), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
+        );
+    }
 }

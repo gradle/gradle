@@ -32,7 +32,7 @@ import spock.lang.Unroll
 class ModelRuleBindingTest extends Specification {
 
     def modelRegistry = new DefaultModelRegistry()
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandler.CORE_HANDLERS)
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers())
 
     static class AmbiguousBindingsInOneSource {
         @Mutate
