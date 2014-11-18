@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
@@ -28,6 +29,8 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<ComponentBinaries> {
 
@@ -111,14 +114,21 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
 
         public S create(String name) {
             S binary = container.create(name, binaryType);
-            componentSpec.getBinaries().add(binary);
+            bindBinaryToComponent(componentSpec, binary, name);
             return binary;
         }
 
         public <U extends S> U create(String name, Class<U> type) {
             U binary = container.create(name, type);
-            componentSpec.getBinaries().add(binary);
+            bindBinaryToComponent(componentSpec, binary, name);
             return binary;
+        }
+
+        private <U extends S> void bindBinaryToComponent(ComponentSpec componentSpec, U binary, String name) {
+            componentSpec.getBinaries().add(binary);
+            BinarySpecInternal binaryInternal = (BinarySpecInternal) binary;
+            FunctionalSourceSet binarySourceSet = ((ComponentSpecInternal) componentSpec).getSources().copy(name);
+            binaryInternal.setBinarySources(binarySourceSet);
         }
     }
 }

@@ -32,7 +32,6 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
@@ -113,7 +112,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
                     appSources.getSource().srcDir("app");
                     appSources.getSource().exclude("**/*.html");
-
                     ((ComponentSpecInternal) playComponent).getSources().add(appSources);
                 }
             });
@@ -135,10 +133,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
                     public void execute(PlayApplicationBinarySpec playBinary) {
                         PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
-
-                        // TODO:DAZ This shouldn't be required: should be part of infrastructure
-                        FunctionalSourceSet binarySourceSet = ((ComponentSpecInternal) componentSpec).getSources().copy(binaryName);
-                        playBinaryInternal.setBinarySources(binarySourceSet);
 
                         playBinaryInternal.setTargetPlatform(chosenPlatform);
                         playBinaryInternal.setToolChain(playToolChainInternal);
