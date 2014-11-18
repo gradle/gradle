@@ -29,8 +29,22 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':launcher', sourceSet: "integTest")
 
+task patchJar(type: Jar) {
+    dependsOn providerPatchClasses
+    // baseName 'gradle-tooling-api-patch'
+    appendix 'provider-patch'
+    archiveName "${baseName}-${appendix}.${extension}"
+    from fileTree("$buildDir/classes/providerPatch")
+}
+
+task patchResources(type: Copy) {
+    dependsOn patchJar
+    from patchJar.outputs.files
+    into "$buildDir/patches"
+}
+
 integTestTasks.all {
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip', patchResources)
 
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
@@ -41,25 +55,23 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
-task patchJar(type: Jar) {
-    dependsOn providerPatchClasses
-    // baseName 'gradle-tooling-api-patch'
-    appendix 'provider-patch'
-    archiveName "${baseName}-${appendix}.${extension}"
-    from fileTree("$buildDir/classes/providerPatch")
-}
-
 sourceSets {
+    // add provider patch to test classpath
     test {
         resources {
-            srcDir "$buildDir/classes/providerPatch"
+            srcDir "$buildDir/patches"
+        }
+    }
+    integTest {
+        resources {
+            srcDir "$buildDir/patches"
         }
     }
 }
-test.dependsOn patchJar
+test.dependsOn patchResources
 
 jar {
-    dependsOn providerPatchClasses,patchJar
+    dependsOn patchJar
     from patchJar.outputs.files
 }
 
@@ -90,7 +102,7 @@ task publishJar(type: Zip) {
     appendix = "bundle"
     destinationDir = jar.destinationDir
     extension = 'jar'
-    dependsOn jar, jarjarJar, providerPatchClasses, patchJar
+    dependsOn jar, jarjarJar, patchJar
     from zipTree(jarjarJar.getArchivePath())
     from patchJar.outputs.files
 }

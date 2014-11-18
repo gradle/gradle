@@ -37,10 +37,12 @@ class DistributionFactoryTest extends Specification {
     final ExecutorServiceFactory executorFactory = Mock()
     final BuildCancellationToken cancellationToken = Mock()
     final ExecutorService executor = Executors.newSingleThreadExecutor()
-    final DistributionFactory factory = new DistributionFactory(executorFactory)
+    final ProviderClasspathUpdater cpUpdater = Mock()
+    final DistributionFactory factory = new DistributionFactory(executorFactory, cpUpdater)
 
     def setup() {
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
+        _ * cpUpdater.prependToClasspath(_) >> []
     }
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistribution() {
@@ -200,6 +202,7 @@ class DistributionFactoryTest extends Specification {
 
         1 * executorFactory.create() >> executor
         1 * cancellationToken.addCallback(_)
+        1 * cpUpdater.prependToClasspath(_) >> []
 
         0 * _._
     }

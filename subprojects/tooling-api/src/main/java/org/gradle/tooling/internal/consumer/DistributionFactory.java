@@ -16,9 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import org.gradle.api.internal.classpath.EffectiveClassPath;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.layout.BuildLayout;
@@ -43,30 +40,21 @@ import org.gradle.wrapper.WrapperExecutor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.util.LinkedHashSet;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class DistributionFactory {
-    private static ByteSource createPatchSource() {
-        URL resource = DistributionFactory.class.getResource("gradle-tooling-api-patch.jar");
-        return resource != null ? Resources.asByteSource(resource) : ByteSource.empty();
-    }
     private final Factory<? extends ExecutorService> executorFactory;
-    private final ByteSource patchSource;
+    private final ProviderClasspathUpdater cpUpdater;
 
-    public DistributionFactory(Factory<? extends ExecutorService> executorFactory) {
+    public DistributionFactory(Factory<? extends ExecutorService> executorFactory, ProviderClasspathUpdater cpUpdater) {
         this.executorFactory = Preconditions.checkNotNull(executorFactory);
-        this.patchSource = createPatchSource();
+        this.cpUpdater = cpUpdater;
     }
 
     /**
@@ -76,7 +64,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration(), executorFactory, patchSource);
+            return new ZippedDistribution(wrapper.getConfiguration(), executorFactory, cpUpdater);
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -86,7 +74,7 @@ public class DistributionFactory {
      */
     public Distribution getDistribution(File gradleHomeDir) {
         return new InstalledDistribution(gradleHomeDir, String.format("Gradle installation '%s'", gradleHomeDir),
-                String.format("Gradle installation directory '%s'", gradleHomeDir), patchSource);
+                String.format("Gradle installation directory '%s'", gradleHomeDir), cpUpdater);
     }
 
     /**
@@ -102,7 +90,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration, executorFactory, patchSource);
+        return new ZippedDistribution(configuration, executorFactory, cpUpdater);
     }
 
     /**
@@ -121,12 +109,12 @@ public class DistributionFactory {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
         private final Factory<? extends ExecutorService> executorFactory;
-        private final ByteSource patchSource;
+        private final ProviderClasspathUpdater cpUpdater;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory, ByteSource patchSource) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory, ProviderClasspathUpdater cpUpdater) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.executorFactory = executorFactory;
-            this.patchSource = Preconditions.checkNotNull(patchSource);
+            this.cpUpdater = Preconditions.checkNotNull(cpUpdater);
         }
 
         public String getDisplayName() {
@@ -178,7 +166,7 @@ public class DistributionFactory {
                         executor.shutdown();
                     }
                 }
-                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName(), patchSource);
+                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName(), cpUpdater);
             }
             return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken);
         }
@@ -207,13 +195,13 @@ public class DistributionFactory {
         private final File gradleHomeDir;
         private final String displayName;
         private final String locationDisplayName;
-        private final ByteSource patchSource;
+        private final ProviderClasspathUpdater cpUpdater;
 
-        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName, ByteSource patchSource) {
+        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName, ProviderClasspathUpdater cpUpdater) {
             this.gradleHomeDir = gradleHomeDir;
             this.displayName = displayName;
             this.locationDisplayName = locationDisplayName;
-            this.patchSource = Preconditions.checkNotNull(patchSource);
+            this.cpUpdater = Preconditions.checkNotNull(cpUpdater);
         }
 
         public String getDisplayName() {
@@ -243,43 +231,15 @@ public class DistributionFactory {
                 throw new IllegalArgumentException(String.format("The specified %s does not appear to contain a Gradle distribution.", locationDisplayName));
             }
             LinkedHashSet<File> files = new LinkedHashSet<File>();
-            possiblyAddPatches(files, libDir);
+            for (File patch : cpUpdater.prependToClasspath(libDir)) {
+                files.add(patch);
+            }
             for (File file : libDir.listFiles()) {
                 if (file.getName().endsWith(".jar")) {
                     files.add(file);
                 }
             }
             return new DefaultClassPath(files);
-        }
-
-        private void possiblyAddPatches(LinkedHashSet<File> files, File libDir) {
-            for (File file : libDir.listFiles()) {
-                if (file.getName().startsWith("gradle-core") && file.getName().endsWith(".jar")) {
-                    try {
-                        JarFile jar = new JarFile(file);
-                        JarEntry entry = jar.getJarEntry("org/gradle/build-receipt.properties");
-                        if (entry == null) {
-                            continue;
-                        }
-                        Properties properties = new Properties();
-                        properties.load(jar.getInputStream(entry));
-                        String version = properties.getProperty("versionBase");
-                        if (version == null) {
-                            continue;
-                        }
-                        if (GradleVersion.version(version).compareTo(GradleVersion.version("1.8")) >= 0
-                                && GradleVersion.version(version).compareTo(GradleVersion.version("2.2")) <= 0) {
-                            File patchJar = File.createTempFile("gradle-tooling-patch", ".jar");
-                            patchSource.copyTo(Files.asByteSink(patchJar));
-                            patchJar.deleteOnExit();
-                            files.add(patchJar);
-                        }
-                    } catch (IOException ioe) {
-                        // ignore
-                    }
-                }
-            }
-
         }
     }
 
