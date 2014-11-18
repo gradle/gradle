@@ -167,7 +167,7 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
                 ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
-                if (!propertySchema.getKind().isManaged()) {
+                if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "type %s cannot be used for property '%s' as it is an unmanaged type.%n%s",
                             property.getType(), property.getName(), supportedTypeDescriptions.create()
@@ -175,8 +175,10 @@ abstract public class StructStrategySupport implements ModelSchemaExtractionStra
                 }
 
                 if (!property.isWritable()) {
-                    if (!propertySchema.getKind().equals(ModelSchema.Kind.STRUCT)) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format("read only property '%s' has non managed type %s, only managed types can be used", property.getName(), property.getType()));
+                    if (!propertySchema.getKind().isManaged()) {
+                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "read only property '%s' has non managed type %s, only managed types can be used",
+                                property.getName(), property.getType()));
                     }
                 }
             }

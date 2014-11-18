@@ -69,7 +69,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                     ModelSchema<T> schema = schemaStore.getSchema(propertyType);
 
-                    if (schema.getKind().equals(ModelSchema.Kind.STRUCT) && !ManagedInstance.class.isInstance(value)) {
+                    if (schema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {
                         throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                     }
                     modelNode.getLinks().get(name).setPrivateData(propertyType, value);

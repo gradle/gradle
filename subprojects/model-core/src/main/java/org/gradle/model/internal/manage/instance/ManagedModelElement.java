@@ -77,7 +77,7 @@ public class ManagedModelElement<T> {
             public <P> void set(ModelType<P> propertyType, String name, P value) {
                 ModelPropertyInstance<P> modelPropertyInstance = ManagedModelElement.this.get(propertyType, name);
                 ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
-                if (propertySchema.getKind().equals(ModelSchema.Kind.STRUCT) && !ManagedInstance.class.isInstance(value)) {
+                if (propertySchema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {
                     throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                 }
                 modelPropertyInstance.set(Cast.cast(propertyType.getConcreteClass(), value));

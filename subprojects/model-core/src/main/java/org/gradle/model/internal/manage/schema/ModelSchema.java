@@ -29,24 +29,30 @@ import java.util.HashSet;
 public class ModelSchema<T> {
 
     public static enum Kind {
-        VALUE, // at the moment we are conflating this with unstructured primitives
+        VALUE(false, true), // at the moment we are conflating this with unstructured primitives
         COLLECTION,
         STRUCT, // type is guaranteed to be an interface
-        UNMANAGED_STRUCT(false), // an interface that is not annotated with @Managed but would otherwise be a valid managed type
-        UNMANAGED(false); // some type we know nothing about
+        UNMANAGED_STRUCT(false, false), // an interface that is not annotated with @Managed but would otherwise be a valid managed type
+        UNMANAGED(false, false); // some type we know nothing about
 
         private final boolean isManaged;
+        private final boolean isAllowedPropertyTypeOfManagedType;
 
         private Kind() {
-            this(true);
+            this(true, true);
         }
 
-        private Kind(boolean isManaged) {
+        private Kind(boolean isManaged, boolean isAllowedPropertyTypeOfManagedType) {
             this.isManaged = isManaged;
+            this.isAllowedPropertyTypeOfManagedType = isAllowedPropertyTypeOfManagedType;
         }
 
         public boolean isManaged() {
             return isManaged;
+        }
+
+        public boolean isAllowedPropertyTypeOfManagedType() {
+            return isAllowedPropertyTypeOfManagedType;
         }
     }
 

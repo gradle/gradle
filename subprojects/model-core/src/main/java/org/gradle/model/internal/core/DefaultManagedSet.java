@@ -21,13 +21,14 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
 @NotThreadSafe
-public class DefaultManagedSet<T> implements ManagedSet<T> {
+public class DefaultManagedSet<T> implements ManagedSet<T>, ManagedInstance {
 
     private final Set<T> elements = Sets.newHashSet();
     private final Factory<T> elementFactory;

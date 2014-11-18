@@ -204,7 +204,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
                     ModelNode childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
 
                     ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
-                    if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
+                    if (propertySchema.getKind().isManaged() && !property.isWritable()) {
                         P instance = modelInstantiator.newInstance(propertySchema);
                         childNode.setPrivateData(propertyType, instance);
                     }

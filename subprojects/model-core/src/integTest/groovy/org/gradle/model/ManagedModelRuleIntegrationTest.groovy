@@ -566,6 +566,120 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'people: p1, p2, p3'
     }
 
+    def "managed model type has property of collection of managed types"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+              String getName()
+              void setName(String string)
+            }
+
+            @Managed
+            interface Group {
+              String getName()
+              void setName(String string)
+              ManagedSet<Person> getMembers()
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void group(Group group) {
+                group.name = "Women in computing"
+                group.members.create { it.name = "Ada Lovelace" }
+                group.members.create { it.name = "Grace Hooper" }
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("printGroup") {
+                  it.doLast {
+                    def members = $("group").members*.name.sort().join(", ")
+                    def name = $("group").name
+                    println "$name: $members"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printGroup"
+
+        and:
+        output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
+    }
+
+    def "managed model type can reference a collection of managed types"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+              String getName()
+              void setName(String string)
+            }
+
+            @Managed
+            interface Group {
+              String getName()
+              void setName(String string)
+              ManagedSet<Person> getMembers()
+              void setMembers(ManagedSet<Person> members)
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void people(ManagedSet<Person> people) {
+                people.create { it.name = "Ada Lovelace" }
+                people.create { it.name = "Grace Hooper" }
+              }
+
+              @Model
+              void group(Group group, @Path("people") ManagedSet<Person> people) {
+                group.name = "Women in computing"
+                group.members = people
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("printGroup") {
+                  it.doLast {
+                    def members = $("group").members*.name.sort().join(", ")
+                    def name = $("group").name
+                    println "$name: $members"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printGroup"
+
+        and:
+        output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
+    }
+
     def "cannot use value type as subject of void model rule"() {
         given:
         when:

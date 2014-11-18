@@ -292,41 +292,44 @@ Notes:
   - ~~different types for the same name~~
   - ~~same type but one is read only and the other is writable~~ 
 
-### Managed model type has property of collection of managed types
+### Managed model type has a property of collection of managed types
 
     @Managed
     interface Person {
       String getName(); void setName(String string)
     }
     
-    package org.gradle.model.collection
-    interface ManagedSet<T> extends Set<T> {
-      void create(Action<? super T> action)
+    @Managed
+    interface Group {
+      String getName(); void setName(String string)
+      ManagedSet<Person> getMembers();
     }
     
     class Rules {
       @Model
-      void people(ManagedSet<Person> people) {}
-      
-      @Mutate void addPeople(ManagedSet<Person> people) {
-        people.create(p -> p.setName("p1"))
-        people.create(p -> p.setName("p2"))
+      void group(Group group) {
+        group.name = "Women in computing"
+        group.members.create(p -> p.setName("Ada Lovelace"))
+        group.members.create(p -> p.setName("Grace Hooper"))
       }
     }
     
     model {
-      people {
-        create { it.name = "p3" }
-      }
-      
       tasks {
-        create("printPeople") {
+        create("printGroup") {
           it.doLast {
-            assert $("people")*.name.sort() == ["p1", "p2", "p3"]
+            def members = $("group").members*.name.sort().join(", ")
+            def name = $("group").name
+            println "$name: $members"
           }
         }
       }
     }
+    
+#### Test Coverage
+
+- ~~Something like the snippet above~~
+- ~~Can set/get a reference to a collection of managed types~~
     
 ### Managed model type has enum property
 
