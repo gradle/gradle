@@ -31,7 +31,7 @@ import org.gradle.play.internal.routes.RoutesCompiler;
 import org.gradle.play.internal.routes.VersionedRoutesCompileSpec;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.run.PlayRunSpecFactory;
-import org.gradle.play.internal.run.PlayRunWorkerManager;
+import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.VersionedPlayRunSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpecFactory;
@@ -75,10 +75,10 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         return playDependencyNotation;
     }
 
-    public PlayRunWorkerManager getWorkerManager(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform, PlayRunSpec spec) {
+    public PlayApplicationRunner createPlayApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform, PlayRunSpec spec) {
         VersionedPlayRunSpec versionedSpec = PlayRunSpecFactory.create(spec, targetPlatform);
         Iterable<File> docsClasspath = resolveClasspath(versionedSpec.getDocsDependencyNotation());
-        return new PlayRunWorkerManager(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec, docsClasspath); //We pass docsClasspath here, but it could have been part of the VersionedPlayRunSpec, but we want to contain the resolution of dependencies in this file
+        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec, docsClasspath); //We pass docsClasspath here, but it could have been part of the VersionedPlayRunSpec, but we want to contain the resolution of dependencies in this file
     }
 
     private Iterable<File> resolveClasspath(Object dependencyNotation) {

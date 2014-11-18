@@ -22,10 +22,11 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
 import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.run.PlayRunWorkerManager;
+import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
     public PlayToolProvider select(PlayPlatform targetPlatform);
-    public PlayRunWorkerManager getWorkerManager(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform, PlayRunSpec spec);
+    //TODO Rene I wonder if targetPlatform should be part of the PlayRunSpec
+    public PlayApplicationRunner createPlayApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform, PlayRunSpec spec);
 }

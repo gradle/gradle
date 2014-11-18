@@ -29,4 +29,5 @@ public interface PlayRunSpec {
     File getProjectPath();
 
     int getHttpPort();
+
 }

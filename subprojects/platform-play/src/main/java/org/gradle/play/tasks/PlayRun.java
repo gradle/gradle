@@ -74,7 +74,7 @@ public class PlayRun extends ConventionTask {
         int httpPort = getHttpPort();
 
         PlayRunSpec spec = new DefaultPlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), forkOptions, httpPort);
-        PlayRunWorkerManager manager = ((PlayToolChainInternal) getToolChain()).getWorkerManager(getWorkerProcessBuilderFactory(), getTargetPlatform(), spec);
+        PlayApplicationRunner manager = ((PlayToolChainInternal) getToolChain()).createPlayApplicationRunner(getWorkerProcessBuilderFactory(), getTargetPlatform(), spec);
 
         try {
             runnerToken = manager.start();

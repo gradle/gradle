@@ -27,13 +27,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayRunWorkerManager {
+public class PlayApplicationRunner {
     private final File workingDir;
     private final Factory<WorkerProcessBuilder> workerFactory;
     private final VersionedPlayRunSpec spec;
     private final Iterable<File>  docsClasspath;
 
-    public PlayRunWorkerManager(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
+    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
         this.workingDir = workingDir;
         this.workerFactory = workerFactory;
         this.spec = spec;
