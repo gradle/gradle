@@ -95,6 +95,8 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         mavenRepo().module('org.test', 'projectC', '1.1').publish()
         mavenRepo().module('org.test', 'projectC', '1.5').publish()
         mavenRepo().module('org.test', 'projectC', '2.0').publish()
+        // We use a non-unique snapshot here because we are using a file repository, and we want the file name to be projectC-2.1-SNAPSHOT.jar
+        // For a file repository, the resolved artifact name would be the unique snapshot version (since we use artifact in-place)
         mavenRepo().module('org.test', 'projectC', '2.1-SNAPSHOT').withNonUniqueSnapshots().publish()
         mavenRepo().module('org.test', 'projectB', '1.0').dependsOn("org.test", 'projectC', versionDefinition).publish()
         mavenRepo().module('org.test', 'projectA', '1.0').dependsOn('org.test', 'projectB', '1.0').publish()
