@@ -22,9 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.AvailablePortFinder
 import org.junit.Assert
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore //Ignore till we can figure out why we must waitForFailure
 class PlayRunIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -61,13 +59,13 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
         when:
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
+
         then:
-        UrlValidator.available("http://localhost:$httpPort", "Sample Play App", 120000)
+        UrlValidator.available("http://localhost:$httpPort", "Play app", 120000)
         assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
 
         when: "stopping gradle"
         gradleHandle.abort()
-        gradleHandle.waitForFailure() //TODO freekh: Should not be needed?
         then: "play server is stopped too"
         notAvailable("http://localhost:$httpPort")
     }

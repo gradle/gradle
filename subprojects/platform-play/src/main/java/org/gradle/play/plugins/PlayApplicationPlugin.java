@@ -279,6 +279,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
             final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
 
+            //TODO inject ToolChain into PlayRun task
+            final PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
@@ -287,11 +289,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         playRun.setTargetPlatform(binary.getTargetPlatform());
                         Project project = playRun.getProject();
 
-                        //TODO move to ToolChain:
-                        Dependency playDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", binary.getTargetPlatform().getScalaVersion(), binary.getTargetPlatform().getPlayVersion()));
+                        Dependency playDependency = dependencyHandler.create(playToolChain.getPlayDependencyNotationForPlatform(binary.getTargetPlatform()));
                         final Configuration playCompileConfiguration = configurationContainer.detachedConfiguration(playDependency);
-                        playRun.setClasspath(playCompileConfiguration);
+                        FileCollection playApplicationClasspath = playCompileConfiguration.plus(fileResolver.resolveFiles(binary.getJarFile()));
 
+                        playRun.setClasspath(playApplicationClasspath);
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });
