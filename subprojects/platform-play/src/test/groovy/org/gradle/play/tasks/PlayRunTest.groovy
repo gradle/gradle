@@ -60,6 +60,16 @@ class PlayRunTest extends Specification {
         }
     }
 
+    def "passes forkOptions never null"(){
+        when:
+        playRun.execute();
+        then:
+        1 * toolChain.createPlayApplicationRunner(_, _, _) >> {factory, platform, PlayRunSpec spec ->
+            assert spec.getForkOptions() != null
+            playApplicationRunner
+        }
+    }
+
     def "waits for runner to stop"(){
         when:
         playRun.execute();
