@@ -61,7 +61,7 @@ public class TwirlCompile extends SourceTask {
     private PlayPlatform platform;
 
     /**
-     * fork options for the twirl compiler. Forked compilation must be enabled by setting fork = true first
+     * fork options for the twirl compiler.
      */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {

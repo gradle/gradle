@@ -71,7 +71,8 @@ public class PlayRunWorkerManager {
         builder.sharedPackages(spec.getSharedPackages());
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
-        javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
+        javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
+        javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
         WorkerProcess process = builder.worker(new PlayWorkerServer(spec, docsClasspath)).build();
         return process;
     }

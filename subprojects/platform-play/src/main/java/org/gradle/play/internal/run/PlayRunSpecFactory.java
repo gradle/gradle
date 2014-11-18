@@ -23,9 +23,9 @@ public class PlayRunSpecFactory {
         PlayRunVersion version = PlayRunVersion.parse(playPlatform.getPlayVersion());
         switch (version){
             case V_22X:
-                return new PlayRunSpecV22X(spec.getClasspath(), spec.getProjectPath(), spec.getHttpPort(), playPlatform);
+                return new PlayRunSpecV22X(spec.getClasspath(), spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort(), playPlatform);
             case V_23X:
-                return new PlayRunSpecV23X(spec.getClasspath(), spec.getProjectPath(), spec.getHttpPort(), playPlatform);
+                return new PlayRunSpecV23X(spec.getClasspath(), spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort(), playPlatform);
             default:
                 throw new RuntimeException("Could not create play run spec for version: " + version);
         }

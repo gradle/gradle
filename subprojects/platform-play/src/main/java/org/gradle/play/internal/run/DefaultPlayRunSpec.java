@@ -16,23 +16,26 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.api.tasks.compile.BaseForkOptions;
+
 import java.io.File;
 import java.io.Serializable;
 
 public class DefaultPlayRunSpec implements PlayRunSpec, Serializable{
-    private String maxHeapSize;
     private final Iterable<File> classpath;
     private final File projectPath;
+    private BaseForkOptions forkOptions;
     private int httpPort;
 
-    public DefaultPlayRunSpec(Iterable<File> classpath,  File projectPath, int httpPort) {
+    public DefaultPlayRunSpec(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
         this.classpath = classpath;
         this.projectPath = projectPath;
+        this.forkOptions = forkOptions;
         this.httpPort = httpPort;
     }
 
-    public String getMaxHeapSize() {
-        return maxHeapSize;
+    public BaseForkOptions getForkOptions() {
+        return forkOptions;
     }
 
     public Iterable<File> getClasspath() {

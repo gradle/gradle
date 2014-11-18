@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.scala.internal.reflect.ScalaMethod;
@@ -34,15 +35,13 @@ import java.util.HashMap;
 import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec implements VersionedPlayRunSpec {
-    private final Iterable<File> classfpath; //Using Iterable<File> to be Serializable
     private final String scalaVersion;
     private final String playVersion;
 
-    public DefaultVersionedPlayRunSpec(Iterable<File> classpath, File projectPath, int httpPort, PlayPlatform playPlatform) {
-        super(classpath, projectPath, httpPort);
+    public DefaultVersionedPlayRunSpec(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort, PlayPlatform playPlatform) {
+        super(classpath, projectPath, forkOptions, httpPort);
         this.scalaVersion = playPlatform.getScalaVersion();
         this.playVersion = playPlatform.getPlayVersion();
-        this.classfpath = classpath;
     }
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;

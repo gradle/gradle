@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLogger;
@@ -42,8 +43,21 @@ public class PlayRun extends ConventionTask {
 
     private int httpPort;
 
+    private BaseForkOptions forkOptions;
+
     private PlayApplicationRunnerToken runnerToken;
     private PlayPlatform targetPlatform;
+
+
+    /**
+     * fork options for the running a play application.
+     */
+    public BaseForkOptions getForkOptions() {
+        if (forkOptions == null) {
+            forkOptions = new BaseForkOptions();
+        }
+        return forkOptions;
+    }
 
     @Inject
     public LoggingManagerInternal getLogging() {
@@ -59,7 +73,7 @@ public class PlayRun extends ConventionTask {
 
         int httpPort = getHttpPort();
 
-        PlayRunSpec spec = new DefaultPlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), httpPort);
+        PlayRunSpec spec = new DefaultPlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), forkOptions, httpPort);
         PlayRunWorkerManager manager = ((PlayToolChainInternal) getToolChain()).getWorkerManager(getWorkerProcessBuilderFactory(), getTargetPlatform(), spec);
 
         try {
