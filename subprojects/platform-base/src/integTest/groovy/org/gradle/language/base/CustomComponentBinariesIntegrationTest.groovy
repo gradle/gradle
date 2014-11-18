@@ -125,7 +125,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
 Source sets
     Library source 'librarySource:librarySource'
-        src/sampleLib/librarySource
+        src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
     DefaultSampleBinary 'sampleLibBinary'
@@ -209,7 +209,7 @@ DefaultSampleLibrary 'sampleLib'
 
 Source sets
     Library source 'librarySource:librarySource'
-        src/sampleLib/librarySource
+        src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
     DefaultSampleBinary 'sampleLib1stBinary'
