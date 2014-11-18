@@ -58,7 +58,7 @@ import java.util.jar.JarFile;
 
 public class DistributionFactory {
     private static ByteSource createPatchSource() {
-        URL resource = DistributionFactory.class.getResource("patches/org/gradle/tooling/internal/provider/ClasspathInferer.class");
+        URL resource = DistributionFactory.class.getResource("gradle-tooling-api-patch.jar");
         return resource != null ? Resources.asByteSource(resource) : ByteSource.empty();
     }
     private final Factory<? extends ExecutorService> executorFactory;
@@ -269,17 +269,10 @@ public class DistributionFactory {
                         }
                         if (GradleVersion.version(version).compareTo(GradleVersion.version("1.8")) >= 0
                                 && GradleVersion.version(version).compareTo(GradleVersion.version("2.2")) <= 0) {
-                            File tmpDir = Files.createTempDir();
-                            File patchClass = new File(tmpDir, "org" + File.separator
-                                    + "gradle" + File.separator + "tooling" + File.separator + "internal"
-                                    + "provider" + File.separator + "ClasspathInferer.class");
-                            Files.createParentDirs(patchClass);
-                            patchSource.copyTo(Files.asByteSink(patchClass));
-                            files.add(tmpDir);
-                            for (File patch = patchClass; !patch.equals(tmpDir); patch = patch.getParentFile()) {
-                                patch.deleteOnExit();
-                            }
-                            tmpDir.deleteOnExit();
+                            File patchJar = File.createTempFile("gradle-tooling-patch", ".jar");
+                            patchSource.copyTo(Files.asByteSink(patchJar));
+                            patchJar.deleteOnExit();
+                            files.add(patchJar);
                         }
                     } catch (IOException ioe) {
                         // ignore

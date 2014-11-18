@@ -41,12 +41,26 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
-jar {
+task patchJar(type: Jar) {
     dependsOn providerPatchClasses
-    from(fileTree("$buildDir/classes/providerPatch"), {
-        into 'patches'
-        // rename '(.*)\\.class', '$1.patch'
-    })
+    // baseName 'gradle-tooling-api-patch'
+    appendix 'provider-patch'
+    archiveName "${baseName}-${appendix}.${extension}"
+    from fileTree("$buildDir/classes/providerPatch")
+}
+
+sourceSets {
+    test {
+        resources {
+            srcDir "$buildDir/classes/providerPatch"
+        }
+    }
+}
+test.dependsOn patchJar
+
+jar {
+    dependsOn providerPatchClasses,patchJar
+    from patchJar.outputs.files
 }
 
 task jarjarJar(type: JarJarJar) {
@@ -60,6 +74,7 @@ task jarjarJar(type: JarJarJar) {
     }
     exclude "META-INF/**"
     exclude "*classpath.properties"
+    exclude patchJar.archiveName // JarJar corrupts the content
 
     rule('org.gradle.**', '@0')
     rule('org.slf4j.**', '@0')
@@ -69,21 +84,15 @@ task jarjarJar(type: JarJarJar) {
     rule('net.**', 'org.gradle.jarjar.@0')
 
     keep('org.gradle.tooling.**')
-
-    zap('org.gradle.tooling.internal.provider.**')
-    zap('patches.org.gradle.tooling.internal.provider.**')
 }
 
 task publishJar(type: Zip) {
     appendix = "bundle"
     destinationDir = jar.destinationDir
     extension = 'jar'
-    dependsOn jar, jarjarJar, providerPatchClasses
+    dependsOn jar, jarjarJar, providerPatchClasses, patchJar
     from zipTree(jarjarJar.getArchivePath())
-    from(fileTree("$buildDir/classes/providerPatch"), {
-        into 'patches'
-        // rename '(.*)\\.class', '$1.patch'
-    })
+    from patchJar.outputs.files
 }
 
 sourceJar{

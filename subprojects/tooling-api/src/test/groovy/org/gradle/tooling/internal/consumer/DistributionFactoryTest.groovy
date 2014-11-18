@@ -260,6 +260,7 @@ versionBase=2.1
 
         then:
         result.asFiles.size() == 3
+        result.asFiles.name.any { it.startsWith('gradle-tooling-patch') && it.endsWith('.jar') }
         result.asFiles.name.contains('a.jar')
         result.asFiles.name.contains('gradle-core-x.y.jar')
         (result.asFiles.path as Set).every { it.contains('customUserHome') || it.contains('custom-tmp-dir')}
