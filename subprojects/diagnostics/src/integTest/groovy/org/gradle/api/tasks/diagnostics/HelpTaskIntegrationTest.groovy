@@ -139,13 +139,19 @@ BUILD SUCCESSFUL"""))
     def "help for tasks same type different groups"() {
         setup:
         settingsFile.text = """
-include ":someproj"
+include ":someproj1"
+include ":someproj2"
 """
         buildFile.text = """
         task hello {
             group = "group of root task"
         }
-        project(":someproj"){
+        project(":someproj1"){
+            task hello {
+                group = "group of subproject task"
+            }
+        }
+        project(":someproj2"){
             task hello {
                 group = "group of subproject task"
             }
@@ -158,7 +164,8 @@ include ":someproj"
 
 Paths
      :hello
-     :someproj:hello
+     :someproj1:hello
+     :someproj2:hello
 
 Type
      Task (org.gradle.api.Task)
@@ -168,7 +175,8 @@ Description
 
 Groups
      (:hello) group of root task
-     (:someproj:hello) group of subproject task
+     (:someproj1:hello) group of subproject task
+     (:someproj2:hello) group of subproject task
 
 BUILD SUCCESSFUL"""))
     }
