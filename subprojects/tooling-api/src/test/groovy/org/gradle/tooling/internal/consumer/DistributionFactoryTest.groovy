@@ -236,36 +236,30 @@ class DistributionFactoryTest extends Specification {
 
     def "prepends patched class for Gradle distribution with broken ClasspathInferer"() {
         System.properties['java.io.tmpdir'] = tmpDir.createDir('custom-tmp-dir').absolutePath
+        def patchJar = tmpDir.file('custom-tmp-dir/patch.jar')
 
         when:
-        1 * executorFactory.create() >> executor
-
         File customUserHome = tmpDir.file('customUserHome')
+
         def distDir = tmpDir.createDir('dist')
         distDir.create {
             "dist-2.1" {
                 lib {
                     file("a.jar")
-                    // file("gradle-core-x.y.jar")
+                    file("gradle-core-x.y.jar")
                 }
             }
         }
-        def coreDir = tmpDir.createDir('core')
-        coreDir.file('org/gradle/build-receipt.properties') << """
-versionBase=2.1
-"""
-        coreDir.zipTo(distDir.file("dist-2.1/lib/gradle-core-x.y.jar"))
-
         def zipFile = tmpDir.file("dist-2.1.zip")
         distDir.zipTo(zipFile)
         def dist = factory.getDistribution(zipFile.toURI())
         def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome, cancellationToken)
 
         then:
+        1 * executorFactory.create() >> executor
+        1 * cpUpdater.prependToClasspath(_) >> [patchJar]
         result.asFiles.size() == 3
-        result.asFiles.name.any { it.startsWith('gradle-tooling-patch') && it.endsWith('.jar') }
-        result.asFiles.name.contains('a.jar')
-        result.asFiles.name.contains('gradle-core-x.y.jar')
+        (result.asFiles.name as Set) == ['patch.jar', 'a.jar', 'gradle-core-x.y.jar'] as Set
         (result.asFiles.path as Set).every { it.contains('customUserHome') || it.contains('custom-tmp-dir')}
     }
 
