@@ -151,17 +151,15 @@ public class ClasspathInferer {
             if (location.getScheme().equals("file")) {
                 if (path.endsWith(".jar")) {
                     // just assume that resourceName is contained in this JAR
-                    System.err.println("resource is JAR" + location);
                     return new File(path);
                 }
                 File candidate = new File(path);
                 if (candidate.isDirectory() && new File(candidate, resourceName).exists()) {
-                    System.err.println("resource is directory root " + candidate);
                     return candidate;
                 }
                 candidate = new File(candidate, "bin");
                 if (candidate.isDirectory() && new File(candidate, resourceName).exists()) {
-                    System.err.println("resource is directory root used by Eclipse PDE " + candidate);
+                    // this happens when running the code from Eclipse using PDE
                     return candidate;
                 }
             }
