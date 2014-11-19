@@ -305,8 +305,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
             final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+            final PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
 
-            PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 PlayPlatform targetPlatform = binary.getTargetPlatform();
                 // TODO the knowledge about platform dependencies should be moved into toolchain/toolprovider
