@@ -131,9 +131,6 @@ class PlayNewApp extends BasicPlayApp {
     List<SourceFile> getConfSources() {
         return super.getConfSources() + [
                 sourceFile("conf", "routes", """# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
 # Home page
 GET     /                           controllers.Application.index
 

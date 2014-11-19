@@ -53,6 +53,22 @@ class CustomPlayApp extends BasicPlayApp{
 
                         public static Result index() {
                             System.out.println(new models.ScalaClass("Java can also reference Scala files"));
+                            return ok(index.render("Your new mixed application is ready."));
+                        }
+
+                    }
+                """),
+
+                sourceFile("app/controllers", "PureJava.java", """
+                    package controllers;
+
+                    import play.*;
+                    import play.mvc.*;
+                    import views.html.*;
+
+                    public class PureJava extends Controller {
+
+                        public static Result index() {
                             return ok(index.render("Your new application is ready."));
                         }
 
@@ -76,6 +92,7 @@ class CustomPlayApp extends BasicPlayApp{
                 """),
 
 
+
                 sourceFile("app/controllers", "Application.scala", """
                     package controllers
 
@@ -88,6 +105,10 @@ class CustomPlayApp extends BasicPlayApp{
 
                       def index = Action {
                         Ok(views.html.awesome.index(List(new DataType("foo", 1))))
+                      }
+
+                      def root = Action {
+                        Ok(views.html.awesome.index(List(new DataType("bar", 2))))
                       }
 
                     }
@@ -150,11 +171,13 @@ class CustomPlayApp extends BasicPlayApp{
     List<SourceFile> getConfSources() {
         return super.getConfSources() + [
                 sourceFile("conf", "routes", """# Routes
+GET /          controllers.PureJava.index
 ->  /scala     scala.Routes
-->  /java      java.Routes
+->  /java      jva.Routes
                     """),
 
-                sourceFile("conf", "java.routes", "GET        /one         controllers.Application.index"),
+                sourceFile("conf", "jva.routes", "GET        /one         controllers.Application.index"),
+
                 sourceFile("conf", "scala.routes", """
 GET        /one         controllers.MixedJava.index
 POST       /two         special.strangename.Application.index

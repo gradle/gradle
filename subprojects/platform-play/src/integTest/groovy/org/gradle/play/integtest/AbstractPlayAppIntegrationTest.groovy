@@ -22,8 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.util.AvailablePortFinder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
-import spock.lang.Ignore
 
 abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest{
 
@@ -79,7 +80,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
     }
 
-    @Ignore
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can run play app"(){
         setup:
         buildFile <<"""
