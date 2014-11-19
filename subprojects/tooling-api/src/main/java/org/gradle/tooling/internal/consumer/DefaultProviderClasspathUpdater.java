@@ -32,7 +32,7 @@ import java.util.jar.JarFile;
 
 public class DefaultProviderClasspathUpdater implements ProviderClasspathUpdater {
     private static ByteSource createPatchSource() {
-        URL resource = DistributionFactory.class.getResource("/gradle-tooling-api-provider-patch.jar");
+        URL resource = DistributionFactory.class.getResource("gradle-tooling-api-provider-patch.jar");
         return Resources.asByteSource(resource);
     }
     private File patchJar;

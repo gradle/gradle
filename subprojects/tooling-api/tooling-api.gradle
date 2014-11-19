@@ -40,11 +40,12 @@ task patchJar(type: Jar) {
 task patchResources(type: Copy) {
     dependsOn patchJar
     from patchJar.outputs.files
-    into "$buildDir/patches"
+    into "$generatedResourcesDir/org/gradle/tooling/internal/consumer"
 }
+processResources.dependsOn patchResources
 
 integTestTasks.all {
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip', patchResources)
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
 
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
@@ -53,26 +54,6 @@ integTestTasks.all {
 
 daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
-}
-
-sourceSets {
-    // add provider patch to test classpath
-    test {
-        resources {
-            srcDir "$buildDir/patches"
-        }
-    }
-    integTest {
-        resources {
-            srcDir "$buildDir/patches"
-        }
-    }
-}
-test.dependsOn patchResources
-
-jar {
-    dependsOn patchJar
-    from patchJar.outputs.files
 }
 
 task jarjarJar(type: JarJarJar) {
@@ -86,7 +67,7 @@ task jarjarJar(type: JarJarJar) {
     }
     exclude "META-INF/**"
     exclude "*classpath.properties"
-    exclude patchJar.archiveName // JarJar corrupts the content
+    exclude 'org/gradle/tooling/internal/consumer/' + patchJar.archiveName // JarJar corrupts the content
 
     rule('org.gradle.**', '@0')
     rule('org.slf4j.**', '@0')
@@ -104,7 +85,7 @@ task publishJar(type: Zip) {
     extension = 'jar'
     dependsOn jar, jarjarJar, patchJar
     from zipTree(jarjarJar.getArchivePath())
-    from patchJar.outputs.files
+    from(patchJar.outputs.files, { into 'org/gradle/tooling/internal/consumer'})
 }
 
 sourceJar{
