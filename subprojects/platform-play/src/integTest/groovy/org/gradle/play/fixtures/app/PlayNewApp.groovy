@@ -35,30 +35,6 @@ class PlayNewApp extends PlayApp {
 
                     }"""),
 
-                sourceFile("app/views", "index.scala.html", """
-                    @(message: String)
-
-                    @main("Welcome to Play") {
-
-                    @play20.welcome(message)
-
-                    }"""),
-
-                sourceFile("app/views", "main.scala.html", """
-                    @(title: String)(content: Html)
-
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>@title</title>
-                        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-                        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-                        <script src="@routes.Assets.at("javascripts/hello.js")" type="text/javascript"></script>
-                        </head>
-                        <body>
-                            @content
-                        </body>
-                    </html>"""),
 
 
                 sourceFile("conf", "application.conf", """
@@ -104,6 +80,36 @@ fill="#000000" stroke="none">
                     }"""),
 
                 sourceFile("public/stylesheets", "main.css", "")
+        ]
+    }
+
+    @Override
+    List<SourceFile> getViewSources() {
+        return [
+                sourceFile("app/views", "index.scala.html", """
+                    @(message: String)
+
+                    @main("Welcome to Play") {
+
+                    @play20.welcome(message)
+
+                    }"""),
+
+                sourceFile("app/views", "main.scala.html", """
+                    @(title: String)(content: Html)
+
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>@title</title>
+                        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+                        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+                        <script src="@routes.Assets.at("javascripts/hello.js")" type="text/javascript"></script>
+                        </head>
+                        <body>
+                            @content
+                        </body>
+                    </html>""")
         ]
     }
 

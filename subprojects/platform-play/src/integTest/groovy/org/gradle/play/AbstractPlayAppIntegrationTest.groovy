@@ -15,13 +15,17 @@
  */
 
 package org.gradle.play
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.play.fixtures.PlayCoverage
 import org.gradle.play.fixtures.app.PlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-abstract class AbstractPlayAppIntegrationTest extends AbstractIntegrationSpec{
+@TargetCoverage({PlayCoverage.DEFAULT})
+abstract class AbstractPlayAppIntegrationTest extends MultiVersionIntegrationSpec{
     abstract PlayApp getPlayApp()
 
     def setup(){
@@ -30,6 +34,14 @@ abstract class AbstractPlayAppIntegrationTest extends AbstractIntegrationSpec{
         buildFile <<"""
         plugins {
             id 'play-application'
+        }
+
+        model {
+            components {
+                play {
+                    playVersion "${version}"
+                }
+            }
         }
 
         repositories{

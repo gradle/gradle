@@ -21,10 +21,11 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class PlayApp {
     List<SourceFile> getAllFiles() {
-        return appSources + testSources
+        return appSources + testSources + viewSources
     }
 
     abstract List<SourceFile> getAppSources();
+    abstract List<SourceFile> getViewSources();
     abstract List<SourceFile> getTestSources();
 
     protected SourceFile sourceFile(String path, String name, String content) {
