@@ -15,13 +15,16 @@
  */
 
 package org.gradle.play.tasks
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.SystemProperties
-import org.gradle.play.fixtures.TwirlCoverage
+import org.gradle.play.integtest.fixtures.TwirlCoverage
 
 @TargetCoverage({TwirlCoverage.DEFAULT})
 class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
+
+
     def setup(){
         buildFile << """
         plugins {

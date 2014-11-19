@@ -15,13 +15,14 @@
  */
 
 package org.gradle.play.plugins
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
+class PlayApplicationPluginIntegrationTest extends WellBehavedPluginTest {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
