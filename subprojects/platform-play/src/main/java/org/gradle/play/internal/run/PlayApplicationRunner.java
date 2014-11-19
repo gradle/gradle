@@ -17,7 +17,6 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
@@ -67,7 +66,6 @@ public class PlayApplicationRunner {
             combinedClasspath.add(file);
         }
         builder.applicationClasspath(combinedClasspath);
-        builder.setLogLevel(LogLevel.DEBUG);
         builder.sharedPackages(spec.getSharedPackages());
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
