@@ -67,7 +67,7 @@ import org.gradle.internal.HasInternalProtocol;
  *   publications {
  *     myPublication(MavenPublication) {
  *       from components.java
- *       artifact sourceJar {
+ *       artifact(sourceJar) {
  *         classifier "source"
  *       }
  *       pom.withXml {
@@ -182,7 +182,7 @@ public interface MavenPublication extends Publication {
      * publishing {
      *   publications {
      *     maven(MavenPublication) {
-     *       artifact sourceJar {
+     *       artifact(sourceJar) {
      *         // These values will be used instead of the values from the task. The task values will not be updated.
      *         classifier "src"
      *         extension "zip"
