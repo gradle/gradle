@@ -31,12 +31,10 @@ class ModelSchemaExtractorTest extends Specification {
     def extractor = new ModelSchemaExtractor()
 
     static interface NotAnnotatedInterface {}
-    static class NotAnnotatedClass {}
 
-    def "unmanaged types"() {
+    def "unmanaged type"() {
         expect:
-        !extract(NotAnnotatedInterface).kind.managed
-        !extract(NotAnnotatedClass).kind.managed
+        extract(NotAnnotatedInterface).kind == ModelSchema.Kind.UNMANAGED
     }
 
     @Managed
@@ -71,8 +69,8 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can only have getters and setters"() {
         expect:
-        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: [foo])")
-        fail HasExtraNonPropertyMethods, Pattern.quote("only paired getter/setter methods are supported (invalid methods: [foo])")
+        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(NoGettersOrSetters).takes(String)})")
+        fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(HasExtraNonPropertyMethods).takes(String)})")
     }
 
     @Managed
@@ -370,6 +368,7 @@ class ModelSchemaExtractorTest extends Specification {
         properties*.name == ["count", "name"]
     }
 
+    @Managed
     static interface SingleStringValueProperty {
         String getValue()
 
@@ -381,24 +380,15 @@ class ModelSchemaExtractorTest extends Specification {
     }
 
     def "conflicting properties of super types are detected"() {
+        given:
+        def invalidMethods = [
+                MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer),
+                MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String),
+        ]
+        def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
+
         expect:
-        fail ConflictingPropertiesInParents, Pattern.quote(message)
-
-        where:
-        message = """conflicting definitions of property value - writable of type $Integer.name declared in $SingleIntegerValueProperty.name, writable of type $String.name declared in $SingleStringValueProperty.name"""
-    }
-
-    @Managed
-    static interface ConflictingPropertyWritablity extends SingleStringNameProperty {
-        String getName()
-    }
-
-    def "conflicting property writablity of a parent and a child are detected"() {
-        expect:
-        fail ConflictingPropertyWritablity, Pattern.quote(message)
-
-        where:
-        message = """conflicting definitions of property name - readonly of type $String.name declared in $ConflictingPropertyWritablity.name, writable of type $String.name declared in $SingleStringNameProperty.name"""
+        fail ConflictingPropertiesInParents, message
     }
 
     static interface AnotherSingleStringValueProperty {
@@ -409,9 +399,6 @@ class ModelSchemaExtractorTest extends Specification {
 
     @Managed
     static interface SamePropertyInMultipleTypes extends SingleStringValueProperty, AnotherSingleStringValueProperty {
-        String getValue()
-
-        void setValue(String value)
     }
 
     def "exact same properties defined in multiple types of the hierarchy are allowed"() {
@@ -420,6 +407,32 @@ class ModelSchemaExtractorTest extends Specification {
 
         then:
         properties*.name == ["value"]
+    }
+
+    static interface ReadOnlyProperty {
+        SingleStringValueProperty getSingleStringValueProperty()
+    }
+
+    @Managed
+    static interface WritableProperty extends ReadOnlyProperty {
+        void setSingleStringValueProperty(SingleStringValueProperty value)
+    }
+
+    def "read only property of a super type can be made writable"() {
+        when:
+        def properties = extract(WritableProperty).properties.values()
+
+        then:
+        properties*.writable == [true]
+    }
+
+    @Managed
+    static interface ChildWithNoGettersOrSetters extends NoGettersOrSetters {
+    }
+
+    def "invalid methods of super types are reported"() {
+        expect:
+        fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(NoGettersOrSetters).takes(String)})")
     }
 
     def "type argument of a managed set has to be specified"() {
@@ -469,7 +482,8 @@ Supported types:
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: [setName]).
+        def invalidMethodDescription = MethodDescription.name("setName").owner(SetterOnly).takes(String)
+        e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: ${invalidMethodDescription}).
 The type was analyzed due to the following dependencies:
 $type
   \\--- element type ($SetterOnly.name)""")

@@ -288,9 +288,7 @@ Notes:
 - ~~Can get/set properties of super type(s)~~
 - ~~Can depend on super type as input and subject~~
 - ~~Two different types can extend same parent~~
-- ~~Property conflicts between super types are detected~~:
-  - ~~different types for the same name~~
-  - ~~same type but one is read only and the other is writable~~ 
+- ~~Property conflicts between super types are detected (different types for the same name)~~ 
 
 ### Managed model type has a property of collection of managed types
 
