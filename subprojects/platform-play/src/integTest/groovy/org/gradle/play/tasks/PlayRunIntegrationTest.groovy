@@ -22,9 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.AvailablePortFinder
 import org.junit.Assert
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class PlayRunIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -68,6 +66,7 @@ class PlayRunIntegrationTest extends AbstractIntegrationSpec {
 
         when: "stopping gradle"
         gradleHandle.abort()
+        gradleHandle.waitForFailure()
         then: "play server is stopped too"
         notAvailable("http://localhost:$httpPort")
     }
