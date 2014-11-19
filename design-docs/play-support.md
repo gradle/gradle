@@ -199,7 +199,7 @@ Extend the Play support to allow full control over compilation of Scala and Java
     }
     model {
         components {
-            play(PlayApplicationSpec)
+            play(PlayApplicationSpec) {
                 sources {
                     extraJava(JavaSourceSet) {
                         source.srcDir "src/extraJava"
@@ -311,6 +311,48 @@ Play plugin:
 ### Open issues
 
 - Integration with existing Gradle javascript plugins.
+
+### Story: Developer includes compiled coffeescript assets in Play application
+
+Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSourceSets and permit multiple instances.
+
+    plugins {
+        id 'play-application'
+        id 'play-coffeescript'
+    }
+
+    model {
+        components {
+            play(PlayApplicationSpec) {
+                sources {
+                    extraCoffeeScript(CoffeeScriptSourceSet) {
+                        sources.srcDir "src/extraCoffeeScript"
+                    }
+
+                    extraJavaScript(JavaScriptSourceSet) {
+                        sources.srcDir "src/extraJavaScript"
+                    }
+                }
+            }
+        }
+    }
+
+- Default coffeescript sourceset should be "app/assets/**/*.coffee"
+- Compiled coffeescript files will be added to the jar under "/public"
+- Default javascript sourceset should be "app/assets/**/*.js" and "public/**/*.js"
+
+#### Test cases
+- Coffeescript and javascript sources are visible in the components report
+- Coffeescript sources successfully compiled to javascript
+- Compiled coffeescript is added to jar under "/public"
+- Javascript sources are copied directly into jar
+- Can provide additional coffeescript sources
+- Can provide additional javascript sources
+- Build is incremental:
+    - Change in coffeescript source triggers recompile
+    - No change in coffeescript source does not trigger a recompile
+    - Removal of generate javascript triggers recompile
+    - Removal of coffeescript source files removes generated javascript
 
 ## Feature: Developer chooses target Play, Scala and/or Java platform
 
