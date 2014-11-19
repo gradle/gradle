@@ -16,16 +16,10 @@
 
 package org.gradle.language
 
+import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.language.fixtures.app.*
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateCppBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateMixedSameBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
-import org.gradle.nativeplatform.fixtures.app.SourceFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

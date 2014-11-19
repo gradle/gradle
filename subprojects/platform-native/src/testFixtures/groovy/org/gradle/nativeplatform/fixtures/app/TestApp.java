@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.integtests.fixtures.SourceFile;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

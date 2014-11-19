@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getMainSource() {

@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
 
     List pluginList = ["objective-c", "objective-cpp", "c", "cpp"]

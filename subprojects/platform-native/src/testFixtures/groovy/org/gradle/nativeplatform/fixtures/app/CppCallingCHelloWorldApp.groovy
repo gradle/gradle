@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app;
+package org.gradle.nativeplatform.fixtures.app
+
+import org.gradle.integtests.fixtures.SourceFile;
 
 public class CppCallingCHelloWorldApp extends HelloWorldApp {
     @Override

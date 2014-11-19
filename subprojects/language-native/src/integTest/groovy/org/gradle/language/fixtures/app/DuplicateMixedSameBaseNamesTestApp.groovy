@@ -16,9 +16,9 @@
 
 package org.gradle.language.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.SourceFile
 import org.gradle.nativeplatform.fixtures.app.TestComponent;
 
 

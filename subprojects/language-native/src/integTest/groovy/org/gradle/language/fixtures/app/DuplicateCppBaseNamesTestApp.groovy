@@ -16,7 +16,7 @@
 
 package org.gradle.language.fixtures.app
 
-import org.gradle.nativeplatform.fixtures.app.SourceFile
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.app.TestComponent
 
 class DuplicateCppBaseNamesTestApp extends TestComponent {

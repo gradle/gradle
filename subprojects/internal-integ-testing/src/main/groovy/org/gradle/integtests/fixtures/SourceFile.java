@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app;
+package org.gradle.integtests.fixtures;
 
 import com.google.common.base.Joiner;
 import org.gradle.test.fixtures.file.TestFile;
