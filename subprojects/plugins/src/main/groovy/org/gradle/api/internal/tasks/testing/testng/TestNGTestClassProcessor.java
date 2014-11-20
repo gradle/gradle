@@ -70,6 +70,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
         try {
+            JavaReflectionUtil.method(TestNG.class, Object.class, "setConfigFailurePolicy", String.class).invoke(testNg, options.getConfigFailurePolicy());
+        } catch (NoSuchMethodException e) {
+            /* do nothing; method was created in TestNG 6.3 */
+        }
+        try {
             JavaReflectionUtil.method(TestNG.class, Object.class, "setAnnotations").invoke(testNg, options.getAnnotations());
         } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */

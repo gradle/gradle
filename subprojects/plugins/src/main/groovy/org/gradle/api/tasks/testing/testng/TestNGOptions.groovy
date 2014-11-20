@@ -66,6 +66,12 @@ class TestNGOptions extends TestFrameworkOptions {
     Set<String> excludeGroups = new HashSet<String>()
 
     /**
+     * Option for what to do for other tests that use a configuration step when that step fails.
+     * Can be "skip" or "continue", defaults to "skip".
+     */
+    String configFailurePolicy = "skip"
+
+    /**
      * Fully qualified classes that are TestNG listeners (instances of org.testng.ITestListener or
      * org.testng.IReporter). By default, the listeners set is empty.
      *
@@ -223,6 +229,11 @@ class TestNGOptions extends TestFrameworkOptions {
 
     TestNGOptions includeGroups(String... includeGroups) {
         this.includeGroups.addAll(Arrays.asList(includeGroups))
+        this
+    }
+
+    TestNGOptions configFailurePolicy(String configFailurePolicy) {
+        this.configFailurePolicy = configFailurePolicy
         this
     }
 
