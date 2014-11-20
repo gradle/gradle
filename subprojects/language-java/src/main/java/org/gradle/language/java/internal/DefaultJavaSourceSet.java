@@ -16,16 +16,14 @@
 package org.gradle.language.java.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
+import org.gradle.language.jvm.internal.EmptyClasspath;
 
 import javax.inject.Inject;
 import java.util.HashSet;
@@ -60,14 +58,4 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
         };
     }
 
-    // Temporary Classpath implementation for new jvm component model
-    private static class EmptyClasspath implements Classpath {
-        public FileCollection getFiles() {
-            return new SimpleFileCollection();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return new DefaultTaskDependency();
-        }
-    }
 }

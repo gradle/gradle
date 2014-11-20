@@ -1,0 +1,14 @@
+dependencies {
+    compile libraries.groovy
+    compile project(":core")
+    compile project(":platformJvm")
+    compile project(":languageJvm")
+    compile project(":scala")
+}
+
+// These public packages have classes that are tangled with the corresponding internal package.
+useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**", ])
+
+strictCompile()
+useTestFixtures()
+useTestFixtures(project: ":platformBase")
