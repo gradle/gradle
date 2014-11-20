@@ -25,6 +25,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.coffeescript.CoffeeScriptCompileSpec;
+import org.gradle.play.internal.coffeescript.CoffeeScriptCompiler;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.RoutesCompiler;
@@ -73,6 +75,10 @@ class DefaultPlayToolProvider implements PlayToolProvider {
             DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()));
             @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
             return routesSpecCompiler;
+        } else if (spec instanceof CoffeeScriptCompileSpec) {
+            // TODO This should probably be a DaemonCompiler but DaemonPlayCompiler requires a VersionedPlayCompileSpec
+            @SuppressWarnings("unchecked") Compiler<T> coffeeScriptCompiler = (Compiler<T>) new CoffeeScriptCompiler();
+            return coffeeScriptCompiler;
         }
 
         return null;
