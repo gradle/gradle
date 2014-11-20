@@ -16,37 +16,20 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.internal.SystemProperties
-import org.gradle.play.integtest.fixtures.TwirlCoverage
+import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 
-@TargetCoverage({TwirlCoverage.DEFAULT})
-class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
-
+class TwirlCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
 
     def setup(){
         buildFile << """
-        plugins {
-           id 'play-application'
-        }
-
-        repositories{
-            jcenter()
-            maven{
-                name = "typesafe-maven-release"
-                url = "http://repo.typesafe.com/typesafe/maven-releases"
+        model {
+            tasks {
+                create("twirlCompile", TwirlCompile){ task ->
+                    task.outputDirectory = file('build/twirl')
+                    task.sourceDirectory = file('./app')
+                    task.platform = platforms["PlayPlatform${version}"]
+                }
             }
-        }
-
-        /**
-          * @TODO it should be simpler to select a platform explicitly
-          */
-        task twirlCompile(type:TwirlCompile){
-            platform = new ${org.gradle.play.internal.platform.DefaultPlayPlatform.class.name}('${version.platform.playVersion}', '${version.platform.scalaVersion}', '${version.platform.twirlVersion}', JavaVersion.current())
-
-            outputDirectory = file('build/twirl')
-            sourceDirectory = file('./app')
         }
 """
     }
@@ -123,7 +106,12 @@ class TwirlCompileIntegrationTest extends MultiVersionIntegrationSpec {
 }
 
 """
-        buildFile << "twirlCompile.source '${templateFile.toURI()}'${SystemProperties.lineSeparator}"
+        buildFile << """
+            model{
+                tasks.twirlCompile{
+                    source '${templateFile.toURI()}'
+                }
+            }"""
 
     }
 }
