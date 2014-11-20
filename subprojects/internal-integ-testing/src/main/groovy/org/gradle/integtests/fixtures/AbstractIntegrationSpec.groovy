@@ -75,6 +75,10 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         testDirectory.file('settings.gradle')
     }
 
+    protected TestNameTestDirectoryProvider getTestDirectoryProvider() {
+        temporaryFolder
+    }
+
     TestFile getTestDirectory() {
         temporaryFolder.testDirectory
     }
