@@ -109,7 +109,17 @@ task createBuildReceipt(dependsOn: determineCommitId) {
         try {
             hostName = InetAddress.localHost.hostName
         } catch (UnknownHostException e) {
-            hostName = "unknown"
+            def baos = new ByteArrayOutputStream()
+            def execResult = exec {
+                ignoreExitValue = true
+                commandLine = ["hostname"]
+                standardOutput = baos
+            }
+            if (execResult.exitValue == 0) {
+                hostName = new String(baos.toByteArray(), "utf8").trim()
+            } else {
+                hostName = "unknown"
+            }
         }
         def data = [
                 commitId: determineCommitId.commitId,
