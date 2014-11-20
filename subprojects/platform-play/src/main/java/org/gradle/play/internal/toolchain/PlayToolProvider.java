@@ -24,4 +24,9 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 
 public interface PlayToolProvider extends ToolProvider{
     public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec);
+
+    /**
+     * this should probably live somewhere else
+     * */
+    Object getPlayDependencyNotation();
 }

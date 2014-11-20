@@ -18,7 +18,6 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.play.platform.PlayPlatform;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -35,13 +34,8 @@ import java.util.HashMap;
 import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec implements VersionedPlayRunSpec {
-    private final String scalaVersion;
-    private final String playVersion;
-
-    public DefaultVersionedPlayRunSpec(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort, PlayPlatform playPlatform) {
+    public DefaultVersionedPlayRunSpec(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
         super(classpath, projectPath, forkOptions, httpPort);
-        this.scalaVersion = playPlatform.getScalaVersion();
-        this.playVersion = playPlatform.getPlayVersion();
     }
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
@@ -87,9 +81,7 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
         return ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
     }
 
-    public Object getDocsDependencyNotation() {
-        return String.format("com.typesafe.play:play-docs_%s:%s", scalaVersion, playVersion);
-    }
+
 
     public Iterable<String> getSharedPackages() {
         return Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");

@@ -34,12 +34,12 @@ public class PlayExecuter {
         return new JarFile(docJarFile);
     }
 
-    public void run(VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
+    public void run(VersionedPlayRunSpec spec) {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             ClassLoader docsClassLoader = getClass().getClassLoader();
 
-            Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, getDocJar(docsClasspath));
+            Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, getDocJar(spec.getClasspath()));
             ScalaMethod runMethod = spec.getNettyServerDevHttpMethod(classLoader, docsClassLoader);
             Object buildLink = spec.getBuildLink(classLoader);
             runMethod.invoke(buildLink, buildDocHandler, spec.getHttpPort());

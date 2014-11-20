@@ -235,8 +235,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
             DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
-            PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
-            final Dependency playDependency = dependencyHandler.create(playToolChain.getPlayDependencyNotationForPlatform(binary.getTargetPlatform()));
+            PlayToolChainInternal playToolChain = serviceRegistry.get(PlayToolChainInternal.class);
+            final Dependency playDependency = dependencyHandler.create(playToolChain.select(binary.getTargetPlatform()).getPlayDependencyNotation());
             final Configuration appCompileClasspath = configurationContainer.detachedConfiguration(playDependency);
 
             Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaBasePlugin.DEFAULT_ZINC_VERSION));
@@ -297,9 +297,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
             final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
-
-            //TODO inject ToolChain into PlayRun task
-            final PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
@@ -307,12 +304,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
                         playRun.setTargetPlatform(binary.getTargetPlatform());
                         Project project = playRun.getProject();
-
-                        Dependency playDependency = dependencyHandler.create(playToolChain.getPlayDependencyNotationForPlatform(binary.getTargetPlatform()));
-                        final Configuration playCompileConfiguration = configurationContainer.detachedConfiguration(playDependency);
-                        FileCollection playApplicationClasspath = playCompileConfiguration.plus(fileResolver.resolveFiles(binary.getJarFile()));
-
-                        playRun.setClasspath(playApplicationClasspath);
+                        playRun.setApplicationJar(binary.getJarFile());
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });

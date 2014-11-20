@@ -17,13 +17,12 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 
 public class PlayRunSpecV22X extends DefaultVersionedPlayRunSpec {
-    public PlayRunSpecV22X(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort, PlayPlatform playPlatform) {
-        super(classpath, projectPath, forkOptions, httpPort, playPlatform);
+    public PlayRunSpecV22X(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
+        super(classpath, projectPath, forkOptions, httpPort);
     }
 
     @Override

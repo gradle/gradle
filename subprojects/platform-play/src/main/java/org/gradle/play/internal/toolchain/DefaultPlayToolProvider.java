@@ -16,6 +16,8 @@
 
 package org.gradle.play.internal.toolchain;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -31,21 +33,22 @@ import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.RoutesCompiler;
 import org.gradle.play.internal.routes.VersionedRoutesCompileSpec;
-import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.run.PlayRunSpecFactory;
-import org.gradle.play.internal.run.VersionedPlayRunSpec;
+import org.gradle.play.internal.run.*;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpecFactory;
 import org.gradle.play.internal.twirl.TwirlCompiler;
 import org.gradle.play.internal.twirl.VersionedTwirlCompileSpec;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
     private final FileResolver fileResolver;
@@ -66,13 +69,13 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         if (spec instanceof TwirlCompileSpec) {
             TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec)spec;
             VersionedTwirlCompileSpec versionedSpec = TwirlCompileSpecFactory.create(twirlCompileSpec, targetPlatform);
-            DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()));
+            DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()).getFiles());
             @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) new MappingSpecCompiler<TwirlCompileSpec, VersionedTwirlCompileSpec>(compiler, WrapUtil.toMap(twirlCompileSpec, versionedSpec));
             return twirlCompileSpecCompiler;
         } else if(spec instanceof RoutesCompileSpec){
             RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec)spec;
             VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, targetPlatform);
-            DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()));
+            DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()).getFiles());
             @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
             return routesSpecCompiler;
         } else if (spec instanceof CoffeeScriptCompileSpec) {
@@ -85,16 +88,46 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec) {
-        VersionedPlayRunSpec versionedSpec = PlayRunSpecFactory.create(spec, targetPlatform);
-        Iterable<File> docsClasspath = resolveClasspath(versionedSpec.getDocsDependencyNotation());
-        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec, docsClasspath); //We pass docsClasspath here, but it could have been part of the VersionedPlayRunSpec, but we want to contain the resolution of dependencies in this file
+        PlayRunVersion version = PlayRunVersion.parse(targetPlatform.getPlayVersion());
+
+        List<File> playRunClasspath = new ArrayList<File>();
+        Set<File> applicationFiles = fileResolver.resolveFiles(spec.getClasspath()).getFiles();
+        Configuration playDependencyFiles = resolveClasspath(getPlayDependencyNotation(), getDocsDependencyNotation());
+        playRunClasspath.addAll(applicationFiles);
+        playRunClasspath.addAll(playDependencyFiles.getFiles());
+
+        VersionedPlayRunSpec versionedSpec = create(version, spec, playRunClasspath);
+        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec);
     }
 
+    public Object getPlayDependencyNotation() {
+        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion());
+    }
 
+    public Object getDocsDependencyNotation() {
+        return String.format("com.typesafe.play:play-docs_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion());
+    }
 
-    private Iterable<File> resolveClasspath(Object dependencyNotation) {
-        Dependency compilerDependency = dependencyHandler.create(dependencyNotation);
-        return configurationContainer.detachedConfiguration(compilerDependency).getFiles();
+    public VersionedPlayRunSpec create(PlayRunVersion version, PlayRunSpec spec, Iterable<File> classpath) {
+        switch (version){
+            case V_22X:
+                return new PlayRunSpecV22X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
+            case V_23X:
+                return new PlayRunSpecV23X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
+            default:
+                throw new RuntimeException("Could not create play run spec for version: " + version);
+        }
+    }
+
+    private Configuration resolveClasspath(Object... dependencyNotations) {
+        List<Dependency> dependencies = CollectionUtils.collect(dependencyNotations, new Transformer<Dependency, Object>() {
+            public Dependency transform(Object dependencyNotation) {
+                return dependencyHandler.create(dependencyNotation);
+            }
+        });
+        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
+        Configuration detachedConfiguration = configurationContainer.detachedConfiguration(dependenciesArray);
+        return detachedConfiguration;
     }
 
     public boolean isAvailable() {
@@ -102,7 +135,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public void explain(TreeVisitor<? super String> visitor) {
-
     }
 
     private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T>  {

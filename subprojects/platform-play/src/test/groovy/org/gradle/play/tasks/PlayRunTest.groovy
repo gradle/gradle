@@ -15,7 +15,7 @@
  */
 
 package org.gradle.play.tasks
-import org.gradle.api.file.FileCollection
+
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
@@ -37,7 +37,7 @@ class PlayRunTest extends Specification {
 
     def setup(){
         playRun = TestUtil.createTask(PlayRun, [__toolChain__: toolChain])
-        playRun.classpath = Mock(FileCollection)
+        playRun.applicationJar = new File("application.jar")
 
         _ * playPlatform.playVersion >> "2.2.3"
         _ * playPlatform.scalaVersion >> "2.10"

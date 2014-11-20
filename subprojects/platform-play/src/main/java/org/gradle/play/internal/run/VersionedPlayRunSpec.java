@@ -29,7 +29,5 @@ public interface VersionedPlayRunSpec extends PlayRunSpec {
 
     ScalaMethod getNettyServerDevHttpMethod(ClassLoader classLoader, ClassLoader docsClassLoader) throws ClassNotFoundException;
 
-    Object getDocsDependencyNotation();
-
     Iterable<String> getSharedPackages();
 }

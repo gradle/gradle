@@ -23,24 +23,20 @@ import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PlayApplicationRunner {
     private final File workingDir;
     private final Factory<WorkerProcessBuilder> workerFactory;
     private final VersionedPlayRunSpec spec;
-    private final Iterable<File>  docsClasspath;
 
-    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec, Iterable<File> docsClasspath) {
+    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec) {
         this.workingDir = workingDir;
         this.workerFactory = workerFactory;
         this.spec = spec;
-        this.docsClasspath = docsClasspath;
     }
 
     public PlayApplicationRunnerToken start() {
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, docsClasspath, spec);
+        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, spec);
         process.start();
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();
@@ -54,24 +50,16 @@ public class PlayApplicationRunner {
         }
     }
 
-    private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, Iterable<File> docsClasspath, VersionedPlayRunSpec spec) {
+    private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
-        //TODO freekh: we should try to avoid this, but we have to use the same classloader for docs also see PlayExecuter
-        List<File> combinedClasspath = new ArrayList<File>();
-        for (File file: docsClasspath) {
-            combinedClasspath.add(file);
-        }
-        for (File file: spec.getClasspath()) {
-            combinedClasspath.add(file);
-        }
-        builder.applicationClasspath(combinedClasspath);
+        builder.applicationClasspath(spec.getClasspath());
         builder.sharedPackages(spec.getSharedPackages());
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
-        WorkerProcess process = builder.worker(new PlayWorkerServer(spec, docsClasspath)).build();
+        WorkerProcess process = builder.worker(new PlayWorkerServer(spec)).build();
         return process;
     }
 }

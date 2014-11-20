@@ -19,7 +19,6 @@ package org.gradle.play.toolchain;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.ToolChain;
-import org.gradle.play.platform.PlayPlatform;
 
 /**
  * A set of tools for building applications
@@ -28,5 +27,4 @@ import org.gradle.play.platform.PlayPlatform;
 @Incubating
 @HasInternalProtocol
 public interface PlayToolChain extends ToolChain{
-    String getPlayDependencyNotationForPlatform(PlayPlatform playPlatform);
 }

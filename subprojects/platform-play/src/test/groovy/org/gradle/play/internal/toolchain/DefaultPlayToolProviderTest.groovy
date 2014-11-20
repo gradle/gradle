@@ -19,7 +19,9 @@ package org.gradle.play.internal.toolchain
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.internal.Factory
@@ -48,9 +50,14 @@ class DefaultPlayToolProviderTest extends Specification {
     @Unroll
     def "provides playRunner for play #playVersion"(){
         setup:
+        FileCollection applicationFiles = Mock()
+        1 * applicationFiles.getFiles() >> []
+        1 * fileResolver.resolveFiles(_) >> applicationFiles
+        _ * dependencyHandler.create(_)  >> Mock(Dependency);
+
         Configuration runConfiguration = Mock()
 
-        2 * playPlatform.getPlayVersion() >> playVersion
+        _ * playPlatform.getPlayVersion() >> playVersion
 
         when:
         def runner = playToolProvider.newApplicationRunner(workerProcessBuilderFactory, playRunSpec)
@@ -58,6 +65,7 @@ class DefaultPlayToolProviderTest extends Specification {
         then:
         runner != null
         1 * configurationContainer.detachedConfiguration(_) >> runConfiguration
+        1 * runConfiguration.getFiles() >> []
 
         where:
         playVersion << ["2.2.x", "2.3.x"]
@@ -70,9 +78,13 @@ class DefaultPlayToolProviderTest extends Specification {
         when:
         playToolProvider.newApplicationRunner(workerProcessBuilderFactory, playRunSpec)
 
-        then:
+        then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
         exception.message == "Could not find a compatible Play version for the Run service. This plugin is compatible with: 2.3.x, 2.2.x"
+
+        and: "no dependencies resolved"
+        0 * dependencyHandler.create(_)
+        0 * configurationContainer.detachedConfiguration(_)
 
         where:
         playVersion << ["2.1.x", "2.4.x", "3.0.0"]

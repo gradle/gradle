@@ -47,9 +47,5 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, targetPlatform);
     }
 
-    public String getPlayDependencyNotationForPlatform(PlayPlatform playPlatform) {
-        String playDependencyNotation = String.format("com.typesafe.play:play_%s:%s", playPlatform.getScalaVersion(), playPlatform.getPlayVersion());
-        return playDependencyNotation;
-    }
 
 }

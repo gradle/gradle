@@ -17,8 +17,8 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.Factory;
@@ -29,25 +29,28 @@ import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import javax.inject.Inject;
+import java.io.File;
 
 /**
  * A Task to run a play application.
  */
 public class PlayRun extends ConventionTask {
-
-    private FileCollection classpath;
-
     private int httpPort;
+
+    private PlayPlatform targetPlatform;
+
+    @InputFile
+    private File applicationJar;
 
     private BaseForkOptions forkOptions;
 
     private PlayApplicationRunnerToken runnerToken;
-    private PlayPlatform targetPlatform;
 
 
     /**
@@ -68,8 +71,9 @@ public class PlayRun extends ConventionTask {
 
         int httpPort = getHttpPort();
 
-        PlayRunSpec spec = new DefaultPlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), getForkOptions(), httpPort);
-        PlayApplicationRunner manager = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform()).newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
+        PlayRunSpec spec = new DefaultPlayRunSpec(getProject().files(applicationJar), getProject().getProjectDir(), getForkOptions(), httpPort);
+        PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
+        PlayApplicationRunner manager = toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
 
         try {
             runnerToken = manager.start();
@@ -86,14 +90,6 @@ public class PlayRun extends ConventionTask {
     @Inject
     public Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
-    }
-
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
-
-    public FileCollection getClasspath() {
-        return classpath;
     }
 
     public int getHttpPort() {
@@ -117,5 +113,9 @@ public class PlayRun extends ConventionTask {
 
     public PlayPlatform getTargetPlatform() {
         return targetPlatform;
+    }
+
+    public void setApplicationJar(File applicationJar) {
+        this.applicationJar = applicationJar;
     }
 }
