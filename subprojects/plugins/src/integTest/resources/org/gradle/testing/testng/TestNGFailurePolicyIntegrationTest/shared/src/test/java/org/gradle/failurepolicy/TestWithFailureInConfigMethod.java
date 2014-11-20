@@ -19,7 +19,7 @@ package org.gradle.failurepolicy;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-public class TestWithFailureInAMethod {
+public class TestWithFailureInConfigMethod {
 
     @BeforeTest
     public void fail() {
