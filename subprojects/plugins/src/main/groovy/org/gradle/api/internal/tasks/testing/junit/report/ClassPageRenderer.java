@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.html.SimpleHtmlWriter;
+import java.io.IOException;
+
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestOutputEvent.Destination;
+import org.gradle.internal.ErroringAction;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.GUtil;
-
-import java.io.IOException;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
@@ -56,10 +57,23 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
 
         for (TestResult test : getResults().getTestResults()) {
             htmlWriter.startElement("tr")
-                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getName()).endElement()
+                .startElement("td").attribute("class", test.getStatusClass()).attribute("id", "r" + test.getId()).characters(test.getName()).endElement()
                 .startElement("td").characters(test.getFormattedDuration()).endElement()
                 .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
             .endElement();
+        }
+        htmlWriter.endElement();
+    }
+    
+    private void renderTestsOutput(long classId, SimpleHtmlWriter htmlWriter) throws IOException {
+        final StdErrOutputEnricher enricher = new StdErrOutputEnricher(htmlWriter.getSubWriter(null));
+        htmlWriter.startElement("span").attribute("class", "code");
+        for (TestResult test : getResults().getTestResults()) {
+            htmlWriter.startElement("br").endElement();
+            htmlWriter.startElement("h3").attribute("id", "h" + test.getId()).characters(test.getName()).endElement();
+            htmlWriter.startElement("pre").attribute("id", "p" + test.getId()).characters("");
+            resultsProvider.writeTestOutput(classId, test.getId(), enricher, htmlWriter);
+            htmlWriter.endElement();
         }
         htmlWriter.endElement();
     }
@@ -68,7 +82,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     protected void renderFailures(SimpleHtmlWriter htmlWriter) throws IOException {
         for (TestResult test : getResults().getFailures()) {
             htmlWriter.startElement("div").attribute("class", "test")
-                .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
+                .startElement("a").attribute("name", test.getName()).characters("").endElement() //browsers dont understand <a name="..."/>
                 .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getName()).endElement();
             for (TestFailure failure : test.getFailures()) {
                 String message;
@@ -92,31 +106,53 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             }
         });
         final long classId = getModel().getId();
-        if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdOut)) {
-            addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
+        if (resultsProvider.hasOutput(classId)) {
+            addTab("Output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
-                    htmlWriter.startElement("span").attribute("class", "code")
-                        .startElement("pre")
-                        .characters("");
-                    resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
-                        htmlWriter.endElement()
-                    .endElement();
+                    renderTestsOutput(classId, htmlWriter);
+                }
+            });
+            addTab("Class Output", new ErroringAction<SimpleHtmlWriter>() {
+                @Override
+                protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
+                    htmlWriter.startElement("span").attribute("class", "code").startElement("pre").characters("");
+                    resultsProvider.writeNonTestOutput(classId, new StdErrOutputEnricher(htmlWriter.getSubWriter(null)), htmlWriter);
+                    htmlWriter.endElement().endElement();
                 }
             });
         }
-        if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdErr)) {
-            addTab("Standard error", new ErroringAction<SimpleHtmlWriter>() {
-                @Override
-                protected void doExecute(SimpleHtmlWriter element) throws Exception {
-                    element.startElement("span").attribute("class", "code")
-                    .startElement("pre")
-                        .characters("");
-                    resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
-                    element.endElement()
-                    .endElement();
+    }
+    
+    
+    private static class StdErrOutputEnricher implements TestResultsProvider.WriterOutputEnricher {
+        private final SimpleHtmlWriter writer;
+        
+        private TestOutputEvent.Destination prevDestination;
+        public StdErrOutputEnricher(SimpleHtmlWriter writer) {
+            this.writer = writer;
+        }
+
+        public void enrichPre(long testId, TestOutputEvent.Destination destination) throws IOException {
+            if (prevDestination != destination) {
+                if (destination == Destination.StdErr) {
+                    writer.startElement("span").attribute("class", "stderr").characters("");
+                } else if (prevDestination != null) {
+                    writer.endElement();
                 }
-            });
+            }
+            prevDestination = destination;
+        }
+
+        public void enrichPost(long testId, TestOutputEvent.Destination destination) throws IOException {
+            // do nothing
+        }
+        
+        public void complete() throws IOException {
+            if (prevDestination == Destination.StdErr) {
+                writer.endElement();
+            }
+            prevDestination = null;
         }
     }
 }

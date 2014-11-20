@@ -34,17 +34,33 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
     public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
         return outputReader.hasOutput(id, destination);
     }
+    
+    public boolean hasOutput(long id) {
+        return outputReader.hasOutput(id);
+    }
 
     public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeAllOutput(id, destination, writer);
+    }
+    
+    public void writeAllOutput(long id, WriterOutputEnricher enricher, Writer writer) {
+        outputReader.writeAllOutput(id, enricher, writer);
     }
 
     public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeNonTestOutput(id, destination, writer);
     }
+    
+    public void writeNonTestOutput(long id, WriterOutputEnricher enricher, Writer writer) {
+        outputReader.writeNonTestOutput(id, enricher, writer);
+    }
 
     public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeTestOutput(classId, testId, destination, writer);
+    }
+    
+    public void writeTestOutput(long classId, long testId, WriterOutputEnricher enricher, Writer writer) {
+        outputReader.writeTestOutput(classId, testId, enricher, writer);
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {

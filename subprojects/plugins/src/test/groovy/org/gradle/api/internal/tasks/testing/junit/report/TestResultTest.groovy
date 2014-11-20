@@ -26,11 +26,11 @@ class TestResultTest extends Specification {
         ClassTestResults class3 = Mock()
         _ * class3.name >> 'z'
 
-        TestResult result = new TestResult('name', 0, class1)
-        TestResult smallerClass = new TestResult('name', 0, class2)
-        TestResult largerClass = new TestResult('name', 0, class3)
-        TestResult smallerName = new TestResult('a', 0, class1)
-        TestResult largerName = new TestResult('z', 0, class1)
+        TestResult result = new TestResult(1, 'name', 0, class1)
+        TestResult smallerClass = new TestResult(1, 'name', 0, class2)
+        TestResult largerClass = new TestResult(2, 'name', 0, class3)
+        TestResult smallerName = new TestResult(3, 'a', 0, class1)
+        TestResult largerName = new TestResult(4, 'z', 0, class1)
 
         expect:
         [result, largerName, smallerClass, largerClass, smallerName].sort() == [smallerClass, smallerName, result, largerName, largerClass]
@@ -40,8 +40,8 @@ class TestResultTest extends Specification {
         ClassTestResults class1 = Mock()
         _ * class1.name >> 'name'
 
-        TestResult result = new TestResult('name', 0, class1)
-        TestResult equalResult = new TestResult('name', 0, class1)
+        TestResult result = new TestResult(1, 'name', 0, class1)
+        TestResult equalResult = new TestResult(1, 'name', 0, class1)
 
         expect:
         def r = [result, equalResult] as SortedSet

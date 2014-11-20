@@ -72,8 +72,8 @@ public class ClassTestResults extends CompositeTestResults {
         return results;
     }
 
-    public TestResult addTest(String testName, long duration) {
-        TestResult test = new TestResult(testName, duration, this);
+    public TestResult addTest(long testId, String testName, long duration) {
+        TestResult test = new TestResult(testId, testName, duration, this);
         results.add(test);
         return addTest(test);
     }

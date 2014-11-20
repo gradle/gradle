@@ -35,6 +35,6 @@ class TestResultModelTest extends Specification {
     }
 
     def test(long duration) {
-        return new TestResult('test', duration, null)
+        return new TestResult(1, 'test', duration, null)
     }
 }

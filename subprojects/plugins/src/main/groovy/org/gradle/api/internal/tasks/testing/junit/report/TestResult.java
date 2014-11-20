@@ -24,19 +24,21 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
+    final long id;
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
     final String name;
     boolean ignored;
 
-    public TestResult(String name, long duration, ClassTestResults classResults) {
+    public TestResult(long id, String name, long duration, ClassTestResults classResults) {
+        this.id = id;
         this.name = name;
         this.duration = duration;
         this.classResults = classResults;
     }
 
-    public Object getId() {
-        return name;
+    public long getId() {
+        return id;
     }
 
     public String getName() {

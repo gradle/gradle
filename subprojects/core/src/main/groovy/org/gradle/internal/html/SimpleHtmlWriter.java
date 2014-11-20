@@ -26,16 +26,32 @@ import java.io.Writer;
  */
 public class SimpleHtmlWriter extends SimpleMarkupWriter {
 
+    private final Writer output;
+    
     public SimpleHtmlWriter(Writer writer) throws IOException {
         this(writer, null);
     }
 
     public SimpleHtmlWriter(Writer writer, String indent) throws IOException {
+        this(writer, indent, true);
+    }
+    
+    private SimpleHtmlWriter(Writer writer, String indent, boolean beginHeader) throws IOException {
         super(writer, indent);
-        writeHtmlHeader();
+        this.output = writer;
+        if (beginHeader) {
+            writeHtmlHeader();
+        }
     }
 
     private void writeHtmlHeader() throws IOException {
         writeRaw("<!DOCTYPE html>");
+    }
+    
+    /**
+     * Return writer based on same output stream but with custom indentation
+     */
+    public SimpleHtmlWriter getSubWriter(String indent) throws IOException {
+        return new SimpleHtmlWriter(this.output, indent, false);
     }
 }
