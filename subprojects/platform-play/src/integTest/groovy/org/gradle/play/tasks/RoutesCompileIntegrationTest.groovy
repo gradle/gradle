@@ -31,7 +31,7 @@ class RoutesCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
         model {
             tasks {
                 create("routesCompile", RoutesCompile){ task ->
-                    task.outputDirectory = file($destinationDirPath)
+                    task.outputDirectory = file('$destinationDirPath')
                     task.platform = platforms["PlayPlatform${version}"]
                 }
             }
