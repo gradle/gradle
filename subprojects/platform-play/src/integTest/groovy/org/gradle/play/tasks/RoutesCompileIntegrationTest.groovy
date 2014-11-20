@@ -17,31 +17,24 @@
 
 
 package org.gradle.play.tasks
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-class RoutesCompileIntegrationTest extends AbstractIntegrationSpec {
+class RoutesCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
     def destinationDirPath = "build/routes/"
     def destinationDir = file(destinationDirPath)
 
     def setup(){
 
         buildFile << """
-        plugins {
-           id 'play-application'
-        }
-
-        repositories{
-            jcenter()
-            maven{
-                name = "typesafe-maven-release"
-                url = "http://repo.typesafe.com/typesafe/maven-releases"
+        model {
+            tasks {
+                create("routesCompile", RoutesCompile){ task ->
+                    task.outputDirectory = file($destinationDirPath)
+                    task.platform = platforms["PlayPlatform${version}"]
+                }
             }
-        }
-
-        task routesCompile(type:RoutesCompile) {
-            platform = new ${org.gradle.play.internal.platform.DefaultPlayPlatform.class.name}('2.3.5', '2.10', '1.0.2', JavaVersion.current())
-            outputDirectory = file('build/routes')
         }
 """
     }
@@ -116,7 +109,11 @@ GET     /                          controllers${packageId}.Application.index()
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 """
         buildFile << """
-routesCompile.source '${routesFile.toURI()}'
+            model{
+                tasks.routesCompile{
+                    source '${routesFile.toURI()}'
+                }
+            }
 """
 
         return routesFile
