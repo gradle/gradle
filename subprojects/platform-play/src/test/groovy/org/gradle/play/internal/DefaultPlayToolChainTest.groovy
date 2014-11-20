@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.play.internal.toolchain.DefaultPlayToolChain
+import org.gradle.play.platform.PlayPlatform
 import spock.lang.Specification
 
 class DefaultPlayToolChainTest extends Specification {
@@ -28,6 +29,7 @@ class DefaultPlayToolChainTest extends Specification {
     CompilerDaemonManager compilerDaemonManager = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
+    PlayPlatform playPlatform = Mock()
 
     def "provides meaningful name"() {
         given:
@@ -42,5 +44,13 @@ class DefaultPlayToolChainTest extends Specification {
 
         expect:
         toolChain.getDisplayName() == "Default Play Toolchain"
+    }
+
+    def "can select toolprovider"() {
+        given:
+        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
+
+        expect:
+        toolChain.select(playPlatform) != null
     }
 }

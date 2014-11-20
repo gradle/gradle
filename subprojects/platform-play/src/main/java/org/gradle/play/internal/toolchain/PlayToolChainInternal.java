@@ -16,17 +16,11 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.internal.Factory;
 import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
-import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.process.internal.WorkerProcessBuilder;
-
 public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
     public PlayToolProvider select(PlayPlatform targetPlatform);
-    //TODO Rene I wonder if targetPlatform should be part of the PlayRunSpec
-    public PlayApplicationRunner createPlayApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform, PlayRunSpec spec);
+
 }

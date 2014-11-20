@@ -40,7 +40,6 @@ import javax.inject.Inject;
  */
 public class PlayRun extends ConventionTask {
 
-
     private FileCollection classpath;
 
     private int httpPort;
@@ -70,7 +69,7 @@ public class PlayRun extends ConventionTask {
         int httpPort = getHttpPort();
 
         PlayRunSpec spec = new DefaultPlayRunSpec(getClasspath().getFiles(), getProject().getProjectDir(), getForkOptions(), httpPort);
-        PlayApplicationRunner manager = ((PlayToolChainInternal) getToolChain()).createPlayApplicationRunner(getWorkerProcessBuilderFactory(), getTargetPlatform(), spec);
+        PlayApplicationRunner manager = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform()).newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
 
         try {
             runnerToken = manager.start();

@@ -16,10 +16,11 @@
 
 package org.gradle.play.tasks
 import org.gradle.api.file.FileCollection
+import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
-import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
+import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -30,6 +31,7 @@ class PlayRunTest extends Specification {
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
     PlayToolChainInternal toolChain = Mock(PlayToolChainInternal)
     PlayPlatform playPlatform = Mock(PlayPlatform)
+    PlayToolProvider toolProvider = Mock()
 
     PlayRun playRun
 
@@ -40,6 +42,7 @@ class PlayRunTest extends Specification {
         _ * playPlatform.playVersion >> "2.2.3"
         _ * playPlatform.scalaVersion >> "2.10"
 
+        1 * toolChain.select(playPlatform) >> toolProvider
         playRun.targetPlatform = playPlatform
 
         _ * playApplicationRunner.start() >> runnerToken
@@ -53,7 +56,7 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolChain.createPlayApplicationRunner(_, _, _) >> {factory, platform, PlayRunSpec spec ->
+        1 * toolProvider.newApplicationRunner(_, _) >> {factory, PlayRunSpec spec ->
             assert spec.getForkOptions().memoryInitialSize == "1G"
             assert spec.getForkOptions().memoryMaximumSize == "5G"
             playApplicationRunner
@@ -64,7 +67,7 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolChain.createPlayApplicationRunner(_, _, _) >> {factory, platform, PlayRunSpec spec ->
+        1 * toolProvider.newApplicationRunner(_, _) >> {factory, PlayRunSpec spec ->
             assert spec.getForkOptions() != null
             playApplicationRunner
         }
@@ -74,7 +77,7 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolChain.createPlayApplicationRunner(_, _, _) >> playApplicationRunner
+        1 * toolProvider.newApplicationRunner(_, _) >> playApplicationRunner
         1 * runnerToken.waitForStop()
 
     }
