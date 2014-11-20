@@ -68,7 +68,7 @@ import org.gradle.internal.HasInternalProtocol;
  *     myPublication(MavenPublication) {
  *       from components.java
  *       artifact(sourceJar) {
- *         classifier "source"
+ *         classifier "sources"
  *       }
  *       pom.withXml {
  *         asNode().appendNode('description', 'A demonstration of Maven POM customization')
@@ -147,7 +147,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   classifier "sources"
      * }
      *
      * publishing {
@@ -176,7 +176,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   classifier "sources"
      * }
      *
      * publishing {
@@ -211,7 +211,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   classifier "sources"
      * }
 
      * publishing {
