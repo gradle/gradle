@@ -26,10 +26,10 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
-    private static boolean useAnsiOutput = "true".equalsIgnoreCase(System.getProperty("org.gradle.ansi", "false"));
 
     public void execute(OutputEventRenderer renderer) {
         ConsoleMetaData consoleMetaData;
+        boolean useAnsiOutput = renderer.isUseAnsiConsole();
         if (useAnsiOutput) {
             consoleMetaData = new FallbackConsoleMetaData();
         } else {

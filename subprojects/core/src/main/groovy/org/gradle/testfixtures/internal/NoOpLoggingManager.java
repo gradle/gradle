@@ -82,7 +82,7 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
 
     }
 
-    public void attachProcessConsole(boolean colorOutput) {
+    public void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole) {
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {
