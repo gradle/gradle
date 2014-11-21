@@ -17,14 +17,14 @@
 package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.integtests.fixtures.UrlValidator
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assert
+
+import static org.gradle.integtests.fixtures.UrlValidator.*
 
 abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest{
 
@@ -90,15 +90,17 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
             }
         }"""
         when:
+        executer.withArgument("-d")
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
-        UrlValidator.available("http://localhost:$httpPort", "Play app", 120000)
+        available("http://localhost:$httpPort", "Play app", 120000)
         assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
 
         when: "stopping gradle"
         gradleHandle.abort()
         gradleHandle.waitForFailure()
+
         then: "play server is stopped too"
         notAvailable("http://localhost:$httpPort")
     }
@@ -106,13 +108,5 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     void verifyTestOutput(TestExecutionResult result) {
     }
 
-    def notAvailable(String url) {
-        try{
-            String text = new URL(url).text
-            Assert.fail("Expected url '$url' to be unavailable instead we got:\n$text")
-        }catch(ConnectException ex){
-            return true
-        }
-        return false
-    }
+
 }
