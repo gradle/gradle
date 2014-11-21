@@ -1,4 +1,4 @@
-package org.gradle.plugins.ide.eclipse.EclipseIntegrationTest.canCreateAndDeleteMetaData.common.src.test.java.org.gradle.shared;
+package org.gradle.shared;
 
 import junit.framework.TestCase;
 
