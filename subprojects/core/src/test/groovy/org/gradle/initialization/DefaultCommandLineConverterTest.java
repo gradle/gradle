@@ -55,6 +55,7 @@ public class DefaultCommandLineConverterTest {
     private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
+    private boolean expectedAnsiConsole;
     private StartParameter actualStartParameter;
     private boolean expectedProfile;
     private File expectedProjectCacheDir;
@@ -92,6 +93,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
+        assertEquals(expectedAnsiConsole, startParameter.isAnsiConsole());
         assertEquals(expectedDryRun, startParameter.isDryRun());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
@@ -304,6 +306,12 @@ public class DefaultCommandLineConverterTest {
     public void withNoColor() {
         expectedColorOutput = false;
         checkConversion("--no-color");
+    }
+
+    @Test
+    public void withAnsiConsole() {
+        expectedAnsiConsole = true;
+        checkConversion("--ansi");
     }
 
     @Test(expected = CommandLineArgumentException.class)

@@ -38,6 +38,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String NO_COLOR = "no-color";
+    public static final String ANSI_CONSOLE = "ansi";
     public static final String FULL_STACKTRACE = "S";
     public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
     public static final String STACKTRACE = "s";
@@ -70,6 +71,10 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
             loggingConfiguration.setColorOutput(false);
         }
 
+        if (commandLine.hasOption(ANSI_CONSOLE)) {
+            loggingConfiguration.setAnsiConsole(true);
+        }
+
         return loggingConfiguration;
     }
 
@@ -80,6 +85,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.allowOneOf(DEBUG, QUIET, INFO);
 
         parser.option(NO_COLOR).hasDescription("Do not use color in the console output.");
+        parser.option(ANSI_CONSOLE).hasDescription("Disable native terminal detection and enable ANSI escape encoding in the console output.");
 
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");

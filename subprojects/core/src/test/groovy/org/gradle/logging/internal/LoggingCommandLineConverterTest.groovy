@@ -60,6 +60,13 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--no-color'])
     }
 
+    def convertsAnsi() {
+        expectedConfig.ansiConsole = true
+
+        expect:
+        checkConversion(['--ansi'])
+    }
+
     def convertsShowStacktrace() {
         expectedConfig.showStacktrace = ShowStacktrace.ALWAYS
 

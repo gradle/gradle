@@ -44,6 +44,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
+    private boolean useAnsiConsole;
 
     public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
@@ -57,6 +58,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
+    public boolean isUseAnsiConsole() { return useAnsiConsole; }
+
     public OutputStream getOriginalStdOut() {
         return originalStdOut;
     }
@@ -65,9 +68,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return originalStdErr;
     }
 
-    public void attachProcessConsole(boolean colorOutput) {
+    public void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole) {
         synchronized (lock) {
             colourMap.setUseColor(colorOutput);
+            this.useAnsiConsole = useAnsiConsole;
             consoleConfigureAction.execute(this);
         }
     }

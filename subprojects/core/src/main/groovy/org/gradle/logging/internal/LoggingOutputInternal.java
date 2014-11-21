@@ -31,7 +31,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
      *
      * <p>Removes standard output and/or error as a side-effect.
      */
-    void attachProcessConsole(boolean colorOutput);
+    void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings

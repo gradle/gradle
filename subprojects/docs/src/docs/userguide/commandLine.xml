@@ -140,6 +140,14 @@
         </varlistentry>
         <varlistentry>
             <term>
+                <option>--ansi</option>
+            </term>
+            <listitem>
+                <para>Disable native terminal detection and enable ANSI escape encoding in the console output.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
                 <option>--offline</option>
             </term>
             <listitem>
