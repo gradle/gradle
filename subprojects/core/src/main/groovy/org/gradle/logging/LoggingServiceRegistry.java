@@ -50,7 +50,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Does nothing until started.</p>
      *
-     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(boolean)} to enable this.</p>
+     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(boolean,boolean)} to enable this.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
         return new CommandLineLogging();

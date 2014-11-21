@@ -158,8 +158,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public void removeAllOutputEventListeners() { loggingOutput.removeAllOutputEventListeners(); }
 
-    public void attachProcessConsole(boolean colorOutput) {
-        loggingOutput.attachProcessConsole(colorOutput);
+    public void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole) {
+        loggingOutput.attachProcessConsole(colorOutput, useAnsiConsole);
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {

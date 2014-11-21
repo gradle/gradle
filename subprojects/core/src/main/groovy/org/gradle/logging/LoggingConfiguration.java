@@ -23,6 +23,7 @@ public class LoggingConfiguration implements Serializable {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private boolean colorOutput = true;
+    private boolean ansiConsole;
 
     public LogLevel getLogLevel() {
         return logLevel;
@@ -50,6 +51,21 @@ public class LoggingConfiguration implements Serializable {
     public void setColorOutput(boolean colorOutput) {
         this.colorOutput = colorOutput;
     }
+
+    /**
+     * Returns true if native terminal detection should be disabled and ANSI escape encoding should be always enabled for logging output.
+     * The default value is false.
+     *
+     * @return true if logging output should be displayed in color.
+     */
+    public boolean isAnsiConsole() { return ansiConsole; }
+
+    /**
+     * Specifies whether native terminal detection should be disabled and ANSI escape encoding should be always enabled for logging output.
+     *
+     * @param ansiConsole true if terminal detection should be disabled and ANSI escape encoding output enabled for logging output.
+     */
+    public void setAnsiConsole(boolean ansiConsole) { this.ansiConsole = ansiConsole; }
 
     public ShowStacktrace getShowStacktrace() {
         return showStacktrace;
