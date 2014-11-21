@@ -50,7 +50,7 @@ class InstallTest extends Specification {
         gradleHomeDir = new TestFile(distributionDir, 'gradle-0.9')
         zipStore = new File(testDir, 'zips');
         zipDestination = new TestFile(zipStore, 'gradle-0.9.zip')
-        install = new Install(download, pathAssembler)
+        install = new Install(new Logger(true), download, pathAssembler)
     }
 
     void createTestZip(File zipDestination) {

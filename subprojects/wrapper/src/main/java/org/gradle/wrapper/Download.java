@@ -22,10 +22,12 @@ import java.net.*;
 public class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
+    private final Logger logger;
     private final String applicationName;
     private final String applicationVersion;
 
-    public Download(String applicationName, String applicationVersion) {
+    public Download(Logger logger, String applicationName, String applicationVersion) {
+        this.logger = logger;
         this.applicationName = applicationName;
         this.applicationVersion = applicationVersion;
         configureProxyAuthentication();
@@ -64,13 +66,13 @@ public class Download implements IDownload {
                 }
                 progressCounter += numRead;
                 if (progressCounter / PROGRESS_CHUNK > 0) {
-                    System.out.print(".");
+                    logger.append(".");
                     progressCounter = progressCounter - PROGRESS_CHUNK;
                 }
                 out.write(buffer, 0, numRead);
             }
         } finally {
-            System.out.println("");
+            logger.log("");
             if (in != null) {
                 in.close();
             }

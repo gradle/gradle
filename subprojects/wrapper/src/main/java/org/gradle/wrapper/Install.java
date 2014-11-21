@@ -25,11 +25,13 @@ import java.util.zip.ZipFile;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
+    private final Logger logger;
     private final IDownload download;
     private final PathAssembler pathAssembler;
     private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(120000, 200);
 
-    public Install(IDownload download, PathAssembler pathAssembler) {
+    public Install(Logger logger, IDownload download, PathAssembler pathAssembler) {
+        this.logger = logger;
         this.download = download;
         this.pathAssembler = pathAssembler;
     }
@@ -53,17 +55,17 @@ public class Install {
                 if (needsDownload) {
                     File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
                     tmpZipFile.delete();
-                    System.out.println("Downloading " + distributionUrl);
+                    logger.log("Downloading " + distributionUrl);
                     download.download(distributionUrl, tmpZipFile);
                     tmpZipFile.renameTo(localZipFile);
                 }
 
                 List<File> topLevelDirs = listDirs(distDir);
                 for (File dir : topLevelDirs) {
-                    System.out.println("Deleting directory " + dir.getAbsolutePath());
+                    logger.log("Deleting directory " + dir.getAbsolutePath());
                     deleteDir(dir);
                 }
-                System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
+                logger.log("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
                 unzip(localZipFile, distDir);
 
                 File root = getDistributionRoot(distDir, distributionUrl.toString());
@@ -108,7 +110,7 @@ public class Install {
             ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
             Process p = pb.start();
             if (p.waitFor() == 0) {
-                System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
+                logger.log("Set executable permissions for: " + gradleCommand.getAbsolutePath());
             } else {
                 BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 Formatter stdout = new Formatter();
@@ -124,8 +126,8 @@ public class Install {
             errorMessage = e.getMessage();
         }
         if (errorMessage != null) {
-            System.out.println("Could not set executable permissions for: " + gradleCommand.getAbsolutePath());
-            System.out.println("Please do this manually if you want to use the Gradle UI.");
+            logger.log("Could not set executable permissions for: " + gradleCommand.getAbsolutePath());
+            logger.log("Please do this manually if you want to use the Gradle UI.");
         }
     }
 

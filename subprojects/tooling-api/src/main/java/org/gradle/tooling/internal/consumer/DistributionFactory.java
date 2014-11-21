@@ -128,7 +128,7 @@ public class DistributionFactory {
                         File installDir;
                         try {
                             File realUserHomeDir = userHomeDir != null ? userHomeDir : GradleUserHomeLookup.gradleUserHome();
-                            Install install = new Install(new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(realUserHomeDir));
+                            Install install = new Install(new Logger(false), new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(realUserHomeDir));
                             installDir = install.createDist(wrapperConfiguration);
                         } catch (FileNotFoundException e) {
                             throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
@@ -184,7 +184,7 @@ public class DistributionFactory {
             progressLogger.setDescription(String.format("Download %s", address));
             progressLogger.started();
             try {
-                new Download("Gradle Tooling API", GradleVersion.current().getVersion()).download(address, destination);
+                new Download(new Logger(false), "Gradle Tooling API", GradleVersion.current().getVersion()).download(address, destination);
             } finally {
                 progressLogger.completed();
             }
