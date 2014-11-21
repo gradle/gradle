@@ -188,7 +188,8 @@ We would like to thank the following community members for making contributions 
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - improvements to static task references available for each native binary type
 * [Spencer Wood](https://github.com/malibuworkcrew) - support `configfailurepolicy` option for TestNG
 * [Adam Dubiel](https://github.com/adamdubiel) - wrapper respects -q/--quiet option
-* [Harald Schmitt](https://github.com/surfing) - format numbers in tests in a locale independent way 
+* [Harald Schmitt](https://github.com/surfing) - format numbers in tests in a locale independent way
+* [Wojciech Gawroński](https://github.com/afronski) - add a toggle for wrapping long lines of 'code' blocks in test reports
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
