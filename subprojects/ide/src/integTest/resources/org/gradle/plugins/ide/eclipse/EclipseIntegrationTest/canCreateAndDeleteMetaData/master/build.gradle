@@ -20,7 +20,7 @@ buildscript {
 defaultTasks 'eclipse', 'cleanEclipse'
 
 allprojects {
-    apply plugin: 'eclipse-wtp'
+    apply plugin: 'eclipse'
 
     group = 'org.gradle'
 
@@ -36,6 +36,10 @@ subprojects {
 
     group = 'org.gradle'
     version = '1.0'
+}
+
+configure(subprojects.findAll{ it.path in [ ':api', ':common', ':webAppJava6', ':webAppWithVars', ':webservice' ] }){
+    apply plugin: 'eclipse-wtp'
 }
 
 allprojects {

@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.internal.reflect.Instantiator
@@ -59,15 +58,36 @@ class EclipseWtpPlugin extends IdePlugin {
         delegatePlugin.getLifecycleTask().dependsOn(getLifecycleTask())
         delegatePlugin.getCleanTask().dependsOn(getCleanTask())
 
-        configureEclipseProjectForPlugin(project, WarPlugin)
-        configureEclipseProjectForPlugin(project, EarPlugin)
+        configureEclipseProject(project)
         configureEclipseWtpComponent(project)
         configureEclipseWtpFacet(project)
 
-        configureEclipseClasspathForWarPlugin(project)
+        // do this after wtp is configured because wtp config is required to update classpath properly
+        configureEclipseClasspath(project)
     }
 
-    private void configureEclipseClasspathForWarPlugin(Project project) {
+    private void configureEclipseClasspath(Project project) {
+        project.plugins.withType(JavaPlugin) {
+            project.eclipse.classpath.file.whenMerged { Classpath classpath ->
+                if (hasWarOrEarPlugin(project)) { return }
+
+                def minusFiles = project.eclipse.wtp.component.minusConfigurations*.files?.flatten() ?: project.files()
+                def libFiles = project.eclipse.wtp.component.libConfigurations*.files?.flatten() ?: project.files()
+                for (entry in classpath.entries) {
+                    if (entry instanceof AbstractLibrary && !minusFiles.contains(project.file(entry.path)) && libFiles.contains(project.file(entry.path))) {
+                        // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
+                        //this is necessary so that the depended upon projects will have their dependencies
+                        // deployed to WEB-INF/lib of the main project.
+                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = '../'
+                    }
+                }
+            }
+            project.eclipse.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
+                if (project.plugins.hasPlugin(WarPlugin) || project.plugins.hasPlugin(EarPlugin)) { return }
+                wtpComponent.wbModuleEntries.removeAll(wtpComponent.wbModuleEntries.findAll { it instanceof WbDependentModule })
+            }
+        }
+
         project.plugins.withType(WarPlugin) {
             project.eclipse.classpath.containers WEB_LIBS_CONTAINER
 
@@ -81,137 +101,79 @@ class EclipseWtpPlugin extends IdePlugin {
                     }
                 }
             }
-
-            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                otherProject.eclipse.classpath.file.whenMerged { Classpath classpath ->
-                    def minusFiles = otherProject.eclipse.wtp.component.minusConfigurations*.files?.flatten() ?: project.files()
-                    def libFiles = otherProject.eclipse.wtp.component.libConfigurations*.files?.flatten() ?: project.files()
-                    for (entry in classpath.entries) {
-                        if (entry instanceof AbstractLibrary && !minusFiles.contains(project.file(entry.path)) && libFiles.contains(project.file(entry.path))) {
-                            // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
-                            //this is necessary so that the depended upon projects will have their dependencies
-                            // deployed to WEB-INF/lib of the main project.
-                            entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = '../'
-                        }
-                    }
-                }
-                otherProject.eclipse.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
-                    wtpComponent.wbModuleEntries.removeAll(wtpComponent.wbModuleEntries.findAll { it instanceof WbDependentModule })
-                }
-            }
         }
     }
 
     private void configureEclipseWtpComponent(Project project) {
-        configureEclipseWtpComponentWithType(project, WarPlugin)
-        configureEclipseWtpComponentWithType(project, EarPlugin)
-    }
+        maybeAddTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
+            //task properties:
+            description = 'Generates the Eclipse WTP component settings file.'
+            inputFile = project.file('.settings/org.eclipse.wst.common.component')
+            outputFile = project.file('.settings/org.eclipse.wst.common.component')
 
-    private void configureEclipseWtpComponentWithType(Project project, Class<?> type) {
-        project.plugins.withType(type) {
-            maybeAddTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
-                //task properties:
-                description = 'Generates the Eclipse WTP component settings file.'
-                inputFile = project.file('.settings/org.eclipse.wst.common.component')
-                outputFile = project.file('.settings/org.eclipse.wst.common.component')
+            //model properties:
+            eclipseWtpModel.component = component
 
-                //model properties:
-                eclipseWtpModel.component = component
+            component.conventionMapping.deployName = { project.eclipse.project.name }
+            project.plugins.withType(JavaPlugin) {
+                if (hasWarOrEarPlugin(project)) { return }
 
-                component.conventionMapping.deployName = { project.eclipse.project.name }
-
-                if (WarPlugin.class.isAssignableFrom(type)) {
-                    component.libConfigurations = [project.configurations.runtime]
-                    component.minusConfigurations = [project.configurations.providedRuntime]
-                    component.conventionMapping.contextPath = { project.war.baseName }
-                    component.conventionMapping.resources = { [new WbResource('/', project.convention.plugins.war.webAppDirName)] }
-                    component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
-                } else if (EarPlugin.class.isAssignableFrom(type)) {
-                    component.rootConfigurations = [project.configurations.deploy]
-                    component.libConfigurations = [project.configurations.earlib]
-                    component.minusConfigurations = []
-                    component.classesDeployPath = "/"
-                    component.libDeployPath = "/lib"
-                    component.conventionMapping.sourceDirs = { [project.file { project.appDirName }] as Set }
-                    project.plugins.withType(JavaPlugin) {
-                        component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
-                    }
-                }
+                component.libConfigurations = [project.configurations.runtime]
+                component.minusConfigurations = []
+                component.classesDeployPath = "/"
+                component.libDeployPath = "../"
+                component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
             }
-
-            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                def eclipseWtpPlugin = otherProject.plugins.getPlugin(EclipseWtpPlugin)
-                // require Java plugin because we need source set 'main'
-                // (in the absence of 'main', it probably makes no sense to write the file)
-                otherProject.plugins.withType(JavaPlugin) {
-                    maybeAddTask(otherProject, eclipseWtpPlugin, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) {
-                        //task properties:
-                        description = 'Generates the Eclipse WTP component settings file.'
-                        inputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
-                        outputFile = otherProject.file('.settings/org.eclipse.wst.common.component')
-
-                        //model properties:
-                        eclipseWtpPlugin.eclipseWtpModel.component = component
-
-                        component.conventionMapping.deployName = { otherProject.eclipse.project.name }
-                        component.conventionMapping.resources = {
-                            getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
-                        }
-                        component.libConfigurations = [otherProject.configurations.runtime]
-                        component.minusConfigurations = []
-                        component.classesDeployPath = "/"
-                        component.libDeployPath = "../"
-                    }
+            project.plugins.withType(WarPlugin) {
+                component.libConfigurations = [project.configurations.runtime]
+                component.minusConfigurations = [project.configurations.providedRuntime]
+                component.classesDeployPath = "/WEB-INF/classes"
+                component.libDeployPath = "/WEB-INF/lib"
+                component.conventionMapping.contextPath = { project.war.baseName }
+                component.conventionMapping.resources = { [new WbResource('/', project.convention.plugins.war.webAppDirName)] }
+                component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
+            }
+            project.plugins.withType(EarPlugin) {
+                component.rootConfigurations = [project.configurations.deploy]
+                component.libConfigurations = [project.configurations.earlib]
+                component.minusConfigurations = []
+                component.classesDeployPath = "/"
+                component.libDeployPath = "/lib"
+                component.conventionMapping.sourceDirs = { [project.file{ project.appDirName }] as Set }
+                project.plugins.withType(JavaPlugin){
+                    component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 }
             }
         }
     }
 
     private void configureEclipseWtpFacet(Project project) {
-        configureEclipseWtpFacetWithType(project, WarPlugin)
-        configureEclipseWtpFacetWithType(project, EarPlugin)
-    }
+        maybeAddTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
+            //task properties:
+            description = 'Generates the Eclipse WTP facet settings file.'
+            inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+            outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
 
-    private void configureEclipseWtpFacetWithType(Project project, Class<?> type) {
-        project.plugins.withType(type) {
-            maybeAddTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
-                //task properties:
-                description = 'Generates the Eclipse WTP facet settings file.'
-                inputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-                outputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+            //model properties:
+            eclipseWtpModel.facet = facet
 
-                //model properties:
-                eclipseWtpModel.facet = facet
-                if (WarPlugin.isAssignableFrom(type)) {
-                    facet.conventionMapping.facets = {
-                        [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                                new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
-                    }
-                } else if (EarPlugin.isAssignableFrom(type)) {
-                    facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")] }
+            project.plugins.withType(JavaPlugin) {
+                if (hasWarOrEarPlugin(project)) { return }
+
+                facet.conventionMapping.facets = {
+                    [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.installed, "jst.utility", "1.0"),
+                      new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
                 }
             }
-
-            doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                def eclipseWtpPlugin = otherProject.plugins.getPlugin(EclipseWtpPlugin)
-                maybeAddTask(otherProject, eclipseWtpPlugin, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet) {
-                    //task properties:
-                    description = 'Generates the Eclipse WTP facet settings file.'
-                    inputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-                    outputFile = otherProject.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-
-                    //model properties:
-                    eclipseWtpPlugin.eclipseWtpModel.facet = facet
-
-                    facet.conventionMapping.facets = {
-                        [new Facet(FacetType.installed, "jst.java", "1.3"), new Facet(FacetType.installed, "jst.utility", "1.0")]
-                    }
-                    otherProject.plugins.withType(JavaPlugin) {
-                        facet.conventionMapping.facets = {
-                            [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.installed, "jst.utility", "1.0"),
-                                    new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
-                        }
-                    }
+            project.plugins.withType(WarPlugin) {
+                facet.conventionMapping.facets = {
+                    [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                      new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                }
+            }
+            project.plugins.withType(EarPlugin) {
+                facet.conventionMapping.facets = {
+                    [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")]
                 }
             }
         }
@@ -224,44 +186,22 @@ class EclipseWtpPlugin extends IdePlugin {
         plugin.addWorker(task)
     }
 
-    private void doLaterWithEachDependedUponEclipseProject(Project project, Closure action) {
-        project.gradle.projectsEvaluated {
-            eachDependedUponEclipseProject(project, action)
-        }
-    }
-
-    private void eachDependedUponEclipseProject(Project project, Closure action) {
-        def runtimeConfig = project.configurations.findByName("runtime")
-        if (runtimeConfig) {
-            def projectDeps = runtimeConfig.allDependencies.withType(ProjectDependency)
-            def dependedUponProjects = projectDeps*.dependencyProject
-            for (dependedUponProject in dependedUponProjects) {
-                dependedUponProject.plugins.withType(EclipseWtpPlugin) { action(dependedUponProject) }
-                eachDependedUponEclipseProject(dependedUponProject, action)
-            }
-        }
-    }
-
-    private void configureEclipseProjectForPlugin(Project project, Class<?> type) {
-        project.plugins.withType(type) {
+    private void configureEclipseProject(Project project) {
+        def configureClosure = {
             project.tasks.withType(GenerateEclipseProject) {
                 projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
                 projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
                 projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
                 projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
                 projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
-
-                doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                    otherProject.tasks.withType(GenerateEclipseProject) {
-                        projectModel.buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
-                        projectModel.buildCommand 'org.eclipse.wst.validation.validationbuilder'
-                        projectModel.natures 'org.eclipse.wst.common.project.facet.core.nature'
-                        projectModel.natures 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
-                        projectModel.natures 'org.eclipse.jem.workbench.JavaEMFNature'
-                    }
-                }
             }
         }
+        project.plugins.withType(JavaPlugin, configureClosure)
+        project.plugins.withType(EarPlugin, configureClosure)
+    }
+
+    private boolean hasWarOrEarPlugin(Project project) {
+        project.plugins.hasPlugin(WarPlugin) || project.plugins.hasPlugin(EarPlugin)
     }
 
     private Set<File> getMainSourceDirs(Project project) {

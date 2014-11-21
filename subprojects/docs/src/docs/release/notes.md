@@ -181,7 +181,7 @@ We would like to thank the following community members for making contributions 
 * [Sébastien Cogneau](https://github.com/scogneau) - share distribution plugin logic with application plugin
 * [Greg Chrystall](https://github.com/ported) - idea plugin generates wrong sources jar for multi artifacts dependencies (GRADLE-3170)
 * [Rob Upcraft](https://github.com/upcrob) - add support for ANTLR v3 and v4 to antlr plugin (GRADLE-902)
-* [Andreas Schmid](https://github.com/aaschmid) - changes to Eclipse classpath generating when using WTP (GRADLE-1422) 
+* [Andreas Schmid](https://github.com/aaschmid) - changes to Eclipse classpath generating when using WTP (GRADLE-1422, GRADLE-2186, GRADLE-2362, GRADLE-2221)
 * [Björn Kautler](https://github.com/Vampire) - improvements to Build Comparison plugin
 * [Michal Srb](https://github.com/msrb) - update bouncycastle dependency to the latest version
 * [Stefan Wolf](https://github.com/wolfs) - support maven publications that have multiple artifacts without classifier
