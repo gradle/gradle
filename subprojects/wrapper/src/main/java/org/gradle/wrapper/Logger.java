@@ -23,11 +23,10 @@ public class Logger implements Appendable {
         this.quiet = quiet;
     }
     
-    public Logger log(String message) {
+    public void log(String message) {
         if (!quiet) {
             System.out.println(message);
         }
-        return this;
     }
 
     public Appendable append(CharSequence csq) {

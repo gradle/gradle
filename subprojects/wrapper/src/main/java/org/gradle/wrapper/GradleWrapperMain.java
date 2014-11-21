@@ -120,12 +120,6 @@ public class GradleWrapperMain {
     }
     
     private static Logger logger(ParsedCommandLine options) {
-        // the workaround with appending -- or - is needed for it to work
-        // when -q flag is set after task name
-        // i.e. ./gradlew tasks -q
-        boolean shouldBeQuiet = options.hasOption(GRADLE_QUIET_OPTION)
-                || options.getExtraArguments().contains("-" + GRADLE_QUIET_OPTION)
-                || options.getExtraArguments().contains("--" + GRADLE_QUIET_DETAILED_OPTION);
-        return new Logger(shouldBeQuiet);
+        return new Logger(options.hasOption(GRADLE_QUIET_OPTION));
     }
 }

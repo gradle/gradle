@@ -30,13 +30,7 @@ import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
-import org.gradle.wrapper.Download;
-import org.gradle.wrapper.GradleUserHomeLookup;
-import org.gradle.wrapper.IDownload;
-import org.gradle.wrapper.Install;
-import org.gradle.wrapper.PathAssembler;
-import org.gradle.wrapper.WrapperConfiguration;
-import org.gradle.wrapper.WrapperExecutor;
+import org.gradle.wrapper.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;

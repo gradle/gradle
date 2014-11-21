@@ -186,7 +186,8 @@ We would like to thank the following community members for making contributions 
 * [Michal Srb](https://github.com/msrb) - update bouncycastle dependency to the latest version
 * [Stefan Wolf](https://github.com/wolfs) - support maven publications that have multiple artifacts without classifier
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - improvements to static task references available for each native binary type
-* [Spencer Wood](https://github.com/malibuworkcrew) - support `configfailurepolicy` option for TestNG 
+* [Spencer Wood](https://github.com/malibuworkcrew) - support `configfailurepolicy` option for TestNG
+* [Adam Dubiel](https://github.com/adamdubiel) - wrapper respects -q/--quiet option
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
