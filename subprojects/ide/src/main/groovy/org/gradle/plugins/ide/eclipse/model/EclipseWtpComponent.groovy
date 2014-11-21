@@ -60,7 +60,7 @@ import org.gradle.util.ConfigureUtil
  *       plusConfigurations += [ configurations.someInterestingConfiguration ]
  *
  *       //or whose files are to be excluded from dependent-module elements:
- *       minusConfigurations += configurations.anotherConfiguration
+ *       minusConfigurations << configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
  *       //if sourcePath points to non-existing folder it will *not* be added.

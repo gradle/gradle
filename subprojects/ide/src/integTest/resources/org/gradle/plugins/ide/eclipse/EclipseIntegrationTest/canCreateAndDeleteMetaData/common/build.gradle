@@ -1,0 +1,22 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+dependencies {
+    provided 'log4j:log4j:1.2.17'
+    runtime 'joda-time:joda-time:2.5'
+    testCompile 'junit:junit:4.11'
+}
+
+eclipse {
+    wtp {
+        component {
+            minusConfigurations << configurations.provided
+        }
+    }
+}

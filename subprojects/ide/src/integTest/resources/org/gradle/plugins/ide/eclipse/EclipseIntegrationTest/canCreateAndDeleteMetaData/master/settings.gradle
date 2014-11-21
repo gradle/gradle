@@ -1,1 +1,1 @@
-includeFlat "api", "webservice", "groovyproject", "javabaseproject", "webAppWithVars", "webAppJava6"
+includeFlat "api", "common", "webservice", "groovyproject", "javabaseproject", "webAppWithVars", "webAppJava6"
