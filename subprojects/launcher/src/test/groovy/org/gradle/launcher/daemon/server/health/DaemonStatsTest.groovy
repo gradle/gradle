@@ -36,7 +36,7 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == "Starting build in new daemon [memory: 10.0 MB]"
+        stats.healthInfo == String.format("Starting build in new daemon [memory: %.1f MB]", 10.0)
     }
 
     def "consumes subsequent builds"() {
@@ -56,6 +56,6 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, memory: 50% of 10.0 MB]"
+        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%%, memory: 50%% of %.1f MB]", 10.0)
     }
 }
