@@ -75,7 +75,7 @@ class EclipseWtpPlugin extends IdePlugin {
                 def minusFiles = project.eclipse.wtp.component.minusConfigurations*.files?.flatten() ?: project.files()
                 def libFiles = project.eclipse.wtp.component.libConfigurations*.files?.flatten() ?: project.files()
                 for (entry in classpath.entries) {
-                    if (entry instanceof AbstractLibrary && !minusFiles.contains(project.file(entry.path)) && libFiles.contains(project.file(entry.path))) {
+                    if (entry instanceof AbstractLibrary && !minusFiles.contains(entry.library.file) && libFiles.contains(entry.library.file)) {
                         // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
                         //this is necessary so that the depended upon projects will have their dependencies
                         // deployed to WEB-INF/lib of the main project.
