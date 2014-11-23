@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry kind="src" path="/api" exported="true"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
 	<classpathentry sourcepath="@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-sources.jar" kind="lib" path="@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar" exported="true">
 		<attributes>

@@ -68,6 +68,7 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void configureEclipseClasspath(Project project) {
         project.plugins.withType(JavaPlugin) {
+            def deleteWtpDependentModule = []
             project.eclipse.classpath.file.whenMerged { Classpath classpath ->
                 if (hasWarOrEarPlugin(project)) { return }
 
@@ -79,12 +80,15 @@ class EclipseWtpPlugin extends IdePlugin {
                         //this is necessary so that the depended upon projects will have their dependencies
                         // deployed to WEB-INF/lib of the main project.
                         entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = '../'
+                        deleteWtpDependentModule << entry.path
                     }
                 }
             }
             project.eclipse.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
-                if (project.plugins.hasPlugin(WarPlugin) || project.plugins.hasPlugin(EarPlugin)) { return }
-                wtpComponent.wbModuleEntries.removeAll(wtpComponent.wbModuleEntries.findAll { it instanceof WbDependentModule })
+                if (hasWarOrEarPlugin(project)) { return }
+                wtpComponent.wbModuleEntries.removeAll{ wbModule ->
+                    wbModule instanceof WbDependentModule && deleteWtpDependentModule.any{ lib -> wbModule.handle.contains(lib) }
+                }
             }
         }
 
