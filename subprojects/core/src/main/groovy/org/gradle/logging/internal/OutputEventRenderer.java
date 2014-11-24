@@ -22,6 +22,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -68,10 +69,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return originalStdErr;
     }
 
-    public void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole) {
+    public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            colourMap.setUseColor(colorOutput);
-            this.useAnsiConsole = useAnsiConsole;
+            colourMap.setUseColor(consoleOutput != ConsoleOutput.Disable);
+            this.useAnsiConsole = consoleOutput == ConsoleOutput.Enable;
             consoleConfigureAction.execute(this);
         }
     }

@@ -11,6 +11,8 @@ The following stories are candidates to be included in a major release of Gradle
 
 ## Log changes
 
+* Remove `--no-color` command-line option.
+* Remove `LoggingConfiguration.colorOutput` property.
 * Remove `LoggingManager.logLevel` property. Managing the log level should not be a concern of the build logic.
 * Remove `Project.getLogging()` method. Would be replaced by the existing `logging` property on `Script` and `Task`.
 * Move internal types `StandardOutputCapture`, `StandardOutputRedirector` and `LoggingManagerInternal` into an internal package.

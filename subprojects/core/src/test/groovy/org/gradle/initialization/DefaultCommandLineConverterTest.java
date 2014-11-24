@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.logging.ConsoleOutput;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -93,7 +94,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
-        assertEquals(expectedAnsiConsole, startParameter.isAnsiConsole());
+        assertEquals(expectedAnsiConsole, startParameter.getConsoleOutput() == ConsoleOutput.Enable);
         assertEquals(expectedDryRun, startParameter.isDryRun());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());

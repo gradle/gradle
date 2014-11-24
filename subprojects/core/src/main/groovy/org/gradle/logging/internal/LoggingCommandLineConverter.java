@@ -22,6 +22,7 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.logging.ConsoleOutput;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
 
@@ -68,11 +69,11 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         }
 
         if (commandLine.hasOption(NO_COLOR)) {
-            loggingConfiguration.setColorOutput(false);
+            loggingConfiguration.setConsoleOutput(ConsoleOutput.Disable);
         }
 
         if (commandLine.hasOption(ANSI_CONSOLE)) {
-            loggingConfiguration.setAnsiConsole(true);
+            loggingConfiguration.setConsoleOutput(ConsoleOutput.Enable);
         }
 
         return loggingConfiguration;

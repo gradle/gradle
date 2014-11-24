@@ -146,7 +146,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     protected StartParameter prepareNewBuild(StartParameter p) {
         p.gradleUserHomeDir = gradleUserHomeDir;
         p.setLogLevel(getLogLevel());
-        p.setColorOutput(isColorOutput());
+        p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;

@@ -15,6 +15,7 @@
  */
 package org.gradle.logging;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 import java.io.Serializable;
@@ -22,8 +23,7 @@ import java.io.Serializable;
 public class LoggingConfiguration implements Serializable {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    private boolean colorOutput = true;
-    private boolean ansiConsole;
+    private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
 
     public LogLevel getLogLevel() {
         return logLevel;
@@ -40,7 +40,7 @@ public class LoggingConfiguration implements Serializable {
      * @return true if logging output should be displayed in color.
      */
     public boolean isColorOutput() {
-        return colorOutput;
+        return consoleOutput != ConsoleOutput.Disable;
     }
 
     /**
@@ -49,23 +49,18 @@ public class LoggingConfiguration implements Serializable {
      * @param colorOutput true if logging output should be displayed in color.
      */
     public void setColorOutput(boolean colorOutput) {
-        this.colorOutput = colorOutput;
+        this.consoleOutput = colorOutput ? ConsoleOutput.Auto : ConsoleOutput.Disable;
     }
 
-    /**
-     * Returns true if native terminal detection should be disabled and ANSI escape encoding should be always enabled for logging output.
-     * The default value is false.
-     *
-     * @return true if logging output should be displayed in color.
-     */
-    public boolean isAnsiConsole() { return ansiConsole; }
+    @Incubating
+    public ConsoleOutput getConsoleOutput() {
+        return consoleOutput;
+    }
 
-    /**
-     * Specifies whether native terminal detection should be disabled and ANSI escape encoding should be always enabled for logging output.
-     *
-     * @param ansiConsole true if terminal detection should be disabled and ANSI escape encoding output enabled for logging output.
-     */
-    public void setAnsiConsole(boolean ansiConsole) { this.ansiConsole = ansiConsole; }
+    @Incubating
+    public void setConsoleOutput(ConsoleOutput colorOutput) {
+        this.consoleOutput = colorOutput;
+    }
 
     public ShowStacktrace getShowStacktrace() {
         return showStacktrace;
