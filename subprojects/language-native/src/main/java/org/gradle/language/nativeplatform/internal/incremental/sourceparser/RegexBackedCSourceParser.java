@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexBackedCSourceParser implements CSourceParser {
-    private static final String INCLUDE_IMPORT_PATTERN = "#\\s*(include|import)\\s+((<[^>]+>)|(\"[^\"]+\")|(\\w+))";
+    private static final String INCLUDE_IMPORT_PATTERN = "#\\s*(include|import)\\s*((<[^>]+>)|(\"[^\"]+\")|(\\w+))";
     private final Pattern includePattern;
 
     public RegexBackedCSourceParser() {
