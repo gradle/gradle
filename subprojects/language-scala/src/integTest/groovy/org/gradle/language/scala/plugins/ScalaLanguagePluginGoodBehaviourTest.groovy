@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala
+package org.gradle.language.scala.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
