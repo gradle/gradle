@@ -16,15 +16,18 @@
 
 package org.gradle.play.internal.coffeescript;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
-import java.io.File;
+import java.util.List;
 
 /**
  *
  */
 public interface CoffeeScriptCompileSpec extends PlayCompileSpec {
-    Iterable<File> getSources();
-    //TODO This is a a hack to workaround determining relative pathing - need to figure out a way to handle multiple source dirs
-    File getSourceDirectory();
+    FileCollection getSource();
+
+    List<String> getClassLoaderPackages();
+
+    List<String> getCoffeeScriptDependencyNotations();
 }

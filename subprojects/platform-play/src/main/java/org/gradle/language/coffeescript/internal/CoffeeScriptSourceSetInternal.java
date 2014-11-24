@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.javascript.engine;
+package org.gradle.language.coffeescript.internal;
 
-/**
- *
- */
-public interface JavascriptEngine {
-    public ScriptResult execute(ClassLoader classLoader, String scriptName, String script, String[] args);
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 
-    public String getErrorMessage(int status);
+public interface CoffeeScriptSourceSetInternal extends CoffeeScriptSourceSet {
+    public void setOutputSourceSet(LanguageSourceSet outputSourceSet);
+    public LanguageSourceSet getOutputSourceSet();
 }

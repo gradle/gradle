@@ -16,6 +16,9 @@
 
 package org.gradle.play.internal.javascript.engine;
 
+import org.gradle.api.GradleException;
+
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,13 +26,12 @@ import java.lang.reflect.Method;
 /**
  *
  */
-public class TriremeJavascriptEngine implements JavascriptEngine {
+public class TriremeJavascriptEngine implements JavascriptEngine, Serializable {
     @SuppressWarnings("rawtypes")
-    public ScriptResult execute(String scriptName, String script, Object[] args) {
+    public ScriptResult execute(ClassLoader cl, String scriptName, String script, String[] args) {
         ScriptResult result;
         try {
-            ClassLoader cl = getClass().getClassLoader();
-            Class nodeEnvironmentClass = cl.loadClass("org.apigee.trireme.core.NodeEnvironment");
+            Class nodeEnvironmentClass = cl.loadClass("io.apigee.trireme.core.NodeEnvironment");
             @SuppressWarnings("unchecked") Constructor nodeEnvironmentConstructor = nodeEnvironmentClass.getConstructor();
 
             Object nodeEnvironment = nodeEnvironmentConstructor.newInstance();
@@ -46,7 +48,7 @@ public class TriremeJavascriptEngine implements JavascriptEngine {
                 result = new ScriptResult(cause);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error invoking Trireme javascript engine.", e);
+            throw new GradleException("Error invoking Trireme javascript engine.", e);
         }
         return result;
     }
@@ -60,9 +62,9 @@ public class TriremeJavascriptEngine implements JavascriptEngine {
             case -2:
                 return "The script was canceled before it could complete";
             case -3:
-                return "The script timed out befire it could complete";
+                return "The script timed out before it could complete";
             default:
-                return String.format("Uknown exit code: %d", status);
+                return String.format("Unknown exit code: %d", status);
         }
     }
 

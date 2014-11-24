@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.javascript.engine;
-
 /**
- *
+ * Language support classes for javascript
  */
-public interface JavascriptEngine {
-    public ScriptResult execute(ClassLoader classLoader, String scriptName, String script, String[] args);
-
-    public String getErrorMessage(int status);
-}
+package org.gradle.language.javascript;

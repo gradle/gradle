@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -38,13 +39,11 @@ import java.io.File;
 public class CoffeeScriptCompile extends SourceTask {
     private Compiler<CoffeeScriptCompileSpec> compiler;
     private PlayPlatform platform;
-    private File sourceDirectory;
-    @OutputDirectory
     private File outputDirectory;
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-        CoffeeScriptCompileSpec spec = new DefaultCoffeeScriptCompileSpec(getSource().getFiles(), getSourceDirectory(), getOutputDirectory());
+        CoffeeScriptCompileSpec spec = new DefaultCoffeeScriptCompileSpec(new SimpleFileCollection(getSource().getFiles()), getOutputDirectory());
         getCompiler(spec).execute(spec);
     }
 
@@ -71,15 +70,7 @@ public class CoffeeScriptCompile extends SourceTask {
         this.platform = platform;
     }
 
-    public File getSourceDirectory() {
-        return sourceDirectory;
-    }
-
-    public void setSourceDirectory(File sourceDirectory) {
-        this.sourceDirectory = sourceDirectory;
-        this.setSource(sourceDirectory);
-    }
-
+    @OutputDirectory
     public File getOutputDirectory() {
         return outputDirectory;
     }

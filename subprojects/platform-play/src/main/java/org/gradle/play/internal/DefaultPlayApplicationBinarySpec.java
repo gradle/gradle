@@ -16,8 +16,10 @@
 
 package org.gradle.play.internal;
 
-import com.google.common.collect.Sets;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
@@ -25,7 +27,6 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
@@ -90,7 +91,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
-        private final Set<File> resourceDirs = Sets.newHashSet();
+        private FileCollection resourceDirs = new UnionFileCollection();
         private File classesDir;
 
         public File getClassesDir() {
@@ -101,12 +102,12 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
             this.classesDir = classesDir;
         }
 
-        public Set<File> getResourceDirs() {
-            return Sets.newHashSet(resourceDirs);
+        public FileCollection getResourceDirs() {
+            return resourceDirs;
         }
 
         public void addResourceDir(File resourceDir) {
-            resourceDirs.add(resourceDir);
+            resourceDirs.add(new SimpleFileCollection(resourceDir));
         }
     }
 }

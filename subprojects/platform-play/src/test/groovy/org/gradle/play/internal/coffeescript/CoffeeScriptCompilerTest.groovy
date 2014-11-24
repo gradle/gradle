@@ -16,6 +16,11 @@
 
 package org.gradle.play.internal.coffeescript
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.tasks.WorkResult
 import org.gradle.play.internal.javascript.engine.JavascriptEngine
 import org.gradle.play.internal.javascript.engine.ScriptResult
@@ -37,8 +42,15 @@ class CoffeeScriptCompilerTest extends Specification {
 
     def setup() {
         spec = Stub(CoffeeScriptCompileSpec) {
-            _ * getSources() >> { files }
-            _ * getSourceDirectory() >> { sourceDir }
+            _ * getSource() >> Stub(FileCollection) {
+                _ * getAsFileTree() >> Stub(FileTree) {
+                    _ * visit(_) >> { FileVisitor visitor ->
+                        files.each { visitor.visitFile(new DefaultFileVisitDetails(it, RelativePath.parse(true, it.path - sourceDir.path), null, null, null)) }
+                        return null
+                    }
+                }
+                _ * getFiles() >> files
+            }
             _ * getDestinationDir() >> { targetDir }
         }
         engine = Mock(JavascriptEngine)
@@ -52,7 +64,7 @@ class CoffeeScriptCompilerTest extends Specification {
         WorkResult result = compiler.execute(spec)
 
         then:
-        3 * engine.execute(CoffeeScriptCompiler.WRAPPER_SCRIPT_NAME, _, _) >> { String scriptName, String script, Object[] args ->
+        3 * engine.execute(_, CoffeeScriptCompiler.WRAPPER_SCRIPT_NAME, _, _) >> { ClassLoader cl, String scriptName, String script, String[] args ->
             sourceFileNames << args[0]
             assert args[1] == toTargetDir(new File(args[0]), sourceDir, targetDir)
             return Stub(ScriptResult) {
@@ -72,7 +84,7 @@ class CoffeeScriptCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        1 * engine.execute(_,_,_) >> {
+        1 * engine.execute(_,_,_,_) >> {
             Stub(ScriptResult) {
                 _ * getStatus() >> -1
                 _ * getException() >> failure
@@ -85,15 +97,13 @@ class CoffeeScriptCompilerTest extends Specification {
     }
 
     def "does no work with empty sources" () {
-        spec = Stub(CoffeeScriptCompileSpec) {
-            _ * getSources() >> []
-        }
+        spec = Stub(CoffeeScriptCompileSpec)
 
         when:
         WorkResult result = compiler.execute(spec)
 
         then:
-        0 * engine.execute(_,_,_)
+        0 * engine.execute(_,_,_,_)
         ! result.didWork
     }
 

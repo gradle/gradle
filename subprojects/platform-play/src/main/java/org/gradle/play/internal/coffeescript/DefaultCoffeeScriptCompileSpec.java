@@ -16,31 +16,46 @@
 
 package org.gradle.play.internal.coffeescript;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.file.FileCollection;
+
 import java.io.File;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
  */
-public class DefaultCoffeeScriptCompileSpec implements CoffeeScriptCompileSpec {
-    private final Iterable<File> sourceFiles;
+public class DefaultCoffeeScriptCompileSpec implements CoffeeScriptCompileSpec, Serializable {
+    private final FileCollection source;
     private final File outputDirectory;
-    private final File sourceDirectory;
 
-    public DefaultCoffeeScriptCompileSpec(Iterable<File> sourceFiles, File sourceDirectory, File outputDirectory) {
-        this.sourceFiles = sourceFiles;
-        this.sourceDirectory = sourceDirectory;
+    private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.7.1";
+    private static final String DEFAULT_TRIREME_VERSION = "0.7.5";
+
+    public DefaultCoffeeScriptCompileSpec(FileCollection source, File outputDirectory) {
+        this.source = source;
         this.outputDirectory = outputDirectory;
     }
 
-    public Iterable<File> getSources() {
-        return sourceFiles;
-    }
-
-    public File getSourceDirectory() {
-        return sourceDirectory;
+    public FileCollection getSource() {
+        return source;
     }
 
     public File getDestinationDir() {
         return outputDirectory;
+    }
+
+    public List<String> getClassLoaderPackages() {
+        return Arrays.asList("io.apigee.trireme", "META-INF");
+    }
+
+    public List<String> getCoffeeScriptDependencyNotations() {
+        return Lists.newArrayList(
+                String.format("org.webjars:coffee-script:%s", DEFAULT_COFFEESCRIPT_VERSION),
+                String.format("io.apigee.trireme:trireme-core:%s", DEFAULT_TRIREME_VERSION),
+                String.format("io.apigee.trireme:trireme-node10src:%s", DEFAULT_TRIREME_VERSION)
+        );
     }
 }

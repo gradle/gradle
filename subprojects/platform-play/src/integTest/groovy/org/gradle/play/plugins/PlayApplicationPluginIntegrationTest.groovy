@@ -58,6 +58,8 @@ Play Application 'play'
 Source sets
     Scala source 'play:appSources'
         app
+    JavaScript source 'play:javaScriptSources'
+        app
 
 Binaries
     Play Application Jar 'playBinary'

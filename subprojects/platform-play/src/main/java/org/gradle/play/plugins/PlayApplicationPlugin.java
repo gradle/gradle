@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
@@ -33,10 +34,16 @@ import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageRegistration;
+import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.javascript.JavaScriptSourceSet;
+import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.play.JavaScriptFile;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
@@ -56,7 +63,9 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
@@ -131,6 +140,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
                     appSources.getSource().srcDir("app");
                     appSources.getSource().exclude("**/*.html");
+                    appSources.getSource().exclude("**/*.coffee");
+                    appSources.getSource().exclude("**/*.js");
                     ((ComponentSpecInternal) playComponent).getSources().add(appSources);
                 }
             });
@@ -261,8 +272,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     scalaCompile.getScalaCompileOptions().setFork(true);
                     scalaCompile.getScalaCompileOptions().setUseAnt(false);
 
-                    // TODO:DAZ Source sets should be typed for scala
-                    for (LanguageSourceSet appSources : binary.getSource()) {
+                    for (LanguageSourceSet appSources : binary.getSource().withType(ScalaSources.class)) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
                     }
@@ -283,9 +293,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.setArchiveName(binary.getJarFile().getName());
 
                     jar.from(binary.getClasses().getClassesDir());
-                    for (File resourceDir : binary.getClasses().getResourceDirs()) {
-                        jar.from(resourceDir);
-                    }
+                    jar.from(binary.getClasses().getResourceDirs());
                     jar.dependsOn(binary.getClasses());
                 }
             });
@@ -364,6 +372,75 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     }
                 });
             }
+        }
+
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new JavaScript());
+        }
+
+        @Mutate
+        void createJavaScriptSources(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
+            components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
+                public void execute(PlayApplicationSpec playComponent) {
+                    JavaScriptSourceSet javaScriptSourceSet = new DefaultJavaScriptSourceSet("javaScriptSources", playComponent.getName(), serviceRegistry.get(FileResolver.class));
+                    javaScriptSourceSet.getSource().srcDir("app");
+                    javaScriptSourceSet.getSource().include("**/*.js");
+                    ((ComponentSpecInternal) playComponent).getSources().add(javaScriptSourceSet);
+                }
+            });
+        }
+    }
+
+    /**
+     * JavaScript language implementation
+     */
+    static class JavaScript implements LanguageRegistration<JavaScriptSourceSet> {
+        public String getName() {
+            return "javascript";
+        }
+
+        public Class<JavaScriptSourceSet> getSourceSetType() {
+            return JavaScriptSourceSet.class;
+        }
+
+        public Class<? extends JavaScriptSourceSet> getSourceSetImplementation() {
+            return DefaultJavaScriptSourceSet.class;
+        }
+
+        public Map<String, Class<?>> getBinaryTools() {
+            return Collections.emptyMap();
+        }
+
+        public Class<? extends TransformationFileType> getOutputType() {
+            return JavaScriptFile.class;
+        }
+
+        public SourceTransformTaskConfig getTransformTask() {
+            return new SourceTransformTaskConfig() {
+                public String getTaskPrefix() {
+                    return "process";
+                }
+
+                public Class<? extends DefaultTask> getTaskType() {
+                    return Copy.class;
+                }
+
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                    JavaScriptSourceSet javaScriptSourceSet = (JavaScriptSourceSet) sourceSet;
+                    PlayApplicationBinarySpec spec = (PlayApplicationBinarySpec) binary;
+                    Copy copyTask = (Copy) task;
+                    copyTask.from(javaScriptSourceSet.getSource());
+                    File javascriptOutputDir = new File(task.getProject().getBuildDir(), String.format("%s/javascript", binary.getName()));
+                    copyTask.into(javascriptOutputDir);
+                    spec.getClasses().addResourceDir(javascriptOutputDir);
+                    spec.getClasses().builtBy(copyTask);
+                }
+            };
+        }
+
+        public boolean applyToBinary(BinarySpec binary) {
+            return binary instanceof PlayApplicationBinarySpec;
         }
     }
 }

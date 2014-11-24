@@ -16,7 +16,10 @@
 
 package org.gradle.play.internal.coffeescript;
 
-import org.gradle.api.Transformer;
+import com.google.common.base.Charsets;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.tasks.WorkResult;
@@ -24,28 +27,26 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.engine.JavascriptEngine;
 import org.gradle.play.internal.javascript.engine.ScriptResult;
 import org.gradle.play.internal.javascript.engine.TriremeJavascriptEngine;
-import org.gradle.util.CollectionUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
+import java.io.Serializable;
 
 /**
  *
  */
-public class CoffeeScriptCompiler implements Compiler<CoffeeScriptCompileSpec> {
+public class CoffeeScriptCompiler implements Compiler<CoffeeScriptCompileSpec>, Serializable {
     private JavascriptEngine engine;
-    private static String wrapperScript;
+    private static String compilerScript;
     public static final String WRAPPER_SCRIPT_NAME = "coffeescript-wrapper.js";
+    // TODO This should come from the org.webjars dependency, but the classloader is blocking it
+    public static final String COFFEESCRIPT_MIN_NAME = "coffee-script.min.js";
 
     public CoffeeScriptCompiler(JavascriptEngine engine) {
         this.engine = engine;
-        if (wrapperScript == null) {
-            wrapperScript = loadWrapperScript();
-        }
     }
 
     public CoffeeScriptCompiler() {
@@ -56,15 +57,27 @@ public class CoffeeScriptCompiler implements Compiler<CoffeeScriptCompileSpec> {
         return new TriremeJavascriptEngine();
     }
 
-    private static String loadWrapperScript() {
-        ClassLoader cl = CoffeeScriptCompiler.class.getClassLoader();
-        InputStream scriptStream = cl.getResourceAsStream(WRAPPER_SCRIPT_NAME);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(scriptStream));
+    private static String getCompilerScript(ClassLoader cl) {
+        if (compilerScript == null) {
+            String wrapperScript = getScriptFromClasspath(cl, WRAPPER_SCRIPT_NAME);
+            String coffeeScript = getScriptFromClasspath(cl, COFFEESCRIPT_MIN_NAME);
+            compilerScript = coffeeScript + wrapperScript;
+        }
+        return compilerScript;
+    }
+
+    private static String getScriptFromClasspath(ClassLoader cl, String scriptFileName) {
         StringBuilder s = new StringBuilder();
-        char[] buffer = new char[2048];
         try {
-            while (reader.read(buffer, 0, buffer.length) > 0) {
-                s.append(buffer);
+            InputStream scriptStream = cl.getResourceAsStream(scriptFileName);
+            if (scriptStream == null) {
+                throw new ResourceException(String.format("%s not found in classpath", scriptFileName));
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(scriptStream, Charsets.UTF_8));
+
+            char[] buffer = new char[2048];
+            for (int i=0; i>-1; i=reader.read(buffer, 0, buffer.length)) {
+                s.append(buffer, 0, i);
             }
         } catch (IOException e) {
             throw new ResourceException("Failed to load coffeescript wrapper script.", e);
@@ -72,27 +85,28 @@ public class CoffeeScriptCompiler implements Compiler<CoffeeScriptCompileSpec> {
         return s.toString();
     }
 
-    public WorkResult execute(CoffeeScriptCompileSpec spec) {
-        List<String> fileNames = CollectionUtils.collect(spec.getSources(), new Transformer<String, File>() {
-            public String transform(File file) {
-                return file.getPath();
-            }
-        });
-
-        if (fileNames.size() == 0) {
+    public WorkResult execute(final CoffeeScriptCompileSpec spec) {
+        final String coffeeScriptCompiler = getCompilerScript(getClass().getClassLoader());
+        if (spec.getSource().getFiles().size() == 0) {
             return new SimpleWorkResult(false);
         }
 
         //TODO We should feed the list of filenames into the wrapper and handle the looping in js
         // I'm guessing that will be more efficient than calling the engine over and over
-        for (String fileName : fileNames) {
-            String relativePath = fileName.substring(spec.getSourceDirectory().getPath().length());
-            String targetPath = new File(spec.getDestinationDir(), relativePath).getPath();
-            ScriptResult result = engine.execute(WRAPPER_SCRIPT_NAME, wrapperScript, new Object[] {fileName, targetPath});
-            if (result.getStatus() != ScriptResult.SUCCESS) {
-                throw new CoffeeScriptCompileException(String.format("Failed to compile CoffeeScript sources due to: %s", engine.getErrorMessage(result.getStatus())), result.getException());
+        spec.getSource().getAsFileTree().visit(new FileVisitor() {
+            public void visitDir(FileVisitDetails dirDetails) { }
+
+            public void visitFile(FileVisitDetails fileDetails) {
+                RelativePath relativePath = fileDetails.getRelativePath();
+                File targetFile = relativePath.getFile(spec.getDestinationDir());
+                String targetFileName = targetFile.getPath().replaceAll("\\.coffee$", ".js");
+                ScriptResult result = engine.execute(getClass().getClassLoader(), WRAPPER_SCRIPT_NAME, coffeeScriptCompiler, new String[] {fileDetails.getFile().getPath(), targetFileName});
+                if (result.getStatus() != ScriptResult.SUCCESS) {
+                    throw new CoffeeScriptCompileException(String.format("Failed to compile CoffeeScript sources due to: %s", engine.getErrorMessage(result.getStatus())), result.getException());
+                }
             }
-        }
+        });
+
         return new SimpleWorkResult(true);
     }
 }

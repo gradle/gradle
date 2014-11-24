@@ -14,39 +14,56 @@
  * limitations under the License.
  */
 
+
 (function () {
 
     "use strict";
 
     var args = process.argv,
             fs = require("fs"),
-            coffeeScript = require("coffee-script"),
-            mkdirp = require("mkdirp"),
             path = require("path");
 
-    var target = args[2];
-    var source = args[3];
+    var target = args[3];
+    var source = args[2];
+
+    //console.log('target ' + target);
+    //console.log('source ' + source);
 
     function throwIfErr(e) {
         if (e) throw e;
     }
 
+    fs.mkdirParent = function(dirPath, mode, callback) {
+        //Call the standard fs.mkdir
+        fs.mkdir(dirPath, mode, function(error) {
+            //When it fail in this way, do the custom steps
+            if (error && error.errno === 34) {
+                //Create all the parents recursively
+                fs.mkdirParent(path.dirname(dirPath), mode, callback);
+                //And then the directory
+                fs.mkdirParent(dirPath, mode, callback);
+            }
+            //Manually run the callback since we used our own callback to do all these
+            callback && callback(error);
+        });
+    };
+
     fs.readFile(source, "utf8", function (e, contents) {
         throwIfErr(e);
 
-        try {
-            var compileResult = coffeeScript.compile(contents, null)
+        var compileResult = CoffeeScript.compile(contents, null);
 
-            mkdirp(path.dirname(target), function(e){
-                throwIfErr(e)
+        fs.mkdirParent(path.dirname(target), function(err) {
+            if (err && err.code != 'EEXIST') {
+                throwIfErr(err);
+            }
 
-                var js = compileResult.js;
-                if (js === undefined) {
-                    js = compileResult;
-                }
+            var js = compileResult.js;
+            if (js === undefined) {
+                js = compileResult;
+            }
 
-                fs.writeFile(target, js, "utf8")
-            })
-        }
-    })
+            fs.writeFile(target, js, "utf8");
+        });
+    });
 })();

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.javascript.engine;
+package org.gradle.language.coffeescript;
+
+import org.gradle.internal.HasInternalProtocol;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
- *
+ * Represents a source set for CoffeeScript sources
  */
-public interface JavascriptEngine {
-    public ScriptResult execute(ClassLoader classLoader, String scriptName, String script, String[] args);
-
-    public String getErrorMessage(int status);
+@HasInternalProtocol
+public interface CoffeeScriptSourceSet extends LanguageSourceSet {
 }

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.javascript.engine;
+package org.gradle.language.javascript;
+
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
- *
+ * Represents a source set containing javascript sources.
  */
-public interface JavascriptEngine {
-    public ScriptResult execute(ClassLoader classLoader, String scriptName, String script, String[] args);
-
-    public String getErrorMessage(int status);
+public interface JavaScriptSourceSet extends LanguageSourceSet {
 }

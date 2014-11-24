@@ -79,8 +79,13 @@ class DefaultPlayToolProvider implements PlayToolProvider {
             @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
             return routesSpecCompiler;
         } else if (spec instanceof CoffeeScriptCompileSpec) {
-            // TODO This should probably be a DaemonCompiler but DaemonPlayCompiler requires a VersionedPlayCompileSpec
-            @SuppressWarnings("unchecked") Compiler<T> coffeeScriptCompiler = (Compiler<T>) new CoffeeScriptCompiler();
+            CoffeeScriptCompileSpec coffeeScriptCompileSpec = (CoffeeScriptCompileSpec) spec;
+            @SuppressWarnings("unchecked") Compiler<T> coffeeScriptCompiler =
+                    (Compiler<T>) new DaemonUnversionedPlayCompiler<CoffeeScriptCompileSpec>(
+                            fileResolver.resolve("."), new CoffeeScriptCompiler(),
+                            compilerDaemonManager,
+                            resolveClasspath(coffeeScriptCompileSpec.getCoffeeScriptDependencyNotations().toArray()).getFiles(),
+                            coffeeScriptCompileSpec.getClassLoaderPackages());
             return coffeeScriptCompiler;
         }
 
