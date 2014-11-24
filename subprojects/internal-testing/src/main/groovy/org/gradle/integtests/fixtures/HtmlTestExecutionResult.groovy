@@ -19,6 +19,7 @@ import org.gradle.internal.FileUtils
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.junit.Assert
 
 class HtmlTestExecutionResult implements TestExecutionResult {
 
@@ -88,7 +89,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         List<String> getFailureMessages(String testmethod) {
-            html.select("div.test:has(a[name=$testmethod]) > span > pre").collect { it.text().readLines().first() }
+            html.select("div.test:has(a[name=$testmethod]) > span > pre").collect { it.text() }
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
@@ -114,12 +115,23 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
             assert testsFailures.containsKey(name)
-            def messages = testsFailures[name]
+            def messages = testsFailures[name].collect { it.readLines().first() }
             assert messages.size() == messageMatchers.length
             for (int i = 0; i < messageMatchers.length; i++) {
                 assert messageMatchers[i].matches(messages[i])
             }
             return this
+        }
+
+        TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
+            String failureMethodName = "execution failure"
+            assert testsFailures.containsKey(failureMethodName)
+
+            String causeLinePrefix = "Caused by: "
+            def cause = testsFailures[failureMethodName].first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
+
+            Assert.assertThat(cause, causeMatcher)
+            this
         }
 
         TestClassExecutionResult assertTestSkipped(String name) {
@@ -156,6 +168,5 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
             throw new UnsupportedOperationException()
         }
-
     }
 }

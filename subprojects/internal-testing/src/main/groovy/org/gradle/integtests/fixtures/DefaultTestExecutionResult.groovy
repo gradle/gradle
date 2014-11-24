@@ -105,5 +105,10 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             testClassResults*.assertTestCaseStderr(testCaseName, matcher)
             this
         }
+
+        TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
+            testClassResults*.assertExecutionFailedWithCause(causeMatcher)
+            this
+        }
     }
 }
