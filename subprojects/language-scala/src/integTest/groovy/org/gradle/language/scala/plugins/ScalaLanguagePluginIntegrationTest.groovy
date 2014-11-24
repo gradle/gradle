@@ -123,13 +123,13 @@ class ScalaLanguagePluginIntegrationTest extends AbstractIntegrationSpec{
         output.contains(TextUtil.toPlatformLineSeparators("""
 Source sets
     JVM resources 'myLib:extraResources'
-        src/myLib/extraResources
+        src${File.separator}myLib${File.separator}extraResources
     Scala source 'myLib:extraScala'
-        src/myLib/extraScala
+        src${File.separator}myLib${File.separator}extraScala
     JVM resources 'myLib:resources'
-        src/myLib/resources
+        src${File.separator}myLib${File.separator}resources
     Scala source 'myLib:scala'
-        src/myLib/scala"""))
+        src${File.separator}myLib${File.separator}scala"""))
     }
 
     def "creates empty jar when library has empty sources"() {
