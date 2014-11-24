@@ -76,13 +76,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                     coffeeScriptSourceSet.getSource().srcDir("app");
                     coffeeScriptSourceSet.getSource().include("**/*.coffee");
                     ((ComponentSpecInternal) playComponent).getSources().add(coffeeScriptSourceSet);
-
-                    final JavaScriptSourceSet genJavaScriptSourceSet = new DefaultJavaScriptSourceSet("coffeeScriptGenerated", playComponent.getName(), serviceRegistry.get(FileResolver.class));
-                    genJavaScriptSourceSet.getSource().include("**/*.js");
-                    ((ComponentSpecInternal) playComponent).getSources().add(genJavaScriptSourceSet);
-                    genJavaScriptSourceSet.builtBy(coffeeScriptSourceSet);
-
-                    ((CoffeeScriptSourceSetInternal)coffeeScriptSourceSet).setOutputSourceSet(genJavaScriptSourceSet);
+                    ((ComponentSpecInternal) playComponent).getSources().add(((CoffeeScriptSourceSetInternal)coffeeScriptSourceSet).getOutputSourceSet());
                 }
             });
         }

@@ -20,6 +20,8 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
+import org.gradle.language.javascript.JavaScriptSourceSet;
+import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 
 /**
  * Default implementation of CoffeeScriptSourceSet
@@ -29,6 +31,10 @@ public class DefaultCoffeeScriptSourceSet extends AbstractLanguageSourceSet impl
 
     public DefaultCoffeeScriptSourceSet(String name, String parentName, FileResolver fileResolver) {
         super(name, parentName, "CoffeeScript source", new DefaultSourceDirectorySet("source", fileResolver));
+        JavaScriptSourceSet genJavaScriptSourceSet = new DefaultJavaScriptSourceSet("coffeeScriptGenerated", parentName, fileResolver);
+        genJavaScriptSourceSet.getSource().include("**/*.js");
+        genJavaScriptSourceSet.builtBy(this);
+        setOutputSourceSet(genJavaScriptSourceSet);
     }
 
     public void setOutputSourceSet(LanguageSourceSet outputSourceSet) {

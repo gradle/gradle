@@ -45,10 +45,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed(":compilePlayBinaryPlayCoffeeScriptSources", ":processPlayBinaryPlayCoffeeScriptGenerated")
-        file("build/playBinary/coffeescript/test.js").exists()
-        compareWithoutWhiteSpace file("build/playBinary/coffeescript/test.js").text, expectedJavaScript()
+        file("build/playBinary/coffeescript/public/test.js").exists()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/test.js").text, expectedJavaScript()
         jar("build/jars/play/playBinary.jar").containsDescendants(
-                "test.js"
+                "public/test.js"
         )
     }
 

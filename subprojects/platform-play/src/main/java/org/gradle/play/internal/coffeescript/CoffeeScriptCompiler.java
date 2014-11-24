@@ -98,7 +98,7 @@ public class CoffeeScriptCompiler implements Compiler<CoffeeScriptCompileSpec>, 
 
             public void visitFile(FileVisitDetails fileDetails) {
                 RelativePath relativePath = fileDetails.getRelativePath();
-                File targetFile = relativePath.getFile(spec.getDestinationDir());
+                File targetFile = relativePath.getFile(new File(spec.getDestinationDir(), "public"));
                 String targetFileName = targetFile.getPath().replaceAll("\\.coffee$", ".js");
                 ScriptResult result = engine.execute(getClass().getClassLoader(), WRAPPER_SCRIPT_NAME, coffeeScriptCompiler, new String[] {fileDetails.getFile().getPath(), targetFileName});
                 if (result.getStatus() != ScriptResult.SUCCESS) {

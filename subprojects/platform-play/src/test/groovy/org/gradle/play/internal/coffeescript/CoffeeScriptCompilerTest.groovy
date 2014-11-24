@@ -108,6 +108,6 @@ class CoffeeScriptCompilerTest extends Specification {
     }
 
     def toTargetDir(File source, File sourceDir, File targetDir) {
-        return targetDir.path + (source.path - sourceDir.path)
+        return targetDir.path + "/public" + (source.path - sourceDir.path)
     }
 }
