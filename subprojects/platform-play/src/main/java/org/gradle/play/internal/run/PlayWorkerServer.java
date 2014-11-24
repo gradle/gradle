@@ -39,20 +39,20 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
-        final PlayAppLifecycleUpdate result = execute();
+        final PlayAppLifecycleUpdate result = startServer();
         try {
+            clientProtocol.update(result);
             stop.await();
-            clientProtocol.executed(result);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    public PlayAppLifecycleUpdate execute() {
+    public PlayAppLifecycleUpdate startServer() {
         try {
             PlayExecuter playExcutor = new PlayExecuter();
             playExcutor.run(spec);
-            return new PlayAppLifecycleUpdate(true);
+            return new PlayAppLifecycleUpdate(PlayAppStatus.RUNNING);
         } catch (Exception e) {
             Logging.getLogger(this.getClass()).error("Failed to run Play", e);
             return new PlayAppLifecycleUpdate(e);

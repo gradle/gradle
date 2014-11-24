@@ -74,10 +74,9 @@ public class PlayRun extends ConventionTask {
         PlayRunSpec spec = new DefaultPlayRunSpec(getProject().files(applicationJar), getProject().getProjectDir(), getForkOptions(), httpPort);
         PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
         PlayApplicationRunner manager = toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
-
         try {
             runnerToken = manager.start();
-
+            progressLogger.completed();
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                     .start(String.format("Run Play App at http://localhost:%d/", httpPort),
                             String.format("Running at http://localhost:%d/", httpPort));

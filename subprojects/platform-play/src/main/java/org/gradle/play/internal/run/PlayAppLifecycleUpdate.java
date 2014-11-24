@@ -20,21 +20,16 @@ import java.io.Serializable;
 
 public class PlayAppLifecycleUpdate implements Serializable{
     private final Exception exception;
-    private boolean successful;
     private PlayAppStatus status;
 
-    public PlayAppLifecycleUpdate(boolean success){
-        this.successful = success;
+    public PlayAppLifecycleUpdate(PlayAppStatus status){
+        this.status = status;
         this.exception = null;
     }
 
     public PlayAppLifecycleUpdate(Exception exception){
-        this.successful = false;
+        this.status = PlayAppStatus.FAILED;
         this.exception = exception;
-    }
-
-    public boolean isSuccessful() {
-        return successful;
     }
 
     public Exception getException() {

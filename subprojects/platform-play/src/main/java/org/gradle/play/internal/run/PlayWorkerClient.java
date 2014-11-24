@@ -26,7 +26,7 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
     private final BlockingQueue<PlayAppLifecycleUpdate> startEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
     private final BlockingQueue<PlayAppLifecycleUpdate> stopEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
-    public void executed(PlayAppLifecycleUpdate update) {
+    public void update(PlayAppLifecycleUpdate update) {
         try {
             PlayAppStatus status = update.getStatus();
             if(status == PlayAppStatus.RUNNING || status == PlayAppStatus.FAILED){

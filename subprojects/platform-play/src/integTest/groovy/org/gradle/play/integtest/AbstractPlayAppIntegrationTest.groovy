@@ -90,7 +90,6 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
             }
         }"""
         when:
-        executer.withArgument("-d")
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
