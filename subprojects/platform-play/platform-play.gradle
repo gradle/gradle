@@ -3,6 +3,7 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJvm")
     compile project(":scala")
+    compile project(":javascript")
 }
 
 useClassycle()

@@ -32,6 +32,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                     name = "typesafe-maven-release"
                     url = "http://repo.typesafe.com/typesafe/maven-releases"
                 }
+                maven {
+                    name = "gradle-js"
+                    url = "https://repo.gradle.org/gradle/javascript-public"
+                }
             }
         """
     }

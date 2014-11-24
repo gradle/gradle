@@ -30,8 +30,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.CoffeeScriptSourceSetInternal;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
-import org.gradle.language.javascript.JavaScriptSourceSet;
-import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
@@ -41,7 +39,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.JavaScriptFile;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
-import org.gradle.play.tasks.CoffeeScriptCompile;
+import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
 import java.io.File;
 import java.util.Collections;
@@ -54,6 +52,17 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", PlayApplicationPlugin.class));
+    }
+
+    private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.3.3";
+    private static final String DEFAULT_RHINO_VERSION = "1.7R4";
+
+    static String getCoffeeScriptDependencyNotation() {
+        return String.format("org.coffeescript:coffee-script-js:%s@js", DEFAULT_COFFEESCRIPT_VERSION);
+    }
+
+    static String getRhinoDependencyNotation() {
+        return String.format("org.mozilla:rhino:%s", DEFAULT_RHINO_VERSION);
     }
 
     /**
@@ -76,7 +85,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                     coffeeScriptSourceSet.getSource().srcDir("app");
                     coffeeScriptSourceSet.getSource().include("**/*.coffee");
                     ((ComponentSpecInternal) playComponent).getSources().add(coffeeScriptSourceSet);
-                    ((ComponentSpecInternal) playComponent).getSources().add(((CoffeeScriptSourceSetInternal)coffeeScriptSourceSet).getOutputSourceSet());
+                    ((ComponentSpecInternal) playComponent).getSources().add(((CoffeeScriptSourceSetInternal) coffeeScriptSourceSet).getOutputSourceSet());
                 }
             });
         }
@@ -113,17 +122,18 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                 }
 
                 public Class<? extends DefaultTask> getTaskType() {
-                    return CoffeeScriptCompile.class;
+                    return PlayCoffeeScriptCompile.class;
                 }
 
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
-                    CoffeeScriptCompile coffeeScriptCompile = (CoffeeScriptCompile) task;
+                    PlayCoffeeScriptCompile coffeeScriptCompile = (PlayCoffeeScriptCompile) task;
                     PlayApplicationBinarySpec playBinarySpec = (PlayApplicationBinarySpec) binary;
                     coffeeScriptCompile.setDescription(String.format("Compiles the %s of %s", sourceSet, binary));
                     File coffeeScriptCompileOutputDirectory = new File(task.getProject().getBuildDir(), String.format("%s/coffeescript", binary.getName()));
-                    coffeeScriptCompile.setOutputDirectory(coffeeScriptCompileOutputDirectory);
-                    coffeeScriptCompile.setPlatform(playBinarySpec.getTargetPlatform());
+                    coffeeScriptCompile.setDestinationDir(new File(coffeeScriptCompileOutputDirectory, "public"));
                     coffeeScriptCompile.setSource(sourceSet.getSource());
+                    coffeeScriptCompile.setCoffeeScriptDependency(getCoffeeScriptDependencyNotation());
+                    coffeeScriptCompile.setRhinoDependency(getRhinoDependencyNotation());
 
                     LanguageSourceSet outputSourceSet = ((CoffeeScriptSourceSetInternal)sourceSet).getOutputSourceSet();
                     outputSourceSet.getSource().srcDir(coffeeScriptCompileOutputDirectory);
