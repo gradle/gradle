@@ -217,7 +217,7 @@ Report on failed artifact downloads for a configuration:
 - Replacement for `ResolvedArtifact.name`, `ResolvedArtifact.extension` etc
 - Need a way to query Artifact model without downloading artifact files
 
-## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
+## Story: Access the ivy and maven metadata artifacts via the Artifact Query API for component ID(s)
 
 ### User visible changes
 
@@ -233,10 +233,20 @@ Access the ivy.xml files for a ivy components with the specified id:
 Get the pom files for all maven modules in a configuration:
 
     def artifactResult = dependencies.createArtifactResolutionQuery()
-        .forComponents(configurations.compile)
+        .forComponents(mavenModuleComponentId1, mavenModuleComponentId2)
         .withArtifacts(MavenModule, MavenPomArtifact)
         .execute()
     Set<File> pomFiles = artifactResult.getArtifactFiles()
+
+### Implementation
+
+- Introduce `Module` domain model:
+    - Add the interface `org.gradle.jvm.Module` in the project `platform-jvm`. The interface extends `org.gradle.jvm.Component`.
+    - Add the interface `org.gradle.jvm.IvyModule` in the project `platform-jvm`. The interface extends `org.gradle.jvm.Module`.
+    - Add the interface `org.gradle.jvm.MavenModule` in the project `platform-jvm`. The interface extends `org.gradle.jvm.Module`.
+- Introduce `Artifact` domain model:
+    - Add the interface `org.gradle.jvm.artifact.IvyDescriptorArtifact` in the project `platform-jvm`. The interface extends `org.gradle.api.component.Artifact`.
+    - Add the interface `org.gradle.jvm.artifact.MavenPomArtifact` in the project `platform-jvm`. The interface extends `org.gradle.api.component.Artifact`.
 
 ### Test cases
 
@@ -259,6 +269,27 @@ Get the pom files for all maven modules in a configuration:
 ### Open issues
 
 - Typed domain model for IvyModule and MavenModule
+
+## Story: Access the ivy and maven metadata artifacts via the Artifact Query API for a configuration
+
+### User visible changes
+
+Access the ivy.xml files for all ivy module in a configuration:
+
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponents(configurations.compile)
+        .withArtifacts(IvyModule, IvyDescriptorArtifact)
+        .execute()
+
+    Set<File> ivyFiles = result.artifactFiles()
+
+Get the pom files for all maven modules in a configuration:
+
+    def artifactResult = dependencies.createArtifactResolutionQuery()
+        .forComponents(configurations.compile)
+        .withArtifacts(MavenModule, MavenPomArtifact)
+        .execute()
+    Set<File> pomFiles = artifactResult.getArtifactFiles()
 
 ## Story: Reliable mechanism for checking for success with new resolution result APIs
 
