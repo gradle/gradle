@@ -138,10 +138,18 @@ All other mutative methods of `PluginContainer` are deprecated without replaceme
 
 These methods have no useful purpose.   
 
+The deprecated method will be removed in Gradle 3.0.
+
 ### Renamed method on ComponentMetadataHandler
 
-- The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been deprecated and replaced with `all`.
-  As this is an incubating feature, the deprecated method will be removed in the next minor release of Gradle.
+The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been deprecated and replaced with `all`.
+As this is an incubating feature, the deprecated method will be removed in Gradle 2.3.
+
+### `--no-color` command-line option
+
+The `--no-color` option has been replaced by the more general `--color` option. You can use `gradle --color never ...` instead of `gradle --no-color ...`.
+
+The `--no-color` option will be removed in Gradle 3.0.
 
 ## Potential breaking changes
 

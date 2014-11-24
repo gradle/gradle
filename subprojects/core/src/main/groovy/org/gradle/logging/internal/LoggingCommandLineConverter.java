@@ -26,10 +26,7 @@ import org.gradle.logging.ConsoleOutput;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
     public static final String DEBUG = "d";
@@ -39,13 +36,14 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String NO_COLOR = "no-color";
-    public static final String ANSI_CONSOLE = "ansi";
+    public static final String COLOR = "color";
     public static final String FULL_STACKTRACE = "S";
     public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
     public static final String STACKTRACE = "s";
     public static final String STACKTRACE_LONG = "stacktrace";
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private final BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
+    private final Map<String, ConsoleOutput> consoleOutputMap = new HashMap<String, ConsoleOutput>();
 
     public LoggingCommandLineConverter() {
         logLevelMap.put(QUIET, LogLevel.QUIET);
@@ -53,6 +51,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
         showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
         showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
+        consoleOutputMap.put("never", ConsoleOutput.Disable);
+        consoleOutputMap.put("auto", ConsoleOutput.Auto);
+        consoleOutputMap.put("always", ConsoleOutput.Enable);
     }
 
     public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
@@ -72,8 +73,13 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
             loggingConfiguration.setConsoleOutput(ConsoleOutput.Disable);
         }
 
-        if (commandLine.hasOption(ANSI_CONSOLE)) {
-            loggingConfiguration.setConsoleOutput(ConsoleOutput.Enable);
+        if (commandLine.hasOption(COLOR)) {
+            String value = commandLine.option(COLOR).getValue();
+            ConsoleOutput colorOutput = consoleOutputMap.get(value.toLowerCase());
+            if (colorOutput == null) {
+                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, COLOR));
+            }
+            loggingConfiguration.setConsoleOutput(colorOutput);
         }
 
         return loggingConfiguration;
@@ -85,8 +91,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
         parser.allowOneOf(DEBUG, QUIET, INFO);
 
-        parser.option(NO_COLOR).hasDescription("Do not use color in the console output.");
-        parser.option(ANSI_CONSOLE).hasDescription("Disable native terminal detection and enable ANSI escape encoding in the console output.");
+        parser.option(NO_COLOR).deprecated("use --color=never instead").hasDescription("Do not use color in the console output.");
+        parser.option(COLOR).hasArgument().hasDescription("Specifies when to use color in the console output. Values are 'always', 'auto' (default) or 'never'.");
+        parser.allowOneOf(NO_COLOR, COLOR);
 
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");

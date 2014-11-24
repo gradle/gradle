@@ -54,6 +54,20 @@
         </varlistentry>
         <varlistentry>
             <term>
+                <option>--color</option>
+            </term>
+            <listitem>
+                <para>Enables or disables use of color in the console output.</para>
+                <para>Set to <literal>never</literal> to disable all color and other control codes in the console output.</para>
+                <para>Set to <literal>auto</literal> (the default) to enable color and other control codes in the console output when
+                    the build process is attached to a console.</para>
+                <para>Set to <literal>always</literal> to enable color and other control codes in the console output,
+                    even when the build process is not attached to a console.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
                 <option>--continue</option>
             </term>
             <listitem>
@@ -128,22 +142,6 @@
             <listitem>
                 <para>Runs the build with all task actions disabled. See <xref linkend="sec:dry_run"/>.
                 </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term>
-                <option>--no-color</option>
-            </term>
-            <listitem>
-                <para>Do not use color in the console output.</para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term>
-                <option>--ansi</option>
-            </term>
-            <listitem>
-                <para>Disable native terminal detection and enable ANSI escape encoding in the console output.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
@@ -299,8 +297,22 @@
     <para>The above information is printed to the console when you execute <userinput>gradle -h</userinput>.
     </para>
 
+    <section>
+        <title>Deprecated command-line options</title>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <option>--no-color</option>
+                </term>
+                <listitem>
+                    <para>Do not use color in the console output. This option has been replaced by the <option>--color=never</option> option.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+
     <section id='daemon_cli'>
-        <title>Daemon command-line options:</title>
+        <title>Daemon command-line options</title>
         <para>The
             <xref linkend="gradle_daemon"/>
             contains more information about the daemon.

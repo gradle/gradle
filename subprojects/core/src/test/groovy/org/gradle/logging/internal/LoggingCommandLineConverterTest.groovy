@@ -16,6 +16,7 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.cli.CommandLineArgumentException
 import org.gradle.logging.ConsoleOutput
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
@@ -61,11 +62,27 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--no-color'])
     }
 
-    def convertsAnsi() {
-        expectedConfig.consoleOutput = ConsoleOutput.Enable
+    def convertsColor() {
+        expectedConfig.consoleOutput = consoleOutput
 
         expect:
-        checkConversion(['--ansi'])
+        checkConversion([arg])
+
+        where:
+        arg              | consoleOutput
+        "--color=never"  | ConsoleOutput.Disable
+        "--color=auto"   | ConsoleOutput.Auto
+        "--color=AUTO"   | ConsoleOutput.Auto
+        "--color=always" | ConsoleOutput.Enable
+    }
+
+    def reportsUnknownColorOption() {
+        when:
+        converter.convert(["--color", "unknown"], new LoggingConfiguration())
+
+        then:
+        CommandLineArgumentException e = thrown()
+        e.message == /Unrecognized value 'unknown' for color./
     }
 
     def convertsShowStacktrace() {
@@ -101,7 +118,6 @@ class LoggingCommandLineConverterTest extends Specification {
     void checkConversion(List<String> args) {
         def actual = converter.convert(args, new LoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
-        assert actual.colorOutput == expectedConfig.colorOutput
         assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
     }

@@ -24,7 +24,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.OutputStreamWriter;
 
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
 
@@ -50,13 +50,13 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
         boolean stdErrIsTerminal = consoleMetaData.isStdErr();
         if (stdOutIsTerminal) {
             OutputStream originalStdOut = renderer.getOriginalStdOut();
-            PrintStream outStr = new PrintStream(force ? originalStdOut : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdOut));
+            OutputStreamWriter outStr = new OutputStreamWriter(force ? originalStdOut : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdOut));
             Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), force);
             renderer.addConsole(console, true, stdErrIsTerminal, consoleMetaData);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
             OutputStream originalStdErr = renderer.getOriginalStdErr();
-            PrintStream errStr = new PrintStream(force ? originalStdErr : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdErr));
+            OutputStreamWriter errStr = new OutputStreamWriter(force ? originalStdErr : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdErr));
             Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), force);
             renderer.addConsole(console, false, true, consoleMetaData);
         }
