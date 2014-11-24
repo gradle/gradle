@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-/**
- * Types for Scala language support.
- */
-package org.gradle.language.scala;
+package org.gradle.language.scala.internal.toolchain;
+
+import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.language.scala.toolchain.ScalaToolChain;
+import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
+
+public interface ScalaToolChainInternal extends ScalaToolChain, ToolChainInternal<ScalaPlatform> {
+}

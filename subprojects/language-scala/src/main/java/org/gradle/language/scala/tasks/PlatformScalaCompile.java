@@ -18,7 +18,7 @@ package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.scala.ScalaCompile;
-import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.language.scala.platform.ScalaPlatform;
 
 
 /**
@@ -27,13 +27,13 @@ import org.gradle.jvm.platform.JavaPlatform;
 @Incubating
 public class PlatformScalaCompile extends ScalaCompile {
 
-    private JavaPlatform platform;
+    private ScalaPlatform platform;
 
-    public JavaPlatform getPlatform() {
+    public ScalaPlatform getPlatform() {
         return platform;
     }
 
-    public void setPlatform(JavaPlatform platform) {
+    public void setPlatform(ScalaPlatform platform) {
         this.platform = platform;
     }
 }

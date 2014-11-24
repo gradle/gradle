@@ -16,6 +16,8 @@
 
 package org.gradle.language.fixtures
 
+import org.gradle.integtests.fixtures.jvm.JvmSourceFile
+
 class TestJavaLibrary {
     List<JvmSourceFile> sources = [
         new JvmSourceFile("compile/test", "Person.java", '''

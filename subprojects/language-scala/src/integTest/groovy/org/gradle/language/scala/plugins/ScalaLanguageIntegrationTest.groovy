@@ -15,6 +15,50 @@
  */
 
 package org.gradle.language.scala.plugins
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.language.scala.fixtures.TestScalaLibrary
+import org.gradle.test.fixtures.archive.JarTestFixture
 
-class ScalaLanguageIntegrationTest {
+class ScalaLanguageIntegrationTest extends AbstractIntegrationSpec{
+
+    def app = new TestScalaLibrary()
+
+    def "can build binary with sources in conventional location"() {
+        when:
+        app.sources*.writeToDir(file("src/myLib/scala"))
+        app.resources*.writeToDir(file("src/myLib/resources"))
+        def expectedOutputs = app.expectedOutputs*.fullPath as String[]
+
+        and:
+        buildFile << """
+    plugins {
+        id 'jvm-component'
+        id 'scala-lang'
+    }
+    model {
+        components {
+            myLib(JvmLibrarySpec)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+"""
+        and:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLibScala", ":createMyLibJar", ":myLibJar"
+
+        and:
+        file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
+        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+    }
+
+    private JarTestFixture jarFile(String s) {
+        new JarTestFixture(file(s))
+    }
+
 }

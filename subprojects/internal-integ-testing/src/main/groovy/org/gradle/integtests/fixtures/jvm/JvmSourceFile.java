@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.fixtures;
+package org.gradle.integtests.fixtures.jvm;
 
 import com.google.common.base.Joiner;
 import org.gradle.test.fixtures.file.TestFile;
@@ -47,7 +47,7 @@ public class JvmSourceFile {
     }
 
     public JvmSourceFile getClassFile() {
-        return new JvmSourceFile(path, name.replace(".java", ".class"), null);
+        return new JvmSourceFile(path, name.replaceAll("(\\.java|\\.scala)", ".class"), null);
     }
 
     public TestFile writeToDir(TestFile base) {

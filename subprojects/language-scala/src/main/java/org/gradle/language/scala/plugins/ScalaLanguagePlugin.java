@@ -17,6 +17,7 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.*;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
@@ -27,12 +28,16 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaSourceSet;
+import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
+import org.gradle.language.scala.toolchain.ScalaToolChain;
+import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
@@ -55,13 +60,24 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
+        @Model
+        ScalaToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ScalaToolChainInternal.class);
+        }
+
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new Scala());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new Scala(serviceRegistry.get(ScalaToolChain.class)));
         }
     }
 
     private static class Scala implements LanguageRegistration<ScalaLanguageSourceSet> {
+        private ScalaToolChain toolChain;
+
+        public Scala(ScalaToolChain toolchain) {
+            this.toolChain = toolchain;
+        }
+
         public String getName() {
             return "scala";
         }
@@ -97,9 +113,17 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
 
+                    // TODO RG fill via Scala Toolchain
+                    compile.setScalaClasspath(toolChain.getScalaClasspath());
+                    compile.setZincClasspath(toolChain.getZincClasspath());
+
+                    compile.getScalaCompileOptions().setUseAnt(false);
+                    compile.getScalaCompileOptions().setFork(true);
+                    File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
+                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
+
                     compile.setDescription(String.format("Compiles %s.", scalaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
-                    compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(scalaSourceSet.getSource());
                     compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
@@ -109,7 +133,8 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     compile.dependsOn(scalaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);
                 }
-            };        }
+            };
+        }
 
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof JvmBinarySpec;

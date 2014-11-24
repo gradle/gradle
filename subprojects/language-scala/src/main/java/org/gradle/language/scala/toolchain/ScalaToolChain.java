@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
+package org.gradle.language.scala.toolchain;
+
+import org.gradle.api.file.FileCollection;
+import org.gradle.platform.base.ToolChain;
+
 /**
- * Types for Scala language support.
+ * A set of tools for building Scala applications
  */
-package org.gradle.language.scala;
+public interface ScalaToolChain extends ToolChain {
+
+    //TODO RG: make this platform aware
+    FileCollection getScalaClasspath();
+
+    FileCollection getZincClasspath();
+}

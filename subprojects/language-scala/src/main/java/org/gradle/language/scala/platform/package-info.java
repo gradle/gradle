@@ -15,6 +15,9 @@
  */
 
 /**
- * Types for Scala language support.
+ * Classes for managing scala platform variance
  */
-package org.gradle.language.scala;
+@Incubating
+package org.gradle.language.scala.platform;
+
+import org.gradle.api.Incubating;

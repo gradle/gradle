@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+
 /**
- * Types for Scala language support.
+ * Defines tools that can build scala applications.
  */
-package org.gradle.language.scala;
+@Incubating
+package org.gradle.language.scala.toolchain;
+
+import org.gradle.api.Incubating;
