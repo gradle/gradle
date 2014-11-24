@@ -21,11 +21,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.jvm.internal.EmptyClasspath;
-import org.gradle.language.scala.ScalaSourceSet;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
 
 import javax.inject.Inject;
 
-public class DefaultScalaSourceSet extends AbstractLanguageSourceSet implements ScalaSourceSet {
+public class DefaultScalaSourceSet extends AbstractLanguageSourceSet implements ScalaLanguageSourceSet {
 
     private final EmptyClasspath compileClasspath;
 

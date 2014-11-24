@@ -25,7 +25,7 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.language.scala.ScalaSourceSet;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaSourceSet;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.Mutate;
@@ -61,16 +61,16 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         }
     }
 
-    private static class Scala implements LanguageRegistration<ScalaSourceSet> {
+    private static class Scala implements LanguageRegistration<ScalaLanguageSourceSet> {
         public String getName() {
             return "scala";
         }
 
-        public Class<ScalaSourceSet> getSourceSetType() {
-            return ScalaSourceSet.class;
+        public Class<ScalaLanguageSourceSet> getSourceSetType() {
+            return ScalaLanguageSourceSet.class;
         }
 
-        public Class<? extends ScalaSourceSet> getSourceSetImplementation() {
+        public Class<? extends ScalaLanguageSourceSet> getSourceSetImplementation() {
             return DefaultScalaSourceSet.class;
         }
 
@@ -94,7 +94,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
-                    ScalaSourceSet scalaSourceSet = (ScalaSourceSet) sourceSet;
+                    ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
 
                     compile.setDescription(String.format("Compiles %s.", scalaSourceSet));
