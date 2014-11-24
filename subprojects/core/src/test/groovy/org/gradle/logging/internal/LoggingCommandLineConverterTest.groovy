@@ -16,6 +16,7 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.logging.ConsoleOutput
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
 import spock.lang.Specification
@@ -61,7 +62,7 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def convertsAnsi() {
-        expectedConfig.ansiConsole = true
+        expectedConfig.consoleOutput = ConsoleOutput.Enable
 
         expect:
         checkConversion(['--ansi'])
@@ -101,6 +102,7 @@ class LoggingCommandLineConverterTest extends Specification {
         def actual = converter.convert(args, new LoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.colorOutput == expectedConfig.colorOutput
+        assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
     }
 }

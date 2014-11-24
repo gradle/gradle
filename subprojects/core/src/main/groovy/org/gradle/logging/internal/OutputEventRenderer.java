@@ -45,7 +45,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
-    private boolean useAnsiConsole;
+    private ConsoleOutput consoleOutput;
 
     public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
@@ -59,7 +59,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
-    public boolean isUseAnsiConsole() { return useAnsiConsole; }
+    public ConsoleOutput getConsoleOutput() { return consoleOutput; }
 
     public OutputStream getOriginalStdOut() {
         return originalStdOut;
@@ -71,8 +71,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            colourMap.setUseColor(consoleOutput != ConsoleOutput.Disable);
-            this.useAnsiConsole = consoleOutput == ConsoleOutput.Enable;
+            this.consoleOutput = consoleOutput;
             consoleConfigureAction.execute(this);
         }
     }
@@ -80,8 +79,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     public void attachAnsiConsole(OutputStream outputStream) {
         synchronized (lock) {
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-            DefaultColorMap colourMap = new DefaultColorMap();
-            colourMap.setUseColor(true);
             Console console = new AnsiConsole(writer, writer, colourMap, true);
             addConsole(console, true, true, new FallbackConsoleMetaData());
         }

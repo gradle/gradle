@@ -21,6 +21,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -28,29 +29,35 @@ import java.io.PrintStream;
 public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
 
     public void execute(OutputEventRenderer renderer) {
-        ConsoleMetaData consoleMetaData;
-        boolean useAnsiOutput = renderer.isUseAnsiConsole();
-        if (useAnsiOutput) {
-            consoleMetaData = new FallbackConsoleMetaData();
-        } else {
-            ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-            consoleMetaData = consoleDetector.getConsole();
-        }
-        if (consoleMetaData == null) {
+        ConsoleOutput consoleOutput = renderer.getConsoleOutput();
+        if (consoleOutput == ConsoleOutput.Disable) {
             return;
         }
+
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+        boolean force = false;
+        if (consoleMetaData == null) {
+            if (consoleOutput == ConsoleOutput.Auto) {
+                return;
+            }
+            assert consoleOutput == ConsoleOutput.Enable;
+            consoleMetaData = new FallbackConsoleMetaData();
+            force = true;
+        }
+
         boolean stdOutIsTerminal = consoleMetaData.isStdOut();
         boolean stdErrIsTerminal = consoleMetaData.isStdErr();
         if (stdOutIsTerminal) {
             OutputStream originalStdOut = renderer.getOriginalStdOut();
-            PrintStream outStr = new PrintStream(useAnsiOutput ? originalStdOut : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdOut));
-            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), useAnsiOutput);
+            PrintStream outStr = new PrintStream(force ? originalStdOut : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdOut));
+            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), force);
             renderer.addConsole(console, true, stdErrIsTerminal, consoleMetaData);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
             OutputStream originalStdErr = renderer.getOriginalStdErr();
-            PrintStream errStr = new PrintStream(useAnsiOutput ? originalStdErr : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdErr));
-            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), useAnsiOutput);
+            PrintStream errStr = new PrintStream(force ? originalStdErr : org.fusesource.jansi.AnsiConsole.wrapOutputStream(originalStdErr));
+            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), force);
             renderer.addConsole(console, false, true, consoleMetaData);
         }
     }
