@@ -17,7 +17,6 @@
 package org.gradle.jvm.artifact;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.Artifact;
 
 /**
  * An Ivy descriptor artifact.
