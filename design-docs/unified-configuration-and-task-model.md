@@ -224,21 +224,31 @@ A mock up:
 
 ### Open issues
 
-- `IndexOutOfBoundsException` when type parameter is left off `CollectionBuilder` in the rule parameter list.
-- `CollectionBuilder` is not part of public API.
-- `CollectionBuilder.create` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
-- `CollectionBuilder` should have an overload that can accept a rule source class or instance, to allow the configuration rule to have its own inputs that aren't required
-when the task is declared. Should be consistent with pattern used for dependency management rules.
-- Error message when no collection builder of requested type should provide more help about what is available.
+
+#### Actionable now 
+
 - `@Mutate` and `@Finalize` methods can have non-void return type.
 - `@Path("")` can be attached to a rule method parameter.
-- When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
+- `IndexOutOfBoundsException` when type parameter is left off `CollectionBuilder` in the rule parameter list.
+- `CollectionBuilder.create` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
+
+#### Deferred
+
+Due to uncertanties about how we will deal with creating non root elements generally, deferring these.
+
+- `CollectionBuilder` is not part of public API.
+- `CollectionBuilder` should have an overload that can accept a rule source class or instance, to allow the configuration rule to have its own inputs that aren't required when the task is declared. Should be consistent with pattern used for dependency management rules.
+- Error message when no collection builder of requested type should provide more help about what is available.
 - Possibly introduce a new type of rule, that adds model elements to a container, rather than 'mutates' the container.
-- Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
 - Project and other things can leak out of `Task` instances when `TaskContainer` is provided to a rule.
     - Same with `Buildable` things, `BuildableModelElement`, `NativeBinaryTasks`, etc.
-- Don't fire task configuration rules when tasks not required (eg building model via tooling API).
 
+#### Needs clarification
+
+- When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
+- Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.    
+- Don't fire task configuration rules when tasks not required (eg building model via tooling API).
+    
 ## Story: Build author configures task created by configuration rule supplied by plugin (DONE)
 
 1. Build author has prior knowledge of task name (i.e. story does not cover any documentation or tooling to allow discovery of task name)
