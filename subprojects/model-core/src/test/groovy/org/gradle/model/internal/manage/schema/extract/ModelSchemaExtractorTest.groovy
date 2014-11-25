@@ -375,13 +375,20 @@ class ModelSchemaExtractorTest extends Specification {
         void setValue(String value)
     }
 
+    static interface SingleFloatValueProperty {
+        Float getValue()
+
+        void setValue(Float value)
+    }
+
     @Managed
-    static interface ConflictingPropertiesInParents extends SingleIntegerValueProperty, SingleStringValueProperty {
+    static interface ConflictingPropertiesInParents extends SingleIntegerValueProperty, SingleStringValueProperty, SingleFloatValueProperty {
     }
 
     def "conflicting properties of super types are detected"() {
         given:
         def invalidMethods = [
+                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float),
                 MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer),
                 MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String),
         ]

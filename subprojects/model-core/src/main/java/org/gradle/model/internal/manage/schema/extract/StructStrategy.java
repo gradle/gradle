@@ -16,10 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
+import com.google.common.base.*;
 import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -33,10 +30,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StructStrategy implements ModelSchemaExtractionStrategy {
     protected final Factory<String> supportedTypeDescriptions;
@@ -63,14 +57,12 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
             List<ModelProperty<?>> properties = Lists.newLinkedList();
 
-            Map<String, Method> methodsByName = Maps.newHashMap();
-            for (Method method : methods) {
-                String name = method.getName();
-                if (methodsByName.containsKey(name)) {
-                    throw invalidMethods(extractionContext, "overloaded methods are not supported", ImmutableList.of(method, methodsByName.get(name)));
+            final ImmutableListMultimap<String, Method> methodsByName = Multimaps.index(methods, new Function<Method, String>() {
+                public String apply(Method method) {
+                    return method.getName();
                 }
-                methodsByName.put(name, method);
-            }
+            });
+            ensureNoOverloadedMethods(extractionContext, methodsByName);
 
             List<Method> handled = Lists.newArrayList();
 
@@ -94,7 +86,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                     boolean isWritable = methodsByName.containsKey(setterName);
 
                     if (isWritable) {
-                        Method setter = methodsByName.get(setterName);
+                        Method setter = methodsByName.get(setterName).get(0);
                         validateSetter(extractionContext, returnType, setter);
                         handled.add(setter);
                     }
@@ -121,6 +113,18 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
             return new ModelSchemaExtractionResult<R>(schema, propertyDependencies);
         } else {
             return null;
+        }
+    }
+
+    private <R> void ensureNoOverloadedMethods(ModelSchemaExtractionContext<R> extractionContext, final ImmutableListMultimap<String, Method> methodsByName) {
+        Optional<String> overloadedMethodName = Iterables.tryFind(methodsByName.keySet(), new Predicate<String>() {
+            public boolean apply(String methodName) {
+                return methodsByName.get(methodName).size() > 1;
+            }
+        });
+
+        if (overloadedMethodName.isPresent()) {
+            throw invalidMethods(extractionContext, "overloaded methods are not supported", methodsByName.get(overloadedMethodName.get()));
         }
     }
 
