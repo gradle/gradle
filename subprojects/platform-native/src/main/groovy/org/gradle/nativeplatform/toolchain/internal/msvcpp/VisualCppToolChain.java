@@ -298,7 +298,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         }
 
         private CommandLineTool tool(String toolName, File exe) {
-            return new CommandLineTool(toolName, exe, execActionFactory);
+            return new DefaultCommandLineTool(toolName, exe, execActionFactory);
         }
 
         private CommandLineToolInvocation invocation(CommandLineToolConfigurationInternal commandLineToolConfiguration) {
