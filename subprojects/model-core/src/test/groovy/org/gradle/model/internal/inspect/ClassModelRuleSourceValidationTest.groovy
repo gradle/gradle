@@ -40,7 +40,7 @@ class ClassModelRuleSourceValidationTest extends Specification {
         OuterClass.InnerInstanceClass   | "enclosed classes must be static and non private"
         new Object() {}.getClass()      | "enclosed classes must be static and non private"
         OuterClass.HasSuperclass        | "cannot have superclass"
-        OuterClass.HasTwoConstructors   | "cannot have more than one constructor"
+        OuterClass.HasTwoConstructors   | "cannot declare a constructor that takes arguments"
         OuterClass.HasInstanceVar       | "field foo is not static final"
         OuterClass.HasFinalInstanceVar  | "field foo is not static final"
         OuterClass.HasNonFinalStaticVar | "field foo is not static final"

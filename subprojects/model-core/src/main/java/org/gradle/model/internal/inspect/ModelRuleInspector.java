@@ -141,13 +141,10 @@ public class ModelRuleInspector {
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
-        if (constructors.length > 1) {
-            throw invalid(source, "cannot have more than one constructor");
-        }
-
-        Constructor<?> constructor = constructors[0];
-        if (constructor.getParameterTypes().length > 0) {
-            throw invalid(source, "constructor cannot take any arguments");
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getParameterCount() > 0) {
+                throw invalid(source, "cannot declare a constructor that takes arguments");
+            }
         }
 
         Field[] fields = source.getDeclaredFields();
