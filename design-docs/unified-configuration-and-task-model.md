@@ -92,8 +92,6 @@ A mock up:
 
 - Int test that the constructor of a rule source plugin is not invoked until a rule from that class is required, and is invoked once only.
 - When rule source plugin constructor fails, the error message complains about a failure in the first rule from that class, instead of a failure to create the plugin.
-- When the inputs for some rule cannot be bound, search for methods that might have satisfied the requirement but which were not annotated with `@Model`.
-Or disallow methods on a rule source that are not recognised.
 - `DefaultModelRegistry` doesn't have any unit tests.
 - Project service registry is added as a model element.
 - Project build directory is added as a `File` model element. No warning when changed after use by a rule.
