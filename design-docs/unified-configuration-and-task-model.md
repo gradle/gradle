@@ -91,11 +91,17 @@ A mock up:
 > Pushed out to dedicated story for detecting and reporting cycles.
 
 - Int test that the constructor of a rule source plugin is not invoked until a rule from that class is required, and is invoked once only.
+
+> Pushed out to dedicated story.
+
 - When rule source plugin constructor fails, the error message complains about a failure in the first rule from that class, instead of a failure to create the plugin.
+
+> Pushed out to dedicated story.
+
 - `DefaultModelRegistry` doesn't have any unit tests.
-- Project service registry is added as a model element.
-- Project build directory is added as a `File` model element. No warning when changed after use by a rule.
-- Project extension container is added as a model element. No warning when changed after use by a rule.
+
+> Tested via `ModelRuleInspectorTest`.
+
 - Task container is added as a `TaskContainer`, and `AbstractProject` has to synchronize changes to this into the model space.
 - Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
 
@@ -352,6 +358,11 @@ This story adds coverage to ensure that model rules are fired **AFTER** afterEva
 1. ~~Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()~~
 1. ~~Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_~~
  
+## Story: Instance of rule source type is shared across entire build
+
+When inspecting rule source classes, we should assert _early_ that we can instantiate the type (i.e. during inspection, not rule execution).
+Moreover, we should only instatiate the type once for the whole build and reuse the instance.
+
 ## Story: Cyclic dependencies between configuration rules are reported
 
 Cycles between rules are fatal.
@@ -364,6 +375,41 @@ Things to consider:
 1. When should cycles be detected? (e.g. as rules are added, on demand)
 2. How should the exact source of cycles be reported?
 3. What advice can we realistically give to help break the cycle?
+
+## Story: Internal services are made available to configuration rules
+
+Configuration rules should be able to access selected internal services.
+We need this for our own infrastructure type plugins.
+
+Currently, as a stop gap measure we make the project service registry injectable into rules.
+Instead of doing this, we should allow the project service registry to nominate services it wishes to make available to the service registry.
+It only makes sense to expose immutable services, and we can do this on an as needed basis.
+
+As the services will be internal, they should not be represented as candidates in binding failure messages or other diagnostics.
+To support this, some visibility concept will need to be added to the registry.
+It also doesn't make sense for such services to have an address in the model space.
+That is, they just need to be injectable by type.
+
+## Story: Project build dir is available to rules to mutate and use
+
+Currently, the `project.buildDir` is made available in the model space as a `File` object.
+This is not by-type binding friendly, and generally weak.
+A specific model element should be added for this.
+
+As the build dir is “bridged” we need to consider the value being changed after it has been considered realised in the model space.
+We can't prevent this from happening as it would be a breaking change, but we should emit a deprecation warning when this happens.
+
+## Story: Project extension is bridged to the model space with state management
+
+This story provides infrastructure and a pattern for making project extensions available to the model space in a managed way.
+
+As extensions are generally highly mutable, and aren't managed types, they cannot be bridged as is.
+They effectively need to be “copied” into a managed type. 
+Moreover, some kind of support needs to be provided to warn the user if they modify the extension after it has been copied into the model space.
+
+### Open Questions
+
+- To what extent can we catch modifications to arbitrary extension types in order to issue mutation warnings?
 
 ## Story: Make the Model DSL public
 
