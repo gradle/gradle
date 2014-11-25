@@ -87,6 +87,9 @@ A mock up:
 - Can attach `@Model("")` to a method. Should probably complain about the empty string.
 - When an input for a creator rule cannot be bound, the error message does not include any diagnostic information.
 - When there is a cycle between creator rules, the error message complains about unbound rules instead of a cyclic dependency.
+
+> Pushed out to dedicated story for detecting and reporting cycles.
+
 - Int test that the constructor of a rule source plugin is not invoked until a rule from that class is required, and is invoked once only.
 - When rule source plugin constructor fails, the error message complains about a failure in the first rule from that class, instead of a failure to create the plugin.
 - When the inputs for some rule cannot be bound, search for methods that might have satisfied the requirement but which were not annotated with `@Model`.
@@ -351,6 +354,19 @@ This story adds coverage to ensure that model rules are fired **AFTER** afterEva
 1. ~~Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()~~
 1. ~~Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_~~
  
+## Story: Cyclic dependencies between configuration rules are reported
+
+Cycles between rules are fatal.
+We should detect them and visualise the cycle so the build author can do something about the cycle.
+
+The visualisation should be similar to the visualisation given when a task dependency relationship is cyclic, as far as it makes sense.
+
+Things to consider:
+
+1. When should cycles be detected? (e.g. as rules are added, on demand)
+2. How should the exact source of cycles be reported?
+3. What advice can we realistically give to help break the cycle?
+
 ## Story: Make the Model DSL public
 
 - New chapter in userguide
