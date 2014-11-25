@@ -39,7 +39,7 @@ class PlayCoffeeScriptPluginTest extends AbstractLanguagePluginSpec {
         }
     }
 
-    def "adds coffeescript output as javascript source sets" () {
+    def "adds javascript source set for coffeescript output" () {
         when:
         project.model { components { play(PlayApplicationSpec) } }
         project.evaluate()

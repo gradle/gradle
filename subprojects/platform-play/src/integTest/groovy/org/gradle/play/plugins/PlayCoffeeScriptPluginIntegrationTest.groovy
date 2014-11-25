@@ -58,15 +58,21 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
     CoffeeScript source 'play:coffeeScriptSources'
         app
 """))
+        output.contains(TextUtil.toPlatformLineSeparators("""
+    JavaScript source 'play:coffeeScriptGenerated'
+        src/play/coffeeScriptGenerated
+"""))
     }
 
     def "creates and configures compile task when source exists"() {
         buildFile << """
             task checkTasks {
                 doLast {
-                    def coffeeScriptCompileTasks = tasks.withType(CoffeeScriptCompile)
+                    def coffeeScriptCompileTasks = tasks.withType(CoffeeScriptCompile).matching { it.name == "compilePlayBinaryPlayCoffeeScriptSources" }
                     assert coffeeScriptCompileTasks.size() == 1
-                    assert coffeeScriptCompileTasks.find { it.name == "compilePlayBinaryPlayCoffeeScriptSources" } != null
+
+                    def javaScriptProcessTasks = tasks.withType(Copy).matching { it.name == "processPlayBinaryPlayCoffeeScriptGenerated" }
+                    assert javaScriptProcessTasks.size() == 1
                 }
             }
         """

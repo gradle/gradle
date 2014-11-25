@@ -40,9 +40,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "compile coffeescript as part of play application build" () {
+    def "compile default coffeescript source set as part of play application build" () {
         given:
-        withCoffeeScriptSource()
+        withCoffeeScriptSource("app/test.coffee")
 
         when:
         succeeds "assemble"
@@ -53,6 +53,47 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/test.js").text, expectedJavaScript()
         jar("build/jars/play/playBinary.jar").containsDescendants(
                 "public/test.js"
+        )
+    }
+
+    def "compiles multiple coffeescript source sets as part of play application build" () {
+        given:
+        withCoffeeScriptSource("app/test1.coffee")
+        withCoffeeScriptSource("src/play/extraCoffeeScript/xxx/test2.coffee")
+        withCoffeeScriptSource("extra/a/b/c/test3.coffee")
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            extraCoffeeScript(CoffeeScriptSourceSet)
+                            anotherCoffeeScript(CoffeeScriptSourceSet) {
+                                source.srcDir "extra"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        succeeds "assemble"
+
+        then:
+        executed(":compilePlayBinaryPlayCoffeeScriptSources",
+                 ":compilePlayBinaryPlayExtraCoffeeScript",
+                 ":compilePlayBinaryPlayAnotherCoffeeScript",
+                 ":processPlayBinaryPlayCoffeeScriptGenerated")
+        file("build/playBinary/coffeescript/public/test1.js").exists()
+        file("build/playBinary/coffeescript/public/xxx/test2.js").exists()
+        file("build/playBinary/coffeescript/public/a/b/c/test3.js").exists()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/test1.js").text, expectedJavaScript()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/xxx/test2.js").text, expectedJavaScript()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/a/b/c/test3.js").text, expectedJavaScript()
+        jar("build/jars/play/playBinary.jar").containsDescendants(
+                "public/test1.js",
+                "public/xxx/test2.js",
+                "public/a/b/c/test3.js"
         )
     }
 
@@ -68,8 +109,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         return string.replaceAll("\\s+", " ");
     }
 
-    def withCoffeeScriptSource() {
-        file("app/test.coffee") << """
+    def withCoffeeScriptSource(String path) {
+        return file(path) << """
 # Assignment:
 number   = 42
 opposite = true

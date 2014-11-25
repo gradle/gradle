@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.language.coffeescript.internal;
+package org.gradle.language.coffeescript.internal
 
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
+import org.gradle.api.internal.file.FileResolver
+import spock.lang.Specification
 
-public interface CoffeeScriptSourceSetInternal extends CoffeeScriptSourceSet {
-    public void setOutputSourceSet(LanguageSourceSet outputSourceSet);
-    public LanguageSourceSet getOutputSourceSet();
+class DefaultCoffeeScriptSourceSetTest extends Specification {
+    def "has useful String representation"() {
+        def sourceSet = new DefaultCoffeeScriptSourceSet("coffeeX", "playX", Stub(FileResolver))
+
+        expect:
+        sourceSet.displayName == "CoffeeScript source 'playX:coffeeX'"
+        sourceSet.toString() == "CoffeeScript source 'playX:coffeeX'"
+    }
 }

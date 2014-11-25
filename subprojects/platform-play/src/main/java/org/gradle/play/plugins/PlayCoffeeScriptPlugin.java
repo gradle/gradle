@@ -22,14 +22,17 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
-import org.gradle.language.coffeescript.internal.CoffeeScriptSourceSetInternal;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
+import org.gradle.language.javascript.JavaScriptSourceSet;
+import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
@@ -79,13 +82,46 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
         @Mutate
         void createCoffeeScriptSources(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
             components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
-                public void execute(PlayApplicationSpec playComponent) {
+                public void execute(final PlayApplicationSpec playComponent) {
                     CoffeeScriptSourceSet coffeeScriptSourceSet =
                             new DefaultCoffeeScriptSourceSet("coffeeScriptSources", playComponent.getName(), serviceRegistry.get(FileResolver.class));
                     coffeeScriptSourceSet.getSource().srcDir("app");
                     coffeeScriptSourceSet.getSource().include("**/*.coffee");
+
+                    // Add a JavaScriptSourceSet to process the compiled coffee script sources
+                    JavaScriptSourceSet javaScriptSourceSet = new DefaultJavaScriptSourceSet("coffeeScriptGenerated", playComponent.getName(), serviceRegistry.get(FileResolver.class));
+                    // This is so we force the sourceSetTransformTask to be created even though the source
+                    // is still empty at this point
+                    javaScriptSourceSet.builtBy(coffeeScriptSourceSet);
+                    javaScriptSourceSet.getSource().include("**/*.js");
+
                     ((ComponentSpecInternal) playComponent).getSources().add(coffeeScriptSourceSet);
-                    ((ComponentSpecInternal) playComponent).getSources().add(((CoffeeScriptSourceSetInternal) coffeeScriptSourceSet).getOutputSourceSet());
+                    ((ComponentSpecInternal) playComponent).getSources().add(javaScriptSourceSet);
+                }
+            });
+        }
+
+        @Mutate
+        void wireCoffeeScriptOutputToJavaScriptSources(TaskContainer tasks, ComponentSpecContainer components) {
+            components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
+                public void execute(PlayApplicationSpec playApplicationSpec) {
+                    final LanguageSourceSet javaScriptSourceSet = playApplicationSpec.getSource().matching(new Spec<LanguageSourceSet>() {
+                        public boolean isSatisfiedBy(LanguageSourceSet element) {
+                            return "coffeeScriptGenerated".equals(element.getName());
+                        }
+                    }).iterator().next();
+                    if (javaScriptSourceSet != null) {
+                        playApplicationSpec.getBinaries().all(new Action<BinarySpec>() {
+                            public void execute(BinarySpec binarySpec) {
+                                binarySpec.getTasks().withType(PlayCoffeeScriptCompile.class).all(new Action<PlayCoffeeScriptCompile>() {
+                                    public void execute(PlayCoffeeScriptCompile playCoffeeScriptCompile) {
+                                        javaScriptSourceSet.getSource().srcDir(playCoffeeScriptCompile.getOutputDirectory());
+                                        javaScriptSourceSet.builtBy(playCoffeeScriptCompile);
+                                    }
+                                });
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -127,17 +163,12 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
                     PlayCoffeeScriptCompile coffeeScriptCompile = (PlayCoffeeScriptCompile) task;
-                    PlayApplicationBinarySpec playBinarySpec = (PlayApplicationBinarySpec) binary;
                     coffeeScriptCompile.setDescription(String.format("Compiles the %s of %s", sourceSet, binary));
                     File coffeeScriptCompileOutputDirectory = new File(task.getProject().getBuildDir(), String.format("%s/coffeescript", binary.getName()));
-                    coffeeScriptCompile.setDestinationDir(new File(coffeeScriptCompileOutputDirectory, "public"));
+                    coffeeScriptCompile.setOutputDirectory(coffeeScriptCompileOutputDirectory);
                     coffeeScriptCompile.setSource(sourceSet.getSource());
                     coffeeScriptCompile.setCoffeeScriptDependency(getCoffeeScriptDependencyNotation());
                     coffeeScriptCompile.setRhinoDependency(getRhinoDependencyNotation());
-
-                    LanguageSourceSet outputSourceSet = ((CoffeeScriptSourceSetInternal)sourceSet).getOutputSourceSet();
-                    outputSourceSet.getSource().srcDir(coffeeScriptCompileOutputDirectory);
-                    outputSourceSet.builtBy(coffeeScriptCompile);
                 }
             };
         }
