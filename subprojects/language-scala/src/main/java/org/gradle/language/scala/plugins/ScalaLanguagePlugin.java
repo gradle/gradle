@@ -27,9 +27,7 @@ import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.language.scala.ScalaJvmLibrarySpec;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
-import org.gradle.language.scala.internal.DefaultScalaJvmLibrarySpec;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.internal.DefaultScalaSourceSet;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
@@ -38,8 +36,6 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.TransformationFileType;
 
 import java.io.File;
@@ -65,10 +61,6 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @ComponentType
-        void register(ComponentTypeBuilder<ScalaJvmLibrarySpec> builder) {
-            builder.defaultImplementation(DefaultScalaJvmLibrarySpec.class);
-        }
 
         @Model
         ScalaToolChain scalaToolChain(ServiceRegistry serviceRegistry) {
