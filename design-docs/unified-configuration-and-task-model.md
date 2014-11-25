@@ -272,8 +272,6 @@ For this story, it is not necessary for the failure message to fully indicate wh
 
 ### Open issues
 
-- Given that a rule creates a task called `thing` then DSL `model { tasks { thing { ... } } }` fails due to a duplicate creator rule, but succeeds when a task `thing`
-does not exist.
 - Error message for unbound rule whose subject is under `tasks` should complain about a missing task. Eg `tasks.thing` should explain that task `thing` is unknown.
 
 ## Story: Model DSL rule uses an implicitly typed model element as input via name
@@ -418,6 +416,10 @@ Moreover, some kind of support needs to be provided to warn the user if they mod
 ### Open Questions
 
 - To what extent can we catch modifications to arbitrary extension types in order to issue mutation warnings?
+
+## Story: Remove `TaskContainer` from model space
+
+This type should not be available in model space due.
 
 ## Story: Make the Model DSL public
 
