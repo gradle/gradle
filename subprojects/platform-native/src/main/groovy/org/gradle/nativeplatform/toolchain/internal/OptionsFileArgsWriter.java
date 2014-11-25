@@ -29,11 +29,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-public class OptionsFileArgsTransformer implements Action<List<String>> {
+public class OptionsFileArgsWriter implements Action<List<String>> {
     private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
     private final File tempDir;
 
-    public OptionsFileArgsTransformer(Transformer<ArgWriter, PrintWriter> argWriterFactory, File tempDir) {
+    public OptionsFileArgsWriter(Transformer<ArgWriter, PrintWriter> argWriterFactory, File tempDir) {
         this.argWriterFactory = argWriterFactory;
         this.tempDir = tempDir;
     }
@@ -44,14 +44,14 @@ public class OptionsFileArgsTransformer implements Action<List<String>> {
         transformArgs(original, args, tempDir);
     }
 
-    protected void transformArgs(List<String> input, List<String> output, File tempDir) {
+    protected void transformArgs(List<String> originalArgs, List<String> finalArgs, File tempDir) {
         GFileUtils.mkdirs(tempDir);
         File optionsFile = new File(tempDir, "options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
             try {
                 ArgWriter argWriter = argWriterFactory.transform(writer);
-                argWriter.args(input);
+                argWriter.args(originalArgs);
             } finally {
                 IOUtils.closeQuietly(writer);
             }
@@ -59,6 +59,6 @@ public class OptionsFileArgsTransformer implements Action<List<String>> {
             throw new UncheckedIOException(String.format("Could not write compiler options file '%s'.", optionsFile.getAbsolutePath()), e);
         }
 
-        output.add(String.format("@%s", optionsFile.getAbsolutePath()));
+        finalArgs.add(String.format("@%s", optionsFile.getAbsolutePath()));
     }
 }

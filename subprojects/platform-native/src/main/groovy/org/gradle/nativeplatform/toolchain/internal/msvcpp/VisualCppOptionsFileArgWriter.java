@@ -17,15 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.platform.base.internal.toolchain.ArgWriter;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 import java.io.File;
 
 /**
  * Uses an option file for arguments passed to Visual C++.
  */
-class VisualCppOptionsFileArgTransformer extends OptionsFileArgsTransformer {
-    public VisualCppOptionsFileArgTransformer(File tempDir) {
+class VisualCppOptionsFileArgWriter extends OptionsFileArgsWriter {
+    public VisualCppOptionsFileArgWriter(File tempDir) {
         super(ArgWriter.windowsStyleFactory(), tempDir);
     }
 }

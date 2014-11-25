@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -34,7 +34,7 @@ class CCompiler extends NativeCompiler<CCompileSpec> {
         }
     }
 
-    protected OptionsFileArgsTransformer getPostArgsAction(CCompileSpec spec) {
-        return new GccOptionsFileArgTransformer(spec.getTempDir());
+    protected OptionsFileArgsWriter getPostArgsAction(CCompileSpec spec) {
+        return new GccOptionsFileArgWriter(spec.getTempDir());
     }
 }

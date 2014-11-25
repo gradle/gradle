@@ -48,7 +48,7 @@ class GccLinker implements Compiler<LinkerSpec> {
     public WorkResult execute(LinkerSpec spec) {
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         if (useCommandFile) {
-            invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+            invocation.addPostArgsAction(new GccOptionsFileArgWriter(spec.getTempDir()));
         }
         invocation.setArgs(argsTransformer.transform(spec));
         commandLineTool.execute(invocation);

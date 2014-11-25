@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.platform.base.internal.toolchain.ArgWriter;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,18 +28,18 @@ import java.util.List;
  * Uses an option file for arguments passed to GCC if possible.
  * Certain GCC options do not function correctly when included in an option file, so include these directly on the command line as well.
  */
-class GccOptionsFileArgTransformer extends OptionsFileArgsTransformer {
+class GccOptionsFileArgWriter extends OptionsFileArgsWriter {
     private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
 
-    public GccOptionsFileArgTransformer(File tempDir) {
+    public GccOptionsFileArgWriter(File tempDir) {
         super(ArgWriter.unixStyleFactory(), tempDir);
     }
 
     @Override
-    protected void transformArgs(List<String> input, List<String> output, File tempDir) {
-        List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(input);
-        output.addAll(commandLineOnlyArgs);
-        super.transformArgs(input, output, tempDir);
+    protected void transformArgs(List<String> originalArgs, List<String> finalArgs, File tempDir) {
+        List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(originalArgs);
+        finalArgs.addAll(commandLineOnlyArgs);
+        super.transformArgs(originalArgs, finalArgs, tempDir);
     }
 
     private List<String> getCommandLineOnlyArgs(List<String> allArgs) {

@@ -21,10 +21,8 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
@@ -68,7 +66,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
-    protected abstract OptionsFileArgsTransformer getPostArgsAction(T spec);
+    protected abstract OptionsFileArgsWriter getPostArgsAction(T spec);
 
     public static class NoOpSpecTransformer<T> implements Transformer<T,T> {
         public T transform(T t) {

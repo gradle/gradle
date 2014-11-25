@@ -38,26 +38,26 @@ public class DefaultCommandLineTool implements CommandLineTool {
     }
 
     public void execute(CommandLineToolInvocation invocation) {
-        ExecAction compiler = execActionFactory.newExecAction();
-        compiler.executable(executable);
+        ExecAction toolExec = execActionFactory.newExecAction();
+        toolExec.executable(executable);
         if (invocation.getWorkDirectory() != null) {
             GFileUtils.mkdirs(invocation.getWorkDirectory());
-            compiler.workingDir(invocation.getWorkDirectory());
+            toolExec.workingDir(invocation.getWorkDirectory());
         }
 
-        compiler.args(invocation.getArgs());
+        toolExec.args(invocation.getArgs());
 
         if (!invocation.getPath().isEmpty()) {
             String pathVar = OperatingSystem.current().getPathVar();
-            String compilerPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
-            compilerPath = compilerPath + File.pathSeparator + System.getenv(pathVar);
-            compiler.environment(pathVar, compilerPath);
+            String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
+            toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
+            toolExec.environment(pathVar, toolPath);
         }
 
-        compiler.environment(invocation.getEnvironment());
+        toolExec.environment(invocation.getEnvironment());
 
         try {
-            compiler.execute();
+            toolExec.execute();
         } catch (ExecException e) {
             throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
         }
