@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.toolchain;
+package org.gradle.language.scala.internal;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.language.scala.platform.ScalaPlatform;
-import org.gradle.platform.base.ToolChain;
 
-/**
- * A set of tools for building Scala applications
- */
-public interface ScalaToolChain extends ToolChain {
+public class DefaultScalaPlatform implements ScalaPlatform {
+    private String scalaVersion;
 
-    //TODO RG: make this platform aware
-    FileCollection getScalaClasspath(ScalaPlatform platform);
+    public DefaultScalaPlatform(String scalaVersion) {
+        this.scalaVersion = scalaVersion;
+    }
 
-    FileCollection getZincClasspath();
+    public String getScalaVersion() {
+        return scalaVersion;
+    }
+
+    public String getDisplayName() {
+        return String.format("Scala Platform (Scala %s)", scalaVersion);
+    }
+
+    public String getName() {
+        return String.format("ScalaPlatform%s", scalaVersion);
+    }
 }

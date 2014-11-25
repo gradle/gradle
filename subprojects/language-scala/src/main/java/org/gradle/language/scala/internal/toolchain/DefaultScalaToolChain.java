@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.language.scala.platform.ScalaPlatform;
 import org.gradle.language.scala.toolchain.ScalaToolChain;
 
 public class DefaultScalaToolChain implements ScalaToolChain {
@@ -36,8 +37,8 @@ public class DefaultScalaToolChain implements ScalaToolChain {
         this.javaVersion = JavaVersion.current();
     }
 
-    public FileCollection getScalaClasspath() {
-        Dependency scalaDependency = dependencyHandler.create("org.scala-lang:scala-compiler:2.10.4");
+    public FileCollection getScalaClasspath(ScalaPlatform platform) {
+        Dependency scalaDependency = dependencyHandler.create(String.format("org.scala-lang:scala-compiler:%s", platform.getScalaVersion()));
         Configuration scalaCompileConfiguration = configurationContainer.detachedConfiguration(scalaDependency);
         return scalaCompileConfiguration;
     }

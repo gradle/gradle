@@ -20,21 +20,26 @@ import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
+import org.gradle.language.scala.ScalaJvmLibrarySpec;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaJvmLibrarySpec;
+import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.internal.DefaultScalaSourceSet;
-import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.scala.toolchain.ScalaToolChain;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.TransformationFileType;
 
 import java.io.File;
@@ -60,9 +65,14 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
+        @ComponentType
+        void register(ComponentTypeBuilder<ScalaJvmLibrarySpec> builder) {
+            builder.defaultImplementation(DefaultScalaJvmLibrarySpec.class);
+        }
+
         @Model
-        ScalaToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ScalaToolChainInternal.class);
+        ScalaToolChain scalaToolChain(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ScalaToolChain.class);
         }
 
         @Mutate
@@ -112,9 +122,9 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
-
-                    // TODO RG fill via Scala Toolchain
-                    compile.setScalaClasspath(toolChain.getScalaClasspath());
+                    JavaPlatform targetPlatform = binary.getTargetPlatform();
+                    // TODO RG resolve the scala platform from the binary
+                    compile.setScalaClasspath(toolChain.getScalaClasspath(new DefaultScalaPlatform("2.10.4")));
                     compile.setZincClasspath(toolChain.getZincClasspath());
 
                     compile.getScalaCompileOptions().setUseAnt(false);
@@ -127,8 +137,8 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                     compile.setSource(scalaSourceSet.getSource());
                     compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-                    compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
+                    compile.setTargetCompatibility(targetPlatform.getTargetCompatibility().toString());
+                    compile.setSourceCompatibility(targetPlatform.getTargetCompatibility().toString());
 
                     compile.dependsOn(scalaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);

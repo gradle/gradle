@@ -18,10 +18,10 @@ package org.gradle.language.scala.platform;
 
 import org.gradle.platform.base.Platform;
 
-
 /**
  * Defines and configures a Scala Platform.
  * TODO RG keep scala version here
  * */
 public interface ScalaPlatform extends Platform {
+    String getScalaVersion();
 }

@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.toolchain;
+package org.gradle.language.scala;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.language.scala.platform.ScalaPlatform;
-import org.gradle.platform.base.ToolChain;
+import org.gradle.api.Incubating;
+import org.gradle.jvm.JvmLibrarySpec;
 
 /**
- * A set of tools for building Scala applications
+ * Definition of a Scala based JVM library component that is to be built by Gradle.
  */
-public interface ScalaToolChain extends ToolChain {
-
-    //TODO RG: make this platform aware
-    FileCollection getScalaClasspath(ScalaPlatform platform);
-
-    FileCollection getZincClasspath();
+@Incubating
+public interface ScalaJvmLibrarySpec extends JvmLibrarySpec {
 }
