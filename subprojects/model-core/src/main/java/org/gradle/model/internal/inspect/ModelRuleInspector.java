@@ -142,7 +142,7 @@ public class ModelRuleInspector {
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
         for (Constructor<?> constructor : constructors) {
-            if (constructor.getParameterCount() > 0) {
+            if (constructor.getParameterTypes().length > 0) {
                 throw invalid(source, "cannot declare a constructor that takes arguments");
             }
         }
