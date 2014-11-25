@@ -247,7 +247,6 @@ Due to uncertanties about how we will deal with creating non root elements gener
 
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.    
-- Don't fire task configuration rules when tasks not required (eg building model via tooling API).
     
 ## Story: Build author configures task created by configuration rule supplied by plugin (DONE)
 
@@ -273,7 +272,6 @@ For this story, it is not necessary for the failure message to fully indicate wh
 
 ### Open issues
 
-- Should have a sample that shows the plugin + DSL working together.
 - Given that a rule creates a task called `thing` then DSL `model { tasks { thing { ... } } }` fails due to a duplicate creator rule, but succeeds when a task `thing`
 does not exist.
 - Error message for unbound rule whose subject is under `tasks` should complain about a missing task. Eg `tasks.thing` should explain that task `thing` is unknown.
