@@ -233,11 +233,6 @@ class TestNGOptions extends TestFrameworkOptions {
         this
     }
 
-    TestNGOptions configFailurePolicy(String configFailurePolicy) {
-        this.configFailurePolicy = configFailurePolicy
-        this
-    }
-
     TestNGOptions excludeGroups(String... excludeGroups) {
         this.excludeGroups.addAll(Arrays.asList(excludeGroups))
         this

@@ -58,7 +58,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractIntegrationSpec {
         usingTestNG(NEWEST)
         buildFile << """
             test.options {
-                configFailurePolicy = "continue"
+                configFailurePolicy "continue"
             }
         """
 
@@ -75,7 +75,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractIntegrationSpec {
         usingTestNG("5.12.1")
         buildFile << """
             test.options {
-                configFailurePolicy = "continue"
+                configFailurePolicy "continue"
             }
         """
 
