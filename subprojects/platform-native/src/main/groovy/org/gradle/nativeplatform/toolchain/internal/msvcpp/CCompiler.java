@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -24,7 +25,11 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
     CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
-        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, ".obj", true);
+        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, new VisualCppOutputFileArgTransformer(), ".obj", true);
+    }
+
+    protected OptionsFileArgsTransformer getPostArgsAction(CCompileSpec spec) {
+        return new VisualCppOptionsFileArgTransformer(spec.getTempDir());
     }
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {

@@ -37,22 +37,14 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final boolean useCommandFile;
     private final Transformer<List<String>, File> outputFileArgTransformer;
 
-    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, Transformer<List<String>, File> outputFileArgTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
         this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
         this.commandLineTool = commandLineTool;
-        this.outputFileArgTransformer = new Transformer<List<String>, File>() {
-            public List<String> transform(File outputFile) {
-                return Arrays.asList("-o", outputFile.getAbsolutePath());
-            }
-        };
-    }
-
-    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, String objectFileSuffix, boolean useCommandFile) {
-        this(commandLineTool, baseInvocation, argsTransformer, new NoOpSpecTransformer<T>(), objectFileSuffix, useCommandFile);
+        this.outputFileArgTransformer = outputFileArgTransformer;
     }
 
     public WorkResult execute(T spec) {
@@ -76,11 +68,9 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
-    protected OptionsFileArgsTransformer getPostArgsAction(T spec) {
-        return new GccOptionsFileArgTransformer(spec.getTempDir());
-    }
+    protected abstract OptionsFileArgsTransformer getPostArgsAction(T spec);
 
-    private static class NoOpSpecTransformer<T> implements Transformer<T,T> {
+    public static class NoOpSpecTransformer<T> implements Transformer<T,T> {
         public T transform(T t) {
             return t;
         }

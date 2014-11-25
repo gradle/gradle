@@ -38,18 +38,14 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final boolean useCommandFile;
     private final Transformer<List<String>, File> outputFileArgTransformer;
 
-    NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+    NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer, Transformer<List<String>, File> outputFileArgTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.argsTransFormer = argsTransFormer;
         this.commandLineTool = commandLineTool;
         this.baseInvocation = invocation;
         this.specTransformer = specTransformer;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
-        outputFileArgTransformer = new Transformer<List<String>, File>(){
-            public List<String> transform(File outputFile) {
-                return Arrays.asList("/Fo" + outputFile.getAbsolutePath());
-            }
-        };
+        this.outputFileArgTransformer = outputFileArgTransformer;
     }
 
     public WorkResult execute(T spec) {
@@ -73,8 +69,5 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
-
-    protected OptionsFileArgsTransformer getPostArgsAction(T spec) {
-        return new VisualCppOptionsFileArgTransformer(spec.getTempDir());
-    }
+    protected abstract OptionsFileArgsTransformer getPostArgsAction(T spec);
 }

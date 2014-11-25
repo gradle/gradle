@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -23,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
 
     public ObjectiveCCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), objectFileSuffix, useCommandFile);
+        super(commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), new NoOpSpecTransformer<ObjectiveCCompileSpec>(), new GccOutputFileArgTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class ObjectiveCCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {
@@ -32,5 +33,8 @@ public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
         }
     }
 
+    protected OptionsFileArgsTransformer getPostArgsAction(ObjectiveCCompileSpec spec) {
+        return new GccOptionsFileArgTransformer(spec.getTempDir());
+    }
 
 }

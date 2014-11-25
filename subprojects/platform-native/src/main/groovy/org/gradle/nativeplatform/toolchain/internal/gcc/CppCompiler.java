@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -23,12 +24,16 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 public class CppCompiler extends NativeCompiler<CppCompileSpec> {
 
     public CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new CppCompileArgsTransformer(), objectFileSuffix, useCommandFile);
+        super(commandLineTool, baseInvocation, new CppCompileArgsTransformer(), new NoOpSpecTransformer<CppCompileSpec>(), new GccOutputFileArgTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
         protected String getLanguage() {
             return "c++";
         }
+    }
+
+    protected OptionsFileArgsTransformer getPostArgsAction(CppCompileSpec spec) {
+        return new GccOptionsFileArgTransformer(spec.getTempDir());
     }
 }
