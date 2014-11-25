@@ -409,7 +409,7 @@ ${managedType.name}
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:
 ${ManagedWithNonManageableParent.name}
-  \\--- property 'invalidManaged' ($invalidTypeName)""")
+  \\--- property 'invalidManaged' declared by ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)""")
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"

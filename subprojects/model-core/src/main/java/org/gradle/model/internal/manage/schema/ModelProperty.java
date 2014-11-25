@@ -25,15 +25,17 @@ public class ModelProperty<T> {
     private final String name;
     private final ModelType<T> type;
     private final boolean writable;
+    private final ModelType<?> declaredBy;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable) {
+    private ModelProperty(ModelType<T> type, String name, boolean writable, ModelType<?> declaredBy) {
         this.name = name;
         this.type = type;
         this.writable = writable;
+        this.declaredBy = declaredBy;
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable) {
-        return new ModelProperty<T>(type, name, writable);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, ModelType<?> declaredBy) {
+        return new ModelProperty<T>(type, name, writable, declaredBy);
     }
 
     public String getName() {
@@ -46,6 +48,10 @@ public class ModelProperty<T> {
 
     public boolean isWritable() {
         return writable;
+    }
+
+    public ModelType<?> getDeclaredBy() {
+        return declaredBy;
     }
 
     @Override

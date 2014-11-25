@@ -91,7 +91,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                         handled.add(setter);
                     }
 
-                    properties.add(ModelProperty.of(returnType, propertyName, isWritable));
+                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, ModelType.of(method.getDeclaringClass())));
                     handled.add(method);
                 }
             }
@@ -143,7 +143,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
-        return parentContext.child(property.getType(), String.format("property '%s'", property.getName()), new Action<ModelSchemaExtractionContext<P>>() {
+        return parentContext.child(property.getType(), propertyDescription(parentContext, property), new Action<ModelSchemaExtractionContext<P>>() {
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
                 ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
@@ -163,6 +163,14 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 }
             }
         });
+    }
+
+    private String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
+        if (parentContext.getType().equals(property.getDeclaredBy())) {
+            return String.format("property '%s'", property.getName());
+        } else {
+            return String.format("property '%s' declared by %s", property.getName(), property.getDeclaredBy());
+        }
     }
 
     private void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, Method setter) {
