@@ -44,7 +44,7 @@ be rolled out to other incubating plugins, and later, to existing plugins in a b
 
 # Milestone 1 - Plugin uses rules to define model and tasks
 
-## Story: Plugin declares a top level model to make available (DONE)
+## Story: Plugin declares a top level model to make available
 
 Introduce some mechanism where a plugin can statically declare that a model object should be made available.
 
