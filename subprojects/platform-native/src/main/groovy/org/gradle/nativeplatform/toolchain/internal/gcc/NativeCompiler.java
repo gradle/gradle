@@ -30,17 +30,29 @@ import java.util.List;
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineTool commandLineTool;
-    private final ArgsTransformer<T> argsTransfomer;
+    private final ArgsTransformer<T> argsTransformer;
+    private final Transformer<T, T> specTransformer;
     private final CommandLineToolInvocation baseInvocation;
-    private String objectFileSuffix;
+    private final String objectFileSuffix;
     private final boolean useCommandFile;
+    private final Transformer<List<String>, File> outputFileArgTransformer;
 
-    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
-        this.argsTransfomer = argsTransformer;
+        this.argsTransformer = argsTransformer;
+        this.specTransformer = specTransformer;
         this.commandLineTool = commandLineTool;
+        this.outputFileArgTransformer = new Transformer<List<String>, File>() {
+            public List<String> transform(File outputFile) {
+                return Arrays.asList("-o", outputFile.getAbsolutePath());
+            }
+        };
+    }
+
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, String objectFileSuffix, boolean useCommandFile) {
+        this(commandLineTool, baseInvocation, argsTransformer, new NoOpSpecTransformer<T>(), objectFileSuffix, useCommandFile);
     }
 
     public WorkResult execute(T spec) {
@@ -49,24 +61,28 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.setWorkDirectory(spec.getObjectFileDir());
         if (useCommandFile) {
-            invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+            invocation.addPostArgsAction(getPostArgsAction(spec));
         }
-
-        Transformer<List<String>, File> outputFileArgTransformer = new Transformer<List<String>, File>() {
-            public List<String> transform(File outputFile) {
-                return Arrays.asList("-o", outputFile.getAbsolutePath());
-            }
-        };
 
         for (File sourceFile : spec.getSourceFiles()) {
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
                     objectFileSuffix,
-                    new ShortCircuitArgsTransformer<T>(argsTransfomer),
+                    new ShortCircuitArgsTransformer<T>(argsTransformer),
                     windowsPathLimitation,
                     outputFileArgTransformer);
-            invocation.setArgs(argTransformer.transform(spec));
+            invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
             commandLineTool.execute(invocation);
         }
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
+    }
+
+    protected OptionsFileArgsTransformer getPostArgsAction(T spec) {
+        return new GccOptionsFileArgTransformer(spec.getTempDir());
+    }
+
+    private static class NoOpSpecTransformer<T> implements Transformer<T,T> {
+        public T transform(T t) {
+            return t;
+        }
     }
 }

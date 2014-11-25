@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
     CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
-        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer);
+        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, ".obj", true);
     }
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
