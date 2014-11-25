@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.internal.Transformers;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -25,7 +26,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
     public CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new CCompileArgsTransformer(), new NoOpSpecTransformer<CCompileSpec>(), new GccOutputFileArgTransformer(), objectFileSuffix, useCommandFile);
+        super(commandLineTool, baseInvocation, new CCompileArgsTransformer(), Transformers.<CCompileSpec>noOpTransformer(), new GccOutputFileArgTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {

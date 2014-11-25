@@ -67,10 +67,4 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected abstract OptionsFileArgsWriter getPostArgsAction(T spec);
-
-    public static class NoOpSpecTransformer<T> implements Transformer<T,T> {
-        public T transform(T t) {
-            return t;
-        }
-    }
 }
