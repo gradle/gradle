@@ -49,7 +49,8 @@ public class ModelSchemaExtractor {
             new UnmanagedStrategy()
     );
 
-    public <T> ModelSchema<T> extract(ModelSchemaExtractionContext<T> context, ModelSchemaCache cache) {
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+        ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
         ModelSchemaExtractionContext<?> extractionContext = context;
@@ -68,10 +69,6 @@ public class ModelSchemaExtractor {
         }
 
         return cache.get(context.getType());
-    }
-
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
-        return extract(ModelSchemaExtractionContext.root(type), cache);
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
