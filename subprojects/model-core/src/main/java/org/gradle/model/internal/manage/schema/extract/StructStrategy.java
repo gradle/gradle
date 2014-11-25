@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -55,25 +56,25 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         if (type.getRawClass().isAnnotationPresent(Managed.class)) {
             validateType(type, extractionContext);
 
-            List<Method> methodList = nonEquivalentMethods(type.getRawClass().getMethods());
-            if (methodList.isEmpty()) {
+            Iterable<Method> methods = removeEquivalentMethods(type.getRawClass().getMethods());
+            if (Iterables.isEmpty(methods)) {
                 return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type, Collections.<ModelProperty<?>>emptySet()));
             }
 
             List<ModelProperty<?>> properties = Lists.newLinkedList();
 
-            Map<String, Method> methods = Maps.newHashMap();
-            for (Method method : methodList) {
+            Map<String, Method> methodsByName = Maps.newHashMap();
+            for (Method method : methods) {
                 String name = method.getName();
-                if (methods.containsKey(name)) {
-                    throw invalidMethods(extractionContext, "overloaded methods are not supported", ImmutableList.of(method, methods.get(name)));
+                if (methodsByName.containsKey(name)) {
+                    throw invalidMethods(extractionContext, "overloaded methods are not supported", ImmutableList.of(method, methodsByName.get(name)));
                 }
-                methods.put(name, method);
+                methodsByName.put(name, method);
             }
 
             List<Method> handled = Lists.newArrayList();
 
-            for (Method method : methodList) {
+            for (Method method : methods) {
                 String methodName = method.getName();
                 if (methodName.startsWith("get") && !methodName.equals("get")) {
                     if (method.getParameterTypes().length != 0) {
@@ -90,10 +91,10 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                     String propertyNameCapitalized = methodName.substring(3);
                     String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
                     String setterName = "set" + propertyNameCapitalized;
-                    boolean isWritable = methods.containsKey(setterName);
+                    boolean isWritable = methodsByName.containsKey(setterName);
 
                     if (isWritable) {
-                        Method setter = methods.get(setterName);
+                        Method setter = methodsByName.get(setterName);
                         validateSetter(extractionContext, returnType, setter);
                         handled.add(setter);
                     }
@@ -103,11 +104,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 }
             }
 
-            methodList.removeAll(handled);
+            Iterable<Method> notHandled = Iterables.filter(methods, Predicates.not(Predicates.in(handled)));
 
             // TODO - should call out valid getters without setters
-            if (!methodList.isEmpty()) {
-                throw invalidMethods(extractionContext, "only paired getter/setter methods are supported", methodList);
+            if (!Iterables.isEmpty(notHandled)) {
+                throw invalidMethods(extractionContext, "only paired getter/setter methods are supported", notHandled);
             }
 
             ModelSchema<R> schema = ModelSchema.struct(type, properties);
@@ -123,19 +124,18 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    private List<Method> nonEquivalentMethods(Method[] methods) {
+    private Iterable<Method> removeEquivalentMethods(Method[] methods) {
         final MethodSignatureEquivalence equivalence = new MethodSignatureEquivalence();
         Iterable<Equivalence.Wrapper<Method>> methodEquivalenceWrappers = Iterables.transform(Arrays.asList(methods), new Function<Method, Equivalence.Wrapper<Method>>() {
             public Equivalence.Wrapper<Method> apply(Method method) {
                 return equivalence.wrap(method);
             }
         });
-        Iterable<Method> nonEquivalentMethods = Iterables.transform(Sets.newLinkedHashSet(methodEquivalenceWrappers), new Function<Equivalence.Wrapper<Method>, Method>() {
+        return Iterables.transform(ImmutableSet.copyOf(methodEquivalenceWrappers), new Function<Equivalence.Wrapper<Method>, Method>() {
             public Method apply(Equivalence.Wrapper<Method> wrapper) {
                 return wrapper.get();
             }
         });
-        return Lists.newArrayList(nonEquivalentMethods);
     }
 
     private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
@@ -194,7 +194,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + description(method) + ").");
     }
 
-    private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, final List<Method> methods) {
+    private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, final Iterable<Method> methods) {
         final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
             public String apply(Method method) {
                 return description(method).toString();
