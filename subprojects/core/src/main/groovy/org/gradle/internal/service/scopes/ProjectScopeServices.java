@@ -121,7 +121,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginManager createPluginManager() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
-        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(MethodRuleDefinitionHandlers.coreHandlers(), handlers));
+        List<MethodRuleDefinitionHandler> coreHandlers = MethodRuleDefinitionHandlers.coreHandlers(get(Instantiator.class));
+        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
         PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
         return new PluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }

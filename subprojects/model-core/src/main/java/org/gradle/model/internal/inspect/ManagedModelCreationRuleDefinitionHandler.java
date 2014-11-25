@@ -20,6 +20,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
@@ -44,7 +45,11 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
 
     private final ModelSchemaStore schemaStore = new DefaultModelSchemaStore();
     private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
-    private final ModelInstantiator modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory);
+    private final ModelInstantiator modelInstantiator;
+
+    public ManagedModelCreationRuleDefinitionHandler(Instantiator instantiator) {
+        modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory, instantiator);
+    }
 
     public String getDescription() {
         return String.format("@%s and taking a managed model element", super.getDescription());

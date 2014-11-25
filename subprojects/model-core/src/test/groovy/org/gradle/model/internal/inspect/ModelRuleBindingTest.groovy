@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.*
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.type.ModelType
@@ -31,8 +32,10 @@ import spock.lang.Unroll
  */
 class ModelRuleBindingTest extends Specification {
 
+    final static Instantiator UNUSED_INSTANTIATOR = null
+
     def modelRegistry = new DefaultModelRegistry()
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers())
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR))
 
     static class AmbiguousBindingsInOneSource {
         @Mutate

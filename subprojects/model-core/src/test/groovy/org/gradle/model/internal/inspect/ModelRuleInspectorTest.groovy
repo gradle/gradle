@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.Finalize
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
@@ -34,9 +35,11 @@ import spock.lang.Unroll
 
 class ModelRuleInspectorTest extends Specification {
 
+    final static Instantiator UNUSED_INSTANTIATOR = null
+
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers())
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR))
     def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {

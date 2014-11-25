@@ -593,8 +593,8 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
               @Model
               void group(Group group) {
                 group.name = "Women in computing"
-                group.members.create { it.name = "Ada Lovelace" }
-                group.members.create { it.name = "Grace Hooper" }
+                group.members.create { name = "Ada Lovelace" }
+                group.members.create { name = "Grace Hooper" }
               }
             }
 

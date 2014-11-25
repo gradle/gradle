@@ -17,6 +17,7 @@
 package org.gradle.model.collection.internal
 
 import org.gradle.internal.Factory
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.DefaultManagedSet
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
@@ -29,7 +30,7 @@ import spock.lang.Specification
 class DefaultManagedSetTest extends Specification {
 
     def schemaStore = new DefaultModelSchemaStore()
-    def instantiator = new StrategyBackedModelInstantiator(schemaStore, new ManagedProxyFactory())
+    def instantiator = new StrategyBackedModelInstantiator(schemaStore, new ManagedProxyFactory(), new DirectInstantiator())
 
     @Managed
     static interface Person {

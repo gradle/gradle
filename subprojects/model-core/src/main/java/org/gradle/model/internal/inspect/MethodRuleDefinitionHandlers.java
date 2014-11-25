@@ -18,15 +18,16 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.List;
 
 @ThreadSafe
 abstract public class MethodRuleDefinitionHandlers {
 
-    public static List<MethodRuleDefinitionHandler> coreHandlers() {
+    public static List<MethodRuleDefinitionHandler> coreHandlers(Instantiator instantiator) {
         return ImmutableList.<MethodRuleDefinitionHandler>of(
-                new UnmanagedModelCreationRuleDefinitionHandler(), new ManagedModelCreationRuleDefinitionHandler(), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
+                new UnmanagedModelCreationRuleDefinitionHandler(), new ManagedModelCreationRuleDefinitionHandler(instantiator), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
         );
     }
 }
