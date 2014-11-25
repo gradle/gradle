@@ -102,7 +102,6 @@ A mock up:
 
 > Tested via `ModelRuleInspectorTest`.
 
-- Task container is added as a `TaskContainer`, and `AbstractProject` has to synchronize changes to this into the model space.
 - Need some mechanism for the ComponentReport task to determine whether the TestSuites model is available or not. The mechanism should be internal at this stage, eg add a `ModelRegistry.find()` or throw a specific exception thrown by `ModelRegistry.get()`.
 
 > This is there via `ModelRegistry.element()`.
@@ -122,6 +121,10 @@ A mock up:
 - How would a user verify that they got the signature/annotation correct in a unit test?
 
 > Later story.
+
+#### Needs clarification
+
+- Task container is added as a `TaskContainer`, and `AbstractProject` has to synchronize changes to this into the model space.
 
 ## Story: Plugin author unit tests plugin that declares model elements
 
@@ -223,7 +226,6 @@ A mock up:
 - ~~Reasonable error message when rule method declares input by path but incompatible type.~~
 
 ### Open issues
-
 
 #### Actionable now 
 
