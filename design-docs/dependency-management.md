@@ -228,7 +228,7 @@ Access the ivy.xml files for a ivy components with the specified id:
         .withArtifacts(IvyModule, IvyDescriptorArtifact)
         .execute()
 
-    Set<File> ivyFiles = result.artifactFiles()
+    Set<File> ivyFiles = result.getArtifactFiles()
 
 Get the pom files for all maven modules in a configuration:
 
@@ -281,7 +281,7 @@ Access the ivy.xml files for all ivy module in a configuration:
         .withArtifacts(IvyModule, IvyDescriptorArtifact)
         .execute()
 
-    Set<File> ivyFiles = result.artifactFiles()
+    Set<File> ivyFiles = result.getArtifactFiles()
 
 Get the pom files for all maven modules in a configuration:
 

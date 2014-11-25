@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.result.ArtifactResolutionResult;
-import org.gradle.api.artifacts.result.ComponentArtifactsResult;
-import org.gradle.api.artifacts.result.ComponentResult;
+import org.gradle.api.artifacts.result.*;
+import org.gradle.api.component.Artifact;
 
+import java.io.File;
 import java.util.Set;
 
-// TODO:DAZ Unit tests
 public class DefaultArtifactResolutionResult implements ArtifactResolutionResult {
     private final Set<ComponentResult> componentResults;
 
@@ -42,5 +41,23 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
             }
         }
         return resolvedComponentResults;
+    }
+
+    public Set<File> getArtifactFiles() {
+        Set<File> artifactFiles = Sets.newLinkedHashSet();
+
+        for (ComponentArtifactsResult componentArtifactsResult : getResolvedComponents()) {
+            Set<ArtifactResult> artifactResults = componentArtifactsResult.getArtifacts(Artifact.class);
+
+            for(ArtifactResult artifactResult : artifactResults) {
+                if(artifactResult instanceof ResolvedArtifactResult) {
+                    artifactFiles.add(((ResolvedArtifactResult)artifactResult).getFile());
+                } else if(artifactResult instanceof UnresolvedArtifactResult) {
+                    throw new UnresolvedArtifactFileException("Failed to resolve artifact file", ((UnresolvedArtifactResult)artifactResult).getFailure());
+                }
+            }
+        }
+
+        return artifactFiles;
     }
 }
