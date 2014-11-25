@@ -338,20 +338,20 @@ Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSource
     }
 
 - Default coffeescript sourceset should be "app/assets/**/*.coffee"
-- Compiled coffeescript files will be added to the jar under "/public"
-- Default javascript sourceset should be "app/assets/**/*.js" and "public/**/*.js"
+- Compiled coffeescript files will be added to the jar relative to srcDir
+- Default javascript sourceset should be "app/assets/**/*.js"
 
 #### Test cases
 - Coffeescript and javascript sources are visible in the components report
 - Coffeescript sources successfully compiled to javascript
-- Compiled coffeescript is added to jar under "/public"
-- Javascript sources are copied directly into jar
+- Compiled coffeescript is added to jar relative to srcDir
+- Javascript sources are copied directly into jar relative to srcDir
 - Can provide additional coffeescript sources
 - Can provide additional javascript sources
 - Build is incremental:
     - Change in coffeescript source triggers recompile
     - No change in coffeescript source does not trigger a recompile
-    - Removal of generate javascript triggers recompile
+    - Removal of generated javascript triggers recompile
     - Removal of coffeescript source files removes generated javascript
 
 ## Feature: Developer chooses target Play, Scala and/or Java platform
