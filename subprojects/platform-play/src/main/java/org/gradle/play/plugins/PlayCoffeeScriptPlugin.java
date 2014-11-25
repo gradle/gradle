@@ -90,7 +90,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
                     // Add a JavaScriptSourceSet to process the compiled coffee script sources
                     JavaScriptSourceSet javaScriptSourceSet = new DefaultJavaScriptSourceSet("coffeeScriptGenerated", playComponent.getName(), serviceRegistry.get(FileResolver.class));
-                    // This is so we force the sourceSetTransformTask to be created even though the source
+                    // This is so we force the SourceSetTransformTask to be created even though the source
                     // is still empty at this point
                     javaScriptSourceSet.builtBy(coffeeScriptSourceSet);
                     javaScriptSourceSet.getSource().include("**/*.js");
@@ -105,17 +105,20 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
         void wireCoffeeScriptOutputToJavaScriptSources(TaskContainer tasks, ComponentSpecContainer components) {
             components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playApplicationSpec) {
+                    // Find the coffeeScriptGenerated javascript source set
                     final LanguageSourceSet javaScriptSourceSet = playApplicationSpec.getSource().matching(new Spec<LanguageSourceSet>() {
                         public boolean isSatisfiedBy(LanguageSourceSet element) {
                             return "coffeeScriptGenerated".equals(element.getName());
                         }
                     }).iterator().next();
+
+                    // Add the output of each PlayCoffeeScriptCompile task to the coffeeScriptGenerated source set
                     if (javaScriptSourceSet != null) {
                         playApplicationSpec.getBinaries().all(new Action<BinarySpec>() {
                             public void execute(BinarySpec binarySpec) {
                                 binarySpec.getTasks().withType(PlayCoffeeScriptCompile.class).all(new Action<PlayCoffeeScriptCompile>() {
                                     public void execute(PlayCoffeeScriptCompile playCoffeeScriptCompile) {
-                                        javaScriptSourceSet.getSource().srcDir(playCoffeeScriptCompile.getOutputDirectory());
+                                        javaScriptSourceSet.getSource().srcDir(playCoffeeScriptCompile.getDestinationDir());
                                         javaScriptSourceSet.builtBy(playCoffeeScriptCompile);
                                     }
                                 });
@@ -165,7 +168,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                     PlayCoffeeScriptCompile coffeeScriptCompile = (PlayCoffeeScriptCompile) task;
                     coffeeScriptCompile.setDescription(String.format("Compiles the %s of %s", sourceSet, binary));
                     File coffeeScriptCompileOutputDirectory = new File(task.getProject().getBuildDir(), String.format("%s/coffeescript", binary.getName()));
-                    coffeeScriptCompile.setOutputDirectory(coffeeScriptCompileOutputDirectory);
+                    coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
                     coffeeScriptCompile.setSource(sourceSet.getSource());
                     coffeeScriptCompile.setCoffeeScriptDependency(getCoffeeScriptDependencyNotation());
                     coffeeScriptCompile.setRhinoDependency(getRhinoDependencyNotation());

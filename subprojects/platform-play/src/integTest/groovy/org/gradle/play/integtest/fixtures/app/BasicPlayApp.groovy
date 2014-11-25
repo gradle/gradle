@@ -59,6 +59,11 @@ fill="#000000" stroke="none">
                         console.log("Welcome to your Play application's JavaScript!");
                     }"""),
 
+                sourceFile("app/js", "test.js", """
+                    if (window.console) {
+                        console.log("This is a test JavaScript!");
+                    }"""),
+
                 sourceFile("public/stylesheets", "main.css", "")
         ]
     }

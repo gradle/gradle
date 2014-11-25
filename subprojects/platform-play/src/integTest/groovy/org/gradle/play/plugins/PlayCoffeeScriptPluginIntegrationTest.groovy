@@ -60,7 +60,6 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
 """))
         output.contains(TextUtil.toPlatformLineSeparators("""
     JavaScript source 'play:coffeeScriptGenerated'
-        src/play/coffeeScriptGenerated
 """))
     }
 

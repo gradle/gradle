@@ -20,28 +20,10 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
 
-import java.io.File;
-
 /**
  * Task for compiling CoffeeScript sources
  */
 public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
-    private File outputDirectory;
-
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-        super.setDestinationDir(new File(outputDirectory, "public"));
-    }
-
-    @Override
-    public void setDestinationDir(Object destinationDir) {
-        throw new UnsupportedOperationException("setDestinationDir not supported for PlayCoffeeScriptCompile - use setOutputDirectory instead");
-    }
-
     public void setCoffeeScriptDependency(String notation) {
         setCoffeeScriptJs(getDetachedConfiguration(notation));
     }

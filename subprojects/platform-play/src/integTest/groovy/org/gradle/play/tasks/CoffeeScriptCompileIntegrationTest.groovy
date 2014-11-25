@@ -49,10 +49,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed(":compilePlayBinaryPlayCoffeeScriptSources", ":processPlayBinaryPlayCoffeeScriptGenerated")
-        file("build/playBinary/coffeescript/public/test.js").exists()
-        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/test.js").text, expectedJavaScript()
+        file("build/playBinary/coffeescript/test.js").exists()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/test.js").text, expectedJavaScript()
         jar("build/jars/play/playBinary.jar").containsDescendants(
-                "public/test.js"
+                "test.js"
         )
     }
 
@@ -61,6 +61,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         withCoffeeScriptSource("app/test1.coffee")
         withCoffeeScriptSource("src/play/extraCoffeeScript/xxx/test2.coffee")
         withCoffeeScriptSource("extra/a/b/c/test3.coffee")
+        file('src/play/extraJavaScript/test/test4.js') << expectedJavaScript()
+        file('/app/test5.js') << expectedJavaScript()
 
         when:
         buildFile << """
@@ -72,6 +74,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                             anotherCoffeeScript(CoffeeScriptSourceSet) {
                                 source.srcDir "extra"
                             }
+                            extraJavaScript(JavaScriptSourceSet)
                         }
                     }
                 }
@@ -83,17 +86,21 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         executed(":compilePlayBinaryPlayCoffeeScriptSources",
                  ":compilePlayBinaryPlayExtraCoffeeScript",
                  ":compilePlayBinaryPlayAnotherCoffeeScript",
+                 ":processPlayBinaryPlayExtraJavaScript",
+                 ":processPlayBinaryPlayJavaScriptSources",
                  ":processPlayBinaryPlayCoffeeScriptGenerated")
-        file("build/playBinary/coffeescript/public/test1.js").exists()
-        file("build/playBinary/coffeescript/public/xxx/test2.js").exists()
-        file("build/playBinary/coffeescript/public/a/b/c/test3.js").exists()
-        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/test1.js").text, expectedJavaScript()
-        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/xxx/test2.js").text, expectedJavaScript()
-        compareWithoutWhiteSpace file("build/playBinary/coffeescript/public/a/b/c/test3.js").text, expectedJavaScript()
+        file("build/playBinary/coffeescript/test1.js").exists()
+        file("build/playBinary/coffeescript/xxx/test2.js").exists()
+        file("build/playBinary/coffeescript/a/b/c/test3.js").exists()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/test1.js").text, expectedJavaScript()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/xxx/test2.js").text, expectedJavaScript()
+        compareWithoutWhiteSpace file("build/playBinary/coffeescript/a/b/c/test3.js").text, expectedJavaScript()
         jar("build/jars/play/playBinary.jar").containsDescendants(
-                "public/test1.js",
-                "public/xxx/test2.js",
-                "public/a/b/c/test3.js"
+                "test1.js",
+                "xxx/test2.js",
+                "a/b/c/test3.js",
+                "test/test4.js",
+                "test5.js"
         )
     }
 
