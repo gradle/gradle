@@ -270,10 +270,6 @@ For this story, it is not necessary for the failure message to fully indicate wh
   - ~~Error message includes names of X tasks with names closest to given name~~
 - ~~User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)~~
 
-### Open issues
-
-- Error message for unbound rule whose subject is under `tasks` should complain about a missing task. Eg `tasks.thing` should explain that task `thing` is unknown.
-
 ## Story: Model DSL rule uses an implicitly typed model element as input via name
 
 This story adds the capability for rules declared in scripts to take inputs.
@@ -420,6 +416,12 @@ Moreover, some kind of support needs to be provided to warn the user if they mod
 ## Story: Remove `TaskContainer` from model space
 
 This type should not be available in model space due.
+
+## Story: Bind by path failures understand model space structure and indicate the failed path “link”
+
+Given an attempt to bind to `tasks.foo` where it does not exist, the error message should indicate that `tasks` does exist, but `foo` does not in some way.
+It should also only suggest alternatives based on the path components that did sucessfully bind.
+That is, it should not suggest `taks.foo` but should suggest `tasks.boo`. 
 
 ## Story: Make the Model DSL public
 
