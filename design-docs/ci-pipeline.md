@@ -28,13 +28,6 @@ Currently, coverage builds are triggered for each commit. We might change this s
 # Checkout source on agents
 
 
-# Increase build bandwidth
-
-- Add 2 linux vms to replace the agents on dev1.
-- Add 2 windows vms
-- Move windows vm to a more highly specced machine and add an additional agent
-- Disk usage monitoring
-
 # Reduce memory consumption of daemon processes started by test suite
 
 - Verify that daemon processes are started with relatively small heap and permgen limits, rather than the defaults for the daemon, and fix if not.
@@ -43,10 +36,6 @@ Currently, coverage builds are triggered for each commit. We might change this s
 # Compile source against baseline Java version early in the pipeline
 
 To fail early when later Java APIs are used.
-
-# Automate installation of TeamCity agents on Windows build VM
-
-- Ensure the init.gradle script is installed in the user's home dir.
 
 # Split builds up so that each build covers a smaller slice of the source
 
@@ -122,37 +111,9 @@ Reduce the size of the log output:
 - size of artifacts for a single Windows Java 1.7 Cross-Version test is 1.75 GB
 - can we bump up the log level threshold to reduce the amount of logs?
 
-# Build machines provisioning
-
-## Add monitoring to all build machines
-
-- add New Relic monitoring to Linux machines without Salt
-- add Nex Relic monitoring to Windows machines
-
-## Extend Salt to not yet managed machines
-
-Start with user management and installation of packages.
-This applies to unmanaged machines running Linux and one Windows box.
-
-## Use the same Linux distribution on all machines
-
-Upgrade existing Saucy machines and probably also Precise.
-
-## Ensure that packages have consistent versions across all build machines
-
-Currently we are using apt-get to install packages on ubuntu build machines. 
-The problem with this is that as new versions arrive in the repository the old ones are removed and always the latest currently available version is used.
-This means that the package version used by a machine depends on when that machine was provisioned.
-
-Do something so that package versions used are consistent and don't depend on when the machine was provisioned.  
-
 # Build against Early Access builds of the JDK
 
 This would include new releases of 6, 7, 8 and 9.
-
-# Enable TC's performance monitors
-
-See: http://blog.jetbrains.com/teamcity/2013/02/teamcity-performance-monitor/
 
 # Prevent accumulation of junk in /tmp
 
@@ -172,4 +133,3 @@ This would be obsolete if we completely rebuilt agent machines periodically.
 Certain integration tests write to `~/.m2/repository which collects junk.
 
 This would be obsolete if we completely rebuilt agent machines periodically. 
-
