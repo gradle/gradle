@@ -203,8 +203,6 @@ Due to uncertanties about how we will deal with creating non root elements gener
 - `CollectionBuilder` should have an overload that can accept a rule source class or instance, to allow the configuration rule to have its own inputs that aren't required when the task is declared. Should be consistent with pattern used for dependency management rules.
 - Error message when no collection builder of requested type should provide more help about what is available.
 - Possibly introduce a new type of rule, that adds model elements to a container, rather than 'mutates' the container.
-- Project and other things can leak out of `Task` instances when `TaskContainer` is provided to a rule.
-    - Same with `Buildable` things, `BuildableModelElement`, `NativeBinaryTasks`, etc.
     
 ## Story: Build author configures task created by configuration rule supplied by plugin (DONE)
 
@@ -370,6 +368,11 @@ Moreover, some kind of support needs to be provided to warn the user if they mod
 ### Open Questions
 
 - To what extent can we catch modifications to arbitrary extension types in order to issue mutation warnings?
+
+## Story: `Task` instances are instrumented in model space to prevent unmanaged mutation
+
+We can't prevent tasks from appearing in the model space.
+We need to do something to minimise the damage their inherent mutability can cause by preventing mutations without changing their API.
 
 ## Story: Remove `TaskContainer` from model space
 
