@@ -83,8 +83,6 @@ A mock up:
 
 ### Open issues
 
-- When an input for a creator rule cannot be bound, the error message does not include any diagnostic information.
-
 #### Needs clarification
 
 - Task container is added as a `TaskContainer`, and `AbstractProject` has to synchronize changes to this into the model space.

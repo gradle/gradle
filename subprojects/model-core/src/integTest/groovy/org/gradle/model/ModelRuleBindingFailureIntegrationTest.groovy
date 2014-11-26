@@ -221,4 +221,31 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 ).asString()
         ))
     }
+
+    def "unbound inputs for creator are reported"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+
+            @RuleSource
+            class Rules {
+                @Model
+                Integer foo(@Path("bar") Integer bar) {
+                    22
+                }
+            }
+
+            apply type: Rules
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertThatCause(unbound(
+                UnboundRule.descriptor('Rules#foo(java.lang.Integer)')
+                        .immutableInput(UnboundRuleInput.type(Integer).path("bar").description("parameter 1"))
+        ))
+
+    }
 }
