@@ -205,6 +205,19 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
+    static class NonVoidMutationRule {
+        @Mutate
+        String mutate(String thing) {}
+    }
+
+    def "only void is allowed as return type of a mutation rule"() {
+        when:
+        inspector.inspect(NonVoidMutationRule, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
     static class MutationRules {
         @Mutate
         static void mutate1(List<String> strings) {

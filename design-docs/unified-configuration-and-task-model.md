@@ -190,7 +190,7 @@ A mock up:
 
 #### Actionable now 
 
-- `@Mutate` and `@Finalize` methods can have non-void return type.
+- ~~`@Mutate` and `@Finalize` methods can have non-void return type.~~
 - `@Path("")` can be attached to a rule method parameter.
 - `IndexOutOfBoundsException` when type parameter is left off `CollectionBuilder` in the rule parameter list.
 - `CollectionBuilder.create` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
