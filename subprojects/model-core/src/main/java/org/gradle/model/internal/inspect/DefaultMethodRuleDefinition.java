@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -89,7 +90,17 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
         ModelType<?> cast = ModelType.of(type);
-        return ModelReference.of(path == null ? null : ModelPath.path(path), cast, String.format("parameter %s", i + 1));
+        return ModelReference.of(path == null ? null : validPath(path), cast, String.format("parameter %s", i + 1));
+    }
+
+    private ModelPath validPath(String path) {
+        try {
+            return ModelPath.validatedPath(path);
+        } catch (ModelPath.InvalidPathException e) {
+            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
+        } catch (ModelPath.InvalidNameException e) {
+            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
+        }
     }
 
 }

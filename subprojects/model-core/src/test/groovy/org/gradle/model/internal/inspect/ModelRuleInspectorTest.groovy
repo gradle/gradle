@@ -21,6 +21,7 @@ import org.gradle.model.Finalize
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.Mutate
+import org.gradle.model.Path
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -213,6 +214,32 @@ class ModelRuleInspectorTest extends Specification {
     def "only void is allowed as return type of a mutation rule"() {
         when:
         inspector.inspect(NonVoidMutationRule, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class RuleWithEmptyInputPath {
+        @Model
+        String create(@Path("") String thing) {}
+    }
+
+    def "path of rule input cannot be empty"() {
+        when:
+        inspector.inspect(RuleWithEmptyInputPath, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class RuleWithInvalidInputPath {
+        @Model
+        String create(@Path("!!!!") String thing) {}
+    }
+
+    def "path of rule input has to be valid"() {
+        when:
+        inspector.inspect(RuleWithInvalidInputPath, registry, dependencies)
 
         then:
         thrown InvalidModelRuleDeclarationException
