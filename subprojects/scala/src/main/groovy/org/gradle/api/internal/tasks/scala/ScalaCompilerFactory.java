@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
@@ -26,14 +25,16 @@ import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
+import java.io.File;
+
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final ProjectInternal project;
     private final IsolatedAntBuilder antBuilder;
     private final JavaCompilerFactory javaCompilerFactory;
     private final CompilerDaemonFactory compilerDaemonFactory;
+    private final File rootProjectDirectory;
 
-    public ScalaCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory) {
-        this.project = project;
+    public ScalaCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory) {
+        this.rootProjectDirectory = rootProjectDirectory;
         this.antBuilder = antBuilder;
         this.javaCompilerFactory = javaCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
@@ -61,7 +62,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
             throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler", e);
         }
 
-        scalaCompiler = new DaemonScalaCompiler(project.getRootProject().getProjectDir(), scalaCompiler, compilerDaemonFactory);
+        scalaCompiler = new DaemonScalaCompiler(rootProjectDirectory, scalaCompiler, compilerDaemonFactory);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

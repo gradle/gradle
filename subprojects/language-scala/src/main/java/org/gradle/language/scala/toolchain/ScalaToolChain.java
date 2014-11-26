@@ -16,17 +16,10 @@
 
 package org.gradle.language.scala.toolchain;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.language.scala.platform.ScalaPlatform;
 import org.gradle.platform.base.ToolChain;
 
 /**
  * A set of tools for building Scala applications
  */
 public interface ScalaToolChain extends ToolChain {
-
-    //TODO RG: make this platform aware
-    FileCollection getScalaClasspath(ScalaPlatform platform);
-
-    FileCollection getZincClasspath();
 }

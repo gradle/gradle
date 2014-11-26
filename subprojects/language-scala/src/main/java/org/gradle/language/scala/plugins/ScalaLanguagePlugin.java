@@ -116,9 +116,8 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
                     JavaPlatform targetPlatform = binary.getTargetPlatform();
                     // TODO RG resolve the scala platform from the binary
-                    compile.setScalaClasspath(toolChain.getScalaClasspath(new DefaultScalaPlatform("2.10.4")));
-                    compile.setZincClasspath(toolChain.getZincClasspath());
 
+                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
                     compile.getScalaCompileOptions().setUseAnt(false);
                     compile.getScalaCompileOptions().setFork(true);
                     File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));

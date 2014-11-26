@@ -17,15 +17,21 @@
 package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.scala.ScalaCompile;
+import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.tasks.scala.AbstractScalaCompile;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
 import org.gradle.language.scala.platform.ScalaPlatform;
+
+import javax.inject.Inject;
 
 
 /**
  * A platform-aware Scala compile task.
  */
 @Incubating
-public class PlatformScalaCompile extends ScalaCompile {
+public class PlatformScalaCompile extends AbstractScalaCompile {
 
     private ScalaPlatform platform;
 
@@ -35,5 +41,19 @@ public class PlatformScalaCompile extends ScalaCompile {
 
     public void setPlatform(ScalaPlatform platform) {
         this.platform = platform;
+    }
+
+    @Inject
+    protected ScalaToolChainInternal getToolChain() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
+        if (compiler == null) {
+            Compiler<ScalaJavaJointCompileSpec> scalaCompiler = getToolChain().select(getPlatform()).newCompiler(spec);
+            compiler = new CleaningScalaCompiler(scalaCompiler, getOutputs());
+        }
+        return compiler;
     }
 }
