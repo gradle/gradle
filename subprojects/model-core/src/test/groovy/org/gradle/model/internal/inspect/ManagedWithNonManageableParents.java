@@ -19,5 +19,5 @@ package org.gradle.model.internal.inspect;
 import org.gradle.model.Managed;
 
 @Managed
-public interface ManagedWithNonManageableParent extends ManagedWithPropertyOfInvalidManagedType {
+public interface ManagedWithNonManageableParents extends ManagedWithPropertyOfInvalidManagedType, AnotherManagedWithPropertyOfInvalidManagedType {
 }

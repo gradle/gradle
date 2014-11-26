@@ -19,22 +19,24 @@ package org.gradle.model.internal.manage.schema;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Set;
+
 @ThreadSafe
 public class ModelProperty<T> {
 
     private final String name;
     private final ModelType<T> type;
     private final boolean writable;
-    private final ModelType<?> declaredBy;
+    private final Set<ModelType<?>> declaredBy;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable, ModelType<?> declaredBy) {
+    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy) {
         this.name = name;
         this.type = type;
         this.writable = writable;
         this.declaredBy = declaredBy;
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, ModelType<?> declaredBy) {
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy) {
         return new ModelProperty<T>(type, name, writable, declaredBy);
     }
 
@@ -50,7 +52,7 @@ public class ModelProperty<T> {
         return writable;
     }
 
-    public ModelType<?> getDeclaredBy() {
+    public Set<ModelType<?>> getDeclaredBy() {
         return declaredBy;
     }
 

@@ -16,27 +16,27 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class StructStrategy implements ModelSchemaExtractionStrategy {
     protected final Factory<String> supportedTypeDescriptions;
@@ -56,53 +56,41 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         if (type.getRawClass().isAnnotationPresent(Managed.class)) {
             validateType(type, extractionContext);
 
-            List<Method> methods = CollectionUtils.dedup(Arrays.asList(type.getRawClass().getMethods()), new MethodSignatureEquivalence());
-            if (methods.isEmpty()) {
-                return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type, Collections.<ModelProperty<?>>emptySet()));
-            }
+            TypeMethods typeMethods = TypeMethods.of(type);
+            ensureNoOverloadedMethods(extractionContext, typeMethods);
 
             List<ModelProperty<?>> properties = Lists.newLinkedList();
+            List<Method> handled = Lists.newArrayListWithCapacity(type.getRawClass().getMethods().length);
 
-            final ImmutableListMultimap<String, Method> methodsByName = Multimaps.index(methods, new Function<Method, String>() {
-                public String apply(Method method) {
-                    return method.getName();
-                }
-            });
-            ensureNoOverloadedMethods(extractionContext, methodsByName);
-
-            List<Method> handled = Lists.newArrayListWithCapacity(methods.size());
-
-            for (Method method : methods) {
-                String methodName = method.getName();
+            for (String methodName: typeMethods.getNames()) {
                 if (methodName.startsWith("get") && !methodName.equals("get")) {
-                    if (method.getParameterTypes().length != 0) {
-                        throw invalidMethod(extractionContext, "getter methods cannot take parameters", method);
+                    if (typeMethods.getParameterTypes(methodName).length != 0) {
+                        throw invalidMethod(extractionContext, "getter methods cannot take parameters", typeMethods.getFirst(methodName));
                     }
 
                     Character getterPropertyNameFirstChar = methodName.charAt(3);
                     if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-                        throw invalidMethod(extractionContext, "the 4th character of the getter method name must be an uppercase character", method);
+                        throw invalidMethod(extractionContext, "the 4th character of the getter method name must be an uppercase character", typeMethods.getFirst(methodName));
                     }
 
-                    ModelType<?> returnType = ModelType.of(method.getGenericReturnType());
+                    ModelType<?> returnType = ModelType.of(typeMethods.getGenericReturnType(methodName));
 
                     String propertyNameCapitalized = methodName.substring(3);
                     String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
                     String setterName = "set" + propertyNameCapitalized;
-                    boolean isWritable = methodsByName.containsKey(setterName);
+                    boolean isWritable = typeMethods.hasMethod(setterName);
 
                     if (isWritable) {
-                        Method setter = methodsByName.get(setterName).get(0);
-                        validateSetter(extractionContext, returnType, setter);
-                        handled.add(setter);
+                        validateSetter(extractionContext, returnType, typeMethods.getFirst(setterName));
+                        handled.addAll(typeMethods.get(setterName));
                     }
 
-                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, ModelType.of(method.getDeclaringClass())));
-                    handled.add(method);
+                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, typeMethods.getDeclaredBy(methodName)));
+                    handled.addAll(typeMethods.get(methodName));
                 }
             }
 
-            Iterable<Method> notHandled = Iterables.filter(methods, Predicates.not(Predicates.in(handled)));
+            Iterable<Method> notHandled = Iterables.filter(typeMethods, Predicates.not(Predicates.in(handled)));
 
             // TODO - should call out valid getters without setters
             if (!Iterables.isEmpty(notHandled)) {
@@ -122,12 +110,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    private <R> void ensureNoOverloadedMethods(ModelSchemaExtractionContext<R> extractionContext, final ImmutableListMultimap<String, Method> methodsByName) {
-        for (String methodName : methodsByName.keySet()) {
-            ImmutableList<Method> methods = methodsByName.get(methodName);
-            if (methods.size() > 1) {
-                throw invalidMethods(extractionContext, "overloaded methods are not supported", methods);
-            }
+    private <R> void ensureNoOverloadedMethods(ModelSchemaExtractionContext<R> extractionContext, TypeMethods typeMethods) {
+        Set<String> overloadedMethodNames = typeMethods.getOverloadedMethodNames();
+        if (!overloadedMethodNames.isEmpty()) {
+            ImmutableList<Method> overloadedMethods = typeMethods.get(overloadedMethodNames.iterator().next());
+            throw invalidMethods(extractionContext, "overloaded methods are not supported", overloadedMethods);
         }
     }
 
@@ -155,10 +142,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
-        if (parentContext.getType().equals(property.getDeclaredBy())) {
+        if (property.getDeclaredBy().size() == 1 && property.getDeclaredBy().contains(parentContext.getType())) {
             return String.format("property '%s'", property.getName());
         } else {
-            return String.format("property '%s' declared by %s", property.getName(), property.getDeclaredBy());
+            ImmutableSortedSet<String> declaredBy = ImmutableSortedSet.copyOf(Iterables.transform(property.getDeclaredBy(), Functions.toStringFunction()));
+            return String.format("property '%s' declared by %s", property.getName(), Joiner.on(", ").join(declaredBy));
         }
     }
 
@@ -210,26 +198,5 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 .returns(method.getGenericReturnType())
                 .takes(method.getGenericParameterTypes())
                 .build();
-    }
-
-    private static class MethodSignatureEquivalence extends Equivalence<Method> {
-
-        @Override
-        protected boolean doEquivalent(Method a, Method b) {
-            return new EqualsBuilder()
-                    .append(a.getName(), b.getName())
-                    .append(a.getGenericReturnType(), b.getGenericReturnType())
-                    .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
-                    .isEquals();
-        }
-
-        @Override
-        protected int doHash(Method method) {
-            return new HashCodeBuilder()
-                    .append(method.getName())
-                    .append(method.getGenericReturnType())
-                    .append(method.getGenericParameterTypes())
-                    .toHashCode();
-        }
     }
 }

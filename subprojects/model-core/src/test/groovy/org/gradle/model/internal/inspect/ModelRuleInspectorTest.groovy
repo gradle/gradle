@@ -397,7 +397,7 @@ ${managedType.name}
 
     static class RuleSourceCreatingManagedWithNonManageableParent {
         @Model
-        void bar(ManagedWithNonManageableParent foo) {
+        void bar(ManagedWithNonManageableParents foo) {
         }
     }
 
@@ -407,12 +407,12 @@ ${managedType.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule $RuleSourceCreatingManagedWithNonManageableParent.name#bar($ManagedWithNonManageableParent.name) is invalid."
+        e.message == "Declaration of model rule $RuleSourceCreatingManagedWithNonManageableParent.name#bar($ManagedWithNonManageableParents.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:
-${ManagedWithNonManageableParent.name}
-  \\--- property 'invalidManaged' declared by ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)""")
+${ManagedWithNonManageableParents.name}
+  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)""")
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
