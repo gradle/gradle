@@ -50,9 +50,9 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
         useSharedBuild = true;
-        hasTrimmedDownComponentSettingsFile("java1", "src/main/java", "src/main/resources")
-        hasTrimmedDownComponentSettingsFile("java2", "src/main/java", "src/main/resources")
-        hasTrimmedDownComponentSettingsFile("groovy", "src/main/java", "src/main/groovy", "src/main/resources")
+        hasTrimmedDownComponentSettingsFile("java1", ["java2"], [ "src/main/java", "src/main/resources"])
+        hasTrimmedDownComponentSettingsFile("java2", [], ["src/main/java", "src/main/resources"])
+        hasTrimmedDownComponentSettingsFile("groovy", [], ["src/main/java", "src/main/groovy", "src/main/resources"])
     }
 
     @Test
@@ -223,14 +223,14 @@ apply plugin: "groovy"
                 "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
     }
 
-    private void hasTrimmedDownComponentSettingsFile(String projectName, String... sourcePaths) {
+    private void hasTrimmedDownComponentSettingsFile(String projectName, List projects, List sourcePaths) {
         def projectModules = parseComponentFile(project: projectName, print: true)
 
         assert getDeployName(projectModules) == projectName
         assert getSourcePaths(projectModules) == sourcePaths as Set
         assert getDeployPaths(projectModules) == ["/"] * sourcePaths.size() as Set
-        assert getHandleFilenames(projectModules) == [] as Set
-        assert getDependencyTypes(projectModules) == [] as Set
+        assert getHandleFilenames(projectModules) == projects as Set
+        assert getDependencyTypes(projectModules) == ['uses'] * projects.size() as Set
     }
 
     private String getDeployName(projectModules) {
