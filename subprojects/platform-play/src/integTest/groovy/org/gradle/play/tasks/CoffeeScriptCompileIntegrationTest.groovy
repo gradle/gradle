@@ -30,7 +30,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 jcenter()
                 maven{
                     name = "typesafe-maven-release"
-                    url = "http://repo.typesafe.com/typesafe/maven-releases"
+                    url = "https://repo.typesafe.com/typesafe/maven-releases"
                 }
                 maven {
                     name = "gradle-js"
