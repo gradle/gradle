@@ -15,7 +15,6 @@
  */
 
 package org.gradle.play.internal.toolchain
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -25,6 +24,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.internal.Factory
+import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.WorkerProcessBuilder
@@ -89,4 +89,15 @@ class DefaultPlayToolProviderTest extends Specification {
         where:
         playVersion << ["2.1.x", "2.4.x", "3.0.0"]
     }
+
+    def "newCompiler provides decent error for unsupported CompileSpec"(){
+        when:
+        playToolProvider.newCompiler(new UnknownCompileSpec())
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Cannot create Compiler for unsupported CompileSpec type 'UnknownCompileSpec'"
+    }
+
 }
+
+class UnknownCompileSpec implements CompileSpec{}
