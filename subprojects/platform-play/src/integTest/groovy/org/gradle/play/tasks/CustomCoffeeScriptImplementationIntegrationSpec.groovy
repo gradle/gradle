@@ -34,7 +34,7 @@ class CustomCoffeeScriptImplementationIntegrationSpec extends AbstractIntegratio
                 jcenter()
                 maven{
                     name = "typesafe-maven-release"
-                    url = "http://repo.typesafe.com/typesafe/maven-releases"
+                    url = "https://repo.typesafe.com/typesafe/maven-releases"
                 }
             }
 
