@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.sftp
 
+import com.jcraft.jsch.JSch
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.apache.sshd.SshServer
@@ -24,12 +25,12 @@ import org.apache.sshd.common.Session
 import org.apache.sshd.common.file.FileSystemView
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemView
+import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.util.Buffer
 import org.apache.sshd.server.Command
 import org.apache.sshd.server.PasswordAuthenticator
 import org.apache.sshd.server.PublickeyAuthenticator
 import org.apache.sshd.server.command.ScpCommandFactory
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -43,7 +44,10 @@ import org.gradle.util.AvailablePortFinder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.security.KeyPair
+import java.security.KeyPairGenerator
 import java.security.PublicKey
+import java.security.SecureRandom
 
 class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
@@ -91,6 +95,15 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     protected void before() throws Throwable {
+        JSch.logger = new com.jcraft.jsch.Logger() {
+            boolean isEnabled(int level) {
+                true
+            }
+
+            void log(int level, String message) {
+                println "[jsch] $message"
+            }
+        }
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
@@ -102,6 +115,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     public void stop(boolean immediately = false) {
+        JSch.logger = null
         sshd?.stop(immediately);
     }
 
@@ -130,7 +144,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             }
         }));
         sshServer.setCommandFactory(new ScpCommandFactory());
-        sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir}/test-dsa.key"));
+        sshServer.setKeyPairProvider(new GeneratingKeyPairProvider());
 
         if(passwordAuthenticationEnabled){
             sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
@@ -288,7 +302,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
             int pos = buffer.rpos()
             def command = commandMessage(buffer, type)
-            println "Received SFTP command $command"
             buffer.rpos(pos)
 
             def matched = expectations.find { it.matches(buffer, type, id) }
@@ -472,6 +485,22 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             } else {
                 return false
             }
+        }
+    }
+
+    class GeneratingKeyPairProvider extends AbstractKeyPairProvider {
+
+        KeyPair keyPair
+
+        GeneratingKeyPairProvider() {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA")
+            generator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
+            keyPair = generator.generateKeyPair()
+        }
+
+        @Override
+        Iterable<KeyPair> loadKeys() {
+            [keyPair]
         }
     }
 }
