@@ -185,7 +185,7 @@ Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
     - Include JvmLibrary main artifact in query results
     - Replace `IdeDependenciesExtractor.extractRepoFileDependencies` with single ArtifactResolutionQuery
 
-## Feature - Tooling API client cancels an operation
+## Feature - Tooling API client cancels an operation (DONE)
 
 Add some way for a tooling API client to request that an operation be cancelled.
 
@@ -327,7 +327,6 @@ Extend the above mechanism to support prompting the user, when running via the t
 Some more features to mix into the above plan:
 
 - Honour same environment variables as command-line `gradle` invocation.
-- Cancelled build is gracefully stopped
 - Richer events during execution:
     - Task execution
     - Custom events
