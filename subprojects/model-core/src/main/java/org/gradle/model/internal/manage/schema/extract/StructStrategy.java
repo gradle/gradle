@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.*;
-import com.google.common.base.Optional;
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -31,7 +33,9 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class StructStrategy implements ModelSchemaExtractionStrategy {
     protected final Factory<String> supportedTypeDescriptions;
@@ -118,14 +122,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <R> void ensureNoOverloadedMethods(ModelSchemaExtractionContext<R> extractionContext, final ImmutableListMultimap<String, Method> methodsByName) {
-        Optional<String> overloadedMethodName = Iterables.tryFind(methodsByName.keySet(), new Predicate<String>() {
-            public boolean apply(String methodName) {
-                return methodsByName.get(methodName).size() > 1;
+        for (String methodName : methodsByName.keySet()) {
+            ImmutableList<Method> methods = methodsByName.get(methodName);
+            if (methods.size() > 1) {
+                throw invalidMethods(extractionContext, "overloaded methods are not supported", methods);
             }
-        });
-
-        if (overloadedMethodName.isPresent()) {
-            throw invalidMethods(extractionContext, "overloaded methods are not supported", methodsByName.get(overloadedMethodName.get()));
         }
     }
 
@@ -213,7 +214,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 return description(method).toString();
             }
         }));
-        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions)+ ").");
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
     }
 
     private MethodDescription description(Method method) {
