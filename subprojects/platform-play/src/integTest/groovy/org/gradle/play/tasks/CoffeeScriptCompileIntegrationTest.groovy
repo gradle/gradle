@@ -40,7 +40,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "compile default coffeescript source set as part of play application build" () {
+    def "compiles default coffeescript source set as part of play application build" () {
         given:
         withCoffeeScriptSource("app/test.coffee")
 
@@ -48,12 +48,48 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        executed(":compilePlayBinaryPlayCoffeeScriptSources", ":processPlayBinaryPlayCoffeeScriptGenerated")
+        executed(":compilePlayBinaryPlayCoffeeScriptSources",
+                 ":processPlayBinaryPlayCoffeeScriptGenerated",
+                 ":createPlayBinaryJar",
+                 ":playBinary")
         file("build/playBinary/coffeescript/test.js").exists()
         compareWithoutWhiteSpace file("build/playBinary/coffeescript/test.js").text, expectedJavaScript()
         jar("build/jars/play/playBinary.jar").containsDescendants(
                 "test.js"
         )
+
+        // Up-to-date works
+        when:
+        succeeds "assemble"
+
+        then:
+        skipped(":compilePlayBinaryPlayCoffeeScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
+
+        // Detects missing output
+        when:
+        file("build/playBinary/coffeescript/test.js").delete()
+        succeeds "assemble"
+
+        then:
+        executed(":compilePlayBinaryPlayCoffeeScriptSources",
+                 ":processPlayBinaryPlayCoffeeScriptGenerated",
+                 ":createPlayBinaryJar",
+                 ":playBinary")
+        file("build/playBinary/coffeescript/test.js").exists()
+
+        // Detects changed input
+        when:
+        file("app/test.coffee") << '\nalert "this is a change!"'
+        succeeds "assemble"
+
+        then:
+        executed(":compilePlayBinaryPlayCoffeeScriptSources",
+                 ":processPlayBinaryPlayCoffeeScriptGenerated",
+                 ":createPlayBinaryJar",
+                 ":playBinary")
     }
 
     def "compiles multiple coffeescript source sets as part of play application build" () {
@@ -62,7 +98,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         withCoffeeScriptSource("src/play/extraCoffeeScript/xxx/test2.coffee")
         withCoffeeScriptSource("extra/a/b/c/test3.coffee")
         file('src/play/extraJavaScript/test/test4.js') << expectedJavaScript()
-        file('/app/test5.js') << expectedJavaScript()
+        file('app/test5.js') << expectedJavaScript()
 
         when:
         buildFile << """
@@ -88,7 +124,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                  ":compilePlayBinaryPlayAnotherCoffeeScript",
                  ":processPlayBinaryPlayExtraJavaScript",
                  ":processPlayBinaryPlayJavaScriptSources",
-                 ":processPlayBinaryPlayCoffeeScriptGenerated")
+                 ":processPlayBinaryPlayCoffeeScriptGenerated",
+                 ":createPlayBinaryJar",
+                 ":playBinary")
         file("build/playBinary/coffeescript/test1.js").exists()
         file("build/playBinary/coffeescript/xxx/test2.js").exists()
         file("build/playBinary/coffeescript/a/b/c/test3.js").exists()
@@ -102,6 +140,19 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 "test/test4.js",
                 "test5.js"
         )
+
+        when:
+        succeeds "assemble"
+
+        then:
+        skipped(":compilePlayBinaryPlayCoffeeScriptSources",
+                ":compilePlayBinaryPlayExtraCoffeeScript",
+                ":compilePlayBinaryPlayAnotherCoffeeScript",
+                ":processPlayBinaryPlayExtraJavaScript",
+                ":processPlayBinaryPlayJavaScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
     }
 
     JarTestFixture jar(String fileName) {
