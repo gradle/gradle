@@ -68,15 +68,6 @@ public class ScalaCompile extends AbstractScalaCompile {
         this.compiler = compiler;
     }
 
-    @Override
-    protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaJavaJointCompileSpec spec = super.createSpec();
-        spec.setScalaClasspath(getScalaClasspath());
-        spec.setZincClasspath(getZincClasspath());
-        return spec;
-    }
-
-
     protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
@@ -84,7 +75,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory);
+            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath());
             org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = scalaCompilerFactory.newCompiler(spec);
             compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
         }

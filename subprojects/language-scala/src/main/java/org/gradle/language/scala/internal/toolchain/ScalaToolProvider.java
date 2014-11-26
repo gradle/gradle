@@ -57,10 +57,10 @@ class ScalaToolProvider implements ToolProvider {
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
         if (spec instanceof ScalaJavaJointCompileSpec) {
             ScalaJavaJointCompileSpec scalaJavaJointCompileSpec = (ScalaJavaJointCompileSpec) spec;
-            scalaJavaJointCompileSpec.setScalaClasspath(resolveDependency(String.format("org.scala-lang:scala-compiler:%s", scalaVersion)).getFiles());
-            scalaJavaJointCompileSpec.setZincClasspath(resolveDependency(String.format("com.typesafe.zinc:zinc:%s", ScalaBasePlugin.DEFAULT_ZINC_VERSION)).getFiles());
+            Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", scalaVersion));
+            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", ScalaBasePlugin.DEFAULT_ZINC_VERSION));
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectDir, antBuilder, javaCompilerFactory, compilerDaemonManager);
+            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectDir, antBuilder, javaCompilerFactory, compilerDaemonManager, scalaClasspath, zincClasspath);
             @SuppressWarnings("unchecked") org.gradle.language.base.internal.compile.Compiler<T> delegatingCompiler = (Compiler<T>) scalaCompilerFactory.newCompiler(scalaJavaJointCompileSpec);
             return delegatingCompiler;
         }

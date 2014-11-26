@@ -28,7 +28,6 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
 
-
     public DefaultPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;

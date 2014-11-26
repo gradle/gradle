@@ -44,8 +44,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DaemonScalaCompiler extends AbstractDaemonCompiler<ScalaJavaJointCompileSpec> {
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<ScalaJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
+    private final Iterable<File> zincClasspath;
+
+    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<ScalaJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
         super(daemonWorkingDir, delegate, daemonFactory);
+        this.zincClasspath = zincClasspath;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class DaemonScalaCompiler extends AbstractDaemonCompiler<ScalaJavaJointCo
         ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
         List<String> sharedPackages = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                options.getJvmArgs(), spec.getZincClasspath(), sharedPackages);
+                options.getJvmArgs(), zincClasspath, sharedPackages);
     }
 }
 

@@ -60,15 +60,9 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
-        spec.setClasspath(classPath);
-
-        spec.setScalaClasspath(Lists.newArrayList(spec.getScalaClasspath()));
-        spec.setZincClasspath(Lists.newArrayList(spec.getZincClasspath()));
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Class path: {}", spec.getClasspath());
-            LOGGER.debug("Scala class path: {}", spec.getScalaClasspath());
-            LOGGER.debug("Zinc class path: {}", spec.getZincClasspath());
         }
     }
 

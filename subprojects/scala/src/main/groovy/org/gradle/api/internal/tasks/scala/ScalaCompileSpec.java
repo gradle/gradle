@@ -25,14 +25,6 @@ import java.util.Map;
 public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
     ScalaCompileOptions getScalaCompileOptions();
 
-    Iterable<File> getScalaClasspath();
-
-    void setScalaClasspath(Iterable<File> classpath);
-
-    Iterable<File> getZincClasspath();
-
-    void setZincClasspath(Iterable<File> classpath);
-
     Map<File, File> getAnalysisMap();
 
     void setAnalysisMap(Map<File, File> analysisMap);
