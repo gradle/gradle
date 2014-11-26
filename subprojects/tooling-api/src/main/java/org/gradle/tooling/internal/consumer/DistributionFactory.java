@@ -44,11 +44,9 @@ import java.util.concurrent.Future;
 
 public class DistributionFactory {
     private final Factory<? extends ExecutorService> executorFactory;
-    private final ProviderClasspathUpdater cpUpdater;
 
-    public DistributionFactory(Factory<? extends ExecutorService> executorFactory, ProviderClasspathUpdater cpUpdater) {
+    public DistributionFactory(Factory<? extends ExecutorService> executorFactory) {
         this.executorFactory = Preconditions.checkNotNull(executorFactory);
-        this.cpUpdater = cpUpdater;
     }
 
     /**
@@ -58,7 +56,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration(), executorFactory, cpUpdater);
+            return new ZippedDistribution(wrapper.getConfiguration(), executorFactory);
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -68,7 +66,7 @@ public class DistributionFactory {
      */
     public Distribution getDistribution(File gradleHomeDir) {
         return new InstalledDistribution(gradleHomeDir, String.format("Gradle installation '%s'", gradleHomeDir),
-                String.format("Gradle installation directory '%s'", gradleHomeDir), cpUpdater);
+                String.format("Gradle installation directory '%s'", gradleHomeDir));
     }
 
     /**
@@ -84,7 +82,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration, executorFactory, cpUpdater);
+        return new ZippedDistribution(configuration, executorFactory);
     }
 
     /**
@@ -103,12 +101,10 @@ public class DistributionFactory {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
         private final Factory<? extends ExecutorService> executorFactory;
-        private final ProviderClasspathUpdater cpUpdater;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory, ProviderClasspathUpdater cpUpdater) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.executorFactory = executorFactory;
-            this.cpUpdater = Preconditions.checkNotNull(cpUpdater);
         }
 
         public String getDisplayName() {
@@ -160,7 +156,7 @@ public class DistributionFactory {
                         executor.shutdown();
                     }
                 }
-                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName(), cpUpdater);
+                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
             return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken);
         }
@@ -189,13 +185,11 @@ public class DistributionFactory {
         private final File gradleHomeDir;
         private final String displayName;
         private final String locationDisplayName;
-        private final ProviderClasspathUpdater cpUpdater;
 
-        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName, ProviderClasspathUpdater cpUpdater) {
+        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName) {
             this.gradleHomeDir = gradleHomeDir;
             this.displayName = displayName;
             this.locationDisplayName = locationDisplayName;
-            this.cpUpdater = Preconditions.checkNotNull(cpUpdater);
         }
 
         public String getDisplayName() {
@@ -225,9 +219,6 @@ public class DistributionFactory {
                 throw new IllegalArgumentException(String.format("The specified %s does not appear to contain a Gradle distribution.", locationDisplayName));
             }
             LinkedHashSet<File> files = new LinkedHashSet<File>();
-            for (File patch : cpUpdater.prependToClasspath(libDir)) {
-                files.add(patch);
-            }
             for (File file : libDir.listFiles()) {
                 if (file.getName().endsWith(".jar")) {
                     files.add(file);

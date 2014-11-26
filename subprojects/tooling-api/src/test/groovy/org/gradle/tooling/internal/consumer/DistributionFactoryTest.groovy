@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -31,18 +30,15 @@ import java.util.concurrent.Executors
 
 class DistributionFactoryTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final ExecutorServiceFactory executorFactory = Mock()
     final BuildCancellationToken cancellationToken = Mock()
     final ExecutorService executor = Executors.newSingleThreadExecutor()
-    final ProviderClasspathUpdater cpUpdater = Mock()
-    final DistributionFactory factory = new DistributionFactory(executorFactory, cpUpdater)
+    final DistributionFactory factory = new DistributionFactory(executorFactory)
 
     def setup() {
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
-        _ * cpUpdater.prependToClasspath(_) >> []
     }
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistribution() {
@@ -202,7 +198,6 @@ class DistributionFactoryTest extends Specification {
 
         1 * executorFactory.create() >> executor
         1 * cancellationToken.addCallback(_)
-        1 * cpUpdater.prependToClasspath(_) >> []
 
         0 * _._
     }
@@ -232,35 +227,6 @@ class DistributionFactoryTest extends Specification {
         1 * cancellationToken.addCallback(_)
         IllegalArgumentException e = thrown()
         e.message == "The specified Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
-    }
-
-    def "prepends patched class for Gradle distribution with broken ClasspathInferer"() {
-        System.properties['java.io.tmpdir'] = tmpDir.createDir('custom-tmp-dir').absolutePath
-        def patchJar = tmpDir.file('custom-tmp-dir/patch.jar')
-
-        when:
-        File customUserHome = tmpDir.file('customUserHome')
-
-        def distDir = tmpDir.createDir('dist')
-        distDir.create {
-            "dist-2.1" {
-                lib {
-                    file("a.jar")
-                    file("gradle-core-x.y.jar")
-                }
-            }
-        }
-        def zipFile = tmpDir.file("dist-2.1.zip")
-        distDir.zipTo(zipFile)
-        def dist = factory.getDistribution(zipFile.toURI())
-        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome, cancellationToken)
-
-        then:
-        1 * executorFactory.create() >> executor
-        1 * cpUpdater.prependToClasspath(_) >> [patchJar]
-        result.asFiles.size() == 3
-        (result.asFiles.name as Set) == ['patch.jar', 'a.jar', 'gradle-core-x.y.jar'] as Set
-        (result.asFiles.path as Set).every { it.contains('customUserHome') || it.contains('custom-tmp-dir')}
     }
 
     private TestFile createZip(Closure cl) {

@@ -78,12 +78,8 @@ public class ConnectorServices {
             return new DefaultExecutorServiceFactory();
         }
 
-        protected ProviderClasspathUpdater createProviderClasspathUpdater() {
-            return new DefaultProviderClasspathUpdater();
-        }
-
-        protected DistributionFactory createDistributionFactory(ExecutorServiceFactory executorFactory, ProviderClasspathUpdater cpUpdater) {
-            return new DistributionFactory(executorFactory, cpUpdater);
+        protected DistributionFactory createDistributionFactory(ExecutorServiceFactory executorFactory) {
+            return new DistributionFactory(executorFactory);
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {
