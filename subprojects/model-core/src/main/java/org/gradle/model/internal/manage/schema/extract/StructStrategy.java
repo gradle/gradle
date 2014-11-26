@@ -30,6 +30,7 @@ import org.gradle.model.Managed;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -55,8 +56,8 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         if (type.getRawClass().isAnnotationPresent(Managed.class)) {
             validateType(type, extractionContext);
 
-            Iterable<Method> methods = removeEquivalentMethods(type.getRawClass().getMethods());
-            if (Iterables.isEmpty(methods)) {
+            List<Method> methods = CollectionUtils.dedup(Arrays.asList(type.getRawClass().getMethods()), new MethodSignatureEquivalence());
+            if (methods.isEmpty()) {
                 return new ModelSchemaExtractionResult<R>(ModelSchema.struct(type, Collections.<ModelProperty<?>>emptySet()));
             }
 
@@ -69,7 +70,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
             });
             ensureNoOverloadedMethods(extractionContext, methodsByName);
 
-            List<Method> handled = Lists.newArrayList();
+            List<Method> handled = Lists.newArrayListWithCapacity(methods.size());
 
             for (Method method : methods) {
                 String methodName = method.getName();
@@ -128,20 +129,6 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 throw invalidMethods(extractionContext, "overloaded methods are not supported", methods);
             }
         }
-    }
-
-    private Iterable<Method> removeEquivalentMethods(Method[] methods) {
-        final MethodSignatureEquivalence equivalence = new MethodSignatureEquivalence();
-        Iterable<Equivalence.Wrapper<Method>> methodEquivalenceWrappers = Iterables.transform(Arrays.asList(methods), new Function<Method, Equivalence.Wrapper<Method>>() {
-            public Equivalence.Wrapper<Method> apply(Method method) {
-                return equivalence.wrap(method);
-            }
-        });
-        return Iterables.transform(ImmutableSet.copyOf(methodEquivalenceWrappers), new Function<Equivalence.Wrapper<Method>, Method>() {
-            public Method apply(Equivalence.Wrapper<Method> wrapper) {
-                return wrapper.get();
-            }
-        });
     }
 
     private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
