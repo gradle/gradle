@@ -205,11 +205,6 @@ Due to uncertanties about how we will deal with creating non root elements gener
 - Possibly introduce a new type of rule, that adds model elements to a container, rather than 'mutates' the container.
 - Project and other things can leak out of `Task` instances when `TaskContainer` is provided to a rule.
     - Same with `Buildable` things, `BuildableModelElement`, `NativeBinaryTasks`, etc.
-
-#### Needs clarification
-
-- When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
-- Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.    
     
 ## Story: Build author configures task created by configuration rule supplied by plugin (DONE)
 
@@ -1069,3 +1064,8 @@ Use it:
     - When calculating task dependencies
     - When generating pom or ivy.xml from consuming project.
     - When building IDE model or generating IDE configuration.
+
+# Diagnostics
+
+- When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
+- Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.    
