@@ -107,7 +107,7 @@
                 </para>
                 <itemizedlist>
                     <listitem>Defining the plugin as an inline class declaration inside a build script.</listitem>
-                    <listitem>Defining the plugin as a source file under the buildSrc directory in the project.</listitem>
+                    <listitem>Defining the plugin as a source file under the buildSrc directory in the project (see <xref linkend="sec:build_sources"/>).</listitem>
                     <listitem>Including the plugin from an external jar defined as a buildscript dependency (see <xref linkend="sec:applying_plugins_buildscript" />).</listitem>
                     <listitem>Including the plugin from the plugin portal using the plugins DSL (see <xref linkend="sec:plugins_block" />).</listitem>
                 </itemizedlist>
