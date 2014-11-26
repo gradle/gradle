@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Collections;
@@ -45,7 +44,6 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(ScalaCompile.class);
     protected final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
     private final CompileOptions compileOptions = new CompileOptions();
-    protected Compiler<ScalaJavaJointCompileSpec> compiler;
 
     /**
      * Returns the Scala compilation options.
@@ -61,14 +59,6 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
     @Nested
     public CompileOptions getOptions() {
         return compileOptions;
-    }
-
-
-    /**
-     * For testing only.
-     */
-    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler) {
-        this.compiler = compiler;
     }
 
     abstract protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);

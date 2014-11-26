@@ -35,6 +35,8 @@ public class ScalaCompile extends AbstractScalaCompile {
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
 
+    private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
+
     /**
      * Returns the classpath to use to load the Scala compiler.
      */
@@ -57,6 +59,13 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     public void setZincClasspath(FileCollection zincClasspath) {
         this.zincClasspath = zincClasspath;
+    }
+
+    /**
+     * For testing only.
+     */
+    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler) {
+        this.compiler = compiler;
     }
 
     @Override

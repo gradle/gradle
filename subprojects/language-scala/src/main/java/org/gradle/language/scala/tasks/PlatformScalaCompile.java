@@ -50,10 +50,7 @@ public class PlatformScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
-        if (compiler == null) {
-            Compiler<ScalaJavaJointCompileSpec> scalaCompiler = getToolChain().select(getPlatform()).newCompiler(spec);
-            compiler = new CleaningScalaCompiler(scalaCompiler, getOutputs());
-        }
-        return compiler;
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = getToolChain().select(getPlatform()).newCompiler(spec);
+        return new CleaningScalaCompiler(scalaCompiler, getOutputs());
     }
 }
