@@ -83,8 +83,6 @@ A mock up:
 
 ### Open issues
 
-- `@Model` is not in public API.
-- Can attach `@Model("")` to a method. Should probably complain about the empty string.
 - When an input for a creator rule cannot be bound, the error message does not include any diagnostic information.
 
 #### Needs clarification
