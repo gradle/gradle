@@ -19,24 +19,62 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegrationSpec {
+    def customCoffeeScriptImplFileName
 
-    def "can compile coffeescript with a custom implementation"() {
-        def customCoffeeScriptImplFileName = 'coffeescript/coffee-script.min.js'
+    def setup() {
+        customCoffeeScriptImplFileName = 'coffeescript/coffee-script.min.js'
         file(customCoffeeScriptImplFileName) << getClass().getResource("/coffee-script.min.js").text
 
         file('app/test.coffee') << testCoffeeScript()
         file('src/play/extra/test2.coffee') << testCoffeeScript()
         buildFile << """
             plugins {
+                id 'play-application'
                 id 'play-coffeescript'
             }
 
             repositories{
                 jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "http://repo.typesafe.com/typesafe/maven-releases"
+            }
+        """
+    }
+
+    def "can compile coffeescript with a custom implementation from file"() {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            extra(CoffeeScriptSourceSet)
+                        }
+                        binaries.all {
+                            tasks.withType(PlayCoffeeScriptCompile) {
+                                coffeeScriptJs = files("${customCoffeeScriptImplFileName}")
+                            }
+                        }
+                    }
                 }
+            }
+        """
+
+        when:
+        succeeds "compilePlayBinaryPlayCoffeeScriptSources", "compilePlayBinaryPlayExtra"
+
+        then:
+        file('build/playBinary/coffeescript/test.js').exists()
+        file('build/playBinary/coffeescript/test2.js').exists()
+        file('build/playBinary/coffeescript/test.js').text == expectedJavaScript()
+        file('build/playBinary/coffeescript/test2.js').text == expectedJavaScript()
+    }
+
+    def "can compile coffeescript with a custom implementation from configuration"() {
+        buildFile << """
+            configurations {
+                coffeeScript
+            }
+
+            dependencies {
+                coffeeScript files("${customCoffeeScriptImplFileName}")
             }
 
             model {
@@ -47,7 +85,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
                         }
                         binaries.all {
                             tasks.withType(PlayCoffeeScriptCompile) {
-                                coffeeScriptJs = files("${customCoffeeScriptImplFileName}")
+                                coffeeScriptJs = configurations.coffeeScript
                             }
                         }
                     }

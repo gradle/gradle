@@ -16,68 +16,59 @@
 
 package org.gradle.play.plugins
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.util.TextUtil
-import org.junit.Rule
 
-class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
+class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override
     String getPluginName() {
-        return 'play-coffeescript'
+        return 'play-javascript'
     }
 
     def setup() {
         buildFile << """
             plugins {
                 id 'play-application'
-                id 'play-coffeescript'
+                id 'play-javascript'
             }
         """
     }
 
-    def "coffeescript source set appears in component listing"() {
+    def "javascript source set appears in component listing"() {
         when:
         succeeds "components"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
-    CoffeeScript source 'play:coffeeScriptSources'
+    JavaScript source 'play:javaScriptSources'
         app
-"""))
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    JavaScript source 'play:coffeeScriptGenerated'
 """))
     }
 
-    def "creates and configures compile task when source exists"() {
+    def "creates and configures process task when source exists"() {
         buildFile << """
             task checkTasks {
                 doLast {
-                    def coffeeScriptCompileTasks = tasks.withType(CoffeeScriptCompile).matching { it.name == "compilePlayBinaryPlayCoffeeScriptSources" }
-                    assert coffeeScriptCompileTasks.size() == 1
-
-                    def javaScriptProcessTasks = tasks.withType(Copy).matching { it.name == "processPlayBinaryPlayCoffeeScriptGenerated" }
+                    def javaScriptProcessTasks = tasks.withType(Copy).matching { it.name == "processPlayBinaryPlayJavaScriptSources" }
                     assert javaScriptProcessTasks.size() == 1
                 }
             }
         """
 
         when:
-        file("app/test.coffee") << "test"
+        file("app/test.js") << "test"
 
         then:
         succeeds "checkTasks"
     }
 
-    def "does not create compile task when source does not exist"() {
+    def "does not create process task when source does not exist"() {
         buildFile << """
             task checkTasks {
                 doLast {
-                    assert tasks.withType(CoffeeScriptCompile).size() == 0
+                    def javaScriptProcessTasks = tasks.withType(Copy).matching { it.name == "processPlayBinaryPlayJavaScriptSources" }
+                    assert javaScriptProcessTasks.size() == 0
                 }
             }
         """

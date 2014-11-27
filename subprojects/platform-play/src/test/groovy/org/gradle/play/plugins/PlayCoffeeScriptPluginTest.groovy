@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 class PlayCoffeeScriptPluginTest extends AbstractLanguagePluginSpec {
 
     def setup() {
+        project.pluginManager.apply(PlayApplicationPlugin);
         project.pluginManager.apply(PlayCoffeeScriptPlugin)
     }
 

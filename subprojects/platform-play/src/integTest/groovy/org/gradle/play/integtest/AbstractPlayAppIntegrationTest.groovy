@@ -42,7 +42,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         when:
         succeeds("assemble")
         then:
-        executedAndNotSkipped(":processPlayBinaryPlayJavaScriptSources", ":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":createPlayBinaryJar", ":playBinary", ":assemble")
+        executedAndNotSkipped(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":createPlayBinaryJar", ":playBinary", ":assemble")
 
         and:
         jar("build/jars/play/playBinary.jar").containsDescendants(
@@ -53,7 +53,6 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 "images/favicon.svg",
                 "stylesheets/main.css",
                 "javascripts/hello.js",
-                "js/test.js",
                 "application.conf")
 
         when:
@@ -67,7 +66,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         when:
         succeeds("testPlayBinary")
         then:
-        executed(":processPlayBinaryPlayJavaScriptSources", ":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
+        executed(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
 
         then:
@@ -77,7 +76,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         when:
         succeeds("testPlayBinary")
         then:
-        skipped(":processPlayBinaryPlayJavaScriptSources", ":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
+        skipped(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
     }
 

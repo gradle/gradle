@@ -21,10 +21,11 @@ import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.PlayApplicationSpec
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class PlayApplicationPluginJavascriptTest extends AbstractLanguagePluginSpec {
+class PlayJavaScriptPluginTest extends AbstractLanguagePluginSpec {
 
     def setup() {
         project.pluginManager.apply(PlayApplicationPlugin);
+        project.pluginManager.apply(PlayJavaScriptPlugin);
     }
 
     def "adds javascript source sets to play components" () {

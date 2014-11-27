@@ -23,6 +23,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             plugins {
+                id 'play-application'
                 id 'play-coffeescript'
             }
 
@@ -48,10 +49,11 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        executed(":compilePlayBinaryPlayCoffeeScriptSources",
-                 ":processPlayBinaryPlayCoffeeScriptGenerated",
-                 ":createPlayBinaryJar",
-                 ":playBinary")
+        executedAndNotSkipped(
+                ":compilePlayBinaryPlayCoffeeScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
         file("build/playBinary/coffeescript/test.js").exists()
         compareWithoutWhiteSpace file("build/playBinary/coffeescript/test.js").text, expectedJavaScript()
         jar("build/jars/play/playBinary.jar").containsDescendants(
@@ -71,13 +73,16 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         // Detects missing output
         when:
         file("build/playBinary/coffeescript/test.js").delete()
+        file("build/playBinary/javascript/test.js").delete()
+        file("build/jars/play/playBinary.jar").delete()
         succeeds "assemble"
 
         then:
-        executed(":compilePlayBinaryPlayCoffeeScriptSources",
-                 ":processPlayBinaryPlayCoffeeScriptGenerated",
-                 ":createPlayBinaryJar",
-                 ":playBinary")
+        executedAndNotSkipped(
+                ":compilePlayBinaryPlayCoffeeScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
         file("build/playBinary/coffeescript/test.js").exists()
 
         // Detects changed input
@@ -86,10 +91,11 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        executed(":compilePlayBinaryPlayCoffeeScriptSources",
-                 ":processPlayBinaryPlayCoffeeScriptGenerated",
-                 ":createPlayBinaryJar",
-                 ":playBinary")
+        executedAndNotSkipped(
+                ":compilePlayBinaryPlayCoffeeScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
     }
 
     def "compiles multiple coffeescript source sets as part of play application build" () {
@@ -119,14 +125,15 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        executed(":compilePlayBinaryPlayCoffeeScriptSources",
-                 ":compilePlayBinaryPlayExtraCoffeeScript",
-                 ":compilePlayBinaryPlayAnotherCoffeeScript",
-                 ":processPlayBinaryPlayExtraJavaScript",
-                 ":processPlayBinaryPlayJavaScriptSources",
-                 ":processPlayBinaryPlayCoffeeScriptGenerated",
-                 ":createPlayBinaryJar",
-                 ":playBinary")
+        executedAndNotSkipped(
+                ":compilePlayBinaryPlayCoffeeScriptSources",
+                ":compilePlayBinaryPlayExtraCoffeeScript",
+                ":compilePlayBinaryPlayAnotherCoffeeScript",
+                ":processPlayBinaryPlayExtraJavaScript",
+                ":processPlayBinaryPlayJavaScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
         file("build/playBinary/coffeescript/test1.js").exists()
         file("build/playBinary/coffeescript/xxx/test2.js").exists()
         file("build/playBinary/coffeescript/a/b/c/test3.js").exists()
