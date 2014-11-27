@@ -114,7 +114,7 @@ public class JUnitTestEventAdapter extends RunListener {
         synchronized (lock) {
             testInternal = executing.remove(description);
             if (testInternal == null && executing.size() == 1) {
-                // Assume that test has renamed itself
+                // Assume that test has renamed itself (this can actually happen)
                 testInternal = executing.values().iterator().next();
                 executing.clear();
             }

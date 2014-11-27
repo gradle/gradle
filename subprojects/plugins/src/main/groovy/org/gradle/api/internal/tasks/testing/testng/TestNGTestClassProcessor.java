@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
@@ -41,14 +42,16 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final TestNGSpec options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
+    private final TimeProvider timeProvider;
     private ClassLoader applicationClassLoader;
     private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
+        this.timeProvider = timeProvider;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
@@ -114,7 +117,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             Object rootId = idGenerator.generateId();
             TestDescriptorInternal rootSuite = new DefaultTestSuiteDescriptor(rootId, options.getDefaultTestName());
             TestResultProcessor decorator = new AttachParentTestResultProcessor(resultProcessor);
-            decorator.started(rootSuite, new TestStartEvent(System.currentTimeMillis()));
+            decorator.started(rootSuite, new TestStartEvent(timeProvider.getCurrentTime()));
             testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(decorator, idGenerator)));
             try {
                 testNg.run();
