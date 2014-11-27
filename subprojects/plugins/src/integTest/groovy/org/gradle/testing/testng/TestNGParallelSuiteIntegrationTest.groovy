@@ -18,6 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
@@ -27,7 +28,7 @@ public class TestNGParallelSuiteIntegrationTest extends AbstractIntegrationSpec 
     def "runs with multiple parallel threads"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { jcenter() }
+            repositories { mavenCentral() }
             dependencies {
                 testCompile 'org.testng:testng:$TestNGCoverage.NEWEST'
             }
@@ -59,7 +60,12 @@ public class TestNGParallelSuiteIntegrationTest extends AbstractIntegrationSpec 
 </suite>"""
 
 
-        expect:
+        when:
         run("test")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("Foo0Test").assertTestsExecuted("test")
+        result.testClass("Foo199Test").assertTestsExecuted("test")
     }
 }
