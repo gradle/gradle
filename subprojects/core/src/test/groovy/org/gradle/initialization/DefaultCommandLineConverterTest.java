@@ -306,14 +306,14 @@ public class DefaultCommandLineConverterTest {
     @Test
     public void withNoColor() {
         expectedColorOutput = false;
-        expectedConsoleOutput = ConsoleOutput.Disable;
+        expectedConsoleOutput = ConsoleOutput.Plain;
         checkConversion("--no-color");
     }
 
     @Test
     public void withColor() {
-        expectedConsoleOutput = ConsoleOutput.Enable;
-        checkConversion("--color", "always");
+        expectedConsoleOutput = ConsoleOutput.Rich;
+        checkConversion("--console", "rich");
     }
 
     @Test(expected = CommandLineArgumentException.class)

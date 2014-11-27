@@ -147,7 +147,7 @@ As this is an incubating feature, the deprecated method will be removed in Gradl
 
 ### `--no-color` command-line option
 
-The `--no-color` option has been replaced by the more general `--color` option. You can use `gradle --color never ...` instead of `gradle --no-color ...`.
+The `--no-color` option has been replaced by the more general `--console` option. You can use `gradle --console plain ...` instead of `gradle --no-color ...`.
 
 The `--no-color` option will be removed in Gradle 3.0.
 

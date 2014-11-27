@@ -30,7 +30,7 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
 
     public void execute(OutputEventRenderer renderer) {
         ConsoleOutput consoleOutput = renderer.getConsoleOutput();
-        if (consoleOutput == ConsoleOutput.Disable) {
+        if (consoleOutput == ConsoleOutput.Plain) {
             return;
         }
 
@@ -41,7 +41,7 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
             if (consoleOutput == ConsoleOutput.Auto) {
                 return;
             }
-            assert consoleOutput == ConsoleOutput.Enable;
+            assert consoleOutput == ConsoleOutput.Rich;
             consoleMetaData = new FallbackConsoleMetaData();
             force = true;
         }

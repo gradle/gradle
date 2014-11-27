@@ -40,7 +40,7 @@ public class LoggingConfiguration implements Serializable {
      * @return true if logging output should be displayed in color.
      */
     public boolean isColorOutput() {
-        return consoleOutput != ConsoleOutput.Disable;
+        return consoleOutput != ConsoleOutput.Plain;
     }
 
     /**
@@ -49,7 +49,7 @@ public class LoggingConfiguration implements Serializable {
      * @param colorOutput true if logging output should be displayed in color.
      */
     public void setColorOutput(boolean colorOutput) {
-        this.consoleOutput = colorOutput ? ConsoleOutput.Auto : ConsoleOutput.Disable;
+        this.consoleOutput = colorOutput ? ConsoleOutput.Auto : ConsoleOutput.Plain;
     }
 
     @Incubating

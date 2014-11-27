@@ -69,20 +69,20 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion([arg])
 
         where:
-        arg              | consoleOutput
-        "--color=never"  | ConsoleOutput.Disable
-        "--color=auto"   | ConsoleOutput.Auto
-        "--color=AUTO"   | ConsoleOutput.Auto
-        "--color=always" | ConsoleOutput.Enable
+        arg               | consoleOutput
+        "--console=plain" | ConsoleOutput.Plain
+        "--console=auto"  | ConsoleOutput.Auto
+        "--console=AUTO"  | ConsoleOutput.Auto
+        "--console=rich"  | ConsoleOutput.Rich
     }
 
     def reportsUnknownColorOption() {
         when:
-        converter.convert(["--color", "unknown"], new LoggingConfiguration())
+        converter.convert(["--console", "unknown"], new LoggingConfiguration())
 
         then:
         CommandLineArgumentException e = thrown()
-        e.message == /Unrecognized value 'unknown' for color./
+        e.message == /Unrecognized value 'unknown' for console./
     }
 
     def convertsShowStacktrace() {

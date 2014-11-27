@@ -54,15 +54,16 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--color</option>
+                <option>--console</option>
             </term>
             <listitem>
-                <para>Enables or disables use of color in the console output.</para>
-                <para>Set to <literal>never</literal> to disable all color and other control codes in the console output.</para>
-                <para>Set to <literal>auto</literal> (the default) to enable color and other control codes in the console output when
-                    the build process is attached to a console.</para>
-                <para>Set to <literal>always</literal> to enable color and other control codes in the console output,
-                    even when the build process is not attached to a console.
+                <para>Specifies which type of console output to generate.</para>
+                <para>Set to <literal>plain</literal> to generate plain text only. This option disables all color and other rich output in the console output.</para>
+                <para>Set to <literal>auto</literal> (the default) to enable color and other rich output in the console output when
+                    the build process is attached to a console, or to generate plain text only when not attached to a console.</para>
+                <para>Set to <literal>rich</literal> to enable color and other rich output in the console output,
+                    regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control
+                    characters to generate the rich output.
                 </para>
             </listitem>
         </varlistentry>
@@ -305,7 +306,7 @@
                     <option>--no-color</option>
                 </term>
                 <listitem>
-                    <para>Do not use color in the console output. This option has been replaced by the <option>--color=never</option> option.</para>
+                    <para>Do not use color in the console output. This option has been replaced by the <option>--console plain</option> option.</para>
                 </listitem>
             </varlistentry>
         </variablelist>

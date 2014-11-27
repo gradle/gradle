@@ -24,16 +24,16 @@ import org.gradle.api.Incubating;
 @Incubating
 public enum ConsoleOutput {
     /**
-     * Disable all color and dynamic output.
+     * Disable all color and rich output. Generate plain text only.
      */
-    Disable,
+    Plain,
     /**
-     * Enable color and dynamic output when the current process is attached to a console, disable when not attached to a console.
+     * Enable color and rich output when the current process is attached to a console, disable when not attached to a console.
      */
     Auto,
     /**
-     * Enable color and dynamic output, regardless of whether the current process is attached to a console or not.
-     * When not attached to a console, the color and dynamic output is encoded using ANSI control characters.
+     * Enable color and rich output, regardless of whether the current process is attached to a console or not.
+     * When not attached to a console, the color and rich output is encoded using ANSI control characters.
      */
-    Enable
+    Rich
 }

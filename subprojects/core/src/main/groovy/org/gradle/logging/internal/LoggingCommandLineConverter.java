@@ -36,7 +36,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String NO_COLOR = "no-color";
-    public static final String COLOR = "color";
+    public static final String CONSOLE = "console";
     public static final String FULL_STACKTRACE = "S";
     public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
     public static final String STACKTRACE = "s";
@@ -51,9 +51,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
         showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
         showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
-        consoleOutputMap.put("never", ConsoleOutput.Disable);
+        consoleOutputMap.put("plain", ConsoleOutput.Plain);
         consoleOutputMap.put("auto", ConsoleOutput.Auto);
-        consoleOutputMap.put("always", ConsoleOutput.Enable);
+        consoleOutputMap.put("rich", ConsoleOutput.Rich);
     }
 
     public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
@@ -70,14 +70,14 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         }
 
         if (commandLine.hasOption(NO_COLOR)) {
-            loggingConfiguration.setConsoleOutput(ConsoleOutput.Disable);
+            loggingConfiguration.setConsoleOutput(ConsoleOutput.Plain);
         }
 
-        if (commandLine.hasOption(COLOR)) {
-            String value = commandLine.option(COLOR).getValue();
+        if (commandLine.hasOption(CONSOLE)) {
+            String value = commandLine.option(CONSOLE).getValue();
             ConsoleOutput colorOutput = consoleOutputMap.get(value.toLowerCase());
             if (colorOutput == null) {
-                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, COLOR));
+                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, CONSOLE));
             }
             loggingConfiguration.setConsoleOutput(colorOutput);
         }
@@ -91,9 +91,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
         parser.allowOneOf(DEBUG, QUIET, INFO);
 
-        parser.option(NO_COLOR).deprecated("use --color=never instead").hasDescription("Do not use color in the console output.");
-        parser.option(COLOR).hasArgument().hasDescription("Specifies when to use color in the console output. Values are 'always', 'auto' (default) or 'never'.");
-        parser.allowOneOf(NO_COLOR, COLOR);
+        parser.option(NO_COLOR).deprecated("use --console=plain instead").hasDescription("Do not use color in the console output.");
+        parser.option(CONSOLE).hasArgument().hasDescription("Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'.");
+        parser.allowOneOf(NO_COLOR, CONSOLE);
 
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");
