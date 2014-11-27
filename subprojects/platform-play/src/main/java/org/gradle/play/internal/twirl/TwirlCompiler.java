@@ -51,6 +51,4 @@ public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Seria
 
         return new TwirlCompilerWorkResult(outputFiles);
     }
-
-
 }

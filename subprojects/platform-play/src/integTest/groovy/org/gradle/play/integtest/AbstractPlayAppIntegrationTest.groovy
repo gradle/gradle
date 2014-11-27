@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest{
+abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest {
 
     abstract PlayApp getPlayApp()
 
@@ -81,7 +81,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "can run play app"(){
+    def "can run play app"() {
         setup:
         buildFile <<"""
         model {
