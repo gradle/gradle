@@ -62,8 +62,8 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
@@ -209,52 +209,22 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         Instantiator instantiator = getServices().get(Instantiator.class);
 
-        final ModelType<TaskContainer> taskContainerModelType = ModelType.of(TaskContainer.class);
-        modelRegistry.create(
-                ModelCreators.of(
-                        ModelReference.of(TaskContainerInternal.MODEL_PATH, taskContainerModelType),
-                        new Transformer<Action<? super ModelNode>, Inputs>() {
-                            public Action<? super ModelNode> transform(Inputs inputs) {
-                                return new Action<ModelNode>() {
-                                    public void execute(final ModelNode modelNode) {
-                                        modelNode.setPrivateData(taskContainerModelType, taskContainer);
-                                        taskContainer.all(new Action<Task>() {
-                                            public void execute(final Task task) {
-                                                final String name = task.getName();
-
-                                                if (!modelNode.getLinks().containsKey(name)) {
-                                                    UnmanagedModelProjection<Task> projection = new UnmanagedModelProjection<Task>(ModelType.typeOf(task), true, true);
-                                                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(projection);
-
-                                                    modelNode.addLink(
-                                                            name,
-                                                            new SimpleModelRuleDescriptor("Project.<init>.tasks." + name + "()"),
-                                                            new ProjectionBackedModelPromise(projections),
-                                                            new ProjectionBackedModelAdapter(projections)
-                                                    ).setPrivateData(ModelType.typeOf(task), task);
-                                                }
-                                            }
-                                        });
-                                    }
-                                };
-                            }
-                        }
-                )
-                        .simpleDescriptor("Project.<init>.tasks()")
-                        .withProjection(new UnmanagedModelProjection<TaskContainer>(taskContainerModelType, true, true))
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<TaskContainerInternal, Task>(instantiator, taskContainer, Task.class))
-                        .build()
-        );
-
-
-        taskContainer.whenObjectRemoved(new Action<Task>() {
-            public void execute(Task task) {
-                ModelPath path = TaskContainerInternal.MODEL_PATH.child(task.getName());
-                if (path.equals(modelRegistry.search(path).getReachedPath())) {
-                    modelRegistry.remove(path);
+        PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                modelRegistry,
+                instantiator,
+                ModelType.of(TaskContainerInternal.class),
+                ModelType.of(TaskContainer.class),
+                ModelType.of(Task.class),
+                TaskContainerInternal.MODEL_PATH,
+                taskContainer,
+                new Task.Namer(),
+                "Project.<init>.tasks()",
+                new Transformer<String, String>() {
+                    public String transform(String s) {
+                        return "Project.<init>.tasks." + s + "()";
+                    }
                 }
-            }
-        });
+        );
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {

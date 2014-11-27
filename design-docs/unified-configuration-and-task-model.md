@@ -81,12 +81,6 @@ A mock up:
 - ~~Model type can contain type params~~
 - ~~Model element declared with illegal name produces reasonable error message~~
 
-### Open issues
-
-#### Needs clarification
-
-- Task container is added as a `TaskContainer`, and `AbstractProject` has to synchronize changes to this into the model space.
-
 ## Story: Plugin author unit tests plugin that declares model elements
 
 This story adds a mechanism that plugin authors can use to test that their model declaring plugin is interpreted by Gradle in the way that they expect.
