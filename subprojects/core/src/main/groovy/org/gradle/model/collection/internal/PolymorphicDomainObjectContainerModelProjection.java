@@ -21,14 +21,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.CollectionBuilderModelView;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelProjection;
-import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -38,10 +33,12 @@ import java.util.Collections;
 
 public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
+    private final Instantiator instantiator;
     private final C container;
     private final Class<M> itemType;
 
-    public PolymorphicDomainObjectContainerModelProjection(C container, Class<M> itemType) {
+    public PolymorphicDomainObjectContainerModelProjection(Instantiator instantiator, C container, Class<M> itemType) {
+        this.instantiator = instantiator;
         this.container = container;
         this.itemType = itemType;
     }
@@ -74,11 +71,11 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, ModelNode node, Class<S> itemType, C container) {
-        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new Instantiator<S>(itemType, container), sourceDescriptor, node);
+        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new EntityInstantiator<S>(itemType, container), sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, ModelType.of(itemType)).build();
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(instantiator, viewType, builder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
@@ -113,13 +110,13 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return sb.toString();
     }
 
-    static class Instantiator<I> implements NamedEntityInstantiator<I> {
+    static class EntityInstantiator<I> implements NamedEntityInstantiator<I> {
 
         private final Class<I> defaultType;
         private final ModelType<I> itemType;
         private final PolymorphicDomainObjectContainer<? super I> container;
 
-        Instantiator(Class<I> defaultType, PolymorphicDomainObjectContainer<? super I> container) {
+        EntityInstantiator(Class<I> defaultType, PolymorphicDomainObjectContainer<? super I> container) {
             this.defaultType = defaultType;
             this.itemType = ModelType.of(defaultType);
             this.container = container;

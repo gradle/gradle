@@ -77,7 +77,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("components", DefaultComponentSpecContainer.class), components)
                         .simpleDescriptor("Project.<init>.components()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(instantiator, components, ComponentSpec.class))
                         .build()
         );
     }

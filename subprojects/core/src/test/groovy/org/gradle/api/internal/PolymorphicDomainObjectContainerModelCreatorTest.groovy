@@ -68,7 +68,7 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
     def reference = ModelReference.of("container", ThingContainer)
     def creator = ModelCreators.bridgedInstance(reference, container)
             .simpleDescriptor("container")
-            .withProjection(new PolymorphicDomainObjectContainerModelProjection(container, NamedThing))
+            .withProjection(new PolymorphicDomainObjectContainerModelProjection(new DirectInstantiator(), container, NamedThing))
             .build()
     ModelAdapter adapter
     ModelNode node

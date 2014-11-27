@@ -69,7 +69,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 ModelCreators.bridgedInstance(ModelReference.of("binaries", BinaryContainer.class), binaries)
                         .simpleDescriptor("Project.<init>.binaries()")
                         .inputs(Collections.singletonList(ModelReference.of(ExtensionContainer.class)))
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(binaries, BinarySpec.class))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(instantiator, binaries, BinarySpec.class))
                         .build()
         );
     }

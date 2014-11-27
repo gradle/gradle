@@ -207,6 +207,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build()
         );
 
+        Instantiator instantiator = getServices().get(Instantiator.class);
+
         final ModelType<TaskContainer> taskContainerModelType = ModelType.of(TaskContainer.class);
         modelRegistry.create(
                 ModelCreators.of(
@@ -240,7 +242,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 )
                         .simpleDescriptor("Project.<init>.tasks()")
                         .withProjection(new UnmanagedModelProjection<TaskContainer>(taskContainerModelType, true, true))
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<TaskContainerInternal, Task>(taskContainer, Task.class))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<TaskContainerInternal, Task>(instantiator, taskContainer, Task.class))
                         .build()
         );
 

@@ -188,10 +188,6 @@ A mock up:
 
 ### Open issues
 
-#### Actionable now 
-
-- `CollectionBuilder.create` needs a closure overload or decoration. Currently closures are coerced by groovy and so behave inconsistently with other parts of the API.
-
 #### Deferred
 
 Due to uncertanties about how we will deal with creating non root elements generally, deferring these.
