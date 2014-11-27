@@ -64,14 +64,15 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
             List<ModelProperty<?>> properties = Lists.newLinkedList();
             List<Method> handled = Lists.newArrayListWithCapacity(clazz.getMethods().length);
+            ReturnTypeSpecializationOrdering returnTypeSpecializationOrdering = new ReturnTypeSpecializationOrdering();
 
             for (String methodName : methodsByName.keySet()) {
                 if (methodName.startsWith("get") && !methodName.equals("get")) {
                     ImmutableList<Method> getterMethods = methodsByName.get(methodName);
 
                     // The overload check earlier verified that all methods for are equivalent for our purposes
-                    // So, taking the first one is fine.
-                    Method sampleMethod = getterMethods.get(0);
+                    // So, taking the first one with the most specialized return type is fine.
+                    Method sampleMethod = returnTypeSpecializationOrdering.max(getterMethods);
 
                     if (sampleMethod.getParameterTypes().length != 0) {
                         throw invalidMethod(extractionContext, "getter methods cannot take parameters", sampleMethod);
@@ -221,24 +222,47 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 .build();
     }
 
-    static class MethodSignatureEquivalence extends Equivalence<Method> {
+    static private class MethodSignatureEquivalence extends Equivalence<Method> {
 
         @Override
         protected boolean doEquivalent(Method a, Method b) {
-            return new EqualsBuilder()
+            boolean equals = new EqualsBuilder()
                     .append(a.getName(), b.getName())
-                    .append(a.getGenericReturnType(), b.getGenericReturnType())
                     .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
                     .isEquals();
+            if (equals) {
+                equals = a.getReturnType().equals(b.getReturnType())
+                        || a.getReturnType().isAssignableFrom(b.getReturnType())
+                        || b.getReturnType().isAssignableFrom(a.getReturnType());
+            }
+            return equals;
         }
 
         @Override
         protected int doHash(Method method) {
             return new HashCodeBuilder()
                     .append(method.getName())
-                    .append(method.getGenericReturnType())
                     .append(method.getGenericParameterTypes())
                     .toHashCode();
+        }
+    }
+
+    static private class ReturnTypeSpecializationOrdering extends Ordering<Method> {
+
+        @Override
+        public int compare(Method left, Method right) {
+            Class<?> leftType = left.getReturnType();
+            Class<?> rightType = right.getReturnType();
+            if (leftType.equals(rightType)) {
+                return 0;
+            }
+            if (leftType.isAssignableFrom(rightType)) {
+                return -1;
+            }
+            if (rightType.isAssignableFrom(leftType)) {
+                return 1;
+            }
+            throw new UnsupportedOperationException(String.format("Cannot compare two types that aren't part of an inheritance hierarchy: %s, %s", leftType, rightType));
         }
     }
 }

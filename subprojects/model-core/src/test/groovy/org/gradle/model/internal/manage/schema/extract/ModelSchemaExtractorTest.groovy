@@ -450,6 +450,29 @@ class ModelSchemaExtractorTest extends Specification {
         fail type, "type parameter of $ManagedSet.name has to be specified"
     }
 
+    @Managed
+    interface Thing {}
+    @Managed
+    interface SpecialThing extends Thing {}
+
+    interface SimpleModel {
+        Thing getThing()
+    }
+
+    @Managed
+    interface SpecialModel extends SimpleModel {
+        SpecialThing getThing()
+        void setThing(SpecialThing thing)
+    }
+
+    def "a subclass may specialize a property type"() {
+        when:
+        def properties = extract(SpecialModel).properties.values()
+
+        then:
+        properties*.type == [ModelType.of(SpecialThing)]
+    }
+
     @Unroll
     def "type argument of a managed set cannot be a wildcard - #type"() {
         expect:
