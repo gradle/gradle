@@ -38,6 +38,8 @@ In addition to the specific tests written while implementing this, the existing 
 - Progress and error reporting are unchanged from existing implementation for project based parallelism
 - Non parallelizable tasks must never be executed in parallel with parallelizable tasks (i.e. they are executed exclusively)
 - Annotation is not inherited (i.e. parallelizable super type does not imply parallel safe)
+- If an action is added to a task (e.g. `doLast()`) it is not parallelizable, regardless of the presence of `@ParallelizableTask` (i.e. no guarantees that the action is safe)
+- `DefaultTask` should be annotated with `@ParallelizableTask` (i.e. allow empty lifecycle tasks to be executed in parallel)
 
 #### Test coverage
 
@@ -52,12 +54,6 @@ In addition to the specific tests written while implementing this, the existing 
 - Given task `:a`, depends on parallelizable tasks (`:b`, `:c`) and non parallelizable task `:d`, `:d` is not executed until `:b` and `:c` have completed
 - Given task `:a`, depends on parallelizable tasks (`:c`, `:d`) and non parallelizable task `:b`, `:c` and `:d` are not executed until `:b` has completed
 - Task type `B extends A` were `A` has annotation, instances of `B` are not executed in parallel 
-
-#### Open questions
-
-- Should we prefer executing parallel tasks to non parallel? Given task `:a`, depends on parallelizable tasks (`:c`, `:d`) and non parallelizable task `:b`, should we prioritize executing `:c` and `:d` because we can do that in parallel?
-- Should we introduce a mechanism for allowing lifecycle tasks like `build`, `check` etc. to be parallel? (i.e. `DefaultTask` instances cannot be parallelizable by default)
-- Should there be a mechanism for the build author (i.e. not task author) to force an instance of a task to not be parallelized?
 
 ### Suitable tasks of `JavaPlugin` are parallel enabled
 
@@ -97,3 +93,9 @@ Ideally, the parallelizable tasks of the JavaPlugin (previous story) conform to 
 - How to implement parallelizable tasks
     - Constraints
     - Design considerations
+
+### Enable parallel execution of all applicable tasks shipped with Gradle
+
+## Milestone 2 - improved task scheduling
+
+## Milestone 3 - improved feedback/reporting when executing tasks in parallel
