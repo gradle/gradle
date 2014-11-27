@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import com.google.common.cache.CacheBuilder
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -27,7 +26,7 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def backingCache = CacheBuilder.newBuilder().build()
+    def backingCache = [:]
     def cache = new DefaultClassLoaderCache(backingCache)
 
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -47,15 +46,15 @@ class DefaultClassLoaderCacheTest extends Specification {
     def "class loaders are reused when parent and class path are the same"() {
         expect:
         def root = classLoader(classPath("root"))
-        cache.get(root, classPath("c1"), null) == cache.get(root, classPath("c1"), null)
-        cache.get(root, classPath("c1"), null) != cache.get(root, classPath("c1", "c2"), null)
+        cache.get("root", classPath("c1"), root, null) == cache.get(root, classPath("c1"), null)
+        cache.get("root", classPath("c1"), root, null) != cache.get(root, classPath("c1", "c2"), null)
     }
 
     def "parents are respected"() {
         expect:
         def root1 = classLoader(classPath("root1"))
         def root2 = classLoader(classPath("root2"))
-        cache.get(root1, classPath("c1"), null) != cache.get(root2, classPath("c1"), null)
+        cache.get("root", classPath("c1"), root1, null) != cache.get("root", classPath("c1"), root2, null)
     }
 
     def "null parents are respected"() {
@@ -70,8 +69,8 @@ class DefaultClassLoaderCacheTest extends Specification {
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
         def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [])
-        cache.get(classPath("c1"), root, f1).is(cache.get(classPath("c1"), root, f1))
-        !cache.get(classPath("c1"), root, f1).is(cache.get(classPath("c1"), root, f2))
+        cache.get("root", classPath("c1"), root, f1).is(cache.get("root", classPath("c1"), root, f1))
+        !cache.get("root", classPath("c1"), root, f1).is(cache.get("root", classPath("c1"), root, f2))
         backingCache.size() == 3
     }
 
@@ -79,9 +78,9 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
-        cache.get(classPath("c1"), root, f1)
+        cache.get("root", classPath("c1"), root, f1)
         backingCache.size() == 2
-        cache.get(classPath("c1"), root, null)
+        cache.get("root", classPath("c1"), root, null)
         backingCache.size() == 2
     }
 }

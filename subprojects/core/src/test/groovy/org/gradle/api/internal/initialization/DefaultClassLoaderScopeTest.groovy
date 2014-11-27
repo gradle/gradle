@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.initialization
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.internal.classloader.CachingClassLoader
@@ -35,7 +33,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     ClassLoaderScope root
     ClassLoaderScope scope
 
-    Cache<DefaultClassLoaderCache.Key, ClassLoader> backingCache = CacheBuilder.newBuilder().build()
+    Map<DefaultClassLoaderCache.Key, ClassLoader> backingCache = [:]
     ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(backingCache)
 
     @Rule

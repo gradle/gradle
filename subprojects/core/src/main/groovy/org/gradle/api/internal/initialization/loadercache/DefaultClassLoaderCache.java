@@ -17,20 +17,17 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.base.Objects;
-import com.google.common.cache.Cache;
 import org.gradle.api.Nullable;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URLClassLoader;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     public int getSize() {
-        return cache.asMap().size();
+        return storage.size();
     }
 
     public static class Key {
@@ -71,33 +68,27 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         }
     }
 
-    private final Cache<Key, ClassLoader> cache;
+    private final Map<Key, ClassLoader> storage;
     final ClassPathSnapshotter snapshotter;
 
-    public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache) {
-        this(cache, new FileClassPathSnapshotter());
+    public DefaultClassLoaderCache(Map<Key, ClassLoader> storage) {
+        this(storage, new FileClassPathSnapshotter());
     }
 
-    public DefaultClassLoaderCache(Cache<Key, ClassLoader> cache, ClassPathSnapshotter snapshotter) {
-        this.cache = cache;
+    public DefaultClassLoaderCache(Map<Key, ClassLoader> storage, ClassPathSnapshotter snapshotter) {
+        this.storage = storage;
         this.snapshotter = snapshotter;
     }
 
     public ClassLoader get(final String id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
-        try {
-            ClassPathSnapshot s = snapshotter.snapshot(classPath);
-            Key key = new Key(parent, s, filterSpec);
-            return cache.get(key, new Callable<ClassLoader>() {
-                public ClassLoader call() throws Exception {
-                    if (filterSpec == null) {
-                        return new URLClassLoader(classPath.getAsURLArray(), parent);
-                    } else {
-                        return new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
-                    }
-                }
-            });
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        ClassPathSnapshot s = snapshotter.snapshot(classPath);
+        Key key = new Key(parent, s, filterSpec);
+        ClassLoader existing = storage.get(key);
+        if (existing != null) {
+            return existing;
         }
+        ClassLoader newLoader = (filterSpec == null)? new URLClassLoader(classPath.getAsURLArray(), parent) : new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
+        storage.put(key, newLoader);
+        return newLoader;
     }
 }
