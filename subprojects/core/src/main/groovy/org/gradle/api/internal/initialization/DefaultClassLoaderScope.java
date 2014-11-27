@@ -26,6 +26,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
+    private final ClassLoaderIdentifier id;
     private final ClassLoaderScope parent;
     private final ClassLoaderCache classLoaderCache;
 
@@ -42,7 +43,8 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
+    public DefaultClassLoaderScope(ClassLoaderIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
+        this.id = id;
         this.parent = parent;
         this.classLoaderCache = classLoaderCache;
     }
@@ -109,7 +111,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     }
 
     private ClassLoader loader(ClassPath classPath) {
-        return classLoaderCache.get("loader hierarchy", classPath, parent.getExportClassLoader(), null);
+        return classLoaderCache.get(id.getId(), classPath, parent.getExportClassLoader(), null);
     }
 
     public ClassLoaderScope local(ClassPath classPath) {
@@ -149,7 +151,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     }
 
     public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(this, classLoaderCache);
+        return new DefaultClassLoaderScope(id.newChild(), this, classLoaderCache);
     }
 
     public ClassLoaderScope lock() {
@@ -161,4 +163,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return locked;
     }
 
+    ClassLoaderIdentifier getId() {
+        return id;
+    }
 }

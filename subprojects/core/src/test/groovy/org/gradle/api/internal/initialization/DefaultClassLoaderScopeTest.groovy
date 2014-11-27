@@ -252,4 +252,11 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.lock().localClassLoader.getResource("root").text == "root"
     }
 
+    def "knows class loader id"() {
+        expect:
+        scope.id.id == "root:c1"
+        scope.createChild().id.id == "root:c1:c1"
+        scope.createChild().id.id == "root:c1:c2"
+    }
+
 }

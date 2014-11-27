@@ -18,15 +18,18 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.id.LongIdGenerator;
 
 public class RootClassLoaderScope implements ClassLoaderScope {
 
     private final ClassLoader classLoader;
     private final ClassLoaderCache classLoaderCache;
+    private final ClassLoaderIdentifier id;
 
     public RootClassLoaderScope(ClassLoader classLoader, ClassLoaderCache classLoaderCache) {
         this.classLoader = classLoader;
         this.classLoaderCache = classLoaderCache;
+        this.id = new ClassLoaderIdentifier("root", new LongIdGenerator());
     }
 
     public ClassLoader getLocalClassLoader() {
@@ -50,7 +53,7 @@ public class RootClassLoaderScope implements ClassLoaderScope {
     }
 
     public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(this, classLoaderCache);
+        return new DefaultClassLoaderScope(id.newChild(), this, classLoaderCache);
     }
 
     public ClassLoaderScope lock() {
