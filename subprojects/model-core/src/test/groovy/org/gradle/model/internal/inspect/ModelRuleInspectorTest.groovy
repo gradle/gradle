@@ -22,6 +22,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.Path
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -456,5 +457,21 @@ ${ManagedWithNonManageableParents.name}
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
+    }
+
+    static class HasRuleWithUncheckedCollectionBuilder {
+        @Model
+        static ModelThing modelPath(CollectionBuilder foo) {
+            new ModelThing("foo")
+        }
+    }
+
+    def "error when trying to use collection builder without specifying type param"() {
+        when:
+        inspector.inspect(HasRuleWithUncheckedCollectionBuilder, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.message == "$HasRuleWithUncheckedCollectionBuilder.name#modelPath(org.gradle.model.collection.CollectionBuilder) is not a valid model rule method: raw type org.gradle.model.collection.CollectionBuilder used for parameter 1 (all type parameters must be specified of parameterized type)"
     }
 }

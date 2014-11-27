@@ -35,12 +35,12 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List strings) {
+                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -76,7 +76,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
                 }
@@ -328,7 +328,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List strings) {
+                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"

@@ -25,10 +25,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -79,10 +76,10 @@ public class ModelRuleInspector {
         });
 
         for (Method method : methods) {
-            validate(method);
             MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
+                validate(method);
                 // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
                 // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
                 // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
@@ -162,6 +159,23 @@ public class ModelRuleInspector {
         if (ruleMethod.getTypeParameters().length > 0) {
             throw invalid(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
         }
+
+        Type returnType = ruleMethod.getGenericReturnType();
+        if (isRawInstanceOfParameterizedType(returnType)) {
+            throw invalid(ruleMethod, "raw type " + ((Class) returnType).getName() + " used for return type (all type parameters must be specified of parameterized type)");
+        }
+
+        int i = 0;
+        for (Type type : ruleMethod.getGenericParameterTypes()) {
+            ++i;
+            if (isRawInstanceOfParameterizedType(type)) {
+                throw invalid(ruleMethod, "raw type " + ((Class) type).getName() + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+            }
+        }
+    }
+
+    private boolean isRawInstanceOfParameterizedType(Type type) {
+        return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
     }
 
 }

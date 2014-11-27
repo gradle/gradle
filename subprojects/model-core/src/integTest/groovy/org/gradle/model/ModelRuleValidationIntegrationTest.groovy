@@ -29,7 +29,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model(" ")
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
                 }
@@ -56,7 +56,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model("foo. bar")
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
                 }
