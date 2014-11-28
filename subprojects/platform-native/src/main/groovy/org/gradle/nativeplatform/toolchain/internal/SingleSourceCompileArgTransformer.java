@@ -41,12 +41,13 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
 
     public List<String> transform(T spec) {
         List<String> args = new ArrayList<String>();
-        File outputFilePath = getOutputFileDir(sourceFile, spec.getObjectFileDir());
-
         args.addAll(delegate.transform(spec));
+
         args.add(sourceFile.getAbsolutePath());
 
+        File outputFilePath = getOutputFileDir(sourceFile, spec.getObjectFileDir());
         CollectionUtils.addAll(args, outputFileArgTransformer.transform(outputFilePath));
+
         return args;
     }
 
