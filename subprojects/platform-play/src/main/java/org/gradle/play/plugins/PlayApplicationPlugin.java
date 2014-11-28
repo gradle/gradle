@@ -35,6 +35,7 @@ import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.JvmClasses;
@@ -78,18 +79,24 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     static class Rules {
 
         @Model
+        void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {}
+
+        @Mutate void addPlatforms(ManagedSet<PlayPlatformInternal> platforms) {
+            platforms.create(new Action<PlayPlatformInternal>() {
+                public void execute(PlayPlatformInternal platform) {
+                    initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
+                }
+            });
+            platforms.create(new Action<PlayPlatformInternal>() {
+                public void execute(PlayPlatformInternal platform) {
+                    initializePlatform(platform, "2.3.5", "2.11.1", "1.0.2");
+                }
+            });
+        }
+
+        @Model
         PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(PlayToolChainInternal.class);
-        }
-
-        @Model
-        void play223(PlayPlatformInternal platform) {
-            initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
-        }
-
-        @Model
-        void play235(PlayPlatformInternal platform) {
-            initializePlatform(platform, "2.3.5", "2.11.1", "1.0.2");
         }
 
         private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
@@ -103,9 +110,8 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void createPlayPlatforms(PlatformContainer platforms, @Path("play223") PlayPlatformInternal play223, @Path("play235") PlayPlatformInternal play235) {
-            platforms.add(play223);
-            platforms.add(play235);
+        public void addPlayPlatformsToPlatformContainer(PlatformContainer platforms, ManagedSet<PlayPlatformInternal> playPlatformInternals) {
+            platforms.addAll(playPlatformInternals);
         }
 
         @ComponentType
