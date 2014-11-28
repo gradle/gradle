@@ -31,7 +31,6 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
 
     abstract PlayApp getPlayApp()
     def portFinder = AvailablePortFinder.createPrivate()
-    int httpPort = portFinder.nextAvailable
 
     def setup(){
         playApp.writeSources(testDirectory.file("."))
@@ -61,6 +60,15 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     }
 
     def "can run play app tests"() {
+        setup:
+        int testPort = portFinder.nextAvailable
+        buildFile << """
+        model {
+            tasks.testPlayBinary{
+                systemProperty 'testserver.port', $testPort
+            }
+        }
+        """
 
         when:
         succeeds("testPlayBinary")
@@ -70,7 +78,6 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
 
         then:
         verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/reports/test/playBinary"))
-
 
         when:
         succeeds("testPlayBinary")
@@ -86,6 +93,8 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     @IgnoreIf({ GradleContextualExecuter.isDaemon() })
     def "can run play app"(){
         setup:
+        int httpPort = portFinder.nextAvailable
+
         buildFile <<
         """
         model {
