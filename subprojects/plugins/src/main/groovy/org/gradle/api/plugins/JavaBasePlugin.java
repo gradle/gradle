@@ -270,7 +270,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void overwriteDebugIfDebugPropertyIsSet(Test test) {
         String debugProp = getTaskPrefixedProperty(test, "debug");
         if (debugProp != null) {
-            test.doFirst(new Action<Task>() {
+            test.prependTaskAction(new Action<Task>() {
                 public void execute(Task task) {
                     task.getLogger().info("Running tests for remote debugging.");
                 }
@@ -288,7 +288,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             test.getInputs().source(test.getCandidateClassFiles());
             return;
         }
-        test.doFirst(new Action<Task>() {
+        test.prependTaskAction(new Action<Task>() {
             public void execute(Task task) {
                 test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
             }

@@ -18,9 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
@@ -29,6 +27,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -62,7 +61,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
-    private final List<String> runningProjects = new ArrayList<String>();
+    private final Multiset<String> projectsWithRunningTasks = HashMultiset.create();
+    private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
     private boolean tasksCancelled;
 
     public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
@@ -399,7 +399,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             entryTasks.clear();
             executionPlan.clear();
             failures.clear();
-            runningProjects.clear();
+            projectsWithRunningTasks.clear();
+            projectsWithRunningNonParallelizableTasks.clear();
         } finally {
             lock.unlock();
         }
@@ -430,9 +431,13 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 boolean allTasksComplete = true;
                 for (TaskInfo taskInfo : executionPlan.values()) {
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
-                        nextMatching = taskInfo;
-                        break;
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+                        TaskInternal task = taskInfo.getTask();
+                        String projectPath = task.getProject().getPath();
+                        if (!projectsWithRunningTasks.contains(projectPath) || (isParallelizable(task) && !projectsWithRunningNonParallelizableTasks.contains(projectPath))) {
+                            nextMatching = taskInfo;
+                            break;
+                        }
                     }
                 }
                 if (allTasksComplete) {
@@ -447,7 +452,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 } else {
                     if (nextMatching.allDependenciesSuccessful()) {
                         nextMatching.startExecution();
-                        runningProjects.add(nextMatching.getTask().getProject().getPath());
+                        recordTaskStarted(nextMatching.getTask());
                         return nextMatching;
                     } else {
                         nextMatching.skipExecution();
@@ -460,6 +465,26 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
+    boolean isParallelizable(TaskInternal task) {
+        return task.getClass().getSuperclass().isAnnotationPresent(ParallelizableTask.class) && !task.hasCustomActions();
+    }
+
+    private void recordTaskStarted(TaskInternal task) {
+        String projectPath = task.getProject().getPath();
+        if (!isParallelizable(task)) {
+            projectsWithRunningNonParallelizableTasks.add(projectPath);
+        }
+        projectsWithRunningTasks.add(projectPath);
+    }
+
+    private void recordTaskCompleted(TaskInternal task) {
+        String projectPath = task.getProject().getPath();
+        if (!isParallelizable(task)) {
+            projectsWithRunningNonParallelizableTasks.remove(projectPath);
+        }
+        projectsWithRunningTasks.remove(projectPath);
+    }
+
     public void taskComplete(TaskInfo taskInfo) {
         lock.lock();
         try {
@@ -469,7 +494,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
 
             taskInfo.finishExecution();
-            runningProjects.remove(taskInfo.getTask().getProject().getPath());
+            recordTaskCompleted(taskInfo.getTask());
             condition.signalAll();
         } finally {
             lock.unlock();

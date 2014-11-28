@@ -43,17 +43,18 @@ In addition to the specific tests written while implementing this, the existing 
 
 #### Test coverage
 
-- Given parallelizable tasks `:a` and `:b` with no relationship, tasks are executed in parallel
-- Given parallelizable tasks `:a:a`, `:a:b` and `:b:a` with no relationship, tasks are executed in parallel
-- Given parallelizable tasks `:a` depends-on `:b`, tasks are not executed in parallel
-- Given parallelizable tasks `:a` must-run-after `:b`, tasks are not executed in parallel
-- Given parallelizable tasks `:a` should-run-after `:b`, tasks are not executed in parallel
-- Given parallelizable tasks `:a` depends-on `:b` and `:c`, `:c` and `:b` are executed in parallel, `:a` is not executed until both `:b` and `:c` complete
-- Given parallelizable tasks `:a` depends-on `:b` and `:c`, `:c` and `:b` are executed in parallel, where `:c` fails, `:a` is not executed
-- Given parallelizable tasks `:a`, `:b`, `:c`, `:d`, and `--parallel-threads=2`, only 2 tasks are ever executed in parallel
-- Given task `:a`, depends on parallelizable tasks (`:b`, `:c`) and non parallelizable task `:d`, `:d` is not executed until `:b` and `:c` have completed
-- Given task `:a`, depends on parallelizable tasks (`:c`, `:d`) and non parallelizable task `:b`, `:c` and `:d` are not executed until `:b` has completed
-- Task type `B extends A` were `A` has annotation, instances of `B` are not executed in parallel 
+- ~~Given parallelizable tasks `:a` and `:b` with no relationship, tasks are executed in parallel~~
+- ~~Given parallelizable tasks `:a:a`, `:a:b` and `:b:a` with no relationship, tasks are executed in parallel~~
+- ~~Given parallelizable tasks `:a` depends-on `:b`, tasks are not executed in parallel~~
+- ~~Given parallelizable tasks `:a` must-run-after `:b`, tasks are not executed in parallel~~
+- ~~Given parallelizable tasks `:a` should-run-after `:b`, tasks are executed in parallel~~
+- ~~Given parallelizable tasks `:a` depends-on `:b` and `:c`, `:c` and `:b` are executed in parallel, `:a` is not executed until both `:b` and `:c` complete~~
+- ~~Given parallelizable tasks `:a` depends-on `:b` and `:c`, `:c` and `:b` are executed in parallel, where `:c` fails, `:a` is not executed~~
+- ~~Given parallelizable tasks `:a`, `:b`, `:c`, `:d`, and `--parallel-threads=2`, only 2 tasks are ever executed in parallel~~
+- ~~Given task `:a`, depends on parallelizable tasks (`:b`, `:c`) and non parallelizable task `:d`, `:d` is not executed until `:b` and `:c` have completed~~
+- ~~Given task `:a`, depends on parallelizable tasks (`:c`, `:d`) and non parallelizable task `:b`, `:c` and `:d` are not executed until `:b` has completed~~
+- ~~Task type `B extends A` were `A` has annotation, instances of `B` are not executed in parallel~~
+- ~~Given parallelizable tasks `:a` and `:b`, if `:b` has a custom action (an action added using `doLast()`) then tasks are not executed in parallel~~
 
 ### Suitable tasks of `JavaPlugin` are parallel enabled
 

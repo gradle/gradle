@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
@@ -60,9 +61,9 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
     public void attachActions(final PropertyActionContext context) {
         context.setValidationAction(outputDirValidation);
         context.setConfigureAction(new UpdateAction() {
-            public void update(Task task, final Callable<Object> futureValue) {
+            public void update(TaskInternal task, final Callable<Object> futureValue) {
                 task.getOutputs().files(futureValue);
-                task.doFirst(new Action<Task>() {
+                task.prependTaskAction(new Action<Task>() {
                     public void execute(Task task) {
                         Iterable<File> files;
                         try {

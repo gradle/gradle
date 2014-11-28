@@ -109,11 +109,11 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         for (Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
-            task.doFirst(actionFactory.create());
+            task.prependTaskAction(actionFactory.create());
         }
 
         if (taskClassInfo.validator != null) {
-            task.doFirst(taskClassInfo.validator);
+            task.prependTaskAction(taskClassInfo.validator);
             taskClassInfo.validator.addInputsAndOutputs(task);
         }
 
@@ -368,7 +368,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             }
         };
         private static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {
-            public void update(Task task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, Callable<Object> futureValue) {
             }
         };
 

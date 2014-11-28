@@ -833,17 +833,17 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(c)
     }
 
-    def "one parallel task per project is allowed"() {
+    def "one non parallelizable parallel task per project is allowed"() {
         given:
-        //2 projects, 2 tasks each
+        //2 projects, 2 non parallelizable tasks each
         def projectA = createChildProject(root, "a")
         def projectB = createChildProject(root, "b")
 
-        def fooA = projectA.task("foo")
-        def barA = projectA.task("bar")
+        def fooA = projectA.task("foo").doLast {}
+        def barA = projectA.task("bar").doLast {}
 
-        def fooB = projectB.task("foo")
-        def barB = projectB.task("bar")
+        def fooB = projectB.task("foo").doLast {}
+        def barB = projectB.task("bar").doLast {}
 
         addToGraphAndPopulate([fooA, barA, fooB, barB])
 

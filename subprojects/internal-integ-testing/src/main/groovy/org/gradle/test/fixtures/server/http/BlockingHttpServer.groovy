@@ -16,19 +16,18 @@
 
 
 
-package org.gradle.test.fixtures.server.http;
-
+package org.gradle.test.fixtures.server.http
 
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
 
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 public class BlockingHttpServer extends ExternalResource {
     private final Server server = new Server(0)
@@ -53,8 +52,13 @@ public class BlockingHttpServer extends ExternalResource {
         server.setHandler(handlers)
     }
 
-    void expectConcurrentExecution(String... expectedCalls) {
-        def handler = new CyclicBarrierRequestHandler(expectedCalls)
+    void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
+        def handler = new CyclicBarrierRequestHandler((additionalExpectedCalls.toList() + expectedCall) as Set)
+        collection.addHandler(handler)
+    }
+
+    void expectSerialExecution(String expectedCall) {
+        def handler = new CyclicBarrierRequestHandler(expectedCall)
         collection.addHandler(handler)
     }
 
@@ -91,9 +95,14 @@ server state: ${server.dump()}
         final Condition condition = lock.newCondition()
         final List<String> received = []
         final Set<String> pending
+        boolean shortCircuit
 
-        CyclicBarrierRequestHandler(String... calls) {
-            pending = calls as Set
+        CyclicBarrierRequestHandler(Set calls) {
+            pending = calls
+        }
+
+        CyclicBarrierRequestHandler(String call) {
+            pending = [call] as Set
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
@@ -104,23 +113,34 @@ server state: ${server.dump()}
             Date expiry = new Date(System.currentTimeMillis() + 30000)
             lock.lock()
             try {
+                if (shortCircuit) {
+                    request.handled = true
+                    return
+                }
                 def path = target.replaceFirst('/', '')
                 if (!pending.remove(path)) {
-                    // Unexpected call - let it travel on
+                    if (!pending.empty) {
+                        shortCircuit = true
+                        condition.signalAll()
+                        throw new AssertionError("Unexpected call to '$target' received. Waiting for $pending, already received $received.")
+                    }
+                    // barrier open, let it travel on
                     return
                 }
                 received.add(path)
                 condition.signalAll()
-                while (!pending.empty) {
+                while (!pending.empty && !shortCircuit) {
                     if (!condition.awaitUntil(expiry)) {
                         throw new AssertionError("Timeout waiting for all concurrent requests. Waiting for $pending, received $received.")
                     }
+                }
+                if (!shortCircuit) {
+                    response.addHeader("RESPONSE", "target: done")
                 }
             } finally {
                 lock.unlock()
             }
 
-            response.addHeader("RESPONSE", "target: done")
             request.handled = true
         }
 

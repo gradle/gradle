@@ -26,7 +26,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-import org.junit.Test
 import spock.lang.Specification
 
 import static org.junit.Assert.assertTrue
@@ -38,19 +37,17 @@ class AbstractTaskSpec extends Specification {
     private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     public static class TestTask extends AbstractTask {
-
     }
 
-    public Task createTask(String name) {
+    public TaskInternal createTask(String name) {
         AbstractProject project = TestUtil.createRootProject();
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.add(Instantiator.class, new DirectInstantiator());
-        Task task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask.class, Task.TASK_NAME, name));
+        TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask.class, Task.TASK_NAME, name));
         assertTrue(TestTask.class.isAssignableFrom(task.getClass()));
-        return TestTask.class.cast(task);
+        return task
     }
 
-    @Test
     def "can add action to a task via Task.getActions() List"() {
         setup:
         TestTask task = createTask("task")
@@ -63,5 +60,25 @@ class AbstractTaskSpec extends Specification {
         then:
         task.actions.size() == 1
         actions.size() == 1
+    }
+
+    def "can detect tasks with custom actions added"() {
+        when:
+        def task = createTask("task")
+
+        then:
+        !task.hasCustomActions()
+
+        when:
+        task.prependTaskAction {}
+
+        then:
+        !task.hasCustomActions()
+
+        when:
+        task.doFirst {}
+
+        then:
+        task.hasCustomActions()
     }
 }

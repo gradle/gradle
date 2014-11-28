@@ -95,6 +95,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
     private boolean impliesSubProjects;
+    private boolean hasCustomActions;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -326,6 +327,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doFirst(final Action<? super Task> action) {
+        hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -338,6 +340,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doLast(final Action<? super Task> action) {
+        hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -443,6 +446,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doFirst(final Closure action) {
+        hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -455,6 +459,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task doLast(final Closure action) {
+        hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -467,6 +472,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task leftShift(final Closure action) {
+        hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -723,5 +729,23 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 }
             });
         }
+    }
+
+    public void prependTaskAction(final Action<? super Task> action) {
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        actions.add(0, wrap(action));
+    }
+
+    public void appendTaskAction(final Action<? super Task> action) {
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        actions.add(wrap(action));
+    }
+
+    public boolean hasCustomActions() {
+        return hasCustomActions;
     }
 }
