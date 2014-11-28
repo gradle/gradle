@@ -22,6 +22,6 @@ import org.gradle.internal.classpath.ClassPath;
 
 public interface ClassLoaderCache {
 
-    ClassLoader get(ClassLoader parent, ClassPath classPath, @Nullable FilteringClassLoader.Spec filterSpec);
+    ClassLoader get(@Nullable ClassLoader parent, ClassPath classPath, @Nullable FilteringClassLoader.Spec filterSpec);
 
 }

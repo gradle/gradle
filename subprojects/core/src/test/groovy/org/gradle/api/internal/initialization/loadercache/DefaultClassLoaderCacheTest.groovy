@@ -44,10 +44,11 @@ class DefaultClassLoaderCacheTest extends Specification {
         new URLClassLoader(classPath.asURLArray)
     }
 
-    def "class loaders are reused"() {
+    def "class loaders are reused when parent and class path are the same"() {
         expect:
         def root = classLoader(classPath("root"))
-        cache.get(root, classPath("c1"), null).is cache.get(root, classPath("c1"), null)
+        cache.get(root, classPath("c1"), null) == cache.get(root, classPath("c1"), null)
+        cache.get(root, classPath("c1"), null) != cache.get(root, classPath("c1", "c2"), null)
     }
 
     def "parents are respected"() {
@@ -55,6 +56,13 @@ class DefaultClassLoaderCacheTest extends Specification {
         def root1 = classLoader(classPath("root1"))
         def root2 = classLoader(classPath("root2"))
         cache.get(root1, classPath("c1"), null) != cache.get(root2, classPath("c1"), null)
+    }
+
+    def "null parents are respected"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        cache.get(null, classPath("c1"), null) == cache.get(null, classPath("c1"), null)
+        cache.get(null, classPath("c1"), null) != cache.get(root, classPath("c1"), null)
     }
 
     def "filters are respected"() {

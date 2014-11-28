@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
@@ -55,15 +56,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             if (filterSpec != null ? !filterSpec.equals(key.filterSpec) : key.filterSpec != null) {
                 return false;
             }
-            if (!parent.equals(key.parent)) {
-                return false;
-            }
-
-            return true;
+            return Objects.equal(parent, key.parent);
         }
 
         public int hashCode() {
-            int result = parent.hashCode();
+            int result = parent == null ? 0 : parent.hashCode();
             result = 31 * result + classPathSnapshot.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             return result;
