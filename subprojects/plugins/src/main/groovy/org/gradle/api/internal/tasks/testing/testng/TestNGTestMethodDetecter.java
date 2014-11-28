@@ -27,7 +27,7 @@ class TestNGTestMethodDetecter extends MethodVisitor {
     private final Set<String> testMethodAnnotations = new HashSet<String>();
 
     public TestNGTestMethodDetecter(TestNGTestClassDetecter testClassDetecter) {
-        super(Opcodes.ASM4);
+        super(Opcodes.ASM5);
         this.testClassDetecter = testClassDetecter;
         testMethodAnnotations.add("Lorg/testng/annotations/Test;");
         testMethodAnnotations.add("Lorg/testng/annotations/BeforeSuite;");
