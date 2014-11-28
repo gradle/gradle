@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.util.AvailablePortFinder
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.UrlValidator.available
@@ -81,7 +79,10 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    /**
+     * Don't currently run with DaemonExecuter, because
+     * InputForwarder is consuming stdin eagerly.
+     * */
     @IgnoreIf({ GradleContextualExecuter.isDaemon() })
     def "can run play app"(){
         setup:
