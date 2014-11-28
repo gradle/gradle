@@ -21,7 +21,6 @@ import org.hamcrest.Matcher
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
-import static org.hamcrest.Matchers.equalTo
 
 class TestNGFailurePolicyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -83,6 +82,6 @@ class TestNGFailurePolicyIntegrationTest extends AbstractIntegrationSpec {
         fails "test"
 
         and:
-        assertExecutionFailedWithCause(equalTo("org.gradle.api.InvalidUserDataException: The version of TestNG used does not support setting config failure policy to 'continue'."))
+        failure.assertHasCause("The version of TestNG used does not support setting config failure policy to 'continue'.")
     }
 }

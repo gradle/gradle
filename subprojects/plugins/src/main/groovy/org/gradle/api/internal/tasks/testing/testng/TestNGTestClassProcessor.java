@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -27,6 +26,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
+import org.gradle.messaging.actor.Actor;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.*;
@@ -44,19 +45,24 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final TimeProvider timeProvider;
+    private final ActorFactory actorFactory;
     private ClassLoader applicationClassLoader;
+    private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, TimeProvider timeProvider, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
         this.timeProvider = timeProvider;
+        this.actorFactory = actorFactory;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        this.resultProcessor = resultProcessor;
+        // Wrap the processor in an actor, to make it thread-safe
+        resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
+        this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -69,6 +75,14 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void stop() {
+        try {
+            runTests();
+        } finally {
+            resultProcessorActor.stop();
+        }
+    }
+
+    private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());
@@ -80,7 +94,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             JavaReflectionUtil.method(TestNG.class, Object.class, "setConfigFailurePolicy", String.class).invoke(testNg, configFailurePolicy);
         } catch (NoSuchMethodException e) {
             if (!configFailurePolicy.equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
-                throw new InvalidUserDataException(String.format("The version of TestNG used does not support setting config failure policy to '%s'.", configFailurePolicy));
+                // Should not reach this point as this is validated in the test framework implementation - just propagate the failure
+                throw e;
             }
         }
         try {

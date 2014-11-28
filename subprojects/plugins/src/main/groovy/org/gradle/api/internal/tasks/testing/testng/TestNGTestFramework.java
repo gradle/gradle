@@ -17,8 +17,12 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -31,6 +35,7 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.File;
@@ -40,17 +45,19 @@ import java.util.concurrent.Callable;
 
 public class TestNGTestFramework implements TestFramework {
     private TestNGOptions options;
-    private TestNGDetector detector;
-    final Test testTask;
-    private DefaultTestFilter filter;
+    private final TestNGDetector detector;
+    private final Test testTask;
+    private final DefaultTestFilter filter;
+    private final TestClassLoaderFactory classLoaderFactory;
 
-    public TestNGTestFramework(Test testTask, DefaultTestFilter filter, Instantiator instantiator) {
+    public TestNGTestFramework(Test testTask, DefaultTestFilter filter, Instantiator instantiator, ClassLoaderCache classLoaderCache) {
         this.testTask = testTask;
         this.filter = filter;
         options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
@@ -62,9 +69,23 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
+        verifyConfigFailurePolicy();
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
         return new TestClassProcessorFactoryImpl(options.getOutputDirectory(), new TestNGSpec(options, filter), suiteFiles);
+    }
+
+    private void verifyConfigFailurePolicy() {
+        if (!options.getConfigFailurePolicy().equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
+            try {
+                Class<?> testNg = classLoaderFactory.create().loadClass("org.testng.TestNG");
+                testNg.getMethod("setConfigFailurePolicy", String.class);
+            } catch (ClassNotFoundException e) {
+                throw new GradleException("Could not load TestNG.", e);
+            } catch (NoSuchMethodException e) {
+                throw new InvalidUserDataException(String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy()));
+            }
+        }
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
@@ -99,7 +120,7 @@ public class TestNGTestFramework implements TestFramework {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(TimeProvider.class));
+            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(TimeProvider.class), serviceRegistry.get(ActorFactory.class));
         }
     }
 }
