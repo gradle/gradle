@@ -22,27 +22,129 @@ import org.gradle.test.fixtures.file.TestFile
 
 class MetadataArtifactResolveTestFixture {
     private final TestFile buildFile
-    private final String config
-    private final ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId('some.group', 'some-artifact', '1.0')
+    final String config
+    final ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId('some.group', 'some-artifact', '1.0')
+    private String requestedComponent
+    private String requestedArtifact
+    private String expectedComponentResult
+    private Set<File> expectedMetadataFiles
 
     MetadataArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
         this.config = config
     }
 
-    void prepare() {
+    void basicSetup() {
         buildFile << """
 configurations {
-    conf
+    $config
 }
 
 dependencies {
-    conf '$id.displayName'
+    $config '$id.displayName'
 }
 """
     }
 
-    ModuleComponentIdentifier getId() {
-        return id
+    void configureChangingModule() {
+        buildFile << """
+dependencies {
+    components {
+        all { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+"""
+    }
+
+    MetadataArtifactResolveTestFixture requestComponent(String component) {
+        this.requestedComponent = component
+        this
+    }
+
+    MetadataArtifactResolveTestFixture requestArtifact(String artifact) {
+        this.requestedArtifact = artifact
+        this
+    }
+
+    MetadataArtifactResolveTestFixture expectComponentResult(String componentResult) {
+        this.expectedComponentResult = componentResult
+        this
+    }
+
+    MetadataArtifactResolveTestFixture expectMetadataFiles(Set<File> metadataFiles) {
+        this.expectedMetadataFiles = metadataFiles
+        this
+    }
+
+    void createVerifyTaskModuleComponentIdentifier() {
+        buildFile << """
+task verify {
+    doLast {
+        def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
+        assert deps.size() == 1
+        def componentId = deps[0].selected.id
+
+        def result = dependencies.createArtifactResolutionQuery()
+            .forComponents(deps[0].selected.id)
+            .withArtifacts($requestedComponent, $requestedArtifact)
+            .execute()
+
+        assert result.components.size() == 1
+
+        // Check generic component result
+        def componentResult = result.components.iterator().next()
+        assert componentResult.id.displayName == '$id.displayName'
+        assert componentResult instanceof $expectedComponentResult
+
+        Set<File> resultArtifactFiles = result.artifactFiles
+        assert resultArtifactFiles.size() == ${expectedMetadataFiles.size()}
+
+        def resolvedArtifactFileNames = resultArtifactFiles.collect { it.name } as Set
+        def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
+        assert resolvedArtifactFileNames == expectedMetadataFileNames
+    }
+}
+"""
+    }
+
+    void createVerifyTaskForProjectComponentIdentifier() {
+        buildFile << """
+task verify {
+    doLast {
+        def rootId = configurations.${config}.incoming.resolutionResult.root.id
+        assert rootId instanceof ProjectComponentIdentifier
+
+        dependencies.createArtifactResolutionQuery()
+            .forComponents(rootId)
+            .withArtifacts($requestedComponent, $requestedArtifact)
+            .execute()
+    }
+}
+"""
+    }
+
+    void createVerifyTaskForDuplicateCallToWithArtifacts() {
+        buildFile << """
+task verify {
+    doLast {
+        def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
+        assert deps.size() == 1
+        def componentId = deps[0].selected.id
+
+        dependencies.createArtifactResolutionQuery()
+            .forComponents(deps[0].selected.id)
+            .withArtifacts($requestedComponent, $requestedArtifact)
+            .withArtifacts($requestedComponent, $requestedArtifact)
+    }
+}
+"""
     }
 }

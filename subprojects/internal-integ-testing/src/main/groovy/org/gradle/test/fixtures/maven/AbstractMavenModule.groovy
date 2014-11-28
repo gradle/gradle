@@ -32,6 +32,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String type = 'jar'
     String packaging
     int publishCount = 1
+    boolean noMetaData
     private final List dependencies = []
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -300,9 +301,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     abstract String getMetaDataFileContent()
 
-    MavenModule publish() {
 
-        publishPom()
+    MavenModule withNoMetaData() {
+        noMetaData = true
+        return this
+    }
+
+    MavenModule publish() {
+        if(!noMetaData) {
+            publishPom()
+        }
 
         artifacts.each { artifact ->
             publishArtifact(artifact)
