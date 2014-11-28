@@ -219,7 +219,7 @@ Use of `byte` and `Byte` is unsupported.
 
 - Is this the right set of things to support? Should we just directly support all of Java's primitive types? 
 
-### Plugin creates model element of a collection of managed model elements
+### ~~Plugin creates model element of a collection of managed model elements~~
 
     @Managed
     interface Person {
@@ -265,7 +265,7 @@ Notes:
 - ~~Attempt to create collection of non managed type~~
 - ~~Attempt to create collection of invalid managed type~~
     
-### Managed model interface extends other interfaces
+### ~~Managed model interface extends other interfaces~~
 
     interface Named {
         String getName(); void setName(String name);         
@@ -290,7 +290,7 @@ Notes:
 - ~~Two different types can extend same parent~~
 - ~~Property conflicts between super types are detected (different types for the same name)~~ 
 
-### Managed model type has a property of collection of managed types
+### ~~Managed model type has a property of collection of managed types~~
 
     @Managed
     interface Person {
@@ -329,7 +329,7 @@ Notes:
 - ~~Something like the snippet above~~
 - ~~Can set/get a reference to a collection of managed types~~
     
-### Managed model type has enum property
+### ~~Managed model type has enum property~~
 
 #### Notes
 
