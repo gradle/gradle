@@ -18,7 +18,7 @@ package org.gradle.testing.fixture;
 
 class TestNGCoverage {
     final static String NEWEST = '6.8.7'
-    final static String[] STANDARD_COVERAGE = ['5.14.10', NEWEST]
+    final static String[] STANDARD_COVERAGE = ['5.14.10', '6.2', NEWEST]
 
     /**
      * Adds java plugin and configures TestNG support in given build script file.
