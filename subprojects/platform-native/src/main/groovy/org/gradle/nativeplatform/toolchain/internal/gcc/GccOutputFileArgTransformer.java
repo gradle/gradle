@@ -17,12 +17,13 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
+import org.gradle.nativeplatform.toolchain.internal.OutputFileArgTransformer;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-class GccOutputFileArgTransformer implements Transformer<List<String>, File> {
+class GccOutputFileArgTransformer implements OutputFileArgTransformer {
     public List<String> transform(File outputFile) {
         return Arrays.asList("-o", outputFile.getAbsolutePath());
     }

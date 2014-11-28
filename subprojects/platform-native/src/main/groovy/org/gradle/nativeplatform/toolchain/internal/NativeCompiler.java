@@ -23,7 +23,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
-import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
@@ -33,9 +32,9 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineToolInvocation baseInvocation;
     private final String objectFileSuffix;
     private final boolean useCommandFile;
-    private final Transformer<List<String>, File> outputFileArgTransformer;
+    private final OutputFileArgTransformer outputFileArgTransformer;
 
-    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, Transformer<List<String>, File> outputFileArgTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, OutputFileArgTransformer outputFileArgTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
@@ -55,12 +54,12 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         }
 
         for (File sourceFile : spec.getSourceFiles()) {
-            SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
+            SingleSourceCompileArgTransformer<T> sourceArgTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
                     objectFileSuffix,
                     new ShortCircuitArgsTransformer<T>(argsTransformer),
                     windowsPathLimitation,
                     outputFileArgTransformer);
-            invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
+            invocation.setArgs(sourceArgTransformer.transform(specTransformer.transform(spec)));
             commandLineTool.execute(invocation);
         }
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());

@@ -25,7 +25,7 @@ import java.util.List;
 public class DummyCompiler extends NativeCompiler<CCompileSpec> {
     private final OptionsFileArgsWriter argsWriter;
 
-    DummyCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<CCompileSpec> argsTransformer, Transformer<CCompileSpec, CCompileSpec> specTransformer, Transformer<List<String>, File> outputFileArgTransformer, OptionsFileArgsWriter argsWriter) {
+    DummyCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<CCompileSpec> argsTransformer, Transformer<CCompileSpec, CCompileSpec> specTransformer, OutputFileArgTransformer outputFileArgTransformer, OptionsFileArgsWriter argsWriter) {
         super(commandLineTool, baseInvocation, argsTransformer, specTransformer, outputFileArgTransformer, ".o", true);
         this.argsWriter = argsWriter;
     }

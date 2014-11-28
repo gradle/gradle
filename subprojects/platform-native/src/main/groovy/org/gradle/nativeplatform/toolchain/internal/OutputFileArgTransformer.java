@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.msvcpp;
+package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.nativeplatform.toolchain.internal.OutputFileArgTransformer;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
-class VisualCppOutputFileArgTransformer implements OutputFileArgTransformer {
-    public List<String> transform(File outputFile) {
-        return Arrays.asList("/Fo" + outputFile.getAbsolutePath());
-    }
+/**
+ *
+ */
+public interface OutputFileArgTransformer extends Transformer<List<String>, File> {
 }

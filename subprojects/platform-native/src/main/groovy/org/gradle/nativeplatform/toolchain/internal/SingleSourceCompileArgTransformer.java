@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
@@ -29,10 +28,10 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
     private final ArgsTransformer<T> delegate;
     private final String objectFileNameSuffix;
     private final File sourceFile;
-    private final Transformer<List<String>, File> outputFileArgTransformer;
+    private final OutputFileArgTransformer outputFileArgTransformer;
     private final boolean windowsPathLengthLimitation;
 
-    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileNameSuffixExtension, ArgsTransformer<T> delegate, boolean windowsPathLengthLimitation, Transformer<List<String>, File> outputFileArgTransformer) {
+    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileNameSuffixExtension, ArgsTransformer<T> delegate, boolean windowsPathLengthLimitation, OutputFileArgTransformer outputFileArgTransformer) {
         this.sourceFile = sourceFile;
         this.delegate = delegate;
         this.objectFileNameSuffix = objectFileNameSuffixExtension;
