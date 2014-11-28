@@ -353,9 +353,12 @@ Unmanaged properties must be accompanied by a setter.
 
 #### Test Coverage
 
-- Can attach an an unmanaged property
-- Error when unmanaged property does not have annotation
-- Subtype may declare setter for unmanaged type
+- ~~Can attach an an unmanaged property~~
+- ~~Error when unmanaged property does not have annotation~~
+- ~~Subtype may declare setter for unmanaged type~~
+- Unmanaged property of managed type can be targeted for mutation
+- Unmanaged property of managed type can be used as input
+- Specific error when attempt is made to path into a managed type for mutation or as an input
     
 ### Managed model element has “generated” display name indicating identity in model space
 

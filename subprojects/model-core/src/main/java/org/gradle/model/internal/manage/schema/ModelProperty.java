@@ -28,20 +28,26 @@ public class ModelProperty<T> {
     private final ModelType<T> type;
     private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
+    private final boolean unmanaged;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy) {
+    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
         this.name = name;
         this.type = type;
         this.writable = writable;
         this.declaredBy = declaredBy;
+        this.unmanaged = unmanaged;
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy) {
-        return new ModelProperty<T>(type, name, writable, declaredBy);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
+        return new ModelProperty<T>(type, name, writable, declaredBy, unmanaged);
     }
 
     public String getName() {
         return name;
+    }
+
+    public boolean isUnmanaged() {
+        return unmanaged;
     }
 
     public ModelType<T> getType() {

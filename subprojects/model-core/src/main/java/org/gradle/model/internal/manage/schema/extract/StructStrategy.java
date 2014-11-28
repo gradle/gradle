@@ -24,6 +24,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.model.Managed;
+import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -102,7 +103,13 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                         }
                     }));
 
-                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses));
+                    boolean unmanaged = Iterables.any(getterMethods, new Predicate<Method>() {
+                        public boolean apply(Method input) {
+                            return input.getAnnotation(Unmanaged.class) != null;
+                        }
+                    });
+
+                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, unmanaged));
                     handled.addAll(getterMethods);
                 }
             }
@@ -145,14 +152,28 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
                 ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
-                if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType()) {
+                if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "type %s cannot be used for property '%s' as it is an unmanaged type.%n%s",
+                            "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remote the @Managed annotation.%n%s",
+                            property.getName(), property.getType(), supportedTypeDescriptions.create()
+                    ));
+                }
+
+                if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && !property.isUnmanaged()) {
+                    throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                            "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
                             property.getType(), property.getName(), supportedTypeDescriptions.create()
                     ));
                 }
 
                 if (!property.isWritable()) {
+                    if (property.isUnmanaged()) {
+                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
+                                property.getName())
+                        );
+                    }
+
                     if (!propertySchema.getKind().isManaged()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                                 "read only property '%s' has non managed type %s, only managed types can be used",

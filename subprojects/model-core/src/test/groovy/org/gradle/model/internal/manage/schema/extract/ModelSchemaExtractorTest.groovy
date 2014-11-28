@@ -17,9 +17,10 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.Managed
+import org.gradle.model.Unmanaged
 import org.gradle.model.collection.ManagedSet
-import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.manage.schema.ModelSchema
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -452,6 +453,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     @Managed
     interface Thing {}
+
     @Managed
     interface SpecialThing extends Thing {}
 
@@ -462,6 +464,7 @@ class ModelSchemaExtractorTest extends Specification {
     @Managed
     interface SpecialModel extends SimpleModel {
         SpecialThing getThing()
+
         void setThing(SpecialThing thing)
     }
 
@@ -563,8 +566,67 @@ $type
         extract(MyEnum).properties.isEmpty()
     }
 
+    @Managed
+    static interface HasUnmanagedOnManaged {
+        @Unmanaged
+        MyEnum getMyEnum();
+
+        void setMyEnum(MyEnum myEnum)
+    }
+
+    def "cannot annotate managed type property with unmanaged"() {
+        expect:
+        fail HasUnmanagedOnManaged, Pattern.quote("property 'myEnum' is marked as @Unmanaged, but is of @Managed type")
+    }
+
+    @Managed
+    static interface MissingUnmanaged {
+        InputStream getThing();
+
+        void setThing(InputStream inputStream);
+    }
+
+    def "unamanaged types must be annotated with unmanaged"() {
+        expect:
+        fail MissingUnmanaged, Pattern.quote("it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)")
+    }
+
+    @Managed
+    static interface ExtendsMissingUnmanaged {
+        @Unmanaged
+        InputStream getThing();
+
+        void setThing(InputStream inputStream);
+    }
+
     private void fail(extractType, String msgPattern) {
         fail(extractType, extractType, msgPattern)
+    }
+
+    def "subtype can declare property unmanaged"() {
+        expect:
+        extract(ExtendsMissingUnmanaged).properties.get("thing").type.rawClass == InputStream
+    }
+
+    @Managed
+    static interface NoSetterForUnmanaged {
+        @Unmanaged
+        InputStream getThing();
+    }
+
+    def "must have setter for unmanaged"() {
+        expect:
+        fail NoSetterForUnmanaged, Pattern.quote("unmanaged property 'thing' cannot be read only, unmanaged properties must have setters")
+    }
+
+    @Managed
+    static interface AddsSetterToNoSetterForUnmanaged extends NoSetterForUnmanaged {
+        void setThing(InputStream inputStream);
+    }
+
+    def "subtype can add unmanaged setter"() {
+        expect:
+        extract(AddsSetterToNoSetterForUnmanaged).properties.get("thing").type.rawClass == InputStream
     }
 
     private void fail(extractType, errorType, String msgPattern) {

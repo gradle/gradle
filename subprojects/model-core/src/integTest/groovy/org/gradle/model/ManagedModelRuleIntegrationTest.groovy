@@ -958,4 +958,50 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: string, value: some value")
         output.contains("name: integer, value: 1234")
     }
+
+    def "can have unmanaged property"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class UnmanagedThing {
+              String value
+            }
+
+            @Managed
+            interface ManagedThing {
+                @Unmanaged
+                UnmanagedThing getUnmanaged()
+                void setUnmanaged(UnmanagedThing unmanaged)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void m(ManagedThing thing) {
+                    thing.unmanaged = new UnmanagedThing(value: "foo")
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, ManagedThing thing) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "value: $thing.unmanaged.value"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains('value: foo')
+    }
+
+
 }
