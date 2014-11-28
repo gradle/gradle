@@ -121,14 +121,14 @@ task listMissingClassifier << { configurations.missingClassifier.each { } }
         inTestDirectory().withTasks('listJar').run()
 
         def result = inTestDirectory().withTasks('listMissingExt').runWithFailure()
-        result.assertThatCause(containsString("""Could not find lib.zip (org.gradle.test:lib:1.0).
+        result.assertHasCause("""Could not find lib.zip (org.gradle.test:lib:1.0).
 Searched in the following locations:
-    ${module.artifactFile(type: 'zip').toURL()}"""))
+    ${module.artifactFile(type: 'zip').toURL()}""")
 
         result = inTestDirectory().withTasks('listMissingClassifier').runWithFailure()
-        result.assertThatCause(containsString("""Could not find lib-classifier1.jar (org.gradle.test:lib:1.0).
+        result.assertHasCause("""Could not find lib-classifier1.jar (org.gradle.test:lib:1.0).
 Searched in the following locations:
-    ${module.artifactFile(classifier: 'classifier1').toURL()}"""))
+    ${module.artifactFile(classifier: 'classifier1').toURL()}""")
     }
 
     @Test
