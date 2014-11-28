@@ -302,7 +302,7 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
 
-        failure.assertHasCause("""Artifact 'projectA.jar (group:projectA:1.2)' not found.
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.2).
 Searched in the following locations:
     ${module.jar.uri}""")
 
@@ -312,7 +312,7 @@ Searched in the following locations:
         then:
         fails "retrieve"
 
-        failure.assertHasCause("""Artifact 'projectA.jar (group:projectA:1.2)' not found.
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.2).
 Searched in the following locations:
     ${module.jar.uri}""")
     }
@@ -344,7 +344,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertHasCause("Could not download artifact 'projectA.jar (group:projectA:1.2)'")
+        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.2)")
         failure.assertHasCause("Could not GET '${module.jar.uri}'. Received status code 500 from server: broken")
 
         when:

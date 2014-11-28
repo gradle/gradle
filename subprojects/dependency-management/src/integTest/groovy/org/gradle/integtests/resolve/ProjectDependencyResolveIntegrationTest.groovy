@@ -290,7 +290,7 @@ project(":b") {
         fails 'test'
 
         and:
-        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'b.jar (test:a:unspecified)' not found.")
+        failure.assertResolutionFailure(":b:compile").assertHasCause("Could not find b.jar (test:a:unspecified).")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {

@@ -29,7 +29,7 @@ class ArtifactNotFoundExceptionTest extends Specification {
         def exception = new ArtifactNotFoundException(artifactId, locations)
 
         expect:
-        exception.message == TextUtil.toPlatformLineSeparators("""Artifact '<artifact>' not found.
+        exception.message == TextUtil.toPlatformLineSeparators("""Could not find <artifact>.
 Searched in the following locations:
     http://somewhere
     sftp://elsewhere""")
@@ -42,6 +42,6 @@ Searched in the following locations:
         def exception = new ArtifactNotFoundException(artifactId, [])
 
         expect:
-        exception.message == "Artifact '<artifact>' not found."
+        exception.message == "Could not find <artifact>."
     }
 }

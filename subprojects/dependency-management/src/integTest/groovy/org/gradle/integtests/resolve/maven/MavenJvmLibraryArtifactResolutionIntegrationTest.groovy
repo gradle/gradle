@@ -233,7 +233,7 @@ if (project.hasProperty('nocache')) {
 
     def "reports on failure to list artifacts and recovers on subsequent resolve"() {
         fixture.requestingSource()
-                .expectComponentResolutionFailure(new ArtifactResolveException("Could not determine artifacts for component 'some.group:some-artifact:1.0'"))
+                .expectComponentResolutionFailure(new ArtifactResolveException("Could not determine artifacts for some.group:some-artifact:1.0"))
                 .prepare()
 
         when:
@@ -260,7 +260,7 @@ if (project.hasProperty('nocache')) {
     def "resolves and recovers from broken artifacts"() {
         fixture.requestingJavadoc()
                 .expectJavadocArtifactFailure(new ArtifactResolveException(
-                                                "Could not download artifact 'some-artifact-javadoc.jar (some.group:some-artifact:1.0)'",
+                                                "Could not download some-artifact-javadoc.jar (some.group:some-artifact:1.0)",
                                                 new Throwable("Received status code 500 from server: broken")))
                 .prepare()
 
