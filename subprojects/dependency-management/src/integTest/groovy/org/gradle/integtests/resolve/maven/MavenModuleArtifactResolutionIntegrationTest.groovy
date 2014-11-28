@@ -125,7 +125,10 @@ repositories {
         ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("Artifact 'some-artifact.pom (${fixture.id.displayName})' not found.")
+        failure.assertHasCause("""Could not find some-artifact.pom (${fixture.id.displayName}).
+Searched in the following locations:
+    ${module.pom.uri}""")
+
     }
 
     @Unroll

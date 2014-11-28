@@ -125,7 +125,9 @@ repositories {
         ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("Artifact 'ivy.xml (${fixture.id.displayName})' not found.")
+        failure.assertHasCause("""Could not find ivy.xml (${fixture.id.displayName}).
+Searched in the following locations:
+    ${module.ivy.uri}""")
     }
 
     @Unroll
