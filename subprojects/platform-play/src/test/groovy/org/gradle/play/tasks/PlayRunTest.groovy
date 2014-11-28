@@ -22,7 +22,9 @@ import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.platform.PlayPlatform
+import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class PlayRunTest extends Specification {
@@ -32,6 +34,9 @@ class PlayRunTest extends Specification {
     PlayToolChainInternal toolChain = Mock(PlayToolChainInternal)
     PlayPlatform playPlatform = Mock(PlayPlatform)
     PlayToolProvider toolProvider = Mock()
+    InputStream systemInputStream = Mock()
+
+    @Rule RedirectStdIn redirectStdIn;
 
     PlayRun playRun
 
@@ -41,16 +46,16 @@ class PlayRunTest extends Specification {
 
         _ * playPlatform.playVersion >> "2.2.3"
         _ * playPlatform.scalaVersion >> "2.10"
-
         1 * toolChain.select(playPlatform) >> toolProvider
         playRun.targetPlatform = playPlatform
-
         _ * playApplicationRunner.start() >> runnerToken
 
+        System.in = systemInputStream
     }
 
     def "can customize memory"(){
         given:
+        1 * systemInputStream.read() >> 4
         playRun.forkOptions.memoryInitialSize = "1G"
         playRun.forkOptions.memoryMaximumSize = "5G"
         when:
@@ -64,6 +69,7 @@ class PlayRunTest extends Specification {
     }
 
     def "passes forkOptions never null"() {
+        1 * systemInputStream.read() >> 4
         when:
         playRun.execute();
         then:
@@ -73,12 +79,14 @@ class PlayRunTest extends Specification {
         }
     }
 
-    def "waits for runner to stop"(){
+    def "stops application after receiving ctrl+d"(){
+        1 * systemInputStream.read() >> {
+            1 * runnerToken.stop()
+            return 4
+        }
         when:
         playRun.execute();
         then:
         1 * toolProvider.newApplicationRunner(_, _) >> playApplicationRunner
-        1 * runnerToken.waitForStop()
-
     }
 }

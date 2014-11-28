@@ -35,19 +35,11 @@ class UrlValidator {
         throw new RuntimeException(String.format("Timeout waiting for %s to become available.", application != null ? application : theUrl));
     }
 
-    static void notAvailable(String theUrl, int timeout = 3000) {
-        URL url = new URL(theUrl)
-        long expiry = System.currentTimeMillis() + timeout
-        String text;
-        while (System.currentTimeMillis() <= expiry) {
-            try {
-                text =url.text
-            } catch (ConnectException ex) {
-                return;
-            }
-            Thread.sleep(200)
+    static void notAvailable(String theUrl) {
+        try {
+            String content = new URL(theUrl).text
+            Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
+        } catch (SocketException ex) {
         }
-        Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, text));
-
     }
 }

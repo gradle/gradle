@@ -126,6 +126,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 builder.classpath(classpath);
                 builder.setMain(Main.class.getName());
                 builder.args(getAllArgs());
+                builder.setStandardInput(getStdin());
                 return builder;
             }
         }).start();

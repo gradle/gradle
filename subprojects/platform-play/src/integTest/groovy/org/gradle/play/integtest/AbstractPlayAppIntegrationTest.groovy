@@ -17,24 +17,25 @@
 package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
-import static org.gradle.integtests.fixtures.UrlValidator.*
+import static org.gradle.integtests.fixtures.UrlValidator.available
+import static org.gradle.integtests.fixtures.UrlValidator.notAvailable
 
 abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest {
 
     abstract PlayApp getPlayApp()
-
     def portFinder = AvailablePortFinder.createPrivate()
     int httpPort = portFinder.nextAvailable
 
     def setup(){
-
         playApp.writeSources(testDirectory.file("."))
     }
 
@@ -81,24 +82,32 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "can run play app"() {
+    @IgnoreIf({ GradleContextualExecuter.isDaemon() })
+    def "can run play app"(){
         setup:
-        buildFile <<"""
+        buildFile <<
+        """
         model {
             tasks.runPlayBinary {
                 httpPort = $httpPort
             }
         }"""
+        run "assemble"
+
         when:
+        PipedInputStream inputStream = new PipedInputStream();
+        PipedOutputStream stdinWriter = new PipedOutputStream(inputStream);
+        executer.withStdIn(inputStream)
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
-        available("http://localhost:$httpPort", "Play app", 120000)
+        available("http://localhost:$httpPort", "Play app", 60000)
         assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
 
         when: "stopping gradle"
-        gradleHandle.abort()
-        gradleHandle.waitForFailure()
+        stdinWriter.write(4) // ctrl+d
+        stdinWriter.flush()
+        gradleHandle.waitForFinish()
 
         then: "play server is stopped too"
         notAvailable("http://localhost:$httpPort")
@@ -106,6 +115,4 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
 
     void verifyTestOutput(TestExecutionResult result) {
     }
-
-
 }

@@ -19,13 +19,15 @@ package org.gradle.play.internal.run;
 public class PlayApplicationRunnerToken {
 
     private final PlayWorkerClient clientCallBack;
+    private final PlayRunWorkerServerProtocol workerServer;
 
-    public PlayApplicationRunnerToken(PlayWorkerClient clientCallBack) {
+    public PlayApplicationRunnerToken(PlayRunWorkerServerProtocol workerServer, PlayWorkerClient clientCallBack) {
+        this.workerServer = workerServer;
         this.clientCallBack = clientCallBack;
     }
 
-    public PlayAppLifecycleUpdate waitForStop(){
-        PlayAppLifecycleUpdate status = clientCallBack.waitForStop();
-        return status;
+    public PlayAppLifecycleUpdate stop() {
+        workerServer.stop();
+        return clientCallBack.waitForStop();
     }
 }
