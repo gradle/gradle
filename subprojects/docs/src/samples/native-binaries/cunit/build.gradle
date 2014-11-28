@@ -15,10 +15,10 @@ model {
     repositories {
         libs(PrebuiltLibraries) {
             cunit {
-                headers.srcDir "lib/cunit/2.1-2/include"
+                headers.srcDir "libs/cunit/2.1-2/include"
                 binaries.withType(StaticLibraryBinary) {
                     staticLibraryFile =
-                        file("lib/cunit/2.1-2/lib/" +
+                        file("libs/cunit/2.1-2/lib/" +
                              findCUnitLibForPlatform(targetPlatform))
                 }
             }

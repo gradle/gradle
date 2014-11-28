@@ -786,4 +786,69 @@
             </itemizedlist>
         </note>
     </section>
+    <section id="native_binaries:google_test">
+        <title>GoogleTest support</title>
+        <para>
+            The Gradle <literal>google-test</literal> plugin provides support for compiling and executing GoogleTest tests in your native-binary project.
+            For each <apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/> and <apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/>
+            defined in your project, Gradle will create a matching <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component,
+            named <literal>${component.name}Test</literal>.
+        </para>
+        <section>
+            <title>GoogleTest sources</title>
+            <para>
+                Gradle will create a <apilink class="org.gradle.language.cpp.CppSourceSet"/> named 'cpp' for each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component
+                in the project. This source set should contain the GoogleTest test files for the component sources. Source files can be located in the conventional location
+                (<literal>src/${component.name}Test/cpp</literal>) or can be configured like any other source set.
+            </para>
+        </section>
+
+        <section>
+            <title>Building GoogleTest executables</title>
+            <para>
+                A <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component has an associated
+                <apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/> or <apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/> component.
+                For each <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> configured for the main component, a matching
+                <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/> will be configured on the test suite component.
+                These test suite binaries can be configured in a similar way to any other binary instance:
+            </para>
+            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests">
+                <sourcefile file="build.gradle" snippet="configure-test-binary"/>
+            </sample>
+            <note>
+                The GoogleTest sources provided by your project require the core GoogleTest headers and libraries.
+                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/>.
+            </note>
+        </section>
+
+        <section>
+            <title>Running GoogleTest tests</title>
+            <para>
+                For each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/>, Gradle will create a task to execute this binary,
+                which will run all of the registered GoogleTest tests.
+                Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
+            </para>
+            <sample id="completeGoogleTestExample" dir="native-binaries/google-test" title="Running GoogleTest tests" includeLocation="true">
+                <sourcefile file="build.gradle" snippet="complete-example"/>
+                <output args='-q runFailingOperatorsTestGoogleTestExe' expectFailure="true"/>
+            </sample>
+        </section>
+
+        <note>
+            <para>
+                The current support for GoogleTest is quite rudimentary. Plans for future integration include:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>Improved HTML reporting, similar to that available for JUnit.</para>
+                </listitem>
+                <listitem>
+                    <para>Real-time feedback for test execution.</para>
+                </listitem>
+                <listitem>
+                    <para>Support for additional test frameworks.</para>
+                </listitem>
+            </itemizedlist>
+        </note>
+    </section>
 </chapter>

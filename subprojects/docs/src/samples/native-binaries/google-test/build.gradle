@@ -1,0 +1,81 @@
+// START SNIPPET complete-example
+apply plugin: "cpp"
+apply plugin: "google-test"
+
+model {
+    flavors {
+        passing
+        failing
+    }
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            "googleTest-core" {
+                headers.srcDir "libs/googleTest/1.7.0/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                        file("libs/googleTest/1.7.0/lib/" +
+                             findGoogleTestCoreLibForPlatform(targetPlatform))
+                }
+            }
+            "googleTest-entryPoint" {
+                headers.srcDir "libs/googleTest/1.7.0/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                        file("libs/googleTest/1.7.0/lib/" +
+                             findGoogleTestEntryPointLibForPlatform(targetPlatform))
+                }
+            }
+        }
+    }
+    components {
+        operators(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+}
+// START SNIPPET configure-test-binary
+binaries.withType(GoogleTestTestSuiteBinarySpec) {
+    lib library: "googleTest-core", linkage: "static"
+    lib library: "googleTest-entryPoint", linkage: "static"
+
+    if (flavor == flavors.failing) {
+        cppCompiler.define "PLUS_BROKEN"
+    }
+}
+// END SNIPPET configure-test-binary
+// END SNIPPET complete-example
+
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
+
+def findGoogleTestCoreLibForPlatform(Platform platform) {
+    if (platform.operatingSystem.windows) {
+        return "vs2010/gtest-core.lib"
+//        return "vs2013/gtest-core.lib"
+//        return "cygwin/gtest-core.lib"
+//        return "mingw/gtest-core.lib"
+    } else if (platform.operatingSystem.macOsX) {
+        return "osx/libgtest-core.a"
+    } else {
+        return "linux/libgtest-core.a"
+    }
+}
+
+def findGoogleTestEntryPointLibForPlatform(Platform platform) {
+    if (platform.operatingSystem.windows) {
+        return "vs2010/gtest-entryPoint.lib"
+//        return "vs2013/gtest-entryPoint.lib"
+//        return "cygwin/gtest-entryPoint.lib"
+//        return "mingw/gtest-entryPoint.lib"
+    } else if (platform.operatingSystem.macOsX) {
+        return "osx/libgtest-entryPoint.a"
+    } else {
+        return "linux/libgtest-entryPoint.a"
+    }
+}

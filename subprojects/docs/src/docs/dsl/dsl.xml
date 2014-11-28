@@ -577,6 +577,9 @@
                 <td>org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec</td>
+            </tr>
+            <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>
             </tr>
             <tr>

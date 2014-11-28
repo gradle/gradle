@@ -121,4 +121,40 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
 
+    TestComponent getGoogleTestTests() {
+        return new TestComponent() {
+            List<SourceFile> sourceFiles = [
+                    sourceFile("cpp", "test.cpp", """
+#include "gtest/gtest.h"
+#include "hello.h"
+
+using namespace testing;
+
+TEST(HelloTest, test_sum) {
+  ASSERT_TRUE(sum(0, 2) == 2);
+#ifndef ONE_TEST
+  ASSERT_TRUE(sum(0, -2) == -2);
+  ASSERT_TRUE(sum(2, 2) == 4);
+#endif
+}
+                    """),
+            ]
+            List<SourceFile> headerFiles = [
+            ]
+
+            String testOutput = """
+Running main() from gtest_main.cc
+[==========] Running 1 test from 1 test case.
+[----------] Global test environment set-up.
+[----------] 1 test from MathSuite
+[ RUN      ] MathSuite.sum
+[       OK ] MathSuite.sum (0 ms)
+[----------] 1 test from MathSuite (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test case ran. (1 ms total)
+[  PASSED  ] 1 test.
+"""
+        };
+    }
 }
