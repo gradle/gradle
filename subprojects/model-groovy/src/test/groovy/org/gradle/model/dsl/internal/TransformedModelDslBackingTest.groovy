@@ -22,9 +22,8 @@ import org.gradle.model.dsl.internal.transform.SourceLocation
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.registry.DefaultModelRegistry
-import spock.lang.Ignore
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class TransformedModelDslBackingTest extends Specification {
@@ -54,23 +53,22 @@ class TransformedModelDslBackingTest extends Specification {
         modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
-    @Ignore("has to be rewritten to not try and insert at a nested path")
     def "can registers extracted references"() {
         given:
-        register("foo.bar", [])
+        register("foo", [])
         register("value", "123")
         referenceExtractor.transform(_) >> [ModelReference.of("value", Object)]
 
         when:
         modelDsl.with {
-            configure("foo.bar") {
+            configure("foo") {
                 // this is effectively what it gets transformed to
                 add RuleInputAccessBacking.access.input("value")
             }
         }
 
         then:
-        modelRegistry.get(ModelPath.path("foo.bar"), ModelType.of(List)) == ["123"]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == ["123"]
     }
 
 }

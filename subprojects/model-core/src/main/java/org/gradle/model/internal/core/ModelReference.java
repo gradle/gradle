@@ -60,12 +60,16 @@ public class ModelReference<T> {
         return of(ModelPath.path(path), ModelType.of(type));
     }
 
+    public static <T> ModelReference<T> of(String path, ModelType<T> type) {
+        return of(ModelPath.path(path), type);
+    }
+
     public static <T> ModelReference<T> of(Class<T> type) {
-        return of(null, ModelType.of(type));
+        return of((ModelPath) null, ModelType.of(type));
     }
 
     public static <T> ModelReference<T> of(ModelType<T> type) {
-        return of(null, type);
+        return of((ModelPath) null, type);
     }
 
     public static ModelReference<?> of(String path) {

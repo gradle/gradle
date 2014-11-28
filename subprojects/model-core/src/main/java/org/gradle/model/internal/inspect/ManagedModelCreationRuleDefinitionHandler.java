@@ -20,6 +20,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.ManagedSet;
@@ -28,7 +29,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelInstantiator;
 import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator;
-import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
@@ -36,9 +36,7 @@ import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElemen
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 @NotThreadSafe
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
@@ -77,7 +75,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         modelRegistry.create(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
-    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition, ModelPath modelPath) {
+    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?> ruleDefinition, ModelPath modelPath) {
         ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
         if (modelSchema.getKind().equals(ModelSchema.Kind.VALUE)) {
@@ -93,7 +91,6 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-
         Transformer<Action<ModelNode>, Inputs> transformer;
         ModelProjection projection;
 
@@ -102,8 +99,17 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             projection = new UnmanagedModelProjection<T>(managedType, true, true);
 
         } else {
-            transformer = new ManagedModelRuleInvokerGraphBackedTransformer<T>(modelSchema, schemaStore, modelInstantiator, descriptor, ruleDefinition.getRuleInvoker(), inputs);
-            projection = new ManagedModelProjection<T>(managedType, schemaStore, proxyFactory);
+            return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new BiAction<ModelView<? extends T>, Inputs>() {
+                public void execute(ModelView<? extends T> modelView, Inputs inputs) {
+                    T instance = modelView.getInstance();
+                    Object[] args = new Object[inputs.size() + 1];
+                    args[0] = instance;
+                    for (int i = 0; i < inputs.size(); i++) {
+                        args[i + 1] = inputs.get(i, inputs.getReferences().get(i).getType()).getInstance();
+                    }
+                    ruleDefinition.getRuleInvoker().invoke(args);
+                }
+            });
         }
 
         return ModelCreators.of(ModelReference.of(modelPath, managedType), transformer)
@@ -121,6 +127,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
     }
 
+    // This thing is temporary
     private static class ManagedModelRuleInvokerInstanceBackedTransformer<T> implements Transformer<Action<ModelNode>, Inputs> {
         private final ModelSchema<T> schema;
         private final ModelInstantiator instantiator;
@@ -159,62 +166,4 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
     }
 
-    private static class ManagedModelRuleInvokerGraphBackedTransformer<T> implements Transformer<Action<ModelNode>, Inputs> {
-
-        private final ModelSchema<T> modelSchema;
-        private final ModelSchemaStore schemaStore;
-        private final ModelRuleInvoker<?> ruleInvoker;
-        private final List<ModelReference<?>> inputReferences;
-        private final ModelInstantiator modelInstantiator;
-        private final ModelRuleDescriptor descriptor;
-
-        private ManagedModelRuleInvokerGraphBackedTransformer(ModelSchema<T> modelSchema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator, ModelRuleDescriptor descriptor, ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences) {
-            this.schemaStore = schemaStore;
-            this.modelInstantiator = modelInstantiator;
-            this.descriptor = descriptor;
-            this.ruleInvoker = ruleInvoker;
-            this.inputReferences = inputReferences;
-            this.modelSchema = modelSchema;
-        }
-
-        public Action<ModelNode> transform(final Inputs inputs) {
-            return new Action<ModelNode>() {
-                public void execute(ModelNode modelNode) {
-                    ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(modelSchema.getType(), descriptor, inputs, modelNode);
-                    if (modelView == null) {
-                        throw new IllegalStateException("Couldn't produce managed node as schema type");
-                    }
-
-                    for (ModelProperty<?> property : modelSchema.getProperties().values()) {
-                        addPropertyLink(modelNode, property);
-                    }
-
-                    T instance = modelView.getInstance();
-                    Object[] args = new Object[inputs.size() + 1];
-                    args[0] = instance;
-                    for (int i = 0; i < inputs.size(); i++) {
-                        args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
-                    }
-                    ruleInvoker.invoke(args);
-
-                    modelView.close();
-                }
-
-                private <P> void addPropertyLink(ModelNode modelNode, ModelProperty<P> property) {
-                    // TODO reuse pooled projections/promises/adapters
-                    ModelType<P> propertyType = property.getType();
-                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType, true, true));
-                    ModelPromise promise = new ProjectionBackedModelPromise(projections);
-                    ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
-                    ModelNode childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
-
-                    ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
-                    if (propertySchema.getKind().isManaged() && !property.isWritable()) {
-                        P instance = modelInstantiator.newInstance(propertySchema);
-                        childNode.setPrivateData(propertyType, instance);
-                    }
-                }
-            };
-        }
-    }
 }

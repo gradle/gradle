@@ -16,10 +16,21 @@
 
 package org.gradle.model.dsl.internal
 
-import org.gradle.model.internal.core.*
+import org.gradle.internal.BiActions
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.model.Managed
+import org.gradle.model.collection.ManagedSet
+import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.inspect.ManagedModelInitializer
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory
+import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class NonTransformedModelDslBackingTest extends Specification {
@@ -46,20 +57,47 @@ class NonTransformedModelDslBackingTest extends Specification {
         modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
-    @Ignore("needs to be rewritten to not try and insert at a nested path")
+    @Managed
+    interface Thing {
+        void setName(String name)
+
+        String getName()
+    }
+
+    @Managed
+    interface Foo {
+        ManagedSet<Thing> getBar()
+    }
+
     def "can use property accessors in DSL to build model object path"() {
         given:
-        register("foo.bar", [])
+        def schemaStore = new DefaultModelSchemaStore()
+        def factory = new ManagedProxyFactory()
+        modelRegistry.create(ManagedModelInitializer.creator(
+                new SimpleModelRuleDescriptor("blah"),
+                ModelPath.path("foo"),
+                schemaStore.getSchema(ModelType.of(Foo)),
+                schemaStore,
+                new StrategyBackedModelInstantiator(schemaStore, factory, new DirectInstantiator()),
+                factory,
+                [],
+                BiActions.doNothing()
+        ))
+
+
 
         when:
+        modelDsl.configure { foo {} }
         modelDsl.configure {
             foo.bar {
-                add 1
+                create {
+                    it.name = "foo"
+                }
             }
         }
 
         then:
-        modelRegistry.get(ModelPath.path("foo.bar"), ModelType.of(List)) == [1]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
     }
 
     def "does not add rules when not configuring"() {

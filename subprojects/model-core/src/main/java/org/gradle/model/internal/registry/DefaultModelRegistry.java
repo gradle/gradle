@@ -285,8 +285,10 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNode get(ModelPath path) {
         ModelRegistrySearchResult searchResult = modelGraph.search(path);
-        if (searchResult.getTargetNode() != null) {
-            return searchResult.getTargetNode();
+        ModelNode targetNode = searchResult.getTargetNode();
+        if (targetNode != null) {
+            close((ModelNodeImpl) targetNode);
+            return targetNode;
         }
 
         inCreation = creations.remove(path);
