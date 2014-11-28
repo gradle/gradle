@@ -338,6 +338,25 @@ Notes:
 - Enum values are not strictly immutable/threadsafe in Java but almost always are, as such we will consider them to be at this stage
 - It doesn't have any impact at this stage, but only the enum value is strictly part of the model (all properties of an enum value are supplied by the runtime)
 
+### Managed model element has unmanaged property
+
+    interface MyModel {        
+        @org.gradle.model.Unmanaged
+        SomeWeirdThing getThing()        
+        void setThing(SomeWeirdThing thing)
+    }
+    
+Properties of an unmanaged type must be explicitly annotated with `@Unmanaged`.
+The rationale for this is that the use of unmanaged properties will have a significant impact on tooling and functionality in general, as such it should be very clear to model consumers which properties are unmanaged.
+
+Unmanaged properties must be accompanied by a setter.
+
+#### Test Coverage
+
+- Can attach an an unmanaged property
+- Error when unmanaged property does not have annotation
+- Subtype may declare setter for unmanaged type
+    
 ### Managed model element has “generated” display name indicating identity in model space
 
     package org.example;
