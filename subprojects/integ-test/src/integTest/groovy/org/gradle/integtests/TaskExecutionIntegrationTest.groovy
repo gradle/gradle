@@ -281,7 +281,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         task someTask << {println "explicit sometask"}
         tasks.addPlaceholderAction("someTask"){
             println  "placeholder action triggered"
-            task someTask << { assert false }
+            task someTask << { throw new RuntimeException() }
         }
 """
         when:
