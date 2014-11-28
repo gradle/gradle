@@ -28,6 +28,7 @@ import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.language.scala.plugins.ScalaLanguagePlugin
 
 import javax.inject.Inject
 
@@ -35,8 +36,6 @@ class ScalaBasePlugin implements Plugin<Project> {
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
     static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime"
-
-    public static final String DEFAULT_ZINC_VERSION = "0.3.0"
 
     private final FileResolver fileResolver
 
@@ -126,7 +125,7 @@ class ScalaBasePlugin implements Plugin<Project> {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:$DEFAULT_ZINC_VERSION")
+                        zinc("com.typesafe.zinc:zinc:$ScalaLanguagePlugin.DEFAULT_ZINC_VERSION")
                     }
                 }
                 config

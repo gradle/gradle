@@ -26,9 +26,9 @@ import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
-import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.util.TreeVisitor;
 
@@ -58,7 +58,7 @@ class ScalaToolProvider implements ToolProvider {
         if (spec instanceof ScalaJavaJointCompileSpec) {
             ScalaJavaJointCompileSpec scalaJavaJointCompileSpec = (ScalaJavaJointCompileSpec) spec;
             Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", scalaVersion));
-            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", ScalaBasePlugin.DEFAULT_ZINC_VERSION));
+            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
             File projectDir = projectFinder.getProject(":").getProjectDir();
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectDir, antBuilder, javaCompilerFactory, compilerDaemonManager, scalaClasspath, zincClasspath);
             @SuppressWarnings("unchecked") org.gradle.language.base.internal.compile.Compiler<T> delegatingCompiler = (Compiler<T>) scalaCompilerFactory.newCompiler(scalaJavaJointCompileSpec);

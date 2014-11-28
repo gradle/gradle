@@ -19,7 +19,6 @@ package org.gradle.language.scala.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
-import org.gradle.api.tasks.scala.AbstractScalaCompile;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
 import org.gradle.language.scala.platform.ScalaPlatform;

@@ -44,11 +44,13 @@ import java.util.Map;
 
 
 /**
- * Plugin for compiling Scala code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "scala"
- * language support with the {@link org.gradle.api.tasks.ScalaSourceSet}.
+ * Plugin for compiling Scala code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
+ * Registers "scala" language support with the {@link org.gradle.language.scala.ScalaLanguageSourceSet}.
  */
 @Incubating
 public class ScalaLanguagePlugin implements Plugin<Project> {
+    public static final String DEFAULT_ZINC_VERSION = "0.3.0";
+
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
         project.apply(Collections.singletonMap("plugin", JvmResourcesPlugin.class));

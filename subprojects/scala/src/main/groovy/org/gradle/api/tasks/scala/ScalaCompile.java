@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.

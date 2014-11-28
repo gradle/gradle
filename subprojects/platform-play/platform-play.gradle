@@ -2,6 +2,7 @@ dependencies {
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")
+    compile project(":languageScala")
     compile project(":scala")
     compile project(":javascript")
 }

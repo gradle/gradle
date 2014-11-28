@@ -1,9 +1,14 @@
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 dependencies {
     compile libraries.groovy
+
     compile project(":core")
     compile project(":platformJvm")
+    compile project(":languageJava")
     compile project(":languageJvm")
-    compile project(":scala")
+    // keep in sync with ScalaLanguagePlugin code
+    provided("com.typesafe.zinc:zinc:0.3.0")
 }
 
 // These public packages have classes that are tangled with the corresponding internal package.

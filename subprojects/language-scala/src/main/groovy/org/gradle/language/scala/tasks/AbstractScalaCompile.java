@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.scala;
+package org.gradle.language.scala.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;
 import java.util.Collections;
@@ -41,7 +42,7 @@ import java.util.Set;
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
 abstract public class AbstractScalaCompile extends AbstractCompile {
-    protected static final Logger LOGGER = Logging.getLogger(ScalaCompile.class);
+    protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     protected final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
     private final CompileOptions compileOptions = new CompileOptions();
 
@@ -82,7 +83,7 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
         } else {
             analysisMap = Maps.newHashMap();
             for (Project project : getProject().getRootProject().getAllprojects()) {
-                for (ScalaCompile task : project.getTasks().withType(ScalaCompile.class)) {
+                for (AbstractScalaCompile task : project.getTasks().withType(AbstractScalaCompile.class)) {
                     if (task.getScalaCompileOptions().isUseAnt()) {
                         continue;
                     }

@@ -14,26 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.plugins
-import org.gradle.api.Plugin
-import org.gradle.api.tasks.ScalaSourceSet
-import org.gradle.language.base.LanguageSourceSet
-import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-class ScalaLanguagePluginTest extends AbstractLanguagePluginSpec {
-
-    @Override
-    Class<Plugin> getPluginClass() {
-        return ScalaLanguagePlugin
-    }
-
-    @Override
-    Class<? extends LanguageSourceSet> getLanguageSourceSet() {
-        return ScalaSourceSet
-    }
-
-    @Override
-    String getLanguageId() {
-        return "scala"
-    }
-}
+/**
+ * Scala {@link org.gradle.api.Task} implementations.
+ */
+package org.gradle.api.tasks.scala;

@@ -46,6 +46,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         this.zincClasspath = zincClasspath;
     }
 
+    @SuppressWarnings("unchecked")
     public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
         ScalaCompileOptions scalaOptions = spec.getScalaCompileOptions();
         Set<File> scalaClasspathFiles = scalaClasspath.getFiles();

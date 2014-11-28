@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.scala.internal.toolchain
-
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -23,25 +22,16 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
-import org.gradle.internal.Factory
-import org.gradle.play.internal.run.PlayRunSpec
-import org.gradle.play.internal.toolchain.UnknownCompileSpec
-import org.gradle.play.platform.PlayPlatform
-import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.language.base.internal.compile.CompileSpec
 import spock.lang.Specification
-
-import java.security.InvalidParameterException
 
 class ScalaToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
     CompilerDaemonManager compilerDaemonManager = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
-    PlayPlatform playPlatform = Mock()
 
     ScalaToolProvider scalaToolProvider
-    Factory<WorkerProcessBuilder> workerProcessBuilderFactory = Mock()
-    PlayRunSpec playRunSpec = Mock()
     ProjectFinder projectFinder = Mock()
     JavaCompilerFactory javaCompilerFactory = Mock()
     IsolatedAntBuilder antbuilder = Mock()
@@ -56,8 +46,10 @@ class ScalaToolProviderTest extends Specification {
         when:
         scalaToolProvider.newCompiler(new UnknownCompileSpec())
         then:
-        def ex = thrown(InvalidParameterException)
+        def ex = thrown(IllegalArgumentException)
         ex.message == "Cannot create Compiler for unsupported CompileSpec type 'UnknownCompileSpec'"
     }
-
 }
+
+class UnknownCompileSpec implements CompileSpec{}
+
