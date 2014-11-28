@@ -42,7 +42,7 @@ class PlayApplicationPluginTest extends Specification {
     PlayApplicationBinarySpec binary = Mock()
     PlayPlatform playPlatform = Mock()
     PlayToolChain playToolChain = Mock()
-    File buildDir = Mock()
+    File buildDir = new File("tmp")
 
     FileResolver fileResolver = Mock()
     ConfigurationContainer configurationContainer = Mock();

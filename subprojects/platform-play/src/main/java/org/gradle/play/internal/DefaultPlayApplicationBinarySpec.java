@@ -31,11 +31,9 @@ import java.io.File;
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
     private LanguageSourceSet generatedScala;
-    private LanguageSourceSet testScala;
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
-    private JvmClasses testClasses = new DefaultJvmClasses();
 
     @Override
     protected String getTypeName() {
@@ -70,24 +68,12 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return classesDir;
     }
 
-    public JvmClasses getTestClasses() {
-        return testClasses;
-    }
-
     public LanguageSourceSet getGeneratedScala() {
         return generatedScala;
     }
 
-    public LanguageSourceSet getTestScala() {
-        return testScala;
-    }
-
     public void setGeneratedScala(LanguageSourceSet scalaSources) {
         this.generatedScala = scalaSources;
-    }
-
-    public void setTestScala(LanguageSourceSet scalaSources) {
-        this.testScala = scalaSources;
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

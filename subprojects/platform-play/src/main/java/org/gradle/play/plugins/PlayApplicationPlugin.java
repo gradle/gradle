@@ -178,15 +178,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
                         ScalaSources genSources = new ScalaSources("genSources", binaryName, fileResolver);
                         playBinaryInternal.setGeneratedScala(genSources);
-
-                        JvmClasses testClasses = playBinary.getTestClasses();
-                        testClasses.setClassesDir(new File(buildDir, String.format("testClasses/%s", binaryName)));
-                        ScalaSources testSources = new ScalaSources("testSources", binaryName, fileResolver);
-
-                        // TODO:Rene this should come from the component I guess
-                        testSources.getSource().srcDir("test");
-                        playBinaryInternal.setTestScala(testSources);
-
                     }
                 });
             }
@@ -332,16 +323,18 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
                 final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
 
-                //setup testcompile classpath
                 final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
                 final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
+                // TODO:DAZ Model a test suite
+                final File testSourceDir = fileResolver.resolve("test");
+                final File testClassesDir = new File(buildDir, String.format("testClasses/%s", binary.getName()));
                 tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                     public void execute(PlatformScalaCompile scalaCompile) {
                         scalaCompile.dependsOn(binary.getBuildTask());
                         scalaCompile.setClasspath(testCompileClasspath);
                         scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
-                        scalaCompile.setDestinationDir(binary.getTestClasses().getClassesDir());
-                        scalaCompile.setSource(binary.getTestScala().getSource());
+                        scalaCompile.setDestinationDir(testClassesDir);
+                        scalaCompile.setSource(testSourceDir);
                         scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
                         scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
 
@@ -357,14 +350,14 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(testTaskName, Test.class, new Action<Test>() {
                     public void execute(Test test) {
-                        test.setTestClassesDir(binary.getTestClasses().getClassesDir());
+                        test.setTestClassesDir(testClassesDir);
                         test.setBinResultsDir(new File(buildDir, String.format("binTestResultsDir/%s", binary.getName())));
                         test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/test-results", binary.getName())));
                         test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s/html", binary.getName())));
                         test.dependsOn(testCompileTaskName);
                         test.setTestSrcDirs(Arrays.asList(fileResolver.resolve("test")));
                         test.setWorkingDir(projectIdentifier.getProjectDir());
-                        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(binary.getTestClasses().getClassesDir())));
+                        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
                     }
                 });
             }
