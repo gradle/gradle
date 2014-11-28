@@ -25,14 +25,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
+import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
@@ -84,18 +84,19 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         @Model
         void play223(PlayPlatformInternal platform) {
-            initializePlatform(platform, "2.2.3", "2.10", "2.2.3");
+            initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
         }
 
         @Model
         void play235(PlayPlatformInternal platform) {
-            initializePlatform(platform, "2.3.5", "2.11", "1.0.2");
+            initializePlatform(platform, "2.3.5", "2.11.1", "1.0.2");
         }
 
         private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
             platform.setName("PlayPlatform" + playVersion);
             platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
             platform.setPlayVersion(playVersion);
+            platform.setScalaMainVersion(scalaVersion.substring(0, scalaVersion.lastIndexOf('.')));
             platform.setScalaVersion(scalaVersion);
             platform.setTwirlVersion(twirlVersion);
             platform.setJavaVersion(JavaVersion.current());
@@ -246,13 +247,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
 
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(scalaCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
-                public void execute(ScalaCompile scalaCompile) {
+            tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+                public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
                     scalaCompile.setClasspath(appCompileClasspath);
-                    scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(appCompileClasspath));
-                    scalaCompile.setZincClasspath(zincClasspath);
-
+                    scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
                     //infer scala classpath
                     scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
                     scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
@@ -319,9 +318,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
 
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-                PlayPlatform targetPlatform = binary.getTargetPlatform();
+                final PlayPlatform targetPlatform = binary.getTargetPlatform();
                 // TODO the knowledge about platform dependencies should be moved into toolchain/toolprovider
-                Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion()));
+                Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion()));
                 final Configuration testCompileConfiguration = configurationContainer.detachedConfiguration(playTestDependency);
 
                 Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
@@ -330,12 +329,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 //setup testcompile classpath
                 final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
                 final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
-                tasks.create(testCompileTaskName, ScalaCompile.class, new Action<ScalaCompile>() {
-                    public void execute(ScalaCompile scalaCompile) {
+                tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+                    public void execute(PlatformScalaCompile scalaCompile) {
                         scalaCompile.dependsOn(binary.getBuildTask());
                         scalaCompile.setClasspath(testCompileClasspath);
-                        scalaCompile.setZincClasspath(zincClasspath);
-                        scalaCompile.setScalaClasspath(new ScalaRuntime(scalaCompile.getProject()).inferScalaClasspath(testCompileClasspath));
+                        scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
                         scalaCompile.setDestinationDir(binary.getTestClasses().getClassesDir());
                         scalaCompile.setSource(binary.getTestScala().getSource());
                         scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());

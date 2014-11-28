@@ -94,11 +94,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public Object getPlayDependencyNotation() {
-        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion());
+        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion());
     }
 
     public Object getDocsDependencyNotation() {
-        return String.format("com.typesafe.play:play-docs_%s:%s", targetPlatform.getScalaVersion(), targetPlatform.getPlayVersion());
+        return String.format("com.typesafe.play:play-docs_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion());
     }
 
     public VersionedPlayRunSpec create(PlayRunVersion version, PlayRunSpec spec, Iterable<File> classpath) {

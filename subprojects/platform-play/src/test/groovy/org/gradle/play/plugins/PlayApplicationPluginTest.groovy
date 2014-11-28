@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
-import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.play.PlayApplicationBinarySpec
@@ -71,7 +71,7 @@ class PlayApplicationPluginTest extends Specification {
         when:
         playApplicationPluginRules.createTestTasks(taskCollectionBuilder, binaryContainer, serviceRegistry, projectIdentifier, buildDir)
         then:
-        1 * taskCollectionBuilder.create("compileSomeBinaryTests", ScalaCompile, _)
+        1 * taskCollectionBuilder.create("compileSomeBinaryTests", PlatformScalaCompile, _)
         1 * taskCollectionBuilder.create("testSomeBinary", Test, _)
         0 * taskCollectionBuilder.create(_)
         0 * taskCollectionBuilder.create(_, _, _)

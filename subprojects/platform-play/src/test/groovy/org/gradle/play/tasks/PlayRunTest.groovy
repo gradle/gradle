@@ -45,7 +45,7 @@ class PlayRunTest extends Specification {
         playRun.applicationJar = new File("application.jar")
 
         _ * playPlatform.playVersion >> "2.2.3"
-        _ * playPlatform.scalaVersion >> "2.10"
+        _ * playPlatform.scalaMainVersion >> "2.10"
         1 * toolChain.select(playPlatform) >> toolProvider
         playRun.targetPlatform = playPlatform
         _ * playApplicationRunner.start() >> runnerToken
