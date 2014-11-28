@@ -304,4 +304,55 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             assertTestFailed("test", Matchers.containsString("\$EmptyImmutableCollection"))
         }
     }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3157")
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "test class detection works when '-parameters' compiler option is used (JEP 118)"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                testCompile 'junit:junit:4.11'
+            }
+            tasks.withType(JavaCompile) {
+                options.with {
+                    compilerArgs << '-parameters'
+                }
+            }
+        """
+
+        and:
+        file("src/test/java/TestHelper.java") << """
+            public class TestHelper {
+                public void helperMethod(String foo, int bar) {
+                    // this method shouldn't cause failure due to API version check
+                    // in org.objectweb.asm.MethodVisitor#visitParameter
+                }
+            }
+        """
+
+        and:
+        file("src/test/java/TestCase.java") << """
+            import org.junit.Test;
+            import static org.junit.Assert.assertTrue;
+            public class TestCase {
+                @Test
+                public void test() {
+                    assertTrue(Double.valueOf(System.getProperty("java.specification.version")) >= 1.8);
+                }
+            }
+        """
+
+        then:
+        run "test"
+
+        and:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("TestCase").with {
+            assertTestCount(1, 0, 0)
+        }
+    }
 }
