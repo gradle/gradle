@@ -16,51 +16,80 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
-import org.testng.ITestContext;
-import org.testng.ITestListener;
-import org.testng.ITestNGMethod;
-import org.testng.ITestResult;
+import org.testng.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Set;
 
-public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGConfigurationListener {
+public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
+    private final TimeProvider timeProvider;
     private final Object lock = new Object();
-    private Map<String, Object> suites = new HashMap<String, Object>();
-    private Map<ITestResult, Object> tests = new HashMap<ITestResult, Object>();
-    private Map<ITestNGMethod, Object> testMethodToSuiteMapping = new HashMap<ITestNGMethod, Object>();
-    private ConcurrentMap<ITestResult, Boolean> failedConfigurations = Maps.newConcurrentMap();
+    private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
+    private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
+    private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
+    private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
+    private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
 
-    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
+    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
+        this.timeProvider = timeProvider;
+    }
+
+    public void onStart(ISuite suite) {
+        TestDescriptorInternal testInternal;
+        synchronized (lock) {
+            if (suiteId.containsKey(suite)) {
+                // Can get duplicate start events
+                return;
+            }
+            testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), suite.getName());
+            suiteId.put(suite, testInternal.getId());
+        }
+        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+    }
+
+    public void onFinish(ISuite suite) {
+        Object id;
+        synchronized (lock) {
+            id = suiteId.remove(suite);
+            if (id == null) {
+                // Can get duplicate finish events
+                return;
+            }
+        }
+
+        resultProcessor.completed(id, new TestCompleteEvent(timeProvider.getCurrentTime()));
     }
 
     public void onStart(ITestContext iTestContext) {
         TestDescriptorInternal testInternal;
+        Object parentId;
         synchronized (lock) {
             testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), iTestContext.getName());
-            suites.put(testInternal.getName(), testInternal.getId());
+            parentId = suiteId.get(iTestContext.getSuite());
+            testId.put(iTestContext, testInternal.getId());
             for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
-                testMethodToSuiteMapping.put(method, testInternal.getId());
+                testMethodParentId.put(method, testInternal.getId());
             }
         }
-        resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime()));
+        resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime(), parentId));
     }
 
     public void onFinish(ITestContext iTestContext) {
         Object id;
         synchronized (lock) {
-            id = suites.remove(iTestContext.getName());
+            id = testId.remove(iTestContext);
             for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
-                testMethodToSuiteMapping.remove(method);
+                testMethodParentId.remove(method);
             }
         }
         resultProcessor.completed(id, new TestCompleteEvent(iTestContext.getEndDate().getTime()));
@@ -73,12 +102,12 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
             String name = calculateTestCaseName(iTestResult);
 
             testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), name);
-            Object oldTestId = tests.put(iTestResult, testInternal.getId());
+            Object oldTestId = testMethodId.put(iTestResult, testInternal.getId());
             assert oldTestId == null : "Apparently some other test has started but it hasn't finished. "
                     + "Expect the resultProcessor to break. "
                     + "Don't expect to see this assertion stack trace due to the current architecture";
 
-            parentId = testMethodToSuiteMapping.get(iTestResult.getMethod());
+            parentId = testMethodParentId.get(iTestResult.getMethod());
             assert parentId != null;
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis(), parentId));
@@ -142,11 +171,11 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
         Object testId;
         TestStartEvent startEvent = null;
         synchronized (lock) {
-            testId = tests.remove(iTestResult);
+            testId = testMethodId.remove(iTestResult);
             if (testId == null) {
                 // This can happen when a method fails which this method depends on 
                 testId = idGenerator.generateId();
-                Object parentId = testMethodToSuiteMapping.get(iTestResult.getMethod());
+                Object parentId = testMethodParentId.get(iTestResult.getMethod());
                 startEvent = new TestStartEvent(iTestResult.getStartMillis(), parentId);
             }
         }
@@ -167,9 +196,11 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
     }
 
     public void onConfigurationFailure(ITestResult testResult) {
-        if (failedConfigurations.put(testResult, true) != null) {
-            // workaround for bug in TestNG 6.2 (apparently fixed in some 6.3.x): listener is notified twice per event
-            return;
+        synchronized (lock) {
+            if (!failedConfigurations.add(testResult)) {
+                // workaround for bug in TestNG 6.2 (apparently fixed in some 6.3.x): listener is notified twice per event
+                return;
+            }
         }
         // Synthesise a test for the broken configuration method
         TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(),

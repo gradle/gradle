@@ -100,14 +100,16 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
 
         then:
         outputContains("""
-org.gradle.TestNGTest.badTest FAILED
+Gradle test > org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException: bad
         at org.gradle.TestNGTest.beBad(TestNGTest.groovy:25)
         at org.gradle.TestNGTest.badTest(TestNGTest.groovy:12)
 
-org.gradle.TestNGTest.ignoredTest SKIPPED
+Gradle test > org.gradle.TestNGTest.ignoredTest SKIPPED
 
 Gradle test FAILED
+
+Gradle suite FAILED
         """)
     }
 
