@@ -50,13 +50,13 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
         useSharedBuild = true;
-        hasTrimmedDownComponentSettingsFile("java1", ["java2"], [ "src/main/java", "src/main/resources"])
-        hasTrimmedDownComponentSettingsFile("java2", [], ["src/main/java", "src/main/resources"])
-        hasTrimmedDownComponentSettingsFile("groovy", [], ["src/main/java", "src/main/groovy", "src/main/resources"])
+        hasTrimmedDownComponentSettingsFile("java1", ["java2"], [ "src/main/java": "/", "src/main/resources": "/"])
+        hasTrimmedDownComponentSettingsFile("java2", [], ["src/main/java": "/", "src/main/resources": "/"])
+        hasTrimmedDownComponentSettingsFile("groovy", [], ["src/main/java": "/", "src/main/groovy": "/", "src/main/resources": "/"])
     }
 
     @Test
-    void jarDependenciesOfUtilityProjectsAreFlaggedAsRuntimeDependency() {
+    void jarDependenciesOfUtilityProjectsAreFlaggedAsWtpDependency() {
         useSharedBuild = true;
         def classpath = parseClasspathFile(project: "java1")
 
@@ -65,7 +65,6 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
         def secondLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifactdep-1.0.jar") }
         assert secondLevelDep.attributes.attribute.find { it.@name.text() == "org.eclipse.jst.component.dependency" }
-
     }
 
     @Test
@@ -74,7 +73,9 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         def projectModules = parseComponentFile(project: "web", print: true)
 
 		assert getDeployName(projectModules) == "web"
-		assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+        assert getSourceAndDeployPaths(projectModules) ==
+                ["src/main/java": "/WEB-INF/classes", "src/main/resources": "/WEB-INF/classes", "src/main/webapp": "/"]
+        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
 		assert getDependencyTypes(projectModules) == ["uses"] * 5 as Set
     }
 
@@ -223,12 +224,11 @@ apply plugin: "groovy"
                 "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
     }
 
-    private void hasTrimmedDownComponentSettingsFile(String projectName, List projects, List sourcePaths) {
+    private void hasTrimmedDownComponentSettingsFile(String projectName, List projects, Map sourceAndDeployPaths) {
         def projectModules = parseComponentFile(project: projectName, print: true)
 
         assert getDeployName(projectModules) == projectName
-        assert getSourcePaths(projectModules) == sourcePaths as Set
-        assert getDeployPaths(projectModules) == ["/"] * sourcePaths.size() as Set
+        assert getSourceAndDeployPaths(projectModules) == sourceAndDeployPaths
         assert getHandleFilenames(projectModules) == projects as Set
         assert getDependencyTypes(projectModules) == ['uses'] * projects.size() as Set
     }
@@ -239,12 +239,12 @@ apply plugin: "groovy"
         names[0]
 	}
 
-    private Set getSourcePaths(projectModules) {
-        projectModules."wb-module"."wb-resource".@"source-path"*.text() as Set
-    }
-
-    private Set getDeployPaths(projectModules) {
-        projectModules."wb-module"."wb-resource".@"deploy-path"*.text() as Set
+    private Map getSourceAndDeployPaths(projectModules) {
+        Map result = [:]
+        projectModules."wb-module"."wb-resource".collect {
+            result.put(it.@"source-path".text(), it.@"deploy-path".text())
+        }
+        result
     }
 
 	private Set getHandleFilenames(projectModules) {
