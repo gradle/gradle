@@ -196,12 +196,14 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final NativePlatformInternal targetPlatform;
+        private final String outputFileSuffix;
 
         private VisualCppPlatformToolProvider(Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform) {
             this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;
             this.targetPlatform = targetPlatform;
+            this.outputFileSuffix = "." + getObjectFileExtension();
         }
 
         public boolean isAvailable() {
@@ -266,14 +268,14 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         public Compiler<CppCompileSpec> createCppCompiler() {
             CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class));
-            return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix);
+            return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
         }
 
         public Compiler<CCompileSpec> createCCompiler() {
             CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class));
-            return new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
+            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix);
+            return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
         }
 
         public Compiler<AssembleSpec> createAssembler() {

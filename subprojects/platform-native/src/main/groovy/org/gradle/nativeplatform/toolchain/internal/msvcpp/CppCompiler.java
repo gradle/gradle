@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 
 class CppCompiler extends NativeCompiler<CppCompileSpec> {
 
-    CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer) {
-        super(commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer,  new VisualCppOutputFileArgTransformer(), ".obj", true);
+    CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileSuffix) {
+        super(commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer,  new VisualCppOutputFileArgTransformer(), objectFileSuffix, true);
     }
 
     protected OptionsFileArgsWriter getPostArgsAction(CppCompileSpec spec) {
