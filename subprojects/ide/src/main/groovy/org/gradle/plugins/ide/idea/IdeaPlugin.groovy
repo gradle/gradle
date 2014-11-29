@@ -17,6 +17,8 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
@@ -100,7 +102,7 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.name = { project.name }
             module.conventionMapping.contentRoot = { project.projectDir }
             module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
-            module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
+            module.conventionMapping.excludeDirs = { excludeDirsWithDefaults(project) }
 
             module.conventionMapping.pathFactory = {
                 PathFactory factory = new PathFactory()
@@ -158,6 +160,7 @@ class IdeaPlugin extends IdePlugin {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
+            module.conventionMapping.excludeDirs = { excludeDirsForJava(project) }
             module.scopes = [:]
             def configurations = project.configurations
             module.scopes = [
@@ -176,6 +179,38 @@ class IdeaPlugin extends IdePlugin {
                 project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }
         }
+    }
+
+    private Set<File> excludeDirsWithDefaults(Project project, Collection<File> additionalExcludeDirs = null) {
+        List<File> excludeDirsValues = [project.buildDir, project.file('.gradle')]
+        if (additionalExcludeDirs != null) {
+            excludeDirsValues.addAll(additionalExcludeDirs)
+        }
+        return excludeDirsValues as LinkedHashSet
+    }
+
+    private Set<File> excludeDirsForJava(Project project) {
+        FileFilter dirsOnlyFilter = { File pathname -> pathname.isDirectory() } as FileFilter
+        Set additionalExcludeDirs = new HashSet();
+        [project.sourceSets.main.allSource, project.sourceSets.test.allSource].each { SourceDirectorySet sds ->
+            Set excludeDirCandidates = new HashSet();
+            sds.srcDirs.each { File srcDir ->
+                File[] childDirs = srcDir.listFiles(dirsOnlyFilter)
+                if (childDirs != null) {
+                    excludeDirCandidates.addAll(childDirs)
+                }
+            }
+            sds.visit { FileVisitDetails visitDetails ->
+                File visitedFile = visitDetails.getFile()
+                if (excludeDirCandidates.contains(visitedFile)) {
+                    excludeDirCandidates.remove(visitedFile)
+                    excludeDirCandidates.addAll(visitedFile.listFiles(dirsOnlyFilter))
+                }
+            }
+            additionalExcludeDirs.addAll(excludeDirCandidates)
+        }
+
+        return excludeDirsWithDefaults(project, additionalExcludeDirs)
     }
 
     private void configureForScalaPlugin() {
