@@ -56,7 +56,7 @@ public class CompileOptions extends AbstractOptions {
 
     private ForkOptions forkOptions = new ForkOptions();
 
-    private boolean useDepend; //TODO SF remove
+    private boolean useDepend;
 
     private DependOptions dependOptions = new DependOptions();
 
