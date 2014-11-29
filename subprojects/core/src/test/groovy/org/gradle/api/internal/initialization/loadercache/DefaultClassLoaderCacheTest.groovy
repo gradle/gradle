@@ -70,8 +70,8 @@ class DefaultClassLoaderCacheTest extends Specification {
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
         def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [])
-        cache.get(root, classPath("c1"), f1).is(cache.get(root, classPath("c1"), f1))
-        !cache.get(root, classPath("c1"), f1).is(cache.get(root, classPath("c1"), f2))
+        cache.get(classPath("c1"), root, f1).is(cache.get(classPath("c1"), root, f1))
+        !cache.get(classPath("c1"), root, f1).is(cache.get(classPath("c1"), root, f2))
         backingCache.size() == 3
     }
 
@@ -79,10 +79,9 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
-        cache.get(root, classPath("c1"), f1)
+        cache.get(classPath("c1"), root, f1)
         backingCache.size() == 2
-        cache.get(root, classPath("c1"), null)
+        cache.get(classPath("c1"), root, null)
         backingCache.size() == 2
     }
-
 }

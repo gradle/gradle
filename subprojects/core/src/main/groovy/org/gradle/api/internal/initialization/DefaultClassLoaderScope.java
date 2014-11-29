@@ -109,7 +109,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     }
 
     private ClassLoader loader(ClassPath classPath) {
-        return classLoaderCache.get(parent.getExportClassLoader(), classPath, null);
+        return classLoaderCache.get("loader hierarchy", classPath, parent.getExportClassLoader(), null);
     }
 
     public ClassLoaderScope local(ClassPath classPath) {

@@ -33,7 +33,7 @@ public class TestClassLoaderFactory implements Factory<ClassLoader> {
 
     public ClassLoader create() {
         if (testClassLoader == null) {
-            testClassLoader = classLoaderCache.get(null, new DefaultClassPath(testTask.getClasspath()), null);
+            testClassLoader = classLoaderCache.get(testTask.getPath(), new DefaultClassPath(testTask.getClasspath()), null, null);
         }
         return testClassLoader;
     }

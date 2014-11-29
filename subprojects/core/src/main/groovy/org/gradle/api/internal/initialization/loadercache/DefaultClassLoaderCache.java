@@ -83,7 +83,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         this.snapshotter = snapshotter;
     }
 
-    public ClassLoader get(final ClassLoader parent, final ClassPath classPath, @Nullable final FilteringClassLoader.Spec filterSpec) {
+    public ClassLoader get(final String id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
         try {
             ClassPathSnapshot s = snapshotter.snapshot(classPath);
             Key key = new Key(parent, s, filterSpec);
@@ -92,7 +92,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
                     if (filterSpec == null) {
                         return new URLClassLoader(classPath.getAsURLArray(), parent);
                     } else {
-                        return new FilteringClassLoader(get(parent, classPath, null), filterSpec);
+                        return new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
                     }
                 }
             });
