@@ -182,7 +182,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         """
         run()
 
-        then: isNotCached(":foo")
+        then: isNotCached(":foo", false) //not asserting cache size, new cl was added for buildscript {}
     }
 
     def "refreshes when buildscript classpath changes dependency"() {
