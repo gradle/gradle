@@ -67,6 +67,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
+        // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
         try {
             testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
         } catch (Throwable e) {
