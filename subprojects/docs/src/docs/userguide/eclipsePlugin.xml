@@ -15,9 +15,9 @@
   -->
 
 <chapter id="eclipse_plugin">
-    <title>The Eclipse Plugin</title>
+    <title>The Eclipse Plugins</title>
     
-    <para>The Eclipse plugin generates files that are used by the <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus
+    <para>The Eclipse plugins generate files that are used by the <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus
         making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
         Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.</para>
 
@@ -27,7 +27,7 @@
         but who don't use Eclipse WTP. Internally, the <literal>eclipse-wtp</literal> plugin also applies the <literal>eclipse</literal> plugin so you don't need to apply both of those plugins.
     </para>
 
-    <para>What exactly the Eclipse plugin generates depends on which other plugins are used:</para>
+    <para>What exactly the <literal>eclipse</literal> plugin generates depends on which other plugins are used:</para>
     <table>
         <title>Eclipse plugin behavior</title>
         <thead>
@@ -47,33 +47,45 @@
             <td><link linkend="scala_plugin">Scala</link></td><td>Adds Scala support to <filename>.project</filename> and <filename>.classpath</filename> files.</td>
         </tr>
         <tr>
-            <td><link linkend="war_plugin">War</link></td><td>Adds web application support to <filename>.project</filename> file.
-            Generates WTP settings files only if <literal>eclipse-wtp</literal> plugin was applied.</td>
+            <td><link linkend="war_plugin">War</link></td><td>Adds web application support to <filename>.project</filename> file.</td>
         </tr>
         <tr>
-            <td><link linkend="ear_plugin">Ear</link></td><td>Adds ear application support to <filename>.project</filename> file.
-            Generates WTP settings files only if <literal>eclipse-wtp</literal> plugin was applied.</td>
+            <td><link linkend="ear_plugin">Ear</link></td><td>Adds ear application support to <filename>.project</filename> file.</td>
         </tr>
     </table>
 
-    <para>The Eclipse plugin is open to customization and provides a standardized set of hooks
+    <para>However, the <literal>eclipse-wtp</literal> plugin <emphasis>always</emphasis> generates all WTP settings files and enhances the
+        <filename>.project</filename> file. If a <link linkend="java_plugin">Java</link> or <link linkend="war_plugin">War</link> is applied,
+        <filename>.classpath</filename> will be extended to get a proper packaging structure for this utility library or web
+        application project.
+    </para>
+
+    <para>Both Eclipse plugins are open to customization and provide a standardized set of hooks
         for adding and removing content from the generated files.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>To use the Eclipse plugin, include this in your build script:</para>
+        <para>To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in your build script:</para>
+
         <sample id="useEclipsePlugin" dir="eclipse" title="Using the Eclipse plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
+            <sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
         </sample>
-        <para>The Eclipse plugin adds a number of tasks to your projects. The main tasks that you will use
+        <sample id="useEclipseWtpPlugin" dir="eclipse" title="Using the Eclipse WTP plugin">
+            <sourcefile file="build.gradle" snippet="use-eclipse-wtp-plugin"/>
+        </sample>
+
+        <para><emphasis>Note: </emphasis> Internally, the <literal>eclipse-wtp</literal> plugin also applies the
+            <literal>eclipse</literal> plugin so you don't need to apply both.</para>
+
+        <para>Both Eclipse plugins add a number of tasks to your projects. The main tasks that you will use
             are the <literal>eclipse</literal> and <literal>cleanEclipse</literal> tasks.
         </para>
     </section>
     <section>
         <title>Tasks</title>
 
-        <para>The Eclipse plugin adds the tasks shown below to a project.</para>
+        <para>The Eclipse plugins add the tasks shown below to a project.</para>
 
         <table id='eclipsetasks'>
             <title>Eclipse plugin - tasks</title>
@@ -211,12 +223,68 @@
                 <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file only if <literal>eclipse-wtp</literal> plugin was applied.</td>
             </tr>
         </table>
+        <table id='eclipsewtptasks'>
+            <title>Eclipse WTP plugin - additional tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>cleanEclipseWtpComponent</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes the <filename>.settings/org.eclipse.wst.common.component</filename> file.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>cleanEclipseWtpFacet</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.Delete"/>
+                </td>
+                <td>Removes the <filename>.settings/org.eclipse.wst.common.component</filename> file.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseWtpComponent</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent"/></td>
+                <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseWtpFacet</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet"/>
+                </td>
+                <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file.</td>
+            </tr>
+        </table>
     </section>
     <section>
         <title>Configuration</title>
 
         <table id='eclipse-configuration'>
-            <title>Configuration of the Eclipse plugin</title>
+            <title>Configuration of the Eclipse plugins</title>
             <thead>
                 <tr>
                     <td>Model</td>
@@ -271,11 +339,11 @@
     <section>
         <title>Customizing the generated files</title>
         <para>
-            The Eclipse plugin allows you to customize the generated metadata files. The plugin provides a DSL for configuring model objects
+            The Eclipse plugins allow you to customize the generated metadata files. The plugins provide a DSL for configuring model objects
             that model the Eclipse view of the project. These model objects are then merged with the existing Eclipse XML metadata to ultimately
             generate new metadata. The model objects provide lower level hooks for working with domain objects representing the file content 
             before and after merging with the model configuration. They also provide a very low level hook for working directly with the raw 
-            XML for adjustment before it is persisted, for fine tuning and configuration that the Eclipse plugin does not model.
+            XML for adjustment before it is persisted, for fine tuning and configuration that the Eclipse and Eclipse WTP plugins do not model.
         </para>
         <section>
             <title>Merging</title>
@@ -295,7 +363,7 @@
         </section>
         <section>
             <title>Hooking into the generation lifecycle</title>
-            <para>The Eclipse plugin provides objects modeling the sections of the Eclipse files
+            <para>The Eclipse plugins provide objects modeling the sections of the Eclipse files
                 that are generated by Gradle. The generation lifecycle is as follows:
                 <orderedlist>
                     <listitem>The file is read; or a default version provided by Gradle is used if it does not exist</listitem>

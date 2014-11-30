@@ -1,7 +1,10 @@
 apply plugin: 'war'
-// START SNIPPET use-plugin
+// START SNIPPET use-eclipse-plugin
 apply plugin: 'eclipse'
-// END SNIPPET use-plugin
+// END SNIPPET use-eclipse-plugin
+// START SNIPPET use-eclipse-wtp-plugin
+apply plugin: 'eclipse-wtp'
+// END SNIPPET use-eclipse-wtp-plugin
 // START SNIPPET module-before-merged
 // START SNIPPET module-when-merged
 eclipse.classpath.file {
