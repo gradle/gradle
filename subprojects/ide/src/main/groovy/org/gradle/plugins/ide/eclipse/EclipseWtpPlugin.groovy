@@ -160,23 +160,28 @@ class EclipseWtpPlugin extends IdePlugin {
             project.plugins.withType(JavaPlugin) {
                 if (hasWarOrEarPlugin(project)) { return }
 
-                facet.conventionMapping.facets = {
+                configureFacets({
                     [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.installed, "jst.utility", "1.0"),
                       new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
-                }
+                })
             }
             project.plugins.withType(WarPlugin) {
-                facet.conventionMapping.facets = {
+                configureFacets({
                     [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
                       new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
-                }
+                })
             }
             project.plugins.withType(EarPlugin) {
-                facet.conventionMapping.facets = {
+                configureFacets({
                     [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")]
-                }
+                })
             }
         }
+    }
+
+    private void configureFacets(Closure facets) {
+        eclipseWtpModel.facet.defaults = facets
+        eclipseWtpModel.facet.conventionMapping.facets = facets
     }
 
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
