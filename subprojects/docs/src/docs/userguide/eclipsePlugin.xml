@@ -90,7 +90,7 @@
                     <literal>eclipse</literal>
                 </td>
                 <td><literal>eclipseProject</literal>, <literal>eclipseClasspath</literal>, <literal>eclipseJdt</literal>,
-                    <literal>eclipseWtpComponent</literal>, <literal>cleanEclipseWtpFacet</literal></td>
+                    <literal>eclipseWtpComponent</literal>, <literal>eclipseWtpFacet</literal></td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Generates all Eclipse configuration files</td>
             </tr>
@@ -229,7 +229,7 @@
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseModel"/>
                 </td>
                 <td><literal>eclipse</literal></td>
-                <td>Top level element that enables configuration of the Eclipse plugin in a DSL-friendly fashion</td>
+                <td>Top level element that enables configuration of the Eclipse plugin in a DSL-friendly fashion.</td>
             </tr>
             <tr>
                 <td>
@@ -243,14 +243,14 @@
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseClasspath"/>
                 </td>
                 <td><literal>eclipse.classpath</literal></td>
-                <td>Allows configuring classpath information</td>
+                <td>Allows configuring classpath information.</td>
             </tr>
             <tr>
                 <td>
                     <apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/>
                 </td>
                 <td><literal>eclipse.jdt</literal></td>
-                <td>Allows configuring jdt information (source/target Java compatibility)</td>
+                <td>Allows configuring jdt information (source/target Java compatibility).</td>
             </tr>
             <tr>
                 <td>
@@ -288,8 +288,8 @@
                     the default behavior, add “<code>tasks.eclipse.dependsOn(cleanEclipse)</code>” to your build script. This makes it
                     unnecessary to execute the clean task explicitly.
                 </para>
-                <para>This strategy can also be used for individual files that the plugin would generate.  For instance,
-                this can be done for the “<literal>.classpath</literal>” file with “<userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>”.
+                <para>This strategy can also be used for individual files that the plugins would generate. For instance,
+                    this can be done for the “<literal>.classpath</literal>” file with “<userinput>gradle cleanEclipseClasspath eclipseClasspath</userinput>”.
                 </para>
             </section>
         </section>
@@ -315,6 +315,7 @@
                         <td><literal>beforeMerged { arg -> }</literal> argument type</td>
                         <td><literal>whenMerged { arg -> }</literal> argument type</td>
                         <td><literal>withXml { arg -> }</literal> argument type</td>
+                        <td><literal>withProperties { arg -> }</literal> argument type</td>
                     </tr>
                 </thead>
                 <tr>
@@ -322,30 +323,35 @@
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Project"/></td>
                     <td><apilink class="org.gradle.api.XmlProvider"/></td>
+                    <td>-</td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseClasspath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Classpath"/></td>
                     <td><apilink class="org.gradle.api.XmlProvider"/></td>
+                    <td>-</td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseJdt"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Jdt"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.Jdt"/></td>
-                    <td/>
+                    <td>-</td>
+                    <td><ulink url="http://docs.oracle.com/javase/1.5.0/docs/api/java/util/Properties.html"><code>java.util.Properties</code></ulink></td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpComponent"/></td>
                     <td><apilink class="org.gradle.api.XmlProvider"/></td>
+                    <td>-</td>
                 </tr>
                 <tr>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.plugins.ide.eclipse.model.WtpFacet"/></td>
                     <td><apilink class="org.gradle.api.XmlProvider"/></td>
+                    <td>-</td>
                 </tr>
             </table>
             <section id="sec:partial-overwrite">
