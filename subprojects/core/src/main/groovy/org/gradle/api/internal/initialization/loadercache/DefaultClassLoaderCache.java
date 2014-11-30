@@ -72,6 +72,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     private final Map<Key, ClassLoader> storage;
     private final Map<ClassLoaderId, Key> idCache = new HashMap<ClassLoaderId, Key>(); //needed for correct invalidation of stale classloaders
     final ClassPathSnapshotter snapshotter;
+    private final Object lock = new Object();
 
     public DefaultClassLoaderCache(Map<Key, ClassLoader> storage) {
         this(storage, new FileClassPathSnapshotter());
@@ -85,16 +86,19 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     public ClassLoader get(final ClassLoaderId id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
         ClassPathSnapshot s = snapshotter.snapshot(classPath);
         Key key = new Key(parent, s, filterSpec);
-        invalidateStaleEntries(id, key);
 
-        ClassLoader existingLoader = storage.get(key);
-        if (existingLoader != null) {
-            idCache.put(id, key);
-            return existingLoader;
-        } else {
-            ClassLoader newLoader = (filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(), parent) : new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
-            storage.put(key, newLoader);
-            return newLoader;
+        synchronized (lock) {
+            invalidateStaleEntries(id, key);
+
+            ClassLoader existingLoader = storage.get(key);
+            if (existingLoader != null) {
+                idCache.put(id, key);
+                return existingLoader;
+            } else {
+                ClassLoader newLoader = (filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(), parent) : new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
+                storage.put(key, newLoader);
+                return newLoader;
+            }
         }
     }
 
