@@ -16,33 +16,33 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 
-//TODO SF document, cover, tidy-up
-class ClassLoaderIdentifier {
+class ScopeNodeIdentifier {
 
     private final IdGenerator<Long> generator;
-    private final String id;
+    private final String node;
 
-    ClassLoaderIdentifier(String id, IdGenerator<Long> generator) {
-        this.id = id;
+    ScopeNodeIdentifier(String node, IdGenerator<Long> generator) {
+        this.node = node;
         this.generator = generator;
     }
 
-    String getId() {
-        return id;
+    ClassLoaderId getId() {
+        return ClassLoaderIds.scopeNode(node);
     }
 
-    public ClassLoaderIdentifier newChild() {
-        return new ClassLoaderIdentifier(id + ":c" + generator.generateId(), new LongIdGenerator());
+    public ScopeNodeIdentifier newChild() {
+        return new ScopeNodeIdentifier(node + ":c" + generator.generateId(), new LongIdGenerator());
     }
 
-    public ClassLoaderIdentifier localId() {
-        return new ClassLoaderIdentifier(id.concat("-local"), new LongIdGenerator());
+    public ScopeNodeIdentifier localId() {
+        return new ScopeNodeIdentifier(node.concat("-local"), new LongIdGenerator());
     }
 
-    public ClassLoaderIdentifier exportId() {
-        return new ClassLoaderIdentifier(id.concat("-export"), new LongIdGenerator());
+    public ScopeNodeIdentifier exportId() {
+        return new ScopeNodeIdentifier(node.concat("-export"), new LongIdGenerator());
     }
 }

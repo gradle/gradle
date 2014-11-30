@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
@@ -33,7 +34,7 @@ public class TestClassLoaderFactory implements Factory<ClassLoader> {
 
     public ClassLoader create() {
         if (testClassLoader == null) {
-            testClassLoader = classLoaderCache.get(testTask.getPath(), new DefaultClassPath(testTask.getClasspath()), null, null);
+            testClassLoader = classLoaderCache.get(ClassLoaderIds.testTaskClasspath(testTask.getPath()), new DefaultClassPath(testTask.getClasspath()), null, null);
         }
         return testClassLoader;
     }

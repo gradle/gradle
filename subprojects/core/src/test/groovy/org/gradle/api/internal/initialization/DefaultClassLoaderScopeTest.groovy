@@ -245,9 +245,8 @@ class DefaultClassLoaderScopeTest extends Specification {
 
     def "knows class loader id"() {
         expect:
-        scope.id.id == "root:c1"
-        scope.createChild().id.id == "root:c1:c1"
-        scope.createChild().id.id == "root:c1:c2"
+        scope.id.id.toString() == "scope:root:c1"
+        scope.createChild().id.id.toString() == "scope:root:c1:c1"
+        scope.createChild().id.id.toString() == "scope:root:c1:c2"
     }
-
 }

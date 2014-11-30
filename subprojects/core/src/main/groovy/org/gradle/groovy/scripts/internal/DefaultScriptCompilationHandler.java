@@ -29,6 +29,7 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -152,7 +153,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         try {
-            ClassLoader loader = this.classLoaderCache.get("build script: " + source.getFileName() , new DefaultClassPath(scriptCacheDir), classLoader, null);
+            ClassLoader loader = this.classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()), new DefaultClassPath(scriptCacheDir), classLoader, null);
             return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
             File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");

@@ -16,14 +16,5 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classpath.ClassPath;
-
-import java.net.URLClassLoader;
-
-public class DummyClassLoaderCache implements ClassLoaderCache {
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
-        return new URLClassLoader(classPath.getAsURLArray(), parent);
-    }
+public interface ClassLoaderId {
 }

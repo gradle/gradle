@@ -24,12 +24,12 @@ public class RootClassLoaderScope implements ClassLoaderScope {
 
     private final ClassLoader classLoader;
     private final ClassLoaderCache classLoaderCache;
-    private final ClassLoaderIdentifier id;
+    private final ScopeNodeIdentifier id;
 
     public RootClassLoaderScope(ClassLoader classLoader, ClassLoaderCache classLoaderCache) {
         this.classLoader = classLoader;
         this.classLoaderCache = classLoaderCache;
-        this.id = new ClassLoaderIdentifier("root", new LongIdGenerator());
+        this.id = new ScopeNodeIdentifier("root", new LongIdGenerator());
     }
 
     public ClassLoader getLocalClassLoader() {

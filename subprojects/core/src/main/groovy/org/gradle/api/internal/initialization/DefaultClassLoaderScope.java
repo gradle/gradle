@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -26,7 +27,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
-    private final ClassLoaderIdentifier id;
+    private final ScopeNodeIdentifier id;
     private final ClassLoaderScope parent;
     private final ClassLoaderCache classLoaderCache;
 
@@ -43,20 +44,20 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
+    public DefaultClassLoaderScope(ScopeNodeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
         this.id = id;
         this.parent = parent;
         this.classLoaderCache = classLoaderCache;
     }
 
-    private ClassLoader buildLockedLoader(String id, ClassPath classPath) {
+    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return parent.getExportClassLoader();
         }
         return loader(id, classPath);
     }
 
-    private ClassLoader buildLockedLoader(String id, ClassLoader additional, ClassPath classPath) {
+    private ClassLoader buildLockedLoader(ClassLoaderId id, ClassLoader additional, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return additional;
         }
@@ -110,7 +111,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return parent;
     }
 
-    private ClassLoader loader(String id, ClassPath classPath) {
+    private ClassLoader loader(ClassLoaderId id, ClassPath classPath) {
         return classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
     }
 
@@ -164,7 +165,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return locked;
     }
 
-    ClassLoaderIdentifier getId() {
+    ScopeNodeIdentifier getId() {
         return id;
     }
 }

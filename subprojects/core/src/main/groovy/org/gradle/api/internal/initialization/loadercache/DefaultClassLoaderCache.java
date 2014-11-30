@@ -70,7 +70,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     private final Map<Key, ClassLoader> storage;
-    private final Map<String, Key> idCache = new HashMap<String, Key>(); //needed for correct invalidation of stale classloaders
+    private final Map<ClassLoaderId, Key> idCache = new HashMap<ClassLoaderId, Key>(); //needed for correct invalidation of stale classloaders
     final ClassPathSnapshotter snapshotter;
 
     public DefaultClassLoaderCache(Map<Key, ClassLoader> storage) {
@@ -82,7 +82,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         this.snapshotter = snapshotter;
     }
 
-    public ClassLoader get(final String id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
+    public ClassLoader get(final ClassLoaderId id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
         ClassPathSnapshot s = snapshotter.snapshot(classPath);
         Key key = new Key(parent, s, filterSpec);
         invalidateStaleEntries(id, key);
@@ -98,7 +98,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         }
     }
 
-    private void invalidateStaleEntries(String id, Key key) {
+    private void invalidateStaleEntries(ClassLoaderId id, Key key) {
         Key existingKey = idCache.get(id);
         if (existingKey == null) {
             //we haven't yet served classloader with this identifier (or it was previously invalidated)
