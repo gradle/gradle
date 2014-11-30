@@ -88,6 +88,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         Key key = new Key(parent, s, filterSpec);
 
         synchronized (lock) {
+            //if the classloader with given id is already cached
+            //invalidate it when the key does not match (e.g. when the classpath or parent has changed)
             invalidateStaleEntries(id, key);
 
             ClassLoader existingLoader = storage.get(key);
