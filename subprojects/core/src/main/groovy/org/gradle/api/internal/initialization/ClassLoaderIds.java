@@ -40,5 +40,21 @@ public class ClassLoaderIds {
         public String toString() {
             return node;
         }
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof DefaultClassLoaderId)) {
+                return false;
+            }
+
+            DefaultClassLoaderId that = (DefaultClassLoaderId) o;
+
+            return node.equals(that.node);
+
+        }
+        public int hashCode() {
+            return node.hashCode();
+        }
     }
 }
