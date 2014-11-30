@@ -27,7 +27,6 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
 
 class TestNGIntegrationTest extends AbstractIntegrationTest {
 
@@ -40,11 +39,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void executesTestsInCorrectEnvironment() {
-        ExecutionResult result = executer.withTasks('test').run();
-
-        assertThat(result.output, not(containsString('stdout')))
-        assertThat(result.error, not(containsString('stderr')))
-        assertThat(result.error, not(containsString('a warning')))
+        executer.withTasks('test').run();
 
         new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }

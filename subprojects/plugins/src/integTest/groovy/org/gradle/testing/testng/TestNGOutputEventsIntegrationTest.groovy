@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 
@@ -29,12 +30,16 @@ class TestNGOutputEventsIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java"
             repositories { jcenter() }
             dependencies { testCompile "org.testng:testng:$TestNGCoverage.NEWEST" }
-            test.useTestNG()
-            test.reports.junitXml.outputPerTestCase = true
+            test {
+                useTestNG()
+                reports.junitXml.outputPerTestCase = true
+                onOutput { test, event -> print "\$test -> \$event.message" }
+            }
         """
 
         file("src/test/java/FooTest.java") << """import org.testng.annotations.*;
             public class FooTest {
+                static { System.out.println("static out"); System.err.println("static err"); }
                 public FooTest() {
                     System.out.println("constructor out"); System.err.println("constructor err");
                 }
@@ -72,37 +77,84 @@ class TestNGOutputEventsIntegrationTest extends AbstractIntegrationSpec {
         when: run "test"
 
         then:
-        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
-        def clazz = xmlReport.testClass("FooTest")
+        result.output.contains("""process 'Gradle Test Executor 1' -> static out
+process 'Gradle Test Executor 1' -> static err
+process 'Gradle Test Executor 1' -> constructor out
+process 'Gradle Test Executor 1' -> constructor err
+test 'The Foo Test' -> beforeTest out
+test 'The Foo Test' -> beforeTest err
+test 'The Foo Test' -> beforeClass out
+test 'The Foo Test' -> beforeClass err
+test method m1(FooTest) -> m1 out
+test method m1(FooTest) -> m1 err
+test method m2(FooTest) -> m2 out
+test method m2(FooTest) -> m2 err
+test 'The Foo Test' -> afterClass out
+test 'The Foo Test' -> afterClass err
+test 'The Foo Test' -> afterTest out
+test 'The Foo Test' -> afterTest err
+""")
 
         /**
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
          */
 
-        clazz.assertTestCaseStderr("m1", is("m1 err\n"))
-        clazz.assertTestCaseStderr("m2", is("m2 err\n"))
-        clazz.assertTestCaseStdout("m1", is("m1 out\n"))
-        clazz.assertTestCaseStdout("m2", is("m2 out\n"))
-        clazz.assertStderr(is(""))
-        clazz.assertStdout(is(""))
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def classResult = xmlReport.testClass("FooTest")
+
+        classResult.assertTestCaseStderr("m1", is("m1 err\n"))
+        classResult.assertTestCaseStderr("m2", is("m2 err\n"))
+        classResult.assertTestCaseStdout("m1", is("m1 out\n"))
+        classResult.assertTestCaseStdout("m2", is("m2 out\n"))
+        classResult.assertStderr(is(""))
+        classResult.assertStdout(is(""))
+
+        def htmlReport = new HtmlTestExecutionResult(testDirectory)
+        def classReport = htmlReport.testClass("FooTest")
+        classReport.assertStdout(is("m1 out\nm2 out\n"))
+        classReport.assertStderr(is("m1 err\nm2 err\n"))
     }
 
     def "attaches output events to correct test descriptors"() {
         when: run "test"
 
         then:
+        result.output.contains("""process 'Gradle Test Executor 1' -> static out
+process 'Gradle Test Executor 1' -> static err
+process 'Gradle Test Executor 1' -> constructor out
+process 'Gradle Test Executor 1' -> constructor err
+test 'Gradle test' -> beforeTest out
+test 'Gradle test' -> beforeTest err
+test 'Gradle test' -> beforeClass out
+test 'Gradle test' -> beforeClass err
+test method m1(FooTest) -> m1 out
+test method m1(FooTest) -> m1 err
+test method m2(FooTest) -> m2 out
+test method m2(FooTest) -> m2 err
+test 'Gradle test' -> afterClass out
+test 'Gradle test' -> afterClass err
+test 'Gradle test' -> afterTest out
+test 'Gradle test' -> afterTest err
+""")
+
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
-        def clazz = xmlReport.testClass("FooTest")
+        def classResult = xmlReport.testClass("FooTest")
+
 
         /**
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
          */
 
-        clazz.assertTestCaseStderr("m1", is("m1 err\n"))
-        clazz.assertTestCaseStderr("m2", is("m2 err\n"))
-        clazz.assertTestCaseStdout("m1", is("m1 out\n"))
-        clazz.assertTestCaseStdout("m2", is("m2 out\n"))
-        clazz.assertStderr(is(""))
-        clazz.assertStdout(is(""))
+        classResult.assertTestCaseStderr("m1", is("m1 err\n"))
+        classResult.assertTestCaseStderr("m2", is("m2 err\n"))
+        classResult.assertTestCaseStdout("m1", is("m1 out\n"))
+        classResult.assertTestCaseStdout("m2", is("m2 out\n"))
+        classResult.assertStderr(is(""))
+        classResult.assertStdout(is(""))
+
+        def htmlReport = new HtmlTestExecutionResult(testDirectory)
+        def classReport = htmlReport.testClass("FooTest")
+        classReport.assertStdout(is("m1 out\nm2 out\n"))
+        classReport.assertStderr(is("m1 err\nm2 err\n"))
     }
 }

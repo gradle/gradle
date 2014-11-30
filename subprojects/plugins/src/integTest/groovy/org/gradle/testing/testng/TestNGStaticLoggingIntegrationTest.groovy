@@ -17,8 +17,12 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
+
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.is
 
 class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,38 +36,53 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
-            import org.slf4j.*;
 
             public class FooTest {
-                private final static Logger LOGGER = LoggerFactory.getLogger(FooTest.class);
+                private final static org.slf4j.Logger SLF4J = org.slf4j.LoggerFactory.getLogger(FooTest.class);
+                private final static java.util.logging.Logger JUL = java.util.logging.Logger.getLogger(FooTest.class.getName());
+
                 @Test public void foo() {
-                  LOGGER.info("cool output from test");
+                  SLF4J.info("slf4j output");
+                  JUL.info("jul output");
                 }
             }
         """
 
         when: run("test")
         then:
-        result.output.contains("captured [Test worker] INFO FooTest - cool output from test")
+        result.output.contains("captured [Test worker] INFO FooTest - slf4j output")
+        result.output.contains("captured INFO: jul output")
+
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.testClass("FooTest").assertStderr(containsString("[Test worker] INFO FooTest - slf4j output"))
+        testResult.testClass("FooTest").assertStderr(containsString("INFO: jul output"))
     }
 
     @Issue("GRADLE-2841")
-    def "captures logging from static initializers"() {
+    def "captures logging from System streams referenced from static initializer"() {
         TestNGCoverage.enableTestNG(buildFile)
         buildFile << "test.onOutput { id, event -> println 'captured ' + event.message }"
 
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
+            import java.io.PrintStream;
 
             public class FooTest {
-                static { System.out.println("cool output from initializer"); }
-                @Test public void foo() { System.out.println("cool output from test"); }
+                static PrintStream out = System.out;
+                static PrintStream err = System.err;
+                static { out.println("cool output from initializer"); }
+                @Test public void foo() { out.println("cool output from test"); err.println("err output from test"); }
             }
         """
 
         when: run("test")
         then:
         result.output.contains("captured cool output from test")
+        result.output.contains("captured err output from test")
         result.output.contains("captured cool output from initializer")
+
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.testClass("FooTest").assertStdout(is("cool output from test\n"))
+        testResult.testClass("FooTest").assertStderr(is("err output from test\n"))
     }
 }
