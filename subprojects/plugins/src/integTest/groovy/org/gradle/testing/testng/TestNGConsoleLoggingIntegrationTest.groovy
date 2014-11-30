@@ -21,7 +21,7 @@ import org.gradle.util.TextUtil
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
-class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
+class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")

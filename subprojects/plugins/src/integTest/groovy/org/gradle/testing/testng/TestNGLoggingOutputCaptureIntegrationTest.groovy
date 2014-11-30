@@ -23,7 +23,7 @@ import org.gradle.testing.fixture.TestNGCoverage
 
 import static org.hamcrest.Matchers.is
 
-class TestNGOutputEventsIntegrationTest extends AbstractIntegrationSpec {
+class TestNGLoggingOutputCaptureIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
