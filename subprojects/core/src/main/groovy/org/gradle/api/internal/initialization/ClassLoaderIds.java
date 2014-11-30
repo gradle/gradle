@@ -18,16 +18,28 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 
+/**
+ * Provides implementations of classloader ids
+ */
 public class ClassLoaderIds {
 
+    /**
+     * class loader that is a part of class loader scope (hierarchy)
+     */
     static ClassLoaderId scopeNode(String node) {
         return new DefaultClassLoaderId("scope:" + node);
     }
 
+    /**
+     * build script classloader
+     */
     public static ClassLoaderId buildScript(String fileName) {
         return new DefaultClassLoaderId("build script:" + fileName);
     }
 
+    /**
+     * test task classpath classloader
+     */
     public static ClassLoaderId testTaskClasspath(String testTaskPath) {
         return new DefaultClassLoaderId("test classpath:" + testTaskPath);
     }

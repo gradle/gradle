@@ -16,5 +16,10 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+/**
+ * Opaque identifier of the classloader. Needed for correct behavior of classloader invalidation.
+ */
 public interface ClassLoaderId {
+    public boolean equals(Object o);
+    public int hashCode();
 }
