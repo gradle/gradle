@@ -31,7 +31,7 @@ public class DummyCompiler extends NativeCompiler<CCompileSpec> {
     }
 
     @Override
-    protected OptionsFileArgsWriter getPostArgsAction(CCompileSpec spec) {
+    protected OptionsFileArgsWriter getOptionsWriter(CCompileSpec spec) {
         return argsWriter;
     }
 }

@@ -35,7 +35,7 @@ public class CppCompiler extends NativeCompiler<CppCompileSpec> {
         }
     }
 
-    protected OptionsFileArgsWriter getPostArgsAction(CppCompileSpec spec) {
+    protected OptionsFileArgsWriter getOptionsWriter(CppCompileSpec spec) {
         return new GccOptionsFileArgWriter(spec.getTempDir());
     }
 }

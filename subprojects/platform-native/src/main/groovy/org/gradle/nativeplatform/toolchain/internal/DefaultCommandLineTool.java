@@ -27,17 +27,42 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 public class DefaultCommandLineTool implements CommandLineTool {
-    private final String action;
+    private final String name;
     private final File executable;
     private final ExecActionFactory execActionFactory;
 
-    public DefaultCommandLineTool(String action, File executable, ExecActionFactory execActionFactory) {
-        this.action = action;
+    public DefaultCommandLineTool(String name, File executable, ExecActionFactory execActionFactory) {
+        this.name = name;
         this.executable = executable;
         this.execActionFactory = execActionFactory;
     }
 
+    public String getDisplayName() {
+        return String.format("command line tool '%s'", getName());
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public void execute(CommandLineToolInvocation invocation) {
+        toRunnableExecution(invocation).run();
+    }
+
+    public Runnable toRunnableExecution(final CommandLineToolInvocation invocation) {
+        return new Runnable() {
+            public void run() {
+                DefaultCommandLineTool.this.internalExecute(invocation);
+            }
+        };
+    }
+
+    protected void internalExecute(CommandLineToolInvocation invocation) {
         ExecAction toolExec = execActionFactory.newExecAction();
         toolExec.executable(executable);
         if (invocation.getWorkDirectory() != null) {
@@ -59,7 +84,7 @@ public class DefaultCommandLineTool implements CommandLineTool {
         try {
             toolExec.execute();
         } catch (ExecException e) {
-            throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
+            throw new GradleException(String.format("%s failed; see the error output for details.", getDisplayName()), e);
         }
     }
 }

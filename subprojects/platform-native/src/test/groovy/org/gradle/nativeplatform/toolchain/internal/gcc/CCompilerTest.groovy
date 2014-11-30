@@ -52,8 +52,9 @@ class CCompilerTest extends Specification {
         compiler.execute(compileSpec)
 
         then:
-        1 * invocation.copy() >> invocation
-        1 * invocation.setWorkDirectory(objectFileDir)
+        // 1 per source file
+        2 * invocation.copy() >> invocation
+        2 * invocation.setWorkDirectory(objectFileDir)
 
         ["one.c", "two.c"].each{ sourceFileName ->
 

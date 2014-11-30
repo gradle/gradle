@@ -16,6 +16,15 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-public interface CommandLineTool {
+import org.gradle.api.Named;
+
+public interface CommandLineTool extends Named {
     void execute(CommandLineToolInvocation invocation);
+
+    Runnable toRunnableExecution(CommandLineToolInvocation invocation);
+
+    /**
+     * Returns a human consumable name for this tool.
+     */
+    String getDisplayName();
 }

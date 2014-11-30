@@ -29,7 +29,7 @@ class CppCompiler extends NativeCompiler<CppCompileSpec> {
         super(commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer,  new VisualCppOutputFileArgTransformer(), objectFileSuffix, true);
     }
 
-    protected OptionsFileArgsWriter getPostArgsAction(CppCompileSpec spec) {
+    protected OptionsFileArgsWriter getOptionsWriter(CppCompileSpec spec) {
         return new VisualCppOptionsFileArgWriter(spec.getTempDir());
     }
 

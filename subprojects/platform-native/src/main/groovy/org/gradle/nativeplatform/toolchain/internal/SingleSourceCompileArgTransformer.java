@@ -25,23 +25,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
-    private final ArgsTransformer<T> delegate;
     private final String objectFileNameSuffix;
     private final File sourceFile;
     private final OutputFileArgTransformer outputFileArgTransformer;
     private final boolean windowsPathLengthLimitation;
+    private final List<String> invocationArgs;
 
-    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileNameSuffixExtension, ArgsTransformer<T> delegate, boolean windowsPathLengthLimitation, OutputFileArgTransformer outputFileArgTransformer) {
+    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileNameSuffixExtension, List<String> invocationArgs, boolean windowsPathLengthLimitation, OutputFileArgTransformer outputFileArgTransformer) {
         this.sourceFile = sourceFile;
-        this.delegate = delegate;
         this.objectFileNameSuffix = objectFileNameSuffixExtension;
         this.outputFileArgTransformer = outputFileArgTransformer;
         this.windowsPathLengthLimitation = windowsPathLengthLimitation;
+        this.invocationArgs = invocationArgs;
     }
 
     public List<String> transform(T spec) {
-        List<String> args = new ArrayList<String>();
-        args.addAll(delegate.transform(spec));
+        List<String> args = new ArrayList<String>(invocationArgs);
 
         args.add(sourceFile.getAbsolutePath());
 

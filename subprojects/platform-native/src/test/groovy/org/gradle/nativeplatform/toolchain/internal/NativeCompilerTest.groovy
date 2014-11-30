@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.gcc.CCompiler
 import org.gradle.nativeplatform.toolchain.internal.gcc.GccOptionsFileArgWriter
 import org.gradle.nativeplatform.toolchain.internal.gcc.GccOutputFileArgTransformer
+import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -32,8 +33,11 @@ import spock.lang.Specification
 class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
-    static class DummyTool implements CommandLineTool {
-        public void execute(CommandLineToolInvocation invocation) {
+    static class DummyTool extends DefaultCommandLineTool {
+        DummyTool() {
+            super("dummy", null, null)
+        }
+        protected void internalExecute(CommandLineToolInvocation invocation) {
             invocation.getArgs()
         }
     }
@@ -67,8 +71,7 @@ class NativeCompilerTest extends Specification {
 
         then:
 
-        2 * commandLineTool.execute(_)
-        2 * argsWriter.execute(_) // only want one of these
-        0 * _
+        2 * commandLineTool.toRunnableExecution(_)
+        1 * argsWriter.execute(_)
     }
 }

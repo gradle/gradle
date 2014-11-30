@@ -35,7 +35,7 @@ class CCompiler extends NativeCompiler<CCompileSpec> {
         }
     }
 
-    protected OptionsFileArgsWriter getPostArgsAction(CCompileSpec spec) {
+    protected OptionsFileArgsWriter getOptionsWriter(CCompileSpec spec) {
         return new GccOptionsFileArgWriter(spec.getTempDir());
     }
 }

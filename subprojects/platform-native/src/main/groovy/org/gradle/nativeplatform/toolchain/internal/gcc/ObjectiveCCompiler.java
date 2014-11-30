@@ -35,7 +35,7 @@ public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
         }
     }
 
-    protected OptionsFileArgsWriter getPostArgsAction(ObjectiveCCompileSpec spec) {
+    protected OptionsFileArgsWriter getOptionsWriter(ObjectiveCCompileSpec spec) {
         return new GccOptionsFileArgWriter(spec.getTempDir());
     }
 
