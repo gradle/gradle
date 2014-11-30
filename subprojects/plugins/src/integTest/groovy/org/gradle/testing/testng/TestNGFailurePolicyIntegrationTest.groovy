@@ -16,8 +16,10 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.*
-import org.hamcrest.Matcher
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.integtests.fixtures.TestNGExecutionResult
+import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
@@ -34,10 +36,6 @@ class TestNGFailurePolicyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             dependencies { testCompile "org.testng:testng:${version}" }
         """
-    }
-
-    void assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
-        new DefaultTestExecutionResult(testDirectory).testClass("Gradle Test Executor 1").assertExecutionFailedWithCause(causeMatcher)
     }
 
     def "skips tests after a config method failure by default"() {
