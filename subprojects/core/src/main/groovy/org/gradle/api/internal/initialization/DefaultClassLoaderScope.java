@@ -27,7 +27,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
-    private final ScopeNodeIdentifier id;
+    final ScopeNodeIdentifier id;
     private final ClassLoaderScope parent;
     private final ClassLoaderCache classLoaderCache;
 
@@ -71,24 +71,24 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
                     effectiveLocalClassLoader = parent.getExportClassLoader();
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (export.isEmpty()) {
-                    effectiveLocalClassLoader = buildLockedLoader(id.localId().getId(), local);
+                    effectiveLocalClassLoader = buildLockedLoader(id.localId(), local);
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (local.isEmpty()) {
-                    effectiveLocalClassLoader = buildLockedLoader(id.exportId().getId(), export);
+                    effectiveLocalClassLoader = buildLockedLoader(id.exportId(), export);
                     effectiveExportClassLoader = effectiveLocalClassLoader;
                 } else {
-                    effectiveExportClassLoader = buildLockedLoader(id.exportId().getId(), export);
-                    effectiveLocalClassLoader = buildLockedLoader(id.localId().getId(), effectiveExportClassLoader, local);
+                    effectiveExportClassLoader = buildLockedLoader(id.exportId(), export);
+                    effectiveLocalClassLoader = buildLockedLoader(id.localId(), effectiveExportClassLoader, local);
                 }
             } else { // creating before locking, have to create the most flexible setup
                 if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
                     throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
                 }
 
-                exportingClassLoader = new MultiParentClassLoader(parent.getExportClassLoader(), loader(id.exportId().getId(), export));
+                exportingClassLoader = new MultiParentClassLoader(parent.getExportClassLoader(), loader(id.exportId(), export));
                 effectiveExportClassLoader = new CachingClassLoader(exportingClassLoader);
 
-                localClassLoader = new MultiParentClassLoader(effectiveExportClassLoader, loader(id.localId().getId(), local));
+                localClassLoader = new MultiParentClassLoader(effectiveExportClassLoader, loader(id.localId(), local));
                 effectiveLocalClassLoader = new CachingClassLoader(localClassLoader);
             }
 
@@ -122,7 +122,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
         assertNotLocked();
         if (localClassLoader != null) {
-            ClassLoader loader = loader(id.localId().getId(), classPath);
+            ClassLoader loader = loader(id.localId(), classPath);
             localClassLoader.addParent(loader);
         } else {
             local = local.plus(classPath);
@@ -138,7 +138,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
         assertNotLocked();
         if (exportingClassLoader != null) {
-            exportingClassLoader.addParent(loader(id.exportId().getId(), classPath));
+            exportingClassLoader.addParent(loader(id.exportId(), classPath));
         } else {
             export = export.plus(classPath);
         }
@@ -163,9 +163,5 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public boolean isLocked() {
         return locked;
-    }
-
-    ScopeNodeIdentifier getId() {
-        return id;
     }
 }

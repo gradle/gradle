@@ -20,6 +20,9 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 
+/**
+ * Identifies node in the classloader scope hierarchy
+ */
 class ScopeNodeIdentifier {
 
     private final IdGenerator<Long> generator;
@@ -30,19 +33,24 @@ class ScopeNodeIdentifier {
         this.generator = generator;
     }
 
-    ClassLoaderId getId() {
-        return ClassLoaderIds.scopeNode(node);
-    }
-
-    public ScopeNodeIdentifier newChild() {
+    /**
+     * creates new child node identifier
+     */
+    ScopeNodeIdentifier newChild() {
         return new ScopeNodeIdentifier(node + ":c" + generator.generateId(), new LongIdGenerator());
     }
 
-    public ScopeNodeIdentifier localId() {
-        return new ScopeNodeIdentifier(node.concat("-local"), new LongIdGenerator());
+    /**
+     * local classloader id of this node
+     */
+    ClassLoaderId localId() {
+        return ClassLoaderIds.scopeNode(node.concat("-local"));
     }
 
-    public ScopeNodeIdentifier exportId() {
-        return new ScopeNodeIdentifier(node.concat("-export"), new LongIdGenerator());
+    /**
+     * export classloader id of this node
+     */
+    ClassLoaderId exportId() {
+        return ClassLoaderIds.scopeNode(node.concat("-export"));
     }
 }
