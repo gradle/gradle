@@ -39,7 +39,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
                 println project.path + " cached: " + !StaticState.set.add(project.path)
             }
             def cache = project.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
-            println "### cache size: " + cache.size
+            gradle.buildFinished { println "### cache size: " + cache.size }
         """
     }
 
@@ -48,8 +48,10 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         output.contains("$projectPath cached: true")
     }
 
-    private boolean isNotCached(String projectPath = ":") {
-        assertCacheSize()
+    private boolean isNotCached(String projectPath = ":", boolean checkCacheSize = true) {
+        if (checkCacheSize) {
+            assertCacheSize()
+        }
         output.contains("$projectPath cached: false")
     }
 
@@ -118,7 +120,8 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "apply from: 'plugin.gradle'"
         run("foo")
 
-        then: notCached
+        then: isNotCached(":", false) //not asserting cache size because
+        //new classloader was added due to addition of script plugin
     }
 
     def "does not refresh main script loader when build script plugin changes"() {
@@ -136,9 +139,10 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
     def "caches subproject classloader"() {
         settingsFile << "include 'foo'"
 
-        when: run()
-        then: isNotCached(":foo")
-        when: run()
+        when:
+        run()
+        run()
+
         then: isCached(":foo")
     }
 
@@ -163,7 +167,8 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         """
         run()
 
-        then: notCached
+        then: isNotCached(":", false) //not asserting cache size
+        //because new cl was added to cache by the addition of buildscript {} clause
     }
 
     def "refreshes when parent project buildscript classpath changes"() {

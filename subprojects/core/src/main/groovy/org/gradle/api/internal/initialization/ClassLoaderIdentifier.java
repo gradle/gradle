@@ -37,4 +37,12 @@ class ClassLoaderIdentifier {
     public ClassLoaderIdentifier newChild() {
         return new ClassLoaderIdentifier(id + ":c" + generator.generateId(), new LongIdGenerator());
     }
+
+    public ClassLoaderIdentifier localId() {
+        return new ClassLoaderIdentifier(id.concat("-local"), new LongIdGenerator());
+    }
+
+    public ClassLoaderIdentifier exportId() {
+        return new ClassLoaderIdentifier(id.concat("-export"), new LongIdGenerator());
+    }
 }

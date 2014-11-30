@@ -152,7 +152,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         try {
-            ClassLoader loader = this.classLoaderCache.get("build script", new DefaultClassPath(scriptCacheDir), classLoader, null);
+            ClassLoader loader = this.classLoaderCache.get("build script: " + source.getFileName() , new DefaultClassPath(scriptCacheDir), classLoader, null);
             return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
             File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");

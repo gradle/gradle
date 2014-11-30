@@ -49,18 +49,18 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         this.classLoaderCache = classLoaderCache;
     }
 
-    private ClassLoader buildLockedLoader(ClassPath classPath) {
+    private ClassLoader buildLockedLoader(String id, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return parent.getExportClassLoader();
         }
-        return loader(classPath);
+        return loader(id, classPath);
     }
 
-    private ClassLoader buildLockedLoader(ClassLoader additional, ClassPath classPath) {
+    private ClassLoader buildLockedLoader(String id, ClassLoader additional, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return additional;
         }
-        return new CachingClassLoader(new MultiParentClassLoader(additional, loader(classPath)));
+        return new CachingClassLoader(new MultiParentClassLoader(additional, loader(id, classPath)));
     }
 
     private void buildEffectiveLoaders() {
@@ -70,24 +70,24 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
                     effectiveLocalClassLoader = parent.getExportClassLoader();
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (export.isEmpty()) {
-                    effectiveLocalClassLoader = buildLockedLoader(local);
+                    effectiveLocalClassLoader = buildLockedLoader(id.localId().getId(), local);
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (local.isEmpty()) {
-                    effectiveLocalClassLoader = buildLockedLoader(export);
+                    effectiveLocalClassLoader = buildLockedLoader(id.exportId().getId(), export);
                     effectiveExportClassLoader = effectiveLocalClassLoader;
                 } else {
-                    effectiveExportClassLoader = buildLockedLoader(export);
-                    effectiveLocalClassLoader = buildLockedLoader(effectiveExportClassLoader, local);
+                    effectiveExportClassLoader = buildLockedLoader(id.exportId().getId(), export);
+                    effectiveLocalClassLoader = buildLockedLoader(id.localId().getId(), effectiveExportClassLoader, local);
                 }
             } else { // creating before locking, have to create the most flexible setup
                 if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
                     throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
                 }
 
-                exportingClassLoader = new MultiParentClassLoader(parent.getExportClassLoader(), loader(export));
+                exportingClassLoader = new MultiParentClassLoader(parent.getExportClassLoader(), loader(id.exportId().getId(), export));
                 effectiveExportClassLoader = new CachingClassLoader(exportingClassLoader);
 
-                localClassLoader = new MultiParentClassLoader(effectiveExportClassLoader, loader(local));
+                localClassLoader = new MultiParentClassLoader(effectiveExportClassLoader, loader(id.localId().getId(), local));
                 effectiveLocalClassLoader = new CachingClassLoader(localClassLoader);
             }
 
@@ -110,8 +110,8 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return parent;
     }
 
-    private ClassLoader loader(ClassPath classPath) {
-        return classLoaderCache.get(id.getId(), classPath, parent.getExportClassLoader(), null);
+    private ClassLoader loader(String id, ClassPath classPath) {
+        return classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
     }
 
     public ClassLoaderScope local(ClassPath classPath) {
@@ -121,7 +121,8 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
         assertNotLocked();
         if (localClassLoader != null) {
-            localClassLoader.addParent(loader(classPath));
+            ClassLoader loader = loader(id.localId().getId(), classPath);
+            localClassLoader.addParent(loader);
         } else {
             local = local.plus(classPath);
         }
@@ -136,7 +137,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
         assertNotLocked();
         if (exportingClassLoader != null) {
-            exportingClassLoader.addParent(loader(classPath));
+            exportingClassLoader.addParent(loader(id.exportId().getId(), classPath));
         } else {
             export = export.plus(classPath);
         }
