@@ -19,11 +19,11 @@ package org.gradle.language.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.TestComponent;
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent;
 
 
 // TODO integrate objective-c/cpp we have coverage on windows
-public class DuplicateMixedSameBaseNamesTestApp extends TestComponent {
+public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
 
     AvailableToolChains.InstalledToolChain toolChain
 

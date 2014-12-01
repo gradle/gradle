@@ -16,11 +16,11 @@
 
 package org.gradle.language.c
 
-import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 
-class CLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest {
+class CLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         new CHelloWorldApp()

@@ -17,9 +17,9 @@
 package org.gradle.language.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.nativeplatform.fixtures.app.TestComponent
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateObjectiveCBaseNamesTestApp extends TestComponent{
+class DuplicateObjectiveCBaseNamesTestApp extends TestNativeComponent{
 
     def plugins = ["objective-c"]
     @Override

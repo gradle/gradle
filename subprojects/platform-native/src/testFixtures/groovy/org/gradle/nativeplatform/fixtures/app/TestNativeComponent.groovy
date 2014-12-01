@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class TestComponent {
+abstract class TestNativeComponent {
     List<SourceFile> getAllFiles() {
         return sourceFiles + headerFiles
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivec
 import org.gradle.internal.hash.HashUtil
-import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
+class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest{
 
     @Override
     boolean isCanBuildForMultiplePlatforms() {

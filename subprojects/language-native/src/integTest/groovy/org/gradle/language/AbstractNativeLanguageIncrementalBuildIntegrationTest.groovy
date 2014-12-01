@@ -33,7 +33,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompati
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
-abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     IncrementalHelloWorldApp app
     String mainCompileTask
