@@ -14,24 +14,6 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.*;
 
 public class OkTest {
-    static {
-        System.out.println("class loaded");
-    }
-
-    public OkTest() {
-        System.out.println("test constructed");
-    }
-
-    @org.junit.BeforeClass public static void init() {
-        System.out.println("before class out");
-        System.err.println("before class err");
-    }
-
-    @org.junit.AfterClass public static void end() {
-        System.out.println("after class out");
-        System.err.println("after class err");
-    }
-
     @org.junit.Test
     public void ok() throws Exception {
         // check versions of dependencies
@@ -72,11 +54,9 @@ public class OkTest {
         assertNull(System.getSecurityManager());
 
         // check stdout and stderr and logging
-        System.out.println("This is test stdout");
         System.out.println("non-asci char: ż");
         System.out.print("no EOL");
         System.out.println();
-        System.err.println("This is test stderr");
         Logger.getLogger("test-logger").warning("this is a warning");
 
         final PrintStream out = System.out;

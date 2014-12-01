@@ -48,27 +48,14 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
 
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('This is test stdout'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('non-asci char: ż'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('no EOL'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('class loaded'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('test constructed'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('stdout from another thread'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('this is a warning'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
 
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('before class out'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('before class err'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('after class out'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('after class err'))
-
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
-        result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
-        result.testClass('org.gradle.OtherTest').assertStdout(containsString('other class loaded'))
-        result.testClass('org.gradle.OtherTest').assertStdout(containsString('other test constructed'))
-        result.testClass('org.gradle.OtherTest').assertStderr(containsString('This is other stderr'))
         result.testClass('org.gradle.OtherTest').assertStderr(containsString('this is another warning'))
     }
 
