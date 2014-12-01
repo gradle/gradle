@@ -20,7 +20,7 @@ package org.gradle.language.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 
-class BadJavaLibrary extends TestJavaLibrary {
+class BadJavaComponent extends TestJavaComponent {
     List<JvmSourceFile> sources = [
         new JvmSourceFile("compile/test", "Person.java", '''
 package compile.test;

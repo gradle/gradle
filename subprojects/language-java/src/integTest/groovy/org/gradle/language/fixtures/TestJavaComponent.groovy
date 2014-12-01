@@ -17,8 +17,10 @@
 package org.gradle.language.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
+import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.test.fixtures.file.TestFile
 
-class TestJavaLibrary {
+class TestJavaComponent extends TestJvmComponent{
     List<JvmSourceFile> sources = [
         new JvmSourceFile("compile/test", "Person.java", '''
 package compile.test;
@@ -41,10 +43,30 @@ class Person2 {
 ''')
     ]
 
-    List<JvmSourceFile> resources = [
-        new JvmSourceFile("", "one.txt", "Here is a resource"),
-        new JvmSourceFile("sub-dir", "two.txt", "Here is another resource")
-    ]
+    @Override
+    List<TestFile> writeSources(TestFile sourceDir) {
+        return sources*.writeToDir(sourceDir.file("java"))
+    }
+
+    @Override
+    String getLanguageName() {
+        return "java"
+    }
+
+    @Override
+    void changeSources(List<TestFile> sourceFiles){
+        def personJavaFile = sourceFiles.find { it.name == "Person.java" }
+        personJavaFile.text = personJavaFile.text.replace("String name;", "String name; String anotherName;")
+    }
+
+    @Override
+    void writeAdditionalSources(TestFile sourceDir) {
+        sourceDir.file("java/Extra.java") << """
+interface Extra {
+    String whatever();
+}
+"""
+    }
 
     List<JvmSourceFile> expectedOutputs = [
             sources[0].classFile,

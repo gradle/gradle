@@ -14,36 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.fixtures
+package org.gradle.integtests.fixtures.jvm
 
-import org.gradle.integtests.fixtures.jvm.JvmSourceFile
+import org.gradle.test.fixtures.file.TestFile
 
-class TestScalaLibrary {
-    List<JvmSourceFile> sources = [
-            new JvmSourceFile("compile/test", "Person.scala", '''
-package compile.test;
+abstract class TestJvmComponent {
+    abstract List<JvmSourceFile> getSources()
 
-class Person(name: String, age: Integer) {
-    override def toString(): String = name + ", " + age;
-}'''),
-            new JvmSourceFile("compile/test", "Person2.scala", '''
-package compile.test;
+    abstract List<TestFile> writeSources(TestFile testFile)
 
-class Person2 {
-}
-''')
-    ]
+    abstract String getLanguageName()
+
+    abstract void changeSources(List<TestFile> testFiles)
+
+    abstract void writeAdditionalSources(TestFile testFile)
 
     List<JvmSourceFile> resources = [
             new JvmSourceFile("", "one.txt", "Here is a resource"),
             new JvmSourceFile("sub-dir", "two.txt", "Here is another resource")
     ]
 
-    List<JvmSourceFile> expectedOutputs = [
-            sources[0].classFile,
-            sources[1].classFile,
-            resources[0],
-            resources[1]
-    ]
+    abstract List<JvmSourceFile> getExpectedOutputs();
+
+    List<TestFile> writeResources(TestFile testFile) {
+        return resources*.writeToDir(testFile)
+    }
 
 }

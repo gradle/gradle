@@ -18,14 +18,14 @@ package org.gradle.language.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
-import org.gradle.language.fixtures.BadJavaLibrary
-import org.gradle.language.fixtures.TestJavaLibrary
+import org.gradle.language.fixtures.BadJavaComponent
+import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
-    def app = new TestJavaLibrary()
+    def app = new TestJavaComponent()
 
     def "can build binary with sources in conventional location"() {
         when:
@@ -208,7 +208,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports failure to compile bad java sources"() {
         when:
-        def badApp = new BadJavaLibrary()
+        def badApp = new BadJavaComponent()
         badApp.sources*.writeToDir(file("src/myLib/java"))
 
         and:
@@ -235,7 +235,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK6_OR_LATER)
     def "target should produce in the correct bytecode"() {
         when:
-        def java6App = new TestJavaLibrary()
+        def java6App = new TestJavaComponent()
         java6App.sources*.writeToDir(file("src/myLib/java"))
 
         and:
@@ -264,7 +264,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "multiple targets should produce in the correct bytecode"() {
         when:
-        def javaApp = new TestJavaLibrary()
+        def javaApp = new TestJavaComponent()
         javaApp.sources*.writeToDir(file("src/myLib/java"))
 
         and:
@@ -297,7 +297,7 @@ class JavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     def "erroneous target should produce reasonable error message"() {
         String badName = "bornYesterday";
         when:
-        def badApp = new BadJavaLibrary()
+        def badApp = new BadJavaComponent()
         badApp.sources*.writeToDir(file("src/myLib/java"))
 
         and:

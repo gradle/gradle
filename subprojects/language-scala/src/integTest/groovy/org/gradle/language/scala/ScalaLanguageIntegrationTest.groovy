@@ -18,12 +18,12 @@ package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.scala.fixtures.BadScalaLibrary
-import org.gradle.language.scala.fixtures.TestScalaLibrary
+import org.gradle.language.scala.fixtures.TestScalaComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
-    def app = new TestScalaLibrary()
+    def app = new TestScalaComponent()
 
     def setup() {
         buildFile << """
