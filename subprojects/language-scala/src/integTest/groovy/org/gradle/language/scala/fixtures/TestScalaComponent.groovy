@@ -18,14 +18,13 @@ package org.gradle.language.scala.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.language.scala.ScalaLanguageSourceSet
 import org.gradle.test.fixtures.file.TestFile
 
 class TestScalaComponent extends TestJvmComponent{
 
-    @Override
-    String getLanguageName() {
-        return "scala"
-    }
+    String languageName = "scala"
+    String sourceSetTypeName = ScalaLanguageSourceSet.class.name
 
     List<JvmSourceFile> sources = [
             new JvmSourceFile("compile/test", "Person.scala", '''
@@ -41,11 +40,6 @@ class Person2 {
 }
 ''')
     ]
-
-    @Override
-    List<TestFile> writeSources(TestFile testFile) {
-        return sources*.writeToDir(testFile.file("scala"))
-    }
 
     @Override
     void changeSources(List<TestFile> sourceFiles){

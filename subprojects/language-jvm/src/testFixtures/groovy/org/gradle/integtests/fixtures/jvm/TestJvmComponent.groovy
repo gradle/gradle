@@ -21,23 +21,26 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class TestJvmComponent {
     abstract List<JvmSourceFile> getSources()
 
-    abstract List<TestFile> writeSources(TestFile testFile)
-
     abstract String getLanguageName()
 
     abstract void changeSources(List<TestFile> testFiles)
 
     abstract void writeAdditionalSources(TestFile testFile)
 
+    abstract List<JvmSourceFile> getExpectedOutputs();
+
+    List<TestFile> writeSources(TestFile sourceDir, String sourceSetName = languageName) {
+        return sources*.writeToDir(sourceDir.file(sourceSetName))
+    }
+
     List<JvmSourceFile> resources = [
             new JvmSourceFile("", "one.txt", "Here is a resource"),
             new JvmSourceFile("sub-dir", "two.txt", "Here is another resource")
     ]
 
-    abstract List<JvmSourceFile> getExpectedOutputs();
-
     List<TestFile> writeResources(TestFile testFile) {
         return resources*.writeToDir(testFile)
     }
 
+    abstract String getSourceSetTypeName()
 }
