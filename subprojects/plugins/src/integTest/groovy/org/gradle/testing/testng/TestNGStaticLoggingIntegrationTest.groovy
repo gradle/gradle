@@ -17,7 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
@@ -26,18 +25,21 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
 class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
-
-    @Issue("GRADLE-2841")
-    def "captures output from logging frameworks"() {
+    def setup() {
         TestNGCoverage.enableTestNG(buildFile)
         buildFile << """
             test {
                 reports.junitXml.outputPerTestCase = true
                 onOutput { test, event -> print "\$test -> \$event.message" }
             }
-            dependencies { compile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:1.7.7" }
         """
+    }
 
+    @Issue("GRADLE-2841")
+    def "captures output from logging frameworks"() {
+        buildFile << """
+            dependencies { compile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:1.7.7" }
+"""
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
 
@@ -69,9 +71,6 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2841")
     def "captures logging from System streams referenced from static initializer"() {
-        TestNGCoverage.enableTestNG(buildFile)
-        buildFile << "test.onOutput { id, event -> println 'captured ' + event.message }"
-
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
             import java.io.PrintStream;
@@ -86,12 +85,63 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
         when: run("test")
         then:
-        result.output.contains("captured cool output from test")
-        result.output.contains("captured err output from test")
-        result.output.contains("captured cool output from initializer")
+        result.output.contains("test method foo(FooTest) -> cool output from test")
+        result.output.contains("test method foo(FooTest) -> err output from test")
+        result.output.contains("process 'Gradle Test Executor 1' -> cool output from initializer")
 
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.testClass("FooTest").assertStdout(is("cool output from test\n"))
-        testResult.testClass("FooTest").assertStderr(is("err output from test\n"))
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        testResult.testClass("FooTest").assertTestCaseStdout("foo", is("cool output from test\n"))
+        testResult.testClass("FooTest").assertTestCaseStderr("foo", is("err output from test\n"))
     }
+
+    def "test can generate output from multiple threads"() {
+        file("src/test/java/OkTest.java") << """
+import java.util.logging.Logger;
+import java.util.List;
+import java.util.ArrayList;
+import org.testng.annotations.*;
+
+public class OkTest {
+    @Test
+    public void ok() throws Exception {
+        // logging from multiple threads
+        List<Thread> threads  = new ArrayList<Thread>();
+        for (int i = 0; i < 5; i++) {
+            Thread thread = new Thread("thread " + i) {
+                @Override
+                public void run() {
+                    System.out.print("stdout from "); // print a partial line
+                    System.err.println("stderr from " + getName());
+                    System.out.println(getName());
+                    Logger.getLogger("test-logger").info("info from " + getName());
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+        for(Thread thread: threads) {
+            thread.join();
+        }
+    }
+}
+"""
+
+        when:
+        run("test")
+
+        then:
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        def classResult = testResult.testClass("OkTest")
+
+        5.times { n ->
+            result.output.contains("test method ok(OkTest) -> stdout from thread $n")
+            result.output.contains("test method ok(OkTest) -> stderr from thread $n")
+            result.output.contains("test method ok(OkTest) -> INFO: info from thread $n")
+
+            classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
+            classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))
+            classResult.assertTestCaseStderr("ok", containsString("INFO: info from thread $n"))
+        }
+    }
+
 }

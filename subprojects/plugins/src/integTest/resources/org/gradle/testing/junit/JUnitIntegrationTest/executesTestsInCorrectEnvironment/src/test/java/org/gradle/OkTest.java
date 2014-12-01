@@ -62,17 +62,6 @@ public class OkTest {
                 Logger.getLogger("test-logger").info("info from a shutdown hook.");
             }
         });
-
-        // logging from another thread
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                System.out.println("stdout from another thread");
-                Logger.getLogger("test-logger").info("info from another thread.");
-            }
-        };
-        thread.start();
-        thread.join();
     }
 
     private List<URL> buildActualClassPath() {

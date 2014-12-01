@@ -189,9 +189,53 @@ dependencies { testCompile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:
         classResult.assertTestCaseStderr("foo", containsString("WARNING: jul warning"))
     }
 
-    @Ignore
     def "test can generate output from multiple threads"() {
-        expect: false
+        file("src/test/java/OkTest.java") << """
+import java.util.logging.Logger;
+import java.util.List;
+import java.util.ArrayList;
+
+public class OkTest {
+    @org.junit.Test
+    public void ok() throws Exception {
+        // logging from multiple threads
+        List<Thread> threads  = new ArrayList<Thread>();
+        for (int i = 0; i < 5; i++) {
+            Thread thread = new Thread("thread " + i) {
+                @Override
+                public void run() {
+                    System.out.print("stdout from "); // print a partial line
+                    System.err.println("stderr from " + getName());
+                    System.out.println(getName());
+                    Logger.getLogger("test-logger").info("info from " + getName());
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+        for(Thread thread: threads) {
+            thread.join();
+        }
+    }
+}
+"""
+
+        when:
+        run("test")
+
+        then:
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        def classResult = testResult.testClass("OkTest")
+
+        5.times { n ->
+            result.output.contains("test ok(OkTest) -> stdout from thread $n")
+            result.output.contains("test ok(OkTest) -> stderr from thread $n")
+            result.output.contains("test ok(OkTest) -> INFO: info from thread $n")
+
+            classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
+            classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))
+            classResult.assertTestCaseStderr("ok", containsString("INFO: info from thread $n"))
+        }
     }
 
     @Ignore
