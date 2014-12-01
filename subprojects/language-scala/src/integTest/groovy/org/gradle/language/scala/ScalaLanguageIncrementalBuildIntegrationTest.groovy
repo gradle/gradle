@@ -16,7 +16,7 @@
 
 package org.gradle.language.scala
 
-import org.gradle.integtests.fixtures.jvm.AbstractJvmLanguageIncrementalBuildIntegrationTest
+import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
 
