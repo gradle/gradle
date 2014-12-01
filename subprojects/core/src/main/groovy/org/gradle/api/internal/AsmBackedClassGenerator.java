@@ -92,6 +92,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             interfaceTypes.add(dynamicObjectAwareType.getInternalName());
             interfaceTypes.add(groovyObjectType.getInternalName());
 
+            includeNotInheritedAnnotations();
+
             visitor.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null,
                     superclassType.getInternalName(), interfaceTypes.toArray(new String[interfaceTypes.size()]));
         }
@@ -924,6 +926,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
+        }
+
+        private void includeNotInheritedAnnotations() {
+            for (Annotation annotation : type.getDeclaredAnnotations()) {
+                if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
+                    continue;
+                }
+                Retention retention = annotation.annotationType().getAnnotation(Retention.class);
+                boolean visible = retention != null && retention.value() == RetentionPolicy.RUNTIME;
+                AnnotationVisitor annotationVisitor = visitor.visitAnnotation(Type.getType(annotation.annotationType()).getDescriptor(), visible);
+                annotationVisitor.visitEnd();
+            }
         }
 
         public Class<? extends T> generate() {

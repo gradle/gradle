@@ -32,6 +32,10 @@ import spock.lang.Issue;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -787,6 +791,13 @@ public class AsmBackedClassGeneratorTest {
         new DslObject(generator.generate(Bean.class).newInstance());
     }
 
+    @Test
+    public void includesNotInheritedTypeAnnotations() throws IllegalAccessException, InstantiationException {
+        Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class);
+
+        assertThat(generatedClass.getAnnotation(BeanAnnotation.class), notNullValue());
+    }
+
     public static class Bean {
         private String prop;
 
@@ -1226,5 +1237,14 @@ public class AsmBackedClassGeneratorTest {
     }
 
     private static class PrivateBean {
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public static @interface BeanAnnotation {
+    }
+
+    @BeanAnnotation
+    public static class AnnotatedBean {
     }
 }
