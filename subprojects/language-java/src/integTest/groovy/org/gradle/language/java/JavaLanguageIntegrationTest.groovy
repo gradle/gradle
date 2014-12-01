@@ -21,7 +21,6 @@ import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
-import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -175,9 +174,5 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         assert failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
-    }
-
-    private JarTestFixture jarFile(String s) {
-        new JarTestFixture(file(s))
     }
 }

@@ -199,7 +199,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    private JarTestFixture jarFile(String s) {
+    protected JarTestFixture jarFile(String s) {
         new JarTestFixture(file(s))
     }
 
