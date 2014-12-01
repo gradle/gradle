@@ -212,6 +212,8 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private void setupProject() {
         buildFile << """
+            class NotParallel extends DefaultTask {}
+
             task a {
                 finalizedBy 'b'
                 dependsOn 'c'
@@ -219,8 +221,8 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             task b {
                 dependsOn 'd'
             }
-            task c
-            task d
+            task c(type: NotParallel)
+            task d(type: NotParallel)
         """
     }
 
