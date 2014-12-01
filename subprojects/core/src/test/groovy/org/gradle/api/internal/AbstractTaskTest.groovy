@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 import static org.junit.Assert.assertTrue
 
-class AbstractTaskSpec extends Specification {
+class AbstractTaskTest extends Specification {
 
     private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
     private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
