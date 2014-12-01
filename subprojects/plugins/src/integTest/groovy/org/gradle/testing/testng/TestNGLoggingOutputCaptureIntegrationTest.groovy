@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
+import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.is
 
@@ -87,7 +88,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends AbstractIntegrationSpec 
         when: run "test"
 
         then:
-        result.output.contains("""process 'Gradle Test Executor 1' -> static out
+        result.output.contains(TextUtil.toPlatformLineSeparators("""process 'Gradle Test Executor 1' -> static out
 process 'Gradle Test Executor 1' -> static err
 process 'Gradle Test Executor 1' -> constructor out
 process 'Gradle Test Executor 1' -> constructor err
@@ -103,7 +104,7 @@ test 'The Foo Test' -> afterClass out
 test 'The Foo Test' -> afterClass err
 test 'The Foo Test' -> afterTest out
 test 'The Foo Test' -> afterTest err
-""")
+"""))
 
         /**
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
@@ -129,7 +130,7 @@ test 'The Foo Test' -> afterTest err
         when: run "test"
 
         then:
-        result.output.contains("""process 'Gradle Test Executor 1' -> static out
+        result.output.contains(TextUtil.toPlatformLineSeparators("""process 'Gradle Test Executor 1' -> static out
 process 'Gradle Test Executor 1' -> static err
 process 'Gradle Test Executor 1' -> constructor out
 process 'Gradle Test Executor 1' -> constructor err
@@ -145,7 +146,7 @@ test 'Gradle test' -> afterClass out
 test 'Gradle test' -> afterClass err
 test 'Gradle test' -> afterTest out
 test 'Gradle test' -> afterTest err
-""")
+"""))
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = xmlReport.testClass("FooTest")
