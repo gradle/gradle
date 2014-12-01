@@ -702,25 +702,25 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void taskActionsRegisteredByProcessingAnnotationsAreNotConsideredCustom() {
         TaskInternal task = expectTaskCreated(TestTask.class, new Object[]{null});
-        assertThat(task.hasCustomActions(), equalTo(false));
+        assertThat(task.isHasCustomActions(), equalTo(false));
     }
 
     @Test
     public void validationActionsAreNotConsideredCustom() {
         TaskInternal task = expectTaskCreated(TaskWithInputFile.class, new Object[]{null});
-        assertThat(task.hasCustomActions(), equalTo(false));
+        assertThat(task.isHasCustomActions(), equalTo(false));
     }
 
     @Test
     public void directoryCreationActionsAreNotConsideredCustom() {
         TaskInternal task = expectTaskCreated(TaskWithOutputDir.class, new Object[]{null});
-        assertThat(task.hasCustomActions(), equalTo(false));
+        assertThat(task.isHasCustomActions(), equalTo(false));
     }
 
     @Test
     public void fileCreationActionsAreNotConsideredCustom() {
         TaskInternal task = expectTaskCreated(TaskWithOutputFile.class, new Object[]{null});
-        assertThat(task.hasCustomActions(), equalTo(false));
+        assertThat(task.isHasCustomActions(), equalTo(false));
     }
 
     private void assertValidationFails(TaskInternal task, String... expectedErrorMessages) {

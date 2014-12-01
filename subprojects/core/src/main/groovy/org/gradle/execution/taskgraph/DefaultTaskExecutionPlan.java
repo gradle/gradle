@@ -466,7 +466,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     boolean isParallelizable(TaskInternal task) {
-        return task.getClass().getSuperclass().isAnnotationPresent(ParallelizableTask.class) && !task.hasCustomActions();
+        return task.getClass().getSuperclass().isAnnotationPresent(ParallelizableTask.class) && !task.isHasCustomActions();
     }
 
     private void recordTaskStarted(TaskInternal task) {

@@ -67,18 +67,18 @@ class AbstractTaskSpec extends Specification {
         def task = createTask("task")
 
         then:
-        !task.hasCustomActions()
+        !task.hasCustomActions
 
         when:
         task.prependTaskAction {}
 
         then:
-        !task.hasCustomActions()
+        !task.hasCustomActions
 
         when:
         task.doFirst {}
 
         then:
-        task.hasCustomActions()
+        task.hasCustomActions
     }
 }

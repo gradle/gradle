@@ -71,5 +71,5 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     void appendTaskAction(Action<? super Task> action);
 
-    boolean hasCustomActions();
+    boolean isHasCustomActions();
 }

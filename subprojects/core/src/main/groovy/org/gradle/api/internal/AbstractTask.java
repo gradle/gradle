@@ -745,7 +745,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         actions.add(wrap(action));
     }
 
-    public boolean hasCustomActions() {
+    public boolean isHasCustomActions() {
         return hasCustomActions;
     }
 }
