@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.registry;
+package org.gradle.model.internal.core;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
 
-public class ModelRegistrySearchResult {
+public class ModelSearchResult {
 
     private final ModelNode targetNode;
     private final ModelPath targetPath;
     private final ModelNode reachedNode;
     private final ModelPath reachedPath;
 
-    public ModelRegistrySearchResult(@Nullable ModelNode targetNode, ModelPath targetPath, @Nullable ModelNode reachedNode, @Nullable ModelPath reachedPath) {
+    public ModelSearchResult(@Nullable ModelNode targetNode, ModelPath targetPath, @Nullable ModelNode reachedNode, @Nullable ModelPath reachedPath) {
         this.targetNode = targetNode;
         this.targetPath = targetPath;
         this.reachedNode = reachedNode;

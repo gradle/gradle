@@ -16,27 +16,86 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.Maps;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.Map;
 
-public interface ModelNode {
+public class ModelNode {
 
-    ModelPath getCreationPath();
+    private final ModelGraph modelGraph;
+    private final ModelPath creationPath;
+    private final ModelRuleDescriptor descriptor;
+    private final ModelPromise promise;
+    private final ModelAdapter adapter;
 
-    ModelRuleDescriptor getCreationDescriptor();
+    private final Map<String, ModelNode> links = Maps.newTreeMap();
 
-    ModelPromise getPromise();
+    private Object privateData;
+    private ModelType<?> privateDataType;
 
-    ModelAdapter getAdapter();
+    public ModelNode(ModelGraph modelGraph, ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+        this.modelGraph = modelGraph;
+        this.creationPath = creationPath;
+        this.descriptor = descriptor;
+        this.promise = promise;
+        this.adapter = adapter;
+    }
 
-    ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
+    public ModelPath getCreationPath() {
+        return creationPath;
+    }
 
-    Map<String, ? extends ModelNode> getLinks();
+    public ModelRuleDescriptor getCreationDescriptor() {
+        return descriptor;
+    }
 
-    <T> T getPrivateData(ModelType<T> type);
+    public ModelPromise getPromise() {
+        return promise;
+    }
 
-    <T> void setPrivateData(ModelType<T> type, T object);
+    public ModelAdapter getAdapter() {
+        return adapter;
+    }
 
+    public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+        ModelPath.validateName(name);
+        ModelNode node = new ModelNode(modelGraph, creationPath.child(name), descriptor, promise, adapter);
+
+        ModelNode previous = links.put(name, node);
+        if (previous != null) {
+            throw new DuplicateModelException(
+                    String.format(
+                            "Cannot create '%s' as it was already created by: %s",
+                            node.getCreationPath(), previous.getCreationDescriptor()
+                    )
+            );
+        }
+
+        modelGraph.onNewChildNode(node);
+        return node;
+    }
+
+    public Map<String, ModelNode> getLinks() {
+        return Collections.unmodifiableMap(links);
+    }
+
+    public <T> T getPrivateData(ModelType<T> type) {
+        if (privateData == null) {
+            return null;
+        }
+
+        if (!type.isAssignableFrom(privateDataType)) {
+            throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
+        }
+        return Cast.uncheckedCast(privateData);
+    }
+
+    public <T> void setPrivateData(ModelType<T> type, T object) {
+        this.privateDataType = type;
+        this.privateData = object;
+    }
 }

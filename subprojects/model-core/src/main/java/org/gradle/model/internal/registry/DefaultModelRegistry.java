@@ -17,14 +17,12 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
@@ -51,7 +49,11 @@ public class DefaultModelRegistry implements ModelRegistry {
                 - Detecting a rule trying to bind the same element to mutate and to read
 
              */
-    private final ModelGraph modelGraph = new ModelGraph();
+    private final ModelGraph modelGraph = new ModelGraph(new Action<ModelNode>() {
+        public void execute(ModelNode modelNode) {
+            notifyCreationListeners(modelNode.getCreationDescriptor(), modelNode.getCreationPath(), modelNode.getPromise());
+        }
+    });
 
     private final Map<ModelPath, BoundModelCreator> creations = Maps.newHashMap();
     private final Multimap<ModelPath, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
@@ -91,14 +93,14 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        ModelNode existing = modelGraph.entryNodes.get(path.getComponents().get(0));
-        if (existing != null) {
+        ModelSearchResult searchResult = modelGraph.search(path);
+        if (searchResult.getTargetNode() != null) {
             throw new DuplicateModelException(
                     String.format(
                             "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",
                             toString(creator.getDescriptor()),
                             path,
-                            toString(existing.getCreationDescriptor())
+                            toString(searchResult.getTargetNode().getCreationDescriptor())
                     )
             );
         }
@@ -188,7 +190,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    public ModelRegistrySearchResult search(ModelPath path) {
+    public ModelSearchResult search(ModelPath path) {
         return modelGraph.search(path);
     }
 
@@ -213,8 +215,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
         }
 
-        for (Map.Entry<ModelPath, ModelNodeImpl> entry : modelGraph.flattened.entrySet()) {
-            ModelNodeImpl node = entry.getValue();
+        for (Map.Entry<ModelPath, ModelNode> entry : modelGraph.getFlattened().entrySet()) {
+            ModelNode node = entry.getValue();
             remove = listener.onCreate(node.getCreationDescriptor(), entry.getKey(), node.getPromise());
             if (remove) {
                 return;
@@ -225,7 +227,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void remove(ModelPath path) {
-        ModelRegistrySearchResult searchResult = modelGraph.search(path);
+        ModelSearchResult searchResult = modelGraph.search(path);
         if (creations.remove(path) == null && searchResult.getTargetNode() == null) {
             throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
         }
@@ -236,7 +238,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public void validate() throws UnboundModelRulesException {
         if (!binders.isEmpty()) {
-            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.flattened.keySet(), creations.keySet()));
+            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creations.keySet()));
             List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
             throw new UnboundModelRulesException(unboundRules);
         }
@@ -284,10 +286,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNode get(ModelPath path) {
-        ModelRegistrySearchResult searchResult = modelGraph.search(path);
+        ModelSearchResult searchResult = modelGraph.search(path);
         ModelNode targetNode = searchResult.getTargetNode();
         if (targetNode != null) {
-            close((ModelNodeImpl) targetNode);
+            close(targetNode);
             return targetNode;
         }
 
@@ -304,22 +306,18 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNode createAndClose(BoundModelCreator creation) {
-        ModelNodeImpl node = doCreate(creation);
+        ModelNode node = doCreate(creation);
         close(node);
         return node;
     }
 
-    private void close(ModelNodeImpl node) {
-        List<ModelPath> paths = modelGraph.getPaths(node);
-        for (ModelPath path : paths) {
-            fireMutations(node, path, mutators.removeAll(path), usedMutators);
-        }
-        for (ModelPath path : paths) {
-            fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
-        }
+    private void close(ModelNode node) {
+        ModelPath path = node.getCreationPath();
+        fireMutations(node, path, mutators.removeAll(path), usedMutators);
+        fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
 
-        for (ModelNodeImpl modelNode : node.getLinks().values()) {
-            close(modelNode);
+        for (ModelNode child : node.getLinks().values()) {
+            close(child);
         }
     }
 
@@ -358,7 +356,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelNodeImpl doCreate(BoundModelCreator boundCreator) {
+    private ModelNode doCreate(BoundModelCreator boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
         ModelPath path = creator.getPath();
         Inputs inputs = toInputs(boundCreator.getInputs());
@@ -372,7 +370,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         ModelAdapter adapter = creationContext.getAdapter();
-        ModelNodeImpl node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), adapter);
+        ModelNode node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), adapter);
 
         try {
             creationContext.getInitiatiser().execute(node);
@@ -470,147 +468,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         private boolean isTypeCompatible(ModelPromise promise) {
             return writable ? promise.asWritable(reference.getType()) : promise.asReadOnly(reference.getType());
-        }
-    }
-
-    private class ModelGraph {
-
-        private final Map<String, ModelNodeImpl> entryNodes = Maps.newTreeMap();
-        private final Map<ModelPath, ModelNodeImpl> flattened = Maps.newTreeMap();
-
-        private List<ModelPath> getPaths(final ModelNode node) {
-            return FluentIterable.from(flattened.entrySet())
-                    .filter(new Predicate<Map.Entry<ModelPath, ModelNodeImpl>>() {
-                        public boolean apply(Map.Entry<ModelPath, ModelNodeImpl> input) {
-                            return input.getValue().equals(node);
-                        }
-                    })
-                    .transform(new Function<Map.Entry<ModelPath, ModelNodeImpl>, ModelPath>() {
-                        public ModelPath apply(Map.Entry<ModelPath, ModelNodeImpl> input) {
-                            return input.getKey();
-                        }
-                    })
-                    .toList();
-        }
-
-        private ModelNodeImpl addEntryPoint(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            ModelPath.validateName(name);
-            ModelNodeImpl node = new ModelNodeImpl(ModelPath.path(name), descriptor, promise, adapter);
-            ModelNodeImpl previous = entryNodes.put(name, node);
-            if (previous != null) {
-                // TODO more context here
-                throw new IllegalStateException("attempt to replace node link: " + name);
-            }
-
-            flattened.put(ModelPath.path(name), node);
-            return node;
-        }
-
-        private ModelRegistrySearchResult search(ModelPath path) {
-            List<String> reached = Lists.newArrayListWithCapacity(path.getDepth());
-            ModelNodeImpl node = null;
-            ModelNodeImpl nextNode;
-            for (String pathComponent : path) {
-                if (node == null) {
-                    nextNode = entryNodes.get(pathComponent);
-                } else {
-                    nextNode = node.links.get(pathComponent);
-                }
-
-                if (nextNode == null) {
-                    if (reached.isEmpty()) {
-                        return new ModelRegistrySearchResult(null, path, null, null);
-                    } else {
-                        return new ModelRegistrySearchResult(null, path, node, new ModelPath(reached));
-                    }
-                } else {
-                    node = nextNode;
-                }
-            }
-
-            return new ModelRegistrySearchResult(node, path, node, path);
-        }
-
-    }
-
-    private class ModelNodeImpl implements ModelNode {
-
-        private final ModelPath creationPath;
-        private final ModelRuleDescriptor descriptor;
-        private final ModelPromise promise;
-        private final ModelAdapter adapter;
-
-        private final Map<String, ModelNodeImpl> links = Maps.newTreeMap();
-        private Object privateData;
-        private ModelType<?> privateDataType;
-
-        public ModelNodeImpl(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            this.creationPath = creationPath;
-            this.descriptor = descriptor;
-            this.promise = promise;
-            this.adapter = adapter;
-        }
-
-        public ModelPath getCreationPath() {
-            return creationPath;
-        }
-
-        public ModelRuleDescriptor getCreationDescriptor() {
-            return descriptor;
-        }
-
-        public ModelPromise getPromise() {
-            return promise;
-        }
-
-        public ModelAdapter getAdapter() {
-            return adapter;
-        }
-
-        public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            ModelPath.validateName(name);
-            ModelNodeImpl node = new ModelNodeImpl(creationPath.child(name), descriptor, promise, adapter);
-            ModelNodeImpl previous = links.put(name, node);
-            if (previous != null) {
-                throw new DuplicateModelException(
-                        String.format(
-                                "Cannot create '%s' as it was already created by: %s",
-                                node.getCreationPath(), previous.getCreationDescriptor()
-                        )
-                );
-            }
-
-            for (Map.Entry<ModelPath, ModelNodeImpl> entry : ImmutableSet.copyOf(modelGraph.flattened.entrySet())) {
-                if (entry.getValue() == this) {
-                    modelGraph.flattened.put(entry.getKey().child(name), node);
-                }
-            }
-
-            List<ModelPath> paths = modelGraph.getPaths(node);
-            for (ModelPath path : paths) {
-                notifyCreationListeners(descriptor, path, promise);
-            }
-            return node;
-        }
-
-        public Map<String, ModelNodeImpl> getLinks() {
-            return Collections.unmodifiableMap(links);
-        }
-
-        public <T> T getPrivateData(ModelType<T> type) {
-            if (privateData == null) {
-                return null;
-            }
-
-            if (!type.isAssignableFrom(privateDataType)) {
-                throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
-            }
-            return Cast.uncheckedCast(privateData);
-        }
-
-        public <T> void setPrivateData(ModelType<T> type, T object) {
-            this.privateDataType = type;
-            this.privateData = object;
         }
     }
 

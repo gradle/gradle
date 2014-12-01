@@ -21,8 +21,8 @@ import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
 public class ModelSchemaCache {
