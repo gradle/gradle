@@ -67,7 +67,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
-        jarTask.appendTaskAction(pluginValidationAction);
+        jarTask.appendStandardTaskAction(pluginValidationAction);
     }
 
     /**

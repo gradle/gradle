@@ -67,9 +67,9 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     Factory<File> getTemporaryDirFactory();
 
-    void prependTaskAction(Action<? super Task> action);
+    void prependStandardTaskAction(Action<? super Task> action);
 
-    void appendTaskAction(Action<? super Task> action);
+    void appendStandardTaskAction(Action<? super Task> action);
 
     boolean isHasCustomActions();
 }

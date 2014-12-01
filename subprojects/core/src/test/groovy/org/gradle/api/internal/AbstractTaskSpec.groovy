@@ -70,7 +70,7 @@ class AbstractTaskSpec extends Specification {
         !task.hasCustomActions
 
         when:
-        task.prependTaskAction {}
+        task.prependStandardTaskAction {}
 
         then:
         !task.hasCustomActions
