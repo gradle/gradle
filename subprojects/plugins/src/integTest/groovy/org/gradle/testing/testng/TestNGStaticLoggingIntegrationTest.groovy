@@ -18,6 +18,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
@@ -27,10 +28,13 @@ import static org.hamcrest.Matchers.is
 class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2841")
-    def "captures output from logging tools"() {
+    def "captures output from logging frameworks"() {
         TestNGCoverage.enableTestNG(buildFile)
         buildFile << """
-            test.onOutput { id, event -> println 'captured ' + event.message }
+            test {
+                reports.junitXml.outputPerTestCase = true
+                onOutput { test, event -> print "\$test -> \$event.message" }
+            }
             dependencies { compile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:1.7.7" }
         """
 
@@ -42,20 +46,25 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
                 private final static java.util.logging.Logger JUL = java.util.logging.Logger.getLogger(FooTest.class.getName());
 
                 @Test public void foo() {
-                  SLF4J.info("slf4j output");
-                  JUL.info("jul output");
+                  SLF4J.info("slf4j info");
+                  JUL.info("jul info");
+                  JUL.warning("jul warning");
                 }
             }
         """
 
         when: run("test")
-        then:
-        result.output.contains("captured [Test worker] INFO FooTest - slf4j output")
-        result.output.contains("captured INFO: jul output")
 
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.testClass("FooTest").assertStderr(containsString("[Test worker] INFO FooTest - slf4j output"))
-        testResult.testClass("FooTest").assertStderr(containsString("INFO: jul output"))
+        then:
+        result.output.contains("test method foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
+        result.output.contains("test method foo(FooTest) -> INFO: jul info")
+        result.output.contains("test method foo(FooTest) -> WARNING: jul warning")
+
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        def classResult = testResult.testClass("FooTest")
+        classResult.assertTestCaseStderr("foo", containsString("[Test worker] INFO FooTest - slf4j info"))
+        classResult.assertTestCaseStderr("foo", containsString("INFO: jul info"))
+        classResult.assertTestCaseStderr("foo", containsString("WARNING: jul warning"))
     }
 
     @Issue("GRADLE-2841")

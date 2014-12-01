@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Ignore
 
+import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
 class JUnitLoggingOutputCaptureIntegrationTest extends AbstractIntegrationSpec {
@@ -72,8 +73,15 @@ public class OkTest {
 
     @org.junit.Test
     public void ok() {
-        System.out.println("test out");
+        System.out.print("test out: \u03b1</html>");
+        System.out.println();
         System.err.println("test err");
+    }
+
+    @org.junit.Test
+    public void anotherOk() {
+        System.out.println("ok out");
+        System.err.println("ok err");
     }
 }
 """
@@ -84,9 +92,16 @@ public class OkTest {
 test class OkTest -> before class out
 test class OkTest -> before class err
 test class OkTest -> test constructed
+test anotherOk(OkTest) -> before out
+test anotherOk(OkTest) -> before err
+test anotherOk(OkTest) -> ok out
+test anotherOk(OkTest) -> ok err
+test anotherOk(OkTest) -> after out
+test anotherOk(OkTest) -> after err
+test class OkTest -> test constructed
 test ok(OkTest) -> before out
 test ok(OkTest) -> before err
-test ok(OkTest) -> test out
+test ok(OkTest) -> test out: \u03b1</html>
 test ok(OkTest) -> test err
 test ok(OkTest) -> after out
 test ok(OkTest) -> after err
@@ -99,7 +114,7 @@ test class OkTest -> after class err
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = xmlReport.testClass("OkTest")
         classResult.assertTestCaseStdout("ok", is("""before out
-test out
+test out: \u03b1</html>
 after out
 """))
         classResult.assertTestCaseStderr("ok", is("""before err
@@ -108,6 +123,7 @@ after err
 """))
         classResult.assertStdout(is("""class loaded
 before class out
+test constructed
 test constructed
 after class out
 """))
@@ -121,11 +137,18 @@ after class err
 before class out
 test constructed
 before out
-test out
+ok out
+after out
+test constructed
+before out
+test out: \u03b1</html>
 after out
 after class out
 """))
         classReport.assertStderr(is("""before class err
+before err
+ok err
+after err
 before err
 test err
 after err
@@ -133,9 +156,37 @@ after class err
 """))
     }
 
-    @Ignore
     def "captures output from logging frameworks"() {
-        expect: false
+        buildFile << """
+dependencies { testCompile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:1.7.7" }
+"""
+        file("src/test/java/FooTest.java") << """
+
+            public class FooTest {
+                private final static org.slf4j.Logger SLF4J = org.slf4j.LoggerFactory.getLogger(FooTest.class);
+                private final static java.util.logging.Logger JUL = java.util.logging.Logger.getLogger(FooTest.class.getName());
+
+                @org.junit.Test
+                public void foo() {
+                  SLF4J.info("slf4j info");
+                  JUL.info("jul info");
+                  JUL.warning("jul warning");
+                }
+            }
+        """
+
+        when: run("test")
+
+        then:
+        result.output.contains("test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
+        result.output.contains("test foo(FooTest) -> INFO: jul info")
+        result.output.contains("test foo(FooTest) -> WARNING: jul warning")
+
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        def classResult = testResult.testClass("FooTest")
+        classResult.assertTestCaseStderr("foo", containsString("[Test worker] INFO FooTest - slf4j info"))
+        classResult.assertTestCaseStderr("foo", containsString("INFO: jul info"))
+        classResult.assertTestCaseStderr("foo", containsString("WARNING: jul warning"))
     }
 
     @Ignore

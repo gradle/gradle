@@ -48,15 +48,9 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
 
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('non-asci char: ż'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('no EOL'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('stdout from another thread'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('this is a warning'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
 
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
-        result.testClass('org.gradle.OtherTest').assertStderr(containsString('this is another warning'))
     }
 
     @Test

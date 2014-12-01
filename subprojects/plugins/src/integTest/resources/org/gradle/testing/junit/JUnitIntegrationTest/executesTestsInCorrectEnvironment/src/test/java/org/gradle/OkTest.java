@@ -53,12 +53,6 @@ public class OkTest {
         assertEquals("Test worker", Thread.currentThread().getName());
         assertNull(System.getSecurityManager());
 
-        // check stdout and stderr and logging
-        System.out.println("non-asci char: ż");
-        System.out.print("no EOL");
-        System.out.println();
-        Logger.getLogger("test-logger").warning("this is a warning");
-
         final PrintStream out = System.out;
         // logging from a shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -97,7 +91,5 @@ public class OkTest {
 
     @org.junit.Test
     public void anotherOk() {
-        System.out.println("sys out from another test method");
-        System.err.println("sys err from another test method");
     }
 }

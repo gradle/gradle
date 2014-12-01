@@ -40,24 +40,34 @@ class TestNGLoggingOutputCaptureIntegrationTest extends AbstractIntegrationSpec 
         file("src/test/java/FooTest.java") << """import org.testng.annotations.*;
             public class FooTest {
                 static { System.out.println("static out"); System.err.println("static err"); }
+
                 public FooTest() {
                     System.out.println("constructor out"); System.err.println("constructor err");
                 }
+
                 @BeforeClass public static void beforeClass() {
                     System.out.println("beforeClass out"); System.err.println("beforeClass err");
                 }
+
                 @BeforeTest public void beforeTest() {
                     System.out.println("beforeTest out"); System.err.println("beforeTest err");
                 }
+
                 @Test public void m1() {
-                    System.out.println("m1 out"); System.err.println("m1 err");
+                    System.out.print("m1: ");
+                    System.out.print("\u03b1</html>");
+                    System.out.println();
+                    System.err.println("m1 err");
                 }
+
                 @Test public void m2() {
                     System.out.println("m2 out"); System.err.println("m2 err");
                 }
+
                 @AfterTest public void afterTest() {
                     System.out.println("afterTest out"); System.err.println("afterTest err");
                 }
+
                 @AfterClass public static void afterClass() {
                     System.out.println("afterClass out"); System.err.println("afterClass err");
                 }
@@ -85,7 +95,7 @@ test 'The Foo Test' -> beforeTest out
 test 'The Foo Test' -> beforeTest err
 test 'The Foo Test' -> beforeClass out
 test 'The Foo Test' -> beforeClass err
-test method m1(FooTest) -> m1 out
+test method m1(FooTest) -> m1: \u03b1</html>
 test method m1(FooTest) -> m1 err
 test method m2(FooTest) -> m2 out
 test method m2(FooTest) -> m2 err
@@ -104,14 +114,14 @@ test 'The Foo Test' -> afterTest err
 
         classResult.assertTestCaseStderr("m1", is("m1 err\n"))
         classResult.assertTestCaseStderr("m2", is("m2 err\n"))
-        classResult.assertTestCaseStdout("m1", is("m1 out\n"))
+        classResult.assertTestCaseStdout("m1", is("m1: \u03b1</html>\n"))
         classResult.assertTestCaseStdout("m2", is("m2 out\n"))
         classResult.assertStderr(is(""))
         classResult.assertStdout(is(""))
 
         def htmlReport = new HtmlTestExecutionResult(testDirectory)
         def classReport = htmlReport.testClass("FooTest")
-        classReport.assertStdout(is("m1 out\nm2 out\n"))
+        classReport.assertStdout(is("m1: \u03b1</html>\nm2 out\n"))
         classReport.assertStderr(is("m1 err\nm2 err\n"))
     }
 
@@ -127,7 +137,7 @@ test 'Gradle test' -> beforeTest out
 test 'Gradle test' -> beforeTest err
 test 'Gradle test' -> beforeClass out
 test 'Gradle test' -> beforeClass err
-test method m1(FooTest) -> m1 out
+test method m1(FooTest) -> m1: \u03b1</html>
 test method m1(FooTest) -> m1 err
 test method m2(FooTest) -> m2 out
 test method m2(FooTest) -> m2 err
@@ -147,14 +157,14 @@ test 'Gradle test' -> afterTest err
 
         classResult.assertTestCaseStderr("m1", is("m1 err\n"))
         classResult.assertTestCaseStderr("m2", is("m2 err\n"))
-        classResult.assertTestCaseStdout("m1", is("m1 out\n"))
+        classResult.assertTestCaseStdout("m1", is("m1: \u03b1</html>\n"))
         classResult.assertTestCaseStdout("m2", is("m2 out\n"))
         classResult.assertStderr(is(""))
         classResult.assertStdout(is(""))
 
         def htmlReport = new HtmlTestExecutionResult(testDirectory)
         def classReport = htmlReport.testClass("FooTest")
-        classReport.assertStdout(is("m1 out\nm2 out\n"))
+        classReport.assertStdout(is("m1: \u03b1</html>\nm2 out\n"))
         classReport.assertStderr(is("m1 err\nm2 err\n"))
     }
 }
