@@ -27,7 +27,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
-class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
+class JUnitConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     ExecutionResult result
 
