@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
@@ -239,8 +238,57 @@ public class OkTest {
         }
     }
 
-    @Ignore
     def "output does not require trailing end-of-line separator"() {
-        expect: false
+        file("src/test/java/OkTest.java") << """
+public class OkTest {
+    @org.junit.Before
+    public void before() {
+        System.out.print("[before out]");
+        System.err.print("[before err]");
+    }
+
+    @org.junit.After
+    public void after() {
+        System.out.print("[after out]");
+        System.err.print("[after err]");
+    }
+
+    @org.junit.BeforeClass public static void init() {
+        System.out.print("[before class out]");
+        System.err.print("[before class err]");
+    }
+
+    @org.junit.AfterClass public static void end() {
+        System.out.print("[after class out]");
+        System.err.print("[after class err]");
+    }
+
+    @org.junit.Test
+    public void ok() {
+        System.out.print("[test out]");
+        System.err.print("[test err]");
+    }
+
+    @org.junit.Test
+    public void anotherOk() {
+        System.out.println();
+        System.err.println();
+        System.out.print("[ok out]");
+        System.err.print("[ok err]");
+    }
+}
+"""
+
+        when: run "test"
+
+        then:
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        def classResult = testResult.testClass("OkTest")
+        classResult.assertTestCaseStdout("ok", is("[before out][test out][after out]"))
+        classResult.assertTestCaseStderr("ok", is("[before err][test err][after err]"))
+        classResult.assertTestCaseStdout("anotherOk", is("[before out]\n[ok out][after out]"))
+        classResult.assertTestCaseStderr("anotherOk", is("[before err]\n[ok err][after err]"))
+        classResult.assertStdout(is("[before class out][after class out]"))
+        classResult.assertStderr(is("[before class err][after class err]"))
     }
 }
