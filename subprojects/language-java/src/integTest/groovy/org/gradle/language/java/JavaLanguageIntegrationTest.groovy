@@ -76,15 +76,10 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "multiple targets should produce in the correct bytecode"() {
         when:
-        def javaApp = new TestJavaComponent()
-        javaApp.sources*.writeToDir(file("src/myLib/java"))
+        app.writeSources(file("src/myLib"))
 
         and:
         buildFile << """
-    plugins {
-        id 'jvm-component'
-        id 'java-lang'
-    }
     model {
         components {
             myLib(JvmLibrarySpec) {
