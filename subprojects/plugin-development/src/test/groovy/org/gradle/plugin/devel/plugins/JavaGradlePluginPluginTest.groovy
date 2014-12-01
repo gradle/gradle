@@ -33,7 +33,9 @@ import spock.lang.Specification
 
 class JavaGradlePluginPluginTest extends Specification {
     final ResettableAppender appender = new ResettableAppender()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
+
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(appender)
 
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
@@ -41,7 +43,7 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def project = TestUtil.builder().withName("plugin").build()
 
-    def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file" (String contents, String expectedPluginImpl, boolean expectedEmpty) {
+    def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file"(String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
         List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>()
         Action<FileCopyDetails> findPluginDescriptor = new JavaGradlePluginPlugin.PluginDescriptorCollectorAction(descriptors)
@@ -63,12 +65,12 @@ class JavaGradlePluginPluginTest extends Specification {
         ''                                   | null               | true
     }
 
-    def "ClassManifestCollector captures class name" () {
+    def "ClassManifestCollector captures class name"() {
         setup:
         Set<String> classList = new HashSet<String>()
         Action<FileCopyDetails> classManifestCollector = new JavaGradlePluginPlugin.ClassManifestCollectorAction(classList)
         FileCopyDetails stubDetails = Stub(FileCopyDetails) {
-            getRelativePath() >> { new RelativePath(true, 'com', 'xxx', 'TestPlugin.class')}
+            getRelativePath() >> { new RelativePath(true, 'com', 'xxx', 'TestPlugin.class') }
         }
 
         when:
@@ -78,7 +80,7 @@ class JavaGradlePluginPluginTest extends Specification {
         classList.contains('com/xxx/TestPlugin.class')
     }
 
-    def "PluginValidationAction finds fully qualified class" (List classList, String fqClass, boolean expectedValue) {
+    def "PluginValidationAction finds fully qualified class"(List classList, String fqClass, boolean expectedValue) {
         setup:
         Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction([], classList as Set<String>)
 
@@ -86,14 +88,14 @@ class JavaGradlePluginPluginTest extends Specification {
         pluginValidationAction.hasFullyQualifiedClass(fqClass) == expectedValue
 
         where:
-        classList                           | fqClass              | expectedValue
-        [ 'com/xxx/TestPlugin.class' ]      | 'com.xxx.TestPlugin' | true
-        [ 'TestPlugin.class' ]              | 'TestPlugin'         | true
-        [ ]                                 | 'com.xxx.TestPlugin' | false
-        [ 'com/xxx/yyy/TestPlugin.class']   | 'com.xxx.TestPlugin' | false
+        classList                        | fqClass              | expectedValue
+        ['com/xxx/TestPlugin.class']     | 'com.xxx.TestPlugin' | true
+        ['TestPlugin.class']             | 'TestPlugin'         | true
+        []                               | 'com.xxx.TestPlugin' | false
+        ['com/xxx/yyy/TestPlugin.class'] | 'com.xxx.TestPlugin' | false
     }
 
-   def "PluginValidationAction logs correct warning messages" (String impl, String implFile, String expectedMessage) {
+    def "PluginValidationAction logs correct warning messages"(String impl, String implFile, String expectedMessage) {
         setup:
         Task stubTask = Stub(Task)
         List<PluginDescriptor> descriptors = []
@@ -115,15 +117,15 @@ class JavaGradlePluginPluginTest extends Specification {
         expectedMessage == null || appender.toString().contains(expectedMessage)
 
         where:
-        impl    | implFile       | expectedMessage
-        null    | null           | NO_DESCRIPTOR_WARNING
-        ''      | null           | INVALID_DESCRIPTOR_WARNING_PREFIX
-        'x.y.z' | null           | BAD_IMPL_CLASS_WARNING_PREFIX
-        'x.y.z' | 'z.class'      | BAD_IMPL_CLASS_WARNING_PREFIX
-        'x.y.z' | 'x/y/z.class'  | null
+        impl    | implFile      | expectedMessage
+        null    | null          | NO_DESCRIPTOR_WARNING
+        ''      | null          | INVALID_DESCRIPTOR_WARNING_PREFIX
+        'x.y.z' | null          | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | 'z.class'     | BAD_IMPL_CLASS_WARNING_PREFIX
+        'x.y.z' | 'x/y/z.class' | null
     }
 
-    def "apply adds java plugin" () {
+    def "apply adds java plugin"() {
         when:
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
@@ -131,7 +133,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.plugins.findPlugin(JavaPlugin)
     }
 
-    def "apply adds gradleApi dependency to compile" () {
+    def "apply adds gradleApi dependency to compile"() {
         when:
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
@@ -139,11 +141,11 @@ class JavaGradlePluginPluginTest extends Specification {
         project.configurations
                 .getByName(JavaGradlePluginPlugin.COMPILE_CONFIGURATION)
                 .dependencies.find {
-                    it.source.files == project.dependencies.gradleApi().source.files
-                }
+            it.source.files == project.dependencies.gradleApi().source.files
+        }
     }
 
-    def "apply configures filesMatching actions on jar spec" () {
+    def "apply configures filesMatching actions on jar spec"() {
         setup:
         project.pluginManager.apply(JavaPlugin)
         def Jar mockJarTask = mockJar(project)
@@ -156,7 +158,7 @@ class JavaGradlePluginPluginTest extends Specification {
         1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.CLASSES_PATTERN, { it instanceof JavaGradlePluginPlugin.ClassManifestCollectorAction })
     }
 
-    def "apply configures doLast action on jar" () {
+    def "apply configures doLast action on jar"() {
         setup:
         project.pluginManager.apply(JavaPlugin)
         def Jar mockJarTask = mockJar(project)
@@ -165,7 +167,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
         then:
-        1 * mockJarTask.appendStandardTaskAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction})
+        1 * mockJarTask.appendStandardTaskAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction })
     }
 
     def Jar mockJar(project) {
@@ -191,7 +193,7 @@ class JavaGradlePluginPluginTest extends Specification {
         }
 
         void reset() {
-            buffer.delete(0,buffer.size())
+            buffer.delete(0, buffer.size())
         }
 
         @Override
