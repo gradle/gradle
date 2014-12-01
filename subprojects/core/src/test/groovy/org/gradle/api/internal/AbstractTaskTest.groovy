@@ -32,19 +32,19 @@ import static org.junit.Assert.assertTrue
 
 class AbstractTaskTest extends Specification {
 
-    private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
-    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
-    private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
+    private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
+    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry)
+    private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()))
 
     public static class TestTask extends AbstractTask {
     }
 
     public TaskInternal createTask(String name) {
-        AbstractProject project = TestUtil.createRootProject();
-        DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        registry.add(Instantiator.class, new DirectInstantiator());
-        TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask.class, Task.TASK_NAME, name));
-        assertTrue(TestTask.class.isAssignableFrom(task.getClass()));
+        AbstractProject project = TestUtil.createRootProject()
+        DefaultServiceRegistry registry = new DefaultServiceRegistry()
+        registry.add(Instantiator, new DirectInstantiator())
+        TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask, Task.TASK_NAME, name))
+        assertTrue(TestTask.isAssignableFrom(task.getClass()))
         return task
     }
 
@@ -52,7 +52,7 @@ class AbstractTaskTest extends Specification {
         setup:
         TestTask task = createTask("task")
         when:
-        def actions = task.getActions()
+        def actions = task.actions
         and:
         def action = Mock(Action)
 
