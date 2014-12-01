@@ -2,5 +2,8 @@
 	<wb-module deploy-name="common">
 		<wb-resource deploy-path="/" source-path="src/main/java"/>
 		<wb-resource deploy-path="/" source-path="src/main/resources"/>
+		<dependent-module deploy-path="../" handle="module:/resource/api/api">
+			<dependency-type>uses</dependency-type>
+		</dependent-module>
 	</wb-module>
 </project-modules>
