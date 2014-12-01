@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
@@ -38,6 +37,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.JavaScriptFile;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.tasks.JavaScriptProcessResources;
 
 import java.io.File;
 import java.util.Collections;
@@ -104,18 +104,18 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
                 }
 
                 public Class<? extends DefaultTask> getTaskType() {
-                    return Copy.class;
+                    return JavaScriptProcessResources.class;
                 }
 
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
                     JavaScriptSourceSet javaScriptSourceSet = (JavaScriptSourceSet) sourceSet;
                     PlayApplicationBinarySpec spec = (PlayApplicationBinarySpec) binary;
-                    Copy copyTask = (Copy) task;
-                    copyTask.from(javaScriptSourceSet.getSource());
+                    JavaScriptProcessResources javaScriptProcessResources = (JavaScriptProcessResources) task;
+                    javaScriptProcessResources.from(javaScriptSourceSet.getSource());
                     File javascriptOutputDir = new File(task.getProject().getBuildDir(), String.format("%s/javascript", binary.getName()));
-                    copyTask.into(javascriptOutputDir);
+                    javaScriptProcessResources.into(javascriptOutputDir);
                     spec.getClasses().addResourceDir(javascriptOutputDir);
-                    spec.getClasses().builtBy(copyTask);
+                    spec.getClasses().builtBy(javaScriptProcessResources);
                 }
             };
         }

@@ -53,6 +53,8 @@ import java.util.Map;
  */
 public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
+    public static final String COFFEE_SCRIPT_GENERATED = "coffeeScriptGenerated";
+
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", PlayJavaScriptPlugin.class));
     }
@@ -88,7 +90,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                 coffeeScriptSourceSet.getSource().include("**/*.coffee");
 
                 // Add a JavaScriptSourceSet to process the compiled coffee script sources
-                JavaScriptSourceSet javaScriptSourceSet = new DefaultJavaScriptSourceSet("coffeeScriptGenerated", playComponent.getName(), serviceRegistry.get(FileResolver.class));
+                JavaScriptSourceSet javaScriptSourceSet = new DefaultJavaScriptSourceSet(COFFEE_SCRIPT_GENERATED, playComponent.getName(), serviceRegistry.get(FileResolver.class));
                 // This is so we force the SourceSetTransformTask to be created even though the source
                 // is still empty at this point
                 javaScriptSourceSet.builtBy(coffeeScriptSourceSet);
@@ -105,7 +107,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                 // Find the coffeeScriptGenerated javascript source set
                 final LanguageSourceSet javaScriptSourceSet = binarySpec.getSource().matching(new Spec<LanguageSourceSet>() {
                     public boolean isSatisfiedBy(LanguageSourceSet element) {
-                        return "coffeeScriptGenerated".equals(element.getName());
+                        return COFFEE_SCRIPT_GENERATED.equals(element.getName());
                     }
                 }).iterator().next();
 

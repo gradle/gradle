@@ -162,6 +162,48 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 ":playBinary")
     }
 
+    def "cleans removed source file on compile" () {
+        given:
+        withCoffeeScriptSource("app/test1.coffee")
+        def file2 = withCoffeeScriptSource("app/test2.coffee")
+
+        when:
+        succeeds "assemble"
+
+        then:
+        jar("build/jars/play/playBinary.jar").containsDescendants(
+                "test1.js",
+                "test2.js"
+        )
+
+        when:
+        file2.delete()
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+                ":compilePlayBinaryPlayCoffeeScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":createPlayBinaryJar",
+                ":playBinary")
+        ! file("build/playBinary/coffeescript/test2.js").exists()
+        ! file("build/playBinary/javascript/test2.js").exists()
+        jar("build/jars/play/playBinary.jar").countFiles("test2.js") == 0
+    }
+
+    def "produces sensible error on compile failure" () {
+        given:
+        file("app/test1.coffee") << "if"
+
+        when:
+        fails "compilePlayBinaryPlayCoffeeScriptSources"
+
+        then:
+        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryPlayCoffeeScriptSources'."
+        failure.assertHasCause "Failed to compile coffeescript file: test1.coffee"
+        failure.assertHasCause "Error: Parse error on line 1: Unexpected 'POST_IF'"
+    }
+
     JarTestFixture jar(String fileName) {
         new JarTestFixture(file(fileName))
     }
