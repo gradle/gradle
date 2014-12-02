@@ -469,6 +469,66 @@ Unmanaged properties must be accompanied by a setter.
 
 (above)
 
+### User receives runtime error trying to mutate managed object outside of mutation
+
+    @Managed
+    interface Person {
+      Person getPartner();
+      String getName(); 
+      void setName(String string)
+    }
+    
+    class Holder {
+        static Person person
+    }
+    
+    class Rules {
+      @Model
+      void p1(Person person) {
+        person.setName("foo");
+        Holder.person = person
+      }
+      
+      @Mutate void setFather(CollectionBuilder<Task> tasks, Person person) {
+        Holder.person.setName("foo") // ← runtime error
+        Holder.person.partner.setName("foo") // ← runtime error  
+        person.setName("foo") // ← runtime error
+        person.partner.setName("foo") // ← runtime error
+      }
+    }
+
+### User receives runtime error trying to mutate managed set and elements when used as input and outside of mutation method
+
+    @Managed
+    interface Platform {
+      ManagedSet<OperatingSystem> getOperatingSystems()
+    }
+    
+    @Managed
+    interface OperatingSystem {
+        String getName()
+        void setName(String)
+    }
+        
+    class Holder {
+      static Platform platform
+    }
+    
+    class Rules {
+      @Model
+      void p(Platform platform) {
+        Holder.platform = platform
+        platform.operatingSystems.create { name = "foo" }
+      }
+      
+      @Mutate void setFather(CollectionBuilder<Task> tasks, Platform platform) {
+        Holder.platform.create(…) // ← runtime error
+        Holder.platform.toList()[0].setName(…) // ← runtime error
+        platform.create(…) // ← runtime error
+        platform.toList()[0].setName(…) // ← runtime error
+      }
+    }
+
 ## Future candidate stories (unordered)
 
 ### Model designer augments generated display name to contain extra information
