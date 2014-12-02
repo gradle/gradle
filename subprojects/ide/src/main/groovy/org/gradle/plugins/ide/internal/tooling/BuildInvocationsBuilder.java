@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -46,8 +45,8 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
 
         public void addDescription(String description) {
-            if (!Objects.equal(this.description, description)) {
-                this.description = null;
+            if (description != null) {
+                this.description = description;
             }
         }
 

@@ -104,7 +104,7 @@ class BuildInvocationsBuilderTest extends Specification {
         model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1'
         }.every { LaunchableGradleTaskSelector it ->
-            it.description != 't1 in subproject 1a' && it.description != 't1 in subproject 1b'
+            it.description in ['t1 in subproject 1a', 't1 in subproject 1b']
         }
     }
 }
