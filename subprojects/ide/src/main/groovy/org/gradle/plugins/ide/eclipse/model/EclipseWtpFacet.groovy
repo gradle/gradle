@@ -32,8 +32,10 @@ import org.gradle.util.ConfigureUtil
  * eclipse {
  *   wtp {
  *     facet {
- *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *       //manually adding wtp facets => default facets are not applied; mandatory keys: 'name', 'version':
  *       facet name: 'someCoolFacet', version: '1.3'
+ *       //additionally add all the default facets (only available with "java", "war" or "ear" plugin)
+ *       defaultFacets()
  *
  *       file {
  *         //if you want to mess with the resulting XML in whatever way you fancy
@@ -74,6 +76,13 @@ class EclipseWtpFacet {
     // TODO: What's the difference between fixed and installed facets? Why do we only model the latter?
 
     /**
+     * {@link Closure} which returns all the default facets to be added by {@link #defaultFacets()} to {@link #facets}.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     */
+    Closure defaults = { [] }
+
+    /**
      * Adds a facet.
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
@@ -82,6 +91,15 @@ class EclipseWtpFacet {
      */
     void facet(Map<String, ?> args) {
         facets << ConfigureUtil.configureByMap(args, new Facet())
+    }
+
+    /**
+     * Adds the default facets.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     */
+    void defaultFacets() {
+        facets += defaults()
     }
 
     /**
