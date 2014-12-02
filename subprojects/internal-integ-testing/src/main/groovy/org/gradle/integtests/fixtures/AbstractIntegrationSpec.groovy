@@ -111,6 +111,11 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         executer
     }
 
+    protected GradleExecuter requireGradleHome() {
+        executer.requireGradleHome()
+        executer
+    }
+
     /**
      * Synonym for succeeds()
      */
