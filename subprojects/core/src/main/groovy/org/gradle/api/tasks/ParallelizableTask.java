@@ -24,13 +24,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the associated task can be run in parallel with other tasks belonging to the same project.
+ * Declares that the associated task can be safely executed in parallel with other tasks.
  * <p>
- * This annotation is not inherited which means that a task type that has a parallelizable super type is not parallelizable unless it's annotated with <code>@ParallelizableTask</code>.
- * A task that has custom actions (i.e. ones added via {@link org.gradle.api.Task#doLast(org.gradle.api.Action)} or {@link org.gradle.api.Task#doFirst(org.gradle.api.Action)}) is not
- * considered parallelizable even if its type carries this annotation.
+ * Tasks are not parallelizable by default because it is possible for tasks to interfere with each other in unsafe ways.
+ * That is, it is possible for tasks to mutate shared data structures during their execution.
+ * The presence of this annotation on task class declares that the task does not do this and is therefore parallelizable.
  * <p>
- * It is the responsibility of the implementer to make sure that a type annotated with <code>@ParallelizableTask</code> is actually thread safe.
+ * For a task to be safely parallelizable, it should not change any data that may be read by other tasks.
+ * It should not, for example, update project extensions, other tasks or any other shared data.
+ * It may change internal variables and properties of the task, the filesystem and other external resources.
+ * <p>
+ * Gradle does not implicitly detect or protect against tasks executing in parallel writing over each other's filesystem changes, or any other kind of external change.
+ * Tasks should not be configured to write to the same file or directory on the filesystem for this reason.
+ * <p>
+ * This annotation is not inherited.
+ * A task class that extends from another task class that declares itself to be parallel safe is not implicitly also parallel safe.
+ * If the subclass is indeed parallel safe, it must also have this annotation.
+ * <p>
+ * Any task that has custom actions (i.e. ones added via {@link org.gradle.api.Task#doLast(org.gradle.api.Action)} or {@link org.gradle.api.Task#doFirst(org.gradle.api.Action)})
+ * is not considered parallelizable even if its type carries this annotation.
+ * This is because it cannot be known whether the added action is parallel safe or not.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
