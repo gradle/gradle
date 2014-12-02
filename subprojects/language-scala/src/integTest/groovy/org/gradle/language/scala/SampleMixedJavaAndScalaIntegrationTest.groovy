@@ -15,17 +15,18 @@
  */
 
 package org.gradle.language.scala
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Rule
 
-class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
+class SampleMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Sample sample = new Sample(temporaryFolder, "jvmComponents/scala")
+    Sample sample = new Sample(temporaryFolder, "jvmComponents/mixedJavaScala")
 
-    def "can build scala based jvm component"() {
+    def "can build mixed scala and java based jvm component"() {
         setup:
         executer.inDirectory(sample.dir)
 
@@ -34,8 +35,9 @@ class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         new JarTestFixture(sample.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
-                "org/gradle/samples/HelloWorld.class",
-                "org/gradle/samples/HelloWorld\$.class"
+                "org/gradle/samples/mixed/Greeter.class",
+                "org/gradle/samples/mixed/Person.class",
+                "org/gradle/samples/mixed/App.class"
         )
     }
 }
