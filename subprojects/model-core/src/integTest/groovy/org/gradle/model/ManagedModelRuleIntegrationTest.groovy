@@ -753,7 +753,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'gender: MALE'
     }
 
-    def "rule can target property of managed element"() {
+    def "rule can target structured property of managed element"() {
         given:
         EnableModelDsl.enable(executer)
 
@@ -794,6 +794,55 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
                 tasks {
                   create("fromScript") {
                     it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                  }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromPlugin", "fromScript"
+
+        and:
+        output.contains("fromPlugin: foo")
+        output.contains("fromScript: foo")
+    }
+
+    def "rule can target simple property of managed element"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Platform {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void platform(Platform platform) {
+                  platform.name = "foo"
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, @Path("platform.name") String name) {
+                  tasks.create("fromPlugin") {
+                    doLast { println "fromPlugin: $name" }
+                  }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                  create("fromScript") {
+                    it.doLast { println "fromScript: " + $("platform.name") }
                   }
                 }
             }
