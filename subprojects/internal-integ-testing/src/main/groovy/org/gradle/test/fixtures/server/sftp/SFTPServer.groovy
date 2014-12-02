@@ -16,15 +16,11 @@
 
 package org.gradle.test.fixtures.server.sftp
 
-import com.jcraft.jsch.JSch
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
-import org.apache.sshd.common.Session
-import org.apache.sshd.common.file.FileSystemView
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
-import org.apache.sshd.common.file.virtualfs.VirtualFileSystemView
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.util.Buffer
 import org.apache.sshd.server.Command
@@ -95,15 +91,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     protected void before() throws Throwable {
-        JSch.logger = new com.jcraft.jsch.Logger() {
-            boolean isEnabled(int level) {
-                true
-            }
-
-            void log(int level, String message) {
-                println "[jsch] $message"
-            }
-        }
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
@@ -115,7 +102,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     public void stop(boolean immediately = false) {
-        JSch.logger = null
         sshd?.stop(immediately);
     }
 
@@ -283,11 +269,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
-        /**
-         * Create the appropriate user file system view.
-         */
-        public FileSystemView createFileSystemView(Session session) {
-            return new VirtualFileSystemView(session.getUsername(), baseDir.absolutePath);
+        TestVirtualFileSystemFactory() {
+            setDefaultHomeDir(baseDir.absolutePath)
         }
     }
 
