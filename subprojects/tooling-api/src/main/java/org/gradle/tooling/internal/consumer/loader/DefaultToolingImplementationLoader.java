@@ -102,6 +102,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         MultiParentClassLoader parentObfuscatingClassLoader = new MultiParentClassLoader(classLoader);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
+        filteringClassLoader.allowResource("logback.xml");
+        filteringClassLoader.allowResource("logback-test.xml");
         return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
 }
