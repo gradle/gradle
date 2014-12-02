@@ -120,10 +120,6 @@ public class RuleBinder<T> {
         return ModelBinding.of(reference, path);
     }
 
-    private String pathStringOrNull(ModelReference<?> reference) {
-        return reference.getPath() == null ? null : reference.getPath().toString();
-    }
-
     public Iterable<ModelPath> getUnboundPaths() {
         Set<ModelPath> subjectUnboundPath = Collections.emptySet();
         if (subjectReference != null && subjectReference.getPath() != null && subjectBinding == null) {

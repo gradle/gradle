@@ -36,24 +36,26 @@ public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>
 
     private final ModelSchema<T> modelSchema;
     private final BiAction<? super ModelView<? extends T>, ? super Inputs> initializer;
+    private final ManagedProxyFactory proxyFactory;
     private final ModelSchemaStore schemaStore;
     private final ModelInstantiator modelInstantiator;
     private final ModelRuleDescriptor descriptor;
 
     public static <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator, ManagedProxyFactory proxyFactory, List<? extends ModelReference<?>> inputs, BiAction<? super ModelView<? extends T>, ? super Inputs> initializer) {
-        return ModelCreators.of(ModelReference.of(path, schema.getType()), new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, initializer))
+        return ModelCreators.of(ModelReference.of(path, schema.getType()), new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, proxyFactory, initializer))
                 .descriptor(descriptor)
                 .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
                 .inputs(inputs)
                 .build();
     }
 
-    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, BiAction<? super ModelView<? extends T>, ? super Inputs> initializer) {
+    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super ModelView<? extends T>, ? super Inputs> initializer) {
         this.descriptor = descriptor;
         this.modelInstantiator = modelInstantiator;
         this.schemaStore = schemaStore;
         this.modelSchema = modelSchema;
         this.initializer = initializer;
+        this.proxyFactory = proxyFactory;
     }
 
     public Action<ModelNode> transform(final Inputs inputs) {
@@ -76,16 +78,33 @@ public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>
             private <P> void addPropertyLink(ModelNode modelNode, ModelProperty<P> property) {
                 // TODO reuse pooled projections/promises/adapters
                 ModelType<P> propertyType = property.getType();
-                Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType, true, true));
-                ModelPromise promise = new ProjectionBackedModelPromise(projections);
-                ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
-                ModelNode childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
-
                 ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
-                if (propertySchema.getKind().isManaged() && !property.isWritable()) {
-                    P instance = modelInstantiator.newInstance(propertySchema);
-                    childNode.setPrivateData(propertyType, instance);
+
+                ModelNode childNode;
+
+                if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
+                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory));
+                    ModelPromise promise = new ProjectionBackedModelPromise(projections);
+                    ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
+                    childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
+
+                    if (!property.isWritable()) {
+                        for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
+                            addPropertyLink(childNode, modelProperty);
+                        }
+                    }
+                } else {
+                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType, true, true));
+                    ModelPromise promise = new ProjectionBackedModelPromise(projections);
+                    ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
+                    childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
+
+                    if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+                        P instance = modelInstantiator.newInstance(propertySchema);
+                        childNode.setPrivateData(propertyType, instance);
+                    }
                 }
+
             }
         };
     }

@@ -476,11 +476,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         public boolean onCreate(ModelRuleDescriptor creatorDescriptor, ModelPath path, ModelPromise promise) {
-            if (boundTo != null && isTypeCompatible(promise)) {
+            if (path.isTopLevel() && boundTo != null && isTypeCompatible(promise)) {
                 throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
                         new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
                 ));
-            } else if (reference.getPath() == null) {
+            } else if (reference.getPath() == null && path.isTopLevel()) {
                 boolean typeCompatible = isTypeCompatible(promise);
                 if (typeCompatible) {
                     bindAction.execute(path);
