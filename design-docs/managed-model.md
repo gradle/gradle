@@ -398,7 +398,7 @@ Unmanaged properties must be accompanied by a setter.
 - It is an error to define a setter for display name (may relax this in the future)
 - Exact format of error message is unimportant, but it must include the “address” of the object in the model space
     
-### Model rule accepts property of managed object as input
+### ~~Model rule accepts property of managed object as input~~
       
     @Managed
     interface Person {
@@ -428,11 +428,10 @@ Unmanaged properties must be accompanied by a setter.
     
 ### Test Coverage
 
-- Can inject leaf type property (e.g. String, Number)
-- Can inject node type property (i.e. another managed type with properties)
-- Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`) 
-- Can inject by “path”
-- Can inject by “type”
+- ~~Can inject leaf type property (e.g. String, Number)~~
+- ~~Can inject node type property (i.e. another managed type with properties)~~
+- ~~Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`)~~
+- ~~Can inject by “path”~~
 
 ### Model rule mutates property of managed object
       
