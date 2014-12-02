@@ -24,13 +24,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>Declares that the associated task can be run in parallel with other tasks belonging to the same project.</p>
- *
- * <p>This annotation is not inherited which means that a task type that has a parallelizable super type is not parallelizable unless it's annotated with <code>@ParallelizableTask</code>.
+ * Declares that the associated task can be run in parallel with other tasks belonging to the same project.
+ * <p>
+ * This annotation is not inherited which means that a task type that has a parallelizable super type is not parallelizable unless it's annotated with <code>@ParallelizableTask</code>.
  * A task that has custom actions (i.e. ones added via {@link org.gradle.api.Task#doLast(org.gradle.api.Action)} or {@link org.gradle.api.Task#doFirst(org.gradle.api.Action)}) is not
- * considered parallelizable even if its type carries this annotation.</p>
- *
- * <p>It is the responsibility of the implementer to make sure that a type annotated with <code>@ParallelizableTask</code> is actually thread safe.</p>
+ * considered parallelizable even if its type carries this annotation.
+ * <p>
+ * It is the responsibility of the implementer to make sure that a type annotated with <code>@ParallelizableTask</code> is actually thread safe.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
