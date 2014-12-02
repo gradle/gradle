@@ -19,7 +19,6 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.Matchers
-import spock.lang.Ignore
 
 class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -754,7 +753,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'gender: MALE'
     }
 
-    @Ignore("not yet supported - we don't know about the nested property until the parent is created. Should know about it on registration.")
     def "rule can target property of managed element"() {
         given:
         EnableModelDsl.enable(executer)
@@ -783,9 +781,9 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, OperatingSystem os) {
+                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
                   tasks.create("fromPlugin") {
-                    it.doLast { println "fromPlugin: $os.name" }
+                    doLast { println "fromPlugin: $os.name" }
                   }
                 }
             }

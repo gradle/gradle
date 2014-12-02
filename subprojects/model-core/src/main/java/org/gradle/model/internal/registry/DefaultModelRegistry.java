@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
@@ -237,6 +238,42 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void validate() throws UnboundModelRulesException {
+        if (binders.isEmpty()) {
+            return;
+        }
+
+        // Some rules may not have bound because their references are to nested properties
+        // This can happen, for example, if the reference is to a property of a managed model element
+        // Here, we look for such “non root” bindings where we know the parent exists.
+        // If we find such unbound references, we force the creation of the parent to try and bind the nested reference.
+
+        // TODO if we push more knowledge of nested properties up out of constructors, we can potentially bind such references without creating the parent chain.
+
+        while (!binders.isEmpty()) {
+            Iterable<ModelPath> unboundPaths = Iterables.concat(Iterables.transform(binders, new Function<RuleBinder<?>, Iterable<ModelPath>>() {
+                public Iterable<ModelPath> apply(RuleBinder<?> input) {
+                    return input.getUnboundPaths();
+                }
+            }));
+
+            ModelPath unboundTopLevelModelPath = Iterables.find(unboundPaths, new Predicate<ModelPath>() {
+                public boolean apply(ModelPath input) {
+                    return input.getRootParent() != null;
+                }
+            }, null);
+
+            if (unboundTopLevelModelPath != null) {
+                ModelPath rootParent = unboundTopLevelModelPath.getRootParent();
+                if (creations.containsKey(rootParent)) {
+                    get(rootParent);
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
         if (!binders.isEmpty()) {
             ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creations.keySet()));
             List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();

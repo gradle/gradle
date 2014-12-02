@@ -410,7 +410,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, Exec execTask) {
+                    void addTasks(CollectionBuilder<Task> tasks, @Path("tasks.injected") Exec execTask) {
                         tasks.create("name") {
                             it.doLast {
                                 println "name: ${execTask.name}"
