@@ -433,7 +433,7 @@ Unmanaged properties must be accompanied by a setter.
 - ~~Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`)~~
 - ~~Can inject by “path”~~
 
-### Model rule mutates property of managed object
+### ~~Model rule mutates property of managed object~~
       
     @Managed
     interface Person {
