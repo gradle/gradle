@@ -338,7 +338,7 @@ Notes:
 - Enum values are not strictly immutable/threadsafe in Java but almost always are, as such we will consider them to be at this stage
 - It doesn't have any impact at this stage, but only the enum value is strictly part of the model (all properties of an enum value are supplied by the runtime)
 
-### Managed model element has unmanaged property
+### ~~Managed model element has unmanaged property~~
 
     interface MyModel {        
         @org.gradle.model.Unmanaged
@@ -356,9 +356,8 @@ Unmanaged properties must be accompanied by a setter.
 - ~~Can attach an an unmanaged property~~
 - ~~Error when unmanaged property does not have annotation~~
 - ~~Subtype may declare setter for unmanaged type~~
-- Unmanaged property of managed type can be targeted for mutation
-- Unmanaged property of managed type can be used as input
-- Specific error when attempt is made to path into a managed type for mutation or as an input
+- ~~Unmanaged property of managed type can be targeted for mutation~~
+- ~~Unmanaged property of managed type can be used as input~~
     
 ### Managed model element has “generated” display name indicating identity in model space
 
@@ -533,3 +532,5 @@ However, given our current capabilities there's no real useful case for this.
 ### User sees useful type name in stack trace for managed model type and while debugging
 
 This is about ensuring that managed model instances don't make debugging more difficult by presenting type names that don't hint at the type.
+
+### Attempt to path past unmanaged element produces indicative error message

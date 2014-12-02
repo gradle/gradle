@@ -1161,5 +1161,66 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains('value: foo')
     }
 
+    def "unmanaged property of managed can be targeted by rules"() {
+        given:
+        EnableModelDsl.enable(executer)
+
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Platform {
+                @Unmanaged
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem os)
+            }
+
+            class OperatingSystem {
+                String name
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void platform(Platform platform) {}
+
+                @Mutate
+                void setOs(Platform platform) {
+                    platform.operatingSystem = new OperatingSystem()
+                }
+
+                @Mutate
+                void setOsName(@Path("platform.operatingSystem") OperatingSystem os) {
+                  os.name = "foo"
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
+                  tasks.create("fromPlugin") {
+                    doLast { println "fromPlugin: $os.name" }
+                  }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                  create("fromScript") {
+                    it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                  }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromPlugin", "fromScript"
+
+        and:
+        output.contains("fromPlugin: foo")
+        output.contains("fromScript: foo")
+    }
 
 }
