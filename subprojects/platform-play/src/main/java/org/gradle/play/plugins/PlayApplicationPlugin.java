@@ -31,7 +31,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
-import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
@@ -240,7 +240,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final Dependency playDependency = dependencyHandler.create(playToolChain.select(binary.getTargetPlatform()).getPlayDependencyNotation());
             final Configuration appCompileClasspath = configurationContainer.detachedConfiguration(playDependency);
 
-            Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
+            Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
             final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
 
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
@@ -320,7 +320,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion()));
                 final Configuration testCompileConfiguration = configurationContainer.detachedConfiguration(playTestDependency);
 
-                Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
+                Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
                 final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
 
                 final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);

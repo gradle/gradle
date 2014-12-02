@@ -15,13 +15,11 @@
  */
 
 package org.gradle.language.scala.fixtures
-
-import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
+import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.ScalaLanguageSourceSet
-import org.gradle.test.fixtures.file.TestFile
 
-class TestScalaComponent extends IncrementalTestJvmComponent{
+class TestJointCompiledComponent extends TestJvmComponent{
 
     String languageName = "scala"
     String sourceSetTypeName = ScalaLanguageSourceSet.class.name
@@ -33,28 +31,19 @@ package compile.test;
 class Person(name: String, age: Integer) {
     override def toString(): String = name + ", " + age;
 }'''),
-            new JvmSourceFile("compile/test", "Person2.scala", '''
+            new JvmSourceFile("compile/test", "Person2.java", '''
 package compile.test;
 
 class Person2 {
+    String name;
+    String age;
 }
 ''')
     ]
 
     @Override
-    void changeSources(List<TestFile> sourceFiles){
-        def personScalaFile = sourceFiles.find { it.name == "Person.scala" }
-        personScalaFile.text = personScalaFile.text.replace("name", "lastName")
+    List<String> getSourceFileExtensions() {
+        return ["java", "scala"]
     }
 
-    @Override
-    void writeAdditionalSources(TestFile testFile) {
-        testFile.file("scala/Extra.scala") << """
-object Extra {
-  def someMethod(args: Array[String]) {
-  }
-}
-"""
-
-    }
 }

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.platform;
+package org.gradle.language.scala
 
-import org.gradle.platform.base.Platform;
+import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
+import org.gradle.language.scala.fixtures.TestJointCompiledComponent
 
-/**
- * Defines and configures a Scala Platform.
- * */
-public interface ScalaPlatform extends Platform {
-    String getScalaVersion();
+class JointScalaLangIntegrationTest extends AbstractJvmLanguageIntegrationTest {
+    TestJvmComponent app = new TestJointCompiledComponent()
 }

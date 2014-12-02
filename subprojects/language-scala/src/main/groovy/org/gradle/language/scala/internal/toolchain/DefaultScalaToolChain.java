@@ -27,6 +27,7 @@ import org.gradle.language.scala.platform.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 public class DefaultScalaToolChain implements ScalaToolChainInternal {
+
     private ProjectFinder projectFinder;
     private CompilerDaemonManager compilerDaemonManager;
     private JavaCompilerFactory javaCompilerFactory;
@@ -54,6 +55,6 @@ public class DefaultScalaToolChain implements ScalaToolChainInternal {
     }
 
     public ToolProvider select(ScalaPlatform targetPlatform) {
-        return new ScalaToolProvider(projectFinder, compilerDaemonManager, javaCompilerFactory, isolatedAntBuilder, dependencyHandler, configurationContainer, targetPlatform.getScalaVersion());
+        return new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, javaCompilerFactory, isolatedAntBuilder, dependencyHandler, configurationContainer, targetPlatform.getScalaVersion());
     }
 }

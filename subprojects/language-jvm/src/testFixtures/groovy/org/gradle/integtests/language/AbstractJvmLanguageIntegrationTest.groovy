@@ -18,6 +18,7 @@ package org.gradle.integtests.language
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpec{
@@ -131,7 +132,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         file("build/classes/myLibJar").assertHasDescendants(app.expectedOutputs*.fullPath as String[])
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
-//
+
     def "can combine resources and sources in a single source directory"() {
         when:
         app.writeSources(file("src/myLib"))
@@ -150,7 +151,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
                     }
                     resources.source {
                         srcDir "src/myLib"
-                        exclude "**/*.${app.languageName}"
+                        ${exluceStatementFor(app.sourceFileExtensions)}
                     }
                 }
             }
@@ -163,6 +164,10 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         then:
         file("build/classes/myLibJar").assertHasDescendants(expectedOutputs)
         jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(expectedOutputs)
+    }
+
+    def exluceStatementFor(List<String> fileExtensions) {
+        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.lineSeparator)
     }
 
     def "can configure output directories for classes and resources"() {

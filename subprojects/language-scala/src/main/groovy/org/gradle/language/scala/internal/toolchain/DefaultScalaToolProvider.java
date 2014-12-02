@@ -27,14 +27,13 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
-import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.language.scala.toolchain.ScalaToolProvider;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 
-class ScalaToolProvider implements ToolProvider {
+public class DefaultScalaToolProvider implements ScalaToolProvider {
+    public static final String DEFAULT_ZINC_VERSION = "0.3.0";
 
     private ProjectFinder projectFinder;
     private final CompilerDaemonManager compilerDaemonManager;
@@ -44,7 +43,7 @@ class ScalaToolProvider implements ToolProvider {
     private final ConfigurationContainer configurationContainer;
     private String scalaVersion;
 
-    public ScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, DependencyHandler dependencyHandler, ConfigurationContainer configurationContainer, String scalaVersion) {
+    public DefaultScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, DependencyHandler dependencyHandler, ConfigurationContainer configurationContainer, String scalaVersion) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
         this.javaCompilerFactory = javaCompilerFactory;
@@ -58,10 +57,10 @@ class ScalaToolProvider implements ToolProvider {
         if (spec instanceof ScalaJavaJointCompileSpec) {
             ScalaJavaJointCompileSpec scalaJavaJointCompileSpec = (ScalaJavaJointCompileSpec) spec;
             Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", scalaVersion));
-            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", ScalaLanguagePlugin.DEFAULT_ZINC_VERSION));
+            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
             File projectDir = projectFinder.getProject(":").getProjectDir();
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectDir, antBuilder, javaCompilerFactory, compilerDaemonManager, scalaClasspath, zincClasspath);
-            @SuppressWarnings("unchecked") org.gradle.language.base.internal.compile.Compiler<T> delegatingCompiler = (Compiler<T>) scalaCompilerFactory.newCompiler(scalaJavaJointCompileSpec);
+            @SuppressWarnings("unchecked") org.gradle.language.base.internal.compile.Compiler<T> delegatingCompiler = (org.gradle.language.base.internal.compile.Compiler<T>) scalaCompilerFactory.newCompiler(scalaJavaJointCompileSpec);
             return delegatingCompiler;
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));

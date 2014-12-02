@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.scala
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
@@ -28,7 +27,7 @@ import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.language.scala.plugins.ScalaLanguagePlugin
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 
 import javax.inject.Inject
 
@@ -125,7 +124,7 @@ class ScalaBasePlugin implements Plugin<Project> {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:$ScalaLanguagePlugin.DEFAULT_ZINC_VERSION")
+                        zinc("com.typesafe.zinc:zinc:$DefaultScalaToolProvider.DEFAULT_ZINC_VERSION")
                     }
                 }
                 config

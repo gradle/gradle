@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.platform;
+package org.gradle.integtests.fixtures.jvm
 
-import org.gradle.platform.base.Platform;
+import org.gradle.test.fixtures.file.TestFile
 
-/**
- * Defines and configures a Scala Platform.
- * */
-public interface ScalaPlatform extends Platform {
-    String getScalaVersion();
+abstract class IncrementalTestJvmComponent extends TestJvmComponent{
+
+    abstract void changeSources(List<TestFile> testFiles)
+
+    abstract void writeAdditionalSources(TestFile testFile)
 }

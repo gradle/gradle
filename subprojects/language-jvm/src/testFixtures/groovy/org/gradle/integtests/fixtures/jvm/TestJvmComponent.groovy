@@ -23,11 +23,9 @@ abstract class TestJvmComponent {
 
     abstract String getLanguageName()
 
-    abstract void changeSources(List<TestFile> testFiles)
-
-    abstract void writeAdditionalSources(TestFile testFile)
-
-    abstract List<JvmSourceFile> getExpectedOutputs();
+    List<JvmSourceFile> getExpectedOutputs(){
+        return getSources().collect{it.classFile}.plus(resources);
+    }
 
     List<TestFile> writeSources(TestFile sourceDir, String sourceSetName = languageName) {
         return sources*.writeToDir(sourceDir.file(sourceSetName))
@@ -43,4 +41,8 @@ abstract class TestJvmComponent {
     }
 
     abstract String getSourceSetTypeName()
+
+    def getSourceFileExtensions() {
+        return [getLanguageName()]
+    }
 }

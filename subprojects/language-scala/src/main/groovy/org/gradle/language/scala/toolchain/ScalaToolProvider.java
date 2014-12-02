@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.platform;
+package org.gradle.language.scala.toolchain;
 
-import org.gradle.platform.base.Platform;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 /**
- * Defines and configures a Scala Platform.
- * */
-public interface ScalaPlatform extends Platform {
-    String getScalaVersion();
+ * A {@link org.gradle.platform.base.internal.toolchain.ToolProvider} providing compiler infrastructure for Scala.
+ */
+public interface ScalaToolProvider extends ToolProvider {
 }

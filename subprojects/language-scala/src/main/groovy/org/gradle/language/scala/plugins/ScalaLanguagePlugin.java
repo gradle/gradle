@@ -49,7 +49,6 @@ import java.util.Map;
  */
 @Incubating
 public class ScalaLanguagePlugin implements Plugin<Project> {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.0";
 
     public void apply(Project project) {
         project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
