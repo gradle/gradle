@@ -31,9 +31,13 @@ import org.gradle.plugins.ear.descriptor.EarWebModule
 import org.xml.sax.SAXNotRecognizedException;
 
 import javax.inject.Inject
-import javax.xml.XMLConstants;
 
 class DefaultDeploymentDescriptor implements DeploymentDescriptor {
+
+    //redefine the constant because it's available in XMLConstants only from 1.7 onwards
+    private static final String ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD"
+
+    private static final String ALLOW_ANY_EXTERNAL_DTD = "all"
 
     private String fileName = "application.xml"
     String version = "6"
@@ -124,18 +128,21 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         }
     }
 
+    private XmlParser createParser() {
+        XmlParser parser = new XmlParser(false, true, true)
+        try {
+            // If not set for >= JAXP 1.5 / Java8 won't allow referencing DTDs, e.g.
+            // using http URLs, because Groovy's XmlParser requests FEATURE_SECURE_PROCESSING
+            parser.setProperty(ACCESS_EXTERNAL_DTD, ALLOW_ANY_EXTERNAL_DTD)
+        } catch (SAXNotRecognizedException ignore) {
+            // property requires >= JAXP 1.5 / Java8
+        }
+        parser
+    }
+
     DeploymentDescriptor readFrom(Reader reader) {
         try {
-            XmlParser parser = new XmlParser(false, true, true)
-            try {
-                // If not set, >= JAXP 1.5 / Java8 won't allow referencing DTDs e.g.
-                // using http URLs. However, those exact URLs might be required by
-                // some application servers at EAR deploy time.
-                parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, 'all')
-            } catch (SAXNotRecognizedException ignore) {
-                // property requires >= JAXP 1.5 / Java8
-            }
-            def appNode = parser.parse(reader)
+            def appNode = createParser().parse(reader)
 
             version = appNode.@version
 
