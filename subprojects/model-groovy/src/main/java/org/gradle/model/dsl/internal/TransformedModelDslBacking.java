@@ -88,7 +88,7 @@ public class TransformedModelDslBacking {
     }
 
     public static boolean isTransformedBlock(Closure<?> closure) {
-        Class<? extends Closure> closureClass = closure.getClass();
+        Class<?> closureClass = closure.getClass();
         RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
         return annotation != null;
     }

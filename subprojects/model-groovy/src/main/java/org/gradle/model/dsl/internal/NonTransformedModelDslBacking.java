@@ -106,7 +106,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
             if (args.length != 1 || !(args[0] instanceof Closure)) {
                 throw new MissingMethodException(name, getClass(), args);
             } else {
-                Closure closure = (Closure) args[0];
+                Closure<?> closure = (Closure) args[0];
                 getChildPath(name).registerConfigurationAction(closure);
                 return null;
             }
