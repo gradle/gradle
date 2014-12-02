@@ -63,7 +63,7 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final Callable<Object> futureValue) {
                 task.getOutputs().files(futureValue);
-                task.prependStandardTaskAction(new Action<Task>() {
+                task.prependParallelSafeAction(new Action<Task>() {
                     public void execute(Task task) {
                         Iterable<File> files;
                         try {

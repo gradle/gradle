@@ -109,11 +109,11 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         for (Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
-            task.prependStandardTaskAction(actionFactory.create());
+            task.prependParallelSafeAction(actionFactory.create());
         }
 
         if (taskClassInfo.validator != null) {
-            task.prependStandardTaskAction(taskClassInfo.validator);
+            task.prependParallelSafeAction(taskClassInfo.validator);
             taskClassInfo.validator.addInputsAndOutputs(task);
         }
 

@@ -167,7 +167,7 @@ class JavaGradlePluginPluginTest extends Specification {
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
         then:
-        1 * mockJarTask.appendStandardTaskAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction })
+        1 * mockJarTask.appendParallelSafeAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction })
     }
 
     def Jar mockJar(project) {

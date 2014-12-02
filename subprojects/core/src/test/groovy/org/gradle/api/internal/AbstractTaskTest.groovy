@@ -70,7 +70,7 @@ class AbstractTaskTest extends Specification {
         !task.hasCustomActions
 
         when:
-        task.prependStandardTaskAction {}
+        task.prependParallelSafeAction {}
 
         then:
         !task.hasCustomActions

@@ -731,14 +731,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    public void prependStandardTaskAction(final Action<? super Task> action) {
+    public void prependParallelSafeAction(final Action<? super Task> action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         actions.add(0, wrap(action));
     }
 
-    public void appendStandardTaskAction(final Action<? super Task> action) {
+    public void appendParallelSafeAction(final Action<? super Task> action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
