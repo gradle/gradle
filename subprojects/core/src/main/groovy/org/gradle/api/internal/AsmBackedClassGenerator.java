@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.*;
 import org.gradle.api.Transformer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,6 +35,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
@@ -43,6 +46,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static class ClassBuilderImpl<T> implements ClassBuilder<T> {
+        public static final Set<? extends Class<?>> PRIMITIVE_TYPES = ImmutableSet.of(Byte.TYPE, Boolean.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
         private static final String DYNAMIC_OBJECT_HELPER_FIELD = "__dyn_obj__";
         private static final String MAPPING_FIELD = "__mapping__";
         private static final String META_CLASS_FIELD = "__meta_class__";
@@ -936,7 +940,67 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 Retention retention = annotation.annotationType().getAnnotation(Retention.class);
                 boolean visible = retention != null && retention.value() == RetentionPolicy.RUNTIME;
                 AnnotationVisitor annotationVisitor = visitor.visitAnnotation(Type.getType(annotation.annotationType()).getDescriptor(), visible);
+                visitAnnotationValues(annotation, annotationVisitor);
                 annotationVisitor.visitEnd();
+            }
+        }
+
+        private void visitAnnotationValues(Annotation annotation, AnnotationVisitor annotationVisitor) {
+            for (Method method : annotation.annotationType().getDeclaredMethods()) {
+                String name = method.getName();
+                Class<?> returnType = method.getReturnType();
+                if (returnType.isEnum()) {
+                    annotationVisitor.visitEnum(name, Type.getType(returnType).getDescriptor(), getAnnotationParameterValue(annotation, method).toString());
+                } else if (returnType.isArray() && !PRIMITIVE_TYPES.contains(returnType.getComponentType())) {
+                    AnnotationVisitor arrayVisitor = annotationVisitor.visitArray(name);
+                    Object[] elements = (Object[]) getAnnotationParameterValue(annotation, method);
+                    visitArrayElements(arrayVisitor, returnType.getComponentType(), elements);
+                    arrayVisitor.visitEnd();
+                } else if (returnType.equals(Class.class)) {
+                    Class<?> clazz = (Class<?>) getAnnotationParameterValue(annotation, method);
+                    annotationVisitor.visit(name, Type.getType(clazz));
+                } else if (returnType.isAnnotation()) {
+                    Annotation nestedAnnotation = (Annotation) getAnnotationParameterValue(annotation, method);
+                    AnnotationVisitor nestedAnnotationVisitor = annotationVisitor.visitAnnotation(name, Type.getType(returnType).getDescriptor());
+                    visitAnnotationValues(nestedAnnotation, nestedAnnotationVisitor);
+                    nestedAnnotationVisitor.visitEnd();
+                } else {
+                    annotationVisitor.visit(name, getAnnotationParameterValue(annotation, method));
+                }
+            }
+        }
+
+        private void visitArrayElements(AnnotationVisitor arrayVisitor, Class arrayElementType, Object[] arrayElements) {
+            if (arrayElementType.isEnum()) {
+                String enumDescriptor = Type.getType(arrayElementType).getDescriptor();
+                for (Object value : arrayElements) {
+                    arrayVisitor.visitEnum(null, enumDescriptor, value.toString());
+                }
+            } else if (arrayElementType.equals(Class.class)) {
+                for (Object value : arrayElements) {
+                    Class<?> clazz = (Class<?>) value;
+                    arrayVisitor.visit(null, Type.getType(clazz));
+                }
+            } else if (arrayElementType.isAnnotation()) {
+                for (Object annotation : arrayElements) {
+                    AnnotationVisitor nestedAnnotationVisitor = arrayVisitor.visitAnnotation(null, Type.getType(arrayElementType).getDescriptor());
+                    visitAnnotationValues((Annotation) annotation, nestedAnnotationVisitor);
+                    nestedAnnotationVisitor.visitEnd();
+                }
+            } else {
+                for (Object value : arrayElements) {
+                    arrayVisitor.visit(null, value);
+                }
+            }
+        }
+
+        private Object getAnnotationParameterValue(Annotation annotation, Method method) {
+            try {
+                return method.invoke(annotation);
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 

@@ -795,7 +795,18 @@ public class AsmBackedClassGeneratorTest {
     public void includesNotInheritedTypeAnnotations() throws IllegalAccessException, InstantiationException {
         Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class);
 
-        assertThat(generatedClass.getAnnotation(BeanAnnotation.class), notNullValue());
+        BeanAnnotation annotation = generatedClass.getAnnotation(BeanAnnotation.class);
+        assertThat(annotation, notNullValue());
+        assertThat(annotation.value(), equalTo("test"));
+        assertThat(annotation.values(), equalTo(new String[] {"1", "2"}));
+        assertThat(annotation.enumValue(), equalTo(AnnotationEnum.A));
+        assertThat(annotation.enumValues(), equalTo(new AnnotationEnum[] {AnnotationEnum.A, AnnotationEnum.B}));
+        assertThat(annotation.number(), equalTo(1));
+        assertThat(annotation.numbers(), equalTo(new int[] {1, 2}));
+        assertThat(annotation.clazz().equals(Integer.class), equalTo(true));
+        assertThat(annotation.classes(), equalTo(new Class<?>[] {Integer.class}));
+        assertThat(annotation.annotation().value(), equalTo("nested"));
+        assertThat(annotation.annotations()[0].value(), equalTo("nested array"));
     }
 
     public static class Bean {
@@ -1239,12 +1250,43 @@ public class AsmBackedClassGeneratorTest {
     private static class PrivateBean {
     }
 
+    public enum AnnotationEnum {
+        A, B
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public static @interface NestedBeanAnnotation {
+        String value();
+    }
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public static @interface BeanAnnotation {
+        String value();
+        String[] values();
+        AnnotationEnum enumValue();
+        AnnotationEnum[] enumValues();
+        int number();
+        int[] numbers();
+        Class<?> clazz();
+        Class<?>[] classes();
+        NestedBeanAnnotation annotation();
+        NestedBeanAnnotation[] annotations();
     }
 
-    @BeanAnnotation
+    @BeanAnnotation(
+            value = "test",
+            values = {"1", "2"},
+            enumValue = AnnotationEnum.A,
+            enumValues = {AnnotationEnum.A, AnnotationEnum.B},
+            number = 1,
+            numbers = {1, 2},
+            clazz = Integer.class,
+            classes = {Integer.class},
+            annotation = @NestedBeanAnnotation("nested"),
+            annotations = {@NestedBeanAnnotation("nested array")}
+    )
     public static class AnnotatedBean {
     }
 }
