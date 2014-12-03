@@ -308,6 +308,44 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'org and artifact'    | [org: 'org.gradle.test', artifact: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
+    /**
+     * Module exclude of transitive dependency for multiple rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d -> f
+     * c -> e
+     */
+    @Unroll
+    def "transitive module exclude for multiple rules with #name"() {
+        given:
+        ivyRepo.module('f').publish()
+        ivyRepo.module('d').dependsOn('f').publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('e').publish()
+        ivyRepo.module('c').dependsOn('e').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+
+        excludeRules.each { excludeAttributes ->
+            addExcludeRuleToModule(moduleA, excludeAttributes)
+        }
+
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+
+        where:
+        name               | excludeRules                                                  | resolvedJars
+        'no match'         | [[artifact: 'other'], [artifact: 'some'], [artifact: 'more']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
+        'all matches'      | [[artifact: 'b'], [artifact: 'd'], [artifact: 'f']]           | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'partial match'    | [[artifact: 'other'], [artifact: 'd'], [artifact: 'more']]    | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
+        'duplicated match' | [[artifact: 'f'], [artifact: 'some'], [artifact: 'f']]        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+    }
+
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {
         module.withXml {
             asNode().dependencies[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)

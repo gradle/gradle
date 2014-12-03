@@ -309,6 +309,44 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
+     * Exclude of transitive dependency for multiple rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d -> f
+     * c -> e
+     */
+    @Unroll
+    def "transitive dependency exclude for multiple rules with #name"() {
+        given:
+        ivyRepo.module('f').publish()
+        ivyRepo.module('d').dependsOn('f').publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('e').publish()
+        ivyRepo.module('c').dependsOn('e').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+
+        excludeRules.each { excludeAttributes ->
+            addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        }
+
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+
+        where:
+        name               | excludeRules                                      | resolvedJars
+        'no match'         | [[name: 'other'], [name: 'some'], [name: 'more']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
+        'all matches'      | [[name: 'b'], [name: 'd'], [name: 'f']]           | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'partial match'    | [[name: 'other'], [name: 'd'], [name: 'more']]    | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
+        'duplicated match' | [[name: 'f'], [name: 'some'], [name: 'f']]        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+    }
+
+    /**
      * Exclude of transitive dependency without provided group or module attribute does not exclude its transitive module by using a combination of exclude rules.
      *
      * Dependency graph:
