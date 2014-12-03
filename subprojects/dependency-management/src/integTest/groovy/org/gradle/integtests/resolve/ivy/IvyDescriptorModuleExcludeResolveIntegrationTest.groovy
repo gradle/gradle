@@ -28,6 +28,43 @@ import spock.lang.Unroll
 @Issue("https://issues.gradle.org/browse/GRADLE-3147")
 class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescriptorExcludeResolveIntegrationTest {
     /**
+     * Module exclude for dependencies having single artifact by using a combination of exclude rules that only match partially or not at all.
+     *
+     * Dependency graph:
+     * a -> b, c
+     */
+    @Unroll
+    def "module exclude having single artifact with partially matching #name"() {
+        given:
+        ivyRepo.module('b').publish()
+        ivyRepo.module('c').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        addExcludeRuleToModule(moduleA, excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'])
+
+        where:
+        name                                  | excludeAttributes
+        'module'                              | [module: 'other']
+        'org and module'                      | [org: 'org.gradle.some', module: 'b']
+        'artifact'                            | [artifact: 'other']
+        'artifact and type'                   | [artifact: 'b', type: 'sources']
+        'artifact and ext'                    | [artifact: 'b', ext: 'war']
+        'artifact, type and ext'              | [artifact: 'b', type: 'javadoc', ext: 'jar']
+        'org and artifact'                    | [org: 'org.gradle.test', artifact: 'other']
+        'org, artifact and type'              | [org: 'org.gradle.test', artifact: 'b', type: 'sources']
+        'org, artifact, type and ext'         | [org: 'org.gradle.test', artifact: 'b', type: 'javadoc', ext: 'jar']
+        'org, module and artifact'            | [org: 'org.gradle.test', module: 'b', artifact: 'other']
+        'org, module, artifact and type'      | [org: 'org.gradle.test', module: 'b', artifact: 'b', type: 'sources']
+        'org, module, artifact, type and ext' | [org: 'org.gradle.test', module: 'b', artifact: 'b', type: 'jar', ext: 'war']
+    }
+
+    /**
      * Module exclude for dependencies having single artifact by using a combination of exclude rules.
      *
      * Dependency graph:
@@ -204,7 +241,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
     }
 
     /**
-     * Transitive diamond module exclude for a single path by using a combination of exclude rules.
+     * Transitive module exclude for a module reachable via alternative path using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -212,7 +249,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * c -> d
      */
     @Unroll
-    def "transitive diamond module exclude for single path with matching #name"() {
+    def "module with matching #name is not excluded if reachable via alternate path"() {
         given:
         ivyRepo.module('d').publish()
         IvyModule moduleB = ivyRepo.module('b').dependsOn('d')
@@ -238,7 +275,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
     }
 
     /**
-     * Transitive diamond module exclude for all paths by using a combination of exclude rules.
+     * Transitive module exclude for module reachable by multiple paths for all paths by using a combination of exclude rules.
      *
      * Dependency graph:
      * a -> b, c
@@ -246,7 +283,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * c -> d
      */
     @Unroll
-    def "transitive diamond module exclude for all paths with matching #name"() {
+    def "module reachable by multiple paths excluded for all paths with matching #name"() {
         given:
         ivyRepo.module('d').publish()
         ivyRepo.module('b').dependsOn('d').publish()
