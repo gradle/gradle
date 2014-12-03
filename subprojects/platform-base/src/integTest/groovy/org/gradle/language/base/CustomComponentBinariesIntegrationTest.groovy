@@ -135,8 +135,6 @@ Binaries
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << """
-
-
         task checkSourceSets << {
             def sampleBinary = project.binaries.sampleLibBinary
             def othersSampleBinary = project.binaries.sampleLibOtherBinary
