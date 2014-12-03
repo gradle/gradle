@@ -594,3 +594,7 @@ However, given our current capabilities there's no real useful case for this.
 This is about ensuring that managed model instances don't make debugging more difficult by presenting type names that don't hint at the type.
 
 ### Attempt to path past unmanaged element produces indicative error message
+
+## Backlog
+
+- Convenience and/or enforcement of “internal to plugin” properties of model elements

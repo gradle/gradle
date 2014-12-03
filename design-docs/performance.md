@@ -130,13 +130,3 @@ Implementation notes
     -the feature is not enabled by default (can be turned on)
 
 2. Reuse build script and plugin classloaders.
-
-# Model configuration
-
-Potential spikes/stories:
-
-1. More profiling of configuration time to look for hot-spots.
-2. Push implicit plugin application, so that plugins are only applied at configuration time when they are required.
-3. Only create those tasks that are required for the build.
-4. Only configure those domain objects that are required for the build.
-5. parallel configuration.
