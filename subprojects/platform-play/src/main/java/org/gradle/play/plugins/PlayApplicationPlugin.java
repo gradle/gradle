@@ -92,6 +92,10 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(PlayToolChainInternal.class);
         }
+        @Model
+        FileResolver fileResolver(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(FileResolver.class);
+        }
 
         private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
             platform.setName("PlayPlatform" + playVersion);
@@ -124,11 +128,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configureDefaultPlaySources(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
+        void configureDefaultPlaySources(ComponentSpecContainer components, final FileResolver fileResolver) {
             components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playComponent) {
                     // TODO:DAZ Scala source set type should be registered
-                    ScalaSources appSources = new ScalaSources("appSources", playComponent.getName(), serviceRegistry.get(FileResolver.class));
+                    ScalaSources appSources = new ScalaSources("appSources", playComponent.getName(), fileResolver);
                     // Compile everything under /app, except for raw twirl templates
                     // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
                     appSources.getSource().srcDir("app");
@@ -150,7 +154,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @ComponentBinaries
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
                             PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
-                            final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
+                            final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
             for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
                 final String binaryName = String.format("%sBinary", componentSpec.getName());
                 binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
@@ -169,7 +173,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-                        FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
                         ScalaSources genSources = new ScalaSources("genSources", binaryName, fileResolver);
                         playBinaryInternal.setGeneratedScala(genSources);
                     }
@@ -186,8 +189,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                final ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                 public void execute(TwirlCompile twirlCompile) {
@@ -204,8 +206,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryTasks
-        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                 final ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
@@ -225,11 +226,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         @BinaryTasks
         void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            //load compile dependencies for scalaCompile
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            PlayToolChainInternal playToolChain = serviceRegistry.get(PlayToolChainInternal.class);
-
+                                PlayToolChainInternal playToolChain, FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
@@ -291,16 +288,12 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            final PlayToolChainInternal playToolChain = serviceRegistry.get(PlayToolChainInternal.class);
-
+        void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, PlayToolChainInternal playToolChain, final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 final PlayPlatform targetPlatform = binary.getTargetPlatform();
-                // TODO the knowledge about platform dependencies should be moved into toolchain/toolprovider
-
                 FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
                 final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
+
                 final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
                 // TODO:DAZ Model a test suite
                 final File testSourceDir = fileResolver.resolve("test");

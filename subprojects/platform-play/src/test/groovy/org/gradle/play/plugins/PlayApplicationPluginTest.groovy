@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.tasks.testing.Test
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
@@ -35,7 +34,6 @@ class PlayApplicationPluginTest extends Specification {
 
     CollectionBuilder<Task> taskCollectionBuilder = Mock()
     BinaryContainer binaryContainer = Mock()
-    ServiceRegistry serviceRegistry = Mock()
     ProjectIdentifier projectIdentifier = Mock()
     PlayApplicationBinarySpec binary = Mock()
     PlayPlatform playPlatform = Mock()
@@ -51,9 +49,6 @@ class PlayApplicationPluginTest extends Specification {
     PlayApplicationPlugin.Rules playApplicationPluginRules = new PlayApplicationPlugin.Rules()
 
     def setup(){
-        1 * serviceRegistry.get(PlayToolChainInternal.class) >> playToolChain
-        1 * serviceRegistry.get(FileResolver.class) >> fileResolver
-
         1 * playToolChain.select(playPlatform) >> playToolProvider
         1 * binary.getTargetPlatform() >> playPlatform
         1 * binaryContainer.withType(PlayApplicationBinarySpec.class) >> binaryContainer
@@ -66,7 +61,7 @@ class PlayApplicationPluginTest extends Specification {
         _ * binary.name >> "someBinary"
 
         when:
-        playApplicationPluginRules.createTestTasks(taskCollectionBuilder, binaryContainer, serviceRegistry, projectIdentifier, buildDir)
+        playApplicationPluginRules.createTestTasks(taskCollectionBuilder, binaryContainer, playToolChain, fileResolver, projectIdentifier, buildDir)
         then:
         1 * taskCollectionBuilder.create("compileSomeBinaryTests", PlatformScalaCompile, _)
         1 * taskCollectionBuilder.create("testSomeBinary", Test, _)
