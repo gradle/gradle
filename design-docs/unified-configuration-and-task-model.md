@@ -238,6 +238,10 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
     - `ModelRuleSourceDetector` should be global scope and use weak references to classes.
 - `TaskRemovalIntegrationTest.cant remove task in after evaluate if task is used by a #annotationClass` is ignored
 
+# Open Questions
+
+- How to order mutations that may derive properties from the subject
+
 # Backlog
 
 Potential stories and ideas.

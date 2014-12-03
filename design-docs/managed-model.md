@@ -532,6 +532,7 @@ Unmanaged properties must be accompanied by a setter.
 ## Open Questions
 
 - Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
+- Should getters of subjects be allowed to be called during mutation rules? (i.e. we can't guarantee they won't change)
 
 ## Backlog
 
