@@ -33,7 +33,7 @@ import org.gradle.internal.service.ServiceRegistry
 interface SampleBinary extends BinarySpec {}
 interface OtherSampleBinary extends SampleBinary {}
 
-interface LibrarySourceSet extends LanguageSourceSet{ }
+interface LibrarySourceSet extends LanguageSourceSet {}
 
 class DefaultLibrarySourceSet extends org.gradle.language.base.internal.AbstractLanguageSourceSet implements LibrarySourceSet {
 
@@ -64,9 +64,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
             @Mutate
             void createSampleComponentComponents(CollectionBuilder<SampleLibrary> componentSpecs, ServiceRegistry serviceRegistry) {
-                componentSpecs.create("sampleLib", new Action<SampleLibrary>(){
+                componentSpecs.create("sampleLib", new Action<SampleLibrary>() {
                     public void execute(SampleLibrary library) {
-                        library.sources{
+                        library.sources {
                             it.add(new DefaultLibrarySourceSet("librarySource", serviceRegistry.get(FileResolver.class)))
                         }
                     }
@@ -83,10 +83,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
                 builder.defaultImplementation(OtherSampleBinaryImpl)
             }
         }
+    }
 
-        }
-
-        apply plugin:MyBinaryDeclarationModel
+    apply plugin:MyBinaryDeclarationModel
 """
     }
 

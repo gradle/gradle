@@ -31,7 +31,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
@@ -240,9 +239,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             final Dependency playDependency = dependencyHandler.create(playToolChain.select(binary.getTargetPlatform()).getPlayDependencyNotation());
             final Configuration appCompileClasspath = configurationContainer.detachedConfiguration(playDependency);
 
-            Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
-            final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
-
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
@@ -320,9 +316,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion()));
                 final Configuration testCompileConfiguration = configurationContainer.detachedConfiguration(playTestDependency);
 
-                Dependency zincDependency = dependencyHandler.create(String.format("com.typesafe.zinc:zinc:%s", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
-                final Configuration zincClasspath = configurationContainer.detachedConfiguration(zincDependency);
-
                 final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
                 final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
                 // TODO:DAZ Model a test suite
@@ -351,13 +344,13 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 tasks.create(testTaskName, Test.class, new Action<Test>() {
                     public void execute(Test test) {
                         test.setTestClassesDir(testClassesDir);
-                        test.setBinResultsDir(new File(buildDir, String.format("binTestResultsDir/%s", binary.getName())));
-                        test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/test-results", binary.getName())));
-                        test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s/html", binary.getName())));
+                        test.setBinResultsDir(new File(buildDir, String.format("tmp/testResults/%s", test.getName())));
+                        test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/junit", binary.getName())));
+                        test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s", binary.getName())));
                         test.dependsOn(testCompileTaskName);
-                        test.setTestSrcDirs(Arrays.asList(fileResolver.resolve("test")));
+                        test.setTestSrcDirs(Arrays.asList(testSourceDir));
                         test.setWorkingDir(projectIdentifier.getProjectDir());
-                        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
+                        test.setClasspath(testCompileClasspath);
                     }
                 });
             }

@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 @TargetCoverage({PlayCoverage.DEFAULT})
-abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSpec{
+abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
-    def setup(){
+    def setup() {
         buildFile <<"""
         plugins {
             id 'play-application'
