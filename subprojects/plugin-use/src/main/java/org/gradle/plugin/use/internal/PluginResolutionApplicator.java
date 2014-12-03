@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.plugins.PluginManager;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 
