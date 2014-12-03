@@ -474,12 +474,6 @@ That is, this error may have been caused by the build user due to bad configurat
 
 This story is about helping plugin developers understand why a rule defined by their plugin (or a collaborating plugin) did not bind, in the context of an actual build.
 
-## Story: Build user views report that shows information about the available model
-
-Add some command-line report to show basic details of the model space.
-
-## Story: Profile report contains information about execution time of model rules
-
 ## Story: Build author declares model element in build script
 
 ## Story: Plugin provides unmanaged object as model element
@@ -546,27 +540,6 @@ To implement this, model objects will need to be serializable in some form.
 
 For up-to-date checks, the implementation of a rule also forms input to the rule. Need to include this and invalidate cached outputs. Fix this for tasks at the same time.
 
-## Extract all information available at compile time **once** from each script
-
-The DSL for declaring rules (e.g. model {}) allows us to extract information at compile time about rules and their inputs.
-Given that the rule definitions should be free of context, this information should only be extracted once.
-
-Consider:
-
-    # scriptPlugin.groovy
-    model {
-      foo.bar {
-      
-      }
-    }
-    
-    # root build.gradle of 1000 subproject build
-    allprojects {
-      apply from: "scriptPlugin.groovy"
-    }
-
-There should be no need to actually execute the `model {}` block in `scriptPlugin.groovy` 1000 times because the rule information within can be extracted _once_ at compile time and then reused in each context it is applied.
-
 # Backlog
 
 Potential stories and items of work.
@@ -576,6 +549,7 @@ Potential stories and items of work.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
 - Some kind of explorable/browsable representation of the model elements for a build
+- Profile report contains information about execution time of model rules
 
 ## Cleanup
 
@@ -594,3 +568,8 @@ These should be rationalised and ideally replaced with model rules.
 
 - Plugin author verifies that plugin makes model element available
 - Plugin author verifies that plugin correctly configures model element, based on supplied “other” model elements
+
+## Performance
+
+- Extract rules from plugins once per build (and possibly cache) instead of repeating for each project
+- Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
