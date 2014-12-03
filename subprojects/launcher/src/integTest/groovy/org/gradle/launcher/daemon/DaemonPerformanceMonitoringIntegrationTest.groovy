@@ -18,9 +18,6 @@
 
 package org.gradle.launcher.daemon
 
-import spock.lang.Ignore
-
-@Ignore //until I figure out ci failures
 class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
@@ -60,18 +57,18 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         executer.noExtraLogging()
 
         buildFile << """
-            class Counter {
+            class State {
                 static int x
+                static map = [:]
             }
-            Counter.x++
+            State.x++
 
-            //simulate the leak, with each build local map will be bigger
-            def map = [:]
-            (Counter.x * 1000).times {
-                map.put(it, "foo" * 400)
+            //simulate the leak
+            (State.x * 1000).times {
+                State.map.put(it, "foo" * 300)
             }
 
-            println "Build: " + Counter.x
+            println "Build: " + State.x
         """
     }
 }
