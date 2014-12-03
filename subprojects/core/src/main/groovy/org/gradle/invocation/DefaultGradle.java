@@ -250,7 +250,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    protected PluginManager getPluginManager() {
+    public PluginManager getPluginManager() {
         throw new UnsupportedOperationException();
     }
 }

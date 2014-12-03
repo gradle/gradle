@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.ObjectConfigurationAction;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScript;
@@ -30,7 +29,6 @@ import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -110,8 +108,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyType(String pluginId) {
         for (Object target : targets) {
-            if (target instanceof PluginAware) {
-                ((PluginAware) target).apply(Collections.singletonMap("plugin", pluginId));
+            if (target instanceof PluginAwareInternal) {
+                ((PluginAwareInternal) target).getPluginManager().apply(pluginId);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
             }
@@ -120,8 +118,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyType(Class<?> pluginClass) {
         for (Object target : targets) {
-            if (target instanceof PluginAware) {
-                ((PluginAware) target).apply(Collections.singletonMap("plugin", pluginClass));
+            if (target instanceof PluginAwareInternal) {
+                ((PluginAwareInternal) target).getPluginManager().apply(pluginClass);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
             }

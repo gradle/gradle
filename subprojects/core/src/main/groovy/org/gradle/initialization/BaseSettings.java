@@ -225,7 +225,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     }
 
     @Inject
-    protected PluginManager getPluginManager() {
+    public PluginManager getPluginManager() {
         throw new UnsupportedOperationException();
     }
 }

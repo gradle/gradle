@@ -20,16 +20,15 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.ObjectConfigurationAction;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
 
-abstract public class AbstractPluginAware implements PluginAware {
+abstract public class AbstractPluginAware implements PluginAwareInternal {
 
     public void apply(Closure closure) {
         apply(ClosureBackedAction.of(closure));
@@ -42,23 +41,10 @@ abstract public class AbstractPluginAware implements PluginAware {
     }
 
     public void apply(Map<String, ?> options) {
-        if (options.size() == 1 && options.containsKey("plugin")) {
-            Object pluginValue = options.get("plugin");
-            if (pluginValue instanceof String) {
-                getPluginManager().apply((String) pluginValue);
-            } else if (pluginValue instanceof Class<?>) {
-                getPluginManager().apply((Class<?>) pluginValue);
-            } else {
-                throw new IllegalArgumentException("'plugin' value must be either a String or Class");
-            }
-        } else {
-            DefaultObjectConfigurationAction action = createObjectConfigurationAction();
-            ConfigureUtil.configureByMap(options, action);
-            action.execute();
-        }
+        DefaultObjectConfigurationAction action = createObjectConfigurationAction();
+        ConfigureUtil.configureByMap(options, action);
+        action.execute();
     }
-
-    protected abstract PluginManager getPluginManager();
 
     public PluginContainer getPlugins() {
         return getPluginManager().getPluginContainer();

@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
@@ -32,6 +33,7 @@ import java.util.Map;
  * <p>
  * For more on writing and applying plugins, see {@link org.gradle.api.Plugin}.
  */
+@HasInternalProtocol
 public interface PluginAware {
 
     /**
