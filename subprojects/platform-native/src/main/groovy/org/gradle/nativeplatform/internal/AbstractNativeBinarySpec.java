@@ -102,11 +102,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return staticLibArchiver;
     }
 
-    public abstract NativeBinaryTasks getTasks();
-
-    public NativeBinaryTasks getNativeBinaryTasks() {
-        return getTasks();
-    }
+    public abstract TasksCollection getTasks();
 
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
@@ -154,8 +150,8 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         this.resolver = resolver;
     }
 
-    public static class DefaultNativeBinaryTasks extends DefaultBinaryTasksCollection implements NativeBinaryTasks {
-        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
+    protected static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements TasksCollection {
+        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }
 

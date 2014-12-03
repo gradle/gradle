@@ -50,7 +50,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     def buildType = Stub(BuildType)
     final resolver = Stub(NativeDependencyResolver)
     final outputFile = Mock(File)
-    def tasks = new DefaultStaticLibraryBinarySpec.DefaultNativeBinaryTasks()
+    def tasks = new DefaultStaticLibraryBinarySpec.DefaultTasksCollection()
 
     def "has useful string representation"() {  
         expect:

@@ -34,7 +34,7 @@ public interface NativeBinarySpec extends BinarySpec {
     /**
      * Provides access to key tasks used for building the binary.
      */
-    public interface NativeBinaryTasks extends BinaryTasksCollection {
+    public interface TasksCollection extends BinaryTasksCollection {
         /**
          * The task that builds the binary out of object files: either the link task or create static library task as appropriate.
          */
@@ -105,5 +105,5 @@ public interface NativeBinarySpec extends BinarySpec {
     /**
      * The set of tasks associated with this binary.
      */
-    NativeBinaryTasks getTasks();
+    TasksCollection getTasks();
 }

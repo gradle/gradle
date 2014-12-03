@@ -35,7 +35,7 @@ import spock.lang.Specification
 class DefaultNativeExecutableBinarySpecTest extends Specification {
     def instantiator = new DirectInstantiator()
     def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
-    def tasks = new DefaultNativeExecutableBinarySpec.DefaultNativeBinaryTasks()
+    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection()
 
     def "has useful string representation"() {
         given:

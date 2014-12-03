@@ -30,7 +30,7 @@ public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * Provides access to key tasks used for building the binary.
      */
-    public interface NativeBinaryTasks extends NativeBinarySpec.NativeBinaryTasks {
+    public interface TasksCollection extends NativeBinarySpec.TasksCollection {
         /**
          * The create static library task.
          */
@@ -54,5 +54,5 @@ public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * {@inheritDoc}
      */
-    NativeBinaryTasks getTasks();
+    TasksCollection getTasks();
 }

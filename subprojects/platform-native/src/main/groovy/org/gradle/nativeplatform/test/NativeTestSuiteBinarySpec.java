@@ -31,7 +31,7 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     /**
      * Provides access to key tasks used for building the binary.
      */
-    public interface NativeBinaryTasks extends NativeBinarySpec.NativeBinaryTasks {
+    public interface TasksCollection extends NativeBinarySpec.TasksCollection {
         /**
          * The link task.
          */
@@ -65,5 +65,5 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     /**
      * {@inheritDoc}
      */
-    NativeBinaryTasks getTasks();
+    TasksCollection getTasks();
 }

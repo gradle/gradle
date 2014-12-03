@@ -22,7 +22,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
-    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultNativeBinaryTasks()
+    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection()
 
     def "returns null for link, builder and run when none defined"() {
         expect:

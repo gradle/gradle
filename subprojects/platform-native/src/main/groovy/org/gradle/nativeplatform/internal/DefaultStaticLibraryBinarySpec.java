@@ -30,7 +30,7 @@ import java.util.Set;
 
 public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
-    private final StaticLibraryBinarySpec.NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
+    private final StaticLibraryBinarySpec.TasksCollection tasks = new DefaultTasksCollection(this);
     private File staticLibraryFile;
 
     public File getStaticLibraryFile() {
@@ -57,12 +57,12 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return new SimpleFileCollection();
     }
 
-    public StaticLibraryBinarySpec.NativeBinaryTasks getTasks() {
+    public StaticLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    public static class DefaultNativeBinaryTasks extends AbstractNativeLibraryBinarySpec.DefaultNativeBinaryTasks implements StaticLibraryBinarySpec.NativeBinaryTasks {
-        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
+    private static class DefaultTasksCollection extends AbstractNativeBinarySpec.DefaultTasksCollection implements StaticLibraryBinarySpec.TasksCollection {
+        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }
 

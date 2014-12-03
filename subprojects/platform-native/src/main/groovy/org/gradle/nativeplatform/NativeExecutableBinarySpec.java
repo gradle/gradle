@@ -30,7 +30,7 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
     /**
      * Provides access to key tasks used for building the binary.
      */
-    public interface NativeBinaryTasks extends NativeBinarySpec.NativeBinaryTasks {
+    public interface TasksCollection extends NativeBinarySpec.TasksCollection {
         /**
          * The link task.
          */
@@ -55,5 +55,5 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
     /**
      * {@inheritDoc}
      */
-    NativeBinaryTasks getTasks();
+    TasksCollection getTasks();
 }
