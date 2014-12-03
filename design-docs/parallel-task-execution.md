@@ -86,6 +86,24 @@ What exactly can be/should be verified and/or enforced is yet to be determined.
 
 Ideally, the parallelizable tasks of the JavaPlugin (previous story) conform to the requirements without breaking changes.
 
+### Suitable tasks of native plugins are parallel enabled
+
+Candidates:
+
+- `Assemble`
+- `CCompile`
+- `CppCompile`
+- `ObjectiveCCompile`
+- `ObjectiveCppCompile`
+- `WindowsResourceCompile`
+- `CreateStaticLibrary`
+- `InstallExecutable`
+- `LinkExecutable`
+- `LinkSharedLibrary`
+- `RunTestExecutable`
+
+The implementation of these tasks needs to be examined/changed to ensure they are safe to parallelize.
+
 ### Document how to write parallelizable tasks
 
 - How to enable
