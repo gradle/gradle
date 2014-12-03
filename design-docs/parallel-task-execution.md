@@ -115,6 +115,8 @@ The implementation of these tasks needs to be examined/changed to ensure they ar
 
 ### Enable parallel execution of all applicable tasks shipped with Gradle
 
+### Ensure that `JdkJavaCompiler` is thread safe
+
 ## Milestone 2 - improved task scheduling
 
 ## Milestone 3 - improved feedback/reporting when executing tasks in parallel
