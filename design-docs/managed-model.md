@@ -529,72 +529,31 @@ Unmanaged properties must be accompanied by a setter.
       }
     }
 
-## Future candidate stories (unordered)
+## Open Questions
 
-### Model designer augments generated display name to contain extra information
-
-Possible driver for this is the component report.
-
-### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation
-
-### User assigns reference type property using indirect identifier
-
-i.e. Something like the current scenario with `Platform.operatingSystem`. There is a set of objects of the referenced type, and they can be assigned as references some convenient way (e.g. by parsing a string)
-
-### User is prevented from mutating managed model object when being used as an input
-
-i.e. Something like the current scenario with `Platform.operatingSystem`. There is a set of objects of the referenced type, and they can be assigned as references some convenient way (e.g. by parsing a string)
-
-
-### Plugin creates item of managed type in collection property of managed type
- 
-### Plugin creates item of managed type in collection property of unmanaged type
- 
-> Need to find a use case for this to see if it's needed (i.e. do we mix managed/unmanaged) types
- 
-### Model rule creates property of managed object
-
-   @Managed
-    interface Person {
-      String getName(); void setName(String string)
-      Person getFather();
-    }
-    
-    class Rules {
-      @Model
-      void p1(Person person) {
-        person.setName("foo");
-      }
-      
-      @Model("p1.father")
-      void father(Person father) {
-        father.setName("father")
-      }
-    }
-    
-    model {
-      tasks {
-        create("test") {
-          it.doLast {
-            def p1 = $("p1")
-            assert p1.father.name == "father"
-          }
-        }
-      }
-    }
-
-#### Notes
-
-Haven't identified a real use case for this yet. 
-In theory, it allows avoiding creating the nested property if it's not needed.
-However, given our current capabilities there's no real useful case for this.
-
-### User sees useful type name in stack trace for managed model type and while debugging
-
-This is about ensuring that managed model instances don't make debugging more difficult by presenting type names that don't hint at the type.
-
-### Attempt to path past unmanaged element produces indicative error message
+- Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
 
 ## Backlog
 
+### Collections
+
+- Collections of value elements
+- Map type collections
+- Ordered collections
+- Semi ordered collections (e.g. command line, where some elements have an order relationship)
+- Maps of value elements
+- Maps of model elements
+- Collections of implicitly keyed elements, acting as a map
+
+### Extensibility & views
+
 - Convenience and/or enforcement of “internal to plugin” properties of model elements
+- Extending model elements with new properties
+
+### Diagnostics
+
+- User sees useful type name in stack trace for managed model type and while debugging (i.e. not JDK proxy class names)
+
+### Misc
+
+- Allow some control over generated display name property
