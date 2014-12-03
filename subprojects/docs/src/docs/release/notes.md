@@ -37,6 +37,29 @@ as well as for all modules.  Furthermore, rules can now also be specified as `ru
 
 See the [userguide section](userguide/dependency_management.html#component_metadata_rules) on component metadata rules for further information.
 
+### Daemon health monitoring
+
+The daemon actively monitors its health and may expire earlier if its performance degrades.
+The current implementation monitors the overhead of garbage collector and may detect memory issues.
+Memory problems can be caused by 3rd party plugins written without performance review.
+We want the Gradle daemon to be rock solid and enabled by default in the future.
+This feature is a big step forward towards the goal.
+Down the road the health monitoring will get richer and smarter, providing the users the insight into daemon's performance
+and deciding whether to restart the daemon process.
+
+System property "org.gradle.daemon.performance.logging" can be used to switch on an elegant message emitted at the beginning of each build.
+The new information presented in the build log helps getting better understanding of daemon's performance:
+
+    Starting 3rd build in daemon [uptime: 15 mins, performance: 92%, memory: 65% of 1.1 GB]
+
+The logging can be turned on by tweaking "org.gradle.jvmargs" property of the gradle.properties file:
+
+    org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true
+
+### Improved performance with ClassLoader caching
+
+TODO
+
 ### New PluginAware methods for detecting the presence of plugins
 
 The `PluginAware` interface (implemented by `Project`, `Gradle` and `Settings`) has the following new methods for detecting the presence of plugins, based on ID:
@@ -84,8 +107,6 @@ That is, archive entries that are themselves archives are compared entry by entr
 A common type of nested archive is a WAR file containing JAR files.
 
 This feature was contributed by [Björn Kautler](https://github.com/Vampire).
-
-### Daemon health - TODO
 
 ### Tooling API improvements
 
