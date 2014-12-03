@@ -18,25 +18,53 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GFileUtils
 
 abstract class PlayApp {
+
+
     List<SourceFile> getAllFiles() {
         return appSources + testSources + viewSources + assetSources + confSources
     }
 
-    abstract List<SourceFile> getAppSources();
-    abstract List<SourceFile> getViewSources();
-    abstract List<SourceFile> getTestSources();
-    abstract List<SourceFile> getAssetSources();
-    abstract List<SourceFile> getConfSources();
+    List<SourceFile> getAppSources() {
+        return sourceFiles("app").findAll {
+            it.path != "app/views"
+        }
+    }
 
-    protected SourceFile sourceFile(String path, String name, String content) {
-        return new SourceFile(path, name, content);
+    abstract List<SourceFile> getViewSources();
+    abstract List<SourceFile> getConfSources();
+    abstract List<SourceFile> getAssetSources();
+
+
+    protected SourceFile sourceFile(String path, String name, String baseDir = getClass().getSimpleName().toLowerCase()) {
+        URL resource = getClass().getResource("$baseDir/$path/$name");
+        File file = new File(resource.toURI())
+        return new SourceFile(path, name, file.text);
     }
 
     void writeSources(TestFile sourceDir) {
         for (SourceFile srcFile : allFiles) {
             srcFile.writeToDir(sourceDir)
         }
+    }
+
+    List<SourceFile> sourceFiles(String baseDir, String rootDir = getClass().getSimpleName().toLowerCase()) {
+        List sourceFiles = new ArrayList()
+
+        URL resource = getClass().getResource("$rootDir/$baseDir")
+        if(resource != null){
+            File baseDirFile = new File(resource.toURI())
+            baseDirFile.eachFileRecurse { File source ->
+                if(!source.isDirectory()){
+                    String fileName = source.getName()
+                    def subpath = GFileUtils.relativePath(baseDirFile, source.parentFile);
+                    sourceFiles.add(sourceFile("$baseDir/$subpath", fileName, rootDir))
+                }
+            }
+        }
+
+        return sourceFiles
     }
 }

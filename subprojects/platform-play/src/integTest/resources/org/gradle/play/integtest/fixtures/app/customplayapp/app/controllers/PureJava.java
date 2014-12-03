@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package controllers;
 
-package org.gradle.play.integtest.fixtures.app
+import play.*;
+import play.mvc.*;
+import views.html.*;
 
-class CustomPlayApp extends BasePlayApp{
+public class PureJava extends Controller {
+
+    public static Result index() {
+        return ok(index.render("Your new application is ready."));
+    }
+
 }

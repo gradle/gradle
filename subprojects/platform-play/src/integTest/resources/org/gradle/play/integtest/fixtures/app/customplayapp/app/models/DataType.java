@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures.app
+package models;
 
-class CustomPlayApp extends BasePlayApp{
+public class DataType {
+    private final String foo;
+    private final int bar;
+
+    public DataType(String foo, int bar) {
+        this.foo = foo;
+        this.bar = bar;
+    }
 }

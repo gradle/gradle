@@ -1,0 +1,2 @@
+GET        /one         controllers.MixedJava.index
+POST       /two         special.strangename.Application.index

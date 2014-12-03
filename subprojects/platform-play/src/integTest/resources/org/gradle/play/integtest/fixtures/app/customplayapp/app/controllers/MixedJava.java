@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures.app
+package controllers;
 
-class CustomPlayApp extends BasePlayApp{
+import play.*;
+import play.mvc.*;
+import views.html.*;
+
+public class MixedJava extends Controller {
+
+    public static Result index() {
+        System.out.println(new models.ScalaClass("Java can also reference Scala files"));
+        return ok(index.render("Your new mixed application is ready."));
+    }
+
 }

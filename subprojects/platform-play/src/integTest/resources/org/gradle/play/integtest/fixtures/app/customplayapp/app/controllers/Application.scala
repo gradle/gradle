@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures.app
+package controllers
 
-class CustomPlayApp extends BasePlayApp{
+
+import play.api._
+import play.api.mvc._
+import models._
+
+object Application extends Controller {
+  def index = Action {
+    Ok(views.html.awesome.index(List(new DataType("foo", 1))))
+  }
+  def root = Action {
+    Ok(views.html.awesome.index(List(new DataType("bar", 2))))
+  }
 }

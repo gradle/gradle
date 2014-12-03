@@ -16,5 +16,23 @@
 
 package org.gradle.play.integtest.fixtures.app
 
-class CustomPlayApp extends BasePlayApp{
+import org.gradle.integtests.fixtures.SourceFile
+
+abstract class BasePlayApp extends PlayApp{
+
+    List<SourceFile> getViewSources() {
+        return sourceFiles("app/views");
+    }
+
+    List<SourceFile> getConfSources() {
+        return sourceFiles("conf", "shared") + sourceFiles("conf")
+    }
+
+    List<SourceFile> getAssetSources() {
+        sourceFiles("public", "shared")
+    }
+
+    List<SourceFile> getTestSources() {
+        return sourceFiles("test")
+    }
 }
