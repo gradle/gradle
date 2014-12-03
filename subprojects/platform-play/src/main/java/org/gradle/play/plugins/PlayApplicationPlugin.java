@@ -350,7 +350,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         test.dependsOn(testCompileTaskName);
                         test.setTestSrcDirs(Arrays.asList(testSourceDir));
                         test.setWorkingDir(projectIdentifier.getProjectDir());
-                        test.setClasspath(testCompileClasspath);
+                        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
                     }
                 });
             }

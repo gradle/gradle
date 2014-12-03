@@ -23,14 +23,16 @@ import static org.junit.Assert.assertThat
 class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private final TestFile buildDir
     private final TestResultOutputAssociation outputAssociation
+    private final String xmlResultDirName
 
-    def JUnitXmlTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
-        this(projectDir, TestResultOutputAssociation.WITH_SUITE, buildDirName)
+    def JUnitXmlTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String xmlResultDirName = "test-results") {
+        this(projectDir, TestResultOutputAssociation.WITH_SUITE, buildDirName, xmlResultDirName)
     }
 
-    def JUnitXmlTestExecutionResult(TestFile projectDir, TestResultOutputAssociation outputAssociation, String buildDirName = 'build') {
+    def JUnitXmlTestExecutionResult(TestFile projectDir, TestResultOutputAssociation outputAssociation, String buildDirName = 'build', String xmlResultDirName = 'test-results') {
         this.outputAssociation = outputAssociation
         this.buildDir = projectDir.file(buildDirName)
+        this.xmlResultDirName = xmlResultDirName
     }
 
     boolean hasJUnitXmlResults() {
@@ -65,7 +67,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         xmlResultsDir().assertIsDir()
 
         Map<String, File> classes = [:]
-        buildDir.file('test-results').eachFile { File file ->
+        buildDir.file(xmlResultDirName).eachFile { File file ->
             def matcher = (file.name=~/TEST-(.+)\.xml/)
             if (matcher.matches()) {
                 classes[fromFileToTestClass(matcher.group(1))] = file
@@ -75,7 +77,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     }
 
     private TestFile xmlResultsDir() {
-        buildDir.file('test-results')
+        buildDir.file(xmlResultDirName)
     }
 }
 
