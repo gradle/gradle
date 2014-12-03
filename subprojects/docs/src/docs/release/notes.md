@@ -279,6 +279,7 @@ We would like to thank the following community members for making contributions 
 * [Wojciech Gawroński](https://github.com/afronski) - add a toggle for wrapping long lines of 'code' blocks in test reports
 * [Ben McCann](https://github.com/benmccann) - use https when downloading Play binaries in integration tests
 * [Mike Meesen](https://github.com/netmikey) - support external DTDs in ear application descriptors when building with Java 8
+* [Andrew Kowal](https://github.com/akowal) - Fix test class detection when using jdk8 '`-parameters`' compiler option (GRADLE-3157)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
