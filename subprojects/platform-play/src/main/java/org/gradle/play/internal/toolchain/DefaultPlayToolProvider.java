@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.tasks.WorkResult;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
+
     private final FileResolver fileResolver;
     private final CompilerDaemonManager compilerDaemonManager;
     private final ConfigurationContainer configurationContainer;
@@ -85,7 +87,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
         List<File> playRunClasspath = new ArrayList<File>();
         Set<File> applicationFiles = fileResolver.resolveFiles(spec.getClasspath()).getFiles();
-        Configuration playDependencyFiles = resolveClasspath(getPlayDependencyNotation(), getDocsDependencyNotation());
+        FileCollection playDependencyFiles = getDependencies(getPlayDependencyNotation(), getDocsDependencyNotation());
         playRunClasspath.addAll(applicationFiles);
         playRunClasspath.addAll(playDependencyFiles.getFiles());
 
@@ -93,8 +95,23 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec);
     }
 
-    public Object getPlayDependencyNotation() {
-        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion());
+    public FileCollection getPlayDependencies() {
+        return getDependencies(getPlayDependencyNotation());
+    }
+
+    public FileCollection getPlayTestDependencies() {
+        return getDependencies(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion()));
+    }
+
+    private FileCollection getDependencies(Object... dependencyNotations) {
+        List<Dependency> dependencies = CollectionUtils.collect(dependencyNotations, new Transformer<Dependency, Object>() {
+            public Dependency transform(Object dependencyNotation) {
+                return dependencyHandler.create(dependencyNotation);
+            }
+        });
+        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
+        Configuration detachedConfiguration = configurationContainer.detachedConfiguration(dependenciesArray);
+        return detachedConfiguration;
     }
 
     public Object getDocsDependencyNotation() {
@@ -128,6 +145,10 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public void explain(TreeVisitor<? super String> visitor) {
+    }
+
+    private String getPlayDependencyNotation() {
+        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion());
     }
 
     private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T>  {

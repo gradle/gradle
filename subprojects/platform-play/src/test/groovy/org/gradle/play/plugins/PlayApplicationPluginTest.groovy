@@ -17,7 +17,6 @@
 package org.gradle.play.plugins
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
@@ -27,12 +26,11 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.play.PlayApplicationBinarySpec
+import org.gradle.play.internal.toolchain.PlayToolChainInternal
+import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.play.toolchain.PlayToolChain
 import spock.lang.Specification
-/**
- * Created by Rene on 19/11/14.
- */
+
 class PlayApplicationPluginTest extends Specification {
 
     CollectionBuilder<Task> taskCollectionBuilder = Mock()
@@ -41,27 +39,26 @@ class PlayApplicationPluginTest extends Specification {
     ProjectIdentifier projectIdentifier = Mock()
     PlayApplicationBinarySpec binary = Mock()
     PlayPlatform playPlatform = Mock()
-    PlayToolChain playToolChain = Mock()
+    PlayToolChainInternal playToolChain = Mock()
     File buildDir = new File("tmp")
 
     FileResolver fileResolver = Mock()
     ConfigurationContainer configurationContainer = Mock();
-    DependencyHandler dependencyHandler = Mock();
     FileCollection fileCollection = Mock();
+
+    PlayToolProvider playToolProvider = Mock()
 
     PlayApplicationPlugin.Rules playApplicationPluginRules = new PlayApplicationPlugin.Rules()
 
     def setup(){
-        1 * serviceRegistry.get(PlayToolChain.class) >> playToolChain
-        1 * serviceRegistry.get(DependencyHandler.class) >> dependencyHandler
-        1 * serviceRegistry.get(ConfigurationContainer.class) >> configurationContainer
+        1 * serviceRegistry.get(PlayToolChainInternal.class) >> playToolChain
         1 * serviceRegistry.get(FileResolver.class) >> fileResolver
 
+        1 * playToolChain.select(playPlatform) >> playToolProvider
         1 * binary.getTargetPlatform() >> playPlatform
         1 * binaryContainer.withType(PlayApplicationBinarySpec.class) >> binaryContainer
         1 * fileResolver.resolveFiles(_) >> fileCollection
     }
-
 
     def "adds test related tasks per binary"() {
         given:

@@ -17,10 +17,6 @@ package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -50,7 +46,6 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
-import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -233,17 +228,14 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                                 ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             //load compile dependencies for scalaCompile
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
-            DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
             PlayToolChainInternal playToolChain = serviceRegistry.get(PlayToolChainInternal.class);
-            final Dependency playDependency = dependencyHandler.create(playToolChain.select(binary.getTargetPlatform()).getPlayDependencyNotation());
-            final Configuration appCompileClasspath = configurationContainer.detachedConfiguration(playDependency);
 
+            final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
-                    scalaCompile.setClasspath(appCompileClasspath);
+                    scalaCompile.setClasspath(playDependencies);
                     scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
                     //infer scala classpath
                     scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
@@ -275,7 +267,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(Jar jar) {
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
-
                     jar.from(binary.getClasses().getClassesDir());
                     jar.from(binary.getClasses().getResourceDirs());
                     jar.dependsOn(binary.getClasses());
@@ -285,17 +276,13 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
-            final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
                         playRun.setTargetPlatform(binary.getTargetPlatform());
-                        Project project = playRun.getProject();
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.dependsOn(binary.getBuildTask());
                     }
@@ -306,17 +293,14 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         @Mutate
         void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            final ConfigurationContainer configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
-            final DependencyHandler dependencyHandler = serviceRegistry.get(DependencyHandler.class);
-            final PlayToolChain playToolChain = serviceRegistry.get(PlayToolChain.class);
+            final PlayToolChainInternal playToolChain = serviceRegistry.get(PlayToolChainInternal.class);
 
             for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
                 final PlayPlatform targetPlatform = binary.getTargetPlatform();
                 // TODO the knowledge about platform dependencies should be moved into toolchain/toolprovider
-                Dependency playTestDependency = dependencyHandler.create(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion()));
-                final Configuration testCompileConfiguration = configurationContainer.detachedConfiguration(playTestDependency);
 
-                final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(testCompileConfiguration);
+                FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
+                final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
                 final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
                 // TODO:DAZ Model a test suite
                 final File testSourceDir = fileResolver.resolve("test");
