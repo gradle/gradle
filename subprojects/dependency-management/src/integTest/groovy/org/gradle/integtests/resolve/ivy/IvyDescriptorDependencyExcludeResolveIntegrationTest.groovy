@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.test.fixtures.ivy.IvyModule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 /**
@@ -305,6 +306,49 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'org and module'      | [org: 'org.gradle.test', module: 'd'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'name'                | [name: 'd']                           | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'org and name'        | [org: 'org.gradle.test', name: 'd']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+    }
+
+    /**
+     * Exclude of transitive dependency without provided group or module attribute does not exclude its transitive module by using a combination of exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d -> f
+     * c -> e
+     */
+    @Issue("https://issues.gradle.org/browse/GRADLE-2674")
+    @Unroll
+    def "transitive dependency exclude without provided group or module attribute but matching #name does not exclude its transitive module"() {
+        given:
+        ivyRepo.module('f')
+               .artifact([:])
+               .artifact([type: 'war'])
+               .publish()
+        ivyRepo.module('d')
+               .artifact([:])
+               .artifact([type: 'war'])
+               .artifact([type: 'ear'])
+               .dependsOn('f')
+               .publish()
+        ivyRepo.module('b').dependsOn('d').publish()
+        ivyRepo.module('e').publish()
+        ivyRepo.module('c').dependsOn('e').publish()
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+
+        where:
+        name                            | excludeAttributes              | resolvedJars
+        "type 'war'"                    | [type: 'war']                  | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'd-1.0.ear', 'e-1.0.jar', 'f-1.0.jar']
+        "ext 'war'"                     | [ext: 'war']                   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'd-1.0.ear', 'e-1.0.jar', 'f-1.0.jar']
+        "type 'war' and conf 'default'" | [type: 'war', conf: 'default'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'd-1.0.ear', 'e-1.0.jar', 'f-1.0.jar']
+        "ext 'jar'"                     | [ext: 'jar']                   | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.war', 'd-1.0.ear', 'e-1.0.jar', 'f-1.0.war']
     }
 
     private void addExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {
