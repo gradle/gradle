@@ -427,41 +427,6 @@ For example, an extension or some ad hoc model object.
 
 - Change the native language, jvm language and the publication plugins, to use this mechanism to define tasks (only) from their models.
 
-# Milestone x - Make things faster
-
-## Feature: Tasks are not created or configured when not referenced in a build
-
-Only fire the rules to create and configure a task when it is referenced in a build:
-
-- Added to the task graph.
-- When required for `gradle tasks`
-- Building certain tooling API models.
-- Using `TaskContainer` to query task instances.
-
-### Test cases
-
-- Build script configuration closure is executed when `someTask` is required:
-    - Task is added to task graph
-    - Running `gradle tasks`
-    - Building `GradleProject` tooling API model.
-    - Using `TaskContainer` to query task instances.
-- Build script configuration closure is not executed when `someTask` is not required:
-    - Running `gradle help`
-    - Running `gradle someTask` in another project.
-    - Using `TaskContainer` to query task names.
-
-## Feature: Rule is not executed when its outputs are up to date
-
-Short-circuit the execution of all configuration rules whose outputs are up-to-date:
-    - Inputs have not changed.
-    - Rule implementation has not changed.
-
-Continue to execute all legacy DSL.
-
-To implement this, model objects will need to be serializable in some form.
-
-For up-to-date checks, the implementation of a rule also forms input to the rule. Need to include this and invalidate cached outputs. Fix this for tasks at the same time.
-
 # Backlog
 
 Potential stories and items of work.
@@ -493,6 +458,8 @@ These should be rationalised and ideally replaced with model rules.
 
 ## Performance
 
+- Defer creating task instances until absolutely necessary
+- Cache/reuse model elements, avoiding need to run configuration on every build
 - Extract rules from plugins once per build (and possibly cache) instead of repeating for each project
 - Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
 
