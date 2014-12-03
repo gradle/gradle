@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.MatcherHelper;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.specs.Spec;
 
 import java.util.*;
 
@@ -38,7 +37,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleI
  * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
  * evicts a version that depends on the given version). </p>
  */
-public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<ModuleVersionSpec> {
+public abstract class ModuleVersionSpec implements ModuleSelector {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
 
     public static ModuleVersionSpec forExcludes(ExcludeRule... excludeRules) {
@@ -70,7 +69,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         }
         List<ModuleVersionSpec> specs = new ArrayList<ModuleVersionSpec>();
         unpackUnion(specs);
-        other.unpackUnion(specs);
+        ((ModuleVersionSpec) other).unpackUnion(specs);
         for (int i = 0; i < specs.size();) {
             ModuleVersionSpec spec = specs.get(i);
             ModuleVersionSpec merged = null;
@@ -113,7 +112,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         if (!other.getClass().equals(getClass())) {
             return false;
         }
-        return doAcceptsSameModulesAs(other);
+        return doAcceptsSameModulesAs((ModuleVersionSpec) other);
     }
 
     /**
@@ -136,7 +135,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         if (this == ALL_SPEC) {
             return other;
         }
-        return doIntersection(other);
+        return doIntersection((ModuleVersionSpec) other);
     }
 
     protected ModuleVersionSpec doIntersection(ModuleVersionSpec other) {
@@ -150,6 +149,10 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
+            return true;
+        }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
             return true;
         }
     }
@@ -232,6 +235,15 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         public boolean isSatisfiedBy(ModuleId element) {
             for (ModuleVersionSpec excludeSpec : excludeSpecs) {
                 if (excludeSpec.isSatisfiedBy(element)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            for (ModuleVersionSpec excludeSpec : excludeSpecs) {
+                if (excludeSpec.isSatisfiedBy(artifact)) {
                     return false;
                 }
             }
@@ -369,6 +381,16 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
 
             return false;
         }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            for (ModuleVersionSpec spec : specs) {
+                if (spec.isSatisfiedBy(artifact)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static class IntersectSpec extends CompositeSpec {
@@ -386,6 +408,15 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         public boolean isSatisfiedBy(ModuleId element) {
             for (ModuleVersionSpec spec : specs) {
                 if (!spec.isSatisfiedBy(element)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            for (ModuleVersionSpec spec : specs) {
+                if (!spec.isSatisfiedBy(artifact)) {
                     return false;
                 }
             }
@@ -431,6 +462,10 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         public boolean isSatisfiedBy(ModuleId element) {
             return element.equals(moduleId);
         }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            return isSatisfiedBy(artifact.getModuleId());
+        }
     }
 
     private static class ModuleNameSpec extends ModuleVersionSpec {
@@ -471,6 +506,10 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
         public boolean isSatisfiedBy(ModuleId element) {
             return element.getName().equals(module);
         }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            return isSatisfiedBy(artifact.getModuleId());
+        }
     }
 
     private static class GroupNameSpec extends ModuleVersionSpec {
@@ -510,6 +549,10 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
 
         public boolean isSatisfiedBy(ModuleId element) {
             return element.getOrganisation().equals(group);
+        }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            return isSatisfiedBy(artifact.getModuleId());
         }
     }
 
@@ -560,6 +603,10 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId>, Mergeable<Mod
 
         private boolean matchesAnyExpression(String attribute) {
             return PatternMatcher.ANY_EXPRESSION.equals(attribute);
+        }
+
+        public boolean isSatisfiedBy(ArtifactId artifact) {
+            return MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifact);
         }
     }
 }

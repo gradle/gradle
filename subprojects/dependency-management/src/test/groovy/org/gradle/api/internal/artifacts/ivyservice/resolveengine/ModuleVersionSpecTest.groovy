@@ -16,19 +16,26 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
-import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createArtifactId
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
 class ModuleVersionSpecTest extends Specification {
-    def "accepts all module by default"() {
+    def "accepts all modules and artifacts by default"() {
         def spec = ModuleVersionSpec.forExcludes()
 
         expect:
         spec.isSatisfiedBy(createModuleId("org", "module"))
+    }
+
+    def "accepts all artifacts by default"() {
+        def spec = ModuleVersionSpec.forExcludes()
+
+        expect:
+        spec.isSatisfiedBy(createArtifactId("org", "module", "test", "jar", "jar"))
     }
 
     def "default specs accept the same modules as each other"() {
@@ -41,7 +48,7 @@ class ModuleVersionSpecTest extends Specification {
         def rule2 = excludeRule("org", "module2")
         def rule3 = excludeRule("org2", "*")
         def rule4 = excludeRule("*", "module4")
-        def rule5 = regExpExcludeRule("regexp-\\d+", "module\\d+")
+        def rule5 = regexpExcludeRule("regexp-\\d+", "module\\d+")
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
@@ -60,7 +67,7 @@ class ModuleVersionSpecTest extends Specification {
         def rule2 = excludeRule("org", "module2")
         def rule3 = excludeRule("org2", "*")
         def rule4 = excludeRule("*", "module4")
-        def rule5 = regExpExcludeRule("pattern1", "pattern2")
+        def rule5 = regexpExcludeRule("pattern1", "pattern2")
         def exactMatchSpec = ModuleVersionSpec.forExcludes(rule1)
         def moduleWildcard = ModuleVersionSpec.forExcludes(rule3)
         def groupWildcard = ModuleVersionSpec.forExcludes(rule4)
@@ -97,7 +104,7 @@ class ModuleVersionSpecTest extends Specification {
         !regexp.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1))
         !regexp.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, rule5))
         !regexp.acceptsSameModulesAs(ModuleVersionSpec.forExcludes())
-        !regexp.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(regExpExcludeRule("pattern", "other")))
+        !regexp.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(regexpExcludeRule("pattern", "other")))
 
         manyRules.acceptsSameModulesAs(manyRules)
         manyRules.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5))
@@ -110,12 +117,12 @@ class ModuleVersionSpecTest extends Specification {
         !manyRules.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, excludeRule("org", "module3"), rule3, rule4, rule5))
         !manyRules.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, rule2, excludeRule("org3", "*"), rule4, rule5))
         !manyRules.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, rule2, rule3, excludeRule("*", "module5"), rule5))
-        !manyRules.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, regExpExcludeRule("other", "other")))
+        !manyRules.acceptsSameModulesAs(ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, regexpExcludeRule("other", "other")))
     }
 
-    def "union accepts all modules when one spec has empty set of exclude rules"() {
+    def "union with empty spec is empty spec"() {
         def rule1 = excludeRule("org", "module")
-        def rule2 = excludeRule("org", "module2")
+        def rule2 = excludeArtifactRule("b", "jar", "jar")
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
         def spec2 = ModuleVersionSpec.forExcludes()
 
@@ -127,7 +134,8 @@ class ModuleVersionSpecTest extends Specification {
     def "union of a spec with itself returns the original spec"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
-        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def rule3 = excludeArtifactRule("a", "jar", "jar")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3)
 
         expect:
         spec.union(spec) == spec
@@ -135,7 +143,7 @@ class ModuleVersionSpecTest extends Specification {
 
     def "union of two specs with the same exclude rule instances returns one of the original specs"() {
         def rule1 = excludeRule("org", "module")
-        def rule2 = regExpExcludeRule("org", "module2")
+        def rule2 = regexpExcludeRule("org", "module2")
         def rule3 = excludeRule("org", "*")
         def rule4 = excludeRule("*", "module")
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4)
@@ -224,7 +232,7 @@ class ModuleVersionSpecTest extends Specification {
 
     def "union of two specs with non-exact matching exclude rules is a union spec"() {
         def rule1 = excludeRule("org", "module")
-        def rule2 = regExpExcludeRule("org", "module2")
+        def rule2 = regexpExcludeRule("org", "module2")
         def spec = ModuleVersionSpec.forExcludes(rule1)
         def spec2 = ModuleVersionSpec.forExcludes(rule2)
 
@@ -239,7 +247,7 @@ class ModuleVersionSpecTest extends Specification {
     def "union of union specs is the union of the original specs"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
-        def rule3 = regExpExcludeRule("org", "module2")
+        def rule3 = regexpExcludeRule("org", "module2")
         def spec = ModuleVersionSpec.forExcludes(rule1)
         def spec2 = ModuleVersionSpec.forExcludes(rule1, rule2)
         def spec3 = ModuleVersionSpec.forExcludes(rule3)
@@ -272,9 +280,9 @@ class ModuleVersionSpecTest extends Specification {
     }
 
     def "unions accepts same modules when original specs accept same modules"() {
-        def rule1 = regExpExcludeRule("org", "module")
-        def rule2 = regExpExcludeRule("org", "module2")
-        def rule3 = regExpExcludeRule("org", "module3")
+        def rule1 = regexpExcludeRule("org", "module")
+        def rule2 = regexpExcludeRule("org", "module2")
+        def rule3 = regexpExcludeRule("org", "module3")
         def spec1 = ModuleVersionSpec.forExcludes(rule1)
         def spec2 = ModuleVersionSpec.forExcludes(rule2)
         def spec3 = ModuleVersionSpec.forExcludes(rule3)
@@ -287,15 +295,25 @@ class ModuleVersionSpecTest extends Specification {
         !spec1.union(spec2).acceptsSameModulesAs(spec1.union(spec3))
     }
 
-    def "intersection accepts those modules accepted by other spec when one spec has empty set of exclude rules"() {
+    def "intersection with empty spec is original spec"() {
         def rule1 = excludeRule("org", "module")
-        def rule2 = excludeRule("org", "module2")
+        def rule2 = excludeArtifactRule("b", "jar", "jar")
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
         def spec2 = ModuleVersionSpec.forExcludes()
 
         expect:
         spec.intersect(spec2) == spec
         spec2.intersect(spec) == spec
+    }
+
+    def "intersection of a spec with itself returns the original spec"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def rule3 = excludeArtifactRule("b", "jar", "jar")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3)
+
+        expect:
+        spec.intersect(spec) == spec
     }
 
     def "intersection does not accept module that is not accepted by any merged exclude rules"() {
@@ -318,15 +336,6 @@ class ModuleVersionSpecTest extends Specification {
         intersect.isSatisfiedBy(createModuleId("org", "module3"))
     }
 
-    def "intersection of a spec with itself returns the original spec"() {
-        def rule1 = excludeRule("org", "module")
-        def rule2 = excludeRule("org", "module2")
-        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
-
-        expect:
-        spec.intersect(spec) == spec
-    }
-
     def "intersection of two specs with exclude rules is the union of the exclude rules"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
@@ -342,9 +351,9 @@ class ModuleVersionSpecTest extends Specification {
     }
 
     def "intersections accepts same modules when original specs accept same modules"() {
-        def rule1 = regExpExcludeRule("org", "module")
-        def rule2 = regExpExcludeRule("org", "module2")
-        def rule3 = regExpExcludeRule("org", "module3")
+        def rule1 = regexpExcludeRule("org", "module")
+        def rule2 = regexpExcludeRule("org", "module2")
+        def rule3 = regexpExcludeRule("org", "module3")
         def spec1 = ModuleVersionSpec.forExcludes(rule1).union(ModuleVersionSpec.forExcludes(rule2))
         def spec2 = ModuleVersionSpec.forExcludes(rule2).union(ModuleVersionSpec.forExcludes(rule1))
         def spec3 = ModuleVersionSpec.forExcludes(rule3)
@@ -358,11 +367,66 @@ class ModuleVersionSpecTest extends Specification {
         !spec1.intersect(spec2).acceptsSameModulesAs(spec1.intersect(spec3))
     }
 
-    def excludeRule(String org, String module) {
-        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "*", "*", "*"), ExactPatternMatcher.INSTANCE, [:])
+    def "does not accept artifact that matches any exclude rule"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def rule3 = excludeRule("org2", "*")
+        def rule4 = excludeRule("*", "module4")
+        def rule5 = regexpExcludeRule("regexp-\\d+", "module\\d+")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
+
+        expect:
+        !spec.isSatisfiedBy(createArtifactId("org", "module", "a", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("org", "module2", "b", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("org2", "anything", "c", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("other", "module4", "d", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("regexp-72", "module12", "e", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("org", "other", "f", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("regexp-72", "other", "g", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("regexp", "module2", "h", "jar", "jar"))
     }
 
-    def regExpExcludeRule(String org, String module) {
-        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "*", "*", "*"), RegexpPatternMatcher.INSTANCE, [:])
+    def "does not accept artifact that matches specific exclude rule"() {
+        def rule1 = excludeArtifactRule("a", "jar", "jar")
+        def rule2 = excludeArtifactRule("b", "jar", "jar")
+        def rule3 = excludeArtifactRule("c", "*", "*")
+        def rule4 = excludeArtifactRule("d", "*", "jar")
+        def rule5 = excludeArtifactRule("e", "sources", "jar")
+        def rule6 = excludeArtifactRule("f", "sources", "*")
+        def rule7 = excludeArtifactRule("g", "jar", "war")
+        def rule8 = regexpExcludeArtifactRule("regexp-\\d+", "jar", "jar")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8)
+
+        expect:
+        !spec.isSatisfiedBy(createArtifactId("org", "module", "a", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("org", "module2", "b", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("org2", "anything", "c", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("other", "module4", "d", "jar", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("some", "app", "e", "sources", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("foo", "bar", "f", "sources", "jar"))
+        !spec.isSatisfiedBy(createArtifactId("well", "known", "g", "jar", "war"))
+        !spec.isSatisfiedBy(createArtifactId("other", "sample", "regexp-99", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("some", "app", "e", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("some", "app", "e", "javadoc", "jar"))
+        spec.isSatisfiedBy(createArtifactId("foo", "bar", "f", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("well", "known", "g", "jar", "jar"))
+        spec.isSatisfiedBy(createArtifactId("well", "known", "g", "jar", "zip"))
+        spec.isSatisfiedBy(createArtifactId("other", "sample", "regexp", "jar", "jar"))
+    }
+
+    def excludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
+        new DefaultExcludeRule(createArtifactId(org, module, name, type, ext), ExactPatternMatcher.INSTANCE, [:])
+    }
+
+    def excludeArtifactRule(String name, String type, String ext) {
+        excludeRule("*", "*", name, type, ext)
+    }
+
+    def regexpExcludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
+        new DefaultExcludeRule(createArtifactId(org, module,  name, type, ext), RegexpPatternMatcher.INSTANCE, [:])
+    }
+
+    def regexpExcludeArtifactRule(String name, String type, String ext) {
+        regexpExcludeRule("*", "*", name, type, ext)
     }
 }

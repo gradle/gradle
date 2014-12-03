@@ -16,47 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.id.ArtifactId;
+import org.apache.ivy.core.module.id.ModuleId;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-public class ModuleSelector implements Mergeable<ModuleSelector> {
-    private final ModuleVersionSpec moduleVersionSpec;
-    private final ArtifactVersionSpec artifactVersionSpec;
-
-    public ModuleSelector(ModuleVersionSpec moduleVersionSpec, ArtifactVersionSpec artifactVersionSpec) {
-        this.moduleVersionSpec = moduleVersionSpec;
-        this.artifactVersionSpec = artifactVersionSpec;
-    }
-
-    public static ModuleSelector forExcludes(ExcludeRule... excludeRules) {
-        return forExcludes(Arrays.asList(excludeRules));
-    }
-
-    public static ModuleSelector forExcludes(Collection<ExcludeRule> excludeRules) {
-        ModuleVersionSpec mSpec = ModuleVersionSpec.forExcludes(excludeRules);
-        ArtifactVersionSpec aSpec = ArtifactVersionSpec.forExcludes(excludeRules);
-        return new ModuleSelector(mSpec, aSpec);
-    }
-
-    public ModuleVersionSpec getModuleVersionSpec() {
-        return moduleVersionSpec;
-    }
-
-    public ArtifactVersionSpec getArtifactVersionSpec() {
-        return artifactVersionSpec;
-    }
-
-    public ModuleSelector union(ModuleSelector moduleSelector) {
-        ModuleVersionSpec mSpec = moduleVersionSpec.union(moduleSelector.getModuleVersionSpec());
-        ArtifactVersionSpec aSpec = artifactVersionSpec.union(moduleSelector.getArtifactVersionSpec());
-        return new ModuleSelector(mSpec, aSpec);
-    }
-
-    public ModuleSelector intersect(ModuleSelector moduleSelector) {
-        ModuleVersionSpec mSpec = moduleVersionSpec.intersect(moduleSelector.getModuleVersionSpec());
-        ArtifactVersionSpec aSpec = artifactVersionSpec.intersect(moduleSelector.getArtifactVersionSpec());
-        return new ModuleSelector(mSpec, aSpec);
-    }
+public interface ModuleSelector {
+    boolean isSatisfiedBy(ModuleId module);
+    boolean isSatisfiedBy(ArtifactId artifact);
 }

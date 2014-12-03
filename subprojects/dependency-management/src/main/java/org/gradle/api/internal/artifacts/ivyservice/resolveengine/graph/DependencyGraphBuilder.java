@@ -204,11 +204,11 @@ public class DependencyGraphBuilder {
         private final DependencyMetaData dependencyMetaData;
         private final DependencyDescriptor dependencyDescriptor;
         private final ResolveState resolveState;
-        private final ModuleSelector selectorSpec;
+        private final ModuleVersionSpec selectorSpec;
         private final Set<ConfigurationNode> targetConfigurations = new LinkedHashSet<ConfigurationNode>();
         private ModuleVersionResolveState targetModuleRevision;
 
-        public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, ModuleSelector selectorSpec, ResolveState resolveState) {
+        public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, ModuleVersionSpec selectorSpec, ResolveState resolveState) {
             this.from = from;
             this.dependencyMetaData = dependencyMetaData;
             this.dependencyDescriptor = dependencyMetaData.getDescriptor();
@@ -280,11 +280,10 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public ModuleSelector getSelector() {
+        public ModuleVersionSpec getSelector() {
             String[] configurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
-            ModuleVersionSpec moduleVersionSelector = ModuleVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
-            ArtifactVersionSpec artifactVersionSelector = ArtifactVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
-            return new ModuleSelector(moduleVersionSelector, artifactVersionSelector).intersect(selectorSpec);
+            ModuleVersionSpec selector = ModuleVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
+            return selector.intersect(selectorSpec);
         }
 
         public ComponentSelector getRequested() {
@@ -631,7 +630,7 @@ public class DependencyGraphBuilder {
         public final ResolvedConfigurationIdentifier id;
 
         private final ResolveState resolveState;
-        private ModuleSelector previousTraversal;
+        private ModuleVersionSpec previousTraversal;
         private Set<ResolvedArtifact> artifacts;
         private boolean requiresArtifactResolution = true;
 
@@ -652,7 +651,7 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
-        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ArtifactVersionSpec artifactVersionSpec) {
+        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ModuleVersionSpec artifactVersionSpec) {
             if (requiresArtifactResolution) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
@@ -713,9 +712,9 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            ModuleSelector selectorSpec = getSelector(transitiveIncoming);
+            ModuleVersionSpec selectorSpec = getSelector(transitiveIncoming);
             if (previousTraversal != null) {
-                if (previousTraversal.getModuleVersionSpec().acceptsSameModulesAs(selectorSpec.getModuleVersionSpec())) {
+                if (previousTraversal.acceptsSameModulesAs(selectorSpec)) {
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
                     return;
                 }
@@ -725,13 +724,13 @@ public class DependencyGraphBuilder {
             for (DependencyMetaData dependency : metaData.getDependencies()) {
                 DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
                 ModuleId targetModuleId = dependencyDescriptor.getDependencyRevisionId().getModuleId();
-                if(isSelectorSatisfied(selectorSpec.getModuleVersionSpec(), targetModuleId)) {
+                if(isSelectorSatisfied(selectorSpec, targetModuleId)) {
                     continue;
                 }
                 DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, selectorSpec, resolveState);
 
                 // Verify dependency selector against itself
-                if(isSelectorSatisfied(dependencyEdge.getSelector().getModuleVersionSpec(), targetModuleId)) {
+                if(isSelectorSatisfied(dependencyEdge.getSelector(), targetModuleId)) {
                     continue;
                 }
 
@@ -764,10 +763,10 @@ public class DependencyGraphBuilder {
             return moduleRevision.state == ModuleState.Selected;
         }
 
-        private ModuleSelector getSelector(List<DependencyEdge> transitiveEdges) {
-            ModuleSelector selector;
+        private ModuleVersionSpec getSelector(List<DependencyEdge> transitiveEdges) {
+            ModuleVersionSpec selector;
             if (transitiveEdges.isEmpty()) {
-                selector = ModuleSelector.forExcludes(); //includes all
+                selector = ModuleVersionSpec.forExcludes(); //includes all
             } else {
                 selector = transitiveEdges.get(0).getSelector();
                 for (int i = 1; i < transitiveEdges.size(); i++) {
@@ -775,7 +774,7 @@ public class DependencyGraphBuilder {
                     selector = selector.union(dependencyEdge.getSelector());
                 }
             }
-            selector = selector.intersect(ModuleSelector.forExcludes(metaData.getExcludeRules()));
+            selector = selector.intersect(ModuleVersionSpec.forExcludes(metaData.getExcludeRules()));
             return selector;
         }
 
