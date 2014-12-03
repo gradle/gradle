@@ -101,11 +101,8 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
             def othersSampleBinary = project.binaries.sampleLibOtherBinary
             assert sampleBinary instanceof SampleBinary
             assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
-            println sampleBinary.source[0].displayName
-            assert sampleBinary.source[0].displayName == "Library source 'librarySource:librarySource'"
             assert othersSampleBinary instanceof OtherSampleBinary
             assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
-            assert othersSampleBinary.source[0].displayName == "Library source 'librarySource:librarySource'"
         }
 """
         then:
@@ -132,6 +129,25 @@ Binaries
     OtherSampleBinaryImpl 'sampleLibOtherBinary'
         build using task: :sampleLibOtherBinary
 """))
+    }
+
+    def "links components sourceSets to binaries"() {
+        when:
+        buildFile << withSimpleComponentBinaries()
+        buildFile << """
+
+
+        task checkSourceSets << {
+            def sampleBinary = project.binaries.sampleLibBinary
+            def othersSampleBinary = project.binaries.sampleLibOtherBinary
+            assert sampleBinary.source[0].getClass() == DefaultLibrarySourceSet
+            assert sampleBinary.source[0].displayName == "Library source 'librarySource:librarySource'"
+            assert othersSampleBinary.source[0].getClass() == DefaultLibrarySourceSet
+            assert othersSampleBinary.source[0].displayName == "Library source 'librarySource:librarySource'"
+        }
+"""
+        then:
+        succeeds "checkSourceSets"
     }
 
     @Unroll
