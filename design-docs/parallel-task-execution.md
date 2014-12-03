@@ -25,7 +25,7 @@ In addition to the specific tests written while implementing this, the existing 
 
 ## Milestone 1 - announce-able
 
-### `DefaultTask` based task implementation opts in to parallel execution via annotation
+### ~~`DefaultTask` based task implementation opts in to parallel execution via annotation~~
 
     @org.gradle.api.tasks.ParallelizableTask
     class MyTask extends DefaultTask {
