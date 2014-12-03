@@ -234,7 +234,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
 
         public boolean isSatisfiedBy(ModuleId element) {
             for (ModuleVersionSpec excludeSpec : excludeSpecs) {
-                if (excludeSpec.isSatisfiedBy(element)) {
+                if (!excludeSpec.isSatisfiedBy(element)) {
                     return false;
                 }
             }
@@ -243,7 +243,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
 
         public boolean isSatisfiedBy(ArtifactId artifact) {
             for (ModuleVersionSpec excludeSpec : excludeSpecs) {
-                if (excludeSpec.isSatisfiedBy(artifact)) {
+                if (!excludeSpec.isSatisfiedBy(artifact)) {
                     return false;
                 }
             }
@@ -460,7 +460,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
-            return element.equals(moduleId);
+            return !element.equals(moduleId);
         }
 
         public boolean isSatisfiedBy(ArtifactId artifact) {
@@ -504,7 +504,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
-            return element.getName().equals(module);
+            return !element.getName().equals(module);
         }
 
         public boolean isSatisfiedBy(ArtifactId artifact) {
@@ -548,7 +548,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
-            return element.getOrganisation().equals(group);
+            return !element.getOrganisation().equals(group);
         }
 
         public boolean isSatisfiedBy(ArtifactId artifact) {
@@ -595,10 +595,11 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
 
         public boolean isSatisfiedBy(ModuleId element) {
             ArtifactId artifactId = rule.getId();
-            return MatcherHelper.matches(rule.getMatcher(), artifactId.getModuleId(), element)
-                   && matchesAnyExpression(artifactId.getName())
-                   && matchesAnyExpression(artifactId.getType())
-                   && matchesAnyExpression(artifactId.getExt());
+            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), artifactId.getModuleId(), element);
+            return !(matchesRule
+                    && matchesAnyExpression(artifactId.getName())
+                    && matchesAnyExpression(artifactId.getType())
+                    && matchesAnyExpression(artifactId.getExt()));
         }
 
         private boolean matchesAnyExpression(String attribute) {
@@ -606,7 +607,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
         }
 
         public boolean isSatisfiedBy(ArtifactId artifact) {
-            return MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifact);
+            return !MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifact);
         }
     }
 }
