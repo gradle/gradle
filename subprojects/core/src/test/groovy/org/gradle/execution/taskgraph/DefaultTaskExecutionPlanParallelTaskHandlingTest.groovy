@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Specification
@@ -164,5 +165,18 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
         then:
         startTasks(2)
+    }
+
+    def "Delete tasks are not parallelizable"() {
+        given:
+        Task clean = root.task("clean", type: Delete)
+        Task parallelizable = root.task("parallelizable", type: Parallel)
+
+        when:
+        addToGraphAndPopulate(clean, parallelizable)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
     }
 }

@@ -77,8 +77,8 @@ We may find that the amount of problems means that we need to temporarily not en
 
 #### Test Coverage
 
-- `./gradlew clean compileJava` is safe, in that `clean` is run exclusively 
-- Ensure that existing parallel CI builds are executing all integration tests using Java plugin with intra project parallel task execution
+- ~~`./gradlew clean compileJava` is safe, in that `clean` is run exclusively~~ 
+- ~~Ensure that existing parallel CI builds are executing all integration tests using Java plugin with intra project parallel task execution~~
 
 ### Some level of validation/enforcement for tasks declaring to be parallel safe
 

@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
+import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
@@ -35,6 +36,7 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a JAR archive.
  */
+@ParallelizableTask
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
