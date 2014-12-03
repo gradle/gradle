@@ -44,7 +44,7 @@ A mock up:
 - ~~Model type can contain type params~~
 - ~~Model element declared with illegal name produces reasonable error message~~
 
-## Plugin defines tasks using model as input
+## ~~Plugin defines tasks using model as input~~
 
 Introduce some mechanism where a plugin can static declare a rule to define tasks using its model object as input.
 
@@ -222,6 +222,22 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - ~~Can use `AppliedPlugins` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project~~
 - ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
 
+### Open issues
+
+- Plugin management and query methods are not name-spaced on `PluginAware` - should implement something closer to the above spec instead.
+- Statically typed 'apply by id' and 'apply by type' methods have been deprecated without statically typed replacement.
+- Some method of `PluginContainer` have been deprecated - should deprecate the whole thing instead as the semantics of `PluginContainer` aren't right.
+- Responsibilities are smeared between `PluginManager` and `DefaultPluginContainer` - `PluginManager` should take care of applying all plugins regardless of type and
+  notify the plugin container when a `Plugin` impl is applied.
+- `PluginManager` applies plugins with deprecation logging disabled - this means that all deprecated usages in `apply()` will be ignored and not reported. Need to fix
+  and add an integration test for this case.
+
+#### Other issues
+
+- `ModelRuleInspector` does not do any caching. Should share caching with `ModelRuleSourceDetector`.
+    - `ModelRuleSourceDetector` should be global scope and use weak references to classes.
+- `TaskRemovalIntegrationTest.cant remove task in after evaluate if task is used by a #annotationClass` is ignored
+
 # Backlog
 
 Potential stories and ideas.
@@ -231,6 +247,7 @@ Unordered and not all appropriately story sized.
 
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
+  This essentially means more context in the 'thing has been closed' error message.
 - Some kind of explorable/browsable representation of the model elements for a build
 - Profile report contains information about execution time of model rules
 - Rule source types are instantiated early to fail fast (i.e. constructor may throw exception)
