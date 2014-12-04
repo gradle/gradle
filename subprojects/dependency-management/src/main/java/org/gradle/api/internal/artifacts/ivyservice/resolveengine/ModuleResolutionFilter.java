@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
@@ -26,12 +26,12 @@ public interface ModuleResolutionFilter {
     /**
      * Should this module be included in the resolution result?
      */
-    boolean acceptModule(ModuleId module);
+    boolean acceptModule(ModuleIdentifier module);
 
     /**
      * Should this artifact be included in the resolution result?
      */
-    boolean acceptArtifact(ArtifactId artifact);
+    boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
      * Determines if this filter accepts the same set of modules as the other.

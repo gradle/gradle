@@ -21,10 +21,12 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.MatcherHelper;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.*;
-
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
@@ -140,11 +142,11 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return "{accept-all}";
         }
 
-        public boolean acceptModule(ModuleId element) {
+        public boolean acceptModule(ModuleIdentifier element) {
             return true;
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             return true;
         }
     }
@@ -210,7 +212,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 } else if (wildcardModule) {
                     excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
                 } else {
-                    excludeSpecs.add(new ModuleIdSpec(moduleId));
+                    excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
                 }
             }
         }
@@ -224,7 +226,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return excludeSpecs;
         }
 
-        public boolean acceptModule(ModuleId element) {
+        public boolean acceptModule(ModuleIdentifier element) {
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
                 if (!excludeSpec.acceptModule(element)) {
                     return false;
@@ -233,9 +235,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
-                if (!excludeSpec.acceptArtifact(artifact)) {
+                if (!excludeSpec.acceptArtifact(module, artifact)) {
                     return false;
                 }
             }
@@ -306,10 +308,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 }
             } else if (spec2 instanceof ModuleNameSpec) {
                 ModuleNameSpec moduleNameSpec = (ModuleNameSpec) spec2;
-                merged.add(new ModuleIdSpec(createModuleId(spec1.group, moduleNameSpec.module)));
+                merged.add(new ModuleIdSpec(spec1.group, moduleNameSpec.module));
             } else if (spec2 instanceof ModuleIdSpec) {
                 ModuleIdSpec moduleIdSpec = (ModuleIdSpec) spec2;
-                if (moduleIdSpec.moduleId.getOrganisation().equals(spec1.group)) {
+                if (moduleIdSpec.moduleId.getGroup().equals(spec1.group)) {
                     merged.add(spec2);
                 }
             } else {
@@ -364,7 +366,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             specs.addAll(this.specs);
         }
 
-        public boolean acceptModule(ModuleId element) {
+        public boolean acceptModule(ModuleIdentifier element) {
             for (DefaultModuleResolutionFilter spec : specs) {
                 if (spec.acceptModule(element)) {
                     return true;
@@ -374,9 +376,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return false;
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             for (DefaultModuleResolutionFilter spec : specs) {
-                if (spec.acceptArtifact(artifact)) {
+                if (spec.acceptArtifact(module, artifact)) {
                     return true;
                 }
             }
@@ -397,7 +399,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return specs;
         }
 
-        public boolean acceptModule(ModuleId element) {
+        public boolean acceptModule(ModuleIdentifier element) {
             for (DefaultModuleResolutionFilter spec : specs) {
                 if (!spec.acceptModule(element)) {
                     return false;
@@ -406,9 +408,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             for (DefaultModuleResolutionFilter spec : specs) {
-                if (!spec.acceptArtifact(artifact)) {
+                if (!spec.acceptArtifact(module, artifact)) {
                     return false;
                 }
             }
@@ -417,10 +419,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
     }
 
     private static class ModuleIdSpec extends DefaultModuleResolutionFilter {
-        private final ModuleId moduleId;
+        private final ModuleIdentifier moduleId;
 
-        private ModuleIdSpec(ModuleId moduleId) {
-            this.moduleId = moduleId;
+        public ModuleIdSpec(String group, String name) {
+            this.moduleId = DefaultModuleIdentifier.newId(group, name);
         }
 
         @Override
@@ -451,12 +453,12 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return moduleId.equals(moduleIdSpec.moduleId);
         }
 
-        public boolean acceptModule(ModuleId element) {
+        public boolean acceptModule(ModuleIdentifier element) {
             return !element.equals(moduleId);
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
-            return acceptModule(artifact.getModuleId());
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return acceptModule(module);
         }
     }
 
@@ -495,12 +497,12 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return module.equals(moduleNameSpec.module);
         }
 
-        public boolean acceptModule(ModuleId element) {
+        public boolean acceptModule(ModuleIdentifier element) {
             return !element.getName().equals(module);
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
-            return acceptModule(artifact.getModuleId());
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return acceptModule(module);
         }
     }
 
@@ -539,12 +541,12 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return group.equals(groupNameSpec.group);
         }
 
-        public boolean acceptModule(ModuleId element) {
-            return !element.getOrganisation().equals(group);
+        public boolean acceptModule(ModuleIdentifier element) {
+            return !element.getGroup().equals(group);
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
-            return acceptModule(artifact.getModuleId());
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return acceptModule(module);
         }
     }
 
@@ -585,21 +587,23 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return rule == excludeRuleSpec.rule;
         }
 
-        public boolean acceptModule(ModuleId element) {
-            ArtifactId artifactId = rule.getId();
-            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), artifactId.getModuleId(), element);
+        public boolean acceptModule(ModuleIdentifier element) {
+            ArtifactId rulePattern = rule.getId();
+            ModuleId moduleId = IvyUtil.createModuleId(element.getGroup(), element.getName());
+            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), rulePattern.getModuleId(), moduleId);
             return !(matchesRule
-                    && matchesAnyExpression(artifactId.getName())
-                    && matchesAnyExpression(artifactId.getType())
-                    && matchesAnyExpression(artifactId.getExt()));
+                    && matchesAnyExpression(rulePattern.getName())
+                    && matchesAnyExpression(rulePattern.getType())
+                    && matchesAnyExpression(rulePattern.getExt()));
         }
 
         private boolean matchesAnyExpression(String attribute) {
             return PatternMatcher.ANY_EXPRESSION.equals(attribute);
         }
 
-        public boolean acceptArtifact(ArtifactId artifact) {
-            return !MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifact);
+        public boolean acceptArtifact(ModuleIdentifier id, IvyArtifactName artifact) {
+            ArtifactId artifactId = IvyUtil.createArtifactId(id.getGroup(), id.getName(), artifact.getName(), artifact.getType(), artifact.getExtension());
+            return !MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifactId);
         }
     }
 }

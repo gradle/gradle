@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
-
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
+import org.apache.ivy.core.module.descriptor.ExcludeRule
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
-
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createArtifactId
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
 class DefaultModuleResolutionFilterTest extends Specification {
     def "accepts all modules and artifacts by default"() {
         def spec = DefaultModuleResolutionFilter.forExcludes()
 
         expect:
-        spec.acceptModule(createModuleId("org", "module"))
+        spec.acceptModule(moduleId("org", "module"))
     }
 
     def "accepts all artifacts by default"() {
         def spec = DefaultModuleResolutionFilter.forExcludes()
 
         expect:
-        spec.acceptArtifact(createArtifactId("org", "module", "test", "jar", "jar"))
+        spec.acceptArtifact(moduleId("org", "module"), artifactName("test", "jar", "jar"))
     }
 
     def "default specs accept the same modules as each other"() {
@@ -52,14 +52,14 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def spec = DefaultModuleResolutionFilter.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
-        !spec.acceptModule(createModuleId("org", "module"))
-        !spec.acceptModule(createModuleId("org", "module2"))
-        !spec.acceptModule(createModuleId("org2", "anything"))
-        !spec.acceptModule(createModuleId("other", "module4"))
-        !spec.acceptModule(createModuleId("regexp-72", "module12"))
-        spec.acceptModule(createModuleId("org", "other"))
-        spec.acceptModule(createModuleId("regexp-72", "other"))
-        spec.acceptModule(createModuleId("regexp", "module2"))
+        !spec.acceptModule(moduleId("org", "module"))
+        !spec.acceptModule(moduleId("org", "module2"))
+        !spec.acceptModule(moduleId("org2", "anything"))
+        !spec.acceptModule(moduleId("other", "module4"))
+        !spec.acceptModule(moduleId("regexp-72", "module12"))
+        spec.acceptModule(moduleId("org", "other"))
+        spec.acceptModule(moduleId("regexp-72", "other"))
+        spec.acceptModule(moduleId("regexp", "module2"))
     }
 
     def "specs with the same set of exclude rules accept the same modules as each other"() {
@@ -164,7 +164,7 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def union = spec.union(spec2)
         union instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         union.excludeSpecs.size() == 1
-        union.excludeSpecs.any { it.moduleId == rule1.id.moduleId }
+        union.excludeSpecs.any { specForRule(it, rule1) }
     }
 
     def "union of spec with module wildcard uses the most specific matching exclude rules"() {
@@ -180,18 +180,18 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def union = spec.union(DefaultModuleResolutionFilter.forExcludes(rule2, rule3, rule4))
         union instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         union.excludeSpecs.size() == 2
-        union.excludeSpecs.any { it.moduleId == rule2.id.moduleId }
-        union.excludeSpecs.any { it.moduleId == rule3.id.moduleId }
+        union.excludeSpecs.any { specForRule(it, rule2) }
+        union.excludeSpecs.any { specForRule(it, rule3) }
         
         def union2 = spec.union(DefaultModuleResolutionFilter.forExcludes(rule5))
         union2 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         union2.excludeSpecs.size() == 1
-        union2.excludeSpecs.any { it.moduleId.organisation == 'org' && it.moduleId.name == 'module3' }
+        union2.excludeSpecs.any { it.moduleId.group == 'org' && it.moduleId.name == 'module3' }
 
         def union3 = spec.union(DefaultModuleResolutionFilter.forExcludes(rule6, rule2))
         union3 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         union3.excludeSpecs.size() == 1
-        union3.excludeSpecs.any { it.moduleId == rule2.id.moduleId }
+        union3.excludeSpecs.any { specForRule(it, rule2) }
     }
 
     def "union of spec with group wildcard uses the most specific matching exclude rules"() {
@@ -207,13 +207,13 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def union = spec.union(DefaultModuleResolutionFilter.forExcludes(rule2, rule3, rule4))
         union instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         union.excludeSpecs.size() == 2
-        union.excludeSpecs.any { it.moduleId == rule2.id.moduleId }
-        union.excludeSpecs.any { it.moduleId == rule4.id.moduleId }
+        union.excludeSpecs.any { specForRule(it, rule2) }
+        union.excludeSpecs.any { specForRule(it, rule4) }
 
         def union2 = spec.union(DefaultModuleResolutionFilter.forExcludes(rule5))
         union2 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         union2.excludeSpecs.size() == 1
-        union2.excludeSpecs.any { it.moduleId.organisation == 'org' && it.moduleId.name == 'module' }
+        union2.excludeSpecs.any { it.moduleId.group == 'org' && it.moduleId.name == 'module' }
 
         def union3 = spec.union(DefaultModuleResolutionFilter.forExcludes(rule6))
         union3 == DefaultModuleResolutionFilter.forExcludes()
@@ -272,11 +272,11 @@ class DefaultModuleResolutionFilterTest extends Specification {
         expect:
         def union = spec.union(spec2)
 
-        !spec.acceptModule(createModuleId("org", "module"))
-        !union.acceptModule(createModuleId("org", "module"))
+        !spec.acceptModule(moduleId("org", "module"))
+        !union.acceptModule(moduleId("org", "module"))
 
-        !spec.acceptModule(createModuleId("org", "module2"))
-        union.acceptModule(createModuleId("org", "module2"))
+        !spec.acceptModule(moduleId("org", "module2"))
+        union.acceptModule(moduleId("org", "module2"))
     }
 
     def "unions accepts same modules when original specs accept same modules"() {
@@ -325,15 +325,15 @@ class DefaultModuleResolutionFilterTest extends Specification {
         expect:
         def intersect = spec.intersect(spec2)
 
-        !spec.acceptModule(createModuleId("org", "module"))
-        !intersect.acceptModule(createModuleId("org", "module"))
+        !spec.acceptModule(moduleId("org", "module"))
+        !intersect.acceptModule(moduleId("org", "module"))
 
-        !spec.acceptModule(createModuleId("org", "module2"))
-        !intersect.acceptModule(createModuleId("org", "module2"))
+        !spec.acceptModule(moduleId("org", "module2"))
+        !intersect.acceptModule(moduleId("org", "module2"))
 
-        spec.acceptModule(createModuleId("org", "module3"))
-        spec2.acceptModule(createModuleId("org", "module3"))
-        intersect.acceptModule(createModuleId("org", "module3"))
+        spec.acceptModule(moduleId("org", "module3"))
+        spec2.acceptModule(moduleId("org", "module3"))
+        intersect.acceptModule(moduleId("org", "module3"))
     }
 
     def "intersection of two specs with exclude rules is the union of the exclude rules"() {
@@ -346,8 +346,8 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def intersection = spec.intersect(spec2)
         intersection instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
         intersection.excludeSpecs.size() == 2
-        intersection.excludeSpecs.any { it.moduleId == rule1.id.moduleId }
-        intersection.excludeSpecs.any { it.moduleId == rule2.id.moduleId }
+        intersection.excludeSpecs.any { specForRule(it, rule1) }
+        intersection.excludeSpecs.any { specForRule(it, rule2) }
     }
 
     def "intersections accepts same modules when original specs accept same modules"() {
@@ -376,14 +376,14 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def spec = DefaultModuleResolutionFilter.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
-        !spec.acceptArtifact(createArtifactId("org", "module", "a", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("org", "module2", "b", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("org2", "anything", "c", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("other", "module4", "d", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("regexp-72", "module12", "e", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("org", "other", "f", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("regexp-72", "other", "g", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("regexp", "module2", "h", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("org", "module"), artifactName("a", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("org", "module2"), artifactName("b", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("org2", "anything"), artifactName("c", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("other", "module4"), artifactName("d", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("regexp-72", "module12"), artifactName("e", "jar", "jar"))
+        spec.acceptArtifact(moduleId("org", "other"), artifactName("f", "jar", "jar"))
+        spec.acceptArtifact(moduleId("regexp-72", "other"), artifactName("g", "jar", "jar"))
+        spec.acceptArtifact(moduleId("regexp", "module2"), artifactName("h", "jar", "jar"))
     }
 
     def "does not accept artifact that matches specific exclude rule"() {
@@ -398,24 +398,36 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def spec = DefaultModuleResolutionFilter.forExcludes(rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8)
 
         expect:
-        !spec.acceptArtifact(createArtifactId("org", "module", "a", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("org", "module2", "b", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("org2", "anything", "c", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("other", "module4", "d", "jar", "jar"))
-        !spec.acceptArtifact(createArtifactId("some", "app", "e", "sources", "jar"))
-        !spec.acceptArtifact(createArtifactId("foo", "bar", "f", "sources", "jar"))
-        !spec.acceptArtifact(createArtifactId("well", "known", "g", "jar", "war"))
-        !spec.acceptArtifact(createArtifactId("other", "sample", "regexp-99", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("some", "app", "e", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("some", "app", "e", "javadoc", "jar"))
-        spec.acceptArtifact(createArtifactId("foo", "bar", "f", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("well", "known", "g", "jar", "jar"))
-        spec.acceptArtifact(createArtifactId("well", "known", "g", "jar", "zip"))
-        spec.acceptArtifact(createArtifactId("other", "sample", "regexp", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("org", "module"), artifactName("a", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("org", "module2"), artifactName("b", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("org2", "anything"), artifactName("c", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("other", "module4"), artifactName("d", "jar", "jar"))
+        !spec.acceptArtifact(moduleId("some", "app"), artifactName("e", "sources", "jar"))
+        !spec.acceptArtifact(moduleId("foo", "bar"), artifactName("f", "sources", "jar"))
+        !spec.acceptArtifact(moduleId("well", "known"), artifactName("g", "jar", "war"))
+        !spec.acceptArtifact(moduleId("other", "sample"), artifactName("regexp-99", "jar", "jar"))
+        spec.acceptArtifact(moduleId("some", "app"), artifactName("e", "jar", "jar"))
+        spec.acceptArtifact(moduleId("some", "app"), artifactName("e", "javadoc", "jar"))
+        spec.acceptArtifact(moduleId("foo", "bar"), artifactName("f", "jar", "jar"))
+        spec.acceptArtifact(moduleId("well", "known"), artifactName("g", "jar", "jar"))
+        spec.acceptArtifact(moduleId("well", "known"), artifactName("g", "jar", "zip"))
+        spec.acceptArtifact(moduleId("other", "sample"), artifactName("regexp", "jar", "jar"))
+    }
+
+    static specForRule(def spec, ExcludeRule rule) {
+        return spec.moduleId.group == rule.id.moduleId.organisation && spec.moduleId.name == rule.id.moduleId.name
+    }
+
+    def moduleId(String group, String name) {
+        return DefaultModuleIdentifier.newId(group, name);
+    }
+
+    def artifactName(String name, String type, String ext) {
+        return new DefaultIvyArtifactName(name, type, ext)
     }
 
     def excludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
-        new DefaultExcludeRule(createArtifactId(org, module, name, type, ext), ExactPatternMatcher.INSTANCE, [:])
+        new DefaultExcludeRule(IvyUtil.createArtifactId(org, module, name, type, ext), ExactPatternMatcher.INSTANCE, [:])
     }
 
     def excludeArtifactRule(String name, String type, String ext) {
@@ -423,7 +435,7 @@ class DefaultModuleResolutionFilterTest extends Specification {
     }
 
     def regexpExcludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
-        new DefaultExcludeRule(createArtifactId(org, module,  name, type, ext), RegexpPatternMatcher.INSTANCE, [:])
+        new DefaultExcludeRule(IvyUtil.createArtifactId(org, module, name, type, ext), RegexpPatternMatcher.INSTANCE, [:])
     }
 
     def regexpExcludeArtifactRule(String name, String type, String ext) {

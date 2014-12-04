@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -651,7 +649,7 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
-        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ModuleResolutionFilter artifactVersionSpec) {
+        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ModuleResolutionFilter moduleResolutionFilter) {
             if (requiresArtifactResolution) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
@@ -661,10 +659,10 @@ public class DependencyGraphBuilder {
                 boolean unsatisfiedArtifactSpec = false;
 
                 for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
-                    ModuleId moduleId = ModuleId.newInstance(id.getModuleGroup(), id.getModuleName());
-                    ArtifactId artifactId = new ArtifactId(moduleId, artifact.getName().getName(), artifact.getName().getType(), artifact.getName().getExtension());
+                    ModuleIdentifier moduleId = id.getId().getModule();
+                    IvyArtifactName artifactName = artifact.getName();
 
-                    if(artifactVersionSpec.acceptArtifact(artifactId)) {
+                    if (moduleResolutionFilter.acceptArtifact(moduleId, artifactName)) {
                         artifacts.add(builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
                     } else {
                         unsatisfiedArtifactSpec = true;
@@ -722,8 +720,7 @@ public class DependencyGraphBuilder {
             }
 
             for (DependencyMetaData dependency : metaData.getDependencies()) {
-                DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
-                ModuleId targetModuleId = dependencyDescriptor.getDependencyRevisionId().getModuleId();
+                ModuleIdentifier targetModuleId = DefaultModuleIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName());
                 if (isExcluded(resolutionFilter, targetModuleId)) {
                     continue;
                 }
@@ -740,7 +737,7 @@ public class DependencyGraphBuilder {
             previousTraversal = resolutionFilter;
         }
 
-        private boolean isExcluded(ModuleResolutionFilter selector, ModuleId targetModuleId) {
+        private boolean isExcluded(ModuleResolutionFilter selector, ModuleIdentifier targetModuleId) {
             if(!selector.acceptModule(targetModuleId)) {
                 LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
                 return true;
