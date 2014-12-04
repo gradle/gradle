@@ -133,7 +133,14 @@ Overlapping outputs declared by two tasks should be detected and such tasks shou
 
 ## Milestone 3 - improved feedback/reporting when executing tasks in parallel
 
-# Known concurrency issues
+# Backlog
+
+## Misc known concurrency issues
 
 - DefaultIsolatedAntBuilder (build scoped & mutable)
 - `JdkJavaCompiler` relies on setting `java.home` system property to call `ToolProvider.getSystemJavaCompiler()`
+- Java plugin defaults the report directory of all `Test` tasks to the same directory
+
+## Usability/Configurability
+
+- Can't enable parallel execution with specified thread pool size via “env” (i.e. no sys prop, `gradle.startParameter.parallelThreadCount = «N»` does not work because value is read very early)
