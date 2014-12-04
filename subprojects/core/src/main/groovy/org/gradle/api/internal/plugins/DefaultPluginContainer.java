@@ -33,9 +33,9 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private final PluginRegistry pluginRegistry;
     private final Instantiator instantiator;
     private final PluginApplicator applicator;
-    private final PluginManager pluginManager;
+    private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManager pluginManager, Instantiator instantiator, PluginApplicator applicator) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, Instantiator instantiator, PluginApplicator applicator) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
@@ -78,7 +78,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     private Plugin doFindPlugin(String id) {
-        for (final PluginManager.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
+        for (final DefaultPluginManager.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
             Plugin plugin = Iterables.find(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());
@@ -94,7 +94,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin findPlugin(String id) {
-        String qualified = PluginManager.maybeQualify(id);
+        String qualified = DefaultPluginManager.maybeQualify(id);
         if (qualified != null) {
             Plugin plugin = doFindPlugin(qualified);
             if (plugin != null) {
@@ -168,8 +168,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public void withId(final String pluginId, final Action<? super Plugin> action) {
-        Action<PluginManager.PluginWithId> wrappedAction = new Action<PluginManager.PluginWithId>() {
-            public void execute(final PluginManager.PluginWithId pluginWithId) {
+        Action<DefaultPluginManager.PluginWithId> wrappedAction = new Action<DefaultPluginManager.PluginWithId>() {
+            public void execute(final DefaultPluginManager.PluginWithId pluginWithId) {
                 matching(new Spec<Plugin>() {
                     public boolean isSatisfiedBy(Plugin element) {
                         return pluginWithId.clazz.equals(element.getClass());
@@ -178,7 +178,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             }
         };
 
-        String qualified = PluginManager.maybeQualify(pluginId);
+        String qualified = DefaultPluginManager.maybeQualify(pluginId);
         if (qualified != null) {
             pluginManager.pluginsForId(qualified).all(wrappedAction);
         }

@@ -59,7 +59,7 @@ class DistributionPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(ProjectInternal project) {
-        project.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileOperations)
         // TODO - refactor this action out so it can be unit tested

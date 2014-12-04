@@ -57,7 +57,7 @@ import java.io.File;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        project.apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

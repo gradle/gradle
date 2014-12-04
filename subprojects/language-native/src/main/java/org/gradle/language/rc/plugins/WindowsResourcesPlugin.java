@@ -31,8 +31,8 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 @Incubating
 public class WindowsResourcesPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.apply(NativeComponentPlugin.class);
-        project.apply(WindowsResourceScriptPlugin.class);
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(WindowsResourceScriptPlugin.class);
     }
 
 }

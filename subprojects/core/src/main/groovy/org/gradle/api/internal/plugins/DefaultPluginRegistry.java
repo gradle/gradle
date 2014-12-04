@@ -102,7 +102,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         if (parent != null) {
             lookup = parent.lookup(idOrName);
             if (lookup == null) {
-                String qualified = PluginManager.maybeQualify(idOrName);
+                String qualified = DefaultPluginManager.maybeQualify(idOrName);
                 if (qualified != null) {
                     lookup = lookup(qualified);
                 }
@@ -121,7 +121,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
         PotentialPluginWithId lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(idOrName, classLoader)).orNull();
         if (lookup == null) {
-            String qualified = PluginManager.maybeQualify(idOrName);
+            String qualified = DefaultPluginManager.maybeQualify(idOrName);
             if (qualified != null) {
                 lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
             }

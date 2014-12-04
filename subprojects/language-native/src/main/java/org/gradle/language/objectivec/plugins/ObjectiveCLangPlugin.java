@@ -39,7 +39,7 @@ import java.util.Map;
 @Incubating
 public class ObjectiveCLangPlugin implements Plugin<Project> {
     public void apply(final Project project) {
-        project.apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

@@ -24,10 +24,9 @@ import org.gradle.internal.HasInternalProtocol;
 import java.util.Map;
 
 /**
- * An interface implemented by something that can be extended by plugins.
+ * Something that can have plugins applied to it.
  * <p>
- * Plugins can be applied by one of the {@link #apply} methods.
- * The {@link #getAppliedPlugins()} method can be used for detecting whether plugins have been applied.
+ * The {@link #getPluginManager() plugin manager} can be used for applying and detecting whether plugins have been applied.
  * <p>
  * For more on writing and applying plugins, see {@link org.gradle.api.Plugin}.
  */
@@ -84,42 +83,12 @@ public interface PluginAware {
     void apply(Map<String, ?> options);
 
     /**
-     * Applies the plugin with the given ID.
-     * <p>
-     * Plugins in the {@code "org.gradle"} namespace can be applied directly via name.
-     * That is, the following two lines are equivalent…
-     * <pre autoTested='true'>
-     * apply "org.gradle.java"
-     * apply "java"
-     * </pre>
+     * The plugin manager for this plugin aware object.
      *
-     * @param pluginId the ID of the plugin to apply
+     * @return the plugin manager
+     * @since 2.3
      */
     @Incubating
-    void apply(String pluginId);
-
-    /**
-     * Applies the given plugin.
-     * <p>
-     * The given class should implement the {@link org.gradle.api.Plugin} interface, and be parameterized for a compatible type of {@code this}.
-     * <p>
-     * The following two lines are equivalent…
-     * <pre autoTested='true'>
-     * apply org.gradle.api.plugins.JavaPlugin
-     * apply "org.gradle.java"
-     * </pre>
-     *
-     * @param pluginClass the plugin class to apply
-     */
-    @Incubating
-    void apply(Class<?> pluginClass);
-
-    /**
-     * Allows determining whether a plugin has been applied.
-     *
-     * @return the applied plugins
-     */
-    @Incubating
-    AppliedPlugins getAppliedPlugins();
+    PluginManager getPluginManager();
 
 }

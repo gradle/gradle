@@ -18,6 +18,7 @@ package org.gradle.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
@@ -44,7 +45,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     def "creates source set with conventional locations for components"() {
         when:
         dsl {
-            apply pluginClass
+            pluginManager.apply pluginClass
 
             model {
                 components {
@@ -80,7 +81,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     def "can configure source set locations"() {
         given:
         dsl {
-            apply pluginClass
+            pluginManager.apply pluginClass
 
             model {
                 components {
@@ -131,7 +132,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         touch("src/test/$pluginName/file.o")
         touch("src/test/anotherOne/file.o")
         dsl {
-            apply pluginClass
+            pluginManager.apply pluginClass
             model {
                 components {
                     test(NativeExecutableSpec) {
@@ -170,7 +171,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         GFileUtils.touch(project.file(filePath))
     }
 
-    def dsl(Closure closure) {
+    def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
         project.evaluate()

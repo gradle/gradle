@@ -18,7 +18,7 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.plugins.PluginManager;
 
 import java.util.Collection;
 

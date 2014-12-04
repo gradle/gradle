@@ -40,7 +40,7 @@ import java.util.Map;
 public class CLangPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

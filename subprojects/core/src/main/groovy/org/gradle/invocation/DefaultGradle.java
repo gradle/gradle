@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -250,7 +250,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    public PluginManager getPluginManager() {
+    public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
 }

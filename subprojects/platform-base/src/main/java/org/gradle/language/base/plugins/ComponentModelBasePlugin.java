@@ -69,7 +69,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.apply(LanguageBasePlugin.class);
+        project.getPluginManager().apply(LanguageBasePlugin.class);
 
         // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);

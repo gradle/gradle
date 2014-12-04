@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -225,7 +225,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     }
 
     @Inject
-    public PluginManager getPluginManager() {
+    public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
 }

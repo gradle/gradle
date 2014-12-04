@@ -89,7 +89,7 @@ class ProjectBuilderTest extends Specification {
     def canApplyACustomPluginByType() {
         when:
         def project = buildProject()
-        project.apply CustomPlugin
+        project.pluginManager.apply(CustomPlugin)
 
         then:
         project.tasks.hello instanceof DefaultTask

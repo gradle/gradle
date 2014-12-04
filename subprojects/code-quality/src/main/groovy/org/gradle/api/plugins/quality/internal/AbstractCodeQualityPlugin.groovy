@@ -31,7 +31,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
         this.project = project
 
         beforeApply()
-        project.apply(ReportingBasePlugin)
+        project.pluginManager.apply(ReportingBasePlugin)
         createConfigurations()
         extension = createExtension()
         configureExtensionRule()

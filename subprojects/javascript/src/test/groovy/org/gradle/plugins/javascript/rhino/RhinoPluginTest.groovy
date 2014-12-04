@@ -29,7 +29,7 @@ class RhinoPluginTest extends Specification {
     RhinoExtension extension
 
     def setup() {
-        apply(RhinoPlugin)
+        project.pluginManager.apply(RhinoPlugin)
         extension = javaScript.rhino
     }
 

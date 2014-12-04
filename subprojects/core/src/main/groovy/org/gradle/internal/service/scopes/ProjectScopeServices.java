@@ -31,10 +31,7 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.PluginApplicator;
-import org.gradle.api.internal.plugins.PluginManager;
-import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.RulesCapablePluginApplicator;
+import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
@@ -119,12 +116,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginManager createPluginManager() {
+    protected PluginManagerInternal createPluginManager() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         List<MethodRuleDefinitionHandler> coreHandlers = MethodRuleDefinitionHandlers.coreHandlers(get(Instantiator.class));
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
         PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
-        return new PluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+        return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

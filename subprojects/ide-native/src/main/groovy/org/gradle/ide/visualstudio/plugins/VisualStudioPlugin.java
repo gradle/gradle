@@ -49,7 +49,7 @@ import org.gradle.platform.base.BinaryContainer;
 public class VisualStudioPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(NativeComponentModelPlugin.class);
+        project.getPluginManager().apply(NativeComponentModelPlugin.class);
     }
 
     /**

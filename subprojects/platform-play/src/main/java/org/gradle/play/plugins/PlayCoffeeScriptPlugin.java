@@ -52,7 +52,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     public static final String COFFEE_SCRIPT_GENERATED = "coffeeScriptGenerated";
 
     public void apply(Project project) {
-        project.apply(PlayJavaScriptPlugin.class);
+        project.getPluginManager().apply(PlayJavaScriptPlugin.class);
     }
 
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.3.3";

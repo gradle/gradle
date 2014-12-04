@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 @NotThreadSafe
-public class PluginManager {
+public class DefaultPluginManager implements PluginManagerInternal {
 
     public static final String CORE_PLUGIN_NAMESPACE = "org" + PluginId.SEPARATOR + "gradle";
     public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + PluginId.SEPARATOR;
@@ -47,7 +47,7 @@ public class PluginManager {
     private final Set<Class<?>> plugins = Sets.newHashSet();
     private final Map<String, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
-    public PluginManager(PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
+    public DefaultPluginManager(PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
         this.applicator = applicator;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, instantiator, new PluginApplicator() {
@@ -136,41 +136,6 @@ public class PluginManager {
             throw e;
         } catch (Exception e) {
             throw new PluginApplicationException(pluginId == null ? "class '" + pluginClass.getName() + "'" : "id '" + pluginId + "'", e);
-        }
-    }
-
-    public class PluginWithId {
-        final String id;
-        final Class<?> clazz;
-
-        private PluginWithId(String id, Class<?> clazz) {
-            this.id = id;
-            this.clazz = clazz;
-        }
-
-        AppliedPlugin asAppliedPlugin() {
-            return new DefaultAppliedPlugin(PluginId.unvalidated(id));
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            PluginWithId that = (PluginWithId) o;
-
-            return clazz.equals(that.clazz) && id.equals(that.id);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = id.hashCode();
-            result = 31 * result + clazz.hashCode();
-            return result;
         }
     }
 

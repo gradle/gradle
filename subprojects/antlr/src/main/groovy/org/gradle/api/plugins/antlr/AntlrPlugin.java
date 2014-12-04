@@ -49,7 +49,7 @@ public class AntlrPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.apply(JavaPlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class);
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.

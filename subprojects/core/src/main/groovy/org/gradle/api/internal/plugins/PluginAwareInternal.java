@@ -19,5 +19,5 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.plugins.PluginAware;
 
 public interface PluginAwareInternal extends PluginAware {
-    PluginManager getPluginManager();
+    PluginManagerInternal getPluginManager();
 }

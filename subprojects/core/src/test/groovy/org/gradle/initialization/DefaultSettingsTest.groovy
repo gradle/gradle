@@ -26,7 +26,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.plugins.PluginManager
+import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.service.ServiceRegistry
@@ -58,7 +58,7 @@ class DefaultSettingsTest {
     FileResolver fileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
-    PluginManager pluginManager
+    DefaultPluginManager pluginManager
 
     @Before
     public void setUp() {
@@ -68,7 +68,7 @@ class DefaultSettingsTest {
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         rootClassLoaderScope = context.mock(ClassLoaderScope)
         classLoaderScope = context.mock(ClassLoaderScope)
-        pluginManager = context.mock(PluginManager)
+        pluginManager = context.mock(DefaultPluginManager)
 
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
@@ -90,7 +90,7 @@ class DefaultSettingsTest {
             will(returnValue(scriptHandlerFactory));
             allowing(settingsServices).get((Type)ProjectDescriptorRegistry.class);
             will(returnValue(projectDescriptorRegistry));
-            allowing(settingsServices).get((Type)PluginManager.class);
+            allowing(settingsServices).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
         }
 

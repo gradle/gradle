@@ -35,7 +35,7 @@ abstract class AbstractLanguagePluginSpec extends Specification {
     @Unroll
     def "registers #language in language registration"() {
         when:
-        project.apply(pluginClass)
+        project.pluginManager.apply(pluginClass)
         project.evaluate()
 
 

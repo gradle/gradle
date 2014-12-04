@@ -34,7 +34,7 @@ public class DefaultPluginContainerTest extends Specification {
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
     def applicator = Mock(PluginApplicator)
     def instantiator = new DirectInstantiator()
-    def pluginManager = new PluginManager(pluginRegistry, instantiator, applicator)
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, applicator)
 
     @Subject
     def container = pluginManager.pluginContainer

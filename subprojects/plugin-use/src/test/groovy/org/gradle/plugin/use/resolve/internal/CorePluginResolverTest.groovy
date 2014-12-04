@@ -18,7 +18,7 @@ package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.plugins.PluginManager
+import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PotentialPluginWithId
 import org.gradle.groovy.scripts.StringScriptSource
@@ -64,7 +64,7 @@ class CorePluginResolverTest extends Specification {
 
     def "can resolve qualified"() {
         when:
-        resolver.resolve(request("${PluginManager.CORE_PLUGIN_NAMESPACE}.foo"), result)
+        resolver.resolve(request("${DefaultPluginManager.CORE_PLUGIN_NAMESPACE}.foo"), result)
 
         then:
         1 * pluginRegistry.lookup("foo") >> Mock(PotentialPluginWithId) { asClass() >> MyPlugin }

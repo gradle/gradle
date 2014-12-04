@@ -47,8 +47,8 @@ import java.util.Map;
 public class JavaLanguagePlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(ComponentModelBasePlugin.class);
-        project.apply(JvmResourcesPlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
 
     /**

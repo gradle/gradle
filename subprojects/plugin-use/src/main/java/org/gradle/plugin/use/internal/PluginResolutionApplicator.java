@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 
 public class PluginResolutionApplicator implements Action<PluginResolution> {

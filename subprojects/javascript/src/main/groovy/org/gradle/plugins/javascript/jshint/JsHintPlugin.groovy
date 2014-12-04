@@ -35,8 +35,8 @@ import org.gradle.api.reporting.ReportingExtension
 class JsHintPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(RhinoPlugin)
-        project.apply(ReportingBasePlugin)
+        project.pluginManager.apply(RhinoPlugin)
+        project.pluginManager.apply(ReportingBasePlugin)
 
         JavaScriptExtension jsExtension = project.extensions.getByType(JavaScriptExtension)
         JsHintExtension jsHintExtension = jsExtension.extensions.create(JsHintExtension.NAME, JsHintExtension)

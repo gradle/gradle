@@ -21,8 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.api.plugins.AppliedPlugins;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.util.ConfigureUtil;
@@ -31,24 +29,7 @@ import java.util.Map;
 
 abstract public class AbstractPluginAware implements PluginAwareInternal {
 
-    private final AppliedPlugins appliedPlugins;
-
-    public AbstractPluginAware() {
-        this.appliedPlugins = new AppliedPlugins() {
-            public AppliedPlugin findPlugin(String nameOrId) {
-                return getPluginManager().findPlugin(nameOrId);
-            }
-
-            public boolean hasPlugin(String nameOrId) {
-                return getPluginManager().hasPlugin(nameOrId);
-            }
-
-            public void withPlugin(String nameOrId, Action<? super AppliedPlugin> action) {
-                getPluginManager().withPlugin(nameOrId, action);
-            }
-        };
-    }
-
+    @SuppressWarnings("unchecked")
     public void apply(Closure closure) {
         apply(ClosureBackedAction.of(closure));
     }
@@ -65,23 +46,10 @@ abstract public class AbstractPluginAware implements PluginAwareInternal {
         action.execute();
     }
 
-    public void apply(String pluginId) {
-        getPluginManager().apply(pluginId);
-    }
-
-    public void apply(Class<?> pluginClass) {
-        getPluginManager().apply(pluginClass);
-    }
-
     public PluginContainer getPlugins() {
         return getPluginManager().getPluginContainer();
     }
 
     abstract protected DefaultObjectConfigurationAction createObjectConfigurationAction();
-
-
-    public AppliedPlugins getAppliedPlugins() {
-        return appliedPlugins;
-    }
 
 }

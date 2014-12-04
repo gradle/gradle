@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.api.internal.plugins.PluginManager
+import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.util.GUtil
 
 import java.util.regex.Pattern
@@ -32,7 +32,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
     }
 
     String getQualifiedPluginId() {
-        PluginManager.CORE_PLUGIN_PREFIX + getPluginName()
+        DefaultPluginManager.CORE_PLUGIN_PREFIX + getPluginName()
     }
 
     String getMainTask() {

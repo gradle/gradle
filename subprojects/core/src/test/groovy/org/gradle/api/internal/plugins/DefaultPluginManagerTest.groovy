@@ -23,12 +23,12 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class PluginManagerTest extends Specification {
+class DefaultPluginManagerTest extends Specification {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoader)
     def applicator = Mock(PluginApplicator)
-    def manager = new PluginManager(registry, new DirectInstantiator(), applicator)
+    def manager = new DefaultPluginManager(registry, new DirectInstantiator(), applicator)
 
     Class<?> rulesClass
     Class<?> hybridClass

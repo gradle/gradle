@@ -41,7 +41,7 @@ import java.util.Map;
 public class WindowsResourceScriptPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

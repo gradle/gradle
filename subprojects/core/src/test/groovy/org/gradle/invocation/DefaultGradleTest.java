@@ -28,7 +28,8 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
@@ -80,7 +81,7 @@ public class DefaultGradleTest {
     private final ScriptHandlerFactory scriptHandlerFactory = context.mock(ScriptHandlerFactory.class);
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry = context.mock(ClassLoaderScopeRegistry.class);
     private final ClassLoaderScope classLoaderScope = context.mock(ClassLoaderScope.class);
-    private final PluginManager pluginManager = context.mock(PluginManager.class);
+    private final PluginManager pluginManager = context.mock(DefaultPluginManager.class);
 
     private DefaultGradle gradle;
 
@@ -95,7 +96,7 @@ public class DefaultGradleTest {
             will(returnValue(classLoaderScopeRegistry));
             allowing(classLoaderScopeRegistry).getCoreAndPluginsScope();
             will(returnValue(classLoaderScope));
-            allowing(gradleServiceRegistryMock).get((Type)PluginManager.class);
+            allowing(gradleServiceRegistryMock).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
             allowing(gradleServiceRegistryMock).get((Type)TaskGraphExecuter.class);
             will(returnValue(taskExecuter));

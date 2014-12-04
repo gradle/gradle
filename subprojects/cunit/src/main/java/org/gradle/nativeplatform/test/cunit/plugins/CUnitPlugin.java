@@ -63,8 +63,8 @@ import java.io.File;
 public class CUnitPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(NativeBinariesTestPlugin.class);
-        project.apply(CLangPlugin.class);
+        project.getPluginManager().apply(NativeBinariesTestPlugin.class);
+        project.getPluginManager().apply(CLangPlugin.class);
     }
 
     /**
