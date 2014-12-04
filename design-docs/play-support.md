@@ -186,14 +186,16 @@ Add a new 'scala-lang' plugin to add Scala language support implemented in the s
     - Remove A, outputs for A are removed
 - Can include both Java and Scala sources in lib: no cross-compilation
 
-### Story: Developer configures Scala and Java sources for Play application
+### Story: Developer configures Scala sources and Jvm resources for Play application
 
-Extend the Play support to allow full control over compilation of Scala and Java sources.
+Extend the Play support to full model Scala sources and Jvm resources.
 
-- Apply ScalaLanguagePlugin and JavaLanguagePlugin 
-    - _not_ ScalaBasePlugin or JavaBasePlugin
-- Sources have no dependencies other than Scala and Play.
-- All Scala and Java sources in a Play application are joint-compiled
+- A default ScalaLanguageSourceSet 'scala' will include java and scala source files in `app/controllers` and `app/models`.
+- A default JvmResourceSet 'resources' will include files in `public` and `conf`
+- Files can be included/excluded in the default source sets
+- Additional source sets can be configured
+- All source sets are listed in the component report for a play application
+- All Scala source sets in a Play application are joint-compiled
 
 
     plugins {
@@ -203,8 +205,11 @@ Extend the Play support to allow full control over compilation of Scala and Java
         components {
             play(PlayApplicationSpec) {
                 sources {
-                    extraJava(JavaSourceSet) {
-                        source.srcDir "src/extraJava"
+                    scala {
+                        source.include "extraStuff/**"
+                    }
+                    resources {
+                        source.srcDir "src/assets"
                     }
                     extraScala(ScalaSourceSet) {
                         source.srcDir "src/extraScala"
@@ -216,12 +221,13 @@ Extend the Play support to allow full control over compilation of Scala and Java
 
 #### Test cases
 
-- Scala and Java source sets (and locations) are visible in the components report
-- Can provide additional Scala sources for a Play application, with dependencies on main sources
-- Can provide additional Java sources for a Play application, with dependencies on main sources
+- Scala and Jvm source sets (and locations) are visible in the components report
+- Can configure additional includes and/or source directories for default `scala` and `resources` source sets
+- Can provide an additional Scala source set for a Play application, with dependencies on main sources
+- Can provide an additional resources set for a Play application
 - Build is incremental:
     - Changed in Scala comment does not result in rebuilding Play app
-    - Changed in Java comment does not result in rebuilding Play app
+    - Change in Scala or Java source file triggers recompilation
     - Change in Scala or Java compile properties triggers recompilation
     - Change in Platform triggers recompilation
     - Change in ToolChain triggers recompilation
