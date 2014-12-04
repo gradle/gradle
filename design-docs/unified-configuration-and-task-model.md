@@ -87,17 +87,6 @@ A mock up:
 - ~~Reasonable error message when rule method declares ambiguous input.~~
 - ~~Reasonable error message when rule method declares input by path but incompatible type.~~
 
-### Open issues
-
-#### Deferred
-
-Due to uncertainties about how we will deal with creating non root elements generally, deferring these.
-
-- `CollectionBuilder` is not part of public API.
-- `CollectionBuilder` should have an overload that can accept a rule source class or instance, to allow the configuration rule to have its own inputs that aren't required when the task is declared. Should be consistent with pattern used for dependency management rules.
-- Error message when no collection builder of requested type should provide more help about what is available.
-- Possibly introduce a new type of rule, that adds model elements to a container, rather than 'mutates' the container.
-    
 ## ~~Build author configures task created by configuration rule supplied by plugin~~
 
 1. Build author has prior knowledge of task name (i.e. story does not cover any documentation or tooling to allow discovery of task name)
@@ -235,6 +224,8 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
+- How to add item to collection in Java API, using inputs just for its configuration (i.e. not the parent containers)
+- Pattern for declaring rules that directly add items to containers (e.g. a rule that directly creates a task, i.e. inserts into `tasks`)
 
 # Backlog
 
@@ -254,6 +245,7 @@ Unordered and not all appropriately story sized.
 - Build user is alerted when a build script model rule does not bind (i.e. some kind of configuration error)
 - Bind by path failures understand model space structure and indicate the failed path “link” (e.g. failure to bind `tasks.foo` informs that `tasks` exists and what it is)
 - Collapse rule descriptors to “plugin” granularity where appropriate in error message (i.e. plugin users typically don't need information about plugin internals, but need to know which plugin failed).
+- Error message when no collection builder of requested type should provide more help about what is available
 
 ## Cleanup
 
@@ -265,6 +257,7 @@ These should be rationalised and ideally replaced with model rules.
 - SonarRunnerExtension.sonarProperties
 - Move native plugin suite to new mechanism
 - Move publishing plugin suite to new mechanism
+- `CollectionBuilder` is not part of public API
 
 ## Tasks
 
