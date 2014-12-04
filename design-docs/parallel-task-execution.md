@@ -104,6 +104,20 @@ Candidates:
 
 The implementation of these tasks needs to be examined/changed to ensure they are safe to parallelize.
 
+### Two tasks are not executed in parallel if their outputs are declared as overlapping parts of the filesystem
+
+It's possible that two task write to overlapping parts of the file system.
+This might cause data corruption as well as exceptions being thrown while 
+This is indeed the case for `Test` tasks used in a single project because Java plugin defaults the report directory of all `Test` tasks to the same directory.
+Overlapping outputs declared by two tasks should be detected and such tasks should not be executed in parallel.
+ 
+#### Test coverage
+
+- Two parallelizable tasks `:a` and `:b` don't run in parallel if the same file `x` is output of both task `:a` and task `:b`
+- Two parallelizable tasks `:a` and `:b` don't run in parallel if directory `x` is an output of task `:a` and file `x/y/z` is output of task `:b`
+- Two non-parallelizable tasks `:a:a` and `:b:a` don't run in parallel if the same file `x` is output of both task `:a:a` and task `:b:a`
+- Two non-parallelizable tasks `:a:a` and `:b:a` don't run in parallel if directory `x` is an output of task `:a:a` and file `x/y/z` is output of task `:b:a`
+
 ### Document how to write parallelizable tasks
 
 - How to enable
@@ -123,4 +137,3 @@ The implementation of these tasks needs to be examined/changed to ensure they ar
 
 - DefaultIsolatedAntBuilder (build scoped & mutable)
 - `JdkJavaCompiler` relies on setting `java.home` system property to call `ToolProvider.getSystemJavaCompiler()`
-- Java plugin defaults the report directory of all `Test` tasks to the same directory
