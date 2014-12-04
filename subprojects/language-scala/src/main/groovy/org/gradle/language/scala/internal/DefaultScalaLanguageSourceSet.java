@@ -25,12 +25,12 @@ import org.gradle.language.scala.ScalaLanguageSourceSet;
 
 import javax.inject.Inject;
 
-public class DefaultScalaSourceSet extends AbstractLanguageSourceSet implements ScalaLanguageSourceSet {
+public class DefaultScalaLanguageSourceSet extends AbstractLanguageSourceSet implements ScalaLanguageSourceSet {
 
     private final EmptyClasspath compileClasspath;
 
     @Inject
-    public DefaultScalaSourceSet(String name, String parent, FileResolver fileResolver){
+    public DefaultScalaLanguageSourceSet(String name, String parent, FileResolver fileResolver){
         super(name, parent, "Scala source", new DefaultSourceDirectorySet("source", fileResolver));
 
         this.compileClasspath = new EmptyClasspath();

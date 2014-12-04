@@ -28,8 +28,8 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
-import org.gradle.language.scala.internal.DefaultScalaSourceSet;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.scala.toolchain.ScalaToolChain;
 import org.gradle.model.Model;
@@ -84,7 +84,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         }
 
         public Class<? extends ScalaLanguageSourceSet> getSourceSetImplementation() {
-            return DefaultScalaSourceSet.class;
+            return DefaultScalaLanguageSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {
