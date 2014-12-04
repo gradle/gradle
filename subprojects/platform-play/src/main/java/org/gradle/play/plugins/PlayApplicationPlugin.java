@@ -62,7 +62,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     public static final int DEFAULT_HTTP_PORT = 9000;
 
     public void apply(final ProjectInternal project) {
-
     }
 
     /**
@@ -101,8 +100,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             platform.setName("PlayPlatform" + playVersion);
             platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
             platform.setPlayVersion(playVersion);
-            platform.setScalaMainVersion(scalaVersion.substring(0, scalaVersion.lastIndexOf('.')));
-            platform.setScalaVersion(scalaVersion);
+            platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
             platform.setTwirlVersion(twirlVersion);
             platform.setJavaVersion(JavaVersion.current());
         }
@@ -233,7 +231,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                 public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
                     scalaCompile.setClasspath(playDependencies);
-                    scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
+                    scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     //infer scala classpath
                     scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
                     scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
@@ -302,7 +300,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     public void execute(PlatformScalaCompile scalaCompile) {
                         scalaCompile.dependsOn(binary.getBuildTask());
                         scalaCompile.setClasspath(testCompileClasspath);
-                        scalaCompile.setPlatform(new DefaultScalaPlatform(binary.getTargetPlatform().getScalaVersion()));
+                        scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                         scalaCompile.setDestinationDir(testClassesDir);
                         scalaCompile.setSource(testSourceDir);
                         scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());

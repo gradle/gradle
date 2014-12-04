@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.internal.Factory
 import org.gradle.language.base.internal.compile.CompileSpec
+import org.gradle.language.scala.platform.ScalaPlatform
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.WorkerProcessBuilder
@@ -37,6 +38,7 @@ class DefaultPlayToolProviderTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
+    ScalaPlatform scalaPlatform= Mock()
 
     DefaultPlayToolProvider playToolProvider
     Factory<WorkerProcessBuilder> workerProcessBuilderFactory = Mock()
@@ -45,6 +47,7 @@ class DefaultPlayToolProviderTest extends Specification {
 
     def setup(){
         playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, playPlatform)
+        _ * playPlatform.scalaPlatform >> scalaPlatform
     }
 
     @Unroll

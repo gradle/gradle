@@ -23,9 +23,9 @@ public class TwirlCompileSpecFactory {
         TwirlCompilerVersion version = TwirlCompilerVersion.parse(playPlatform.getTwirlVersion());
         switch (version) {
             case V_22X:
-                return new TwirlCompileSpecV22X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaMainVersion());
+                return new TwirlCompileSpecV22X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaPlatform().getScalaCompatibilityVersion());
             case V_10X:
-                return new TwirlCompileSpecV10X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaMainVersion());
+                return new TwirlCompileSpecV10X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaPlatform().getScalaCompatibilityVersion());
             default:
                 throw new RuntimeException("Could not create Play Twirl compile spec for version: " + version);
         }

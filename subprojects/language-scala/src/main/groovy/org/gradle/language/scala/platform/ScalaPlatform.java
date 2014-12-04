@@ -23,4 +23,6 @@ import org.gradle.platform.base.Platform;
  * */
 public interface ScalaPlatform extends Platform {
     String getScalaVersion();
+
+    String getScalaCompatibilityVersion();
 }

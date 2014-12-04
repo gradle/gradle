@@ -19,14 +19,19 @@ package org.gradle.language.scala.internal;
 import org.gradle.language.scala.platform.ScalaPlatform;
 
 public class DefaultScalaPlatform implements ScalaPlatform {
-    private String scalaVersion;
+    private final String scalaCompatibilityVersion;
+    private final String scalaVersion;
 
     public DefaultScalaPlatform(String scalaVersion) {
         this.scalaVersion = scalaVersion;
+        this.scalaCompatibilityVersion = scalaVersion.substring(0, scalaVersion.lastIndexOf('.'));
     }
 
     public String getScalaVersion() {
         return scalaVersion;
+    }
+    public String getScalaCompatibilityVersion() {
+        return scalaCompatibilityVersion;
     }
 
     public String getDisplayName() {

@@ -100,7 +100,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public FileCollection getPlayTestDependencies() {
-        return getDependencies(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion()));
+        return getDependencies(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion(), targetPlatform.getPlayVersion()));
     }
 
     private FileCollection getDependencies(Object... dependencyNotations) {
@@ -115,7 +115,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public Object getDocsDependencyNotation() {
-        return String.format("com.typesafe.play:play-docs_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion());
+        return String.format("com.typesafe.play:play-docs_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion(), targetPlatform.getPlayVersion());
     }
 
     public VersionedPlayRunSpec create(PlayRunVersion version, PlayRunSpec spec, Iterable<File> classpath) {
@@ -148,7 +148,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     private String getPlayDependencyNotation() {
-        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaMainVersion(), targetPlatform.getPlayVersion());
+        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion());
     }
 
     private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T>  {
