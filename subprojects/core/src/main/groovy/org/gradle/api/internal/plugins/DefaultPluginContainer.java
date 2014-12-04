@@ -27,9 +27,6 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.util.SingleMessageLogger;
-
-import java.util.Collection;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
@@ -54,7 +51,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin apply(String id) {
-        SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(String)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
         PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(id);
         if (potentialPlugin == null) {
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
@@ -70,7 +66,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
-        SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(Class)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
         return addPluginInternal(null, type);
     }
 
@@ -213,39 +208,4 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         return super.add(toAdd);
     }
 
-    @Override
-    public boolean add(Plugin toAdd) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.add(Plugin)");
-        return doAdd(toAdd);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends Plugin> c) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.addAll(Collection<? extends Plugin>)");
-        return super.addAll(c);
-    }
-
-    @Override
-    public void clear() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.clear()");
-        super.clear();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.remove(Object)");
-        return super.remove(o);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.removeAll(Collection<?>)");
-        return super.removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> target) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.retainAll(Collection<?>)");
-        return super.retainAll(target);
-    }
 }

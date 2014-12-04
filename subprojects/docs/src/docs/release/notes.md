@@ -193,32 +193,6 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### Multiple `PluginContainer` methods are deprecated.
-
-[`PluginContainer.apply(String)`](javadoc/org/gradle/api/plugins/PluginContainer.html#apply\(java.lang.String\)) and
-[`PluginContainer.apply(Class)`](javadoc/org/gradle/api/plugins/PluginContainer.html#apply\(java.lang.Class\)) methods are deprecated, 
-please use [`PluginAware.apply(Map)`](javadoc/org/gradle/api/plugins/PluginAware.html#apply\(java.util.Map\)) or 
-[`PluginAware.apply(Closure)`](javadoc/org/gradle/api/plugins/PluginAware.html#apply\(groovy.lang.Closure\)) instead.
-
-    // Instead of…
-    project.plugins.apply("java")
-    
-    // Please use…
-    project.apply(plugin: "java")
-
-All other mutative methods of `PluginContainer` are deprecated without replacements:
-
-* `add(Plugin)`
-* `addAll(Collection<? extends Plugin>)`
-* `clear()`
-* `remove(Object)`
-* `removeAll(Collection<?>)`
-* `retainAll(Collection<?>)`
-
-These methods have no useful purpose.   
-
-The deprecated method will be removed in Gradle 3.0.
-
 ### Renamed method on ComponentMetadataHandler
 
 The `eachComponent` method on the incubating `ComponentMetadataHandler` interface has been deprecated and replaced with `all`.

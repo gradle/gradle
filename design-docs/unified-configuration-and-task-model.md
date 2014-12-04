@@ -134,7 +134,6 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 
 ### Open issues
 
-- Some method of `PluginContainer` have been deprecated - should deprecate the whole thing instead as the semantics of `PluginContainer` aren't right.
 - Responsibilities are smeared between `PluginManager` and `DefaultPluginContainer` - `PluginManager` should take care of applying all plugins regardless of type and
   notify the plugin container when a `Plugin` impl is applied.
 - `PluginManager` applies plugins with deprecation logging disabled - this means that all deprecated usages in `apply()` will be ignored and not reported. Need to fix

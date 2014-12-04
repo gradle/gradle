@@ -34,11 +34,9 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * Has the same behavior as {@link #apply(Class)} except that the plugin is specified via its id. Not all
      * plugins have an id.
      *
-     * @deprecated Use {@link org.gradle.api.plugins.PluginAware#apply(groovy.lang.Closure)} or {@link org.gradle.api.plugins.PluginAware#apply(java.util.Map)} instead
      * @param id The id of the plugin to be applied.
      * @return The plugin which has been used against the project.
      */
-    @Deprecated
     Plugin apply(String id);
 
     /**
@@ -46,11 +44,9 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * state of the project. This method can be called an arbitrary number of times for a particular plugin type. The
      * plugin will be actually used only the first time this method is called.
      *
-     * @deprecated Use {@link org.gradle.api.plugins.PluginAware#apply(groovy.lang.Closure)} or {@link org.gradle.api.plugins.PluginAware#apply(java.util.Map)} instead
      * @param type The type of the plugin to be used
      * @return The plugin which has been used against the project.
      */
-    @Deprecated
     <T extends Plugin> T apply(Class<T> type);
 
     /**
@@ -130,39 +126,4 @@ public interface PluginContainer extends PluginCollection<Plugin> {
     @Incubating
     void withId(String pluginId, Action<? super Plugin> action);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    boolean add(Plugin plugin);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    boolean addAll(Collection<? extends Plugin> c);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    void clear();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    boolean remove(Object o);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    boolean removeAll(Collection<?> c);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Deprecated
-    boolean retainAll(Collection<?> c);
 }
