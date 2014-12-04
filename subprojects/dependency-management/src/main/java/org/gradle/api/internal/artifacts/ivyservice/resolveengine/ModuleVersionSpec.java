@@ -115,7 +115,7 @@ public abstract class ModuleVersionSpec {
         if (!other.getClass().equals(getClass())) {
             return false;
         }
-        return doAcceptsSameModulesAs((ModuleVersionSpec) other);
+        return doAcceptsSameModulesAs(other);
     }
 
     /**
@@ -138,7 +138,7 @@ public abstract class ModuleVersionSpec {
         if (this == ALL_SPEC) {
             return other;
         }
-        return doIntersection((ModuleVersionSpec) other);
+        return doIntersection(other);
     }
 
     protected ModuleVersionSpec doIntersection(ModuleVersionSpec other) {
