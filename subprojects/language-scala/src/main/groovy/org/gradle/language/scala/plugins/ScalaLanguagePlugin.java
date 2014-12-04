@@ -109,7 +109,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
-                    JavaPlatform targetPlatform = binary.getTargetPlatform();
+                    JavaPlatform javaPlatform = binary.getTargetPlatform();
                     // TODO RG resolve the scala platform from the binary
 
                     compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
@@ -123,8 +123,8 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                     compile.setSource(scalaSourceSet.getSource());
                     compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-                    compile.setTargetCompatibility(targetPlatform.getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(targetPlatform.getTargetCompatibility().toString());
+                    compile.setTargetCompatibility(javaPlatform.getTargetCompatibility().toString());
+                    compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
 
                     compile.dependsOn(scalaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);
