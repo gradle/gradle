@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.samples.mixed
+package org.gradle.samples
 
 class Greeter {
   def greet(person: Person) =

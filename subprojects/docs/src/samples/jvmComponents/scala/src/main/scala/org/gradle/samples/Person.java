@@ -1,4 +1,4 @@
-package org.gradle.samples.mixed;
+package org.gradle.samples;
 
 import java.lang.String;
 
