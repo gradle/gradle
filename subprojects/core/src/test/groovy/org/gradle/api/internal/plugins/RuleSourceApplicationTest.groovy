@@ -88,15 +88,15 @@ class RuleSourceApplicationTest extends Specification {
         def project = buildProject()
 
         then:
-        !project.hasPlugin("custom-plugin")
-        !project.hasPlugin("custom-rule-source")
+        !project.appliedPlugins.hasPlugin("custom-plugin")
+        !project.appliedPlugins.hasPlugin("custom-rule-source")
 
         when:
         project.apply plugin: "custom-plugin"
         project.apply plugin: "custom-rule-source"
 
         then:
-        project.hasPlugin("custom-plugin")
-        project.hasPlugin("custom-rule-source")
+        project.appliedPlugins.hasPlugin("custom-plugin")
+        project.appliedPlugins.hasPlugin("custom-rule-source")
     }
 }
