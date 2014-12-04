@@ -70,17 +70,11 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Scala(serviceRegistry.get(ScalaToolChain.class)));
+            languages.add(new Scala());
         }
     }
 
     private static class Scala implements LanguageRegistration<ScalaLanguageSourceSet> {
-        private ScalaToolChain toolChain;
-
-        public Scala(ScalaToolChain toolchain) {
-            this.toolChain = toolchain;
-        }
-
         public String getName() {
             return "scala";
         }
