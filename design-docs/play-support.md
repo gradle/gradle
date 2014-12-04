@@ -128,6 +128,7 @@ At this stage, only the default generated Play application is supported, with a 
 #### Open issues
 
 - Model test suites
+- Pull `check` lifecycle task up into `LifecycleBasePlugin` and wire in all test tasks.
 
 ### Story: Developer builds, runs and tests a basic Play application for multiple versions of Play
 
