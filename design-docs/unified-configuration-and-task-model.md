@@ -232,11 +232,6 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - `PluginManager` applies plugins with deprecation logging disabled - this means that all deprecated usages in `apply()` will be ignored and not reported. Need to fix
   and add an integration test for this case.
 
-#### Other issues
-
-- `ModelRuleInspector` does not do any caching. Should share caching with `ModelRuleSourceDetector`.
-    - `ModelRuleSourceDetector` should be global scope and use weak references to classes.
-
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
@@ -294,9 +289,10 @@ These should be rationalised and ideally replaced with model rules.
 
 - Defer creating task instances until absolutely necessary
 - Cache/reuse model elements, avoiding need to run configuration on every build
-- Extract rules from plugins once per build (and possibly cache) instead of repeating for each project
+- Extract rules from plugins once per build (and possibly cache) instead of repeating for each project (add caching around `ModelRuleInspector` & `ModelRuleSourceDetector` and make build scoped)
 - Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
 - Instance of rule source type is shared across entire build
+- Class based caches (e.g. `ModelRuleSourceDetector`) should not prevent classes from being GC'd.
 
 ## DSL
 
