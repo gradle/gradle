@@ -26,6 +26,8 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.*;
@@ -39,7 +41,6 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.internal.ScalaSources;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -72,28 +73,17 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
     static class Rules {
 
         @Model
-        void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {}
-
-        @Mutate void addPlatforms(ManagedSet<PlayPlatformInternal> platforms) {
-            platforms.create(new Action<PlayPlatformInternal>() {
+        void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {
+            playPlatforms.create(new Action<PlayPlatformInternal>() {
                 public void execute(PlayPlatformInternal platform) {
                     initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
                 }
             });
-            platforms.create(new Action<PlayPlatformInternal>() {
+            playPlatforms.create(new Action<PlayPlatformInternal>() {
                 public void execute(PlayPlatformInternal platform) {
-                    initializePlatform(platform, "2.3.5", "2.11.1", "1.0.2");
+                    initializePlatform(platform, DEFAULT_PLAY_VERSION, "2.11.1", "1.0.2");
                 }
             });
-        }
-
-        @Model
-        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(PlayToolChainInternal.class);
-        }
-        @Model
-        FileResolver fileResolver(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(FileResolver.class);
         }
 
         private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
@@ -103,6 +93,16 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
             platform.setTwirlVersion(twirlVersion);
             platform.setJavaVersion(JavaVersion.current());
+        }
+
+        @Model
+        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(PlayToolChainInternal.class);
+        }
+
+        @Model
+        FileResolver fileResolver(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(FileResolver.class);
         }
 
         @Mutate
@@ -129,14 +129,14 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
         void configureDefaultPlaySources(ComponentSpecContainer components, final FileResolver fileResolver) {
             components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playComponent) {
-                    // TODO:DAZ Scala source set type should be registered
-                    ScalaSources appSources = new ScalaSources("appSources", playComponent.getName(), fileResolver);
-                    // Compile everything under /app, except for raw twirl templates
-                    // TODO:DAZ This is wrong: we need to exclude javascript/coffeescript as well. Should select scala/java directories.
+                    // TODO:DAZ Scala source set type should be registered via scala-lang plugin
+                    ScalaLanguageSourceSet appSources = new DefaultScalaLanguageSourceSet("appSources", playComponent.getName(), fileResolver);
+
+                    // Compile scala/java sources under /app\
+                    // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
                     appSources.getSource().srcDir("app");
-                    appSources.getSource().exclude("**/*.html");
-                    appSources.getSource().exclude("**/*.coffee");
-                    appSources.getSource().exclude("**/*.js");
+                    appSources.getSource().include("**/*.scala");
+                    appSources.getSource().include("**/*.java");
                     ((ComponentSpecInternal) playComponent).getSources().add(appSources);
                 }
             });
@@ -171,7 +171,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-                        ScalaSources genSources = new ScalaSources("genSources", binaryName, fileResolver);
+                        ScalaLanguageSourceSet genSources = new DefaultScalaLanguageSourceSet("genSources", binaryName, fileResolver);
                         playBinaryInternal.setGeneratedScala(genSources);
                     }
                 });
@@ -243,7 +243,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     scalaCompile.getScalaCompileOptions().setFork(true);
                     scalaCompile.getScalaCompileOptions().setUseAnt(false);
 
-                    for (LanguageSourceSet appSources : binary.getSource().withType(ScalaSources.class)) {
+                    for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
                     }
