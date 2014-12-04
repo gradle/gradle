@@ -664,7 +664,7 @@ public class DependencyGraphBuilder {
                     ModuleId moduleId = ModuleId.newInstance(id.getModuleGroup(), id.getModuleName());
                     ArtifactId artifactId = new ArtifactId(moduleId, artifact.getName().getName(), artifact.getName().getType(), artifact.getName().getExtension());
 
-                    if(artifactVersionSpec.isSatisfiedBy(artifactId)) {
+                    if(artifactVersionSpec.acceptArtifact(artifactId)) {
                         artifacts.add(builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
                     } else {
                         unsatisfiedArtifactSpec = true;
@@ -741,7 +741,7 @@ public class DependencyGraphBuilder {
         }
 
         private boolean isSelectorSatisfied(ModuleVersionSpec selector, ModuleId targetModuleId) {
-            if(!selector.isSatisfiedBy(targetModuleId)) {
+            if(!selector.acceptModule(targetModuleId)) {
                 LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
                 return true;
             }

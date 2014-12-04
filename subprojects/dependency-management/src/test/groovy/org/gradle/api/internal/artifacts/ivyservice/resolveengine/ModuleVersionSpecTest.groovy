@@ -28,14 +28,14 @@ class ModuleVersionSpecTest extends Specification {
         def spec = ModuleVersionSpec.forExcludes()
 
         expect:
-        spec.isSatisfiedBy(createModuleId("org", "module"))
+        spec.acceptModule(createModuleId("org", "module"))
     }
 
     def "accepts all artifacts by default"() {
         def spec = ModuleVersionSpec.forExcludes()
 
         expect:
-        spec.isSatisfiedBy(createArtifactId("org", "module", "test", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("org", "module", "test", "jar", "jar"))
     }
 
     def "default specs accept the same modules as each other"() {
@@ -52,14 +52,14 @@ class ModuleVersionSpecTest extends Specification {
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
-        !spec.isSatisfiedBy(createModuleId("org", "module"))
-        !spec.isSatisfiedBy(createModuleId("org", "module2"))
-        !spec.isSatisfiedBy(createModuleId("org2", "anything"))
-        !spec.isSatisfiedBy(createModuleId("other", "module4"))
-        !spec.isSatisfiedBy(createModuleId("regexp-72", "module12"))
-        spec.isSatisfiedBy(createModuleId("org", "other"))
-        spec.isSatisfiedBy(createModuleId("regexp-72", "other"))
-        spec.isSatisfiedBy(createModuleId("regexp", "module2"))
+        !spec.acceptModule(createModuleId("org", "module"))
+        !spec.acceptModule(createModuleId("org", "module2"))
+        !spec.acceptModule(createModuleId("org2", "anything"))
+        !spec.acceptModule(createModuleId("other", "module4"))
+        !spec.acceptModule(createModuleId("regexp-72", "module12"))
+        spec.acceptModule(createModuleId("org", "other"))
+        spec.acceptModule(createModuleId("regexp-72", "other"))
+        spec.acceptModule(createModuleId("regexp", "module2"))
     }
 
     def "specs with the same set of exclude rules accept the same modules as each other"() {
@@ -272,11 +272,11 @@ class ModuleVersionSpecTest extends Specification {
         expect:
         def union = spec.union(spec2)
 
-        !spec.isSatisfiedBy(createModuleId("org", "module"))
-        !union.isSatisfiedBy(createModuleId("org", "module"))
+        !spec.acceptModule(createModuleId("org", "module"))
+        !union.acceptModule(createModuleId("org", "module"))
 
-        !spec.isSatisfiedBy(createModuleId("org", "module2"))
-        union.isSatisfiedBy(createModuleId("org", "module2"))
+        !spec.acceptModule(createModuleId("org", "module2"))
+        union.acceptModule(createModuleId("org", "module2"))
     }
 
     def "unions accepts same modules when original specs accept same modules"() {
@@ -325,15 +325,15 @@ class ModuleVersionSpecTest extends Specification {
         expect:
         def intersect = spec.intersect(spec2)
 
-        !spec.isSatisfiedBy(createModuleId("org", "module"))
-        !intersect.isSatisfiedBy(createModuleId("org", "module"))
+        !spec.acceptModule(createModuleId("org", "module"))
+        !intersect.acceptModule(createModuleId("org", "module"))
 
-        !spec.isSatisfiedBy(createModuleId("org", "module2"))
-        !intersect.isSatisfiedBy(createModuleId("org", "module2"))
+        !spec.acceptModule(createModuleId("org", "module2"))
+        !intersect.acceptModule(createModuleId("org", "module2"))
 
-        spec.isSatisfiedBy(createModuleId("org", "module3"))
-        spec2.isSatisfiedBy(createModuleId("org", "module3"))
-        intersect.isSatisfiedBy(createModuleId("org", "module3"))
+        spec.acceptModule(createModuleId("org", "module3"))
+        spec2.acceptModule(createModuleId("org", "module3"))
+        intersect.acceptModule(createModuleId("org", "module3"))
     }
 
     def "intersection of two specs with exclude rules is the union of the exclude rules"() {
@@ -376,14 +376,14 @@ class ModuleVersionSpecTest extends Specification {
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
-        !spec.isSatisfiedBy(createArtifactId("org", "module", "a", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("org", "module2", "b", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("org2", "anything", "c", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("other", "module4", "d", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("regexp-72", "module12", "e", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("org", "other", "f", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("regexp-72", "other", "g", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("regexp", "module2", "h", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("org", "module", "a", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("org", "module2", "b", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("org2", "anything", "c", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("other", "module4", "d", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("regexp-72", "module12", "e", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("org", "other", "f", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("regexp-72", "other", "g", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("regexp", "module2", "h", "jar", "jar"))
     }
 
     def "does not accept artifact that matches specific exclude rule"() {
@@ -398,20 +398,20 @@ class ModuleVersionSpecTest extends Specification {
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8)
 
         expect:
-        !spec.isSatisfiedBy(createArtifactId("org", "module", "a", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("org", "module2", "b", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("org2", "anything", "c", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("other", "module4", "d", "jar", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("some", "app", "e", "sources", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("foo", "bar", "f", "sources", "jar"))
-        !spec.isSatisfiedBy(createArtifactId("well", "known", "g", "jar", "war"))
-        !spec.isSatisfiedBy(createArtifactId("other", "sample", "regexp-99", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("some", "app", "e", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("some", "app", "e", "javadoc", "jar"))
-        spec.isSatisfiedBy(createArtifactId("foo", "bar", "f", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("well", "known", "g", "jar", "jar"))
-        spec.isSatisfiedBy(createArtifactId("well", "known", "g", "jar", "zip"))
-        spec.isSatisfiedBy(createArtifactId("other", "sample", "regexp", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("org", "module", "a", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("org", "module2", "b", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("org2", "anything", "c", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("other", "module4", "d", "jar", "jar"))
+        !spec.acceptArtifact(createArtifactId("some", "app", "e", "sources", "jar"))
+        !spec.acceptArtifact(createArtifactId("foo", "bar", "f", "sources", "jar"))
+        !spec.acceptArtifact(createArtifactId("well", "known", "g", "jar", "war"))
+        !spec.acceptArtifact(createArtifactId("other", "sample", "regexp-99", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("some", "app", "e", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("some", "app", "e", "javadoc", "jar"))
+        spec.acceptArtifact(createArtifactId("foo", "bar", "f", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("well", "known", "g", "jar", "jar"))
+        spec.acceptArtifact(createArtifactId("well", "known", "g", "jar", "zip"))
+        spec.acceptArtifact(createArtifactId("other", "sample", "regexp", "jar", "jar"))
     }
 
     def excludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {

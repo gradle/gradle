@@ -37,7 +37,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleI
  * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
  * evicts a version that depends on the given version). </p>
  */
-public abstract class ModuleVersionSpec implements ModuleSelector {
+public abstract class ModuleVersionSpec {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
 
     public static ModuleVersionSpec forExcludes(ExcludeRule... excludeRules) {
@@ -69,7 +69,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
         }
         List<ModuleVersionSpec> specs = new ArrayList<ModuleVersionSpec>();
         unpackUnion(specs);
-        ((ModuleVersionSpec) other).unpackUnion(specs);
+        other.unpackUnion(specs);
         for (int i = 0; i < specs.size();) {
             ModuleVersionSpec spec = specs.get(i);
             ModuleVersionSpec merged = null;
@@ -99,6 +99,9 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
     protected ModuleVersionSpec doUnion(ModuleVersionSpec other) {
         return null;
     }
+
+    public abstract boolean acceptModule(ModuleId module);
+    public abstract boolean acceptArtifact(ArtifactId artifact);
 
     /**
      * Determines if this spec accepts the same set of modules as the given spec.
@@ -148,11 +151,11 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return "{accept-all}";
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             return true;
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
+        public boolean acceptArtifact(ArtifactId artifact) {
             return true;
         }
     }
@@ -232,18 +235,18 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return excludeSpecs;
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             for (ModuleVersionSpec excludeSpec : excludeSpecs) {
-                if (!excludeSpec.isSatisfiedBy(element)) {
+                if (!excludeSpec.acceptModule(element)) {
                     return false;
                 }
             }
             return true;
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
+        public boolean acceptArtifact(ArtifactId artifact) {
             for (ModuleVersionSpec excludeSpec : excludeSpecs) {
-                if (!excludeSpec.isSatisfiedBy(artifact)) {
+                if (!excludeSpec.acceptArtifact(artifact)) {
                     return false;
                 }
             }
@@ -372,9 +375,9 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             specs.addAll(this.specs);
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             for (ModuleVersionSpec spec : specs) {
-                if (spec.isSatisfiedBy(element)) {
+                if (spec.acceptModule(element)) {
                     return true;
                 }
             }
@@ -382,9 +385,9 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return false;
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
+        public boolean acceptArtifact(ArtifactId artifact) {
             for (ModuleVersionSpec spec : specs) {
-                if (spec.isSatisfiedBy(artifact)) {
+                if (spec.acceptArtifact(artifact)) {
                     return true;
                 }
             }
@@ -405,18 +408,18 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return specs;
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             for (ModuleVersionSpec spec : specs) {
-                if (!spec.isSatisfiedBy(element)) {
+                if (!spec.acceptModule(element)) {
                     return false;
                 }
             }
             return true;
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
+        public boolean acceptArtifact(ArtifactId artifact) {
             for (ModuleVersionSpec spec : specs) {
-                if (!spec.isSatisfiedBy(artifact)) {
+                if (!spec.acceptArtifact(artifact)) {
                     return false;
                 }
             }
@@ -459,12 +462,12 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return moduleId.equals(moduleIdSpec.moduleId);
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             return !element.equals(moduleId);
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
-            return isSatisfiedBy(artifact.getModuleId());
+        public boolean acceptArtifact(ArtifactId artifact) {
+            return acceptModule(artifact.getModuleId());
         }
     }
 
@@ -503,12 +506,12 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return module.equals(moduleNameSpec.module);
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             return !element.getName().equals(module);
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
-            return isSatisfiedBy(artifact.getModuleId());
+        public boolean acceptArtifact(ArtifactId artifact) {
+            return acceptModule(artifact.getModuleId());
         }
     }
 
@@ -547,12 +550,12 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return group.equals(groupNameSpec.group);
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             return !element.getOrganisation().equals(group);
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
-            return isSatisfiedBy(artifact.getModuleId());
+        public boolean acceptArtifact(ArtifactId artifact) {
+            return acceptModule(artifact.getModuleId());
         }
     }
 
@@ -593,7 +596,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return rule == excludeRuleSpec.rule;
         }
 
-        public boolean isSatisfiedBy(ModuleId element) {
+        public boolean acceptModule(ModuleId element) {
             ArtifactId artifactId = rule.getId();
             boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), artifactId.getModuleId(), element);
             return !(matchesRule
@@ -606,7 +609,7 @@ public abstract class ModuleVersionSpec implements ModuleSelector {
             return PatternMatcher.ANY_EXPRESSION.equals(attribute);
         }
 
-        public boolean isSatisfiedBy(ArtifactId artifact) {
+        public boolean acceptArtifact(ArtifactId artifact) {
             return !MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifact);
         }
     }
