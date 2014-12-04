@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
@@ -82,4 +83,18 @@ public class ModelGraph {
         onAdd.execute(child);
     }
 
+    @Nullable
+    public ModelNode remove(ModelPath path) {
+        if (path.isTopLevel()) {
+            entryNodes.remove(path.getName());
+        } else {
+            ModelSearchResult searchResult = search(path.getParent());
+            if (searchResult.getTargetNode() != null) {
+                searchResult.getTargetNode().removeLink(path.getName());
+            }
+
+        }
+
+        return flattened.remove(path);
+    }
 }

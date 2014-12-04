@@ -236,7 +236,6 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 
 - `ModelRuleInspector` does not do any caching. Should share caching with `ModelRuleSourceDetector`.
     - `ModelRuleSourceDetector` should be global scope and use weak references to classes.
-- `TaskRemovalIntegrationTest.cant remove task in after evaluate if task is used by a #annotationClass` is ignored
 
 # Open Questions
 
@@ -283,6 +282,7 @@ These should be rationalised and ideally replaced with model rules.
 - Select internal services are made available to configuration rules (i.e. remove `ServiceRegistry` from model space)
 - Make `buildDir` available in model space
 - Remove `ExtensionContainer` from model space
+- Semantics of model element removal are not well defined
 
 ## Testing
 

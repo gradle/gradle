@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -81,6 +82,11 @@ public class ModelNode {
 
     public Map<String, ModelNode> getLinks() {
         return Collections.unmodifiableMap(links);
+    }
+
+    @Nullable
+    public ModelNode removeLink(String name) {
+        return links.remove(name);
     }
 
     public <T> T getPrivateData(ModelType<T> type) {

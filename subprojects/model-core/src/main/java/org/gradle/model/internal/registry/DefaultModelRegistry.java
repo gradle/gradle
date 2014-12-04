@@ -228,13 +228,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void remove(ModelPath path) {
-        ModelSearchResult searchResult = modelGraph.search(path);
-        if (creations.remove(path) == null && searchResult.getTargetNode() == null) {
-            throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
-        }
         if (isDependedOn(path)) {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
         }
+
+        creations.remove(path);
+        modelGraph.remove(path);
     }
 
     public void validate() throws UnboundModelRulesException {

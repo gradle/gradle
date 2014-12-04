@@ -192,9 +192,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         container.whenObjectRemoved(new Action<I>() {
             public void execute(I item) {
                 ModelPath path = modelPath.child(namer.determineName(item));
-                if (path.equals(modelRegistry.search(path).getReachedPath())) {
-                    modelRegistry.remove(path);
-                }
+                modelRegistry.remove(path);
             }
         });
     }
