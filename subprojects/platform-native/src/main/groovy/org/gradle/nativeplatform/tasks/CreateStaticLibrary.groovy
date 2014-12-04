@@ -28,6 +28,7 @@ import javax.inject.Inject
  * Assembles a static library from object files.
  */
 @Incubating
+@ParallelizableTask
 class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
     private FileCollection source
 

@@ -35,6 +35,7 @@ import java.util.List;
  * Translates Assembly language source files into object files.
  */
 @Incubating
+@ParallelizableTask
 public class Assemble extends DefaultTask {
     private FileCollection source;
     private NativeToolChainInternal toolChain;

@@ -41,6 +41,7 @@ import java.util.Map;
  * Compiles Windows Resource scripts into .res files.
  */
 @Incubating
+@ParallelizableTask
 public class WindowsResourceCompile extends DefaultTask {
 
     private NativeToolChainInternal toolChain;
