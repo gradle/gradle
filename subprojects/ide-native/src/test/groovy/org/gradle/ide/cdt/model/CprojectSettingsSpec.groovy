@@ -15,10 +15,10 @@
  */
 package org.gradle.ide.cdt.model
 
-import spock.lang.*
-
 import org.gradle.api.Project
 import org.gradle.util.TestUtil
+import spock.lang.Ignore
+import spock.lang.Specification
 
 // very loose test, but I'm not expecting it to stay around
 @Ignore
@@ -31,7 +31,7 @@ class CprojectSettingsSpec extends Specification {
 
     def "wire in includes"() {
         given:
-        project.apply plugin: 'cpp-exe'
+        project.apply 'org.gradle.cpp-exe'
         settings.binary = project.componentSpecs.main
         descriptor.loadDefaults()
 

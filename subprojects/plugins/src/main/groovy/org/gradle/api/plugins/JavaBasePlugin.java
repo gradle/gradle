@@ -45,7 +45,6 @@ import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -67,9 +66,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(ProjectInternal project) {
-        project.apply(Collections.singletonMap("plugin", BasePlugin.class));
-        project.apply(Collections.singletonMap("plugin", ReportingBasePlugin.class));
-        project.apply(Collections.singletonMap("plugin", LegacyJavaComponentPlugin.class));
+        project.apply(BasePlugin.class);
+        project.apply(ReportingBasePlugin.class);
+        project.apply(LegacyJavaComponentPlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);

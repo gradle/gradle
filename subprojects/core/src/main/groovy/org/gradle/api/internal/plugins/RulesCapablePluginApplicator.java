@@ -18,12 +18,13 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
+public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginAware> implements PluginApplicator {
 
     private final ModelRuleInspector inspector;
     private final T target;

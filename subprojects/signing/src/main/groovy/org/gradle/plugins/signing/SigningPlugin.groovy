@@ -34,7 +34,7 @@ class SigningPlugin implements Plugin<Project> {
      * @see org.gradle.plugins.signing.SigningExtension
      */
     void apply(Project project) {
-        project.apply(type: BasePlugin)
+        project.apply(BasePlugin)
 
         project.extensions.create("signing", SigningExtension, project)
     }

@@ -38,7 +38,6 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
@@ -46,7 +45,7 @@ import java.util.Collections;
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
+        project.apply(NativeComponentPlugin.class);
     }
 
     /**

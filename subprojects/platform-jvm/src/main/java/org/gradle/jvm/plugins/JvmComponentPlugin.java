@@ -59,7 +59,7 @@ import java.util.List;
 public class JvmComponentPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.apply(ComponentModelBasePlugin.class);
     }
 
     /**

@@ -134,8 +134,6 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 
 ### Open issues
 
-- Plugin management and query methods are not name-spaced on `PluginAware` - should implement something closer to the above spec instead.
-- Statically typed 'apply by id' and 'apply by type' methods have been deprecated without statically typed replacement.
 - Some method of `PluginContainer` have been deprecated - should deprecate the whole thing instead as the semantics of `PluginContainer` aren't right.
 - Responsibilities are smeared between `PluginManager` and `DefaultPluginContainer` - `PluginManager` should take care of applying all plugins regardless of type and
   notify the plugin container when a `Plugin` impl is applied.
@@ -179,6 +177,7 @@ These should be rationalised and ideally replaced with model rules.
 - Move native plugin suite to new mechanism
 - Move publishing plugin suite to new mechanism
 - `CollectionBuilder` is not part of public API
+- `@RuleSource` is not documented, nor is the concept of a rule based plugin (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
 
 ## Tasks
 

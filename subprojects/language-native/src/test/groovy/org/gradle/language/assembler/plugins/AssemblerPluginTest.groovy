@@ -31,7 +31,7 @@ class AssemblerPluginTest extends Specification {
     def "creates asm source set with conventional locations for components"() {
         when:
         dsl {
-            apply plugin: AssemblerPlugin
+            apply AssemblerPlugin
             model {
                 components {
                     exe(NativeExecutableSpec)
@@ -52,7 +52,7 @@ class AssemblerPluginTest extends Specification {
     def "can configure source set locations"() {
         given:
         dsl {
-            apply plugin: AssemblerPlugin
+            apply AssemblerPlugin
             model {
                 components {
                     exe(NativeExecutableSpec) {
@@ -77,7 +77,7 @@ class AssemblerPluginTest extends Specification {
         touch("src/test/asm/dummy.s")
         touch("src/test/anotherOne/dummy.s")
         dsl {
-            apply plugin: AssemblerPlugin
+            apply AssemblerPlugin
 
             model {
                 components {
@@ -115,7 +115,7 @@ class AssemblerPluginTest extends Specification {
         touch("src/test/asm/dummy.s")
         touch("src/test/anotherOne/dummy.s")
         dsl {
-            apply plugin: AssemblerPlugin
+            apply AssemblerPlugin
             model {
                 components {
                     test(NativeLibrarySpec) {

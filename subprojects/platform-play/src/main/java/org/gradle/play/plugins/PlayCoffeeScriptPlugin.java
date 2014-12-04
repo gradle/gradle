@@ -16,11 +16,7 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
@@ -56,7 +52,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     public static final String COFFEE_SCRIPT_GENERATED = "coffeeScriptGenerated";
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", PlayJavaScriptPlugin.class));
+        project.apply(PlayJavaScriptPlugin.class);
     }
 
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.3.3";

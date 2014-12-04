@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -83,10 +84,42 @@ public interface PluginAware {
     void apply(Map<String, ?> options);
 
     /**
+     * Applies the plugin with the given ID.
+     * <p>
+     * Plugins in the {@code "org.gradle"} namespace can be applied directly via name.
+     * That is, the following two lines are equivalent…
+     * <pre autoTested='true'>
+     * apply "org.gradle.java"
+     * apply "java"
+     * </pre>
+     *
+     * @param pluginId the ID of the plugin to apply
+     */
+    @Incubating
+    void apply(String pluginId);
+
+    /**
+     * Applies the given plugin.
+     * <p>
+     * The given class should implement the {@link org.gradle.api.Plugin} interface, and be parameterized for a compatible type of {@code this}.
+     * <p>
+     * The following two lines are equivalent…
+     * <pre autoTested='true'>
+     * apply org.gradle.api.plugins.JavaPlugin
+     * apply "org.gradle.java"
+     * </pre>
+     *
+     * @param pluginClass the plugin class to apply
+     */
+    @Incubating
+    void apply(Class<?> pluginClass);
+
+    /**
      * Allows determining whether a plugin has been applied.
      *
      * @return the applied plugins
      */
+    @Incubating
     AppliedPlugins getAppliedPlugins();
 
 }

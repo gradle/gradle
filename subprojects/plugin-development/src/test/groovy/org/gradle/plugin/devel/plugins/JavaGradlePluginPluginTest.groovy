@@ -127,7 +127,7 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def "apply adds java plugin"() {
         when:
-        project.pluginManager.apply(JavaGradlePluginPlugin)
+        project.apply(JavaGradlePluginPlugin)
 
         then:
         project.plugins.findPlugin(JavaPlugin)
@@ -135,7 +135,7 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def "apply adds gradleApi dependency to compile"() {
         when:
-        project.pluginManager.apply(JavaGradlePluginPlugin)
+        project.apply(JavaGradlePluginPlugin)
 
         then:
         project.configurations
@@ -147,11 +147,11 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def "apply configures filesMatching actions on jar spec"() {
         setup:
-        project.pluginManager.apply(JavaPlugin)
+        project.apply(JavaPlugin)
         def Jar mockJarTask = mockJar(project)
 
         when:
-        project.pluginManager.apply(JavaGradlePluginPlugin)
+        project.apply(JavaGradlePluginPlugin)
 
         then:
         1 * mockJarTask.filesMatching(JavaGradlePluginPlugin.PLUGIN_DESCRIPTOR_PATTERN, { it instanceof JavaGradlePluginPlugin.PluginDescriptorCollectorAction })
@@ -160,11 +160,11 @@ class JavaGradlePluginPluginTest extends Specification {
 
     def "apply configures doLast action on jar"() {
         setup:
-        project.pluginManager.apply(JavaPlugin)
+        project.apply(JavaPlugin)
         def Jar mockJarTask = mockJar(project)
 
         when:
-        project.pluginManager.apply(JavaGradlePluginPlugin)
+        project.apply(JavaGradlePluginPlugin)
 
         then:
         1 * mockJarTask.appendParallelSafeAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction })

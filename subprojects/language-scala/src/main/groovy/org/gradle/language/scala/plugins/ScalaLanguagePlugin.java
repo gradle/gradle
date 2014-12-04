@@ -51,8 +51,8 @@ import java.util.Map;
 public class ScalaLanguagePlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.apply(Collections.singletonMap("plugin", JvmResourcesPlugin.class));
+        project.apply(ComponentModelBasePlugin.class);
+        project.apply(JvmResourcesPlugin.class);
     }
 
 

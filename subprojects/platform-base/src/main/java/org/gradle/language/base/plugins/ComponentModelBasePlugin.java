@@ -34,9 +34,9 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
@@ -48,7 +48,6 @@ import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * Base plugin for language support.
@@ -70,7 +69,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
+        project.apply(LanguageBasePlugin.class);
 
         // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
@@ -127,7 +126,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize // This is setting defaults for each component in the container. Should not be finalizing the container.
+        @Finalize
+            // This is setting defaults for each component in the container. Should not be finalizing the container.
         void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs) {
                 for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
@@ -169,7 +169,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             this.fileResolver = fileResolver;
             this.instantiator = instantiator;
         }
-        
+
         public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, FileResolver fileResolver, Instantiator instantiator) {
             return new ComponentSourcesRegistrationAction<U>(registration, fileResolver, instantiator);
         }

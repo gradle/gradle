@@ -65,6 +65,14 @@ abstract public class AbstractPluginAware implements PluginAwareInternal {
         action.execute();
     }
 
+    public void apply(String pluginId) {
+        getPluginManager().apply(pluginId);
+    }
+
+    public void apply(Class<?> pluginClass) {
+        getPluginManager().apply(pluginClass);
+    }
+
     public PluginContainer getPlugins() {
         return getPluginManager().getPluginContainer();
     }

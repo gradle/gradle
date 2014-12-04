@@ -48,7 +48,7 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     void apply(Project project) {
         this.project = project
-        project.apply(type: JavaBasePlugin)
+        project.apply(JavaBasePlugin)
         def javaPlugin = project.plugins.getPlugin(JavaBasePlugin.class)
 
         configureConfigurations(project)
