@@ -9,6 +9,14 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Test output directories
+
+The current defaults for the outputs of tasks of type `Test` conflict with each other:
+
+* Change the default result and report directory for the `Test` type to include the task's name, so that the default
+  does not conflict with the default for any other `Test` task.
+* Change the default TestNG output directory.
+
 ## Log changes
 
 * Remove `--no-color` command-line option.
