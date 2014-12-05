@@ -18,11 +18,9 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.*;
-import org.gradle.api.BuildCancelledException;
-import org.gradle.api.CircularReferenceException;
-import org.gradle.api.Task;
-import org.gradle.api.Transformer;
+import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -39,6 +37,8 @@ import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
@@ -63,6 +63,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Multiset<String> projectsWithRunningTasks = HashMultiset.create();
     private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
+    private final Set<String> canonicalizedOutputsOfRunningTasks = Sets.newHashSet();
     private boolean tasksCancelled;
 
     public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
@@ -431,13 +432,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 boolean allTasksComplete = true;
                 for (TaskInfo taskInfo : executionPlan.values()) {
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
-                        TaskInternal task = taskInfo.getTask();
-                        String projectPath = task.getProject().getPath();
-                        if (!projectsWithRunningTasks.contains(projectPath) || (isParallelizable(task) && !projectsWithRunningNonParallelizableTasks.contains(projectPath))) {
-                            nextMatching = taskInfo;
-                            break;
-                        }
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo.getTask())) {
+                        nextMatching = taskInfo;
+                        break;
                     }
                 }
                 if (allTasksComplete) {
@@ -465,6 +462,56 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
+    private boolean canRunWithWithCurrentlyExecutedTasks(TaskInternal task) {
+        String projectPath = task.getProject().getPath();
+        boolean canRun = !projectsWithRunningTasks.contains(projectPath);
+        canRun = canRun || (isParallelizable(task) && !projectsWithRunningNonParallelizableTasks.contains(projectPath));
+        canRun = canRun && noOverlapWithRunningTasksOutputs(task);
+        return canRun;
+    }
+
+    private String canonicalizedPath(File file) {
+        String path;
+        try {
+            path = file.getCanonicalPath();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return path;
+    }
+
+    private boolean noOverlapWithRunningTasksOutputs(TaskInternal task) {
+        if (canonicalizedOutputsOfRunningTasks.isEmpty()) {
+            return true;
+        }
+        for (File output : task.getOutputs().getFiles()) {
+            String path = canonicalizedPath(output);
+            for (String runningTaskOutputPath : canonicalizedOutputsOfRunningTasks) {
+                if (pathsOverlap(path, runningTaskOutputPath)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean pathsOverlap(String firstPath, String secondPath) {
+        if (firstPath.equals(secondPath)) {
+            return true;
+        }
+
+        String shorter;
+        String longer;
+        if (firstPath.length() > secondPath.length()) {
+            shorter = secondPath;
+            longer = firstPath;
+        } else {
+            shorter = firstPath;
+            longer = secondPath;
+        }
+        return longer.startsWith(shorter + StandardSystemProperty.FILE_SEPARATOR.value());
+    }
+
     boolean isParallelizable(TaskInternal task) {
         return task.getClass().isAnnotationPresent(ParallelizableTask.class) && !task.isHasCustomActions();
     }
@@ -475,6 +522,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             projectsWithRunningNonParallelizableTasks.add(projectPath);
         }
         projectsWithRunningTasks.add(projectPath);
+        for (File output : task.getOutputs().getFiles()) {
+            canonicalizedOutputsOfRunningTasks.add(canonicalizedPath(output));
+        }
     }
 
     private void recordTaskCompleted(TaskInternal task) {
@@ -483,6 +533,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             projectsWithRunningNonParallelizableTasks.remove(projectPath);
         }
         projectsWithRunningTasks.remove(projectPath);
+        for (File output : task.getOutputs().getFiles()) {
+            canonicalizedOutputsOfRunningTasks.remove(canonicalizedPath(output));
+        }
     }
 
     public void taskComplete(TaskInfo taskInfo) {

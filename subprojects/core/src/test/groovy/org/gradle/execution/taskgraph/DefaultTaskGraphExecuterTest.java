@@ -24,9 +24,11 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -485,7 +487,8 @@ public class DefaultTaskGraphExecuterTest {
     private Task brokenTask(String name, final RuntimeException failure, final Task... dependsOn) {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
-        setExpectations(name, task, state);
+        final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
+        setExpectations(name, task, state, outputs);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
             atMost(1).of(task).executeWithoutThrowingTaskFailure();
@@ -501,7 +504,8 @@ public class DefaultTaskGraphExecuterTest {
     private Task task(final String name, final Task... dependsOn) {
         final TaskInternal task = context.mock(TaskInternal.class);
         final TaskStateInternal state = context.mock(TaskStateInternal.class);
-        setExpectations(name, task, state);
+        final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
+        setExpectations(name, task, state, outputs);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
             atMost(1).of(task).executeWithoutThrowingTaskFailure();
@@ -515,11 +519,12 @@ public class DefaultTaskGraphExecuterTest {
     private TaskInternal createTask(final String name) {
         TaskInternal task = context.mock(TaskInternal.class);
         TaskStateInternal state = context.mock(TaskStateInternal.class);
-        setExpectations(name, task, state);
+        final TaskOutputs outputs = context.mock(DefaultTaskOutputs.class);
+        setExpectations(name, task, state, outputs);
         return task;
     }
 
-    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state) {
+    private void setExpectations(final String name, final TaskInternal task, final TaskStateInternal state, final TaskOutputs outputs) {
         context.checking(new Expectations() {{
             allowing(task).getProject();
             will(returnValue(root));
@@ -549,6 +554,10 @@ public class DefaultTaskGraphExecuterTest {
                     description.appendText("compare to");
                 }
             });
+            allowing(task).getOutputs();
+            will(returnValue(outputs));
+            allowing(outputs).getFiles();
+            will(returnValue(root.files()));
         }});
     }
 

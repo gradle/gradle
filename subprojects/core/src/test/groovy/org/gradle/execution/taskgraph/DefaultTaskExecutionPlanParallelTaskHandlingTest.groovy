@@ -17,17 +17,27 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
+import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
 
 class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
+
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken))
     DefaultProject root = createRootProject();
@@ -61,6 +71,10 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
     void allBlockedThreadsFinish() {
         blockedThreads*.join()
         blockedThreads.clear()
+    }
+
+    TestFile file(String path) {
+        tmp.file(path)
     }
 
     @ParallelizableTask
@@ -174,6 +188,95 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
         when:
         addToGraphAndPopulate(clean, parallelizable)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    @ParallelizableTask
+    static class ParallelWithOutputFile extends DefaultTask {
+        @OutputFile
+        File outputFile
+    }
+
+    Task taskWithOutputFile(Project project = root, String taskName, File file) {
+        project.task(taskName, type: ParallelWithOutputFile) {
+            outputFile = file
+        }
+    }
+
+    def "two parallelizable tasks that have the same file in outputs are not executed in parallel"() {
+        given:
+        Task a = taskWithOutputFile("a", file("output"))
+        Task b = taskWithOutputFile("b", file("output"))
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    @ParallelizableTask
+    static class ParallelWithOutputDirectory extends DefaultTask {
+        @OutputDirectory
+        File outputDirectory
+    }
+
+    Task taskWithOutputDirectory(Project project = root, String taskName, File directory) {
+        project.task(taskName, type: ParallelWithOutputDirectory) {
+            outputDirectory = directory
+        }
+    }
+
+    def "a task that writes into a directory that is an output of currently running task is not started"() {
+        given:
+        Task a = taskWithOutputDirectory("a", file("outputDir"))
+        Task b = taskWithOutputFile("b", file("outputDir").file("outputSubdir").file("output"))
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    def "a task that writes into an ancestor directory of a file that is an output of currently running task is not started"() {
+        given:
+        Task a = taskWithOutputFile("a", file("outputDir").file("outputSubdir").file("output"))
+        Task b = taskWithOutputDirectory("b", file("outputDir"))
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    def "tasks from two different projects that have the same file in outputs are not executed in parallel"() {
+        given:
+        Task a = taskWithOutputFile(createChildProject(root, "a"), "a", file("output"))
+        Task b = taskWithOutputFile(createChildProject(root, "b"), "b", file("output"))
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    def "a task from different project that writes into a directory that is an output of currently running task is not started"() {
+        given:
+        Task a = taskWithOutputDirectory(createChildProject(root, "a"), "a", file("outputDir"))
+        Task b = taskWithOutputFile(createChildProject(root, "b"), "b", file("outputDir").file("outputSubdir").file("output"))
+
+        when:
+        addToGraphAndPopulate(a, b)
         startTasks(1)
 
         then:

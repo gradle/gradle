@@ -20,6 +20,7 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
@@ -916,6 +917,12 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         task([:], name)
     }
 
+    private TaskOutputsInternal emptyTaskOutputs() {
+        Mock(TaskOutputsInternal) {
+            getFiles() >> root.files()
+        }
+    }
+
     private TaskInternal task(Map options, final String name) {
         def task = createTask(name)
         relationships(options, task)
@@ -923,6 +930,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
             failure(task, options.failure)
         }
         task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
+        task.getOutputs() >> emptyTaskOutputs()
         return task
     }
 
@@ -953,6 +961,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         task.compareTo(_ as TaskInternal) >> { TaskInternal taskInternal ->
             return name.compareTo(taskInternal.getName());
         }
+        task.getOutputs() >> emptyTaskOutputs()
         return task;
     }
 }
