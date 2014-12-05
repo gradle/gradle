@@ -18,21 +18,17 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-import java.util.Collections;
-
-public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginAware> implements PluginApplicator {
+public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
 
     private final ModelRuleInspector inspector;
     private final T target;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final PluginApplicator imperativeApplicator;
-
 
     public RulesCapablePluginApplicator(T target, ModelRuleInspector inspector, ModelRuleSourceDetector modelRuleSourceDetector) {
         this.target = target;
@@ -49,10 +45,7 @@ public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginA
         for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(clazz)) {
             inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
                 public void add(Class<?> source) {
-                    if (!Plugin.class.isAssignableFrom(source)) {
-                        throw new IllegalArgumentException("Only plugin classes are valid as rule source dependencies.");
-                    }
-                    target.apply(Collections.singletonMap("plugin", source));
+                    target.getPluginManager().apply(source);
                 }
             });
         }
