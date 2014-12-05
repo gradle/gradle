@@ -156,7 +156,7 @@ public class DefaultPluginContainerTest extends Specification {
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
         def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader)
-        def container = new DefaultPluginContainer(pluginRegistry, pluginManager, new DirectInstantiator(), applicator)
+        def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -194,7 +194,7 @@ public class DefaultPluginContainerTest extends Specification {
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
         def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader.parent)
-        def container = new DefaultPluginContainer(pluginRegistry, pluginManager, new DirectInstantiator(), applicator)
+        def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
         def plugin = pluginClass.newInstance()
         def plugins = []
 
@@ -235,7 +235,7 @@ public class DefaultPluginContainerTest extends Specification {
         """
 
         def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader.parent)
-        def container = new DefaultPluginContainer(pluginRegistry, pluginManager, new DirectInstantiator(), applicator)
+        def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
         def plugin = pluginClass.newInstance()
         def plugins = []
 

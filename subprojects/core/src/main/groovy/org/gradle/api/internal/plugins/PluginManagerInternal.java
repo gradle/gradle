@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
@@ -24,7 +25,7 @@ import org.gradle.plugin.internal.PluginId;
 
 public interface PluginManagerInternal extends PluginManager {
 
-    boolean addPluginDirect(Class<?> pluginClass);
+    <P extends Plugin> P addImperativePlugin(String id, Class<P> plugin);
 
     PluginContainer getPluginContainer();
 

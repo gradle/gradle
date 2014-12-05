@@ -132,11 +132,6 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - ~~Can use `AppliedPlugins` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project~~
 - ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
 
-### Open issues
-
-- Responsibilities are smeared between `PluginManager` and `DefaultPluginContainer` - `PluginManager` should take care of applying all plugins regardless of type and
-  notify the plugin container when a `Plugin` impl is applied.
-
 # Open Questions
 
 - How to order mutations that may derive properties from the subject

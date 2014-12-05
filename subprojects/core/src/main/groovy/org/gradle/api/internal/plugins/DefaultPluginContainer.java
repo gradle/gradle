@@ -18,34 +18,26 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
     private final PluginRegistry pluginRegistry;
-    private final Instantiator instantiator;
-    private final PluginApplicator applicator;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, Instantiator instantiator, PluginApplicator applicator) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
-        this.instantiator = instantiator;
-        this.applicator = applicator;
 
         // Need this to make withId() work when someone does project.plugins.add(new SomePlugin());
         whenObjectAdded(new Action<Plugin>() {
             public void execute(Plugin plugin) {
-                pluginManager.addPluginDirect(plugin.getClass());
+                pluginManager.addImperativePlugin(null, plugin.getClass());
             }
         });
     }
@@ -56,17 +48,15 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
 
-        Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
-
-        if (pluginClass == null) {
+        if (!potentialPlugin.isImperative()) {
             throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return addPluginInternal(potentialPlugin.getPluginId().toString(), pluginClass);
+            return pluginManager.addImperativePlugin(potentialPlugin.getPluginId().toString(), potentialPlugin.asClass());
         }
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
-        return addPluginInternal(null, type);
+        return pluginManager.addImperativePlugin(null, type);
     }
 
     public boolean hasPlugin(String id) {
@@ -119,30 +109,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         return null;
     }
 
-    private <P extends Plugin<?>> P addPluginInternal(@Nullable String pluginId, Class<P> type) {
-        try {
-            P existing = findPlugin(type);
-            if (existing == null) {
-                P plugin = providePlugin(type);
-                PotentialPlugin potentialPlugin = pluginRegistry.inspect(plugin.getClass());
-                if (potentialPlugin.hasRules()) {
-                    applicator.applyImperativeRulesHybrid(pluginId, plugin);
-                } else {
-                    applicator.applyImperative(pluginId, plugin);
-                }
-
-                doAdd(plugin);
-                return plugin;
-            } else {
-                return existing;
-            }
-        } catch (PluginApplicationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PluginApplicationException(pluginId == null ? "class '" + type.getName() + "'" : "id '" + pluginId + "'", e);
-        }
-    }
-
     public Plugin getPlugin(String id) {
         Plugin plugin = findPlugin(id);
         if (plugin == null) {
@@ -186,14 +152,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         pluginManager.pluginsForId(pluginId).all(wrappedAction);
     }
 
-    private <T extends Plugin<?>> T providePlugin(Class<T> type) {
-        try {
-            return instantiator.newInstance(type);
-        } catch (ObjectInstantiationException e) {
-            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", type.getSimpleName()), e.getCause());
-        }
-    }
-
     @Override
     public <S extends Plugin> PluginCollection<S> withType(Class<S> type) {
         // runtime check because method is used from Groovy where type bounds are not respected
@@ -202,10 +160,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         }
 
         return super.withType(type);
-    }
-
-    private boolean doAdd(Plugin toAdd) {
-        return super.add(toAdd);
     }
 
 }

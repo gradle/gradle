@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.Plugin;
-
 /**
  * A plugin that could be applied.
  *
@@ -26,7 +23,7 @@ import org.gradle.api.Plugin;
  *
  * At the moment it does not encompass plugins that aren't implemented as classes, but it is likely to in the future.
  */
-public interface PotentialPlugin {
+public interface PotentialPlugin<T> {
 
     static enum Type {
         UNKNOWN,
@@ -35,13 +32,11 @@ public interface PotentialPlugin {
         HYBRID_IMPERATIVE_AND_RULES_CLASS
     }
 
-    Class<?> asClass();
+    Class<T> asClass();
 
-    @Nullable
-        // if it doesn't implement this
-    Class<? extends Plugin<?>> asImperativeClass();
+    boolean isImperative();
 
-    boolean hasRules();
+    boolean isHasRules();
 
     Type getType();
 

@@ -24,7 +24,7 @@ import spock.lang.Unroll
  */
 class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final ArrayList<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
+    public static final List<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
 
     @Unroll
     def "core plugins are detectable - applied by #appliedBy, detected by #detectedBy"() {
@@ -79,7 +79,7 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId'
             }
 
-            withPlugin("test-rule-source") {
+            pluginManager.withPlugin("test-rule-source") {
                 operations << 'withPlugin'
             }
 

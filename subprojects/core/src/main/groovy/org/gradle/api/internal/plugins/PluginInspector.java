@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Plugin;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
 @ThreadSafe
@@ -29,66 +30,70 @@ public class PluginInspector {
         this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
-    public PotentialPlugin inspect(Class<?> type) {
+    public <T> PotentialPlugin<T> inspect(Class<T> type) {
         boolean implementsInterface = Plugin.class.isAssignableFrom(type);
         boolean hasRules = this.modelRuleSourceDetector.hasModelSources(type);
 
         if (implementsInterface) {
-            @SuppressWarnings("unchecked") Class<? extends Plugin<?>> asPluginImplType = (Class<? extends Plugin<?>>) type;
-            if (hasRules) {
-                return new PotentialHybridImperativeAndRulesPlugin(asPluginImplType);
-            } else {
-                return new PotentialImperativeClassPlugin(asPluginImplType);
-            }
+            @SuppressWarnings("unchecked") Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;
+            return Cast.uncheckedCast(toImperative(cast, hasRules));
         } else if (hasRules) {
-            return new PotentialPureRuleSourceClassPlugin(type);
+            return new PotentialPureRuleSourceClassPlugin<T>(type);
         } else {
-            return new PotentialUnknownTypePlugin(type);
+            return new PotentialUnknownTypePlugin<T>(type);
         }
     }
 
-    private static class PotentialImperativeClassPlugin implements PotentialPlugin {
+    private <T extends Plugin<?>> PotentialPlugin<T> toImperative(Class<T> type, boolean hasRules) {
+        if (hasRules) {
+            return new PotentialHybridImperativeAndRulesPlugin<T>(type);
+        } else {
+            return new PotentialImperativeClassPlugin<T>(type);
+        }
+    }
 
-        private final Class<? extends Plugin<?>> clazz;
+    private static class PotentialImperativeClassPlugin<T extends Plugin<?>> implements PotentialPlugin<T> {
 
-        public PotentialImperativeClassPlugin(Class<? extends Plugin<?>> clazz) {
+        private final Class<T> clazz;
+
+        public PotentialImperativeClassPlugin(Class<T> clazz) {
             this.clazz = clazz;
         }
 
-        public Class<?> asClass() {
+        public Class<T> asClass() {
             return clazz;
         }
 
-        public Class<? extends Plugin<?>> asImperativeClass() {
-            return clazz;
+        public boolean isImperative() {
+            return true;
         }
 
         public Type getType() {
             return Type.IMPERATIVE_CLASS;
         }
 
-        public boolean hasRules() {
+        public boolean isHasRules() {
             return false;
         }
     }
 
-    private static class PotentialHybridImperativeAndRulesPlugin implements PotentialPlugin {
+    private static class PotentialHybridImperativeAndRulesPlugin<T extends Plugin<?>> implements PotentialPlugin<T> {
 
-        private final Class<? extends Plugin<?>> clazz;
+        private final Class<T> clazz;
 
-        public PotentialHybridImperativeAndRulesPlugin(Class<? extends Plugin<?>> clazz) {
+        public PotentialHybridImperativeAndRulesPlugin(Class<T> clazz) {
             this.clazz = clazz;
         }
 
-        public Class<?> asClass() {
+        public Class<T> asClass() {
             return clazz;
         }
 
-        public Class<? extends Plugin<?>> asImperativeClass() {
-            return clazz;
+        public boolean isImperative() {
+            return true;
         }
 
-        public boolean hasRules() {
+        public boolean isHasRules() {
             return true;
         }
 
@@ -98,48 +103,48 @@ public class PluginInspector {
 
     }
 
-    private static class PotentialPureRuleSourceClassPlugin implements PotentialPlugin {
+    private static class PotentialPureRuleSourceClassPlugin<T> implements PotentialPlugin<T> {
 
-        private final Class<?> clazz;
+        private final Class<T> clazz;
 
-        public PotentialPureRuleSourceClassPlugin(Class<?> clazz) {
+        public PotentialPureRuleSourceClassPlugin(Class<T> clazz) {
             this.clazz = clazz;
         }
 
-        public Class<?> asClass() {
+        public Class<T> asClass() {
             return clazz;
         }
 
-        public Class<? extends Plugin<?>> asImperativeClass() {
-            return null;
+        public boolean isImperative() {
+            return false;
         }
 
         public Type getType() {
             return Type.PURE_RULE_SOURCE_CLASS;
         }
 
-        public boolean hasRules() {
+        public boolean isHasRules() {
             return false;
         }
     }
 
-    private static class PotentialUnknownTypePlugin implements PotentialPlugin {
+    private static class PotentialUnknownTypePlugin<T> implements PotentialPlugin<T> {
 
-        private final Class<?> clazz;
+        private final Class<T> clazz;
 
-        public PotentialUnknownTypePlugin(Class<?> clazz) {
+        public PotentialUnknownTypePlugin(Class<T> clazz) {
             this.clazz = clazz;
         }
 
-        public Class<?> asClass() {
+        public Class<T> asClass() {
             return clazz;
         }
 
-        public Class<? extends Plugin<?>> asImperativeClass() {
-            return null;
+        public boolean isImperative() {
+            return false;
         }
 
-        public boolean hasRules() {
+        public boolean isHasRules() {
             return false;
         }
 
