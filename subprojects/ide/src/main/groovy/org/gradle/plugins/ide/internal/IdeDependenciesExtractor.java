@@ -106,22 +106,18 @@ public class IdeDependenciesExtractor {
         @SuppressWarnings("unchecked") Class<? extends Artifact>[] artifactTypesArray = (Class<? extends Artifact>[]) new Class<?>[artifactTypes.size()];
         query.withArtifacts(JvmLibrary.class, artifactTypes.toArray(artifactTypesArray));
         Set<ComponentArtifactsResult> componentResults = query.execute().getResolvedComponents();
-
-        AuxiliaryArtifactMatchStrategy auxiliaryArtifactMatchStrategy = new ShortestNameAuxiliaryArtifactMatchStrategy();
-
         for (ComponentArtifactsResult componentResult : componentResults) {
             for (IdeExtendedRepoFileDependency dependency : dependencies.get(componentResult.getId())) {
-
-                Set<ArtifactResult> sourceArtifacts = componentResult.getArtifacts(SourcesArtifact.class);
-                ResolvedArtifactResult closestSourceArtifact = auxiliaryArtifactMatchStrategy.findBestMatch(sourceArtifacts, dependency);
-                if (closestSourceArtifact != null) {
-                    dependency.setSourceFile(closestSourceArtifact.getFile());
+                for (ArtifactResult sourcesResult : componentResult.getArtifacts(SourcesArtifact.class)) {
+                    if (sourcesResult instanceof ResolvedArtifactResult) {
+                        dependency.addSourceFile(((ResolvedArtifactResult) sourcesResult).getFile());
+                    }
                 }
 
-                Set<ArtifactResult> javadocArtifacts = componentResult.getArtifacts(JavadocArtifact.class);
-                ResolvedArtifactResult closestJavadocArtifact = auxiliaryArtifactMatchStrategy.findBestMatch(javadocArtifacts, dependency);
-                if(closestJavadocArtifact != null){
-                    dependency.setJavadocFile(closestJavadocArtifact.getFile());
+                for (ArtifactResult javadocResult : componentResult.getArtifacts(JavadocArtifact.class)) {
+                    if (javadocResult instanceof ResolvedArtifactResult) {
+                        dependency.addJavadocFile(((ResolvedArtifactResult) javadocResult).getFile());
+                    }
                 }
             }
         }

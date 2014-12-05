@@ -32,8 +32,8 @@ class IdeaModuleFixture {
                 lib.type = 'module-library'
                 lib.url = it.library.CLASSES.root.@url.text()
                 lib.scope = it.@scope != '' ? it.@scope : 'COMPILE'
-                lib.source = it.library.SOURCES.root.@url.text()
-                lib.javadoc = it.library.JAVADOC.root.@url.text()
+                lib.source = it.library.SOURCES.root.@url*.text()
+                lib.javadoc = it.library.JAVADOC.root.@url*.text()
                 return lib
             } else if (it.@type == 'module') {
                 def module = new ImlModule()
@@ -109,8 +109,8 @@ class IdeaModuleFixture {
     class ImlLibrary extends ImlDependency {
         String scope
         String url
-        String javadoc
-        String source
+        List<String> javadoc
+        List<String> source
 
         @Override
         public String toString() {
@@ -122,19 +122,23 @@ class IdeaModuleFixture {
         }
 
         def assertHasSource(String filename) {
-            assert source.endsWith("${filename}!/")
+            assert source.any {
+                it.endsWith("${filename}!/")
+            }
         }
 
         def assertHasJavadoc(String filename) {
-            assert javadoc.endsWith("${filename}!/")
+            assert javadoc.any {
+                it.endsWith("${filename}!/")
+            }
         }
 
         def assertHasNoJavadoc() {
-            assert javadoc == ""
+            assert javadoc.empty
         }
 
         def assertHasNoSource() {
-            assert source == ""
+            assert source.empty
         }
     }
 }
