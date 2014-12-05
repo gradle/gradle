@@ -104,6 +104,10 @@ Candidates:
 
 The implementation of these tasks needs to be examined/changed to ensure they are safe to parallelize.
 
+### Suitable tasks of Java code quality plugins are parallel enabled
+
+Checkstyle etc.
+
 ### Two tasks are not executed in parallel if their outputs are declared as overlapping parts of the filesystem
 
 It's possible that two task write to overlapping parts of the file system.
