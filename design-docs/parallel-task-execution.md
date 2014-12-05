@@ -144,6 +144,7 @@ Overlapping outputs declared by two tasks should be detected and such tasks shou
 - DefaultIsolatedAntBuilder (build scoped & mutable)
 - `JdkJavaCompiler` relies on setting `java.home` system property to call `ToolProvider.getSystemJavaCompiler()`
 - Java plugin defaults the report directory of all `Test` tasks to the same directory
+- Old Maven plugin is not safe to use concurrently
 
 ## Usability/Configurability
 
