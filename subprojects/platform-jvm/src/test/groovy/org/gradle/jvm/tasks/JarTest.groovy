@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling
+package org.gradle.jvm.tasks
 
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
 import org.junit.Before
 import org.junit.Test
 

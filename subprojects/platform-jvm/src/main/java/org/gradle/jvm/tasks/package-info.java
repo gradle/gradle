@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+/**
+ * Tasks that add support for JVM runtime.
+ */
+@Incubating
+package org.gradle.jvm.tasks;
 
-import org.gradle.jvm.JvmBinarySpec;
-import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.tasks.Jar;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-
-public class DefaultJvmBinaryTasks extends DefaultBinaryTasksCollection implements JvmBinaryTasks {
-
-    public DefaultJvmBinaryTasks(JvmBinarySpec binary) {
-        super(binary);
-    }
-
-    public Jar getJar() {
-        return findSingleTaskWithType(Jar.class);
-    }
-}
+import org.gradle.api.Incubating;
