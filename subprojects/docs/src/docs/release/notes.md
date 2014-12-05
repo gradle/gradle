@@ -206,7 +206,7 @@ The `--no-color` option will be removed in Gradle 3.0.
 
 ## Potential breaking changes
 
-### Major to incubating 'native-component' and 'jvm-component' plugins
+### Major changes to incubating 'native-component' and 'jvm-component' plugins
 
 As we develop a new configuration and component model for Gradle, we are also developing an underlying infrastructure to allow
 the easy implementation of plugins supporting new platforms (native/jvm/javascript) and languages (C/C++/Java/Scala/CoffeeScript).
