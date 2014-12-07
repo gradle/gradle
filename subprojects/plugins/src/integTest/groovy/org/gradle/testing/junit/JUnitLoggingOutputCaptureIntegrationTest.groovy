@@ -16,21 +16,23 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-class JUnitLoggingOutputCaptureIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({JUnitCoverage.LOGGING})
+class JUnitLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
             apply plugin: "java"
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:$JUnitCoverage.NEWEST' }
+            dependencies { testCompile 'junit:junit:$version' }
             test {
                 reports.junitXml.outputPerTestCase = true
                 onOutput { test, event -> print "\$test -> \$event.message" }

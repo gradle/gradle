@@ -16,21 +16,23 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.is
 
-class TestNGLoggingOutputCaptureIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
+class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         buildFile << """
             apply plugin: "java"
             repositories { jcenter() }
-            dependencies { testCompile "org.testng:testng:$TestNGCoverage.NEWEST" }
+            dependencies { testCompile "org.testng:testng:$version" }
             test {
                 useTestNG()
                 reports.junitXml.outputPerTestCase = true

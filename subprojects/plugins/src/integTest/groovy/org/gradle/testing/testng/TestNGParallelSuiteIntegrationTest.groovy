@@ -17,12 +17,14 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-public class TestNGParallelSuiteIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
+public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("GRADLE-3190")
     def "runs with multiple parallel threads"() {
@@ -30,7 +32,7 @@ public class TestNGParallelSuiteIntegrationTest extends AbstractIntegrationSpec 
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies {
-                testCompile 'org.testng:testng:$TestNGCoverage.NEWEST'
+                testCompile 'org.testng:testng:$version'
             }
             test {
               useTestNG {
