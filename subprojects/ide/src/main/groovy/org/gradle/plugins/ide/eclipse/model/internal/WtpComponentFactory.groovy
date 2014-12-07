@@ -16,7 +16,10 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
@@ -24,6 +27,8 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
 class WtpComponentFactory {
+    private static final Logger LOGGER = Logging.getLogger(WtpComponentFactory.class);
+
     void configure(EclipseWtpComponent wtp, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(wtp)
         entries.addAll(wtp.resources.findAll { wtp.project.file(it.sourcePath).isDirectory() } )
@@ -43,12 +48,12 @@ class WtpComponentFactory {
     }
 
     private List getEntriesFromConfigurations(Set plusConfigurations, Set minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
-        (getEntriesFromProjectDependencies(plusConfigurations, minusConfigurations, deployPath, transitive) as List) +
+        (getEntriesFromProjectDependencies(plusConfigurations, minusConfigurations, wtp, deployPath, transitive) as List) +
                 (getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath) as List)
     }
 
     // must include transitive project dependencies
-    private Set getEntriesFromProjectDependencies(Set plusConfigurations, Set minusConfigurations, String deployPath, boolean transitive) {
+    private Set getEntriesFromProjectDependencies(Set plusConfigurations, Set minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
         def dependencies = getDependencies(plusConfigurations, minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency })
 
@@ -61,6 +66,12 @@ class WtpComponentFactory {
         }
 
         allProjects.collect { project ->
+            if (!project.plugins.hasPlugin(EclipseWtpPlugin)) {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn('Project \'{}\' requires module \'{}\' not applying \'eclipse-wtp\' plugin' +
+                            '. This may lead to unexpected behavior opening it in Eclipse.', wtp.project.path, project.path)
+                }
+            }
             def moduleName = project.plugins.hasPlugin(EclipsePlugin) ? project.eclipse.project.name : project.name
             new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName)
         }

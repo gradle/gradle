@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.junit.Rule
 import org.junit.Test
@@ -635,6 +636,47 @@ project(':contrib') {
 
         //both var and lib entries have the attribute
         classpath.count('<attribute name="org.eclipse.jst.component.dependency" value="../"/>') == 2
+    }
+
+
+    @Test
+    void loggingOf() {
+        useSharedBuild = false
+
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+include("api")
+include("web")
+        """
+
+        def apiBuildFile = getFile(project: "api", "build.gradle")
+        createJavaSourceDirs(apiBuildFile)
+
+        apiBuildFile << """
+apply plugin: "eclipse"
+apply plugin: "java"
+        """
+
+        def webBuildFile = getFile(project: "web", "build.gradle")
+        createJavaSourceDirs(webBuildFile)
+        webBuildFile.parentFile.file("src/main/webapp").createDir()
+
+        webBuildFile << """
+apply plugin: "eclipse-wtp"
+apply plugin: "war"
+
+dependencies {
+    compile project(":api")
+}
+        """
+
+        // when
+        ExecutionResult result = executer.noExtraLogging().withTasks("eclipse").run()
+
+        // then
+        result.error.empty
+        result.output.contains 'BUILD SUCCESSFULL'
+        result.output.contains 'Project \':web\' requires module \':api\' not applying \'eclipse-wtp\' plugin. This may lead to unexpected behavior opening it in Eclipse.'
     }
 
     protected def contains(String ... contents) {
