@@ -79,7 +79,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     }
 
     private void populate(Project project) {
-        EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
         EclipseClasspath classpath = eclipseModel.getClasspath();
 
         classpath.setProjectDependenciesOnly(projectDependenciesOnly);
@@ -114,7 +114,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setSourceDirectories(sourceDirectories);
 
         List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
-        for(Link r: eclipseModel.getProject().getLinkedResources()) {
+        for (Link r : eclipseModel.getProject().getLinkedResources()) {
             linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
         eclipseProject.setLinkedResources(linkedResources);
@@ -136,7 +136,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             children.add(buildHierarchy(child));
         }
 
-        EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
