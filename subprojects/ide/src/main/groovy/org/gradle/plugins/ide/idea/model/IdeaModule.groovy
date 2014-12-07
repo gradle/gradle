@@ -338,15 +338,15 @@ class IdeaModule {
     void mergeXmlModule(Module xmlModule) {
         iml.beforeMerged.execute(xmlModule)
 
-        def path = { getPathFactory().path(it) }
-        def contentRoot = path(getContentRoot())
-        Set sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
-        Set generatedSourceFolders = getGeneratedSourceDirs().findAll { it.exists() }.collect { path(it) }
-        Set testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
-        Set excludeFolders = getExcludeDirs().collect { path(it) }
-        def outputDir = getOutputDir() ? path(getOutputDir()) : null
-        def testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
-        Set dependencies = resolveDependencies()
+        def path = { File f -> getPathFactory().path(f) }
+        Path contentRoot = path(getContentRoot())
+        Set<Path> sourceFolders = getSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set<Path> generatedSourceFolders = getGeneratedSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set<Path> testSourceFolders = getTestSourceDirs().findAll { it.exists() }.collect { path(it) }
+        Set<Path> excludeFolders = getExcludeDirs().collect { path(it) }
+        Path outputDir = getOutputDir() ? path(getOutputDir()) : null
+        Path testOutputDir = getTestOutputDir() ? path(getTestOutputDir()) : null
+        Set<Dependency> dependencies = resolveDependencies()
 
         xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
                 getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
