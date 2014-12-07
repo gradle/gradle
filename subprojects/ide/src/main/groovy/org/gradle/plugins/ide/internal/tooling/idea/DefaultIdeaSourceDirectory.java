@@ -16,12 +16,10 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
-
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializable {
+public class DefaultIdeaSourceDirectory implements Serializable {
 
     private File directory;
 

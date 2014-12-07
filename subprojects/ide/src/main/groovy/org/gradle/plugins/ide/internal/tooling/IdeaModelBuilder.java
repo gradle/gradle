@@ -23,7 +23,6 @@ import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
@@ -129,8 +128,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 
-    private Set<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
-        Set<IdeaSourceDirectory> out = new LinkedHashSet<IdeaSourceDirectory>();
+    private Set<DefaultIdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
+        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<DefaultIdeaSourceDirectory>();
         for (File s : sourceDirs) {
             DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
             if (generatedSourceDirs.contains(s)) {
