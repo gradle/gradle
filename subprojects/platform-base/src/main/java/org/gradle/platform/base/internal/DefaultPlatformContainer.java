@@ -32,20 +32,8 @@ import java.util.List;
 
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
 
-    private List<Platform> searchOrder = new ArrayList<Platform>();
-
     public DefaultPlatformContainer(Instantiator instantiator) {
         super(Platform.class, instantiator);
-        whenObjectAdded(new Action<Platform>() {
-            public void execute(Platform platform) {
-                searchOrder.add(platform);
-            }
-        });
-        whenObjectRemoved(new Action<Platform>() {
-            public void execute(Platform platform) {
-                searchOrder.remove(platform);
-            }
-        });
     }
 
     public <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets) {
