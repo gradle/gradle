@@ -17,12 +17,13 @@
 package org.gradle.play.plugins
 
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet
-import org.gradle.language.javascript.JavaScriptSourceSet
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.PlayApplicationSpec
-import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-class PlayCoffeeScriptPluginTest extends AbstractLanguagePluginSpec {
+class PlayCoffeeScriptPluginTest extends Specification {
+    final def project = TestUtil.createRootProject()
 
     def setup() {
         project.pluginManager.apply(PlayApplicationPlugin);
@@ -38,31 +39,5 @@ class PlayCoffeeScriptPluginTest extends AbstractLanguagePluginSpec {
         project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
             assert spec.getSource().find { it.name == "coffeeScriptSources" && it instanceof CoffeeScriptSourceSet } != null
         }
-    }
-
-    def "adds javascript source set for coffeescript output" () {
-        when:
-        project.model { components { play(PlayApplicationSpec) } }
-        project.evaluate()
-
-        then:
-        project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
-            assert spec.getSource().find { it.name == "coffeeScriptGenerated" && it instanceof JavaScriptSourceSet } != null
-        }
-    }
-
-    @Override
-    def getPluginClass() {
-        return PlayApplicationPlugin
-    }
-
-    @Override
-    def getLanguageSourceSet() {
-        return CoffeeScriptSourceSet
-    }
-
-    @Override
-    String getLanguageId() {
-        return "coffeescript"
     }
 }

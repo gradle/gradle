@@ -50,8 +50,9 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             task checkTasks {
                 doLast {
-                    def javaScriptProcessTasks = tasks.withType(Copy).matching { it.name == "processPlayBinaryPlayJavaScriptSources" }
-                    assert javaScriptProcessTasks.size() == 1
+                    assert tasks.withType(JavaScriptProcessResources).size() == 1
+                    def javascriptTask = tasks.withType(JavaScriptProcessResources).iterator().next()
+                    assert javascriptTask.name == "processPlayBinaryPlayJavaScriptSources"
                 }
             }
         """
@@ -67,8 +68,7 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             task checkTasks {
                 doLast {
-                    def javaScriptProcessTasks = tasks.withType(Copy).matching { it.name == "processPlayBinaryPlayJavaScriptSources" }
-                    assert javaScriptProcessTasks.size() == 0
+                    assert tasks.withType(JavaScriptProcessResources).size() == 0
                 }
             }
         """

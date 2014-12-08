@@ -36,8 +36,7 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
 
     private Configuration getDetachedConfiguration(String notation) {
         Dependency dependency = getProject().getDependencies().create(notation);
-        Configuration configuration = getProject().getConfigurations().detachedConfiguration(dependency);
-        return configuration;
+        return getProject().getConfigurations().detachedConfiguration(dependency);
     }
 
     @Override

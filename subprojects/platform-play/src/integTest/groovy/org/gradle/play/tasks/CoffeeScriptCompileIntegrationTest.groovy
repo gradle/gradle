@@ -51,7 +51,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":processPlayBinaryPlayCoffeeScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test.js").exists()
@@ -66,7 +66,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped(":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":processPlayBinaryPlayCoffeeScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
 
@@ -80,7 +80,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":processPlayBinaryPlayCoffeeScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test.js").exists()
@@ -93,7 +93,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":processPlayBinaryPlayCoffeeScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
     }
@@ -127,11 +127,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScriptSources",
+                ":processPlayBinaryPlayCoffeeScriptSources",
                 ":compilePlayBinaryPlayExtraCoffeeScript",
+                ":processPlayBinaryPlayExtraCoffeeScript",
                 ":compilePlayBinaryPlayAnotherCoffeeScript",
-                ":processPlayBinaryPlayExtraJavaScript",
+                ":processPlayBinaryPlayAnotherCoffeeScript",
                 ":processPlayBinaryPlayJavaScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":processPlayBinaryPlayExtraJavaScript",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test1.js").exists()
@@ -147,25 +149,12 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 "public/test/test4.js",
                 "public/test5.js"
         )
-
-        when:
-        succeeds "assemble"
-
-        then:
-        skipped(":compilePlayBinaryPlayCoffeeScriptSources",
-                ":compilePlayBinaryPlayExtraCoffeeScript",
-                ":compilePlayBinaryPlayAnotherCoffeeScript",
-                ":processPlayBinaryPlayExtraJavaScript",
-                ":processPlayBinaryPlayJavaScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
-                ":createPlayBinaryJar",
-                ":playBinary")
     }
 
     def "cleans removed source file on compile" () {
         given:
         withCoffeeScriptSource(assets("test1.coffee"))
-        def file2 = withCoffeeScriptSource(assets("test2.coffee"))
+        def source2 = withCoffeeScriptSource(assets("test2.coffee"))
 
         when:
         succeeds "assemble"
@@ -177,13 +166,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         )
 
         when:
-        file2.delete()
+        source2.delete()
         succeeds "assemble"
 
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptGenerated",
+                ":processPlayBinaryPlayCoffeeScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
         ! processed("test2.js").exists()
@@ -196,7 +185,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         assets("test1.coffee") << "if"
 
         when:
-        fails "compilePlayBinaryPlayCoffeeScriptSources"
+        fails "assemble"
 
         then:
         failure.assertHasDescription "Execution failed for task ':compilePlayBinaryPlayCoffeeScriptSources'."

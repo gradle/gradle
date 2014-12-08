@@ -15,13 +15,14 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.language.javascript.JavaScriptSourceSet
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.PlayApplicationSpec
-import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-class PlayJavaScriptPluginTest extends AbstractLanguagePluginSpec {
+class PlayJavaScriptPluginTest extends Specification {
+    final def project = TestUtil.createRootProject()
 
     def setup() {
         project.pluginManager.apply(PlayApplicationPlugin);
@@ -37,20 +38,5 @@ class PlayJavaScriptPluginTest extends AbstractLanguagePluginSpec {
         project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
             assert spec.getSource().find { it.name == "javaScriptSources" && it instanceof JavaScriptSourceSet } != null
         }
-    }
-
-    @Override
-    def getPluginClass() {
-        return PlayApplicationPlugin;
-    }
-
-    @Override
-    def getLanguageSourceSet() {
-        return JavaScriptSourceSet;
-    }
-
-    @Override
-    String getLanguageId() {
-        return "javascript"
     }
 }
