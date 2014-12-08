@@ -130,7 +130,7 @@ model {
     }
 }
 """
-        fails "mainExecutable"
+        fails "compileMainExecutableMainC"
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
