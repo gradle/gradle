@@ -16,12 +16,12 @@
 
 package org.gradle.language.coffeescript;
 
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a source set for CoffeeScript sources
  */
-@HasInternalProtocol
+@Incubating
 public interface CoffeeScriptSourceSet extends LanguageSourceSet {
 }

@@ -26,11 +26,11 @@ import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
  * Task for compiling CoffeeScript sources
  */
 public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
-    public void setCoffeeScriptDependency(String notation) {
+    public void setCoffeeScriptJsNotation(String notation) {
         setCoffeeScriptJs(getDetachedConfiguration(notation));
     }
 
-    public void setRhinoDependency(String notation) {
+    public void setRhinoClasspathNotation(String notation) {
         setRhinoClasspath(getDetachedConfiguration(notation));
     }
 

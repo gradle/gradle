@@ -45,18 +45,17 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Plugin for adding coffeescript compilation to a Play application
+ * Plugin for adding coffeescript compilation to a Play application.  Applies the {@link org.gradle.play.plugins.PlayJavaScriptPlugin} and registers
+ * "coffeescript" language support with the {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet}.
  */
 public class PlayCoffeeScriptPlugin implements Plugin<Project> {
-
+    private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.3.3";
+    private static final String DEFAULT_RHINO_VERSION = "1.7R4";
     public static final String COFFEE_SCRIPT_GENERATED = "coffeeScriptGenerated";
 
     public void apply(Project project) {
         project.getPluginManager().apply(PlayJavaScriptPlugin.class);
     }
-
-    private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.3.3";
-    private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 
     static String getDefaultCoffeeScriptDependencyNotation() {
         return String.format("org.coffeescript:coffee-script-js:%s@js", DEFAULT_COFFEESCRIPT_VERSION);
@@ -158,8 +157,8 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                     File coffeeScriptCompileOutputDirectory = new File(task.getProject().getBuildDir(), String.format("%s/coffeescript", binary.getName()));
                     coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
                     coffeeScriptCompile.setSource(sourceSet.getSource());
-                    coffeeScriptCompile.setCoffeeScriptDependency(getDefaultCoffeeScriptDependencyNotation());
-                    coffeeScriptCompile.setRhinoDependency(getDefaultRhinoDependencyNotation());
+                    coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+                    coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
                 }
             };
         }

@@ -44,7 +44,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Plugin for adding javascript processing to a Play application
+ * Plugin for adding javascript processing to a Play application.  Registers "javascript" language support with the {@link org.gradle.language.javascript.JavaScriptSourceSet}.
  */
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     public void apply(Project target) {

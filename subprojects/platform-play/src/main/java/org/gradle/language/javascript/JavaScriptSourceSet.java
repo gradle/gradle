@@ -16,10 +16,12 @@
 
 package org.gradle.language.javascript;
 
+import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a source set containing javascript sources.
  */
+@Incubating
 public interface JavaScriptSourceSet extends LanguageSourceSet {
 }
