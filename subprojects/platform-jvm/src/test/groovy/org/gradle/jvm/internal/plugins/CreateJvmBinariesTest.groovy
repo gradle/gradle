@@ -63,7 +63,6 @@ class CreateJvmBinariesTest extends Specification {
         def namingScheme = Mock(BinaryNamingScheme)
         def jvmExtension = Mock(JvmComponentExtension)
         def platform = new DefaultJavaPlatform("test")
-        platform.setTargetCompatibility(JavaVersion.current())
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 
