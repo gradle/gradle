@@ -48,9 +48,9 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 "views/html/index.class",
                 "views/html/main.class",
                 "controllers/Application.class",
-                "images/favicon.svg",
-                "stylesheets/main.css",
-                "javascripts/hello.js",
+                "public/images/favicon.svg",
+                "public/stylesheets/main.css",
+                "public/javascripts/hello.js",
                 "application.conf")
 
         when:

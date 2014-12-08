@@ -16,27 +16,22 @@
 
 package org.gradle.play;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.play.platform.PlayPlatform;
-import org.gradle.play.toolchain.PlayToolChain;
+import org.gradle.api.BuildableModelElement;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 
 /**
- * Represents a binary artifact that is the result of building a play component.
+ * A set of public assets added to a binary.
  */
-@Incubating
-@HasInternalProtocol
-public interface PlayApplicationBinarySpec extends BinarySpec {
-    PlayPlatform getTargetPlatform();
-    PlayToolChain getToolChain();
-    File getJarFile();
+public interface PublicAssets extends BuildableModelElement {
+    /**
+     * A set of asset directories for this binary.
+     */
+    FileCollection getAssetDirs();
 
-    JvmClasses getClasses();
-    PublicAssets getAssets();
-
-    LanguageSourceSet getGeneratedScala();
+    /**
+     * Add an asset directory to this binary.
+     */
+    void addAssetDir(File resourceDir);
 }

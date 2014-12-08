@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
+import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
@@ -30,6 +31,7 @@ import java.io.File;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
+    private final PublicAssets assets = new DefaultPublicAssets();
     private LanguageSourceSet generatedScala;
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
@@ -68,6 +70,10 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return classesDir;
     }
 
+    public PublicAssets getAssets() {
+        return assets;
+    }
+
     public LanguageSourceSet getGeneratedScala() {
         return generatedScala;
     }
@@ -93,6 +99,18 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         }
 
         public void addResourceDir(File resourceDir) {
+            resourceDirs.add(new SimpleFileCollection(resourceDir));
+        }
+    }
+
+    private static class DefaultPublicAssets extends AbstractBuildableModelElement implements PublicAssets {
+        private FileCollection resourceDirs = new UnionFileCollection();
+
+        public FileCollection getAssetDirs() {
+            return resourceDirs;
+        }
+
+        public void addAssetDir(File resourceDir) {
             resourceDirs.add(new SimpleFileCollection(resourceDir));
         }
     }

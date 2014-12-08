@@ -346,14 +346,15 @@ Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSource
     }
 
 - Default coffeescript sourceset should be "app/assets/**/*.coffee"
-- Compiled coffeescript files will be added to the jar relative to srcDir
+- Compiled coffeescript files will be added to the jar under "public"
 - Default javascript sourceset should be "app/assets/**/*.js"
+- Processed javascript sourceset should be added to the jar under "public"
 
 #### Test cases
 - Coffeescript and javascript sources are visible in the components report
 - Coffeescript sources successfully compiled to javascript
-- Compiled coffeescript is added to jar relative to srcDir
-- Javascript sources are copied directly into jar relative to srcDir
+- Compiled coffeescript is added to jar under "public"
+- Javascript sources are copied directly into jar under "public"
 - Can provide additional coffeescript sources
 - Can provide additional javascript sources
 - Build is incremental:

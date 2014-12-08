@@ -46,7 +46,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     CoffeeScript source 'play:coffeeScriptSources'
-        app
+        app/assets
 """))
         output.contains(TextUtil.toPlatformLineSeparators("""
     JavaScript source 'play:coffeeScriptGenerated'
@@ -67,7 +67,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
-        file("app/test.coffee") << "test"
+        file("app/assets/test.coffee") << "test"
 
         then:
         succeeds "checkTasks"

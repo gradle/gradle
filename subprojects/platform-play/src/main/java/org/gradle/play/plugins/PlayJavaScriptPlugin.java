@@ -66,7 +66,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
         void createJavaScriptSources(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
             for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
                 JavaScriptSourceSet javaScriptSourceSet = new DefaultJavaScriptSourceSet("javaScriptSources", playComponent.getName(), serviceRegistry.get(FileResolver.class));
-                javaScriptSourceSet.getSource().srcDir("app");
+                javaScriptSourceSet.getSource().srcDir("app/assets");
                 javaScriptSourceSet.getSource().include("**/*.js");
                 ((ComponentSpecInternal) playComponent).getSources().add(javaScriptSourceSet);
             }
@@ -114,8 +114,8 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
                     javaScriptProcessResources.from(javaScriptSourceSet.getSource());
                     File javascriptOutputDir = new File(task.getProject().getBuildDir(), String.format("%s/javascript", binary.getName()));
                     javaScriptProcessResources.into(javascriptOutputDir);
-                    spec.getClasses().addResourceDir(javascriptOutputDir);
-                    spec.getClasses().builtBy(javaScriptProcessResources);
+                    spec.getAssets().addAssetDir(javascriptOutputDir);
+                    spec.getAssets().builtBy(javaScriptProcessResources);
                 }
             };
         }

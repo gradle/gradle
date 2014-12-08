@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
@@ -38,6 +39,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
+import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
@@ -169,7 +171,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
                         // TODO:DAZ These should be configured on the component
                         classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
-                        classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "public"));
+
+                        PublicAssets assets = playBinary.getAssets();
+                        assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
                         ScalaLanguageSourceSet genSources = new DefaultScalaLanguageSourceSet("genSources", binaryName, fileResolver);
                         playBinaryInternal.setGeneratedScala(genSources);
@@ -264,7 +268,11 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     jar.setArchiveName(binary.getJarFile().getName());
                     jar.from(binary.getClasses().getClassesDir());
                     jar.from(binary.getClasses().getResourceDirs());
+                    CopySpecInternal newSpec = jar.getRootSpec().addChild();
+                    newSpec.from(binary.getAssets().getAssetDirs());
+                    newSpec.into("public");
                     jar.dependsOn(binary.getClasses());
+                    jar.dependsOn(binary.getAssets());
                 }
             });
         }

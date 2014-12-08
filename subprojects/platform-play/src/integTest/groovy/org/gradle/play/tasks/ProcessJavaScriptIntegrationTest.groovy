@@ -40,7 +40,7 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def "processes default javascript source set as part of play application build"() {
         given:
-        file("app/test.js") << "alert('this is a test!');"
+        file("app/assets/test.js") << "alert('this is a test!');"
 
         when:
         succeeds "assemble"
@@ -50,9 +50,9 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
                 ":processPlayBinaryPlayJavaScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
-        file("build/playBinary/javascript/test.js").exists()
+        processed("test.js").exists()
         jar("build/jars/play/playBinary.jar").containsDescendants(
-                "test.js"
+                "public/test.js"
         )
 
         // Up-to-date works
@@ -66,7 +66,7 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
 
         // Detects missing output
         when:
-        file("build/playBinary/javascript/test.js").delete()
+        processed("test.js").delete()
         file("build/jars/play/playBinary.jar").delete()
         succeeds "assemble"
 
@@ -75,11 +75,11 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
                 ":processPlayBinaryPlayJavaScriptSources",
                 ":createPlayBinaryJar",
                 ":playBinary")
-        file("build/playBinary/javascript/test.js").exists()
+        processed("test.js").exists()
 
         // Detects changed input
         when:
-        file("app/test.js") << "alert('this is a change!');"
+        file("app/assets/test.js") << "alert('this is a change!');"
         succeeds "assemble"
 
         then:
@@ -90,7 +90,7 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def "processes multiple javascript source sets as part of play application build" () {
         given:
-        file("app/test1.js") << "alert('this is a test!');"
+        file("app/assets/test1.js") << "alert('this is a test!');"
         file("extra/javascripts/test2.js") << "alert('this is a test!');"
         file("src/play/anotherJavaScript/a/b/c/test3.js") << "alert('this is a test!');"
 
@@ -119,13 +119,13 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
                 ":processPlayBinaryPlayAnotherJavaScript",
                 ":createPlayBinaryJar",
                 ":playBinary")
-        file("build/playBinary/javascript/test1.js").exists()
-        file("build/playBinary/javascript/javascripts/test2.js").exists()
-        file("build/playBinary/javascript/a/b/c/test3.js").exists()
+        processed("test1.js").exists()
+        processed("javascripts/test2.js").exists()
+        processed("a/b/c/test3.js").exists()
         jar("build/jars/play/playBinary.jar").containsDescendants(
-                "test1.js",
-                "javascripts/test2.js",
-                "a/b/c/test3.js"
+                "public/test1.js",
+                "public/javascripts/test2.js",
+                "public/a/b/c/test3.js"
         )
 
         when:
@@ -141,5 +141,9 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
 
     JarTestFixture jar(String fileName) {
         new JarTestFixture(file(fileName))
+    }
+
+    File processed(String fileName) {
+        file("build/playBinary/javascript/${fileName}")
     }
 }

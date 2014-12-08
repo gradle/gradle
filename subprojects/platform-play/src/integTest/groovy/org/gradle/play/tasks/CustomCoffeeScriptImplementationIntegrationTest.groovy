@@ -25,7 +25,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         customCoffeeScriptImplFileName = 'coffeescript/coffee-script.min.js'
         file(customCoffeeScriptImplFileName) << getClass().getResource("/coffee-script.min.js").text
 
-        file('app/test.coffee') << testCoffeeScript()
+        file('app/assets/test.coffee') << testCoffeeScript()
         file('src/play/extra/test2.coffee') << testCoffeeScript()
         buildFile << """
             plugins {

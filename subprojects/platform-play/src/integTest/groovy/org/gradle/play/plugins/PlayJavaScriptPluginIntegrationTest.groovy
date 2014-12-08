@@ -42,7 +42,7 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     JavaScript source 'play:javaScriptSources'
-        app
+        app/assets
 """))
     }
 
@@ -57,7 +57,7 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
-        file("app/test.js") << "test"
+        file("app/assets/test.js") << "test"
 
         then:
         succeeds "checkTasks"

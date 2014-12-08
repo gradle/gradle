@@ -81,7 +81,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
                 CoffeeScriptSourceSet coffeeScriptSourceSet =
                         new DefaultCoffeeScriptSourceSet("coffeeScriptSources", playComponent.getName(), serviceRegistry.get(FileResolver.class));
-                coffeeScriptSourceSet.getSource().srcDir("app");
+                coffeeScriptSourceSet.getSource().srcDir("app/assets");
                 coffeeScriptSourceSet.getSource().include("**/*.coffee");
 
                 // Add a JavaScriptSourceSet to process the compiled coffee script sources
