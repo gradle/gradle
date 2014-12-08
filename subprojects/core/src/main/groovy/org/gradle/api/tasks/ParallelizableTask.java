@@ -34,9 +34,6 @@ import java.lang.annotation.Target;
  * It should not, for example, update project extensions, other tasks or any other shared data.
  * It may change internal variables and properties of the task, the filesystem and other external resources.
  * <p>
- * Gradle does not implicitly detect or protect against tasks executing in parallel writing over each other's filesystem changes, or any other kind of external change.
- * Tasks should not be configured to write to the same file or directory on the filesystem for this reason.
- * <p>
  * This annotation is not inherited.
  * A task class that extends from another task class that declares itself to be parallel safe is not implicitly also parallel safe.
  * If the subclass is indeed parallel safe, it must also have this annotation.
@@ -44,6 +41,11 @@ import java.lang.annotation.Target;
  * Any task that has custom actions (i.e. ones added via {@link org.gradle.api.Task#doLast(org.gradle.api.Action)} or {@link org.gradle.api.Task#doFirst(org.gradle.api.Action)})
  * is not considered parallelizable even if its type carries this annotation.
  * This is because it cannot be known whether the added action is parallel safe or not.
+ * <p>
+ * Any two tasks that declare overlapping file system outputs will not be run in parallel with each other even if they carry this annotation.
+ * In general tasks should not be configured to write to the same file or directory on the filesystem and they should only write into filesystem locations that are declared as their outputs for this reason.
+ * Overlaps caused by descendants of output directories (e.g. a symlink pointing at an output of one task and being part of a directory declared as output of another task) are not being considered.
+ * For such tasks a must run after ordering should be defined to ensure that they are executed serially.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
