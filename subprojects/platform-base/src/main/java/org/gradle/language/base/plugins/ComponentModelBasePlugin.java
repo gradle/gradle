@@ -25,10 +25,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultLanguageRegistry;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
+import org.gradle.language.base.internal.*;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
@@ -48,6 +45,8 @@ import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
+
+import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Base plugin for language support.
@@ -114,9 +113,26 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
             for (LanguageRegistration<?> language : languageRegistry) {
-                for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
-                    final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-                    createRule.createCompileTasksForBinary(tasks, binary);
+                for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                    if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
+                        return;
+                    }
+
+                    final SourceTransformTaskConfig taskConfig = language.getTransformTask();
+                    binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
+                        public void execute(LanguageSourceSet languageSourceSet) {
+                            LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
+                            if (sourceSet.getMayHaveSources()) {
+                                String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
+                                Task task = tasks.create(taskName, taskConfig.getTaskType());
+
+                                taskConfig.configureTask(task, binary, sourceSet);
+
+                                task.dependsOn(sourceSet);
+                                binary.getTasks().add(task);
+                            }
+                        }
+                    });
                 }
             }
         }
