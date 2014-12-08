@@ -17,10 +17,11 @@
 package org.gradle.jvm.artifact;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Artifact;
 
 /**
  * A Maven POM artifact.
  */
 @Incubating
-public interface MavenPomArtifact extends MetadataArtifact {
+public interface MavenPomArtifact extends Artifact {
 }

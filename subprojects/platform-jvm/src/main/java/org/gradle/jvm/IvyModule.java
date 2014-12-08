@@ -17,10 +17,11 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Component;
 
 /**
  * An Ivy Module component.
  */
 @Incubating
-public interface IvyModule extends Module {
+public interface IvyModule extends Component {
 }
