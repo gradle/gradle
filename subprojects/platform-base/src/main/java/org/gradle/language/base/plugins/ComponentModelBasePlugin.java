@@ -100,12 +100,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             // TODO:DAZ Using live collections here in order to add 'default' construction for components, which should be executed before any user component configuration is applied.
             languageRegistry.all(new Action<LanguageRegistration<?>>() {
                 public void execute(final LanguageRegistration<?> languageRegistration) {
-                    final ComponentSourcesRegistrationAction<?> action = ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver, instantiator);
-                    components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
-                        public void execute(ComponentSpecInternal component) {
-                            action.execute(component);
-                        }
-                    });
+                    components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver, instantiator));
                 }
             });
         }
