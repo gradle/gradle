@@ -29,13 +29,28 @@ class EclipseProjectFixture {
     private Node getProject() {
         if (project == null) {
             TestFile file = projectDir.file('.project')
+            file.assertIsFile()
             project = new XmlParser().parse(file)
         }
         return project
     }
 
+    void assertHasJavaFacetNatures() {
+        assertHasNatures("org.eclipse.jdt.core.javanature",
+                        "org.eclipse.wst.common.project.facet.core.nature",
+                        "org.eclipse.wst.common.modulecore.ModuleCoreNature",
+                        "org.eclipse.jem.workbench.JavaEMFNature")
+    }
+
     void assertHasNatures(String... natures) {
         assert getProject().natures.nature*.text() == natures as List
+    }
+
+    void assertHasJavaFacetBuilders() {
+        assertHasBuilders("org.eclipse.jdt.core.javabuilder",
+                        "org.eclipse.wst.common.project.facet.core.builder",
+                        "org.eclipse.wst.validation.validationbuilder"
+                )
     }
 
     void assertHasBuilders(String... builders) {

@@ -13,41 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.test.fixtures.file.TestFile
 
-class EclipseWtpFacetsFixture {
+class EclipseWtpComponentFixture {
     private final TestFile projectDir
-    private Node facets
+    private Node component
 
-    EclipseWtpFacetsFixture(TestFile projectDir) {
+    EclipseWtpComponentFixture(TestFile projectDir) {
         this.projectDir = projectDir
     }
 
-    private Node getFacets() {
-        if (facets == null) {
-            TestFile file = projectDir.file(".settings/org.eclipse.wst.common.project.facet.core.xml")
+    private Node getComponent() {
+        if (component == null) {
+            TestFile file = projectDir.file(".settings/org.eclipse.wst.common.component")
             file.assertIsFile()
-            facets = new XmlParser().parse(file)
+            component = new XmlParser().parse(file)
         }
-        return facets
-    }
-
-    void assertHasFixedFacets(String... facets) {
-        assert getFacets().fixed*.@facet == facets as List
-    }
-
-    void assertHasInstalledFacets(String... facets) {
-        assert getFacets().installed*.@facet == facets as List
-    }
-
-    void assertFacetVersion(String facet, String version) {
-        def facetNode = getFacets().installed.find { it.@facet == facet }
-        assert facetNode != null
-        assert facetNode.@version == version
+        return component
     }
 }

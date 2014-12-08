@@ -36,6 +36,8 @@ dependencies {
         run "eclipse"
 
         then:
+        // This test covers actual behaviour, not necessarily desired behaviour
+
         // Builders and natures
         def project = project
         project.assertHasNatures("org.eclipse.wst.common.project.facet.core.nature",
@@ -45,7 +47,12 @@ dependencies {
         project.assertHasBuilders("org.eclipse.wst.common.project.facet.core.builder",
                 "org.eclipse.wst.validation.validationbuilder")
 
-        // TODO - Classpath
+        // Classpath
+        def classpath = classpath
+        classpath.assertHasLibs('guava-18.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        classpath.lib('guava-18.0.jar').assertHasNoDeploymentAttributes() // Probably not right
+        classpath.lib('junit-4.11.jar').assertHasNoDeploymentAttributes()
+        classpath.lib('hamcrest-core-1.3.jar').assertHasNoDeploymentAttributes()
 
         // Facets
         def facets = wtpFacets

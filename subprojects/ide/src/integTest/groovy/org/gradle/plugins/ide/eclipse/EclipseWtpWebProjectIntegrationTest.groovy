@@ -23,6 +23,8 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
 
+sourceCompatibility = 1.6
+
 repositories {
     jcenter()
 }
@@ -40,24 +42,23 @@ dependencies {
         then:
         // Builders and natures
         def project = project
-        project.assertHasNatures("org.eclipse.jdt.core.javanature",
-                "org.eclipse.wst.common.project.facet.core.nature",
-                "org.eclipse.wst.common.modulecore.ModuleCoreNature",
-                "org.eclipse.jem.workbench.JavaEMFNature"
-        )
-        project.assertHasBuilders("org.eclipse.jdt.core.javabuilder",
-                "org.eclipse.wst.common.project.facet.core.builder",
-                "org.eclipse.wst.validation.validationbuilder"
-        )
+        project.assertHasJavaFacetNatures()
+        project.assertHasJavaFacetBuilders()
 
-        // TODO - Classpath
+        // Classpath
+        def classpath = classpath
+        classpath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        classpath.lib('guava-18.0.jar').assertIsExcludedFromDeployment() // Is deployed using component definition instead
+        classpath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
+        classpath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
+        classpath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         // Facets
         def facets = wtpFacets
         facets.assertHasFixedFacets("jst.java", "jst.web")
         facets.assertHasInstalledFacets("jst.web", "jst.java")
         facets.assertFacetVersion("jst.web", "2.4")
-        facets.assertFacetVersion("jst.java", "1.7")
+        facets.assertFacetVersion("jst.java", "6.0")
 
         // TODO - Deployment
     }

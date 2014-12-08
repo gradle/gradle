@@ -19,11 +19,35 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 
 class AbstractEclipseIntegrationSpec extends AbstractIdeIntegrationSpec {
+    protected EclipseClasspathFixture getClasspath() {
+        return new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+    }
+
+    protected EclipseClasspathFixture classpath(String project) {
+        return new EclipseClasspathFixture(testDirectory.file(project), executer.gradleUserHomeDir)
+    }
+
+    protected EclipseWtpComponentFixture getWtpComponent() {
+        return new EclipseWtpComponentFixture(testDirectory)
+    }
+
+    protected EclipseWtpComponentFixture wtpComponent(String project) {
+        return new EclipseWtpComponentFixture(testDirectory.file(project))
+    }
+
     protected EclipseWtpFacetsFixture getWtpFacets() {
         return new EclipseWtpFacetsFixture(testDirectory)
     }
 
+    protected EclipseWtpFacetsFixture wtpFacets(String project) {
+        return new EclipseWtpFacetsFixture(testDirectory.file(project))
+    }
+
     protected EclipseProjectFixture getProject() {
         return new EclipseProjectFixture(testDirectory)
+    }
+
+    protected EclipseProjectFixture project(String project) {
+        return new EclipseProjectFixture(testDirectory.file(project))
     }
 }

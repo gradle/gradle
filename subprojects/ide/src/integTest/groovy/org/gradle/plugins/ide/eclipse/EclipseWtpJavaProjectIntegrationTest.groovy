@@ -25,6 +25,8 @@ repositories {
     jcenter()
 }
 
+sourceCompatibility = 1.6
+
 dependencies {
     compile 'com.google.guava:guava:18.0'
     testCompile "junit:junit:4.11"
@@ -37,24 +39,22 @@ dependencies {
         then:
         // Builders and natures
         def project = project
-        project.assertHasNatures("org.eclipse.jdt.core.javanature",
-                "org.eclipse.wst.common.project.facet.core.nature",
-                "org.eclipse.wst.common.modulecore.ModuleCoreNature",
-                "org.eclipse.jem.workbench.JavaEMFNature"
-        )
-        project.assertHasBuilders("org.eclipse.jdt.core.javabuilder",
-                "org.eclipse.wst.common.project.facet.core.builder",
-                "org.eclipse.wst.validation.validationbuilder"
-        )
+        project.assertHasJavaFacetNatures()
+        project.assertHasJavaFacetBuilders()
 
-        // TODO - Classpath
+        // Classpath
+        def classpath = classpath
+        classpath.assertHasLibs('guava-18.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        classpath.lib('guava-18.0.jar').assertIsMarkedForDeployment()
+        classpath.lib('junit-4.11.jar').assertHasNoDeploymentAttributes()
+        classpath.lib('hamcrest-core-1.3.jar').assertHasNoDeploymentAttributes()
 
         // Facets
         def facets = wtpFacets
         facets.assertHasFixedFacets("jst.java")
         facets.assertHasInstalledFacets("jst.utility", "jst.java")
         facets.assertFacetVersion("jst.utility", "1.0")
-        facets.assertFacetVersion("jst.java", "1.7")
+        facets.assertFacetVersion("jst.java", "6.0")
 
         // TODO - Deployment
     }
