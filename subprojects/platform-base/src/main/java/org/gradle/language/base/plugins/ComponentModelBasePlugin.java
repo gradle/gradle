@@ -115,7 +115,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             for (LanguageRegistration<?> language : languageRegistry) {
                 for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                     if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
-                        return;
+                        continue;
                     }
 
                     final SourceTransformTaskConfig taskConfig = language.getTransformTask();
