@@ -90,6 +90,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             functionalSourceSet.registerFactory(CoffeeScriptSourceSet.class, namedDomainObjectFactory);
         }
 
+        // TODO Can't use @BinaryTasks because there's no way to modify the task properties after it has been created with CollectionBuilder<Task>
         @Mutate
         void createCoffeeScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
             for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
@@ -105,6 +106,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                         coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
                         coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
                         coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+                        binary.getTasks().add(coffeeScriptCompile);
 
                         // TODO:DAZ Should not be sharing this output directory with non-coffeescript javascript (harder for task to be up-to-date)
                         File coffeeScriptProcessOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
@@ -113,6 +115,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
                         processGeneratedJavascript.dependsOn(coffeeScriptCompile);
                         processGeneratedJavascript.from(coffeeScriptCompile.getDestinationDir());
                         processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
+                        binary.getTasks().add(processGeneratedJavascript);
 
                         binary.getAssets().builtBy(processGeneratedJavascript);
                         binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
