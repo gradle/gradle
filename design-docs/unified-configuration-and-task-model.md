@@ -170,6 +170,7 @@ These should be rationalised and ideally replaced with model rules.
 - Move publishing plugin suite to new mechanism
 - `CollectionBuilder` is not part of public API
 - `@RuleSource` is not documented, nor is the concept of a rule based plugin (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
+- Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
 
 ## Tasks
 
