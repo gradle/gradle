@@ -22,6 +22,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
+/**
+ * This specification runs a java plugin based build that defines additional source sets for building independent jars with
+ * the full lifecycle and running independent test tasks. Such build allows to exercise running multiple tasks from a single project in parallel.
+ */
 @IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
 class ParallelJavaPluginTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
