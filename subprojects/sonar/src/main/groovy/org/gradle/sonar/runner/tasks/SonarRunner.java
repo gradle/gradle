@@ -64,6 +64,10 @@ public class SonarRunner extends DefaultTask {
 
     JavaExecHandleBuilder prepareExec() {
         Map<String, Object> properties = getSonarProperties();
+        File givenSonarProjectFile = getProject().file("sonar-project.properties");
+        if(givenSonarProjectFile.exists()){
+            LOGGER.warn("Gradle Sonar Runner configuration might be ignored, as '%s' file was found in '%s' and Sonar Runner automatically picks up this file as input. Please rename it to avoid possible clashes.", givenSonarProjectFile.getName(), givenSonarProjectFile.getParent());
+        }
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Executing Sonar Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
