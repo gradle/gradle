@@ -21,9 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 
 public abstract class Actions {
 
@@ -39,7 +37,8 @@ public abstract class Actions {
     }
 
     private static class NullAction<T> implements Action<T>, Serializable {
-        public void execute(T t) {}
+        public void execute(T t) {
+        }
     }
 
     /**
@@ -61,10 +60,8 @@ public abstract class Actions {
      * @return The composite action.
      */
     public static <T> Action<T> composite(Action<? super T>... actions) {
-        final List<Action<? super T>> actionsCopy = new ArrayList<Action<? super T>>(actions.length);
-        Collections.addAll(actionsCopy, actions);
-        return composite(actionsCopy);
-   }
+        return composite(Arrays.asList(actions));
+    }
 
     private static class CompositeAction<T> implements Action<T> {
         private final Iterable<Action<? super T>> actions;

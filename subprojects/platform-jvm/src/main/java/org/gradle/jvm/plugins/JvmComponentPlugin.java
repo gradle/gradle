@@ -15,7 +15,6 @@
  */
 package org.gradle.jvm.plugins;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
@@ -119,10 +118,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                    PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                    @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
-            List<Action<? super JarBinarySpec>> actions = Lists.newArrayList();
-            actions.add(new JarBinarySpecInitializer(buildDir));
-            actions.add(new MarkBinariesBuildable());
-            final Action<JarBinarySpec> initAction = Actions.composite(actions);
+            @SuppressWarnings("unchecked")
+            final Action<JarBinarySpec> initAction = Actions.composite(new JarBinarySpecInitializer(buildDir), new MarkBinariesBuildable());
 
             List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
