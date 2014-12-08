@@ -184,6 +184,7 @@ These should be rationalised and ideally replaced with model rules.
 - Make `buildDir` available in model space
 - Remove `ExtensionContainer` from model space
 - Semantics of model element removal are not well defined
+- Contravariant by type bindings for immutable collections (given a model element of `List<String>`, an input - i.e. read only - binding to `List<CharSequence>` should be possible (useful for binding to public vs. internal specializations)
 
 ## Testing
 

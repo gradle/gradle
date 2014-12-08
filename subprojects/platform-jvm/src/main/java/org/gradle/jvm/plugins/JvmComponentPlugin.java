@@ -31,7 +31,8 @@ import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.jvm.platform.internal.JavaPlatformManaged;
+import org.gradle.jvm.platform.internal.JavaPlatformUnmanaged;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
@@ -42,6 +43,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
@@ -99,18 +101,28 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             platforms.registerFactory(JavaPlatform.class, new NamedDomainObjectFactory<JavaPlatform>() {
                 public JavaPlatform create(String name) {
-                    return instantiator.newInstance(DefaultJavaPlatform.class, name);
+                    return instantiator.newInstance(JavaPlatformUnmanaged.class, name);
                 }
             });
         }
 
-        @Mutate
-        public void createJavaPlatforms(PlatformContainer platforms) {
-            // TODO:DAZ Should be creating, not adding
-            for (JavaVersion javaVersion : JavaVersion.values()) {
-                DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
-                platforms.add(javaPlatform);
+        @Model
+        void javaPlatforms(ManagedSet<JavaPlatformManaged> javaPlatforms) {
+            for (final JavaVersion javaVersion : JavaVersion.values()) {
+                javaPlatforms.create(new Action<JavaPlatformManaged>() {
+                    @Override
+                    public void execute(JavaPlatformManaged platform) {
+                        platform.setTargetCompatibility(javaVersion);
+                        platform.setDisplayName(JavaPlatformUnmanaged.generateDisplayName(javaVersion));
+                        platform.setName(JavaPlatformUnmanaged.generateName(javaVersion));
+                    }
+                });
             }
+        }
+
+        @Mutate
+        public void createJavaPlatforms(PlatformContainer platforms, ManagedSet<JavaPlatformManaged> javaPlatforms) {
+            platforms.addAll(javaPlatforms);
         }
 
         @ComponentBinaries
@@ -124,7 +136,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
                 // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
-                targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
+                targetPlatforms = Collections.singletonList(new JavaPlatformUnmanaged(JavaVersion.current()).getName());
             }
             List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms);
             for (final JavaPlatform platform : selectedPlatforms) {

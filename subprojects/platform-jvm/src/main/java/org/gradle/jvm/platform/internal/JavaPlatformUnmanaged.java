@@ -16,24 +16,19 @@
 
 package org.gradle.jvm.platform.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.platform.JavaPlatform;
 
-/**
- * Default implementation of JvmPlatform
- */
-@Incubating
-public class DefaultJavaPlatform implements JavaPlatform {
+public class JavaPlatformUnmanaged implements JavaPlatform {
     private final String name;
     private JavaVersion targetCompatibility;
 
-    public DefaultJavaPlatform(String name) {
+    public JavaPlatformUnmanaged(String name) {
         this.name = name;
         this.targetCompatibility = JavaVersion.current();
     }
 
-    public DefaultJavaPlatform(JavaVersion javaVersion) {
+    public JavaPlatformUnmanaged(JavaVersion javaVersion) {
         this.name = generateName(javaVersion);
         this.targetCompatibility = javaVersion;
     }
@@ -43,7 +38,7 @@ public class DefaultJavaPlatform implements JavaPlatform {
     }
 
     public String getDisplayName() {
-        return String.format("Java SE %s", targetCompatibility.getMajorVersion());
+        return generateDisplayName(targetCompatibility);
     }
 
     public String getName() {
@@ -58,7 +53,11 @@ public class DefaultJavaPlatform implements JavaPlatform {
         this.targetCompatibility = targetCompatibility;
     }
 
-    private static String generateName(JavaVersion javaVersion) {
+    public static String generateDisplayName(JavaVersion javaVersion) {
+        return String.format("Java SE %s", javaVersion.getMajorVersion());
+    }
+
+    public static String generateName(JavaVersion javaVersion) {
         return "java" + javaVersion.getMajorVersion();
     }
 }

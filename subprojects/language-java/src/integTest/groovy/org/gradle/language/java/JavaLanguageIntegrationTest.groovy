@@ -18,7 +18,7 @@ package org.gradle.language.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+import org.gradle.jvm.platform.internal.JavaPlatformUnmanaged
 import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.util.Requires
@@ -126,7 +126,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "builds all buildable and skips non-buildable platforms when assembling"() {
-        def current = new DefaultJavaPlatform(JavaVersion.current())
+        def current = new JavaPlatformUnmanaged(JavaVersion.current())
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
 

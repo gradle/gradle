@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.platform;
+package org.gradle.jvm.platform.internal;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.model.Managed;
 import org.gradle.platform.base.internal.PlatformManaged;
-import org.gradle.play.platform.PlayPlatform;
 
 @Managed
-public interface PlayPlatformInternal extends PlayPlatform, PlatformManaged {
+public interface JavaPlatformManaged extends JavaPlatform, PlatformManaged {
 
-    void setPlayVersion(String playVersion);
-
-    void setScalaPlatform(ScalaPlatform scalaPlatform);
-
-    void setTwirlVersion(String twirlVersion);
-
-    void setJavaVersion(JavaVersion javaVersion);
 }
