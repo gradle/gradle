@@ -64,9 +64,8 @@ public class SonarRunner extends DefaultTask {
 
     JavaExecHandleBuilder prepareExec() {
         Map<String, Object> properties = getSonarProperties();
-        File givenSonarProjectFile = getProject().file("sonar-project.properties");
-        if(givenSonarProjectFile.exists()){
-            LOGGER.warn("Gradle Sonar Runner configuration might be ignored, as '%s' file was found in '%s' and Sonar Runner automatically picks up this file as input. Please rename it to avoid possible clashes.", givenSonarProjectFile.getName(), givenSonarProjectFile.getParent());
+        if(getProject().file("sonar-project.properties").exists()){
+            LOGGER.warn("Found 'sonar-project.properties' in project directory: Sonar Runner may read this file to override the Gradle 'sonarRunner' configuration.");
         }
 
         if (LOGGER.isInfoEnabled()) {
