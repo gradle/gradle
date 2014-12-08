@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PublicAssets;
@@ -32,7 +32,7 @@ import java.io.File;
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
     private final PublicAssets assets = new DefaultPublicAssets();
-    private LanguageSourceSet generatedScala;
+    private ScalaLanguageSourceSet generatedScala;
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
@@ -74,11 +74,11 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return assets;
     }
 
-    public LanguageSourceSet getGeneratedScala() {
+    public ScalaLanguageSourceSet getGeneratedScala() {
         return generatedScala;
     }
 
-    public void setGeneratedScala(LanguageSourceSet scalaSources) {
+    public void setGeneratedScala(ScalaLanguageSourceSet scalaSources) {
         this.generatedScala = scalaSources;
     }
 
