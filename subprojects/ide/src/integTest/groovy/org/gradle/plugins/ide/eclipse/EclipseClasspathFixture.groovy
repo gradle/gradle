@@ -33,8 +33,6 @@ class EclipseClasspathFixture {
     Node getClasspath() {
         if (classpath == null) {
             TestFile file = projectDir.file('.classpath')
-            println "Using .classpath:"
-            println file.text
             classpath = new XmlParser().parse(file)
         }
         return classpath
