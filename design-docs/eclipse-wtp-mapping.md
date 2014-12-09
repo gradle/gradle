@@ -20,3 +20,6 @@ For War and Ear projects:
 All `.classpath` entries should have `nondependency` attribute attached, as above.
 
 The `.settings/org.eclipse.wst.common.component` file should list the runtime dependencies of the project (`runtime - providedRuntime`)
+
+Currently this does not work because `WtpComponentFactory` delegates to `IdeDependenciesExtractor` which resolves to a subset of the dependency graph. Instead,
+the entire graph is required.
