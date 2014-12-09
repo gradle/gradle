@@ -46,6 +46,19 @@ class SingleEntryModuleLibrary extends ModuleLibrary {
     /**
      * Creates single entry module library
      *
+     * @param library a path to jar or class folder in idea format
+     * @param javadoc path to javadoc jars or javadoc folders
+     * @param source paths to source jars or source folders
+     * @param scope scope
+     * @return
+     */
+    SingleEntryModuleLibrary(FilePath library, @Nullable FilePath javadoc, @Nullable FilePath source, String scope) {
+        super([library] as Set, javadoc ? [javadoc] : [], source ? [source] : [], [] as Set, scope)
+    }
+
+    /**
+     * Creates single entry module library
+     *
      * @param library a path to jar or class folder in Path format
      * @param scope scope
      * @return
