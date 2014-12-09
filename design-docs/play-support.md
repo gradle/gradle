@@ -322,12 +322,6 @@ Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSource
     - No change in coffeescript source does not trigger a recompile
     - Removal of generated javascript triggers recompile
     - Removal of coffeescript source files removes generated javascript
-    
-#### Open issues
-
-- Should provide a convenience for declaring gradle repo for javascript: a la JavaScriptRepositoriesExtension
-    - Might be cool to proxy the typesafe Play modules as well
-- Sample with javaScript and coffeeScript sources
 
 ## Feature: Developer builds Play application distribution
 
@@ -342,6 +336,25 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 Play plugin:
 
 - Defines a distribution that bundles a Play server and Play application.
+
+##Feature: Developer adds default Play repositories to build script
+
+This allows the developer to easily add repositories to the build script using a convenience extension on the RepositoryContainer object.
+
+    buildscript {
+        repositories {
+            gradlePlay()
+        }
+    }
+    
+This should point to a virtual repository (play-public) at gradle.repo.org that's backed by the default repositories required for play functionality.
+Currently the following repositories would be required:
+- https://repo.typesafe.com/typesafe/maven-releases (play support)
+- https://repo.gradle.org/gradle/javascript-public (coffeescript and other javascript artifacts)
+
+#### Test Cases
+- Can build a basic play application using the convenience extension to specify repositories
+- Can build a coffeescript-enabled play application using the convenience extension to specify repositories
 
 # Milestone 1B
 
