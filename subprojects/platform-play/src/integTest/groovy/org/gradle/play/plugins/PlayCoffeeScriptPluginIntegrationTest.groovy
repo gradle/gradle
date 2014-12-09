@@ -46,7 +46,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     CoffeeScript source 'play:coffeeScriptSources'
-        app/assets
+        app${File.separator}assets
 """))
     }
 

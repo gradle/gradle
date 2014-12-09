@@ -42,7 +42,7 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     JavaScript source 'play:javaScriptSources'
-        app/assets
+        app${File.separator}assets
 """))
     }
 
