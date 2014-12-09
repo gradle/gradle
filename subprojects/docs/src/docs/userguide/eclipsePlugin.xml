@@ -101,8 +101,7 @@
                 <td>
                     <literal>eclipse</literal>
                 </td>
-                <td><literal>eclipseProject</literal>, <literal>eclipseClasspath</literal>, <literal>eclipseJdt</literal>,
-                    <literal>eclipseWtpComponent</literal>, <literal>eclipseWtpFacet</literal></td>
+                <td>all Eclipse configuration file generation tasks</td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Generates all Eclipse configuration files</td>
             </tr>
@@ -110,10 +109,7 @@
                 <td>
                     <literal>cleanEclipse</literal>
                 </td>
-                <td>
-                    <literal>cleanEclipseProject</literal>, <literal>cleanEclipseClasspath</literal>, <literal>cleanEclipseJdt</literal>,
-                    <literal>cleanEclipseWtpComponent</literal>, <literal>cleanEclipseWtpFacet</literal>
-                </td>
+                <td>all Eclipse configuration file clean tasks</td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
                 <td>Removes all Eclipse configuration files</td>
             </tr>
@@ -149,29 +145,6 @@
             </tr>
             <tr>
                 <td>
-                    <literal>cleanEclipseWtpComponent</literal>
-                </td>
-                <td>
-                    <literal>-</literal>
-                </td>
-                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes the <filename>.settings/org.eclipse.wst.common.component</filename> file.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>cleanEclipseWtpFacet</literal>
-                </td>
-                <td>
-                    <literal>-</literal>
-                </td>
-                <td>
-                    <apilink class="org.gradle.api.tasks.Delete"/>
-                </td>
-                <td>Removes the <filename>.settings/org.eclipse.wst.common.component</filename> file.
-                </td>
-            </tr>
-            <tr>
-                <td>
                     <literal>eclipseProject</literal>
                 </td>
                 <td>
@@ -199,28 +172,6 @@
                 </td>
                 <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseJdt"/></td>
                 <td>Generates the <filename>.settings/org.eclipse.jdt.core.prefs</filename> file.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>eclipseWtpComponent</literal>
-                </td>
-                <td>
-                    <literal>-</literal>
-                </td>
-                <td><apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent"/></td>
-                <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file only if <literal>eclipse-wtp</literal> plugin was applied.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>eclipseWtpFacet</literal>
-                </td>
-                <td>
-                    <literal>-</literal>
-                </td>
-                <td>
-                    <apilink class="org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet"/>
-                </td>
-                <td>Generates the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file only if <literal>eclipse-wtp</literal> plugin was applied.</td>
             </tr>
         </table>
         <table id='eclipsewtptasks'>
@@ -253,7 +204,7 @@
                 <td>
                     <apilink class="org.gradle.api.tasks.Delete"/>
                 </td>
-                <td>Removes the <filename>.settings/org.eclipse.wst.common.component</filename> file.
+                <td>Removes the <filename>.settings/org.eclipse.wst.common.project.facet.core.xml</filename> file.
                 </td>
             </tr>
             <tr>
