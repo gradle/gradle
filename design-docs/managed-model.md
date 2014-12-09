@@ -533,6 +533,28 @@ Runtime error received when trying to mutate an immutable object should include 
 
 Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
 
+### “read” methods of ManagedSet throw exceptions when set is mutable
+
+It should not be possible to call any of these methods until the set is realised.
+
+### Support for polymorphic managed sets
+
+```
+interface PolymorphicManagedSet<T> implements Set<T> {
+  void create(Class<? extends T> type, Action<? super T> initializer);
+  <O> Set<O> ofType(Class<O> type);
+}
+```
+
+- All mutative methods of `Set` throw UnsupportedOperationException (like `ManagedSet`).
+- `create` throws exception when set has been realised (i.e. using as an input)
+- “read” methods (including `ofType`) throws exception when called on mutable instance
+- `type` given to `create()` must be a valid managed type
+- No constraints on `O` type parameter given to `ofType` method
+- set returned by `ofType` is immutable (exception thrown by mutative methods should include information about the model element of which it was derived)
+
+The initial target for this functionality will be to replace the `PlatformContainer` model element, but more functionality will be needed before this is possible.
+
 ## Open Questions
 
 - Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
