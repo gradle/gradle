@@ -63,7 +63,6 @@ public interface BasicGradleProject extends Model {
      * Returns the child projects of this project, or the empty set if there are no child projects.
      *
      * @return The child projects of this project, or the empty set if there are no child projects.
-     * @since 1.0-milestone-5
      */
     DomainObjectSet<? extends BasicGradleProject> getChildren();
 }
