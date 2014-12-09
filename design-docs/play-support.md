@@ -112,6 +112,11 @@ At this stage, only the default generated Play application is supported, with a 
 - verify that play app can be built and executed with play version 2.3.5 and 2.2.3
 - Can configure port for launched PlayApp: default is 9000
 
+#### Open issue
+
+- Stopping the app with Ctrl-D?
+- Testing stopping via keyboard interaction with Daemon (currently test is disabled)
+
 ### Story: Developer tests a basic Play application
 
 - Add a `Test` test task per binary that runs the play application tests based on JUnit TestRunner against the binary
@@ -130,7 +135,7 @@ At this stage, only the default generated Play application is supported, with a 
 - Model test suites
 - Pull `check` lifecycle task up into `LifecycleBasePlugin` and wire in all test tasks.
 
-### Story: Developer builds, runs and tests a basic Play application for multiple versions of Play
+### Story: Developer builds, runs and tests a basic application for a specified version of Play
 
 - Can build play application with Play 2.2.3 on Scala 2.10, and Play 2.3.5 on Scala 2.11
 
@@ -269,6 +274,77 @@ Add a RoutesSourceSet and permit multiple instances in a Play application
 - handle .routes files
 - Ability for Routes compiler to prefer Java types in generated sources (i.e. SBT enablePlugins(PlayJava))
 
+## Feature: Basic support for assets in Play application
+
+### Story: Developer includes static assets in Play application
+
+Any files under `/public` in the application sources are available under `/assets` in the running application.
+
+### Story: Developer includes javascript and compiled coffeescript assets in Play application
+
+Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSourceSets and permit multiple instances.
+
+    plugins {
+        id 'play-application'
+        id 'play-coffeescript'
+    }
+
+    model {
+        components {
+            play(PlayApplicationSpec) {
+                sources {
+                    extraCoffeeScript(CoffeeScriptSourceSet) {
+                        sources.srcDir "src/extraCoffeeScript"
+                    }
+
+                    extraJavaScript(JavaScriptSourceSet) {
+                        sources.srcDir "src/extraJavaScript"
+                    }
+                }
+            }
+        }
+    }
+
+- Default coffeescript sourceset should be "app/assets/**/*.coffee"
+- Compiled coffeescript files will be added to the jar under "public"
+- Default javascript sourceset should be "app/assets/**/*.js"
+- Processed javascript sourceset should be added to the jar under "public"
+
+#### Test cases
+- Coffeescript and javascript sources are visible in the components report
+- Coffeescript sources successfully compiled to javascript
+- Compiled coffeescript is added to jar under "public"
+- Javascript sources are copied directly into jar under "public"
+- Can provide additional coffeescript sources
+- Can provide additional javascript sources
+- Build is incremental:
+    - Change in coffeescript source triggers recompile
+    - No change in coffeescript source does not trigger a recompile
+    - Removal of generated javascript triggers recompile
+    - Removal of coffeescript source files removes generated javascript
+    
+#### Open issues
+
+- Should provide a convenience for declaring gradle repo for javascript: a la JavaScriptRepositoriesExtension
+    - Might be cool to proxy the typesafe Play modules as well
+- Sample with javaScript and coffeeScript sources
+
+## Feature: Developer builds Play application distribution
+
+Introduce some lifecycle tasks to allow the developer to package up the Play application. For example, the
+developer may run `gradle stage` to stage the local application, or `gradle dist` to create a standalone distribution.
+
+- Build distribution image and zips, as per `play stage` and `play dist`
+- Integrate with the distribution plugin.
+
+### Implementation
+
+Play plugin:
+
+- Defines a distribution that bundles a Play server and Play application.
+
+# Milestone 1B
+
 ## Feature: Developer includes compiled assets in Play application (Javascript, LESS, CoffeeScript)
 
 Extend the standard build lifecycle to compile the front end assets to CSS and Javascript.
@@ -319,49 +395,6 @@ Play plugin:
 ### Open issues
 
 - Integration with existing Gradle javascript plugins.
-
-### Story: Developer includes compiled coffeescript assets in Play application
-
-Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSourceSets and permit multiple instances.
-
-    plugins {
-        id 'play-application'
-        id 'play-coffeescript'
-    }
-
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                sources {
-                    extraCoffeeScript(CoffeeScriptSourceSet) {
-                        sources.srcDir "src/extraCoffeeScript"
-                    }
-
-                    extraJavaScript(JavaScriptSourceSet) {
-                        sources.srcDir "src/extraJavaScript"
-                    }
-                }
-            }
-        }
-    }
-
-- Default coffeescript sourceset should be "app/assets/**/*.coffee"
-- Compiled coffeescript files will be added to the jar under "public"
-- Default javascript sourceset should be "app/assets/**/*.js"
-- Processed javascript sourceset should be added to the jar under "public"
-
-#### Test cases
-- Coffeescript and javascript sources are visible in the components report
-- Coffeescript sources successfully compiled to javascript
-- Compiled coffeescript is added to jar under "public"
-- Javascript sources are copied directly into jar under "public"
-- Can provide additional coffeescript sources
-- Can provide additional javascript sources
-- Build is incremental:
-    - Change in coffeescript source triggers recompile
-    - No change in coffeescript source does not trigger a recompile
-    - Removal of generated javascript triggers recompile
-    - Removal of coffeescript source files removes generated javascript
 
 ## Feature: Developer chooses target Play, Scala and/or Java platform
 
@@ -461,20 +494,6 @@ Play plugin:
 
 - Defines a Play application as-a web application
 - Provides a Play server implementation that can host a Play application.
-
-## Feature: Developer builds Play application distribution
-
-Introduce some lifecycle tasks to allow the developer to package up the Play application. For example, the
-developer may run `gradle stage` to stage the local application, or `gradle dist` to create a standalone distribution.
-
-- Build distribution image and zips, as per `play stage` and `play dist`
-- Integrate with the distribution plugin.
-
-### Implementation
-
-Play plugin:
-
-- Defines a distribution that bundles a Play server and Play application.
 
 ## Further features
 
