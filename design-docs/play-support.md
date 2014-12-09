@@ -78,7 +78,7 @@ When running `gradle assemble`, a Jar file will be built for the default templat
     - Locations of routes file
     - Locations of templates files
     - Scala version
-    - Dependencies of Play ("com.typesafe.play:play_2.11:2.3.5")
+    - Dependencies of Play ("com.typesafe.play:play_2.11:2.3.7")
     - Dependency of template compiler ("com.typesafe.play:twirl-compiler_2.11:1.0.2)
     - Dependency of routes compiler
 - resolve different play dependencies from user-configured repositories
@@ -109,7 +109,7 @@ At this stage, only the default generated Play application is supported, with a 
           
 #### Test cases
 
-- verify that play app can be built and executed with play version 2.3.5 and 2.2.3
+- verify that play app can be built and executed with play version 2.3.7 and 2.2.3
 - Can configure port for launched PlayApp: default is 9000
 
 #### Open issue
@@ -137,11 +137,11 @@ At this stage, only the default generated Play application is supported, with a 
 
 ### Story: Developer builds, runs and tests a basic application for a specified version of Play
 
-- Can build play application with Play 2.2.3 on Scala 2.10, and Play 2.3.5 on Scala 2.11
+- Can build play application with Play 2.2.3 on Scala 2.10, and Play 2.3.7 on Scala 2.11
 
 #### Test cases
 
-- Verify building and running the 'activator new' app with Play 2.2.3 and Play 2.3.5
+- Verify building and running the 'activator new' app with Play 2.2.3 and Play 2.3.7
 
 #### Open issues
 
@@ -411,7 +411,7 @@ Play plugin:
     model {
         components {
             play(PlayApplicationSpec) {
-                platform play: "2.3.6"
+                platform play: "2.3.7"
                 platform play: "2.2.3"
             }
         }
@@ -419,7 +419,7 @@ Play plugin:
 
 #### Test cases
 
-- For each supported Play version: 2.2.3, 2.3.5, 2.3.6
+- For each supported Play version: 2.2.3, 2.3.7
     - Can assemble Play application
     - Can run Play application
     - Can test Play application
@@ -434,7 +434,7 @@ Play plugin:
     model {
         components {
             play(PlayApplicationSpec) {
-                platform play: "2.3.5", scala: "2.11"
+                platform play: "2.3.7", scala: "2.11"
             }
         }
     }
@@ -445,7 +445,7 @@ Play plugin:
     model {
         components {
             play(PlayApplicationSpec) {
-                platform play: "2.3.5", scala: "2.11", java: "1.8"
+                platform play: "2.3.7", scala: "2.11", java: "1.8"
             }
         }
     }
