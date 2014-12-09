@@ -61,7 +61,7 @@ import java.util.List;
  */
 @Incubating
 public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
-    private final static String DEFAULT_PLAY_VERSION = "2.3.5";
+    private final static String DEFAULT_PLAY_VERSION = "2.3.7";
     public static final int DEFAULT_HTTP_PORT = 9000;
 
     public void apply(final ProjectInternal project) {
