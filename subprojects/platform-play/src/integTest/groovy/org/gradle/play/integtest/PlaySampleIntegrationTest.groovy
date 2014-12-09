@@ -17,16 +17,145 @@
 package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.hash.HashUtil
+import org.gradle.util.AvailablePortFinder
 import org.junit.Rule
+import spock.lang.IgnoreIf
+
+import static org.gradle.integtests.fixtures.UrlValidator.available
+import static org.gradle.integtests.fixtures.UrlValidator.notAvailable
 
 class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
+    def portFinder = AvailablePortFinder.createPrivate()
+    def initScript
+    int httpPort
+
     @Rule
-    Sample playSample = new Sample(temporaryFolder, "play")
+    Sample basicPlaySample = new Sample(temporaryFolder, "play/basic")
+
+    @Rule
+    Sample advancedPlaySample = new Sample(temporaryFolder, "play/advanced")
+
+    def setup() {
+        httpPort = portFinder.nextAvailable
+        initScript = file("initFile") << """
+            gradle.allprojects {
+                model {
+                    tasks.runPlayBinary {
+                        httpPort = $httpPort
+                    }
+                }
+            }
+        """
+    }
 
     def "can build play sample"() {
         given:
-        sample playSample
+        sample basicPlaySample
         expect:
         succeeds "assemble"
+    }
+
+    /**
+     * Don't currently run with DaemonExecuter, because
+     * InputForwarder is consuming stdin eagerly.
+     * */
+    @IgnoreIf({ GradleContextualExecuter.isDaemon() })
+    def "produces usable application from basic sample"(){
+        when:
+        PipedInputStream inputStream = new PipedInputStream();
+        PipedOutputStream stdinWriter = new PipedOutputStream(inputStream);
+        executer.withStdIn(inputStream)
+        executer.usingInitScript(initScript)
+        sample basicPlaySample
+        GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
+
+        then:
+        available("http://localhost:$httpPort", "Play app", 60000)
+        assert playUrl().text.contains("Your new application is ready.")
+
+        and:
+        compareURL playUrl("assets/stylesheets/main.css"), publicAsset(basicPlaySample, "stylesheets/main.css")
+        compareURL playUrl("assets/javascripts/hello.js"), publicAsset(basicPlaySample, "javascripts/hello.js")
+        compareURL playUrl("assets/images/favicon.png"), publicAsset(basicPlaySample, "images/favicon.png")
+
+        when: "stopping gradle"
+        stdinWriter.write(4) // ctrl+d
+        stdinWriter.flush()
+        gradleHandle.waitForFinish()
+
+        then: "play server is stopped too"
+        notAvailable("http://localhost:$httpPort")
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.isDaemon() })
+    def "produces usable application from advanced sample"() {
+        when:
+        PipedInputStream inputStream = new PipedInputStream();
+        PipedOutputStream stdinWriter = new PipedOutputStream(inputStream);
+        executer.withStdIn(inputStream)
+        executer.usingInitScript(initScript)
+        sample advancedPlaySample
+        GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
+
+        then:
+        available("http://localhost:$httpPort", "Play app", 60000)
+        assert playUrl().text.contains("Your new application is ready.")
+
+        and:
+        compareURL playUrl("assets/stylesheets/main.css"), publicAsset(advancedPlaySample, "stylesheets/main.css")
+        compareURL playUrl("assets/javascripts/hello.js"), publicAsset(advancedPlaySample, "javascripts/hello.js")
+        compareURL playUrl("assets/images/favicon.png"), publicAsset(advancedPlaySample, "images/favicon.png")
+        compareURL playUrl("assets/javascripts/sample.js"), appAsset(advancedPlaySample, "javascripts/sample.js")
+        compareURL playUrl("assets/coffeescript/console.js"), coffeeScriptGeneratedJavaScript
+        compareURL playUrl("hello/Gradle"), "Hello Gradle!"
+
+        when: "stopping gradle"
+        stdinWriter.write(4) // ctrl+d
+        stdinWriter.flush()
+        gradleHandle.waitForFinish()
+
+        then: "play server is stopped too"
+        notAvailable("http://localhost:$httpPort")
+    }
+
+    URL playUrl(String path='') {
+        return new URL("http://localhost:$httpPort/${path}")
+    }
+
+    File publicAsset(Sample sample, String asset) {
+        return new File(sample.dir, "public/${asset}")
+    }
+
+    File appAsset(Sample sample, String asset) {
+        return new File(sample.dir, "app/assets/${asset}")
+    }
+
+    boolean compareURL(URL url, String contents) {
+        return compareHashes(url.openStream(), new ByteArrayInputStream(contents.getBytes("UTF-8")))
+    }
+
+    boolean compareURL(URL url, File file) {
+        return compareHashes(url.openStream(), file.newInputStream())
+    }
+
+    boolean compareHashes(InputStream a, InputStream b) {
+        return HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
+    }
+
+    String getCoffeeScriptGeneratedJavaScript() {
+        return """(function() {
+  var square;
+
+  console.log("This is coffeescript!");
+
+  square = function(x) {
+    return x * x;
+  };
+
+}).call(this);
+"""
     }
 }
