@@ -50,7 +50,7 @@ dependencies {
         // Classpath
         def classpath = classpath
         classpath.assertHasLibs('guava-18.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
-        classpath.lib('guava-18.0.jar').assertIsMarkedForDeployment()
+        classpath.lib('guava-18.0.jar').assertIsDeployedTo('../')
         classpath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
         classpath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 

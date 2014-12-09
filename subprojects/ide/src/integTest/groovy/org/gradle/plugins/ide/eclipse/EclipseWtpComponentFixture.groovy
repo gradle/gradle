@@ -49,7 +49,7 @@ class EclipseWtpComponentFixture {
     WbModule lib(String jarName) {
         def module = modules.find {
             def handle = it.node.@handle
-            return handle.startsWith('module:/classpath/lib') && handle.endsWith(jarName)
+            return handle.startsWith('module:/classpath/') && handle.endsWith(jarName)
         }
         assert module != null
         assert module.node."dependency-type"*.text() == ['uses']

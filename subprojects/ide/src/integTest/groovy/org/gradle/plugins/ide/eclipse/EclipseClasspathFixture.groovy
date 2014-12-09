@@ -64,9 +64,9 @@ class EclipseClasspathFixture {
     }
 
     EclipseLibrary lib(String jarName) {
-        def lib = libs.find { it.jarName == jarName }
-        assert lib != null
-        return lib
+        def matches = libs.findAll { it.jarName == jarName } + vars.findAll { it.jarName == jarName }
+        assert matches.size() == 1
+        return matches[0]
     }
 
     List<EclipseLibrary> getLibs() {
@@ -148,10 +148,10 @@ class EclipseClasspathFixture {
             assert entry.attributes.isEmpty()
         }
 
-        void assertIsMarkedForDeployment() {
+        void assertIsDeployedTo(String path) {
             assert entry.attributes
             assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.dependency'
-            assert entry.attributes[0].attribute[0].@value == '../'
+            assert entry.attributes[0].attribute[0].@value == path
         }
 
         void assertIsExcludedFromDeployment() {

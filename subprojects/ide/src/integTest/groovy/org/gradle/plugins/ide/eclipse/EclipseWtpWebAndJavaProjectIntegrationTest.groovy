@@ -73,8 +73,8 @@ project(':java') {
         // Classpath
         def javaClasspath = classpath('java')
         javaClasspath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
-        javaClasspath.lib('guava-18.0.jar').assertIsMarkedForDeployment()
-        javaClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsMarkedForDeployment() // TODO - this is not right
+        javaClasspath.lib('guava-18.0.jar').assertIsDeployedTo('../')
+        javaClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsDeployedTo('../') // TODO - this is not right
         javaClasspath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
         javaClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
