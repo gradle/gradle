@@ -147,6 +147,10 @@ Overlapping outputs declared by two tasks should be detected and such tasks shou
 - Old Maven plugin is not safe to use concurrently
 - Incorrect logging from ProgressLogEventGenerator if start and end events for different operations interleave leading to reporting incorrect task status, e.g. saying that a task was up-to-date when actually a different task was up-to-date.
 
+## Overlapping task outputs detection
+
+- Output of one task that is a symlink linking to an output or a descendant of an output of another task does not prevent these tasks from being run in parallel 
+
 ## Usability/Configurability
 
 - Can't enable parallel execution with specified thread pool size via “env” (i.e. no sys prop, `gradle.startParameter.parallelThreadCount = «N»` does not work because value is read very early)
