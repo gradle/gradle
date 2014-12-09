@@ -72,9 +72,6 @@ repositories {
 
         where:
         component     | artifactType            | reason
-        'JvmLibrary'  | 'IvyDescriptorArtifact' | 'cannot mix JvmLibrary with metadata artifact types'
-        'IvyModule'   | 'SourcesArtifact'       | 'cannot mix IvyModule with JVM library artifact type SourcesArtifact'
-        'IvyModule'   | 'JavadocArtifact'       | 'cannot mix IvyModule with JVM library artifact type JavadocArtifact'
         'IvyModule'   | 'MavenPomArtifact'      | 'cannot mix IvyModule with Maven metadata artifact type MavenPomArtifact'
         'MavenModule' | 'MavenPomArtifact'      | 'cannot retrieve Maven component and metadata artifact for Ivy module'
     }
