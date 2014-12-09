@@ -17,7 +17,6 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
@@ -27,7 +26,6 @@ import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
