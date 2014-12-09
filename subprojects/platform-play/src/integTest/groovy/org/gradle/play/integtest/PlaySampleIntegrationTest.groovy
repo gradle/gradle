@@ -19,13 +19,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.internal.hash.HashUtil
 import org.gradle.util.AvailablePortFinder
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-import static org.gradle.integtests.fixtures.UrlValidator.available
-import static org.gradle.integtests.fixtures.UrlValidator.notAvailable
+import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
     def portFinder = AvailablePortFinder.createPrivate()
@@ -63,7 +61,15 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
      * InputForwarder is consuming stdin eagerly.
      * */
     @IgnoreIf({ GradleContextualExecuter.isDaemon() })
-    def "produces usable application from basic sample"(){
+    def "produces usable application from basic sample"() {
+        when:
+        executer.usingInitScript(initScript)
+        sample basicPlaySample
+
+        // Assemble first so that build time doesn't play into the startup timeout
+        then:
+        succeeds "assemble"
+
         when:
         PipedInputStream inputStream = new PipedInputStream();
         PipedOutputStream stdinWriter = new PipedOutputStream(inputStream);
@@ -77,9 +83,9 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
         assert playUrl().text.contains("Your new application is ready.")
 
         and:
-        compareURL playUrl("assets/stylesheets/main.css"), publicAsset(basicPlaySample, "stylesheets/main.css")
-        compareURL playUrl("assets/javascripts/hello.js"), publicAsset(basicPlaySample, "javascripts/hello.js")
-        compareURL playUrl("assets/images/favicon.png"), publicAsset(basicPlaySample, "images/favicon.png")
+        assertUrlContent playUrl("assets/stylesheets/main.css"), publicAsset(basicPlaySample, "stylesheets/main.css")
+        assertUrlContent playUrl("assets/javascripts/hello.js"), publicAsset(basicPlaySample, "javascripts/hello.js")
+        assertUrlContent playUrl("assets/images/favicon.png"), publicAsset(basicPlaySample, "images/favicon.png")
 
         when: "stopping gradle"
         stdinWriter.write(4) // ctrl+d
@@ -93,6 +99,14 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ GradleContextualExecuter.isDaemon() })
     def "produces usable application from advanced sample"() {
         when:
+        executer.usingInitScript(initScript)
+        sample advancedPlaySample
+
+        // Assemble first so that build time doesn't play into the startup timeout
+        then:
+        succeeds "assemble"
+
+        when:
         PipedInputStream inputStream = new PipedInputStream();
         PipedOutputStream stdinWriter = new PipedOutputStream(inputStream);
         executer.withStdIn(inputStream)
@@ -105,12 +119,12 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
         assert playUrl().text.contains("Your new application is ready.")
 
         and:
-        compareURL playUrl("assets/stylesheets/main.css"), publicAsset(advancedPlaySample, "stylesheets/main.css")
-        compareURL playUrl("assets/javascripts/hello.js"), publicAsset(advancedPlaySample, "javascripts/hello.js")
-        compareURL playUrl("assets/images/favicon.png"), publicAsset(advancedPlaySample, "images/favicon.png")
-        compareURL playUrl("assets/javascripts/sample.js"), appAsset(advancedPlaySample, "javascripts/sample.js")
-        compareURL playUrl("assets/coffeescript/console.js"), coffeeScriptGeneratedJavaScript
-        compareURL playUrl("hello/Gradle"), "Hello Gradle!"
+        assertUrlContent playUrl("assets/stylesheets/main.css"), publicAsset(advancedPlaySample, "stylesheets/main.css")
+        assertUrlContent playUrl("assets/javascripts/hello.js"), publicAsset(advancedPlaySample, "javascripts/hello.js")
+        assertUrlContent playUrl("assets/images/favicon.png"), publicAsset(advancedPlaySample, "images/favicon.png")
+        assertUrlContent playUrl("assets/javascripts/sample.js"), appAsset(advancedPlaySample, "javascripts/sample.js")
+        assertUrlContent playUrl("assets/coffeescript/console.js"), coffeeScriptGeneratedJavaScript
+        assertUrlContent playUrl("hello/Gradle"), "Hello Gradle!"
 
         when: "stopping gradle"
         stdinWriter.write(4) // ctrl+d
@@ -131,18 +145,6 @@ class PlaySampleIntegrationTest extends AbstractIntegrationSpec {
 
     File appAsset(Sample sample, String asset) {
         return new File(sample.dir, "app/assets/${asset}")
-    }
-
-    boolean compareURL(URL url, String contents) {
-        return compareHashes(url.openStream(), new ByteArrayInputStream(contents.getBytes("UTF-8")))
-    }
-
-    boolean compareURL(URL url, File file) {
-        return compareHashes(url.openStream(), file.newInputStream())
-    }
-
-    boolean compareHashes(InputStream a, InputStream b) {
-        return HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
     }
 
     String getCoffeeScriptGeneratedJavaScript() {

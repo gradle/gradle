@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.internal.hash.HashUtil
 import org.junit.Assert
 
 class UrlValidator {
@@ -41,5 +42,17 @@ class UrlValidator {
             Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
         } catch (SocketException ex) {
         }
+    }
+
+    static void assertUrlContent(URL url, String contents) {
+        compareHashes(url.openStream(), new ByteArrayInputStream(contents.getBytes("UTF-8")))
+    }
+
+    static void assertUrlContent(URL url, File file) {
+        compareHashes(url.openStream(), file.newInputStream())
+    }
+
+    static void compareHashes(InputStream a, InputStream b) {
+        assert HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
     }
 }
