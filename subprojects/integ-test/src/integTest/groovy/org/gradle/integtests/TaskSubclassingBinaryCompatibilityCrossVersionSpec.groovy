@@ -37,7 +37,7 @@ import org.gradle.util.GradleVersion
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
-@TargetVersions('0.9-rc-3+')
+@TargetVersions('1.0+')
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "can use task subclass compiled using previous Gradle version"() {
         given:
@@ -56,34 +56,17 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
 //                JavaCompile,
                 CodeNarc,
                 Checkstyle,
+                Ear,
+                FindBugs,
+                Pmd,
+                JDepend,
+                Sign,
+                CreateStartScripts,
+                SonarAnalyze,
         ]
-        def constructorImplementation = """
-        // GRADLE-3185
-        project.logger.lifecycle('task created')
-"""
-        if (previous.version >= GradleVersion.version("1.0")) {
-            taskClasses += [
-                    Ear,
-                    FindBugs,
-                    Pmd,
-                    JDepend,
-                    Sign,
-            ]
-            // Test calling a protected superclass method
-            constructorImplementation += """
-        // GRADLE-3207
-        super.getServices()
-"""
-        }
         if (previous.version >= GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
             taskClasses << Test
-        }
-        if (previous.version >= GradleVersion.version("2.0")) {
-            taskClasses += [
-                    CreateStartScripts,
-                    SonarAnalyze,
-            ]
         }
 
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }
@@ -111,7 +94,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                     def className = it.key
                     """class ${className} extends ${it.value} {
     ${className}() {
-        $constructorImplementation
+        // GRADLE-3185
+        project.logger.lifecycle('task created')
+        // GRADLE-3207
+        super.getServices()
     }
 }"""
                 }.join("\n")
