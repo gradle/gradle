@@ -159,19 +159,19 @@ Given that the dependency is resolved from an Ivy repository, the Ivy descriptor
 Given that the dependency is resolved from a Maven repository, the Maven POM artifact can be retrieved as follows:
 
     task resolveMavenPomFiles {
-            doLast {
-                def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+        doLast {
+            def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
 
-                def result = dependencies.createArtifactResolutionQuery()
-                    .forComponents(componentIds)
-                    .withArtifacts(MavenModule, MavenPomArtifact)
-                    .execute()
+            def result = dependencies.createArtifactResolutionQuery()
+                .forComponents(componentIds)
+                .withArtifacts(MavenModule, MavenPomArtifact)
+                .execute()
 
-                for(component in result.resolvedComponents) {
-                    component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
-                }
+            for(component in result.resolvedComponents) {
+                component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
             }
         }
+    }
 
 ## Promoted features
 
