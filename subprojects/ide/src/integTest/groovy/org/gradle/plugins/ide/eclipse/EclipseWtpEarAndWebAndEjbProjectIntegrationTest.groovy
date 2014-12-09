@@ -80,7 +80,23 @@ project(':java') {
 
         // Deployment
         def javaComponent = wtpComponent('java')
+        javaComponent.deployName == 'java'
+        javaComponent.resources.size() == 1
+        javaComponent.sourceDirectory('src/main/java').assertDeployedAt('/')
+        javaComponent.modules.isEmpty()
+
         def webComponent = wtpComponent('web')
+        webComponent.deployName == 'web'
+        webComponent.resources.size() == 2
+        webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
+        webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
+        webComponent.modules.isEmpty()
+
         def earComponent = wtpComponent('ear')
+        earComponent.deployName == 'ear'
+        earComponent.resources.isEmpty()
+        earComponent.modules.size() == 2
+        earComponent.project('java').assertDeployedAt('/')
+        earComponent.project('web').assertDeployedAt('/')
     }
 }

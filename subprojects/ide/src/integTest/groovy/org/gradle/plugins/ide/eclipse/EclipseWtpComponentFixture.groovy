@@ -34,6 +34,10 @@ class EclipseWtpComponentFixture {
         return component
     }
 
+    String getDeployName() {
+        return getComponent()."wb-module"."@deploy-name".text()
+    }
+
     List<WbResource> getResources() {
         return getComponent()."wb-module"."wb-resource".collect { new WbResource(it) }
     }

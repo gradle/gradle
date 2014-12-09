@@ -20,7 +20,10 @@ package org.gradle.plugins.ide.eclipse
 class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates configuration files for a web project"() {
         file('src/main/java').mkdirs()
+        file('src/main/resources').mkdirs()
         file('src/main/webapp').mkdirs()
+
+        settingsFile << "rootProject.name = 'web'"
 
         buildFile << """
 apply plugin: 'eclipse-wtp'
@@ -65,8 +68,10 @@ dependencies {
 
         // Deployment
         def component = wtpComponent
-        component.resources.size() == 2
+        component.deployName == 'web'
+        component.resources.size() == 3
         component.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
+        component.sourceDirectory('src/main/resources').assertDeployedAt('/WEB-INF/classes')
         component.sourceDirectory('src/main/webapp').assertDeployedAt('/')
         component.modules.size() == 1
         component.lib('guava-18.0.jar').assertDeployedAt('/WEB-INF/lib')

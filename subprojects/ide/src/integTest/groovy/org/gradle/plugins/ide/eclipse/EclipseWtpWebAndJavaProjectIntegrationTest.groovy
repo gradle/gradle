@@ -96,11 +96,13 @@ project(':java') {
 
         // Deployment
         def javaComponent = wtpComponent('java')
+        javaComponent.deployName == 'java'
         javaComponent.resources.size() == 1
         javaComponent.sourceDirectory('src/main/java').assertDeployedAt('/')
         javaComponent.modules.isEmpty()
 
         def webComponent = wtpComponent('web')
+        webComponent.deployName == 'web'
         webComponent.resources.size() == 2
         webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')

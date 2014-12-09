@@ -19,35 +19,9 @@ import org.junit.Test
 import spock.lang.Issue
 
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
-    void runSharedBuild() {
-        generateEclipseFilesForWebProject()
-    }
-
-    @Test
-    void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
-        useSharedBuild = true;
-        hasTrimmedDownComponentSettingsFile("java1", ["java2"], [ "src/main/java": "/", "src/main/resources": "/"])
-        hasTrimmedDownComponentSettingsFile("java2", [], ["src/main/java": "/", "src/main/resources": "/"])
-        hasTrimmedDownComponentSettingsFile("groovy", [], ["src/main/java": "/", "src/main/groovy": "/", "src/main/resources": "/"])
-    }
-
-    @Test
-    void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
-        useSharedBuild = true;
-        def projectModules = parseComponentFile(project: "web", print: true)
-
-		assert getDeployName(projectModules) == "web"
-        assert getSourceAndDeployPaths(projectModules) ==
-                ["src/main/java": "/WEB-INF/classes", "src/main/resources": "/WEB-INF/classes", "src/main/webapp": "/"]
-        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
-		assert getDependencyTypes(projectModules) == ["uses"] * 5 as Set
-    }
-
     @Test
     @Issue("GRADLE-1415")
     void canUseSelfResolvingFiles() {
-        useSharedBuild = false
-
         def buildFile = """
 apply plugin: "war"
 apply plugin: "eclipse"
@@ -71,8 +45,6 @@ dependencies {
     @Test
     @Issue("GRADLE-2526")
     void overwritesDependentModules() {
-        useSharedBuild = false
-
         generateEclipseFilesForWebProject()
         def projectModules = parseComponentFile(project: "web")
         assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
@@ -159,34 +131,7 @@ apply plugin: "groovy"
         executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
     }
 
-    private void hasTrimmedDownComponentSettingsFile(String projectName, List projects, Map sourceAndDeployPaths) {
-        def projectModules = parseComponentFile(project: projectName, print: true)
-
-        assert getDeployName(projectModules) == projectName
-        assert getSourceAndDeployPaths(projectModules) == sourceAndDeployPaths
-        assert getHandleFilenames(projectModules) == projects as Set
-        assert getDependencyTypes(projectModules) == ['uses'] * projects.size() as Set
-    }
-
-    private String getDeployName(projectModules) {
-		def names = projectModules."wb-module".@"deploy-name"*.text()
-        assert names.size() == 1
-        names[0]
-	}
-
-    private Map getSourceAndDeployPaths(projectModules) {
-        Map result = [:]
-        projectModules."wb-module"."wb-resource".collect {
-            result.put(it.@"source-path".text(), it.@"deploy-path".text())
-        }
-        result
-    }
-
 	private Set getHandleFilenames(projectModules) {
 		projectModules."wb-module"."dependent-module".@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } as Set
-	}
-
-	private Set getDependencyTypes(projectModules) {
-		projectModules."wb-module"."dependent-module"."dependency-type"*.text() as Set
 	}
 }

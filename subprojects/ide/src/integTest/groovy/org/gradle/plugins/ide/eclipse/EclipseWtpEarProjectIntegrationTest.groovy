@@ -19,6 +19,8 @@ package org.gradle.plugins.ide.eclipse
 
 class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates configuration files for an ear project"() {
+        settingsFile << "rootProject.name = 'ear'"
+
         buildFile << """
 apply plugin: 'eclipse-wtp'
 apply plugin: 'ear'
@@ -56,6 +58,7 @@ dependencies {
 
         // Deployment
         def component = wtpComponent
+        component.deployName == 'ear'
         component.resources.isEmpty()
         component.modules.size() == 1
         component.lib('guava-18.0.jar').assertDeployedAt('/')

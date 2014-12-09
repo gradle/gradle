@@ -17,6 +17,8 @@ package org.gradle.plugins.ide.eclipse
 
 class EclipseWtpEmptyProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates configuration files for an empty project"() {
+        settingsFile << "rootProject.name = 'empty'"
+
         buildFile << """
 apply plugin: 'eclipse-wtp'
 """
@@ -39,6 +41,7 @@ apply plugin: 'eclipse-wtp'
 
         // Deployment
         def component = wtpComponent
+        component.deployName == 'empty'
         component.resources.isEmpty()
         component.modules.isEmpty()
     }

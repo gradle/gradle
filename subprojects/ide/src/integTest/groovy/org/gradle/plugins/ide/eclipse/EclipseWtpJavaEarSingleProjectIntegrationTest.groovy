@@ -19,6 +19,8 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
     def "generates configuration files for an ear project"() {
         file('src/main/java').mkdirs()
 
+        settingsFile << "rootProject.name = 'ear'"
+
         buildFile << """
 apply plugin: 'eclipse-wtp'
 apply plugin: 'ear'
@@ -64,6 +66,7 @@ dependencies {
 
         // Deployment
         def component = wtpComponent
+        component.deployName == 'ear'
         component.resources.size() == 1
         component.sourceDirectory('src/main/java').assertDeployedAt('/') // Probably not right
         component.modules.size() == 0 // Probably not right
