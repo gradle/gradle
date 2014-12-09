@@ -549,6 +549,7 @@ Runtime error received when trying to mutate an immutable object should include 
 - Maps of value elements
 - Maps of model elements
 - Collections of implicitly keyed elements, acting as a map
+- Equality concerns when using sets
 
 ### Extensibility & views
 
@@ -562,3 +563,4 @@ Runtime error received when trying to mutate an immutable object should include 
 ### Misc
 
 - Allow some control over generated display name property
+- Semantics of equals/hashCode
