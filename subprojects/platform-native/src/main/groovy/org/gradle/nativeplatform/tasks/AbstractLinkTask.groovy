@@ -21,9 +21,11 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner
-import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.internal.LinkerSpec
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.toolchain.NativeToolChain
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 
 import javax.inject.Inject
 
@@ -33,6 +35,9 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
     AbstractLinkTask() {
         libs = project.files()
         source = project.files()
+        inputs.property("outputType") {
+            NativeToolChainInternal.Identifier.identify((NativeToolChainInternal) toolChain, (NativePlatformInternal) targetPlatform)
+        }
     }
 
     /**
@@ -40,12 +45,6 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
      */
     NativeToolChain toolChain
     NativePlatform targetPlatform
-
-    // Invalidate output when the tool chain output changes
-    @Input
-    def getOutputType() {
-        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
-    }
 
     // To pick up auxiliary files produced alongside the main output file
     @OutputDirectory
@@ -79,7 +78,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
 
     /**
      * Adds a set of object files to be linked.
-     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object ...)}.
      */
     void source(Object source) {
         this.source.from source
@@ -87,7 +86,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
 
     /**
      * Adds a set of library files to be linked.
-     * The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object ...)}.
      */
     void lib(Object libs) {
         this.libs.from libs

@@ -17,7 +17,9 @@
 package org.gradle.language.assembler.tasks
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
@@ -46,7 +48,8 @@ class AssemblerTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "c"
-        _ * platform.compatibilityString >> "p"
+        platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
+        platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({it instanceof AssembleSpec}) >> assembler
         1 * assembler.execute({ AssembleSpec spec ->
