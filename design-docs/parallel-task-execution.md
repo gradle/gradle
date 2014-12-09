@@ -145,6 +145,7 @@ Overlapping outputs declared by two tasks should be detected and such tasks shou
 - `JdkJavaCompiler` relies on setting `java.home` system property to call `ToolProvider.getSystemJavaCompiler()`
 - Java plugin defaults the report directory of all `Test` tasks to the same directory
 - Old Maven plugin is not safe to use concurrently
+- Incorrect logging from ProgressLogEventGenerator if start and end events for different operations interleave leading to reporting incorrect task status, e.g. saying that a task was up-to-date when actually a different task was up-to-date.
 
 ## Usability/Configurability
 
