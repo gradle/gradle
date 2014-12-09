@@ -24,47 +24,11 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     }
 
     @Test
-    void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
-        useSharedBuild = true;
-        hasUtilityAndNoWebFacet("java1")
-        hasUtilityAndNoWebFacet("java2")
-        hasUtilityAndNoWebFacet("groovy")
-    }
-
-    @Test
-    void projectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
-        useSharedBuild = true;
-        hasNecessaryNaturesAdded("java1")
-        hasNecessaryNaturesAdded("java2")
-        hasNecessaryNaturesAdded("groovy")
-    }
-
-    @Test
-    void projectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
-        useSharedBuild = true;
-        hasNecessaryBuildersAdded("java1")
-        hasNecessaryBuildersAdded("java2")
-        hasNecessaryBuildersAdded("groovy")
-    }
-
-    @Test
     void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
         useSharedBuild = true;
         hasTrimmedDownComponentSettingsFile("java1", ["java2"], [ "src/main/java": "/", "src/main/resources": "/"])
         hasTrimmedDownComponentSettingsFile("java2", [], ["src/main/java": "/", "src/main/resources": "/"])
         hasTrimmedDownComponentSettingsFile("groovy", [], ["src/main/java": "/", "src/main/groovy": "/", "src/main/resources": "/"])
-    }
-
-    @Test
-    void jarDependenciesOfUtilityProjectsAreFlaggedAsWtpDependency() {
-        useSharedBuild = true;
-        def classpath = parseClasspathFile(project: "java1")
-
-        def firstLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifact-1.0.jar") }
-        assert firstLevelDep.attributes.attribute.find { it.@name.text() == "org.eclipse.jst.component.dependency" }
-
-        def secondLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifactdep-1.0.jar") }
-        assert secondLevelDep.attributes.attribute.find { it.@name.text() == "org.eclipse.jst.component.dependency" }
     }
 
     @Test
@@ -193,35 +157,6 @@ apply plugin: "groovy"
         """
 
         executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
-    }
-
-    /**
-     * This method asserts that the given {@code project}s facet file fulfills the following requirements:
-     * <ul>
-     *     <li>contains the <code>jst.utility</code> facet
-     *     <li>contains the <code>jst.java</code> (as <code>jst.utility</code> requires <code>jst.java</code>)</li>
-     *     <li>does not contain <code>jst.web</code> (as <code>jst.web</code> and <code>jst.utility</code> are not allowed together)</li>
-     * </ul>
-     * For the WTP Project Facets documentation, see <a href="http://www.eclipse.org/webtools/development/proposals/WtpProjectFacets.html">here</a>.
-     */
-    private void hasUtilityAndNoWebFacet(String project) {
-        def file = getFacetFile(project: project)
-        def facetedProject = new XmlSlurper().parse(file)
-        assert facetedProject.children().any{ it.name() == 'installed' && it.@facet.text() == 'jst.utility' && it.@version.text() == '1.0' }
-        assert facetedProject.children().any{ it.name() == 'installed' && it.@facet.text() == 'jst.java' && it.@version.text() }
-        assert !facetedProject.children().any{ it.@facet.text() == 'jst.web' }
-    }
-
-    private void hasNecessaryBuildersAdded(String project) {
-        def projectDescription = parseProjectFile(project: project)
-        assert projectDescription.buildSpec.buildCommand.name*.text().containsAll(
-                ["org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder"])
-    }
-
-    private void hasNecessaryNaturesAdded(String project) {
-        def projectDescription = parseProjectFile(project: project)
-        assert projectDescription.natures.nature*.text().containsAll(["org.eclipse.wst.common.project.facet.core.nature",
-                "org.eclipse.jem.workbench.JavaEMFNature", "org.eclipse.wst.common.modulecore.ModuleCoreNature"])
     }
 
     private void hasTrimmedDownComponentSettingsFile(String projectName, List projects, Map sourceAndDeployPaths) {

@@ -33,4 +33,62 @@ class EclipseWtpComponentFixture {
         }
         return component
     }
+
+    List<WbResource> getResources() {
+        return getComponent()."wb-module"."wb-resource".collect { new WbResource(it) }
+    }
+
+    List<WbModule> getModules() {
+        return getComponent()."wb-module"."dependent-module".collect { new WbModule(it) }
+    }
+
+    WbModule lib(String jarName) {
+        def module = modules.find {
+            def handle = it.node.@handle
+            return handle.startsWith('module:/classpath/lib') && handle.endsWith(jarName)
+        }
+        assert module != null
+        assert module.node."dependency-type"*.text() == ['uses']
+        return module
+    }
+
+    WbModule project(String projectName) {
+        def module = modules.find {
+            def handle = it.node.@handle
+            return handle == "module:/resource/$projectName/$projectName"
+        }
+        assert module != null
+        assert module.node."dependency-type"*.text() == ['uses']
+        return module
+    }
+
+    WbResource sourceDirectory(String path) {
+        def resource = resources.find { it.node."@source-path" == path }
+        assert resource != null
+        return resource
+    }
+
+    class WbModule {
+        private final Node node
+
+        WbModule(Node node) {
+            this.node = node
+        }
+
+        void assertDeployedAt(String path) {
+            assert node."@deploy-path" == path
+        }
+    }
+
+    class WbResource {
+        private final Node node
+
+        WbResource(Node node) {
+            this.node = node
+        }
+
+        void assertDeployedAt(String path) {
+            assert node."@deploy-path" == path
+        }
+    }
 }

@@ -17,6 +17,8 @@ package org.gradle.plugins.ide.eclipse
 
 class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates configuration files for a Java project"() {
+        file('src/main/java').mkdirs()
+
         buildFile << """
 apply plugin: 'eclipse-wtp'
 apply plugin: 'java'
@@ -56,6 +58,10 @@ dependencies {
         facets.assertFacetVersion("jst.utility", "1.0")
         facets.assertFacetVersion("jst.java", "6.0")
 
-        // TODO - Deployment
+        // Deployment
+        def component = wtpComponent
+        component.resources.size() == 1
+        component.sourceDirectory('src/main/java').assertDeployedAt('/')
+        component.modules.isEmpty() // Deployed via classpath instead
     }
 }

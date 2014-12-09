@@ -15,8 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-class EclipseWtpJavaEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates configuration files for an ear project"() {
+        file('src/main/java').mkdirs()
+
         buildFile << """
 apply plugin: 'eclipse-wtp'
 apply plugin: 'ear'
@@ -57,9 +59,13 @@ dependencies {
         // Facets
         def facets = wtpFacets
         facets.assertHasFixedFacets("jst.ear")
-        facets.assertHasInstalledFacets("jst.ear")
+        facets.assertHasInstalledFacets("jst.ear") // Probably not right
         facets.assertFacetVersion("jst.ear", "5.0")
 
-        // TODO - Deployment
+        // Deployment
+        def component = wtpComponent
+        component.resources.size() == 1
+        component.sourceDirectory('src/main/java').assertDeployedAt('/') // Probably not right
+        component.modules.size() == 0 // Probably not right
     }
 }

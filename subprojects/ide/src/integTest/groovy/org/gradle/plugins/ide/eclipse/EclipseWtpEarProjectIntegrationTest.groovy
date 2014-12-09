@@ -13,33 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.plugins.ide.eclipse
 
-class EclipseWtpEmptyProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    def "generates configuration files for an empty project"() {
+class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+    def "generates configuration files for an ear project"() {
         buildFile << """
 apply plugin: 'eclipse-wtp'
+apply plugin: 'ear'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    deploy 'com.google.guava:guava:18.0'
+}
 """
 
         when:
         run "eclipse"
 
         then:
+        // This test covers actual behaviour, not necessarily desired behaviour
+
         // Builders and natures
         def project = project
-        project.assertHasNatures()
-        project.assertHasBuilders()
+        project.assertHasNatures("org.eclipse.wst.common.project.facet.core.nature",
+                "org.eclipse.wst.common.modulecore.ModuleCoreNature",
+                "org.eclipse.jem.workbench.JavaEMFNature")
+        project.assertHasBuilders("org.eclipse.wst.common.project.facet.core.builder",
+                "org.eclipse.wst.validation.validationbuilder")
 
-        // TODO - Classpath
+        // TODO - classpath
 
         // Facets
         def facets = wtpFacets
-        facets.assertHasFixedFacets()
-        facets.assertHasInstalledFacets()
+        facets.assertHasFixedFacets("jst.ear")
+        facets.assertHasInstalledFacets("jst.ear")
+        facets.assertFacetVersion("jst.ear", "5.0")
 
         // Deployment
         def component = wtpComponent
         component.resources.isEmpty()
-        component.modules.isEmpty()
+        component.modules.size() == 1
+        component.lib('guava-18.0.jar').assertDeployedAt('/')
     }
 }

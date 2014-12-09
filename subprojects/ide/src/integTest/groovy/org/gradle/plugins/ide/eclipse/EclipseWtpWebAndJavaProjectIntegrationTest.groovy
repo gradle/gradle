@@ -17,8 +17,12 @@
 package org.gradle.plugins.ide.eclipse
 
 class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    def "generates configuration files for web and java projects"() {
+    def "generates configuration files for web project and java project it depends on"() {
         settingsFile << "include 'web', 'java'"
+
+        file('java/src/main/java').mkdirs()
+        file('web/src/main/java').mkdirs()
+        file('web/src/main/webapp').mkdirs()
 
         buildFile << """
 subprojects {
@@ -35,6 +39,8 @@ project(':web') {
 
     dependencies {
         providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+        compile 'org.apache.commons:commons-lang3:3.0'
+        compile project(':java')
         testCompile "junit:junit:4.11"
     }
 }
@@ -73,7 +79,8 @@ project(':java') {
         javaClasspath.lib('hamcrest-core-1.3.jar').assertHasNoDeploymentAttributes()
 
         def webClasspath = classpath('web')
-        webClasspath.assertHasLibs('javax.servlet-api-3.1.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        webClasspath.lib('commons-lang3-3.0.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
@@ -87,7 +94,18 @@ project(':java') {
         webFacets.assertHasFixedFacets("jst.java", "jst.web")
         webFacets.assertHasInstalledFacets("jst.web", "jst.java")
 
-        // TODO - Deployment
+        // Deployment
+        def javaComponent = wtpComponent('java')
+        javaComponent.resources.size() == 1
+        javaComponent.sourceDirectory('src/main/java').assertDeployedAt('/')
+        javaComponent.modules.isEmpty()
 
+        def webComponent = wtpComponent('web')
+        webComponent.resources.size() == 2
+        webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
+        webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
+        webComponent.modules.size() == 2
+        webComponent.lib('commons-lang3-3.0.jar').assertDeployedAt('/WEB-INF/lib')
+        webComponent.project('java').assertDeployedAt('/WEB-INF/lib')
     }
 }
