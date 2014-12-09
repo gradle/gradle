@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
 import java.util.Set;
 
 /**
@@ -48,12 +47,4 @@ public interface ArtifactResolutionResult {
      * @return the set of all successfully resolved components
      */
     Set<ComponentArtifactsResult> getResolvedComponents();
-
-    /**
-     * Return a set of successfully resolved artifact files.
-     *
-     * @return the set of artifact files
-     * @since 2.3
-     */
-    Set<File> getArtifactFiles();
 }

@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.artifacts.result.*
-import org.gradle.api.component.Artifact
+import org.gradle.api.artifacts.result.ArtifactResolutionResult
+import org.gradle.api.artifacts.result.ComponentArtifactsResult
+import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import spock.lang.Specification
 
 class DefaultArtifactResolutionResultTest extends Specification {
@@ -25,9 +26,6 @@ class DefaultArtifactResolutionResultTest extends Specification {
     ComponentArtifactsResult componentArtifactsResult2 = Mock()
     UnresolvedComponentResult unresolvedComponentResult1 = Mock()
     UnresolvedComponentResult unresolvedComponentResult2 = Mock()
-    ResolvedArtifactResult resolvedArtifactResult1 = Mock()
-    ResolvedArtifactResult resolvedArtifactResult2 = Mock()
-    UnresolvedArtifactResult unresolvedArtifactResult = Mock()
 
     def "component results match the ones passed into the constructor"() {
         ArtifactResolutionResult artifactResolutionResult = new DefaultArtifactResolutionResult([componentArtifactsResult1, unresolvedComponentResult1] as LinkedHashSet)
@@ -57,49 +55,5 @@ class DefaultArtifactResolutionResultTest extends Specification {
 
         then:
         resolvedComponents.size() == 0
-    }
-
-    def "gets artifacts for resolved component results"() {
-        given:
-        Set<ArtifactResult> artifacts1 = new HashSet<ArtifactResult>()
-        artifacts1 << resolvedArtifactResult1
-        Set<ArtifactResult> artifacts2 = new HashSet<ArtifactResult>()
-        artifacts2 << resolvedArtifactResult2
-        File artifact1 = new File('artifact1.jar')
-        File artifact2 = new File('artifact2.jar')
-        ArtifactResolutionResult artifactResolutionResult = new DefaultArtifactResolutionResult([componentArtifactsResult1, componentArtifactsResult2] as LinkedHashSet)
-
-        when:
-        Set<File> artifactFiles = artifactResolutionResult.artifactFiles
-
-        then:
-        1 * componentArtifactsResult1.getArtifacts(Artifact) >> artifacts1
-        1 * componentArtifactsResult2.getArtifacts(Artifact) >> artifacts2
-        1 * resolvedArtifactResult1.getFile() >> artifact1
-        1 * resolvedArtifactResult2.getFile() >> artifact2
-        artifactFiles.size() == 2
-        artifactFiles == [artifact1, artifact2] as Set
-    }
-
-    def "throws exception for unresolved artifacts"() {
-        given:
-        Set<ArtifactResult> artifacts1 = new HashSet<ArtifactResult>()
-        artifacts1 << resolvedArtifactResult1
-        Set<ArtifactResult> artifacts2 = new HashSet<ArtifactResult>()
-        artifacts2 << unresolvedArtifactResult
-        File artifact1 = new File('artifact1.jar')
-        ArtifactResolutionResult artifactResolutionResult = new DefaultArtifactResolutionResult([componentArtifactsResult1, componentArtifactsResult2] as LinkedHashSet)
-
-        when:
-        artifactResolutionResult.artifactFiles
-
-        then:
-        1 * componentArtifactsResult1.getArtifacts(Artifact) >> artifacts1
-        1 * componentArtifactsResult2.getArtifacts(Artifact) >> artifacts2
-        1 * resolvedArtifactResult1.getFile() >> artifact1
-        0 * resolvedArtifactResult2.getFile()
-        1 * unresolvedArtifactResult.failure >> new RuntimeException('something went wrong')
-        Throwable t = thrown(UnresolvedArtifactFileException)
-        t.message == 'Failed to resolve artifact file'
     }
 }

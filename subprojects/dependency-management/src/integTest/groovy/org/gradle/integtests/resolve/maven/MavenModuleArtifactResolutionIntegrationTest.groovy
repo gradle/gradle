@@ -41,7 +41,7 @@ repositories {
 """
     }
 
-    def "sucessfully resolve existing Maven module artifact"() {
+    def "successfully resolve existing Maven module artifact"() {
         given:
         MavenHttpModule module = publishModule()
 
@@ -54,21 +54,6 @@ repositories {
 
         then:
         checkArtifactsResolvedAndCached()
-    }
-
-    def "cannot call withArtifacts multiple times for query"() {
-        given:
-        MavenHttpModule module = publishModule()
-
-        when:
-        fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-               .createVerifyTaskForDuplicateCallToWithArtifacts()
-
-        module.pom.expectGet()
-        ExecutionFailure failure = fails('verify')
-
-        then:
-        failure.assertHasCause('Cannot specify component type multiple times.')
     }
 
     @Unroll
@@ -122,13 +107,9 @@ repositories {
         module.pom.expectGet()
         module.pom.expectGet()
         module.artifact.expectHead()
-        ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("""Could not find some-artifact.pom (${fixture.id.displayName}).
-Searched in the following locations:
-    ${module.pom.uri}""")
-
+        checkArtifactsResolvedAndCached()
     }
 
     @Unroll

@@ -41,7 +41,7 @@ repositories {
 """
     }
 
-    def "sucessfully resolve existing Ivy module artifact"() {
+    def "successfully resolve existing Ivy module artifact"() {
         given:
         IvyHttpModule module = publishModule()
 
@@ -54,21 +54,6 @@ repositories {
 
         then:
         checkArtifactsResolvedAndCached()
-    }
-
-    def "cannot call withArtifacts multiple times for query"() {
-        given:
-        IvyHttpModule module = publishModule()
-
-        when:
-        fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
-               .createVerifyTaskForDuplicateCallToWithArtifacts()
-
-        module.ivy.expectGet()
-        ExecutionFailure failure = fails('verify')
-
-        then:
-        failure.assertHasCause('Cannot specify component type multiple times.')
     }
 
     @Unroll
@@ -122,12 +107,9 @@ repositories {
         module.ivy.expectGet()
         module.ivy.expectGet()
         module.jar.expectHead()
-        ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("""Could not find ivy.xml (${fixture.id.displayName}).
-Searched in the following locations:
-    ${module.ivy.uri}""")
+        checkArtifactsResolvedAndCached()
     }
 
     @Unroll

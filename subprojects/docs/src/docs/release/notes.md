@@ -150,9 +150,9 @@ Given that the dependency is resolved from an Ivy repository, the Ivy descriptor
                 .withArtifacts(IvyModule, IvyDescriptorArtifact)
                 .execute()
 
-            Set<File> ivyFiles = result.getArtifactFiles()
-            assert ivyFiles.size() == 1
-            assert ivyFiles.collect { it.name } == ['ivy.xml']
+            for(component in result.resolvedComponents) {
+                component.getArtifacts(IvyDescriptorArtifact).each { assert it.file.name == 'ivy.xml' }
+            }
         }
     }
 
@@ -167,9 +167,9 @@ Given that the dependency is resolved from a Maven repository, the Maven POM art
                     .withArtifacts(MavenModule, MavenPomArtifact)
                     .execute()
 
-                Set<File> pomFiles = result.getArtifactFiles()
-                assert pomFiles.size() == 1
-                assert pomFiles.collect { it.name } == ['some-artifact-1.0.pom']
+                for(component in result.resolvedComponents) {
+                    component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
+                }
             }
         }
 

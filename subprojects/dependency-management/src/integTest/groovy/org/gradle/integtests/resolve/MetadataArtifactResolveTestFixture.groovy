@@ -109,12 +109,17 @@ task verify {
         assert componentResult.id.displayName == '$id.displayName'
         assert componentResult instanceof $expectedComponentResult
 
-        Set<File> resultArtifactFiles = result.artifactFiles
-        assert resultArtifactFiles.size() == ${expectedMetadataFiles.size()}
-
-        def resolvedArtifactFileNames = resultArtifactFiles.collect { it.name } as Set
         def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
-        assert resolvedArtifactFileNames == expectedMetadataFileNames
+
+        for(component in result.resolvedComponents) {
+            def resolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof ResolvedArtifactResult }
+            assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
+
+            if(expectedMetadataFileNames.size() > 0) {
+                def resolvedArtifactFileNames = resolvedArtifacts*.file.name as Set
+                assert resolvedArtifactFileNames == expectedMetadataFileNames
+            }
+        }
     }
 }
 """
@@ -131,23 +136,6 @@ task verify {
             .forComponents(rootId)
             .withArtifacts($requestedComponent, $requestedArtifact)
             .execute()
-    }
-}
-"""
-    }
-
-    void createVerifyTaskForDuplicateCallToWithArtifacts() {
-        buildFile << """
-task verify {
-    doLast {
-        def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
-        assert deps.size() == 1
-        def componentId = deps[0].selected.id
-
-        dependencies.createArtifactResolutionQuery()
-            .forComponents(deps[0].selected.id)
-            .withArtifacts($requestedComponent, $requestedArtifact)
-            .withArtifacts($requestedComponent, $requestedArtifact)
     }
 }
 """
