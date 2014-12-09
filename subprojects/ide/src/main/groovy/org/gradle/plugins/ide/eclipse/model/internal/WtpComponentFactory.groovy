@@ -25,7 +25,8 @@ import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
 class WtpComponentFactory {
     void configure(EclipseWtpComponent wtp, WtpComponent component) {
-        def entries = getEntriesFromSourceDirs(wtp)
+        def entries = []
+        entries.addAll(getEntriesFromSourceDirs(wtp))
         entries.addAll(wtp.resources.findAll { wtp.project.file(it.sourcePath).isDirectory() } )
         entries.addAll(wtp.properties)
         // for ear files root deps are NOT transitive; wars don't use root deps so this doesn't hurt them
@@ -36,19 +37,19 @@ class WtpComponentFactory {
         component.configure(wtp.deployName, wtp.contextPath, entries)
     }
 
-    private List getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
+    private List<WbResource> getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
         wtp.sourceDirs.findAll { it.isDirectory() }.collect { dir ->
             new WbResource(wtp.classesDeployPath, wtp.project.relativePath(dir))
         }
     }
 
-    private List getEntriesFromConfigurations(Set plusConfigurations, Set minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
+    private List<WbDependentModule> getEntriesFromConfigurations(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
         (getEntriesFromProjectDependencies(plusConfigurations, minusConfigurations, deployPath, transitive) as List) +
                 (getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath) as List)
     }
 
     // must include transitive project dependencies
-    private Set getEntriesFromProjectDependencies(Set plusConfigurations, Set minusConfigurations, String deployPath, boolean transitive) {
+    private Set getEntriesFromProjectDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath, boolean transitive) {
         def dependencies = getDependencies(plusConfigurations, minusConfigurations,
                 { it instanceof org.gradle.api.artifacts.ProjectDependency })
 
@@ -67,7 +68,7 @@ class WtpComponentFactory {
     }
 
     // TODO: might have to search all class paths of all source sets for project dependencies, not just runtime configuration
-    private void collectDependedUponProjects(org.gradle.api.Project project, LinkedHashSet result) {
+    private void collectDependedUponProjects(org.gradle.api.Project project, Set<org.gradle.api.Project> result) {
         def runtimeConfig = project.configurations.findByName("runtime")
         if (runtimeConfig) {
             def projectDeps = runtimeConfig.allDependencies.withType(org.gradle.api.artifacts.ProjectDependency)
@@ -80,7 +81,7 @@ class WtpComponentFactory {
     }
 
     // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(Set plusConfigurations, Set minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
+    private Set getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         def extractor = new IdeDependenciesExtractor()
         //below is not perfect because we're skipping the unresolved dependencies completely
         //however, it should be better anyway. Sometime soon we will hopefully change the wtp component stuff
