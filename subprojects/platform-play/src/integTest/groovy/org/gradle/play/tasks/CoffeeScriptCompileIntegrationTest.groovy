@@ -190,7 +190,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription "Execution failed for task ':compilePlayBinaryPlayCoffeeScriptSources'."
         failure.assertHasCause "Failed to compile coffeescript file: test1.coffee"
-        failure.assertHasCause "Error: Parse error on line 1: Unexpected 'POST_IF'"
+        failure.assertHasCause "SyntaxError: unexpected if (coffee-script-js-1.8.0.js#10)"
     }
 
     JarTestFixture jar(String fileName) {

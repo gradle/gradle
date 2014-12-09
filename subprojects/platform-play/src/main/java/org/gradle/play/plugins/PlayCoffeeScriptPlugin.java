@@ -42,11 +42,11 @@ import java.io.File;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Plugin for adding coffeescript compilation to a Play application.  Applies the {@link org.gradle.play.plugins.PlayJavaScriptPlugin} and registers
- * "coffeescript" language support with the {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet}.
+ * Plugin for adding coffeescript compilation to a Play application.  Applies the {@link org.gradle.play.plugins.PlayJavaScriptPlugin} and adds
+ * a {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet}.
  */
 public class PlayCoffeeScriptPlugin implements Plugin<Project> {
-    private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.3.3";
+    private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.8.0";
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 
     public void apply(Project project) {
