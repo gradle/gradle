@@ -251,7 +251,9 @@ We would like to thank the following community members for making contributions 
 * [Adam Dubiel](https://github.com/adamdubiel) - wrapper respects -q/--quiet option
 * [Harald Schmitt](https://github.com/surfing) - format numbers in tests in a locale independent way
 * [Wojciech Gawroński](https://github.com/afronski) - add a toggle for wrapping long lines of 'code' blocks in test reports
-* [Ben McCann](https://github.com/benmccann) - use https when downloading Play binaries in integration tests
+* [Ben McCann](https://github.com/benmccann)
+    - use https when downloading Play binaries in integration tests
+    - update supported play version to 2.3.7
 * [Mike Meesen](https://github.com/netmikey) - support external DTDs in ear application descriptors when building with Java 8
 * [Andrew Kowal](https://github.com/akowal) - Fix test class detection when using jdk8 '`-parameters`' compiler option (GRADLE-3157)
 
