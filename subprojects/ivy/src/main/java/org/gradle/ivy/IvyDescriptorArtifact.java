@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
+package org.gradle.ivy;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.Component;
+import org.gradle.api.component.Artifact;
 
 /**
- * An Ivy Module component.
+ * An Ivy descriptor artifact.
  */
 @Incubating
-public interface IvyModule extends Component {
+public interface IvyDescriptorArtifact extends Artifact {
 }

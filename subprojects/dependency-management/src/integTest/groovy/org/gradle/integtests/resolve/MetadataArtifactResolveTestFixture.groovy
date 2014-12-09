@@ -36,6 +36,11 @@ class MetadataArtifactResolveTestFixture {
 
     void basicSetup() {
         buildFile << """
+import org.gradle.ivy.IvyModule
+import org.gradle.ivy.IvyDescriptorArtifact
+import org.gradle.maven.MavenModule
+import org.gradle.maven.MavenPomArtifact
+
 configurations {
     $config
 }

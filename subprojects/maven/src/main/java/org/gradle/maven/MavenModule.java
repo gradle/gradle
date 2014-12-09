@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm;
+package org.gradle.maven;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.component.Component;

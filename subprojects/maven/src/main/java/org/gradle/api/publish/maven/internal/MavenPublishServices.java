@@ -16,9 +16,12 @@
 
 package org.gradle.api.publish.maven.internal;
 
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.maven.MavenModule;
+import org.gradle.maven.MavenPomArtifact;
 
 public class MavenPublishServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -33,6 +36,10 @@ public class MavenPublishServices implements PluginServiceRegistry {
 
     private static class ComponentRegistrationAction {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
+            // TODO There should be a more explicit way to execute an action against existing services
+            // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
+            componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
+                    .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }
     }
 }

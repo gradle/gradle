@@ -20,11 +20,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.jvm.IvyModule;
 import org.gradle.jvm.JvmLibrary;
-import org.gradle.jvm.MavenModule;
-import org.gradle.jvm.artifact.IvyDescriptorArtifact;
-import org.gradle.jvm.artifact.MavenPomArtifact;
 import org.gradle.language.base.artifact.SourcesArtifact;
 
 public class JvmPluginServiceRegistry implements PluginServiceRegistry {
@@ -44,10 +40,6 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
             // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
                     .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
-            componentTypeRegistry.maybeRegisterComponentType(IvyModule.class)
-                    .registerArtifactType(IvyDescriptorArtifact.class, ArtifactType.IVY_DESCRIPTOR);
-            componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
-                    .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }
     }
 }

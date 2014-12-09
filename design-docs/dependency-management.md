@@ -241,11 +241,11 @@ Get the pom files for all maven modules in a configuration:
 ### Implementation
 
 - Introduce `Module` domain model:
-    - Add the interface `org.gradle.jvm.IvyModule` in the project `platform-jvm`. The interface extends `org.gradle.api.component.Component`.
-    - Add the interface `org.gradle.jvm.MavenModule` in the project `platform-jvm`. The interface extends `org.gradle.api.component.Component`.
+    - Add the interface `org.gradle.ivy.IvyModule` in the project `ivy`. The interface extends `org.gradle.api.component.Component`.
+    - Add the interface `org.gradle.maven.MavenModule` in the project `maven`. The interface extends `org.gradle.api.component.Component`.
 - Introduce `Artifact` domain model:
-    - Add the interface `org.gradle.jvm.artifact.IvyDescriptorArtifact` in the project `platform-jvm`. The interface extends `org.gradle.api.component.Artifact`.
-    - Add the interface `org.gradle.jvm.artifact.MavenPomArtifact` in the project `platform-jvm`. The interface extends `org.gradle.api.component.Artifact`.
+    - Add the interface `org.gradle.ivy.IvyDescriptorArtifact` in the project `ivy`. The interface extends `org.gradle.api.component.Artifact`.
+    - Add the interface `org.gradle.maven.MavenPomArtifact` in the project `maven`. The interface extends `org.gradle.api.component.Artifact`.
 
 ### Test cases
 

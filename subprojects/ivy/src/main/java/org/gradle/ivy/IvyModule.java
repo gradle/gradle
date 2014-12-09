@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-/**
- * Metadata artifact types for support of JVM runtime.
- */
-@Incubating
-package org.gradle.jvm.artifact;
+package org.gradle.ivy;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Component;
+
+/**
+ * An Ivy Module component.
+ */
+@Incubating
+public interface IvyModule extends Component {
+}
