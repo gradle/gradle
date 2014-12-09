@@ -20,8 +20,10 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
@@ -412,6 +414,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         assert containsLine(result.getOutput(), "FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def canHaveMultipleTestTaskInstances() {
         when:
         executer.withTasks('check').run()
