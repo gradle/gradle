@@ -497,6 +497,8 @@ Unmanaged properties must be accompanied by a setter.
       }
     }
 
+Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
+
 ### User receives runtime error trying to mutate managed set and elements when used as input and outside of mutation method
 
     @Managed
@@ -528,6 +530,8 @@ Unmanaged properties must be accompanied by a setter.
         platform.toList()[0].setName(…) // ← runtime error
       }
     }
+
+Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
 
 ## Open Questions
 
