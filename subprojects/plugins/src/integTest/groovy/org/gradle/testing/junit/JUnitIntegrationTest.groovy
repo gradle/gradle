@@ -15,44 +15,43 @@
  */
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-public class JUnitIntegrationTest extends AbstractIntegrationTest {
+public class JUnitIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    public final TestResources resources = new TestResources(testDirectoryProvider)
+    final TestResources resources = new TestResources(testDirectoryProvider)
 
-    @Before
-    public void before() {
+    def setup() {
         executer.noExtraLogging()
     }
 
-    @Test
-    public void executesTestsInCorrectEnvironment() {
-        executer.withTasks('build').run();
+    def executesTestsInCorrectEnvironment() {
+        when:
+        executer.withTasks('build').run()
 
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
-
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
     }
 
-    @Test
-    public void suitesOutputIsVisible() {
-        executer.withTasks('test').run();
+    def suitesOutputIsVisible() {
+        when:
+        executer.withTasks('test').run()
+
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.ASuite', 'org.gradle.OkTest', 'org.gradle.OtherTest')
         result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
@@ -67,30 +66,34 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
     }
 
-    @Test
-    public void testClassesCanBeSharedByMultipleSuites() {
-        executer.withTasks('test').run();
+    def testClassesCanBeSharedByMultipleSuites() {
+        when:
+        executer.withTasks('test').run()
+
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.testClass("org.gradle.SomeTest").assertTestCount(2, 0, 0)
         result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
     }
 
-    @Test
-    public void canRunTestsUsingJUnit3() {
+    def canRunTestsUsingJUnit3() {
+        when:
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         executer.withTasks('check').run()
 
+        then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.Junit3Test')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
     }
 
-    @Test
-    public void reportsAndBreaksBuildWhenTestFails() {
+    def reportsAndBreaksBuildWhenTestFails() {
+        when:
         executer.withTasks('build').runWithFailure().assertTestsFailed()
 
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted(
                 'org.gradle.ClassWithBrokenRunner',
@@ -123,25 +126,36 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
     }
 
-    @Test
-    public void canRunSingleTests() {
+    def canRunSingleTests() {
+        when:
         executer.withTasks('test').withArguments('-Dtest.single=Ok2').run()
+
+        then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('Ok2')
 
+        when:
         executer.withTasks('cleanTest', 'test').withArguments('-Dtest.single=Ok').run()
+
+        then:
         result.assertTestClassesExecuted('Ok', 'Ok2')
 
+        when:
         def failure = executer.withTasks('test').withArguments('-Dtest.single=DoesNotMatchAClass').runWithFailure()
+
+        then:
         failure.assertHasCause('Could not find matching test for pattern: DoesNotMatchAClass')
 
+        when:
         failure = executer.withTasks('test').withArguments('-Dtest.single=NotATest').runWithFailure()
+
+        then:
         failure.assertHasCause('Could not find matching test for pattern: NotATest')
     }
 
-    @Test
-    public void canUseTestSuperClassesFromAnotherProject() {
-        testDirectory.file('settings.gradle').write("include 'a', 'b'");
+    def canUseTestSuperClassesFromAnotherProject() {
+        given:
+        testDirectory.file('settings.gradle').write("include 'a', 'b'")
         testDirectory.file('b/build.gradle') << '''
             apply plugin: 'java'
             repositories { mavenCentral() }
@@ -153,7 +167,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 @org.junit.Test public void ok() { }
             }
         '''
-        TestFile buildFile = testDirectory.file('a/build.gradle');
+        TestFile buildFile = testDirectory.file('a/build.gradle')
         buildFile << '''
             apply plugin: 'java'
             repositories { mavenCentral() }
@@ -165,16 +179,18 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
             }
         '''
 
-        executer.withTasks('a:test').run();
+        when:
+        executer.withTasks('a:test').run()
 
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory.file('a'))
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
 
-    @Test
-    public void canExcludeSuperClassesFromExecution() {
-        TestFile buildFile = testDirectory.file('build.gradle');
+    def canExcludeSuperClassesFromExecution() {
+        given:
+        TestFile buildFile = testDirectory.file('build.gradle')
         buildFile << '''
             apply plugin: 'java'
             repositories { mavenCentral() }
@@ -193,17 +209,20 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
             }
         '''
 
-        executer.withTasks('test').run();
+        when:
+        executer.withTasks('test').run()
 
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
 
-    @Test
-    public void detectsTestClasses() {
+    def detectsTestClasses() {
+        when:
         executer.withTasks('test').run()
 
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner', 'org.gradle.TestsOnInner$SomeInner')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
@@ -212,23 +231,24 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
     }
 
-    @Test
     @Issue("https://issues.gradle.org//browse/GRADLE-3114")
-    public void createsRunnerBeforeTests() {
+    def createsRunnerBeforeTests() {
+        when:
         executer.withTasks('test').run()
 
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.ExecutionOrderTest')
         result.testClass('org.gradle.ExecutionOrderTest').assertTestPassed('classUnderTestIsLoadedOnlyByRunner')
     }
 
-    @Test
-    public void runsAllTestsInTheSameForkedJvm() {
+    def runsAllTestsInTheSameForkedJvm() {
+        given:
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.7' }"
-        );
+        )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
                 "package org.gradle;",
                 "public abstract class AbstractTest {",
@@ -236,33 +256,35 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
                 "        System.out.println(String.format(\"VM START TIME = %s\", time));",
                 "    }",
-                "}");
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest.java').writelns(
                 "package org.gradle;",
                 "public class SomeTest extends AbstractTest {",
-                "}");
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest2.java').writelns(
                 "package org.gradle;",
                 "public class SomeTest2 extends AbstractTest {",
-                "}");
+                "}")
 
-        executer.withTasks('test').run();
+        when:
+        executer.withTasks('test').run()
 
-        TestFile results1 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest.xml');
-        TestFile results2 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest2.xml');
-        results1.assertIsFile();
-        results2.assertIsFile();
-        assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), equalTo(results2.linesThat(containsString('VM START TIME =')).get(0)));
+        then:
+        TestFile results1 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest.xml')
+        TestFile results2 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest2.xml')
+        results1.assertIsFile()
+        results2.assertIsFile()
+        assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), equalTo(results2.linesThat(containsString('VM START TIME =')).get(0)))
     }
 
-    @Test
-    public void canSpecifyMaximumNumberOfTestClassesToExecuteInAForkedJvm() {
+    def canSpecifyMaximumNumberOfTestClassesToExecuteInAForkedJvm() {
+        given:
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.7' }",
                 "test.forkEvery = 1"
-        );
+        )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
                 "package org.gradle;",
                 "public abstract class AbstractTest {",
@@ -270,31 +292,33 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
                 "        System.out.println(String.format(\"VM START TIME = %s\", time));",
                 "    }",
-                "}");
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest.java').writelns(
                 "package org.gradle;",
                 "public class SomeTest extends AbstractTest {",
-                "}");
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest2.java').writelns(
                 "package org.gradle;",
                 "public class SomeTest2 extends AbstractTest {",
-                "}");
+                "}")
 
-        executer.withTasks('test').run();
+        when:
+        executer.withTasks('test').run()
 
-        TestFile results1 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest.xml');
-        TestFile results2 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest2.xml');
-        results1.assertIsFile();
-        results2.assertIsFile();
+        then:
+        TestFile results1 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest.xml')
+        TestFile results2 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest2.xml')
+        results1.assertIsFile()
+        results2.assertIsFile()
         assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), not(equalTo(results2.linesThat(
-                containsString('VM START TIME =')).get(0))));
+                containsString('VM START TIME =')).get(0))))
     }
 
-    @Test
-    public void canListenForTestResults() {
+    def canListenForTestResults() {
+        given:
         testDirectory.file('src/main/java/AppException.java').writelns(
                 "public class AppException extends Exception { }"
-        );
+        )
 
         testDirectory.file('src/test/java/SomeTest.java').writelns(
                 "public class SomeTest {",
@@ -302,12 +326,12 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 "@org.junit.Test public void knownError() { throw new RuntimeException(\"message\"); }",
                 "@org.junit.Test public void unknownError() throws AppException { throw new AppException(); }",
                 "}"
-        );
+        )
         testDirectory.file('src/test/java/SomeOtherTest.java').writelns(
                 "public class SomeOtherTest {",
                 "@org.junit.Test public void pass() { }",
                 "}"
-        );
+        )
 
         testDirectory.file('build.gradle') << '''
             apply plugin: 'java'
@@ -324,37 +348,40 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
             }
         '''
 
-        ExecutionResult result = executer.withTasks("test").run();
-        assert containsLine(result.getOutput(), "START [tests] [Test Run]");
-        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run] [FAILURE] [4]");
+        when:
+        ExecutionResult result = executer.withTasks("test").run()
 
-        assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
-        assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1] [FAILURE] [4]");
+        then:
+        assert containsLine(result.getOutput(), "START [tests] [Test Run]")
+        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run] [FAILURE] [4]")
 
-        assert containsLine(result.getOutput(), "START [test class SomeOtherTest] [SomeOtherTest]");
-        assert containsLine(result.getOutput(), "FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]");
-        assert containsLine(result.getOutput(), "START [test pass(SomeOtherTest)] [pass]");
-        assert containsLine(result.getOutput(), "FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]");
+        assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]")
+        assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1] [FAILURE] [4]")
 
-        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]");
-        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]");
-        assert containsLine(result.getOutput(), "START [test fail(SomeTest)] [fail]");
-        assert containsLine(result.getOutput(), "FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]");
-        assert containsLine(result.getOutput(), "START [test knownError(SomeTest)] [knownError]");
-        assert containsLine(result.getOutput(), "FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]");
-        assert containsLine(result.getOutput(), "START [test unknownError(SomeTest)] [unknownError]");
-        assert containsLine(result.getOutput(), "FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException]");
+        assert containsLine(result.getOutput(), "START [test class SomeOtherTest] [SomeOtherTest]")
+        assert containsLine(result.getOutput(), "FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]")
+        assert containsLine(result.getOutput(), "START [test pass(SomeOtherTest)] [pass]")
+        assert containsLine(result.getOutput(), "FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]")
+
+        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]")
+        assert containsLine(result.getOutput(), "START [test fail(SomeTest)] [fail]")
+        assert containsLine(result.getOutput(), "FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]")
+        assert containsLine(result.getOutput(), "START [test knownError(SomeTest)] [knownError]")
+        assert containsLine(result.getOutput(), "FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]")
+        assert containsLine(result.getOutput(), "START [test unknownError(SomeTest)] [unknownError]")
+        assert containsLine(result.getOutput(), "FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException]")
     }
 
-    @Test
-    public void canListenForTestResultsWhenJUnit3IsUsed() {
+    def canListenForTestResultsWhenJUnit3IsUsed() {
+        given:
         testDirectory.file('src/test/java/SomeTest.java').writelns(
                 "public class SomeTest extends junit.framework.TestCase {",
                 "public void testPass() { }",
                 "public void testFail() { junit.framework.Assert.fail(\"message\"); }",
                 "public void testError() { throw new RuntimeException(\"message\"); }",
                 "}"
-        );
+        )
 
         testDirectory.file('build.gradle') << '''
             apply plugin: 'java'
@@ -371,32 +398,37 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
             }
         '''
 
-        ExecutionResult result = executer.withTasks("test").run();
-        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]");
-        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest]");
-        assert containsLine(result.getOutput(), "START [test testPass(SomeTest)] [testPass]");
-        assert containsLine(result.getOutput(), "FINISH [test testPass(SomeTest)] [testPass] [null]");
-        assert containsLine(result.getOutput(), "START [test testFail(SomeTest)] [testFail]");
-        assert containsLine(result.getOutput(), "FINISH [test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]");
-        assert containsLine(result.getOutput(), "START [test testError(SomeTest)] [testError]");
-        assert containsLine(result.getOutput(), "FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]");
+        when:
+        ExecutionResult result = executer.withTasks("test").run()
+
+        then:
+        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "START [test testPass(SomeTest)] [testPass]")
+        assert containsLine(result.getOutput(), "FINISH [test testPass(SomeTest)] [testPass] [null]")
+        assert containsLine(result.getOutput(), "START [test testFail(SomeTest)] [testFail]")
+        assert containsLine(result.getOutput(), "FINISH [test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]")
+        assert containsLine(result.getOutput(), "START [test testError(SomeTest)] [testError]")
+        assert containsLine(result.getOutput(), "FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
     }
 
-    @Test
-    public void canHaveMultipleTestTaskInstances() {
+    def canHaveMultipleTestTaskInstances() {
+        when:
         executer.withTasks('check').run()
 
+        then:
         def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
         result.testClass('org.gradle.Test1').assertTestPassed('ok')
         result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
 
-    @Test
-    public void supportsJunit3Suites() {
-        executer.withTasks('test').run();
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+    def supportsJunit3Suites() {
+        when:
+        executer.withTasks('test').run()
 
+        then:
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTest1', 'org.gradle.SomeTest2', 'org.gradle.SomeSuite')
         result.testClass("org.gradle.SomeTest1").assertTestCount(1, 0, 0)
         result.testClass("org.gradle.SomeTest1").assertTestsExecuted("testOk1")
