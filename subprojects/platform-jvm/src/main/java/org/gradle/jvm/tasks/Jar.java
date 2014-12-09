@@ -18,6 +18,7 @@ package org.gradle.jvm.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
@@ -38,6 +39,7 @@ import java.util.concurrent.Callable;
  * Assembles a JAR archive.
  */
 @ParallelizableTask
+@Incubating
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
