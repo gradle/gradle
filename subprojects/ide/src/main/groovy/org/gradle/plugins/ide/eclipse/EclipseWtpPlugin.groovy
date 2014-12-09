@@ -74,7 +74,13 @@ class EclipseWtpPlugin extends IdePlugin {
                 def minusFiles = eclipseModel.wtp.component.minusConfigurations*.files?.flatten() ?: project.files()
                 def libFiles = eclipseModel.wtp.component.libConfigurations*.files?.flatten() ?: project.files()
                 for (entry in classpath.entries) {
-                    if (entry instanceof AbstractLibrary && !minusFiles.contains(entry.library.file) && libFiles.contains(entry.library.file)) {
+                    if (!(entry instanceof AbstractLibrary)) {
+                        continue;
+                    }
+                    if (minusFiles.contains(entry.library.file) || !libFiles.contains(entry.library.file)) {
+                        // Mark this library as not required for deployment
+                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE] = ''
+                    } else {
                         // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
                         //this is necessary so that the depended upon projects will have their dependencies
                         // deployed to WEB-INF/lib of the main project.
