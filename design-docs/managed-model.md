@@ -546,14 +546,28 @@ interface PolymorphicManagedSet<T> implements Set<T> {
 }
 ```
 
+- `<T>` does not need to be managed type (but can be)
+- `type` given to `create()` must be a valid managed type
 - All mutative methods of `Set` throw UnsupportedOperationException (like `ManagedSet`).
 - `create` throws exception when set has been realised (i.e. using as an input)
 - “read” methods (including `ofType`) throws exception when called on mutable instance
-- `type` given to `create()` must be a valid managed type
 - No constraints on `O` type parameter given to `ofType` method
 - set returned by `ofType` is immutable (exception thrown by mutative methods should include information about the model element of which it was derived)
 
 The initial target for this functionality will be to replace the `PlatformContainer` model element, but more functionality will be needed before this is possible.
+
+### Replace PlatformContainer with PolymorphicManagedSet<Platform>
+
+1. Make NativePlatform managed
+    - Remove `architecture()` & `operatingSystem()` (make inherent properties)
+    - Change Architecture and OperatingSystem to be managed (push methods out so somewhere else, remove internal subclasses)
+    - Provide string to Architecture/OS instance as static methods for time being (proper pattern comes later)
+2. Make ScalaPlatform managed
+3. Remove 'platforms' extension
+4. Introduce managed set for 'platforms' model element
+5. Change populating in NativePlatforms to use new container
+6. Push `chooseFromTargets` implementation out to static method
+7. Remove PlatformContainerInternal
 
 ## Open Questions
 
