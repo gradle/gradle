@@ -32,10 +32,6 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.plugins.ear.Ear
-import org.gradle.plugins.ide.eclipse.*
-import org.gradle.plugins.ide.idea.GenerateIdeaModule
-import org.gradle.plugins.ide.idea.GenerateIdeaProject
-import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
 /**
@@ -61,6 +57,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                 CodeNarc,
                 Checkstyle,
         ]
+        def constructorImplementation = """
+        // GRADLE-3185
+        project.logger.lifecycle('task created')
+"""
         if (previous.version >= GradleVersion.version("1.0")) {
             taskClasses += [
                     Ear,
@@ -69,6 +69,11 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                     JDepend,
                     Sign,
             ]
+            // Test calling a protected superclass method
+            constructorImplementation += """
+        // GRADLE-3207
+        super.getServices()
+"""
         }
         if (previous.version >= GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
@@ -77,14 +82,6 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         if (previous.version >= GradleVersion.version("2.0")) {
             taskClasses += [
                     CreateStartScripts,
-                    GenerateEclipseJdt,
-                    GenerateEclipseClasspath,
-                    GenerateEclipseProject,
-                    GenerateEclipseWtpComponent,
-                    GenerateEclipseWtpFacet,
-                    GenerateIdeaModule,
-                    GenerateIdeaProject,
-                    GenerateIdeaWorkspace,
                     SonarAnalyze,
             ]
         }
@@ -114,10 +111,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                     def className = it.key
                     """class ${className} extends ${it.value} {
     ${className}() {
-        // GRADLE-3185
-        project.logger.lifecycle('task created')
-        // GRADLE-3207
-        super.getServices()
+        $constructorImplementation
     }
 }"""
                 }.join("\n")
