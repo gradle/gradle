@@ -16,7 +16,7 @@
 
 package org.gradle.language.scala.internal.toolchain;
 
-import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.language.scala.toolchain.ScalaToolChain;
 import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 

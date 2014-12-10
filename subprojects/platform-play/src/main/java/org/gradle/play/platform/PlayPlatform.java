@@ -17,7 +17,7 @@
 package org.gradle.play.platform;
 
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.model.Unmanaged;
 import org.gradle.platform.base.Platform;
 

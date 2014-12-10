@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.scala.platform;
+package org.gradle.language.scala;
 
 import org.gradle.platform.base.Platform;
 

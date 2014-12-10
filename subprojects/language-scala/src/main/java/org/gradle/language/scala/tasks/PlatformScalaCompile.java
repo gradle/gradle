@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
-import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.language.scala.ScalaPlatform;
 
 import javax.inject.Inject;
 

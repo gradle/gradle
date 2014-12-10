@@ -16,7 +16,7 @@
 
 package org.gradle.language.scala.internal;
 
-import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.language.scala.ScalaPlatform;
 
 public class DefaultScalaPlatform implements ScalaPlatform {
     private final String scalaCompatibilityVersion;

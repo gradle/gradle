@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.language.scala.platform.ScalaPlatform;
+import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 public class DownloadingScalaToolChain implements ScalaToolChainInternal {
