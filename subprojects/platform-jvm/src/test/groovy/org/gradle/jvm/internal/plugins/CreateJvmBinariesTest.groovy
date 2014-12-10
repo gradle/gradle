@@ -17,6 +17,7 @@
 package org.gradle.jvm.internal.plugins
 
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -25,7 +26,7 @@ import org.gradle.jvm.JvmComponentExtension
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
-import org.gradle.jvm.platform.internal.JavaPlatformUnmanaged
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.jvm.toolchain.JavaToolChainRegistry
 import org.gradle.language.base.LanguageSourceSet
@@ -61,7 +62,7 @@ class CreateJvmBinariesTest extends Specification {
         def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), mainSourceSet, new DirectInstantiator())
         def namingScheme = Mock(BinaryNamingScheme)
         def jvmExtension = Mock(JvmComponentExtension)
-        def platform = new JavaPlatformUnmanaged("test")
+        def platform = new DefaultJavaPlatform("test")
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 

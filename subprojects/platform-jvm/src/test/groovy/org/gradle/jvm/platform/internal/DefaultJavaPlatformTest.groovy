@@ -19,11 +19,11 @@ package org.gradle.jvm.platform.internal
 import org.gradle.api.JavaVersion
 import spock.lang.Specification
 
-class JavaPlatformUnmanagedTest extends Specification {
+class DefaultJavaPlatformTest extends Specification {
 
     def "is for current java version if not set"() {
         when:
-        def platform = new JavaPlatformUnmanaged("test")
+        def platform = new DefaultJavaPlatform("test")
 
         then:
         platform.targetCompatibility == JavaVersion.current()
@@ -31,7 +31,7 @@ class JavaPlatformUnmanagedTest extends Specification {
 
     def "can set java version"() {
         when:
-        def platform = new JavaPlatformUnmanaged(JavaVersion.VERSION_1_5)
+        def platform = new DefaultJavaPlatform(JavaVersion.VERSION_1_5)
 
         then:
         platform.name == "java5"
@@ -41,7 +41,7 @@ class JavaPlatformUnmanagedTest extends Specification {
 
     def "has reasonable string representation"() {
         when:
-        def platform = new JavaPlatformUnmanaged(JavaVersion.current())
+        def platform = new DefaultJavaPlatform(JavaVersion.current())
 
         then:
         platform.name == "java${JavaVersion.current().majorVersion}"

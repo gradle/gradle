@@ -22,7 +22,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
 import org.gradle.jvm.platform.JavaPlatform
-import org.gradle.jvm.platform.internal.JavaPlatformUnmanaged
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
@@ -97,6 +97,6 @@ class DefaultJavaToolChainTest extends Specification {
     }
 
     private static JavaPlatform platform(JavaVersion javaVersion) {
-        return new JavaPlatformUnmanaged(javaVersion)
+        return new DefaultJavaPlatform(javaVersion)
     }
 }

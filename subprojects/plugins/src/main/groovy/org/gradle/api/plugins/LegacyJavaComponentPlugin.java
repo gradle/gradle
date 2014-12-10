@@ -25,7 +25,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.platform.internal.JavaPlatformUnmanaged;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -66,7 +66,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new JavaPlatformUnmanaged(JavaVersion.current()));
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJavaPlatform(JavaVersion.current()));
             }
         });
 
