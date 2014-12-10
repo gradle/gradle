@@ -33,8 +33,8 @@ class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTes
         initScript << """
             gradle.allprojects {
                 model {
-                    tasks.runPlayBinary {
-                        doLast {
+                    tasks.scalaCompilePlayBinary {
+                        doFirst {
                             println file("build/playBinary/src_managed/controllers/routes.java").text
                         }
                     }
