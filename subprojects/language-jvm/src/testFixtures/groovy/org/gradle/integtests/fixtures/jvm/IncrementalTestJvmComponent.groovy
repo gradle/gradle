@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.jvm
 
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class IncrementalTestJvmComponent extends TestJvmComponent{
+abstract class IncrementalTestJvmComponent extends TestJvmComponent {
 
     abstract void changeSources(List<TestFile> testFiles)
 

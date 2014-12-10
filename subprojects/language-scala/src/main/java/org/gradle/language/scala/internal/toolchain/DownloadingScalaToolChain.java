@@ -20,8 +20,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.language.scala.platform.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -30,17 +28,13 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
 
     private ProjectFinder projectFinder;
     private CompilerDaemonManager compilerDaemonManager;
-    private JavaCompilerFactory javaCompilerFactory;
-    private final IsolatedAntBuilder isolatedAntBuilder;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final JavaVersion javaVersion;
 
-    public DownloadingScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+    public DownloadingScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
-        this.javaCompilerFactory = javaCompilerFactory;
-        this.isolatedAntBuilder = isolatedAntBuilder;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.javaVersion = JavaVersion.current();
@@ -55,6 +49,6 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     }
 
     public ToolProvider select(ScalaPlatform targetPlatform) {
-        return new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, javaCompilerFactory, isolatedAntBuilder, dependencyHandler, configurationContainer, targetPlatform.getScalaVersion());
+        return new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, dependencyHandler, configurationContainer, targetPlatform.getScalaVersion());
     }
 }

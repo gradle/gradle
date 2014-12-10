@@ -21,36 +21,30 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.PlatformScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.scala.toolchain.ScalaToolProvider;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 import java.util.Set;
 
-public class DefaultScalaToolProvider implements ScalaToolProvider {
+public class DefaultScalaToolProvider implements ToolProvider {
     public static final String DEFAULT_ZINC_VERSION = "0.3.0";
 
     private ProjectFinder projectFinder;
     private final CompilerDaemonManager compilerDaemonManager;
-    private final JavaCompilerFactory javaCompilerFactory;
-    private IsolatedAntBuilder antBuilder;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configurationContainer;
     private String scalaVersion;
 
-    public DefaultScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, DependencyHandler dependencyHandler, ConfigurationContainer configurationContainer, String scalaVersion) {
+    public DefaultScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, DependencyHandler dependencyHandler, ConfigurationContainer configurationContainer, String scalaVersion) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
-        this.javaCompilerFactory = javaCompilerFactory;
-        this.antBuilder = isolatedAntBuilder;
         this.dependencyHandler = dependencyHandler;
         this.configurationContainer = configurationContainer;
         this.scalaVersion = scalaVersion;

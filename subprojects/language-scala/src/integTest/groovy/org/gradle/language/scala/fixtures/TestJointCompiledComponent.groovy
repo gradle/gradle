@@ -15,11 +15,12 @@
  */
 
 package org.gradle.language.scala.fixtures
+
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.ScalaLanguageSourceSet
 
-class TestJointCompiledComponent extends TestJvmComponent{
+class TestJointCompiledComponent extends TestJvmComponent {
 
     String languageName = "scala"
     String sourceSetTypeName = ScalaLanguageSourceSet.class.name

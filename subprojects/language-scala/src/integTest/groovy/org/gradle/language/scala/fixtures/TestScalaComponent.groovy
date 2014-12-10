@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.language.scala.ScalaLanguageSourceSet
 import org.gradle.test.fixtures.file.TestFile
 
-class TestScalaComponent extends IncrementalTestJvmComponent{
+class TestScalaComponent extends IncrementalTestJvmComponent {
 
     String languageName = "scala"
     String sourceSetTypeName = ScalaLanguageSourceSet.class.name
@@ -42,7 +42,7 @@ class Person2 {
     ]
 
     @Override
-    void changeSources(List<TestFile> sourceFiles){
+    void changeSources(List<TestFile> sourceFiles) {
         def personScalaFile = sourceFiles.find { it.name == "Person.scala" }
         personScalaFile.text = personScalaFile.text.replace("name", "lastName")
     }

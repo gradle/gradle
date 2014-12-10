@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 
-abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends AbstractIntegrationSpec{
+abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
     abstract TestJvmComponent getTestComponent();
 
     List<TestFile> sourceFiles
@@ -43,7 +43,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         id '${testComponent.languageName}-lang'
     }
 
-    repositories{
+    repositories {
         mavenCentral()
     }
 

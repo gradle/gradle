@@ -20,7 +20,7 @@ import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.scala.fixtures.BadScalaLibrary
 import org.gradle.language.scala.fixtures.TestScalaComponent
 
-class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest{
+class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestScalaComponent()
 
     def "reports failure to compile bad scala sources"() {
