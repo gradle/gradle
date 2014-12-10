@@ -19,8 +19,6 @@ package org.gradle.language.scala.internal.toolchain;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -39,8 +37,8 @@ public class ScalaToolChainServiceRegistry implements PluginServiceRegistry {
 
 
     private static class ProjectScopeCompileServices {
-        ScalaToolChainInternal createScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
-            return new DownloadingScalaToolChain(projectFinder, compilerDaemonManager, javaCompilerFactory, isolatedAntBuilder, configurationContainer, dependencyHandler);
+        ScalaToolChainInternal createScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+            return new DownloadingScalaToolChain(projectFinder, compilerDaemonManager, configurationContainer, dependencyHandler);
         }
     }
 }

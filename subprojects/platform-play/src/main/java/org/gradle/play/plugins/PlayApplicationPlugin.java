@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
@@ -94,7 +95,7 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
             platform.setPlayVersion(playVersion);
             platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
             platform.setTwirlVersion(twirlVersion);
-            platform.setJavaVersion(JavaVersion.current());
+            platform.setJavaPlatform(new DefaultJavaPlatform(JavaVersion.current()));
         }
 
         @Model
@@ -237,8 +238,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     scalaCompile.setClasspath(playDependencies);
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     //infer scala classpath
-                    scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
-                    scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+                    String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
+                    scalaCompile.setSourceCompatibility(targetCompatibility);
+                    scalaCompile.setTargetCompatibility(targetCompatibility);
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
@@ -307,8 +309,9 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                         scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                         scalaCompile.setDestinationDir(testClassesDir);
                         scalaCompile.setSource(testSourceDir);
-                        scalaCompile.setSourceCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
-                        scalaCompile.setTargetCompatibility(binary.getTargetPlatform().getJavaVersion().getMajorVersion());
+                        String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
+                        scalaCompile.setSourceCompatibility(targetCompatibility);
+                        scalaCompile.setTargetCompatibility(targetCompatibility);
 
                         IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                         incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));

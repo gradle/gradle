@@ -16,9 +16,10 @@
 
 package org.gradle.play.internal.platform;
 
-import org.gradle.api.JavaVersion;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.scala.platform.ScalaPlatform;
 import org.gradle.model.Managed;
+import org.gradle.model.Unmanaged;
 import org.gradle.play.platform.PlayPlatform;
 
 @Managed
@@ -28,11 +29,13 @@ public interface PlayPlatformInternal extends PlayPlatform {
 
     void setDisplayName(String displayName);
 
+    @Unmanaged
     void setPlayVersion(String playVersion);
 
     void setScalaPlatform(ScalaPlatform scalaPlatform);
 
     void setTwirlVersion(String twirlVersion);
 
-    void setJavaVersion(JavaVersion javaVersion);
+    @Unmanaged
+    void setJavaPlatform(JavaPlatform javaPlatform);
 }
