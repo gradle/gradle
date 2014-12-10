@@ -23,9 +23,11 @@ import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.*
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 @IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
+@Ignore // unstable
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
