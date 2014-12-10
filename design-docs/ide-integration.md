@@ -326,6 +326,7 @@ Extend the above mechanism to support prompting the user, when running via the t
 
 Some more features to mix into the above plan:
 
+- `IdeaSingleEntryLibraryDependency` should expose multiple source or javadoc artifacts.
 - Honour same environment variables as command-line `gradle` invocation.
 - Richer events during execution:
     - Task execution
