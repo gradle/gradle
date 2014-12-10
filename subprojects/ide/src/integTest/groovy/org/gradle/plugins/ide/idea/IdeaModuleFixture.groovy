@@ -121,23 +121,23 @@ class IdeaModuleFixture {
                     '}';
         }
 
-        def assertHasSource(String filename) {
-            assert source.any {
-                it.endsWith("${filename}!/")
-            }
+        String getJarName() {
+            return url.replaceFirst('!/$', '').split('/').last()
         }
 
-        def assertHasJavadoc(String filename) {
-            assert javadoc.any {
-                it.endsWith("${filename}!/")
-            }
+        void assertHasSource(List<String> filenames) {
+            assert source.collect { it.replaceFirst('!/$', '').split('/').last() } == filenames
         }
 
-        def assertHasNoJavadoc() {
+        void assertHasJavadoc(List<String> filenames) {
+            assert javadoc.collect { it.replaceFirst('!/$', '').split('/').last() } == filenames
+        }
+
+        void assertHasNoJavadoc() {
             assert javadoc.empty
         }
 
-        def assertHasNoSource() {
+        void assertHasNoSource() {
             assert source.empty
         }
     }

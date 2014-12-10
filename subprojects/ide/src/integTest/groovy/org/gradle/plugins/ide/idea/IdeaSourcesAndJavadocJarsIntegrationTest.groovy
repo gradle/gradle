@@ -25,16 +25,10 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
 
     void ideFileContainsEntry(String jar, List<String> sources, List<String> javadocs) {
         IdeaModuleFixture iml =  parseIml("root.iml")
-        def libraryEntry = iml.dependencies.libraries.find {
-            it.url.endsWith("/${jar}!/")
-        }
+        def libraryEntry = iml.dependencies.libraries.find { it.jarName == jar }
         assert libraryEntry != null : "entry for jar ${jar} not found"
-        sources.each { source ->
-            libraryEntry.assertHasSource(source)
-        }
-        javadocs.each { javadoc ->
-            libraryEntry.assertHasJavadoc(javadoc)
-        }
+        libraryEntry.assertHasSource(sources)
+        libraryEntry.assertHasJavadoc(javadocs)
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
