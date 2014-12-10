@@ -115,6 +115,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                    PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                    @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
+            final File binariesDir = new File(buildDir, "jars");
+            final File classesDir = new File(buildDir, "classes");
+
             List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
                 // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
@@ -124,9 +127,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
             for (final JavaPlatform platform : selectedPlatforms) {
                 final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
                 final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
-
-                final File binariesDir = new File(buildDir, "jars");
-                final File classesDir = new File(buildDir, "classes");
 
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     public void execute(JarBinarySpec jarBinary) {
