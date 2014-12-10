@@ -25,6 +25,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,7 +34,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 
 import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
@@ -272,6 +272,30 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
         and:
         Task a = taskWithOutputDirectory("a", taskOutput)
         Task b = taskWithOutputFile("b", symlink.file("fileUnderSymlink"))
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "a task that writes into a symlink of a shared output dir of currently running task is not started"() {
+        given:
+        def taskOutput = file("outputDir").createDir()
+        def symlink = file("symlink")
+        fs.createSymbolicLink(symlink, taskOutput)
+
+        // Deleting any file clears the internal canonicalisation cache.
+        // This allows the created symlink to be actually resolved.
+        // See java.io.UnixFileSystem#cache.
+        file("tmp").createFile().delete()
+
+        and:
+        Task a = taskWithOutputDirectory("a", taskOutput)
+        Task b = taskWithOutputDirectory("b", symlink)
 
         when:
         addToGraphAndPopulate(a, b)
