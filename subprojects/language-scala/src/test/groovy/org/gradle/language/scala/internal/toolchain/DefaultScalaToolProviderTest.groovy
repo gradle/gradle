@@ -19,11 +19,8 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
-import org.gradle.language.scala.toolchain.ScalaToolProvider
 import spock.lang.Specification
 
 class DefaultScalaToolProviderTest extends Specification {
@@ -32,15 +29,13 @@ class DefaultScalaToolProviderTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
 
-    ScalaToolProvider scalaToolProvider
+    DefaultScalaToolProvider scalaToolProvider
     ProjectFinder projectFinder = Mock()
-    JavaCompilerFactory javaCompilerFactory = Mock()
-    IsolatedAntBuilder antbuilder = Mock()
 
     String scalaVersion = "2.10.4"
 
     def setup(){
-        scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, javaCompilerFactory, antbuilder,  dependencyHandler, configurationContainer, scalaVersion)
+        scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, dependencyHandler, configurationContainer, scalaVersion)
     }
 
     def "newCompiler provides decent error for unsupported CompileSpec"(){
