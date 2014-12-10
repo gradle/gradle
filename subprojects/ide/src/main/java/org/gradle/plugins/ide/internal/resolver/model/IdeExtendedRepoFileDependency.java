@@ -26,8 +26,8 @@ import java.util.TreeSet;
 
 public class IdeExtendedRepoFileDependency extends IdeRepoFileDependency {
     private static final Comparator<File> FILE_COMPARATOR = new FileNameComparator();
-    private SortedSet<File> sourceFiles = new TreeSet<File>(FILE_COMPARATOR);
-    private SortedSet<File> javadocFiles = new TreeSet<File>(FILE_COMPARATOR);
+    private final SortedSet<File> sourceFiles = new TreeSet<File>(FILE_COMPARATOR);
+    private final SortedSet<File> javadocFiles = new TreeSet<File>(FILE_COMPARATOR);
 
     public IdeExtendedRepoFileDependency(Configuration declaredConfiguration, File file) {
         super(declaredConfiguration, file);

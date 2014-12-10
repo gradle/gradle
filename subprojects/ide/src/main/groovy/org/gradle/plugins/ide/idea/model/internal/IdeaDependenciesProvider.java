@@ -118,8 +118,8 @@ public class IdeaDependenciesProvider {
                             ideRepoFileDependency,
                             new IdeDependencyKey.DependencyBuilder<IdeExtendedRepoFileDependency, Dependency>() {
                                 public Dependency buildDependency(IdeExtendedRepoFileDependency dependency, String scope) {
-                                    Set<FilePath> javadoc = CollectionUtils.collect(dependency.getJavadocFiles(), getPath);
-                                    Set<FilePath> source = CollectionUtils.collect(dependency.getSourceFiles(), getPath);
+                                    Set<FilePath> javadoc = CollectionUtils.collect(dependency.getJavadocFiles(), new LinkedHashSet<FilePath>(), getPath);
+                                    Set<FilePath> source = CollectionUtils.collect(dependency.getSourceFiles(), new LinkedHashSet<FilePath>(), getPath);
                                     SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(
                                             getPath.transform(dependency.getFile()), javadoc, source, scope);
                                     library.setModuleVersion(dependency.getId());
