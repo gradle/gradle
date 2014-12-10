@@ -129,9 +129,9 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
 
-    public String getExtraConfiguration() {
+    public String getExtraConfiguration(String binaryName = null) {
         return """
-            binaries.all {
+            binaries.matching { ${binaryName ? "it.name == '$binaryName'" : "true"} }.all {
                 if (targetPlatform.operatingSystem.macOsX) {
                     linker.args "-framework", "Foundation"
                 } else {

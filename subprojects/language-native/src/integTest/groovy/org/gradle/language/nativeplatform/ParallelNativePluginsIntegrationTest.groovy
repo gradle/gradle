@@ -16,15 +16,16 @@
 
 package org.gradle.language.nativeplatform
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.*
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
-@Ignore // unstable
+@IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
@@ -39,13 +40,12 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
                 cpp: new CppHelloWorldApp(),
                 objectiveC: new ObjectiveCHelloWorldApp(),
                 objectiveCpp: new ObjectiveCppHelloWorldApp(),
-                mixed: new MixedLanguageHelloWorldApp(toolChain),
                 mixedObjectiveC: new MixedObjectiveCHelloWorldApp(),
         ]
 
         apps.each { name, app ->
             buildFile << app.pluginScript
-            buildFile << app.extraConfiguration
+            buildFile << app.getExtraConfiguration("${name}Executable")
             buildFile << """
                 model {
                     components {
@@ -90,6 +90,13 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
             app.greetingsSources*.writeToDir(file("src/${name}Greetings"))
 
             buildFile << """
+                // Allow static libraries to be linked into shared
+                binaries.withType(StaticLibraryBinarySpec) {
+                    if (toolChain in Gcc || toolChain in Clang) {
+                        cppCompiler.args '-fPIC'
+                    }
+                }
+
                 model {
                     components {
                         ${name}Main(NativeExecutableSpec) {
