@@ -44,15 +44,27 @@ class UrlValidator {
         }
     }
 
+    /**
+     * Asserts that the content at the specified url matches the content in the provided String
+     *
+     * @param url
+     * @param contents
+     */
     static void assertUrlContent(URL url, String contents) {
-        compareHashes(url.openStream(), new ByteArrayInputStream(contents.getBytes("UTF-8")))
+        assert compareHashes(url.openStream(), new ByteArrayInputStream(contents.getBytes("UTF-8")))
     }
 
+    /**
+     * Asserts that the content at the specified url matches the content in the specified File
+     *
+     * @param url
+     * @param file
+     */
     static void assertUrlContent(URL url, File file) {
-        compareHashes(url.openStream(), file.newInputStream())
+        assert compareHashes(url.openStream(), file.newInputStream())
     }
 
-    static void compareHashes(InputStream a, InputStream b) {
-        assert HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
+    static boolean compareHashes(InputStream a, InputStream b) {
+        return HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
     }
 }

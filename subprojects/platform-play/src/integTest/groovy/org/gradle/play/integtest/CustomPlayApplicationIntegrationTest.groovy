@@ -21,4 +21,11 @@ import org.gradle.play.integtest.fixtures.app.PlayApp
 
 class CustomPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
     PlayApp playApp = new CustomPlayApp()
+
+    @Override
+    void checkContent() {
+        super.checkContent()
+        assert playUrl("java/one").text.contains("<li>foo:1</li>")
+        assert playUrl("scala/one").text.contains("<li>hello:1</li>")
+    }
 }

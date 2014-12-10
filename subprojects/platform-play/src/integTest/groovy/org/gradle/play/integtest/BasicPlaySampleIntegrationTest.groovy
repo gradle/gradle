@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package models;
+package org.gradle.play.integtest
 
-public class DataType {
-    private final String foo;
-    private final int bar;
+import org.gradle.integtests.fixtures.Sample
+import org.junit.Rule
 
-    public DataType(String foo, int bar) {
-        this.foo = foo;
-        this.bar = bar;
-    }
+class BasicPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
+    @Rule
+    Sample basicPlaySample = new Sample(temporaryFolder, "play/basic")
 
-    @Override
-    public String toString() {
-        return String.format("%s:%s", foo, bar);
+    Sample getPlaySample() {
+        return basicPlaySample
     }
 }

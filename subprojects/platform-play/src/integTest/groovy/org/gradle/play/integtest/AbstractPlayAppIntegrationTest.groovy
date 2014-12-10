@@ -24,10 +24,10 @@ import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.util.AvailablePortFinder
 import spock.lang.IgnoreIf
 
-import static org.gradle.integtests.fixtures.UrlValidator.available
-import static org.gradle.integtests.fixtures.UrlValidator.notAvailable
+import static org.gradle.integtests.fixtures.UrlValidator.*
 
 abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest {
+    int httpPort
 
     abstract PlayApp getPlayApp()
     def portFinder = AvailablePortFinder.createPrivate()
@@ -93,7 +93,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     @IgnoreIf({ GradleContextualExecuter.isDaemon() })
     def "can run play app"(){
         setup:
-        int httpPort = portFinder.nextAvailable
+        httpPort = portFinder.nextAvailable
 
         buildFile <<
         """
@@ -111,8 +111,12 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
-        available("http://localhost:$httpPort", "Play app", 60000)
-        assert new URL("http://localhost:$httpPort").text.contains("Your new application is ready.")
+        def url = playUrl().toString()
+        available(url, "Play app", 60000)
+        assert playUrl().text.contains("Your new application is ready.")
+
+        and:
+        checkContent()
 
         when: "stopping gradle"
         stdinWriter.write(4) // ctrl+d
@@ -120,7 +124,18 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         gradleHandle.waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable("http://localhost:$httpPort")
+        notAvailable(url)
+    }
+
+    void checkContent() {
+        // Check all static assets from the shared content
+        assertUrlContent playUrl("assets/stylesheets/main.css"), file("public/stylesheets/main.css")
+        assertUrlContent playUrl("assets/javascripts/hello.js"), file("public/javascripts/hello.js")
+        assertUrlContent playUrl("assets/images/favicon.svg"), file("public/images/favicon.svg")
+    }
+
+    URL playUrl(String path='') {
+        return new URL("http://localhost:$httpPort/${path}")
     }
 
     void verifyTestOutput(TestExecutionResult result) {
