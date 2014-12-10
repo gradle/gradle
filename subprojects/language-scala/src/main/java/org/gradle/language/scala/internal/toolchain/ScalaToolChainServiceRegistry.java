@@ -40,7 +40,7 @@ public class ScalaToolChainServiceRegistry implements PluginServiceRegistry {
 
     private static class ProjectScopeCompileServices {
         ScalaToolChainInternal createScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
-            return new DefaultScalaToolChain(projectFinder, compilerDaemonManager, javaCompilerFactory, isolatedAntBuilder, configurationContainer, dependencyHandler);
+            return new DownloadingScalaToolChain(projectFinder, compilerDaemonManager, javaCompilerFactory, isolatedAntBuilder, configurationContainer, dependencyHandler);
         }
     }
 }

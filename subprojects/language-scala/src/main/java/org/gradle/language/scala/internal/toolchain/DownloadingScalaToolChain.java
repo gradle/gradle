@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.language.scala.platform.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
-public class DefaultScalaToolChain implements ScalaToolChainInternal {
+public class DownloadingScalaToolChain implements ScalaToolChainInternal {
 
     private ProjectFinder projectFinder;
     private CompilerDaemonManager compilerDaemonManager;
@@ -36,7 +36,7 @@ public class DefaultScalaToolChain implements ScalaToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final JavaVersion javaVersion;
 
-    public DefaultScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+    public DownloadingScalaToolChain(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, JavaCompilerFactory javaCompilerFactory, IsolatedAntBuilder isolatedAntBuilder, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
         this.javaCompilerFactory = javaCompilerFactory;
