@@ -35,15 +35,15 @@ import java.util.List;
 /**
  * A Scala {@link org.gradle.language.base.internal.compile.Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingScalaCompiler<T extends PlatformScalaJavaJointCompileSpec> implements Compiler<T> {
+public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private static final Logger LOGGER = Logging.getLogger(NormalizingScalaCompiler.class);
-    private final Compiler<T> delegate;
+    private final Compiler<ScalaJavaJointCompileSpec> delegate;
 
-    public NormalizingScalaCompiler(Compiler<T> delegate) {
+    public NormalizingScalaCompiler(Compiler<ScalaJavaJointCompileSpec> delegate) {
         this.delegate = delegate;
     }
 
-    public WorkResult execute(T spec) {
+    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);
         resolveNonStringsInCompilerArgs(spec);
@@ -52,11 +52,11 @@ public class NormalizingScalaCompiler<T extends PlatformScalaJavaJointCompileSpe
         return delegateAndHandleErrors(spec);
     }
 
-    private void resolveAndFilterSourceFiles(final PlatformScalaJavaJointCompileSpec spec) {
+    private void resolveAndFilterSourceFiles(final ScalaJavaJointCompileSpec spec) {
         spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
     }
 
-    private void resolveClasspath(PlatformScalaJavaJointCompileSpec spec) {
+    private void resolveClasspath(ScalaJavaJointCompileSpec spec) {
         ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
@@ -66,12 +66,12 @@ public class NormalizingScalaCompiler<T extends PlatformScalaJavaJointCompileSpe
         }
     }
 
-    private void resolveNonStringsInCompilerArgs(PlatformScalaJavaJointCompileSpec spec) {
+    private void resolveNonStringsInCompilerArgs(ScalaJavaJointCompileSpec spec) {
         // in particular, this is about GStrings
         spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
     }
 
-    private void logSourceFiles(PlatformScalaJavaJointCompileSpec spec) {
+    private void logSourceFiles(ScalaJavaJointCompileSpec spec) {
         if (!spec.getScalaCompileOptions().isListFiles()) { return; }
 
         StringBuilder builder = new StringBuilder();
@@ -84,7 +84,7 @@ public class NormalizingScalaCompiler<T extends PlatformScalaJavaJointCompileSpe
         LOGGER.quiet(builder.toString());
     }
 
-    private void logCompilerArguments(PlatformScalaJavaJointCompileSpec spec) {
+    private void logCompilerArguments(ScalaJavaJointCompileSpec spec) {
         if (!LOGGER.isDebugEnabled()) { return; }
 
         List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
@@ -92,7 +92,7 @@ public class NormalizingScalaCompiler<T extends PlatformScalaJavaJointCompileSpe
         LOGGER.debug("Java compiler arguments: {}", joinedArgs);
     }
 
-    private WorkResult delegateAndHandleErrors(T spec) {
+    private WorkResult delegateAndHandleErrors(ScalaJavaJointCompileSpec spec) {
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {

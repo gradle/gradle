@@ -26,13 +26,11 @@ import org.gradle.api.tasks.scala.ScalaForkOptions;
 import java.util.List;
 
 /**
- * Options for Scala platform compilation.
+ * Options for Scala platform compilation, excluding any options for compilation with Ant.
  */
-public class PlatformScalaCompileOptions extends AbstractOptions {
+public class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
-
-    private String daemonServer;
 
     private boolean failOnError = true;
 
@@ -59,21 +57,6 @@ public class PlatformScalaCompileOptions extends AbstractOptions {
     private ScalaForkOptions forkOptions = new ScalaForkOptions();
 
     private IncrementalCompileOptions incrementalOptions = new IncrementalCompileOptions();
-
-       // NOTE: Does not work for scalac 2.7.1 due to a bug in the Ant task
-    /**
-     * Server (host:port) on which the compile daemon is running.
-     * The host must share disk access with the client process.
-     * If not specified, launches the daemon on the localhost.
-     * This parameter can only be specified if useCompileDaemon is true.
-     */
-    public String getDaemonServer() {
-        return daemonServer;
-    }
-
-    public void setDaemonServer(String daemonServer) {
-        this.daemonServer = daemonServer;
-    }
 
     /**
      * Fail the build on compilation errors.

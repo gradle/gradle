@@ -21,10 +21,10 @@ import com.google.common.collect.Lists;
 import com.typesafe.zinc.*;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.ZincScalaCompilerArgumentsGenerator;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
-import org.gradle.api.internal.tasks.scala.ScalaCompilerArgumentsGenerator;
-import org.gradle.api.internal.tasks.scala.PlatformScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class ZincScalaCompiler implements Compiler<PlatformScalaJavaJointCompileSpec>, Serializable {
+public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
@@ -45,20 +45,20 @@ public class ZincScalaCompiler implements Compiler<PlatformScalaJavaJointCompile
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
     }
-    public WorkResult execute(PlatformScalaJavaJointCompileSpec spec) {
+    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         return Compiler.execute(scalaClasspath, zincClasspath, spec);
     }
 
     // need to defer loading of Zinc/sbt/Scala classes until we are
     // running in the compiler daemon and have them on the class path
     private static class Compiler {
-        static WorkResult execute(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, PlatformScalaJavaJointCompileSpec spec) {
+        static WorkResult execute(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, ScalaJavaJointCompileSpec spec) {
             LOGGER.info("Compiling with Zinc Scala compiler.");
 
             xsbti.Logger logger = new SbtLoggerAdapter();
 
             com.typesafe.zinc.Compiler compiler = createCompiler(scalaClasspath, zincClasspath, logger);
-            List<String> scalacOptions = new ScalaCompilerArgumentsGenerator().generate(spec);
+            List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
             Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
                     scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);

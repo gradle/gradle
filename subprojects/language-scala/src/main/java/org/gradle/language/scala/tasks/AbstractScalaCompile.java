@@ -20,9 +20,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.internal.tasks.scala.AbstractScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.PlatformScalaCompileSpec;
-import org.gradle.api.internal.tasks.scala.PlatformScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -39,18 +39,23 @@ import java.util.Set;
 
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
- * @param <S> the CompileSpec type being used by the compiler.
- * @param <T> the CompileOptions type being used by the compiler.
  */
-abstract public class AbstractScalaCompile<S extends PlatformScalaJavaJointCompileSpec, T extends PlatformScalaCompileOptions> extends AbstractCompile {
+abstract public class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
+    private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions = new CompileOptions();
+
+    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
+        this.scalaCompileOptions = scalaCompileOptions;
+    }
 
     /**
      * Returns the Scala compilation options.
      */
-    abstract public T getScalaCompileOptions();
-    abstract protected AbstractScalaJavaJointCompileSpec<T> newSpec();
+    @Nested
+    public BaseScalaCompileOptions getScalaCompileOptions() {
+        return scalaCompileOptions;
+    }
 
     /**
      * Returns the Java compilation options.
@@ -60,26 +65,17 @@ abstract public class AbstractScalaCompile<S extends PlatformScalaJavaJointCompi
         return compileOptions;
     }
 
-    abstract protected org.gradle.language.base.internal.compile.Compiler<S> getCompiler(S spec);
+    abstract protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
 
     @TaskAction
     protected void compile() {
-        S spec = createSpec();
-        spec.setSource(getSource());
-        spec.setDestinationDir(getDestinationDir());
-        spec.setWorkingDir(getProject().getProjectDir());
-        spec.setTempDir(getTemporaryDir());
-        spec.setClasspath(getClasspath());
-        spec.setSourceCompatibility(getSourceCompatibility());
-        spec.setTargetCompatibility(getTargetCompatibility());
-        if (!useAnt()) {
-            configureIncrementalCompilation(spec);
-        }
+        ScalaJavaJointCompileSpec spec = createSpec();
+        configureIncrementalCompilation(spec);
         getCompiler(spec).execute(spec);
     }
 
-    protected S createSpec() {
-        AbstractScalaJavaJointCompileSpec<T> spec = newSpec();
+    protected ScalaJavaJointCompileSpec createSpec() {
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
@@ -88,9 +84,21 @@ abstract public class AbstractScalaCompile<S extends PlatformScalaJavaJointCompi
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
-        spec.setScalaCompileOptions(getScalaCompileOptions());
-        @SuppressWarnings("unchecked") S returnSpec = (S)spec;
-        return returnSpec;
+        spec.setScalaCompileOptions(scalaCompileOptions);
+        return spec;
+    }
+
+    protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
+
+        Map<File, File> globalAnalysisMap = getOrCreateGlobalAnalysisMap();
+        HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getClasspath());
+        spec.setAnalysisMap(filteredMap);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Analysis file: {}", scalaCompileOptions.getIncrementalOptions().getAnalysisFile());
+            LOGGER.debug("Published code: {}", scalaCompileOptions.getIncrementalOptions().getPublishedCode());
+            LOGGER.debug("Analysis map: {}", filteredMap);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -103,10 +111,7 @@ abstract public class AbstractScalaCompile<S extends PlatformScalaJavaJointCompi
         } else {
             analysisMap = Maps.newHashMap();
             for (Project project : getProject().getRootProject().getAllprojects()) {
-                for (AbstractScalaCompile<S, T> task : project.getTasks().withType(getClass())) {
-                    if(useAnt()){
-                        continue;
-                    }
+                for (AbstractScalaCompile task : project.getTasks().withType(AbstractScalaCompile.class)) {
                     File publishedCode = task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
                     File analysisFile = task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
                     analysisMap.put(publishedCode, analysisFile);
@@ -117,9 +122,6 @@ abstract public class AbstractScalaCompile<S extends PlatformScalaJavaJointCompi
         return analysisMap;
     }
 
-    abstract protected boolean useAnt();
-
-
 
     protected HashMap<File, File> filterForClasspath(Map<File, File> analysisMap, Iterable<File> classpath) {
         final Set<File> classpathLookup = Sets.newHashSet(classpath);
@@ -128,18 +130,5 @@ abstract public class AbstractScalaCompile<S extends PlatformScalaJavaJointCompi
                 return classpathLookup.contains(entry.getKey());
             }
         }));
-    }
-
-
-    protected void configureIncrementalCompilation(PlatformScalaCompileSpec spec) {
-        Map<File, File> globalAnalysisMap = getOrCreateGlobalAnalysisMap();
-        HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getClasspath());
-        spec.setAnalysisMap(filteredMap);
-        if (LOGGER.isDebugEnabled()) {
-            T scalaCompileOptions = getScalaCompileOptions();
-            LOGGER.debug("Analysis file: {}", scalaCompileOptions.getIncrementalOptions().getAnalysisFile());
-            LOGGER.debug("Published code: {}", scalaCompileOptions.getIncrementalOptions().getPublishedCode());
-            LOGGER.debug("Analysis map: {}", filteredMap);
-        }
     }
 }

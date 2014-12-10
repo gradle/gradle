@@ -23,8 +23,7 @@ import java.io.File;
 import java.io.Serializable;
 
 /**
- * Options for incremental compilation of Scala code. Only used if
- * {@link org.gradle.api.tasks.scala.ScalaCompileOptions#isUseAnt()} is {@code false}.
+ * Options for incremental compilation of Scala code. Only used for compilation with Zinc.
  */
 @Incubating
 public class IncrementalCompileOptions implements Serializable {

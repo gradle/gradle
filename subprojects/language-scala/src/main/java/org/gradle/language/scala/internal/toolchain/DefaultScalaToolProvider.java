@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
-import org.gradle.api.internal.tasks.scala.PlatformScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -52,30 +52,28 @@ public class DefaultScalaToolProvider implements ToolProvider {
 
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
-        if (spec instanceof PlatformScalaJavaJointCompileSpec) {
+        if (spec instanceof ScalaJavaJointCompileSpec) {
             Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", scalaVersion));
             Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            org.gradle.language.base.internal.compile.Compiler<PlatformScalaJavaJointCompileSpec> scalaCompiler;
+            org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
             Set<File> zincClasspathFiles = zincClasspath.getFiles();
             Set<File> scalaClasspathFiles = scalaClasspath.getFiles();
             try {
-                scalaCompiler = (Compiler<PlatformScalaJavaJointCompileSpec>) getClass().getClassLoader()
+                scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader()
                         .loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").getConstructor(Iterable.class, Iterable.class).newInstance(scalaClasspathFiles, zincClasspathFiles);
             } catch (Exception e) {
                 throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler", e);
             }
 
-             org.gradle.language.base.internal.compile.Compiler<T> delegatingCompiler = (org.gradle.language.base.internal.compile.Compiler<T>) new NormalizingScalaCompiler<PlatformScalaJavaJointCompileSpec>(new DaemonScalaCompiler<PlatformScalaJavaJointCompileSpec>(projectDir, scalaCompiler, compilerDaemonManager, zincClasspathFiles));
-            return delegatingCompiler;
+            return (Compiler<T>) new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(projectDir, scalaCompiler, compilerDaemonManager, zincClasspathFiles));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));
     }
 
     private Configuration resolveDependency(Object dependencyNotation) {
         Dependency dependency = dependencyHandler.create(dependencyNotation);
-        Configuration configuration = configurationContainer.detachedConfiguration(dependency);
-        return configuration;
+        return configurationContainer.detachedConfiguration(dependency);
     }
 
     public boolean isAvailable() {

@@ -43,7 +43,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class DaemonScalaCompiler<T extends PlatformScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
+public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> zincClasspath;
 
     public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {

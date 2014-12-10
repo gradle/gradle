@@ -17,27 +17,25 @@
 package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.scala.AbstractScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
-import org.gradle.api.internal.tasks.scala.DefaultPlatformScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.PlatformScalaJavaJointCompileSpec;
-import org.gradle.api.tasks.Nested;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
 import org.gradle.language.scala.platform.ScalaPlatform;
 
 import javax.inject.Inject;
 
-
 /**
  * A platform-aware Scala compile task.
  */
 @Incubating
-public class PlatformScalaCompile extends AbstractScalaCompile<PlatformScalaJavaJointCompileSpec, PlatformScalaCompileOptions> {
+public class PlatformScalaCompile extends AbstractScalaCompile {
 
     private ScalaPlatform platform;
 
-    private final PlatformScalaCompileOptions scalaCompileOptions = new PlatformScalaCompileOptions();
+    @Inject
+    public PlatformScalaCompile() {
+        super(new BaseScalaCompileOptions());
+    }
 
     public ScalaPlatform getPlatform() {
         return platform;
@@ -52,24 +50,8 @@ public class PlatformScalaCompile extends AbstractScalaCompile<PlatformScalaJava
         throw new UnsupportedOperationException();
     }
 
-    @Nested
-    public PlatformScalaCompileOptions getScalaCompileOptions() {
-        return scalaCompileOptions;
-    }
-
     @Override
-    protected AbstractScalaJavaJointCompileSpec<PlatformScalaCompileOptions> newSpec() {
-        return new DefaultPlatformScalaJavaJointCompileSpec();
-    }
-
-    @Override
-    protected Compiler<PlatformScalaJavaJointCompileSpec> getCompiler(PlatformScalaJavaJointCompileSpec spec) {
-        Compiler<PlatformScalaJavaJointCompileSpec> scalaCompiler = getToolChain().select(getPlatform()).newCompiler(spec);
-        return new CleaningScalaCompiler<PlatformScalaJavaJointCompileSpec>(scalaCompiler, getOutputs(), false);
-    }
-
-    @Override
-    protected boolean useAnt() {
-        return false;
+    protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
+        return getToolChain().select(getPlatform()).newCompiler(spec);
     }
 }

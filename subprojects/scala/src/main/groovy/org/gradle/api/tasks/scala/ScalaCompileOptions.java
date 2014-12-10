@@ -17,12 +17,12 @@ package org.gradle.api.tasks.scala;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.language.scala.tasks.PlatformScalaCompileOptions;
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 /**
- * Options for Scala compilation.
+ * Options for Scala compilation, including the use of the Ant-backed compiler.
  */
-public class ScalaCompileOptions extends PlatformScalaCompileOptions {
+public class ScalaCompileOptions extends BaseScalaCompileOptions {
     private static final ImmutableMap<String, String> FIELD_NAMES_TO_ANT_PROPERTIES = new ImmutableMap.Builder<String, String>()
             .put("loggingLevel", "logging")
             .put("loggingPhases", "logphase")
@@ -39,6 +39,8 @@ public class ScalaCompileOptions extends PlatformScalaCompileOptions {
     private boolean useAnt = true;
 
     private boolean useCompileDaemon;
+
+    private String daemonServer;
 
     /**
      * Tells whether to use Ant for compilation. If {@code true}, the standard Ant scalac (or fsc) task will be used for
@@ -79,6 +81,21 @@ public class ScalaCompileOptions extends PlatformScalaCompileOptions {
 
     public void setUseCompileDaemon(boolean useCompileDaemon) {
         this.useCompileDaemon = useCompileDaemon;
+    }
+
+    // NOTE: Does not work for scalac 2.7.1 due to a bug in the Ant task
+    /**
+     * Server (host:port) on which the compile daemon is running.
+     * The host must share disk access with the client process.
+     * If not specified, launches the daemon on the localhost.
+     * This parameter can only be specified if useCompileDaemon is true.
+     */
+    public String getDaemonServer() {
+        return daemonServer;
+    }
+
+    public void setDaemonServer(String daemonServer) {
+        this.daemonServer = daemonServer;
     }
 
     protected boolean excludeFromAntProperties(String fieldName) {

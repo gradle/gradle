@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.scala
 
-import org.gradle.language.scala.tasks.PlatformScalaCompileOptions
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import spock.lang.Specification
 
-class ScalaCompilerArgumentsGeneratorTest extends Specification {
-    def generator = new ScalaCompilerArgumentsGenerator()
-    def spec = new DefaultPlatformScalaJavaJointCompileSpec()
+class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
+    def generator = new ZincScalaCompilerArgumentsGenerator()
+    def spec = new DefaultScalaJavaJointCompileSpec()
 
     def setup(){
-        spec.setScalaCompileOptions(new PlatformScalaCompileOptions())
+        spec.setScalaCompileOptions(new BaseScalaCompileOptions())
     }
 
     def "default options"() {

@@ -25,7 +25,7 @@ import org.gradle.language.base.internal.compile.Compiler
 import spock.lang.Specification
 
 class NormalizingScalaCompilerTest extends Specification {
-    Compiler<PlatformScalaJavaJointCompileSpec> target = Mock()
+    Compiler<ScalaJavaJointCompileSpec> target = Mock()
     DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec()
     NormalizingScalaCompiler compiler = new NormalizingScalaCompiler(target)
 
@@ -101,7 +101,7 @@ class NormalizingScalaCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        1 * target.execute(_) >> { PlatformScalaJavaJointCompileSpec spec ->
+        1 * target.execute(_) >> { ScalaJavaJointCompileSpec spec ->
             assert spec.compileOptions.compilerArgs.every { it instanceof String }
         }
     }

@@ -17,20 +17,24 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-import org.gradle.language.scala.tasks.PlatformScalaCompileOptions;
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 import java.io.File;
 import java.util.Map;
 
-abstract public class AbstractScalaJavaJointCompileSpec<T extends PlatformScalaCompileOptions> extends DefaultJavaCompileSpec {
+public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
+    private BaseScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
     private Map<File, File> analysisMap;
 
+    public BaseScalaCompileOptions getScalaCompileOptions() {
+        return options;
+    }
 
-    abstract public T getScalaCompileOptions();
-
-    abstract public void setScalaCompileOptions(T options);
+    public void setScalaCompileOptions(BaseScalaCompileOptions options) {
+        this.options = options;
+    }
 
     public Iterable<File> getScalaClasspath() {
         return scalaClasspath;

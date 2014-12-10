@@ -17,33 +17,29 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
-import org.gradle.api.internal.tasks.compile.NoOpStaleClassCleaner;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
-public class CleaningScalaCompiler<T extends PlatformScalaJavaJointCompileSpec> extends CleaningJavaCompilerSupport<T>
-        implements Compiler<T> {
-    private final Compiler<T> compiler;
+/**
+ * Cleaning compiler for scala. Not required for compiling with Zinc.
+ */
+public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec> {
+    private final Compiler<ScalaJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
-    private boolean useAnt;
 
-    public CleaningScalaCompiler(Compiler<T> compiler, TaskOutputsInternal taskOutputs, boolean useAnt) {
+    public CleaningScalaCompiler(Compiler<ScalaJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
         this.taskOutputs = taskOutputs;
-        this.useAnt = useAnt;
     }
 
     @Override
-    protected Compiler<T> getCompiler() {
+    protected Compiler<ScalaJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 
     @Override
-    protected StaleClassCleaner createCleaner(T spec) {
-        if (useAnt) {
-            return new SimpleStaleClassCleaner(taskOutputs);
-        }
-        return new NoOpStaleClassCleaner();
+    protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

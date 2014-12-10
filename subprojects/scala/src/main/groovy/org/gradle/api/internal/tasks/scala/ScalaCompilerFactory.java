@@ -48,12 +48,12 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
 
     @SuppressWarnings("unchecked")
     public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
-        ScalaCompileOptions scalaOptions = spec.getScalaCompileOptions();
+        ScalaCompileOptions scalaOptions = (ScalaCompileOptions) spec.getScalaCompileOptions();
         Set<File> scalaClasspathFiles = scalaClasspath.getFiles();
         if (scalaOptions.isUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder, scalaClasspathFiles);
             Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getCompileOptions());
-            return new NormalizingScalaCompiler<ScalaJavaJointCompileSpec>(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler));
+            return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler));
         }
 
         if (!scalaOptions.isFork()) {
@@ -72,6 +72,6 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         }
 
         scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, scalaCompiler, compilerDaemonFactory, zincClasspathFiles);
-        return new NormalizingScalaCompiler<ScalaJavaJointCompileSpec>(scalaCompiler);
+        return new NormalizingScalaCompiler(scalaCompiler);
     }
 }
