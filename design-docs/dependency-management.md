@@ -228,7 +228,9 @@ Access the ivy.xml files for a ivy components with the specified id:
         .withArtifacts(IvyModule, IvyDescriptorArtifact)
         .execute()
 
-    Set<File> ivyFiles = result.getArtifactFiles()
+    for(component in result.resolvedComponents) {
+        component.getArtifacts(IvyDescriptorArtifact).each { assert it.file.name == 'ivy.xml' }
+    }
 
 Get the pom files for all maven modules in a configuration:
 
@@ -236,7 +238,10 @@ Get the pom files for all maven modules in a configuration:
         .forComponents(mavenModuleComponentId1, mavenModuleComponentId2)
         .withArtifacts(MavenModule, MavenPomArtifact)
         .execute()
-    Set<File> pomFiles = artifactResult.getArtifactFiles()
+
+    for(component in result.resolvedComponents) {
+        component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
+    }
 
 ### Implementation
 

@@ -111,17 +111,20 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         def componentResult = result.components.iterator().next()
         componentResult.id.displayName == componentIdentifier.displayName
         componentResult instanceof UnresolvedComponentResult
+        UnresolvedComponentResult unresolvedComponentResult = (UnresolvedComponentResult)componentResult
+        unresolvedComponentResult.failure instanceof IllegalArgumentException
+        unresolvedComponentResult.failure.message == failureMessage
 
         where:
-        givenComponentTypeRegistry | selectedComponentType | selectedArtifactType
-        ivyComponentTypeRegistry   | JvmLibrary            | IvyDescriptorArtifact
-        ivyComponentTypeRegistry   | IvyModule             | SourcesArtifact
-        ivyComponentTypeRegistry   | IvyModule             | JavadocArtifact
-        ivyComponentTypeRegistry   | IvyModule             | MavenPomArtifact
-        mavenComponentTypeRegistry | JvmLibrary            | MavenPomArtifact
-        mavenComponentTypeRegistry | MavenModule           | SourcesArtifact
-        mavenComponentTypeRegistry | MavenModule           | JavadocArtifact
-        mavenComponentTypeRegistry | MavenModule           | IvyDescriptorArtifact
+        givenComponentTypeRegistry | selectedComponentType | selectedArtifactType   | failureMessage
+        ivyComponentTypeRegistry   | JvmLibrary            | IvyDescriptorArtifact  | "Not a registered component type: ${JvmLibrary.name}."
+        ivyComponentTypeRegistry   | IvyModule             | SourcesArtifact        | "Artifact type $SourcesArtifact.name is not registered for component type ${IvyModule.name}."
+        ivyComponentTypeRegistry   | IvyModule             | JavadocArtifact        | "Artifact type $JavadocArtifact.name is not registered for component type ${IvyModule.name}."
+        ivyComponentTypeRegistry   | IvyModule             | MavenPomArtifact       | "Artifact type $MavenPomArtifact.name is not registered for component type ${IvyModule.name}."
+        mavenComponentTypeRegistry | JvmLibrary            | MavenPomArtifact       | "Not a registered component type: ${JvmLibrary.name}."
+        mavenComponentTypeRegistry | MavenModule           | SourcesArtifact        | "Artifact type $SourcesArtifact.name is not registered for component type ${MavenModule.name}."
+        mavenComponentTypeRegistry | MavenModule           | JavadocArtifact        | "Artifact type $JavadocArtifact.name is not registered for component type ${MavenModule.name}."
+        mavenComponentTypeRegistry | MavenModule           | IvyDescriptorArtifact  | "Artifact type $IvyDescriptorArtifact.name is not registered for component type ${MavenModule.name}."
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
