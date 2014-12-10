@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.query;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
@@ -106,9 +107,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 Set<ComponentResult> componentResults = Sets.newHashSet();
 
                 for (ComponentIdentifier componentId : componentIds) {
-                    if (!(componentId instanceof ModuleComponentIdentifier)) {
-                        throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
-                    }
+                    handleNonModuleComponentIdentifier(componentId);
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
                     try {
                         componentResults.add(buildComponentResult(moduleComponentId, repositoryChain, artifactResolver));
@@ -118,6 +117,16 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 }
 
                 return new DefaultArtifactResolutionResult(componentResults);
+            }
+
+            private void handleNonModuleComponentIdentifier(ComponentIdentifier componentId) {
+                if (!(componentId instanceof ModuleComponentIdentifier)) {
+                    if(componentId instanceof ProjectComponentIdentifier) {
+                        throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for the project component with path %s", ((ProjectComponentIdentifier) componentId).getProjectPath()));
+                    }
+
+                    throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
+                }
             }
         });
     }

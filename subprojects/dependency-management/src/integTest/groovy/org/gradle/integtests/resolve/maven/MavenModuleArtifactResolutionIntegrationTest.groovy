@@ -88,7 +88,7 @@ repositories {
         ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("Cannot resolve the artifacts for component project : with unsupported type org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.")
+        failure.assertHasCause("Cannot resolve the artifacts for the project component with path :")
     }
 
     def "request an Maven POM for a Maven module with no metadata"() {
