@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
+import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
@@ -47,7 +48,7 @@ repositories {
 
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
-               .expectComponentResult('ComponentArtifactsResult').expectMetadataFiles([module.ivy.file] as Set)
+               .expectResolvedComponentResult().expectMetadataFiles([module.ivy.file] as Set)
                .createVerifyTaskModuleComponentIdentifier()
 
         module.ivy.expectGet()
@@ -63,7 +64,7 @@ repositories {
 
         when:
         fixture.requestComponent(component).requestArtifact(artifactType)
-               .expectComponentResult('UnresolvedComponentResult').expectMetadataFiles([] as Set)
+               .expectUnresolvedComponentResult(exception).expectMetadataFiles([] as Set)
                .createVerifyTaskModuleComponentIdentifier()
         module.ivy.expectGet()
 
@@ -71,9 +72,9 @@ repositories {
         checkArtifactsResolvedAndCached()
 
         where:
-        component     | artifactType            | reason
-        'IvyModule'   | 'MavenPomArtifact'      | 'cannot mix IvyModule with Maven metadata artifact type MavenPomArtifact'
-        'MavenModule' | 'MavenPomArtifact'      | 'cannot retrieve Maven component and metadata artifact for Ivy module'
+        component     | artifactType       | reason                                                                    | exception
+        'IvyModule'   | 'MavenPomArtifact' | 'cannot mix IvyModule with Maven metadata artifact type MavenPomArtifact' | new IllegalArgumentException('Artifact type org.gradle.maven.MavenPomArtifact is not registered for component type org.gradle.ivy.IvyModule.')
+        'MavenModule' | 'MavenPomArtifact' | 'cannot retrieve Maven component and metadata artifact for Ivy module'    | new ArtifactResolveException("Could not determine artifacts for some.group:some-artifact:1.0: Cannot locate 'maven pom' artifacts for 'some.group:some-artifact:1.0' in repository 'ivy'")
     }
 
     def "requesting IvyModule for a project component"() {
@@ -97,7 +98,7 @@ repositories {
 
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
-               .expectComponentResult('ComponentArtifactsResult').expectMetadataFiles([] as Set)
+               .expectResolvedComponentResult().expectMetadataFiles([] as Set)
                .createVerifyTaskModuleComponentIdentifier()
 
         // TODO: Need to look into expectations
@@ -116,7 +117,7 @@ repositories {
 
         fixture.configureChangingModule()
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
-               .expectComponentResult('ComponentArtifactsResult').expectMetadataFiles([module.ivyFile] as Set)
+               .expectResolvedComponentResult().expectMetadataFiles([module.ivyFile] as Set)
                .createVerifyTaskModuleComponentIdentifier()
 
         when:

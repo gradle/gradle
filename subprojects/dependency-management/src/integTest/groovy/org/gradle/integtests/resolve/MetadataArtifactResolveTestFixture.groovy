@@ -17,6 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ComponentArtifactsResult
+import org.gradle.api.artifacts.result.ComponentResult
+import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
 
@@ -26,7 +29,8 @@ class MetadataArtifactResolveTestFixture {
     final ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId('some.group', 'some-artifact', '1.0')
     private String requestedComponent
     private String requestedArtifact
-    private String expectedComponentResult
+    private Class<? extends ComponentResult> expectedComponentResult
+    private Throwable expectedException
     private Set<File> expectedMetadataFiles
 
     MetadataArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
@@ -79,8 +83,14 @@ if (project.hasProperty('nocache')) {
         this
     }
 
-    MetadataArtifactResolveTestFixture expectComponentResult(String componentResult) {
-        this.expectedComponentResult = componentResult
+    MetadataArtifactResolveTestFixture expectResolvedComponentResult() {
+        this.expectedComponentResult = ComponentArtifactsResult
+        this
+    }
+
+    MetadataArtifactResolveTestFixture expectUnresolvedComponentResult(Throwable expectedException) {
+        this.expectedComponentResult = UnresolvedComponentResult
+        this.expectedException = expectedException
         this
     }
 
@@ -104,11 +114,14 @@ task verify {
 
         assert result.components.size() == 1
 
-        // Check generic component result
-        def componentResult = result.components.iterator().next()
-        assert componentResult.id.displayName == '$id.displayName'
-        assert componentResult instanceof $expectedComponentResult
+        ${createComponentResultVerificationCode()}
+"""
 
+        if(expectedComponentResult == UnresolvedComponentResult) {
+            buildFile << createUnresolvedComponentResultVerificationCode()
+        }
+
+        buildFile << """
         def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
 
         for(component in result.resolvedComponents) {
@@ -124,6 +137,24 @@ task verify {
 }
 """
     }
+
+    private String createComponentResultVerificationCode() {
+        """
+        // Check generic component result
+        def componentResult = result.components.iterator().next()
+        assert componentResult.id.displayName == '$id.displayName'
+        assert componentResult instanceof $expectedComponentResult.name
+"""
+    }
+
+    private String createUnresolvedComponentResultVerificationCode() {
+        """
+        // Check unresolved component result
+        UnresolvedComponentResult unresolvedComponentResult = (UnresolvedComponentResult)componentResult
+        assert unresolvedComponentResult.failure instanceof ${expectedException.getClass().name}
+        assert unresolvedComponentResult.failure.message == "$expectedException.message"
+"""
+}
 
     void createVerifyTaskForProjectComponentIdentifier() {
         buildFile << """
