@@ -573,6 +573,7 @@ The initial target for this functionality will be to replace the `PlatformContai
 
 - Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
 - Should getters of subjects be allowed to be called during mutation rules? (i.e. we can't guarantee they won't change)
+- Should we allow setters being called more than once?
 
 ## Backlog
 
