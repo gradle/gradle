@@ -16,6 +16,9 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
+
 import static org.hamcrest.Matchers.startsWith
 
 class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
@@ -61,6 +64,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/codenarc/test.html").exists()
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
         goodCode()
@@ -75,7 +79,8 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
     }
-    
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can generate multiple reports"() {
         given:
         buildFile << """

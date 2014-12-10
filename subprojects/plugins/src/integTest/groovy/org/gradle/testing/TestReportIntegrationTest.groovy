@@ -233,6 +233,7 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "test report task is skipped when there are no results"() {
         given:
         buildScript """
@@ -253,6 +254,7 @@ public class SubClassTests extends SuperClassTests {
     }
 
     @Unroll
+    @IgnoreIf({GradleContextualExecuter.parallel})
     "#type report files are considered outputs"() {
         given:
         buildScript """
@@ -290,6 +292,7 @@ public class SubClassTests extends SuperClassTests {
         "html" | "build/reports/tests"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "results or reports are linked to in error output"() {
         given:
         buildScript """
@@ -327,7 +330,7 @@ public class SubClassTests extends SuperClassTests {
         !errorOutput.contains("See the")
     }
 
-
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "output per test case flag invalidates outputs"() {
         when:
         buildScript """

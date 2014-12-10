@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matcher
+import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -67,6 +69,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.BadClassTest"))
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
         goodCode()
@@ -201,6 +204,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class800Test"))
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental for reporting settings"() {
         given:
         buildFile << """
@@ -243,6 +247,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         !(":findbugsMain" in skippedTasks)
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental for withMessage"() {
         given:
         buildFile << """
@@ -298,6 +303,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         !(":findbugsMain" in skippedTasks)
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is withMessage ignored for non-XML report setting"() {
         given:
         buildFile << """

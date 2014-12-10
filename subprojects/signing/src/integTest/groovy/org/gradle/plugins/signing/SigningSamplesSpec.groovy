@@ -19,8 +19,10 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {
     @Rule public final Sample mavenSample = new Sample(temporaryFolder)
@@ -38,6 +40,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     }
 
     @UsesSample('signing/conditional')
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "conditional signing"() {
         given:
         sample mavenSample

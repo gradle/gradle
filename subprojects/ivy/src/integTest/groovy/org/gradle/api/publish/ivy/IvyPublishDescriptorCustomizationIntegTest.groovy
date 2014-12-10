@@ -48,6 +48,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         """
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can customize descriptor xml during publication"() {
         when:
         succeeds 'publish'

@@ -18,9 +18,11 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -30,6 +32,7 @@ import spock.lang.Unroll
 class TestingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "test interrupting its own thread does not kill test execution"() {
         given:
         buildFile << """

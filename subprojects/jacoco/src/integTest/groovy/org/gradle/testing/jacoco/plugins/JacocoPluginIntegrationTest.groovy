@@ -19,6 +19,8 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -143,6 +145,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     void jacocoReportIsIncremental() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/.resources")
 
@@ -178,6 +181,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         executionResult.assertTaskSkipped(':jacocoTestReport')
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     void canUseCoverageDataFromPreviousRunForCoverageReport() {
         when:
         succeeds('jacocoTestReport')
@@ -197,6 +201,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         htmlReport().totalCoverage() == 100
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     void canMergeCoverageData() {
         given:
         file("src/otherMain/java/Thing.java") << """

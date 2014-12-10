@@ -90,6 +90,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "does not re-execute build with no change"() {
         given:
         run "installMainExecutable"

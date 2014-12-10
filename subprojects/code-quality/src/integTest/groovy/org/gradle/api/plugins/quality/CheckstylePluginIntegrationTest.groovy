@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matcher
+import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -107,6 +109,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
         goodCode()

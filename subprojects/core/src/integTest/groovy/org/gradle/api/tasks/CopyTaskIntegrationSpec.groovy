@@ -18,6 +18,8 @@ package org.gradle.api.tasks
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
@@ -95,6 +97,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2838")
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "include empty dirs works when nested"() {
         given:
         file("a/a.txt") << "foo"
@@ -123,6 +126,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         destinationDir.listFiles().findAll { it.directory }*.name.toSet() == ["dirA"].toSet()
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "include empty dirs is overridden by subsequent"() {
         given:
         file("a/a.txt") << "foo"

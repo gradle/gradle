@@ -63,6 +63,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         install = installation("build/install/mainExecutable")
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "does not re-execute build with no change"() {
         when:
         run "mainExecutable"

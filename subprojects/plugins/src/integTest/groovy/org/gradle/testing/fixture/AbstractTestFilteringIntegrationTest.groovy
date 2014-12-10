@@ -17,6 +17,8 @@ package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -158,6 +160,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "task is out of date when included methods change"() {
         buildFile << """
             test {

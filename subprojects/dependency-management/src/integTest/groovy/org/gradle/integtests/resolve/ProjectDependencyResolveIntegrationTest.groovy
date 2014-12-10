@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -391,6 +393,7 @@ project('c') {
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
     // project dependencies that are “built” by built in plugins like the Java plugin's created jars
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can use zip files as project dependencies"() {
         given:
         file("settings.gradle") << "include 'a'; include 'b'"
