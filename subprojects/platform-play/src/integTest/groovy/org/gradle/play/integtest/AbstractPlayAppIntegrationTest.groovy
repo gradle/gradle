@@ -43,15 +43,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         executedAndNotSkipped(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":createPlayBinaryJar", ":playBinary", ":assemble")
 
         and:
-        jar("build/jars/play/playBinary.jar").containsDescendants(
-                "Routes.class",
-                "views/html/index.class",
-                "views/html/main.class",
-                "controllers/Application.class",
-                "public/images/favicon.svg",
-                "public/stylesheets/main.css",
-                "public/javascripts/hello.js",
-                "application.conf")
+        verifyJar()
 
         when:
         succeeds("createPlayBinaryJar")
@@ -116,7 +108,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         assert playUrl().text.contains("Your new application is ready.")
 
         and:
-        checkContent()
+        verifyContent()
 
         when: "stopping gradle"
         stdinWriter.write(4) // ctrl+d
@@ -127,7 +119,19 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         notAvailable(url)
     }
 
-    void checkContent() {
+    void verifyJar() {
+        jar("build/jars/play/playBinary.jar").containsDescendants(
+                "Routes.class",
+                "views/html/index.class",
+                "views/html/main.class",
+                "controllers/Application.class",
+                "public/images/favicon.svg",
+                "public/stylesheets/main.css",
+                "public/javascripts/hello.js",
+                "application.conf")
+    }
+
+    void verifyContent() {
         // Check all static assets from the shared content
         assertUrlContent playUrl("assets/stylesheets/main.css"), file("public/stylesheets/main.css")
         assertUrlContent playUrl("assets/javascripts/hello.js"), file("public/javascripts/hello.js")

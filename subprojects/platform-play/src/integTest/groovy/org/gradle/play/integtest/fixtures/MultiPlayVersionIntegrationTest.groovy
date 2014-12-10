@@ -24,9 +24,7 @@ abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSp
 
     def setup() {
         buildFile <<"""
-        plugins {
-            id 'play-application'
-        }
+        ${pluginsBlock}
 
         model {
             components {
@@ -46,7 +44,13 @@ abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSp
 """
     }
 
-
+    def getPluginsBlock() {
+        return """
+            plugins {
+                id 'play-application'
+            }
+        """
+    }
 
 
     JarTestFixture jar(String fileName) {

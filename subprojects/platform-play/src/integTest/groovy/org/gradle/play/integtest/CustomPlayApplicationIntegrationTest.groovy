@@ -19,13 +19,57 @@ package org.gradle.play.integtest
 import org.gradle.play.integtest.fixtures.app.CustomPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
+import static org.gradle.integtests.fixtures.UrlValidator.*
+
 class CustomPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
     PlayApp playApp = new CustomPlayApp()
 
     @Override
-    void checkContent() {
-        super.checkContent()
+    def getPluginsBlock() {
+        return super.getPluginsBlock() + """
+            plugins {
+                id 'play-coffeescript'
+            }
+        """
+    }
+
+    def setup() {
+        buildFile << """
+            repositories {
+                maven {
+                    name = "gradle-js"
+                    url = "https://repo.gradle.org/gradle/javascript-public"
+                }
+            }
+        """
+    }
+
+    @Override
+    void verifyJar() {
+        super.verifyJar()
+
+        jar("build/jars/play/playBinary.jar").containsDescendants(
+                "views/html/awesome/index.class",
+                "special/strangename/Application.class",
+                "models/DataType.class",
+                "models/ScalaClass.class",
+                "controllers/MixedJava.class",
+                "controllers/PureJava.class",
+                "public/javascripts/sample.js",
+                "public/javascripts/test.js",
+        )
+    }
+
+    @Override
+    void verifyContent() {
+        super.verifyContent()
+
+        // Custom Routes
         assert playUrl("java/one").text.contains("<li>foo:1</li>")
         assert playUrl("scala/one").text.contains("<li>hello:1</li>")
+
+        // Custom Assets
+        assertUrlContent playUrl("assets/javascripts/test.js"), file("app/assets/javascripts/sample.js")
+        assertUrlContent playUrl("assets/javascripts/sample.js"), file("app/assets/javascripts/sample.js")
     }
 }
