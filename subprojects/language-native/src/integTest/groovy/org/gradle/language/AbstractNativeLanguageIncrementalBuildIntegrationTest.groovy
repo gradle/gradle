@@ -102,8 +102,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         nonSkippedTasks.empty
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({GradleContextualExecuter.parallel || !TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
     def "rebuilds executable with source file change"() {
         given:
         run "installMainExecutable"
