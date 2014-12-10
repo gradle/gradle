@@ -27,7 +27,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
     private final Class<? super T> subjectType;
     private List<Class<?>> inputTypes;
 
-    public ClosureBackedRuleAction(Class<T> subjectType, Closure closure) {
+    public ClosureBackedRuleAction(Class<T> subjectType, Closure<?> closure) {
         this.subjectType = subjectType;
         this.closure = closure;
         this.inputTypes = parseInputTypes(closure);
