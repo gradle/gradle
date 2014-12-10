@@ -243,10 +243,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 
-                    // use zinc compiler per default
-                    scalaCompile.getScalaCompileOptions().setFork(true);
-                    scalaCompile.getScalaCompileOptions().setUseAnt(false);
-
                     for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
@@ -316,10 +312,6 @@ public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
 
                         IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                         incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
-
-                        // use zinc compiler per default
-                        scalaCompile.getScalaCompileOptions().setFork(true);
-                        scalaCompile.getScalaCompileOptions().setUseAnt(false);
                     }
                 });
 

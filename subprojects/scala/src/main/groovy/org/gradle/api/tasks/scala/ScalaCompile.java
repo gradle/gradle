@@ -19,19 +19,24 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.scala.AbstractScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.
  */
-public class ScalaCompile extends AbstractScalaCompile {
+public class ScalaCompile extends AbstractScalaCompile<ScalaJavaJointCompileSpec, ScalaCompileOptions> {
+
+    private final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
 
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
@@ -69,6 +74,11 @@ public class ScalaCompile extends AbstractScalaCompile {
         this.compiler = compiler;
     }
 
+    @Nested
+    public ScalaCompileOptions getScalaCompileOptions() {
+        return scalaCompileOptions;
+    }
+
     protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
@@ -78,11 +88,20 @@ public class ScalaCompile extends AbstractScalaCompile {
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath());
             org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = scalaCompilerFactory.newCompiler(spec);
-            compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
+            compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs(), spec.getScalaCompileOptions().isUseAnt());
         }
         return compiler;
     }
 
+    @Override
+    protected AbstractScalaJavaJointCompileSpec<ScalaCompileOptions> newSpec() {
+        return new DefaultScalaJavaJointCompileSpec();
+    }
+
+    @Override
+    protected boolean useAnt() {
+        return getScalaCompileOptions().isUseAnt();
+    }
 
     protected void assertScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
@@ -90,5 +109,4 @@ public class ScalaCompile extends AbstractScalaCompile {
                     + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
         }
     }
-
 }

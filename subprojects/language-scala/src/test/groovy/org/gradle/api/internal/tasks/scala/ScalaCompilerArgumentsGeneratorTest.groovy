@@ -16,11 +16,16 @@
 
 package org.gradle.api.internal.tasks.scala
 
+import org.gradle.language.scala.tasks.PlatformScalaCompileOptions
 import spock.lang.Specification
 
 class ScalaCompilerArgumentsGeneratorTest extends Specification {
     def generator = new ScalaCompilerArgumentsGenerator()
-    def spec = new DefaultScalaCompileSpec()
+    def spec = new DefaultPlatformScalaJavaJointCompileSpec()
+
+    def setup(){
+        spec.setScalaCompileOptions(new PlatformScalaCompileOptions())
+    }
 
     def "default options"() {
         expect:
