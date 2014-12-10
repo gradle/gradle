@@ -34,14 +34,9 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
                 compile 'org.test:projectA:1.0'
             }
 
-            // implement Sync manually to make sure that task is never up-to-date
             task resolve {
                 doLast {
-                    delete 'libs'
-                    copy {
-                        from configurations.compile
-                        into 'libs'
-                    }
+                    configurations.compile.files
                 }
             }
         """
@@ -62,7 +57,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(28)
+        failure.assertHasLineNumber(23)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
         failure.assertHasCause("No signature of method: org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter_Decorated.foo()")
     }
@@ -80,7 +75,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(27)
+        failure.assertHasLineNumber(22)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentMetadataHandler'.")
         failureHasCause(message)
 
@@ -105,7 +100,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(27)
+        failure.assertHasLineNumber(22)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
         failure.assertHasCause("From Test")
     }
@@ -123,7 +118,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(27)
+        failure.assertHasLineNumber(22)
         failureHasCause("Could not add a component metadata rule for module 'org.test'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.test")
     }
@@ -146,7 +141,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(27)
+        failure.assertHasLineNumber(22)
         failureHasCause("Type BadRuleSource is not a valid model rule source: \n- first parameter of rule method 'process' must be of type org.gradle.api.artifacts.ComponentMetadataDetails")
 
     }
@@ -173,7 +168,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(36)
+        failure.assertHasLineNumber(31)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
