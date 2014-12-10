@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 @IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
-class ParallelNativePluginsTest extends AbstractInstalledToolChainIntegrationSpec {
+class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         executer.withArgument("--parallel-threads=4")
