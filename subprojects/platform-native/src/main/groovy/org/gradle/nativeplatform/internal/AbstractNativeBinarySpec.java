@@ -22,15 +22,13 @@ import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -103,7 +101,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return staticLibArchiver;
     }
 
-    public abstract DefaultBinaryTasksCollection getTasks();
+    public abstract BinaryTasksCollection getTasks();
 
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
@@ -156,8 +154,5 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         getCreateOrLink().source(files);
     }
 
-    protected ObjectFilesToBinary getCreateOrLink() {
-        ObjectFilesToBinary link = getTasks().findSingleTaskWithType(AbstractLinkTask.class);
-        return link == null ? getTasks().findSingleTaskWithType(CreateStaticLibrary.class) : link;
-    }
+    protected abstract ObjectFilesToBinary getCreateOrLink();
 }

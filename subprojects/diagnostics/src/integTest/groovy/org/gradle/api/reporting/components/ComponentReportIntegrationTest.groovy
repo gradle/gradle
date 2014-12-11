@@ -28,8 +28,6 @@ class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
     private String currentNative = NativePlatforms.defaultPlatformName
-    //TODO freekh: this test feels completely uneccessary. The reason is that each time we change how we want the report to be, we have to update the test. It still hasn't actually caught an actual error
-    //SF - I generally agree. If there is some interesting logic that is useful to validate at the level of report content, I would cover it in unit tests. I would probably leave one smoke integration test for the report contents.
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -253,6 +251,7 @@ Source sets
 Binaries
     Executable 'someExe:executable'
         build using task: :someExeExecutable
+        install using task: :installSomeExeExecutable
         platform: $currentNative
         build type: debug
         flavor: default
@@ -271,6 +270,7 @@ Source sets
 Binaries
     C unit exe 'someExeTest:cUnitExe'
         build using task: :someExeTestCUnitExe
+        run using task: :runSomeExeTestCUnitExe
         platform: $currentNative
         build type: debug
         flavor: default

@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.Architectures
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentSpec
@@ -205,6 +206,11 @@ class NativeBinarySpecTest extends Specification {
         File getPrimaryOutput() {
             File binaryOutputDir = getBinaryOutputDir();
             return new File(binaryOutputDir, getOutputFileName());
+        }
+
+        @Override
+        protected ObjectFilesToBinary getCreateOrLink() {
+            return null;
         }
 
         DefaultBinaryTasksCollection getTasks() {

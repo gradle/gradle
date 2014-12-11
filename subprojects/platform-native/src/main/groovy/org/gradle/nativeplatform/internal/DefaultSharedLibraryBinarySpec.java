@@ -22,6 +22,7 @@ import org.gradle.language.nativeplatform.NativeResourceSet;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
@@ -61,7 +62,12 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return new SharedLibraryRuntimeOutputs();
     }
 
-    public DefaultTasksCollection getTasks() {
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getLink();
+    }
+
+    public SharedLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 

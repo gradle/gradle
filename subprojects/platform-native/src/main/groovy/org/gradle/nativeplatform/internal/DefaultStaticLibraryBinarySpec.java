@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
@@ -58,7 +59,12 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return new SimpleFileCollection();
     }
 
-    public DefaultTasksCollection getTasks() {
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getCreateStaticLib();
+    }
+
+    public StaticLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 

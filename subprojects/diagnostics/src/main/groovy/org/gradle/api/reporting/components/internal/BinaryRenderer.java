@@ -50,6 +50,14 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
         textOutput.println();
 
         textOutput.formatln("    build using task: %s", binary.getBuildTask().getPath());
+        if (binary instanceof NativeExecutableBinarySpec) {
+            NativeExecutableBinarySpec executableBinary = (NativeExecutableBinarySpec) binary;
+            textOutput.formatln("    install using task: %s", executableBinary.getTasks().getInstall().getPath());
+        }
+        if (binary instanceof NativeTestSuiteBinarySpec) {
+            NativeTestSuiteBinarySpec executableBinary = (NativeTestSuiteBinarySpec) binary;
+            textOutput.formatln("    run using task: %s", executableBinary.getTasks().getRun().getPath());
+        }
 
         if (binary instanceof NativeBinarySpec) {
             NativeBinarySpec nativeBinary = (NativeBinarySpec) binary;

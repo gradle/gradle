@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.NativeExecutableBinary;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
@@ -40,7 +41,12 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return getExecutableFile();
     }
 
-    public DefaultTasksCollection getTasks() {
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getLink();
+    }
+
+    public NativeExecutableBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
