@@ -37,7 +37,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
     private final Set<File> resolvedScalaClasspath;
     private final Set<File> resolvedZincClasspath;
 
-    public  DefaultScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
+    public DefaultScalaToolProvider(ProjectFinder projectFinder, CompilerDaemonManager compilerDaemonManager, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
         this.projectFinder = projectFinder;
         this.compilerDaemonManager = compilerDaemonManager;
         this.resolvedScalaClasspath = resolvedScalaClasspath;

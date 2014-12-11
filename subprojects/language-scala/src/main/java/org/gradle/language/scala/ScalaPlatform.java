@@ -20,7 +20,7 @@ import org.gradle.platform.base.Platform;
 
 /**
  * Defines and configures a Scala Platform.
- * */
+ */
 public interface ScalaPlatform extends Platform {
     String getScalaVersion();
 

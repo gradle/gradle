@@ -23,7 +23,7 @@ class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
     def generator = new ZincScalaCompilerArgumentsGenerator()
     def spec = new DefaultScalaJavaJointCompileSpec()
 
-    def setup(){
+    def setup() {
         spec.setScalaCompileOptions(new BaseScalaCompileOptions())
     }
 

@@ -72,7 +72,9 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
     }
 
     private void logSourceFiles(ScalaJavaJointCompileSpec spec) {
-        if (!spec.getScalaCompileOptions().isListFiles()) { return; }
+        if (!spec.getScalaCompileOptions().isListFiles()) {
+            return;
+        }
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
@@ -85,7 +87,9 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
     }
 
     private void logCompilerArguments(ScalaJavaJointCompileSpec spec) {
-        if (!LOGGER.isDebugEnabled()) { return; }
+        if (!LOGGER.isDebugEnabled()) {
+            return;
+        }
 
         List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
         String joinedArgs = Joiner.on(' ').join(compilerArgs);

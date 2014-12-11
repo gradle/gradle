@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.scala.plugins
+
 import org.gradle.api.Plugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.scala.ScalaLanguageSourceSet

@@ -41,10 +41,11 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
 
-    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath){
+    public ZincScalaCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath) {
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
     }
+
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         return Compiler.execute(scalaClasspath, zincClasspath, spec);
     }

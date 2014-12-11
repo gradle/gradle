@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.scala
+
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.scala.fixtures.BadScalaLibrary

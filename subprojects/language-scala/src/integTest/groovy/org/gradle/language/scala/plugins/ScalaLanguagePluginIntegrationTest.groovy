@@ -19,6 +19,6 @@ package org.gradle.language.scala.plugins
 import org.gradle.integtests.language.AbstractJvmPluginLanguageIntegrationTest
 import org.gradle.language.scala.ScalaLanguageSourceSet
 
-class ScalaLanguagePluginIntegrationTest extends AbstractJvmPluginLanguageIntegrationTest{
+class ScalaLanguagePluginIntegrationTest extends AbstractJvmPluginLanguageIntegrationTest {
     String sourceSetTypeName = ScalaLanguageSourceSet.class.simpleName
 }

@@ -38,11 +38,11 @@ class DownloadingScalaToolChainTest extends Specification {
     DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(projectFinder, compilerDaemonManager, configurationContainer, dependencyHandler)
     ScalaPlatform scalaPlatform = Mock()
 
-    def setup(){
+    def setup() {
         _ * scalaPlatform.getScalaVersion() >> "2.10.4"
     }
 
-    def "tools available when compiler dependencies can be resolved"(){
+    def "tools available when compiler dependencies can be resolved"() {
         when:
         dependencyAvailable("scala-compiler")
         dependencyAvailable("zinc")
@@ -50,7 +50,7 @@ class DownloadingScalaToolChainTest extends Specification {
         scalaToolChain.select(scalaPlatform).isAvailable()
     }
 
-    def "tools not available when compiler dependencies cannot be resolved"(){
+    def "tools not available when compiler dependencies cannot be resolved"() {
         when:
         dependencyNotAvailable("scala-compiler")
         def toolProvider = scalaToolChain.select(scalaPlatform)
@@ -81,7 +81,7 @@ class DownloadingScalaToolChainTest extends Specification {
 
     private void dependencyAvailable(String dependency) {
         Dependency someDependency = Mock()
-        Configuration someConfiguration= Mock()
+        Configuration someConfiguration = Mock()
         (_..1) * dependencyHandler.create({ it =~ dependency }) >> someDependency
         (_..1) * configurationContainer.detachedConfiguration(someDependency) >> someConfiguration
         (_..1) * someConfiguration.resolve() >> new HashSet<File>()
@@ -91,7 +91,7 @@ class DownloadingScalaToolChainTest extends Specification {
         Dependency someDependency = Mock()
         ResolveException resolveException = Mock()
         Exception resolveExceptionCause = Mock()
-        Configuration someConfiguration= Mock()
+        Configuration someConfiguration = Mock()
 
         _ * resolveException.cause >> resolveExceptionCause
         _ * resolveExceptionCause.getMessage() >> "Cannot resolve '$dependency'."

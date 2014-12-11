@@ -36,8 +36,8 @@ class Person2 {
     ]
 
     List<String> compilerErrors = [
-        "Person.scala:5: overriding method toString in class Object of type ()String",
-        "Person2.scala:4: class Person2 needs to be abstract, since method test is not defined"
+            "Person.scala:5: overriding method toString in class Object of type ()String",
+            "Person2.scala:4: class Person2 needs to be abstract, since method test is not defined"
 
     ]
 }

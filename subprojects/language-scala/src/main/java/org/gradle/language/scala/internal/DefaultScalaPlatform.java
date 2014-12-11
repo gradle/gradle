@@ -30,6 +30,7 @@ public class DefaultScalaPlatform implements ScalaPlatform {
     public String getScalaVersion() {
         return scalaVersion;
     }
+
     public String getScalaCompatibilityVersion() {
         return scalaCompatibilityVersion;
     }

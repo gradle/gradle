@@ -18,7 +18,7 @@ package org.gradle.language.scala.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class ScalaLanguagePluginGoodBehaviourTest extends WellBehavedPluginTest{
+class ScalaLanguagePluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {
         "scala-lang"

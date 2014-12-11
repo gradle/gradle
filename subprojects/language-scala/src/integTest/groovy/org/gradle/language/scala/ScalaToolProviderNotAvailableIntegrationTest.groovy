@@ -37,7 +37,7 @@ class ScalaToolProviderNotAvailableIntegrationTest extends AbstractIntegrationSp
     """
     }
 
-    def "provide decent error message when scala tools not available"(){
+    def "provide decent error message when scala tools not available"() {
         given:
         app.writeSources(file("src/myLib"))
         app.writeResources(file("src/myLib/resources"))

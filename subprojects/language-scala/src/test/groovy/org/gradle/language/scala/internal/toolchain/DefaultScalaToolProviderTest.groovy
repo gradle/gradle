@@ -29,7 +29,7 @@ class DefaultScalaToolProviderTest extends Specification {
     Set<File> zincClasspath = Mock()
     ProjectFinder projectFinder = Mock()
 
-    def "newCompiler provides decent error for unsupported CompileSpec"(){
+    def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
         DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, scalacClasspath, zincClasspath)
 
@@ -42,5 +42,5 @@ class DefaultScalaToolProviderTest extends Specification {
     }
 }
 
-class UnknownCompileSpec implements CompileSpec{}
+class UnknownCompileSpec implements CompileSpec {}
 

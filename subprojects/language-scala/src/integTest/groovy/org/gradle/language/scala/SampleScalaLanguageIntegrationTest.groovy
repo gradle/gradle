@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.scala
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.JarTestFixture

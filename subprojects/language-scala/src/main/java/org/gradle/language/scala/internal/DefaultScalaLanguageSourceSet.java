@@ -30,7 +30,7 @@ public class DefaultScalaLanguageSourceSet extends AbstractLanguageSourceSet imp
     private final EmptyClasspath compileClasspath;
 
     @Inject
-    public DefaultScalaLanguageSourceSet(String name, String parent, FileResolver fileResolver){
+    public DefaultScalaLanguageSourceSet(String name, String parent, FileResolver fileResolver) {
         super(name, parent, "Scala source", new DefaultSourceDirectorySet("source", fileResolver));
 
         this.compileClasspath = new EmptyClasspath();
