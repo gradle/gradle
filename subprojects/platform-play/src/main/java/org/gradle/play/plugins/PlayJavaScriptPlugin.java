@@ -16,9 +16,10 @@
 
 package org.gradle.play.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -26,8 +27,10 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationSpec;
@@ -48,6 +51,7 @@ public class PlayJavaScriptPlugin {
     void createJavascriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
             registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
+
             JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptSources", JavaScriptSourceSet.class);
             javaScriptSourceSet.getSource().srcDir("app/assets");
             javaScriptSourceSet.getSource().include("**/*.js");
@@ -65,23 +69,23 @@ public class PlayJavaScriptPlugin {
         functionalSourceSet.registerFactory(JavaScriptSourceSet.class, namedDomainObjectFactory);
     }
 
-    @Mutate
-    void createJavaScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
-        for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-            for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+    @BinaryTasks
+    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+            LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) javaScriptSourceSet;
+            if (sourceSetInternal.getMayHaveSources()) {
+                String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+                tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
+                    @Override
+                    public void execute(JavaScriptProcessResources javaScriptProcessResources) {
+                        File javascriptOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
+                        javaScriptProcessResources.from(javaScriptSourceSet.getSource());
+                        javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
 
-                LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) javaScriptSourceSet;
-
-                if (sourceSetInternal.getMayHaveSources()) {
-                    File javascriptOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
-                    String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
-                    JavaScriptProcessResources javaScriptProcessResources = tasks.create(processTaskName, JavaScriptProcessResources.class);
-                    javaScriptProcessResources.from(javaScriptSourceSet.getSource());
-                    javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
-
-                    binary.getAssets().builtBy(javaScriptProcessResources);
-                    binary.getAssets().addAssetDir(javascriptOutputDirectory);
-                }
+                        binary.getAssets().builtBy(javaScriptProcessResources);
+                        binary.getAssets().addAssetDir(javascriptOutputDirectory);
+                    }
+                });
             }
         }
     }

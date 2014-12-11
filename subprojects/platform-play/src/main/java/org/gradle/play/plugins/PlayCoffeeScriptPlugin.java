@@ -16,11 +16,8 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -28,8 +25,10 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationSpec;
@@ -90,38 +89,49 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             functionalSourceSet.registerFactory(CoffeeScriptSourceSet.class, namedDomainObjectFactory);
         }
 
-        // TODO Can't use @BinaryTasks because there's no way to modify the task properties after it has been created with CollectionBuilder<Task>
-        @Mutate
-        void createCoffeeScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
-            for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-                for (CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
-
-                    LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) coffeeScriptSourceSet;
-
-                    if (sourceSetInternal.getMayHaveSources()) {
-                        File coffeeScriptCompileOutputDirectory = new File(buildDir, String.format("%s/coffeescript", binary.getName()));
-                        String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
-                        PlayCoffeeScriptCompile coffeeScriptCompile = tasks.create(compileTaskName, PlayCoffeeScriptCompile.class);
-                        coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
-                        coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
-                        coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
-                        coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
-                        binary.getTasks().add(coffeeScriptCompile);
-
-                        // TODO:DAZ Should not be sharing this output directory with non-coffeescript javascript (harder for task to be up-to-date)
-                        File coffeeScriptProcessOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
-                        String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
-                        JavaScriptProcessResources processGeneratedJavascript = tasks.create(processTaskName, JavaScriptProcessResources.class);
-                        processGeneratedJavascript.dependsOn(coffeeScriptCompile);
-                        processGeneratedJavascript.from(coffeeScriptCompile.getDestinationDir());
-                        processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
-                        binary.getTasks().add(processGeneratedJavascript);
-
-                        binary.getAssets().builtBy(processGeneratedJavascript);
-                        binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
-                    }
+        @BinaryTasks
+        void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+            for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
+                if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
+                    final File coffeeScriptCompileOutputDirectory = new File(buildDir, String.format("%s/coffeescript", binary.getName()));
+                    String compileTaskName = createCoffeeScriptCompile(tasks, binary, coffeeScriptSourceSet, coffeeScriptCompileOutputDirectory);
+                    createJavaScriptCompile(tasks, binary, coffeeScriptSourceSet, buildDir, coffeeScriptCompileOutputDirectory, compileTaskName);
                 }
             }
+        }
+
+        private String createCoffeeScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+                                               final CoffeeScriptSourceSet coffeeScriptSourceSet, final File coffeeScriptCompileOutputDirectory) {
+            LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) coffeeScriptSourceSet;
+            final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+            tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
+                @Override
+                public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
+                    coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
+                    coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
+                    coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+                    coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+                }
+            });
+            return compileTaskName;
+        }
+
+        private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final CoffeeScriptSourceSet coffeeScriptSourceSet,
+                                             final File buildDir, final File coffeeScriptCompileOutputDirectory, final String compileTaskName) {
+            LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) coffeeScriptSourceSet;
+            String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+            tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
+                @Override
+                public void execute(JavaScriptProcessResources processGeneratedJavascript) {
+                    // TODO:DAZ Should not be sharing this output directory with non-coffeescript javascript (harder for task to be up-to-date)
+                    File coffeeScriptProcessOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
+                    processGeneratedJavascript.dependsOn(compileTaskName);
+                    processGeneratedJavascript.from(coffeeScriptCompileOutputDirectory);
+                    processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
+                    binary.getAssets().builtBy(processGeneratedJavascript);
+                    binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
+                }
+            });
         }
     }
 }
