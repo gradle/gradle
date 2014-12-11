@@ -29,7 +29,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         file('src/play/extra/test2.coffee') << testCoffeeScript()
         buildFile << """
             plugins {
-                id 'play-application'
+                id 'play'
                 id 'play-coffeescript'
             }
 
