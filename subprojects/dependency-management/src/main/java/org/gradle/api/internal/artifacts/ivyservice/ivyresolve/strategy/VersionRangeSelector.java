@@ -29,7 +29,8 @@ import java.util.regex.Pattern;
  * none is set, it uses the default one of the ivy instance set through setIvy(). If neither a
  * latest strategy nor a ivy instance is set, an IllegalStateException will be thrown when calling
  * accept(). Note that it can't work with latest time strategy, cause no time is known for the
- * limits of the range. Therefore only purely revision based LatestStrategy can be used.
+ * limits of the range. Therefore only purely revision based LatestStrategy can be used.  All
+ * maven SNAPSHOT revisions are rejected in keeping with maven behavior.
  */
 public class VersionRangeSelector extends AbstractVersionSelector {
     private static final String OPEN_INC = "[";
@@ -140,6 +141,9 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     }
 
     public boolean accept(String candidate) {
+        if (candidate.endsWith("SNAPSHOT")) {
+            return false;
+        }
         if (lowerBound != null && !isHigher(candidate, lowerBound, lowerInclusive)) {
             return false;
         }

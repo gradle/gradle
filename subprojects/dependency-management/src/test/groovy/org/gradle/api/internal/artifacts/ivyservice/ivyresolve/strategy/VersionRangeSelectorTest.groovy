@@ -113,6 +113,9 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
 
         !accept("(,2.0[", "2.0")
         !accept("(,2.0[", "42")
+        
+        !accept("(1.0,2.0)", "1.0")
+        !accept("(1.0,2.0)", "2.0")
     }
 
     def "rejects candidate versions that don't fall into the selector's range (adding qualifiers to the mix)"() {
@@ -124,6 +127,10 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
         !accept("[1.0-dev-2,2.0[", "1.0-dev-1")
         !accept("[1.0,2.0-rc-2[", "2.0-rc-2")
         !accept("[1.0,2.0-final[", "2.0")
+        
+        !accept("[1.0,2.0)", "2.0-SNAPSHOT")
+        !accept("[1.0,2.0)", "1.0-SNAPSHOT")
+        !accept("[1.0,2.0)", "1.5-SNAPSHOT")
 
         !accept("]1.0-dev-1,2.0]", "1.0-dev-1")
         !accept("]1.0-rc-2,2.0]", "1.0-dev-3")
