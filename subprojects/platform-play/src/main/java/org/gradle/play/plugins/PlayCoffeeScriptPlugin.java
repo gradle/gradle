@@ -50,7 +50,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 
     public void apply(Project project) {
-        project.getPluginManager().apply(PlayJavaScriptPlugin.class);
+        project.getPluginManager().apply(PlayPlugin.class);
     }
 
     static String getDefaultCoffeeScriptDependencyNotation() {

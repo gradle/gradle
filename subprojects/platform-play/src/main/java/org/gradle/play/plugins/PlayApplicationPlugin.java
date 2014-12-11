@@ -60,278 +60,269 @@ import java.util.List;
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
  */
+@SuppressWarnings("UnusedDeclaration")
+@RuleSource
 @Incubating
-public class PlayApplicationPlugin implements Plugin<ProjectInternal> {
+public class PlayApplicationPlugin {
     private final static String DEFAULT_PLAY_VERSION = "2.3.7";
     public static final int DEFAULT_HTTP_PORT = 9000;
 
-    public void apply(final ProjectInternal project) {
+    @Model
+    void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {
+        playPlatforms.create(new Action<PlayPlatformInternal>() {
+            public void execute(PlayPlatformInternal platform) {
+                initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
+            }
+        });
+        playPlatforms.create(new Action<PlayPlatformInternal>() {
+            public void execute(PlayPlatformInternal platform) {
+                initializePlatform(platform, DEFAULT_PLAY_VERSION, "2.11.1", "1.0.2");
+            }
+        });
     }
 
-    /**
-     * Model rules.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
+        platform.setName("PlayPlatform" + playVersion);
+        platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
+        platform.setPlayVersion(playVersion);
+        platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
+        platform.setTwirlVersion(twirlVersion);
+        platform.setJavaPlatform(new DefaultJavaPlatform(JavaVersion.current()));
+    }
 
-        @Model
-        void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {
-            playPlatforms.create(new Action<PlayPlatformInternal>() {
-                public void execute(PlayPlatformInternal platform) {
-                    initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
-                }
-            });
-            playPlatforms.create(new Action<PlayPlatformInternal>() {
-                public void execute(PlayPlatformInternal platform) {
-                    initializePlatform(platform, DEFAULT_PLAY_VERSION, "2.11.1", "1.0.2");
-                }
-            });
-        }
+    @Model
+    PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
+        return serviceRegistry.get(PlayToolChainInternal.class);
+    }
 
-        private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
-            platform.setName("PlayPlatform" + playVersion);
-            platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
-            platform.setPlayVersion(playVersion);
-            platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
-            platform.setTwirlVersion(twirlVersion);
-            platform.setJavaPlatform(new DefaultJavaPlatform(JavaVersion.current()));
-        }
+    @Model
+    FileResolver fileResolver(ServiceRegistry serviceRegistry) {
+        return serviceRegistry.get(FileResolver.class);
+    }
 
-        @Model
-        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(PlayToolChainInternal.class);
-        }
+    @Mutate
+    public void addPlayPlatformsToPlatformContainer(PlatformContainer platforms, ManagedSet<PlayPlatformInternal> playPlatformInternals) {
+        platforms.addAll(playPlatformInternals);
+    }
 
-        @Model
-        FileResolver fileResolver(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(FileResolver.class);
-        }
+    @ComponentType
+    void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
+        builder.defaultImplementation(DefaultPlayApplicationSpec.class);
+    }
 
-        @Mutate
-        public void addPlayPlatformsToPlatformContainer(PlatformContainer platforms, ManagedSet<PlayPlatformInternal> playPlatformInternals) {
-            platforms.addAll(playPlatformInternals);
-        }
+    @Mutate
+    void createDefaultPlayApp(CollectionBuilder<PlayApplicationSpec> builder) {
+        builder.create("play");
+    }
 
-        @ComponentType
-        void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
-            builder.defaultImplementation(DefaultPlayApplicationSpec.class);
-        }
+    @BinaryType
+    void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
+        builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
+    }
 
-        @Mutate
-        void createDefaultPlayApp(CollectionBuilder<PlayApplicationSpec> builder) {
-            builder.create("play");
-        }
+    @Mutate
+    void configureDefaultPlaySources(ComponentSpecContainer components, final FileResolver fileResolver) {
+        components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
+            public void execute(PlayApplicationSpec playComponent) {
+                // TODO:DAZ Scala source set type should be registered via scala-lang plugin
+                ScalaLanguageSourceSet appSources = new DefaultScalaLanguageSourceSet("appSources", playComponent.getName(), fileResolver);
 
-        @BinaryType
-        void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
-            builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
-        }
-
-        @Mutate
-        void configureDefaultPlaySources(ComponentSpecContainer components, final FileResolver fileResolver) {
-            components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
-                public void execute(PlayApplicationSpec playComponent) {
-                    // TODO:DAZ Scala source set type should be registered via scala-lang plugin
-                    ScalaLanguageSourceSet appSources = new DefaultScalaLanguageSourceSet("appSources", playComponent.getName(), fileResolver);
-
-                    // Compile scala/java sources under /app\
-                    // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
-                    appSources.getSource().srcDir("app");
-                    appSources.getSource().include("**/*.scala");
-                    appSources.getSource().include("**/*.java");
-                    ((ComponentSpecInternal) playComponent).getSources().add(appSources);
-                }
-            });
-        }
-
-        @Finalize
-        void failOnMultiplePlayComponents(ComponentSpecContainer container) {
-            if (container.withType(PlayApplicationSpec.class).size() >= 2) {
-                throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
+                // Compile scala/java sources under /app\
+                // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
+                appSources.getSource().srcDir("app");
+                appSources.getSource().include("**/*.scala");
+                appSources.getSource().include("**/*.java");
+                ((ComponentSpecInternal) playComponent).getSources().add(appSources);
             }
+        });
+    }
+
+    @Finalize
+    void failOnMultiplePlayComponents(ComponentSpecContainer container) {
+        if (container.withType(PlayApplicationSpec.class).size() >= 2) {
+            throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
         }
+    }
 
-        @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
-                            PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
-                            final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
-            for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
-                final String binaryName = String.format("%sBinary", componentSpec.getName());
-                binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
-                    public void execute(PlayApplicationBinarySpec playBinary) {
-                        PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
+    @ComponentBinaries
+    void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
+                        PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
+                        final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
+        for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
+            final String binaryName = String.format("%sBinary", componentSpec.getName());
+            binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
+                public void execute(PlayApplicationBinarySpec playBinary) {
+                    PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
 
-                        playBinaryInternal.setTargetPlatform(chosenPlatform);
-                        playBinaryInternal.setToolChain(playToolChainInternal);
+                    playBinaryInternal.setTargetPlatform(chosenPlatform);
+                    playBinaryInternal.setToolChain(playToolChainInternal);
 
-                        playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
+                    playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
 
-                        JvmClasses classes = playBinary.getClasses();
-                        classes.setClassesDir(new File(buildDir, String.format("classes/%s", binaryName)));
+                    JvmClasses classes = playBinary.getClasses();
+                    classes.setClassesDir(new File(buildDir, String.format("classes/%s", binaryName)));
 
-                        // TODO:DAZ These should be configured on the component
-                        classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
+                    // TODO:DAZ These should be configured on the component
+                    classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
 
-                        PublicAssets assets = playBinary.getAssets();
-                        assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
+                    PublicAssets assets = playBinary.getAssets();
+                    assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-                        ScalaLanguageSourceSet genSources = new DefaultScalaLanguageSourceSet("genSources", binaryName, fileResolver);
-                        playBinaryInternal.setGeneratedScala(genSources);
-                    }
-                });
-            }
-        }
-
-        private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
-            String targetPlayVersion = componentSpec.getPlayVersion();
-            if (targetPlayVersion == null) {
-                targetPlayVersion = DEFAULT_PLAY_VERSION;
-            }
-            return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
-        }
-
-        @BinaryTasks
-        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
-                public void execute(TwirlCompile twirlCompile) {
-                    File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
-                    twirlCompile.setPlatform(binary.getTargetPlatform());
-                    twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
-                    twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
-                    twirlCompile.include("**/*.html");
-
-                    binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
-                    binary.getGeneratedScala().builtBy(twirlCompile);
+                    ScalaLanguageSourceSet genSources = new DefaultScalaLanguageSourceSet("genSources", binaryName, fileResolver);
+                    playBinaryInternal.setGeneratedScala(genSources);
                 }
             });
         }
+    }
 
-        @BinaryTasks
-        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
-                public void execute(RoutesCompile routesCompile) {
-                    final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
-                    routesCompile.setPlatform(binary.getTargetPlatform());
-                    routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
-                    routesCompile.setAdditionalImports(new ArrayList<String>());
-                    routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
-                    routesCompile.include("*.routes");
-                    routesCompile.include("routes");
+    private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
+        String targetPlayVersion = componentSpec.getPlayVersion();
+        if (targetPlayVersion == null) {
+            targetPlayVersion = DEFAULT_PLAY_VERSION;
+        }
+        return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+    }
 
-                    binary.getGeneratedScala().getSource().srcDir(routesCompilerOutputDirectory);
-                    binary.getGeneratedScala().builtBy(routesCompile);
+    @BinaryTasks
+    void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
+        tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
+            public void execute(TwirlCompile twirlCompile) {
+                File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
+                twirlCompile.setPlatform(binary.getTargetPlatform());
+                twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
+                twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
+                twirlCompile.include("**/*.html");
+
+                binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
+                binary.getGeneratedScala().builtBy(twirlCompile);
+            }
+        });
+    }
+
+    @BinaryTasks
+    void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
+        tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
+            public void execute(RoutesCompile routesCompile) {
+                final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
+                routesCompile.setPlatform(binary.getTargetPlatform());
+                routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
+                routesCompile.setAdditionalImports(new ArrayList<String>());
+                routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
+                routesCompile.include("*.routes");
+                routesCompile.include("routes");
+
+                binary.getGeneratedScala().getSource().srcDir(routesCompilerOutputDirectory);
+                binary.getGeneratedScala().builtBy(routesCompile);
+            }
+        });
+    }
+
+    @BinaryTasks
+    void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+                            PlayToolChainInternal playToolChain, FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
+        final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
+        tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+            public void execute(PlatformScalaCompile scalaCompile) {
+                scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
+                scalaCompile.setClasspath(playDependencies);
+                scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
+                //infer scala classpath
+                String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
+                scalaCompile.setSourceCompatibility(targetCompatibility);
+                scalaCompile.setTargetCompatibility(targetCompatibility);
+
+                IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+                incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
+
+                for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
+                    scalaCompile.source(appSources.getSource());
+                    scalaCompile.dependsOn(appSources);
+                }
+                scalaCompile.source(binary.getGeneratedScala().getSource());
+                scalaCompile.dependsOn(binary.getGeneratedScala());
+
+                binary.getClasses().builtBy(scalaCompile);
+            }
+        });
+    }
+
+    @BinaryTasks
+    void createJarTask(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
+        String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
+        tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
+            public void execute(Jar jar) {
+                jar.setDestinationDir(binary.getJarFile().getParentFile());
+                jar.setArchiveName(binary.getJarFile().getName());
+                jar.from(binary.getClasses().getClassesDir());
+                jar.from(binary.getClasses().getResourceDirs());
+                CopySpecInternal newSpec = jar.getRootSpec().addChild();
+                newSpec.from(binary.getAssets().getAssetDirs());
+                newSpec.into("public");
+                jar.dependsOn(binary.getClasses());
+                jar.dependsOn(binary.getAssets());
+            }
+        });
+    }
+
+    // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
+    @Mutate
+    void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
+        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+            String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
+            tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
+                public void execute(PlayRun playRun) {
+                    playRun.setHttpPort(DEFAULT_HTTP_PORT);
+                    playRun.setTargetPlatform(binary.getTargetPlatform());
+                    playRun.setApplicationJar(binary.getJarFile());
+                    playRun.dependsOn(binary.getBuildTask());
                 }
             });
         }
+    }
 
-        @BinaryTasks
-        void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                PlayToolChainInternal playToolChain, FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
-            final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
+    @Mutate
+    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, PlayToolChainInternal playToolChain, final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+            final PlayPlatform targetPlatform = binary.getTargetPlatform();
+            FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
+            final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
+
+            final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
+            // TODO:DAZ Model a test suite
+            final File testSourceDir = fileResolver.resolve("test");
+            final File testClassesDir = new File(buildDir, String.format("testClasses/%s", binary.getName()));
+            tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
-                    scalaCompile.setClasspath(playDependencies);
+                    scalaCompile.dependsOn(binary.getBuildTask());
+                    scalaCompile.setClasspath(testCompileClasspath);
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
-                    //infer scala classpath
+                    scalaCompile.setDestinationDir(testClassesDir);
+                    scalaCompile.setSource(testSourceDir);
                     String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
                     scalaCompile.setSourceCompatibility(targetCompatibility);
                     scalaCompile.setTargetCompatibility(targetCompatibility);
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                    incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
-
-                    for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
-                        scalaCompile.source(appSources.getSource());
-                        scalaCompile.dependsOn(appSources);
-                    }
-                    scalaCompile.source(binary.getGeneratedScala().getSource());
-                    scalaCompile.dependsOn(binary.getGeneratedScala());
-
-                    binary.getClasses().builtBy(scalaCompile);
+                    incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
                 }
             });
-        }
 
-        @BinaryTasks
-        void createJarTask(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
-            String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
-            tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
-                public void execute(Jar jar) {
-                    jar.setDestinationDir(binary.getJarFile().getParentFile());
-                    jar.setArchiveName(binary.getJarFile().getName());
-                    jar.from(binary.getClasses().getClassesDir());
-                    jar.from(binary.getClasses().getResourceDirs());
-                    CopySpecInternal newSpec = jar.getRootSpec().addChild();
-                    newSpec.from(binary.getAssets().getAssetDirs());
-                    newSpec.into("public");
-                    jar.dependsOn(binary.getClasses());
-                    jar.dependsOn(binary.getAssets());
+            String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
+            tasks.create(testTaskName, Test.class, new Action<Test>() {
+                public void execute(Test test) {
+                    test.setTestClassesDir(testClassesDir);
+                    test.setBinResultsDir(new File(buildDir, String.format("tmp/testResults/%s", test.getName())));
+                    test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/junit", binary.getName())));
+                    test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s", binary.getName())));
+                    test.dependsOn(testCompileTaskName);
+                    test.setTestSrcDirs(Arrays.asList(testSourceDir));
+                    test.setWorkingDir(projectIdentifier.getProjectDir());
+                    test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
                 }
             });
-        }
-
-        // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
-        @Mutate
-        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
-            for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-                String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
-                tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
-                    public void execute(PlayRun playRun) {
-                        playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setTargetPlatform(binary.getTargetPlatform());
-                        playRun.setApplicationJar(binary.getJarFile());
-                        playRun.dependsOn(binary.getBuildTask());
-                    }
-                });
-            }
-        }
-
-        @Mutate
-        void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, PlayToolChainInternal playToolChain, final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-                final PlayPlatform targetPlatform = binary.getTargetPlatform();
-                FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
-                final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
-
-                final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
-                // TODO:DAZ Model a test suite
-                final File testSourceDir = fileResolver.resolve("test");
-                final File testClassesDir = new File(buildDir, String.format("testClasses/%s", binary.getName()));
-                tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
-                    public void execute(PlatformScalaCompile scalaCompile) {
-                        scalaCompile.dependsOn(binary.getBuildTask());
-                        scalaCompile.setClasspath(testCompileClasspath);
-                        scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
-                        scalaCompile.setDestinationDir(testClassesDir);
-                        scalaCompile.setSource(testSourceDir);
-                        String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
-                        scalaCompile.setSourceCompatibility(targetCompatibility);
-                        scalaCompile.setTargetCompatibility(targetCompatibility);
-
-                        IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                        incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
-                    }
-                });
-
-                String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
-                tasks.create(testTaskName, Test.class, new Action<Test>() {
-                    public void execute(Test test) {
-                        test.setTestClassesDir(testClassesDir);
-                        test.setBinResultsDir(new File(buildDir, String.format("tmp/testResults/%s", test.getName())));
-                        test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/junit", binary.getName())));
-                        test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s", binary.getName())));
-                        test.dependsOn(testCompileTaskName);
-                        test.setTestSrcDirs(Arrays.asList(testSourceDir));
-                        test.setWorkingDir(projectIdentifier.getProjectDir());
-                        test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
-                    }
-                });
-            }
         }
     }
 }

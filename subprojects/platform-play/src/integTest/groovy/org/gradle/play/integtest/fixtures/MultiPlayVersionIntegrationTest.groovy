@@ -47,7 +47,7 @@ abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSp
     def getPluginsBlock() {
         return """
             plugins {
-                id 'play-application'
+                id 'play'
             }
         """
     }

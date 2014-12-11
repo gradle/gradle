@@ -46,7 +46,7 @@ class PlayApplicationPluginTest extends Specification {
 
     PlayToolProvider playToolProvider = Mock()
 
-    PlayApplicationPlugin.Rules playApplicationPluginRules = new PlayApplicationPlugin.Rules()
+    PlayApplicationPlugin playApplicationPluginRules = new PlayApplicationPlugin()
 
     def setup(){
         1 * playToolChain.select(playPlatform) >> playToolProvider
