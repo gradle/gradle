@@ -40,7 +40,13 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
     }
 
     public VersionSelector parseSelector(String selectorString) {
-        return defaultVersionSelectorScheme.parseSelector(fromMavenSyntax(selectorString));
+        if (selectorString.equals(RELEASE)) {
+            return new LatestVersionSelector(LATEST_RELEASE);
+        } else if (selectorString.equals(LATEST)) {
+            return new LatestVersionSelector(LATEST_INTEGRATION);
+        } else {
+            return defaultVersionSelectorScheme.parseSelector(selectorString);
+        }
     }
 
     public String renderSelector(VersionSelector selector) {
@@ -49,13 +55,13 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
     // TODO:DAZ VersionSelector should be more descriptive, so it can be directly translated
     private String toMavenSyntax(String version) {
-        Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
         if (version.equals(PLUS) || version.equals(LATEST_INTEGRATION)) {
             return LATEST;
         }
         if (version.equals(LATEST_RELEASE)) {
             return RELEASE;
         }
+        Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
         if (plusNotationMatcher.matches()) {
             String prefix = plusNotationMatcher.group(1);
             int dynVersionPart = Integer.parseInt(plusNotationMatcher.group(2));
@@ -66,15 +72,5 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
             }
         }
         return version;
-    }
-
-    private String fromMavenSyntax(String version) {
-        if (version.equals(RELEASE)) {
-            return LATEST_RELEASE;
-        } else if (version.equals(LATEST)) {
-            return LATEST_INTEGRATION;
-        } else {
-            return version;
-        }
     }
 }

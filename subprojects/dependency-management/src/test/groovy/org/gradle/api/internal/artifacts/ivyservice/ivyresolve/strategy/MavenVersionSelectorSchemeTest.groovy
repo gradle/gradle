@@ -19,15 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import spock.lang.Specification
 
 class MavenVersionSelectorSchemeTest extends Specification {
-    def defaultMatcher = Mock(VersionSelectorScheme)
+    def defaultMatcher = new DefaultVersionSelectorScheme()
     def mapper = new MavenVersionSelectorScheme(defaultMatcher)
-    def selector = Mock(VersionSelector)
 
     def "translates to maven syntax"() {
-        when:
-        1 * defaultMatcher.renderSelector(selector) >> input
+        given:
+        def selector = defaultMatcher.parseSelector(input)
 
-        then:
+        expect:
         mapper.renderSelector(selector) == output
 
         where:
@@ -45,11 +44,9 @@ class MavenVersionSelectorSchemeTest extends Specification {
     }
 
     def "translates from maven syntax"() {
-        when:
-        1 * defaultMatcher.parseSelector(output) >> selector
-
-        then:
-        mapper.parseSelector(input) == selector
+        expect:
+        def selector = mapper.parseSelector(input)
+        defaultMatcher.renderSelector(selector) == output
 
         where:
         output               | input
