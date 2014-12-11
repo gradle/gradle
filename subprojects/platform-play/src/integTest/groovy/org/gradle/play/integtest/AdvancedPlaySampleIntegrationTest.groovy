@@ -18,11 +18,9 @@ package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-@Ignore
 class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
     Sample advancedPlaySample = new Sample(temporaryFolder, "play/advanced")
