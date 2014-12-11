@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-import com.google.common.io.Files
+import org.gradle.internal.hash.HashUtil
 import org.junit.Assert
 
 class UrlValidator {
@@ -51,7 +51,7 @@ class UrlValidator {
      * @param contents
      */
     static void assertUrlContent(URL url, String contents) {
-        assert url.text == contents
+        assert compareHashes(url.openStream(), new ByteArrayInputStream(contents.getBytes("UTF-8")))
     }
 
     /**
@@ -61,6 +61,10 @@ class UrlValidator {
      * @param file
      */
     static void assertUrlContent(URL url, File file) {
-        assert url.bytes == Files.toByteArray(file)
+        assert compareHashes(url.openStream(), file.newInputStream())
+    }
+
+    static boolean compareHashes(InputStream a, InputStream b) {
+        return HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
     }
 }
