@@ -113,12 +113,15 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9-custom.txt", "publishTest-1.9.txt", "publishTest-1.9.pom")
     }
 
+    @Issue("GRADLE-3211")
     def "can override packaging with single unclassified artifact"() {
         given:
         createBuildScripts """
             pom.packaging "foo"
 
-            artifact("content.txt")
+            artifact("content.txt") {
+                extension "txt"
+            }
 """
 
         when:
@@ -127,7 +130,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         then:
         mavenModule.assertPublished()
         mavenModule.parsedPom.packaging == 'foo'
-         // The .foo artifact is just a copy of the pom. It should not be published.
+         // Ideally, the '.foo' artifact would be '.txt' as specified
         mavenModule.assertArtifactsPublished("publishTest-1.9.foo", "publishTest-1.9.pom")
     }
 
