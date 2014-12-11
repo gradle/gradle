@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import spock.lang.Specification
 
-/**
- * Created by adam on 12/09/2014.
- */
 class MavenResolverTest extends Specification {
-    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore))
+    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser))
 
     def "has useful string representation"() {
         expect:

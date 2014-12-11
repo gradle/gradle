@@ -27,10 +27,8 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -86,10 +84,6 @@ public class GradlePomModuleDescriptorBuilder {
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
     private static final String EXTRA_ATTRIBUTE_CLASSIFIER = "m:classifier";
-    private static final String RELEASE = "RELEASE";
-    private static final String LATEST = "LATEST";
-    private static final String LATEST_RELEASE = "latest.release";
-    private static final String LATEST_INTEGRATION = "latest.integration";
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -155,16 +149,17 @@ public class GradlePomModuleDescriptorBuilder {
         });
     }
 
-
-    private final VersionSelectorScheme defaultVersionSelectorScheme = new DefaultVersionSelectorScheme();
-    private final VersionSelectorScheme mavenVersionSelectorScheme = new MavenVersionSelectorScheme(defaultVersionSelectorScheme);
+    private final VersionSelectorScheme defaultVersionSelectorScheme;
+    private final VersionSelectorScheme mavenVersionSelectorScheme;
     private final DefaultModuleDescriptor ivyModuleDescriptor;
 
     private ModuleRevisionId mrid;
 
     private final PomReader pomReader;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
+        this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
+        this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date());
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
