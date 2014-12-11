@@ -25,6 +25,8 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
     private static final String DYN_VERSION_NUMBER = "(\\d+)";
     public static final String PLUS_OPER = "[\\.]?\\+";
     private static final String PLUS_NOTATION_PATTERN = FIXED_PREFIX + DYN_VERSION_NUMBER + PLUS_OPER;
+    private static final String IVY_EXCLUSIVE_NOTATION_PATTERN = "(]\\d\\.]*)\"" + DYN_VERSION_NUMBER + PLUS_OPER;
+
     private static final String PLUS = "+";
     public static final String LATEST = "LATEST";
     public static final String RELEASE = "RELEASE";
@@ -70,6 +72,12 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
             } else {
                 return String.format("[%s,%s)", dynVersionPart, dynVersionPart + 1);
             }
+        }
+        if(version.startsWith("]")){
+            version = version.replaceFirst("]", "(");
+        }
+        if(version.endsWith("[")){
+            version = String.format("%s)", version.substring(0, version.length()-1));
         }
         return version;
     }
