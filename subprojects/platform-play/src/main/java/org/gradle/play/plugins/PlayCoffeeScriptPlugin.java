@@ -104,7 +104,10 @@ public class PlayCoffeeScriptPlugin {
             public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
                 coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
                 coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
-                coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+                // TODO:DAZ This is a workaround for ordering issues in setting coffeeScriptJs (need something like convention mapping)
+                if (!coffeeScriptCompile.hasCustomCoffeeScriptJs()) {
+                    coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+                }
                 coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
             }
         });
