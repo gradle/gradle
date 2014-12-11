@@ -30,7 +30,7 @@ import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.platform.PlayPlatform
 import spock.lang.Specification
 
-class PlayApplicationPluginTest extends Specification {
+class PlayTestPluginTest extends Specification {
 
     CollectionBuilder<Task> taskCollectionBuilder = Mock()
     BinaryContainer binaryContainer = Mock()
@@ -46,7 +46,7 @@ class PlayApplicationPluginTest extends Specification {
 
     PlayToolProvider playToolProvider = Mock()
 
-    PlayApplicationPlugin playApplicationPluginRules = new PlayApplicationPlugin()
+    PlayTestPlugin plugin = new PlayTestPlugin()
 
     def setup(){
         1 * playToolChain.select(playPlatform) >> playToolProvider
@@ -61,7 +61,7 @@ class PlayApplicationPluginTest extends Specification {
         _ * binary.name >> "someBinary"
 
         when:
-        playApplicationPluginRules.createTestTasks(taskCollectionBuilder, binaryContainer, playToolChain, fileResolver, projectIdentifier, buildDir)
+        plugin.createTestTasks(taskCollectionBuilder, binaryContainer, playToolChain, fileResolver, projectIdentifier, buildDir)
         then:
         1 * taskCollectionBuilder.create("compileSomeBinaryTests", PlatformScalaCompile, _)
         1 * taskCollectionBuilder.create("testSomeBinary", Test, _)

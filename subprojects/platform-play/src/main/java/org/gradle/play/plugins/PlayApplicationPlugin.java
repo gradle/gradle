@@ -21,9 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
@@ -54,7 +52,6 @@ import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -278,49 +275,6 @@ public class PlayApplicationPlugin {
                     playRun.setTargetPlatform(binary.getTargetPlatform());
                     playRun.setApplicationJar(binary.getJarFile());
                     playRun.dependsOn(binary.getBuildTask());
-                }
-            });
-        }
-    }
-
-    @Mutate
-    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, PlayToolChainInternal playToolChain, final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-            final PlayPlatform targetPlatform = binary.getTargetPlatform();
-            FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
-            final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
-
-            final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
-            // TODO:DAZ Model a test suite
-            final File testSourceDir = fileResolver.resolve("test");
-            final File testClassesDir = new File(buildDir, String.format("testClasses/%s", binary.getName()));
-            tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
-                public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.dependsOn(binary.getBuildTask());
-                    scalaCompile.setClasspath(testCompileClasspath);
-                    scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
-                    scalaCompile.setDestinationDir(testClassesDir);
-                    scalaCompile.setSource(testSourceDir);
-                    String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
-                    scalaCompile.setSourceCompatibility(targetCompatibility);
-                    scalaCompile.setTargetCompatibility(targetCompatibility);
-
-                    IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                    incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
-                }
-            });
-
-            String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(testTaskName, Test.class, new Action<Test>() {
-                public void execute(Test test) {
-                    test.setTestClassesDir(testClassesDir);
-                    test.setBinResultsDir(new File(buildDir, String.format("tmp/testResults/%s", test.getName())));
-                    test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/junit", binary.getName())));
-                    test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s", binary.getName())));
-                    test.dependsOn(testCompileTaskName);
-                    test.setTestSrcDirs(Arrays.asList(testSourceDir));
-                    test.setWorkingDir(projectIdentifier.getProjectDir());
-                    test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
                 }
             });
         }
