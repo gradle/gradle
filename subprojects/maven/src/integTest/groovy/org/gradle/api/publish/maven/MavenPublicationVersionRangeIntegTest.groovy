@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven
 class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    public void "can publish jar and meta-data to maven repository"() {
+    public void "version range is mapped to maven syntax in published pom file"() {
         given:
 
         mavenRepo.module('group', 'projectA', '1.0').publish()
