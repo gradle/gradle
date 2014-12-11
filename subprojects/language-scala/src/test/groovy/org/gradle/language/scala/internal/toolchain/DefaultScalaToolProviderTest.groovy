@@ -15,8 +15,7 @@
  */
 
 package org.gradle.language.scala.internal.toolchain
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.dsl.DependencyHandler
+
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
@@ -26,21 +25,17 @@ import spock.lang.Specification
 class DefaultScalaToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
     CompilerDaemonManager compilerDaemonManager = Mock()
-    ConfigurationContainer configurationContainer = Mock()
-    DependencyHandler dependencyHandler = Mock()
-
-    DefaultScalaToolProvider scalaToolProvider
+    Set<File> scalacClasspath = Mock()
+    Set<File> zincClasspath = Mock()
     ProjectFinder projectFinder = Mock()
 
-    String scalaVersion = "2.10.4"
-
-    def setup(){
-        scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, dependencyHandler, configurationContainer, scalaVersion)
-    }
-
     def "newCompiler provides decent error for unsupported CompileSpec"(){
+        setup:
+        DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, scalacClasspath, zincClasspath)
+
         when:
         scalaToolProvider.newCompiler(new UnknownCompileSpec())
+
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "Cannot create Compiler for unsupported CompileSpec type 'UnknownCompileSpec'"
