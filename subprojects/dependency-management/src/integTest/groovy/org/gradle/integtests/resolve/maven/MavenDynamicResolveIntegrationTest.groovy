@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class MavenDynamicResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    def "can resolve snapshot versions with version range"() {
+    def "snapshot versions ignored with version range"() {
         given:
         buildFile << """
 repositories {
@@ -48,8 +48,8 @@ task retrieve(type: Sync) {
         def matchingA = mavenHttpRepo.module("org.test", "projectA", "1.1").publish()
         mavenHttpRepo.module("org.test", "projectA", "2.0").publish()
 
-        mavenHttpRepo.module("org.test", "projectB", "1.1").publish()
-        def matchingB = mavenHttpRepo.module("org.test", "projectB", "1.2-SNAPSHOT").publish()
+        def matchingB = mavenHttpRepo.module("org.test", "projectB", "1.1").publish()
+        mavenHttpRepo.module("org.test", "projectB", "1.2-SNAPSHOT").publish()
         mavenHttpRepo.module("org.test", "projectB", "2.0").publish()
 
         and:
@@ -58,7 +58,6 @@ task retrieve(type: Sync) {
         matchingA.artifact.expectGet()
 
         mavenHttpRepo.getModuleMetaData("org.test", "projectB").expectGet()
-        matchingB.metaData.expectGet()
         matchingB.pom.expectGet()
         matchingB.artifact.expectGet()
 
@@ -66,9 +65,9 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.2-SNAPSHOT.jar')
+        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.1.jar')
         file('libs/projectA-1.1.jar').assertIsCopyOf(matchingA.artifactFile)
-        file('libs/projectB-1.2-SNAPSHOT.jar').assertIsCopyOf(matchingB.artifactFile)
+        file('libs/projectB-1.1.jar').assertIsCopyOf(matchingB.artifactFile)
 
         when:
         server.resetExpectations()
@@ -77,13 +76,14 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.2-SNAPSHOT.jar')
+        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.1.jar')
     }
 
     def "can resolve dynamic version declared in pom as transitive dependency from HTTP Maven repository"() {
         given:
         mavenHttpRepo.module('org.test', 'projectC', '1.1').publish()
         def projectC = mavenHttpRepo.module('org.test', 'projectC', '1.5').publish()
+        mavenHttpRepo.module('org.test', 'projectC', '1.6-SNAPSHOT').publish()
         mavenHttpRepo.module('org.test', 'projectC', '2.0').publish()
         def projectB = mavenHttpRepo.module('org.test', 'projectB', '1.0').dependsOn("org.test", 'projectC', '[1.0, 2.0)').publish()
         def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.0').dependsOn('org.test', 'projectB', '1.0').publish()
