@@ -69,7 +69,7 @@ class CustomPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTes
         assert playUrl("scala/one").text.contains("<li>hello:1</li>")
 
         // Custom Assets
-        assertUrlContent playUrl("assets/javascripts/test.js"), file("app/assets/javascripts/sample.js")
+        assertUrlContent playUrl("assets/javascripts/test.js"), file("app/assets/javascripts/sample.js").text.replaceAll("\\r(\\n)", '$1')
         assertUrlContent playUrl("assets/javascripts/sample.js"), file("app/assets/javascripts/sample.js")
     }
 }
