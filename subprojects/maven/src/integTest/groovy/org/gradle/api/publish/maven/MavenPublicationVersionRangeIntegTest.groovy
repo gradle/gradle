@@ -19,8 +19,14 @@ package org.gradle.api.publish.maven
 class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    public void "version range is mapped to maven syntax in published pom file"() {
+    public void "can publish jar and meta-data to maven repository"() {
         given:
+
+        mavenRepo.module('group', 'projectA', '1.0').publish()
+        mavenRepo.module('group', 'projectA', '2.0').publish()
+        mavenRepo.module('group', 'projectB', '1.1.1').publish()
+        mavenRepo.module('group', 'projectC', '1.2').publish()
+
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'maven-publish'
@@ -51,46 +57,8 @@ class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTes
 
         then:
         mavenModule.assertPublishedAsJavaModule()
+
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:RELEASE", "group:projectB:LATEST", "group:projectC:LATEST")
-    }
-
-    public void "publishing pom with dependency versions 'x.+' 'x+' generates warning"() {
-        given:
-        settingsFile << "rootProject.name = 'publishTest' "
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-
-            dependencies {
-                compile "group:projectA:1.+"
-                runtime "group:projectB:1+"
-            }"""
-
-        when:
-        run "publish"
-
-        then:
-        mavenModule.assertPublishedAsJavaModule()
-        mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:1.+", "group:projectB:1+")
-
-        and:
-        output.contains("Generating POM with maven incompatible version string '1+'.")
-        output.contains("Generating POM with maven incompatible version string '1.+'.")
     }
 }

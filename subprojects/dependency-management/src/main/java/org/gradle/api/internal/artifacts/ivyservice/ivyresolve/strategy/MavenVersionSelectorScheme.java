@@ -16,12 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
     private static final String PLUS = "+";
@@ -30,17 +24,7 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
     private static final String LATEST_INTEGRATION = "latest.integration";
     private static final String LATEST_RELEASE = "latest.release";
 
-    private static final String FIXED_PREFIX = "([\\d\\.]*)";
-    private static final String DYN_VERSION_NUMBER = "(\\d+)";
-    public static final String PLUS_OPER = "[\\.]?\\+";
-
-    private static final String PLUS_NOTATION_PATTERN = FIXED_PREFIX + DYN_VERSION_NUMBER + PLUS_OPER;
-
-    public final Pattern plusNotationPattern = Pattern.compile(PLUS_NOTATION_PATTERN);
-
     private final VersionSelectorScheme defaultVersionSelectorScheme;
-
-    private Logger logger = Logging.getLogger(getClass());
 
     public MavenVersionSelectorScheme(VersionSelectorScheme defaultVersionSelectorScheme) {
         this.defaultVersionSelectorScheme = defaultVersionSelectorScheme;
@@ -67,10 +51,6 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
         }
         if (version.equals(LATEST_RELEASE)) {
             return RELEASE;
-        }
-        Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
-        if (plusNotationMatcher.matches()) {
-            logger.warn(String.format("Generating POM with maven incompatible version string '%s'.", version));
         }
         if(version.startsWith("]")){
             version = version.replaceFirst("]", "(");
