@@ -77,7 +77,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createCoffeeScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
+        void createJavaScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
             for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
 
