@@ -15,11 +15,10 @@
  */
 
 package org.gradle.play.integtest
-
 import org.gradle.play.integtest.fixtures.app.CustomPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
-import static org.gradle.integtests.fixtures.UrlValidator.*
+import static org.gradle.integtests.fixtures.UrlValidator.assertUrlContent
 
 class CustomPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
     PlayApp playApp = new CustomPlayApp()

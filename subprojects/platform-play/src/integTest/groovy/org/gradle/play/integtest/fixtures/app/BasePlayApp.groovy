@@ -18,7 +18,7 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-abstract class BasePlayApp extends PlayApp{
+abstract class BasePlayApp extends PlayApp {
 
     List<SourceFile> getViewSources() {
         return sourceFiles("app/views");

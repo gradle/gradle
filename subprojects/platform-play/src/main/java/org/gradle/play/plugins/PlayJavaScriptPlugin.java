@@ -17,8 +17,6 @@
 package org.gradle.play.plugins;
 
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -43,56 +41,46 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 /**
  * Plugin for adding javascript processing to a Play application.  Registers "javascript" language support with the {@link org.gradle.language.javascript.JavaScriptSourceSet}.
  */
-public class PlayJavaScriptPlugin implements Plugin<Project> {
-    public void apply(Project target) {
-
+@SuppressWarnings("UnusedDeclaration")
+@RuleSource
+public class PlayJavaScriptPlugin {
+    @Mutate
+    void createJavascriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
+        for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
+            registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
+            JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptSources", JavaScriptSourceSet.class);
+            javaScriptSourceSet.getSource().srcDir("app/assets");
+            javaScriptSourceSet.getSource().include("**/*.js");
+        }
     }
 
-    /**
-     * Model rules.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
-
-        @Mutate
-        void createJavascriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
-            for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
-                registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
-                JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptSources", JavaScriptSourceSet.class);
-                javaScriptSourceSet.getSource().srcDir("app/assets");
-                javaScriptSourceSet.getSource().include("**/*.js");
+    // TODO:DAZ This should be done via a @LanguageType rule
+    private void registerSourceSetFactory(ComponentSpecInternal playComponent, final Instantiator instantiator, final FileResolver fileResolver) {
+        final FunctionalSourceSet functionalSourceSet = playComponent.getSources();
+        NamedDomainObjectFactory<JavaScriptSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<JavaScriptSourceSet>() {
+            public JavaScriptSourceSet create(String name) {
+                return instantiator.newInstance(DefaultJavaScriptSourceSet.class, name, functionalSourceSet.getName(), fileResolver);
             }
-        }
+        };
+        functionalSourceSet.registerFactory(JavaScriptSourceSet.class, namedDomainObjectFactory);
+    }
 
-        // TODO:DAZ This should be done via a @LanguageType rule
-        private void registerSourceSetFactory(ComponentSpecInternal playComponent, final Instantiator instantiator, final FileResolver fileResolver) {
-            final FunctionalSourceSet functionalSourceSet = playComponent.getSources();
-            NamedDomainObjectFactory<JavaScriptSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<JavaScriptSourceSet>() {
-                public JavaScriptSourceSet create(String name) {
-                    return instantiator.newInstance(DefaultJavaScriptSourceSet.class, name, functionalSourceSet.getName(), fileResolver);
-                }
-            };
-            functionalSourceSet.registerFactory(JavaScriptSourceSet.class, namedDomainObjectFactory);
-        }
+    @Mutate
+    void createJavaScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
+        for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+            for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
 
-        @Mutate
-        void createJavaScriptTasks(TaskContainer tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final File buildDir) {
-            for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-                for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+                LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) javaScriptSourceSet;
 
-                    LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) javaScriptSourceSet;
+                if (sourceSetInternal.getMayHaveSources()) {
+                    File javascriptOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
+                    String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+                    JavaScriptProcessResources javaScriptProcessResources = tasks.create(processTaskName, JavaScriptProcessResources.class);
+                    javaScriptProcessResources.from(javaScriptSourceSet.getSource());
+                    javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
 
-                    if (sourceSetInternal.getMayHaveSources()) {
-                        File javascriptOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
-                        String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
-                        JavaScriptProcessResources javaScriptProcessResources = tasks.create(processTaskName, JavaScriptProcessResources.class);
-                        javaScriptProcessResources.from(javaScriptSourceSet.getSource());
-                        javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
-
-                        binary.getAssets().builtBy(javaScriptProcessResources);
-                        binary.getAssets().addAssetDir(javascriptOutputDirectory);
-                    }
+                    binary.getAssets().builtBy(javaScriptProcessResources);
+                    binary.getAssets().addAssetDir(javascriptOutputDirectory);
                 }
             }
         }
