@@ -22,11 +22,12 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 
 public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
-    private final NativeTestSuiteBinarySpec.TasksCollection tasks = new DefaultTasksCollection(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private NativeBinarySpec testedBinary;
     private File executableFile;
 
@@ -55,11 +56,11 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return getExecutableFile();
     }
 
-    public NativeTestSuiteBinarySpec.TasksCollection getTasks() {
+    public DefaultTasksCollection getTasks() {
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends AbstractNativeBinarySpec.DefaultTasksCollection implements NativeTestSuiteBinarySpec.TasksCollection {
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements NativeTestSuiteBinarySpec.TasksCollection {
         public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }

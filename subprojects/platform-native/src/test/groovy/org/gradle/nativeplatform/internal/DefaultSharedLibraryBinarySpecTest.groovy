@@ -132,8 +132,8 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         def binary = sharedLibrary
 
         expect:
+        binary.tasks.build == null
         binary.tasks.link == null
-        binary.tasks.createOrLink == null
     }
 
     def "returns link task when defined"() {
@@ -146,7 +146,6 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
 
         then:
         binary.tasks.link == linkTask
-        binary.tasks.createOrLink == linkTask
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {

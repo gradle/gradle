@@ -22,13 +22,14 @@ import org.gradle.language.nativeplatform.NativeResourceSet;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
 public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements SharedLibraryBinary, SharedLibraryBinarySpecInternal {
-    private final SharedLibraryBinarySpec.TasksCollection tasks = new DefaultTasksCollection(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
@@ -60,11 +61,11 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return new SharedLibraryRuntimeOutputs();
     }
 
-    public SharedLibraryBinarySpec.TasksCollection getTasks() {
+    public DefaultTasksCollection getTasks() {
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends AbstractNativeBinarySpec.DefaultTasksCollection implements SharedLibraryBinarySpec.TasksCollection {
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements SharedLibraryBinarySpec.TasksCollection {
         public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }

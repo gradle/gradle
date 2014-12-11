@@ -123,7 +123,6 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     def "returns null for createStaticLib and builder when none defined"() {
         expect:
         tasks.createStaticLib == null
-        tasks.createOrLink == null
     }
 
     def "returns create task when defined"() {
@@ -133,7 +132,6 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
 
         then:
         tasks.createStaticLib == createTask
-        tasks.createOrLink == createTask
     }
 
     private TestFile addSources(DefaultStaticLibraryBinarySpec binary, def headerDir) {

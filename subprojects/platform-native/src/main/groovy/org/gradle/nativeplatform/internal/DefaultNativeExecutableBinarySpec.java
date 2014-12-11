@@ -20,11 +20,12 @@ import org.gradle.nativeplatform.NativeExecutableBinary;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
-    private final NativeExecutableBinarySpec.TasksCollection tasks = new DefaultTasksCollection(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private File executableFile;
 
     public File getExecutableFile() {
@@ -39,11 +40,11 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return getExecutableFile();
     }
 
-    public NativeExecutableBinarySpec.TasksCollection getTasks() {
+    public DefaultTasksCollection getTasks() {
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends AbstractNativeBinarySpec.DefaultTasksCollection implements NativeExecutableBinarySpec.TasksCollection {
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements NativeExecutableBinarySpec.TasksCollection {
         public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }

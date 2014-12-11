@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -102,7 +103,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return staticLibArchiver;
     }
 
-    public abstract TasksCollection getTasks();
+    public abstract DefaultBinaryTasksCollection getTasks();
 
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
@@ -150,14 +151,13 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         this.resolver = resolver;
     }
 
-    protected static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements TasksCollection {
-        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
-            super(binary);
-        }
+    public void binaryInputs(FileCollection files) {
+        // TODO - should split this up, so that the inputs are attached to an object that represents the binary, which is then later used to configure the link/assemble tasks
+        getCreateOrLink().source(files);
+    }
 
-        public ObjectFilesToBinary getCreateOrLink() {
-            ObjectFilesToBinary link = findSingleTaskWithType(AbstractLinkTask.class);
-            return link == null ? findSingleTaskWithType(CreateStaticLibrary.class) : link;
-        }
+    protected ObjectFilesToBinary getCreateOrLink() {
+        ObjectFilesToBinary link = getTasks().findSingleTaskWithType(AbstractLinkTask.class);
+        return link == null ? getTasks().findSingleTaskWithType(CreateStaticLibrary.class) : link;
     }
 }

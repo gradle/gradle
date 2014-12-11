@@ -55,6 +55,6 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         Tool assemblerTool = (Tool) ((ExtensionAware) binary).getExtensions().getByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());
 
-        binary.getTasks().getCreateOrLink().source(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

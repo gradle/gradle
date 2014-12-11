@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -55,4 +56,8 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     Collection<NativeLibraryBinary> getDependentBinaries();
 
+    /**
+     * Adds some files to include as input to the link/assemble step of this binary.
+     */
+    void binaryInputs(FileCollection files);
 }
