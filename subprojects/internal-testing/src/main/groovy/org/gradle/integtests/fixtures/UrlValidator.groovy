@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import com.google.common.io.Files
 import org.junit.Assert
 
 class UrlValidator {
@@ -60,6 +61,6 @@ class UrlValidator {
      * @param file
      */
     static void assertUrlContent(URL url, File file) {
-        assert url.bytes == file.bytes
+        assert url.bytes == Files.toByteArray(file)
     }
 }
