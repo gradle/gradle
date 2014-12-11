@@ -206,33 +206,45 @@ class MavenPomFileGeneratorTest extends Specification {
     def "maps version range to maven syntax"() {
         def dependency1 = Mock(MavenDependencyInternal)
         def dependency2 = Mock(MavenDependencyInternal)
+        def dependency3 = Mock(MavenDependencyInternal)
 
         when:
         generator.addRuntimeDependency(dependency1)
         generator.addRuntimeDependency(dependency2)
+        generator.addRuntimeDependency(dependency3)
 
         then:
         dependency1.artifacts >> new HashSet<DependencyArtifact>()
         dependency1.groupId >> "dep-group"
-        dependency1.version >> "1+"
+        dependency1.version >> "latest.release"
         dependency1.excludeRules >> []
 
         dependency2.artifacts >> new HashSet<DependencyArtifact>()
         dependency2.groupId >> "dep-group"
-        dependency2.version >> "1.100.+"
+        dependency2.version >> "latest.integration"
         dependency2.excludeRules >> []
+
+        dependency3.artifacts >> new HashSet<DependencyArtifact>()
+        dependency3.groupId >> "dep-group"
+        dependency3.version >> "+"
+        dependency3.excludeRules >> []
 
         and:
         with (pom) {
-            dependencies.dependency.size() == 2
+            dependencies.dependency.size() == 3
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
-                version == "[1,2)"
+                version == "RELEASE"
                 scope == "runtime"
             }
             with (dependencies[0].dependency[1]) {
                 groupId == "dep-group"
-                version == "[1.100,1.101)"
+                version == "LATEST"
+                scope == "runtime"
+            }
+            with (dependencies[0].dependency[2]) {
+                groupId == "dep-group"
+                version == "LATEST"
                 scope == "runtime"
             }
         }

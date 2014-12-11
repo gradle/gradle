@@ -49,8 +49,7 @@ class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTes
             dependencies {
                 compile "group:projectA:latest.release"
                 compile "group:projectB:latest.integration"
-                runtime "group:projectC:1.1.+"
-                runtime "group:projectD:1+"
+                runtime "group:projectC:+"
             }"""
 
         when:
@@ -60,6 +59,6 @@ class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTes
         mavenModule.assertPublishedAsJavaModule()
 
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:RELEASE", "group:projectB:LATEST", "group:projectC:[1.1,1.2)",  "group:projectD:[1,2)")
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:RELEASE", "group:projectB:LATEST", "group:projectC:LATEST")
     }
 }

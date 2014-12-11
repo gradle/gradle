@@ -31,18 +31,20 @@ class MavenVersionSelectorSchemeTest extends Specification {
 
         where:
         input                | output
-        "1.0"                | "1.0"
-        "1+"                 | "[1,2)"
-        "1.+"                | "[1,2)"
         "]2,3]"              | "(2,3]"
         "[2,3["              | "[2,3)"
         "]2,3["              | "(2,3)"
-        "1.5+"               | "[1.5,1.6)"
-        "1.100+"             | "[1.100,1.101)"
-        "10.1+"              | "[10.1,10.2)"
+        "1.0"                | "1.0"
+        "[1.0]"              | "[1.0]"
         "+"                  | "LATEST"
         "latest.integration" | "LATEST"
         "latest.release"     | "RELEASE"
+        "1+"                 | "1+"
+        "1.+"                | "1.+"
+        "1.5+"               | "1.5+"
+        "1.100+"             | "1.100+"
+        "10.1+"              | "10.1+"
+
     }
 
     def "translates from maven syntax"() {
@@ -54,6 +56,7 @@ class MavenVersionSelectorSchemeTest extends Specification {
         output               | input
         "1.0"                | "1.0"
         "[1,2)"              | "[1,2)"
+        "(1,2)"              | "(1,2)"
         "[1.5,1.6)"          | "[1.5,1.6)"
         "1.5+"               | "1.5+"
         "+"                  | "+"
