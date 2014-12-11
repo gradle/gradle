@@ -34,7 +34,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
     void checkContent() {
         assertUrlContent playUrl("assets/stylesheets/main.css"), publicAsset("stylesheets/main.css")
         assertUrlContent playUrl("assets/javascripts/hello.js"), publicAsset("javascripts/hello.js")
-        assertUrlContent playUrl("assets/images/favicon.png"), publicAsset("images/favicon.png")
+        assertBinaryUrlContent playUrl("assets/images/favicon.png"), publicAsset("images/favicon.png")
     }
 
     def setup() {

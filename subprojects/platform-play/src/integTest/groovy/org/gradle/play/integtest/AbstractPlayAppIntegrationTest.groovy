@@ -135,7 +135,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         // Check all static assets from the shared content
         assertUrlContent playUrl("assets/stylesheets/main.css"), file("public/stylesheets/main.css")
         assertUrlContent playUrl("assets/javascripts/hello.js"), file("public/javascripts/hello.js")
-        assertUrlContent playUrl("assets/images/favicon.svg"), file("public/images/favicon.svg")
+        assertBinaryUrlContent playUrl("assets/images/favicon.svg"), file("public/images/favicon.svg")
     }
 
     URL playUrl(String path='') {
