@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures.app
+package org.gradle.play.integtest
+import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 
-import org.gradle.integtests.fixtures.SourceFile
+class BasicPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest{
+    PlayApp playApp = new BasicPlayApp()
 
-abstract class BasePlayApp extends PlayApp {
-
-    List<SourceFile> getViewSources() {
-        return sourceFiles("app/views");
-    }
-
-    List<SourceFile> getConfSources() {
-        return sourceFiles("conf", "shared") + sourceFiles("conf")
-    }
-
-    List<SourceFile> getAssetSources() {
-        sourceFiles("public", "shared")
-    }
-
-    List<SourceFile> getTestSources() {
-        return sourceFiles("test")
+    @Override
+    void verifyTestOutput(TestExecutionResult result) {
+        result.assertTestClassesExecuted("ApplicationSpec", "IntegrationSpec")
+        result.testClass("ApplicationSpec").assertTestCount(2, 0, 0)
+        result.testClass("IntegrationSpec").assertTestCount(1, 0, 0)
     }
 }

@@ -18,16 +18,16 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class WithFailingTestsApp extends BasePlayApp {
+class WithFailingTestsApp extends AbstractPlayApp {
     List<SourceFile> appSources
     List<SourceFile> viewSources
     List<SourceFile> confSources
     List<SourceFile> testSources
 
     public WithFailingTestsApp(){
-        appSources = sourceFiles("app", "playnewapp");
-        viewSources = sourceFiles("app/views", "playnewapp");
-        confSources = sourceFiles("conf", "shared") + sourceFiles("conf", "playnewapp")
-        testSources = sourceFiles("test") + sourceFiles("test", "playnewapp")
+        appSources = sourceFiles("app", "basicplayapp");
+        viewSources = sourceFiles("app/views", "basicplayapp");
+        confSources = sourceFiles("conf", "shared") + sourceFiles("conf", "basicplayapp")
+        testSources = sourceFiles("test") + sourceFiles("test", "basicplayapp")
     }
 }

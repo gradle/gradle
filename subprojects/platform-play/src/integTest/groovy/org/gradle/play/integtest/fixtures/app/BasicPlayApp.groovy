@@ -16,6 +16,6 @@
 
 package org.gradle.play.integtest.fixtures.app
 
-class PlayNewApp extends BasePlayApp {
+class BasicPlayApp extends AbstractPlayApp {
 
 }

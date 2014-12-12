@@ -15,13 +15,14 @@
  */
 
 package org.gradle.play.integtest
-import org.gradle.play.integtest.fixtures.app.CustomPlayApp
+
+import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-class CustomPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
-    PlayApp playApp = new CustomPlayApp()
+class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
+    PlayApp playApp = new AdvancedPlayApp()
 
     @Override
     def getPluginsBlock() {
