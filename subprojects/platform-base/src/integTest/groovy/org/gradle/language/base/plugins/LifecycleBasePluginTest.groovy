@@ -42,6 +42,10 @@ class LifecycleBasePluginTest extends Specification {
         and:
         def assemble = project.tasks[LifecycleBasePlugin.ASSEMBLE_TASK_NAME]
         assemble instanceOf(DefaultTask)
+
+        and:
+        def check = project.tasks[LifecycleBasePlugin.CHECK_TASK_NAME]
+        check instanceOf(DefaultTask)
     }
 
     public void addsACleanRule() {

@@ -80,7 +80,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         configureJavaDoc(project, javaConvention);
         configureTest(project, javaConvention);
-        configureCheck(project);
         configureBuild(project);
         configureBuildNeeded(project);
         configureBuildDependents(project);
@@ -220,12 +219,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-    }
-
-    private void configureCheck(final Project project) {
-        Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
-        checkTask.setDescription("Runs all checks.");
-        checkTask.setGroup(VERIFICATION_GROUP);
     }
 
     private void configureBuild(Project project) {
