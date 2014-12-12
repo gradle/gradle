@@ -16,7 +16,13 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+public class ClassDirectoryBinaryRenderer extends AbstractJvmBinaryRenderer<ClassDirectoryBinarySpec> {
+    @Override
+    protected void renderOutputs(ClassDirectoryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("classes dir", binary.getClassesDir());
+        builder.item("resources dir", binary.getResourcesDir());
+    }
 }

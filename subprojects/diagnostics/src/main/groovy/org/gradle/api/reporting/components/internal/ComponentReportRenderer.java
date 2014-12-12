@@ -16,12 +16,14 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -32,14 +34,14 @@ import static org.gradle.logging.StyledTextOutput.Style.Info;
 public class ComponentReportRenderer extends TextReportRenderer {
     private final ComponentRenderer componentRenderer;
     private final SourceSetRenderer sourceSetRenderer;
-    private final BinaryRenderer binaryRenderer;
+    private final TypeAwareBinaryRenderer binaryRenderer;
     private final Set<LanguageSourceSet> componentSourceSets = new HashSet<LanguageSourceSet>();
     private final Set<BinarySpec> componentBinaries = new HashSet<BinarySpec>();
 
     public ComponentReportRenderer(FileResolver fileResolver) {
         setFileResolver(fileResolver);
         sourceSetRenderer = new SourceSetRenderer();
-        binaryRenderer = new BinaryRenderer();
+        binaryRenderer = new TypeAwareBinaryRenderer();
         componentRenderer = new ComponentRenderer(sourceSetRenderer, binaryRenderer);
     }
 
@@ -95,7 +97,11 @@ public class ComponentReportRenderer extends TextReportRenderer {
             getBuilder().getOutput().println();
             getBuilder().subheading("Additional binaries");
             for (BinarySpec binary : additionalBinaries) {
-                binaryRenderer.render(binary, getBuilder());
+                try {
+                    binaryRenderer.render(binary, getBuilder());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         }
     }

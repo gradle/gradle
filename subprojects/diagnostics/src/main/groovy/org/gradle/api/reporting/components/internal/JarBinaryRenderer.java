@@ -16,7 +16,12 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.jvm.JarBinarySpec;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+public class JarBinaryRenderer extends AbstractJvmBinaryRenderer<JarBinarySpec> {
+    @Override
+    protected void renderOutputs(JarBinarySpec binary, TextReportBuilder builder) {
+        builder.item("Jar file", binary.getJarFile());
+    }
 }

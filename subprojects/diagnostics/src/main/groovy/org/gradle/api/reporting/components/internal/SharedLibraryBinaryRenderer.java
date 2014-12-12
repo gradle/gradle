@@ -16,7 +16,12 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<SharedLibraryBinarySpec> {
+    @Override
+    protected void renderOutputs(SharedLibraryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("shared library file", binary.getSharedLibraryFile());
+    }
 }

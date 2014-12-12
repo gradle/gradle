@@ -16,7 +16,17 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
+    @Override
+    protected void renderTasks(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
+        builder.item("run using task", binary.getTasks().getRun().getPath());
+    }
+
+    @Override
+    protected void renderOutputs(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
+        builder.item("executable file", binary.getExecutableFile());
+    }
 }

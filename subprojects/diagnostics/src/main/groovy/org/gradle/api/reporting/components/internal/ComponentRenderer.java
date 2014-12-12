@@ -18,6 +18,7 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.reporting.ReportRenderer;
@@ -26,10 +27,10 @@ import org.gradle.util.CollectionUtils;
 import java.util.Comparator;
 
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
-    private final SourceSetRenderer sourceSetRenderer;
-    private final BinaryRenderer binaryRenderer;
+    private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
+    private final ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
 
-    public ComponentRenderer(SourceSetRenderer sourceSetRenderer, BinaryRenderer binaryRenderer) {
+    public ComponentRenderer(ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer, ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer) {
         this.sourceSetRenderer = sourceSetRenderer;
         this.binaryRenderer = binaryRenderer;
     }

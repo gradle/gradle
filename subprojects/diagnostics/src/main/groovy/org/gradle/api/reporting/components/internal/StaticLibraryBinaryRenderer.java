@@ -16,7 +16,12 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+public class StaticLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<StaticLibraryBinarySpec> {
+    @Override
+    protected void renderOutputs(StaticLibraryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("static library file", binary.getStaticLibraryFile());
+    }
 }

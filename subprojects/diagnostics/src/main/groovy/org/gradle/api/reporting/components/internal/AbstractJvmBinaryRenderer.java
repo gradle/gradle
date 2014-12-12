@@ -16,7 +16,13 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.jvm.JvmBinarySpec;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+public class AbstractJvmBinaryRenderer<T extends JvmBinarySpec> extends AbstractBinaryRenderer<T> {
+    @Override
+    protected void renderDetails(T binary, TextReportBuilder builder) {
+        builder.item("platform", binary.getTargetPlatform().getName());
+        builder.item("tool chain", binary.getToolChain().getDisplayName());
+    }
 }
