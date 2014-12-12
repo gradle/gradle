@@ -417,4 +417,16 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("Cannot create 'tasks.foo' as it was already created by: Project.<init>.tasks.foo()")
     }
+
+    def "can create task with invalid model space name"() {
+        when:
+        buildFile << """
+            tasks.create(" . ")
+        """
+
+        run " . "
+
+        then:
+        ": . " in executedTasks
+    }
 }

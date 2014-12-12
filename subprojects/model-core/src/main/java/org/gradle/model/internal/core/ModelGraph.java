@@ -37,7 +37,10 @@ public class ModelGraph {
     }
 
     public ModelNode addEntryPoint(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        ModelPath.validateName(name);
+
+        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
+        // ModelPath.validateName(name);
+
         ModelNode node = new ModelNode(this, ModelPath.path(name), descriptor, promise, adapter);
         ModelNode previous = entryNodes.put(name, node);
         if (previous != null) {

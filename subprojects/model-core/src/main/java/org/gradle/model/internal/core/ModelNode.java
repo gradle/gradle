@@ -63,7 +63,10 @@ public class ModelNode {
     }
 
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        ModelPath.validateName(name);
+
+        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
+        // ModelPath.validateName(name);
+
         ModelNode node = new ModelNode(modelGraph, creationPath.child(name), descriptor, promise, adapter);
 
         ModelNode previous = links.put(name, node);
