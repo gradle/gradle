@@ -1,5 +1,6 @@
 # Routes
-GET /          controllers.PureJava.index
+GET /          controllers.Application.index
+GET /root      controllers.Application.root
 ->  /scala     scala.Routes
 ->  /java      jva.Routes
 

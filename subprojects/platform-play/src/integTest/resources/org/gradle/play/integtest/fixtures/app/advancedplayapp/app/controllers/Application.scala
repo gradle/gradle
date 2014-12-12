@@ -23,7 +23,7 @@ import models._
 
 object Application extends Controller {
   def index = Action {
-    Ok(views.html.awesome.index(List(new DataType("foo", 1))))
+    Ok(views.html.index("Your new application is ready."))
   }
   def root = Action {
     Ok(views.html.awesome.index(List(new DataType("bar", 2))))

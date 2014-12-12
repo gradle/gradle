@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers;
+package controllers.jva;
 
 import play.*;
 import play.mvc.*;

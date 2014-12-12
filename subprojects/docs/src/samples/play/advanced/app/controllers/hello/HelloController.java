@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers;
+package controllers.hello;
 
 import play.*;
 import play.mvc.*;

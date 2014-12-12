@@ -1,2 +1,2 @@
-GET        /one         controllers.MixedJava.index
+GET        /one         controllers.scala.MixedJava.index
 POST       /two         special.strangename.Application.index

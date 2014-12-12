@@ -29,20 +29,6 @@ class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTes
         return advancedPlaySample
     }
 
-    def setup() {
-        initScript << """
-            gradle.allprojects {
-                model {
-                    tasks.scalaCompilePlayBinary {
-                        doFirst {
-                            println file("build/playBinary/src_managed/controllers/routes.java").text
-                        }
-                    }
-                }
-            }
-        """
-    }
-
     @Override
     void checkContent() {
         super.checkContent()

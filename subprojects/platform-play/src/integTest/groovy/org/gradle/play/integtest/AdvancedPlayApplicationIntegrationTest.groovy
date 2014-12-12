@@ -53,8 +53,8 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
                 "special/strangename/Application.class",
                 "models/DataType.class",
                 "models/ScalaClass.class",
-                "controllers/MixedJava.class",
-                "controllers/PureJava.class",
+                "controllers/scala/MixedJava.class",
+                "controllers/jva/PureJava.class",
                 "public/javascripts/sample.js",
                 "public/javascripts/test.js",
         )
@@ -65,8 +65,10 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
         super.verifyContent()
 
         // Custom Routes
-        assert playUrl("java/one").text.contains("<li>foo:1</li>")
-        assert playUrl("scala/one").text.contains("<li>hello:1</li>")
+        assert playUrl().text.contains("<li>foo:1</li>")
+        assert playUrl("root").text.contains("<li>bar:2</li>")
+        assert playUrl("java/one").text.contains("Your new application is ready.")
+        assert playUrl("scala/one").text.contains("<li>foo:1</li>")
 
         // Custom Assets
         assertUrlContent playUrl("assets/javascripts/test.js"), file("app/assets/javascripts/sample.js")

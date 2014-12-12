@@ -1,1 +1,1 @@
-GET        /one         controllers.Application.index
+GET        /one         controllers.jva.PureJava.index
