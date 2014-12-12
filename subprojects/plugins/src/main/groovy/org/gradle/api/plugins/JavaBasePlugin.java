@@ -37,6 +37,7 @@ import org.gradle.jvm.Classpath;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
@@ -51,11 +52,12 @@ import java.util.concurrent.Callable;
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
 public class JavaBasePlugin implements Plugin<ProjectInternal> {
-    public static final String CHECK_TASK_NAME = "check";
+    public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
+
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
-    public static final String VERIFICATION_GROUP = "verification";
+    public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     private final Instantiator instantiator;

@@ -63,7 +63,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         """
 
         when:
-        succeeds("testPlayBinary")
+        succeeds("check")
         then:
         executed(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
@@ -72,7 +72,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/reports/test/playBinary", "junit"))
 
         when:
-        succeeds("testPlayBinary")
+        succeeds("check")
         then:
         skipped(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")

@@ -33,12 +33,15 @@ import java.util.concurrent.Callable;
 public class LifecycleBasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean";
     public static final String ASSEMBLE_TASK_NAME = "assemble";
+    public static final String CHECK_TASK_NAME = "check";
     public static final String BUILD_GROUP = "build";
+    public static final String VERIFICATION_GROUP = "verification";
 
     public void apply(Project project) {
         addClean(project);
         addCleanRule(project);
         addAssemble(project);
+        addCheck(project);
     }
 
     private void addClean(final Project project) {
@@ -60,5 +63,11 @@ public class LifecycleBasePlugin implements Plugin<Project> {
         Task assembleTask = project.getTasks().create(ASSEMBLE_TASK_NAME);
         assembleTask.setDescription("Assembles the outputs of this project.");
         assembleTask.setGroup(BUILD_GROUP);
+    }
+
+    private void addCheck(Project project) {
+        Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
+        checkTask.setDescription("Runs all checks.");
+        checkTask.setGroup(VERIFICATION_GROUP);
     }
 }

@@ -23,9 +23,12 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
+import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -85,6 +88,17 @@ public class PlayTestPlugin {
                     test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
                 }
             });
+        }
+    }
+
+    /**
+     * This is a very special handling for adding play related test tasks as a dependency to the 'check' task.
+     * It needs a more general solution where the check lifecycle task depends on all available test tasks for binaries (CppUnit, Test, etc.)
+     * */
+    @Finalize
+    public void addCheckDependency(final TaskContainer tasks, BinaryContainer binaryContainer) {
+        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(String.format("test%s", StringUtils.capitalize(binary.getName())));
         }
     }
 }
