@@ -33,8 +33,7 @@ version = '1.9'
 
 dependencies {
     compile "group:projectA:latest.release"
-    compile "group:projectB:latest.integration"
-    runtime "group:projectC:+"
+    runtime "group:projectB:latest.integration"
 }
 
 uploadArchives {
@@ -52,7 +51,7 @@ uploadArchives {
         then:
         def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
-        mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:RELEASE", "group:projectB:LATEST")
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectC:LATEST")
+        mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:RELEASE")
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectB:LATEST")
     }
 }

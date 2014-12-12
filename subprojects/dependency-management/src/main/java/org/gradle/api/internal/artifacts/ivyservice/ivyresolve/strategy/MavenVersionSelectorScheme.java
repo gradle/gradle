@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
-    private static final String PLUS = "+";
     public static final String LATEST = "LATEST";
     public static final String RELEASE = "RELEASE";
     private static final String LATEST_INTEGRATION = "latest.integration";
@@ -46,7 +45,7 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
     // TODO:DAZ VersionSelector should be more descriptive, so it can be directly translated
     private String toMavenSyntax(String version) {
-        if (version.equals(PLUS) || version.equals(LATEST_INTEGRATION)) {
+        if (version.equals(LATEST_INTEGRATION)) {
             return LATEST;
         }
         if (version.equals(LATEST_RELEASE)) {
