@@ -49,7 +49,7 @@ task checkBinaries << {
     def "can combine jvm and native components in the same project"() {
         buildFile << """
 plugins {
-    id 'native-component'
+    //id 'native-component'
     id 'jvm-component'
 }
 
@@ -61,7 +61,7 @@ model {
     }
 }
 
-task check << {
+task validate << {
     assert componentSpecs.size() == 3
     assert componentSpecs.nativeExe instanceof NativeExecutableSpec
     assert componentSpecs.nativeLib instanceof NativeLibrarySpec
@@ -75,7 +75,7 @@ task check << {
 }
 """
         expect:
-        succeeds "check"
+        succeeds "validate"
     }
 
     def "build mixed components in one project"() {

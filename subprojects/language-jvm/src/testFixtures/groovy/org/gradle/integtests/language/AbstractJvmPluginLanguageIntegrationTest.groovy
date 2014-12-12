@@ -53,7 +53,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         }
     }
 
-    task check << {
+    task validate << {
         def myLib = componentSpecs.myLib
         assert myLib instanceof JvmLibrarySpec
 
@@ -69,7 +69,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
     }
 """
         then:
-        succeeds "check"
+        succeeds "validate"
 
         and:
         !file("build").exists()
@@ -89,7 +89,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         }
     }
 
-    task check << {
+    task validate << {
         def myLib = componentSpecs.myLib
         assert myLib instanceof JvmLibrarySpec
 
@@ -107,7 +107,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
     }
 """
         then:
-        succeeds "check"
+        succeeds "validate"
 
         and:
         !file("build").exists()
