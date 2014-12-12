@@ -37,9 +37,10 @@ public class ComponentReportRenderer extends TextReportRenderer {
     private final Set<BinarySpec> componentBinaries = new HashSet<BinarySpec>();
 
     public ComponentReportRenderer(FileResolver fileResolver) {
-        componentRenderer = new ComponentRenderer(fileResolver);
-        sourceSetRenderer = new SourceSetRenderer(fileResolver);
-        binaryRenderer = new BinaryRenderer(fileResolver);
+        setFileResolver(fileResolver);
+        sourceSetRenderer = new SourceSetRenderer();
+        binaryRenderer = new BinaryRenderer();
+        componentRenderer = new ComponentRenderer(sourceSetRenderer, binaryRenderer);
     }
 
     @Override

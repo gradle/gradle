@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.JarBinarySpec;
@@ -33,12 +32,6 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
 class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
-    private final FileResolver fileResolver;
-
-    BinaryRenderer(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
-
     @Override
     public void render(BinarySpec binary, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
@@ -49,59 +42,59 @@ class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
         }
         textOutput.println();
 
-        textOutput.formatln("    build using task: %s", binary.getBuildTask().getPath());
+        builder.item("build using task", binary.getBuildTask().getPath());
         if (binary instanceof NativeExecutableBinarySpec) {
             NativeExecutableBinarySpec executableBinary = (NativeExecutableBinarySpec) binary;
-            textOutput.formatln("    install using task: %s", executableBinary.getTasks().getInstall().getPath());
+            builder.item("install using task", executableBinary.getTasks().getInstall().getPath());
         }
         if (binary instanceof NativeTestSuiteBinarySpec) {
             NativeTestSuiteBinarySpec executableBinary = (NativeTestSuiteBinarySpec) binary;
-            textOutput.formatln("    run using task: %s", executableBinary.getTasks().getRun().getPath());
+            builder.item("run using task", executableBinary.getTasks().getRun().getPath());
         }
 
         if (binary instanceof NativeBinarySpec) {
             NativeBinarySpec nativeBinary = (NativeBinarySpec) binary;
-            textOutput.formatln("    platform: %s", nativeBinary.getTargetPlatform().getName());
-            textOutput.formatln("    build type: %s", nativeBinary.getBuildType().getName());
-            textOutput.formatln("    flavor: %s", nativeBinary.getFlavor().getName());
-            textOutput.formatln("    tool chain: %s", nativeBinary.getToolChain().getDisplayName());
+            builder.item("platform", nativeBinary.getTargetPlatform().getName());
+            builder.item("build type", nativeBinary.getBuildType().getName());
+            builder.item("flavor", nativeBinary.getFlavor().getName());
+            builder.item("tool chain", nativeBinary.getToolChain().getDisplayName());
             if (binary instanceof NativeExecutableBinarySpec) {
                 NativeExecutableBinarySpec executableBinary = (NativeExecutableBinarySpec) binary;
-                textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
+                builder.item("executable file", executableBinary.getExecutableFile());
             }
             if (binary instanceof NativeTestSuiteBinarySpec) {
                 NativeTestSuiteBinarySpec executableBinary = (NativeTestSuiteBinarySpec) binary;
-                textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
+                builder.item("executable file", executableBinary.getExecutableFile());
             }
             if (binary instanceof SharedLibraryBinarySpec) {
                 SharedLibraryBinarySpec libraryBinary = (SharedLibraryBinarySpec) binary;
-                textOutput.formatln("    shared library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getSharedLibraryFile()));
+                builder.item("shared library file", libraryBinary.getSharedLibraryFile());
             }
             if (binary instanceof StaticLibraryBinarySpec) {
                 StaticLibraryBinarySpec libraryBinary = (StaticLibraryBinarySpec) binary;
-                textOutput.formatln("    static library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getStaticLibraryFile()));
+                builder.item("static library file", libraryBinary.getStaticLibraryFile());
             }
         }
 
         if (binary instanceof JvmBinarySpec) {
             JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
-            textOutput.formatln("    platform: %s", jvmBinary.getTargetPlatform().getName());
-            textOutput.formatln("    tool chain: %s", jvmBinary.getToolChain().getDisplayName());
+            builder.item("platform", jvmBinary.getTargetPlatform().getName());
+            builder.item("tool chain", jvmBinary.getToolChain().getDisplayName());
             if (binary instanceof JarBinarySpec) {
                 JarBinarySpec jarBinary = (JarBinarySpec) binary;
-                textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
+                builder.item("Jar file", jarBinary.getJarFile());
             }
             if (binary instanceof ClassDirectoryBinarySpec) {
                 ClassDirectoryBinarySpec classDirectoryBinary = (ClassDirectoryBinarySpec) binary;
-                textOutput.formatln("    classes dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getClassesDir()));
-                textOutput.formatln("    resources dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getResourcesDir()));
+                builder.item("classes dir", classDirectoryBinary.getClassesDir());
+                builder.item("resources dir", classDirectoryBinary.getResourcesDir());
             }
         }
 
         if (binary instanceof PlayApplicationBinarySpec) {
             PlayApplicationBinarySpec playBinary = (PlayApplicationBinarySpec) binary;
-            textOutput.formatln("    platform: %s", playBinary.getTargetPlatform().getName());
-            textOutput.formatln("    tool chain: %s", playBinary.getToolChain().getDisplayName());
+            builder.item("platform", playBinary.getTargetPlatform().getName());
+            builder.item("tool chain", playBinary.getToolChain().getDisplayName());
         }
     }
 }
