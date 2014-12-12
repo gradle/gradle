@@ -10,6 +10,7 @@ subprojects {
         repositories {
             ivy {
                 url "${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+                layout "ivy"                       // overrides the default layout with the standard layout
             }
         }
     }
