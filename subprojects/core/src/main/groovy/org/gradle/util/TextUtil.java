@@ -115,4 +115,12 @@ public class TextUtil {
 
         return builder.toString();
     }
+
+    public static String shorterOf(String s1, String s2) {
+        if (s2.length() >= s1.length()) {
+            return s1;
+        } else {
+            return s2;
+        }
+    }
 }

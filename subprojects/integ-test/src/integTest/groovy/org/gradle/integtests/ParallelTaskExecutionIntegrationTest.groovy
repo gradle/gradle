@@ -98,6 +98,39 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPing", ":bPing"
     }
 
+    def "info is logged when overlapping outputs prevent parallel execution"() {
+        given:
+        executer.withArgument("-i")
+        withParallelThreads(2)
+
+        and:
+        buildFile << """
+            aPing.outputs.file "dir"
+            bPing.outputs.file "dir/file"
+        """
+        expect:
+        blockingServer.expectSerialExecution(":aPing")
+        blockingServer.expectSerialExecution(":bPing")
+        run ":aPing", ":bPing"
+        output.contains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
+    }
+
+    def "info is logged when task is prevented from executing in parallel due to custom actions"() {
+        given:
+        executer.withArgument("-i")
+        withParallelThreads(2)
+
+        and:
+        buildFile << """
+            bPing.doLast {}
+        """
+        expect:
+        blockingServer.expectSerialExecution(":aPing")
+        blockingServer.expectSerialExecution(":bPing")
+        run ":aPing", ":bPing"
+        output.contains("Unable to parallelize task :bPing due to presence of custom actions (e.g. doFirst()/doLast())")
+    }
+
     def "two independent parallelizable tasks execute in parallel"() {
         given:
         withParallelThreads(2)
