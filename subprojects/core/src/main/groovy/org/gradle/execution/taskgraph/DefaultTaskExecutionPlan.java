@@ -49,7 +49,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
  * methods.
  */
-class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+
+    public static final String INTRA_PROJECT_TOGGLE = "org.gradle.parallel.intra";
+
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
@@ -66,8 +69,15 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<String> canonicalizedOutputsOfRunningTasks = Sets.newHashSet();
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
+    private final boolean intraProjectParallelization;
+
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
         this.cancellationToken = cancellationToken;
+        this.intraProjectParallelization = intraProjectParallelization;
+    }
+
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
+        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -513,7 +523,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     boolean isParallelizable(TaskInternal task) {
-        return task.getClass().isAnnotationPresent(ParallelizableTask.class) && !task.isHasCustomActions();
+        return intraProjectParallelization && task.getClass().isAnnotationPresent(ParallelizableTask.class) && !task.isHasCustomActions();
     }
 
     private void recordTaskStarted(TaskInternal task) {

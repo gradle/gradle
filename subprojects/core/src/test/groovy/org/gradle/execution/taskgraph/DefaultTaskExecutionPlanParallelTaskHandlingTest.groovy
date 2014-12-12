@@ -44,8 +44,8 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     FileSystem fs = NativeServices.instance.get(FileSystem)
 
-    DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken))
-    DefaultProject root = createRootProject();
+    DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
+    DefaultProject root = createRootProject()
 
     List<TaskInfo> startedTasks = []
     List<Thread> blockedThreads = []
@@ -100,6 +100,22 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
     void requestedTasksBecomeAvailableForExecution() {
         allBlockedThreadsFinish()
+    }
+
+    def "tasks arent parallelized unless toggle is on"() {
+        given:
+        executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), false)
+        Task a = root.task("a")
+        Task b = root.task("b")
+
+        when:
+        addToGraphAndPopulate(a, b)
+
+        then:
+        startTasks(1)
+
+        and:
+        noMoreTasksCurrentlyAvailableForExecution()
     }
 
     def "two dependent parallelizable tasks are not executed in parallel"() {

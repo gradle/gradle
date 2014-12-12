@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
+import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -34,6 +35,7 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         args.add("--parallel-threads=4");
+        args.add("-D" + DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE + "=true");
         return args;
     }
 

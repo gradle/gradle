@@ -16,18 +16,22 @@
 
 package org.gradle.integtests
 
+import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-@IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
+@IgnoreIf({ GradleContextualExecuter.parallel })
+// no point, always runs in parallel
 class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule
+    public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
+        executer.withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
         blockingServer.start()
 
         settingsFile << 'include "a", "b"'
@@ -82,6 +86,17 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--parallel-threads=$threadCount")
     }
 
+    def "feature toggle is required for tasks to run in parallel"() {
+        given:
+        executer.withArguments() // clears what was set in setup
+        withParallelThreads(2)
+
+        expect:
+        blockingServer.expectSerialExecution(":aPing")
+        blockingServer.expectSerialExecution(":bPing")
+
+        run ":aPing", ":bPing"
+    }
 
     def "two independent parallelizable tasks execute in parallel"() {
         given:

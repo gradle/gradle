@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -26,12 +27,15 @@ import spock.lang.IgnoreIf
  * This specification runs a java plugin based build that defines additional source sets for building independent jars with
  * the full lifecycle and running independent test tasks. Such build allows to exercise running multiple tasks from a single project in parallel.
  */
-@IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
+@IgnoreIf({ GradleContextualExecuter.parallel })
+// no point, always runs in parallel
 class ParallelJavaPluginTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
         executer.withArgument("--parallel-threads=4")
+                .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
     def "can execute a java build that runs tasks in parallel"() {

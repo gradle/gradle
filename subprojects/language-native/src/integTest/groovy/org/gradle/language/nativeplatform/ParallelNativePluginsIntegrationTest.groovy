@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform
 
+import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
@@ -25,21 +26,23 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
-@IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
+@IgnoreIf({ GradleContextualExecuter.parallel })
+// no point, always runs in parallel
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         executer.withArgument("--parallel-threads=4")
+                .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can produce multiple executables from a single project in parallel"() {
         given:
         Map<String, HelloWorldApp> apps = [
-                c: new CHelloWorldApp(),
-                cpp: new CppHelloWorldApp(),
-                objectiveC: new ObjectiveCHelloWorldApp(),
-                objectiveCpp: new ObjectiveCppHelloWorldApp(),
+                c              : new CHelloWorldApp(),
+                cpp            : new CppHelloWorldApp(),
+                objectiveC     : new ObjectiveCHelloWorldApp(),
+                objectiveCpp   : new ObjectiveCppHelloWorldApp(),
                 mixedObjectiveC: new MixedObjectiveCHelloWorldApp(),
         ]
 
@@ -75,9 +78,9 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [
-                first: new ExeWithLibraryUsingLibraryHelloWorldApp(),
+                first : new ExeWithLibraryUsingLibraryHelloWorldApp(),
                 second: new ExeWithLibraryUsingLibraryHelloWorldApp(),
-                third: new ExeWithLibraryUsingLibraryHelloWorldApp(),
+                third : new ExeWithLibraryUsingLibraryHelloWorldApp(),
         ]
 
         apps.each { name, app ->
