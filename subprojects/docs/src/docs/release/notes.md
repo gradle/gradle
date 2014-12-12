@@ -234,6 +234,24 @@ may cause a slightly different dependency resolution behavior if you heavily rel
 In this context, we also fixed the incorrect handling of the `artifact` attribute for [module exclude rules](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/exclude.html). For
 more information see [GRADLE-3147](https://issues.gradle.org/browse/GRADLE-3147).
 
+### Manually declared facets in eclipse-wtp plugin
+
+In previous Gradle versions custom declared facets were improperly handled.
+Declaring a custom facet as follows:
+
+    eclipse {
+        wtp {
+            facet {
+                facet name: 'someNeededFacet', version: '1.3'
+            }
+        }
+    }
+
+removed all the default facets instead of adding it to the default applied facets. This behaviour has been fixed with this version of Gradle.
+
+This fix was contributed by [Andreas Schmid](https://github.com/aaschmid).
+
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -242,7 +260,9 @@ We would like to thank the following community members for making contributions 
 * [Sébastien Cogneau](https://github.com/scogneau) - share distribution plugin logic with application plugin
 * [Greg Chrystall](https://github.com/ported) - idea plugin generates wrong sources jar for multi artifacts dependencies (GRADLE-3170)
 * [Rob Upcraft](https://github.com/upcrob) - add support for ANTLR v3 and v4 to antlr plugin (GRADLE-902)
-* [Andreas Schmid](https://github.com/aaschmid) - changes to Eclipse classpath generating when using WTP (GRADLE-1422, GRADLE-2186, GRADLE-2362, GRADLE-2221)
+* [Andreas Schmid](https://github.com/aaschmid)
+    - changes to Eclipse classpath generating when using WTP (GRADLE-1422, GRADLE-2186, GRADLE-2362, GRADLE-2221)
+    - don't remove default facets when manually declaring a eclipse wtp facet
 * [Björn Kautler](https://github.com/Vampire) - improvements to Build Comparison plugin
 * [Michal Srb](https://github.com/msrb) - update bouncycastle dependency to the latest version
 * [Stefan Wolf](https://github.com/wolfs) - support maven publications that have multiple artifacts without classifier
