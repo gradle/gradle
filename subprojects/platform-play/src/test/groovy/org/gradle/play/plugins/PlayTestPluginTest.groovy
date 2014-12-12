@@ -20,7 +20,9 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.testing.Test
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
@@ -49,23 +51,36 @@ class PlayTestPluginTest extends Specification {
     PlayTestPlugin plugin = new PlayTestPlugin()
 
     def setup(){
-        1 * playToolChain.select(playPlatform) >> playToolProvider
-        1 * binary.getTargetPlatform() >> playPlatform
         1 * binaryContainer.withType(PlayApplicationBinarySpec.class) >> binaryContainer
-        1 * fileResolver.resolveFiles(_) >> fileCollection
+        1 * binaryContainer.iterator() >> [binary].iterator()
+        _ * binary.name >> "someBinary"
     }
 
     def "adds test related tasks per binary"() {
         given:
-        1 * binaryContainer.iterator() >> [binary].iterator()
-        _ * binary.name >> "someBinary"
+        1 * binary.getTargetPlatform() >> playPlatform
+        1 * playToolChain.select(playPlatform) >> playToolProvider
+        1 * fileResolver.resolveFiles(_) >> fileCollection
 
         when:
         plugin.createTestTasks(taskCollectionBuilder, binaryContainer, playToolChain, fileResolver, projectIdentifier, buildDir)
+
         then:
         1 * taskCollectionBuilder.create("compileSomeBinaryTests", PlatformScalaCompile, _)
         1 * taskCollectionBuilder.create("testSomeBinary", Test, _)
         0 * taskCollectionBuilder.create(_)
         0 * taskCollectionBuilder.create(_, _, _)
+    }
+
+    def "adds play test task dependency to check task"() {
+        given:
+        TaskContainer taskContainer = Mock()
+        Task check = Mock()
+        _ * taskContainer.getByName(LifecycleBasePlugin.CHECK_TASK_NAME) >> check
+
+        when:
+        plugin.addCheckDependency(taskContainer, binaryContainer)
+        then:
+        1 * check.dependsOn("testSomeBinary")
     }
 }
