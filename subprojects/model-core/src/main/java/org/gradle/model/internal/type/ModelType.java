@@ -50,14 +50,17 @@ public abstract class ModelType<T> {
 
     public static class WeakRef<T> {
         private final WeakReference<Type> reference;
-        public WeakRef(Type type) {
-            this.reference = new WeakReference<Type>(type);
+        private final String description;
+
+        private WeakRef(ModelType<T> type) {
+            this.reference = new WeakReference<Type>(type.getRuntimeType());
+            this.description = type.toString();
         }
 
         public ModelType<T> get() {
             Type type = reference.get();
             if (type == null) {
-                throw new IllegalStateException("type has been collected");
+                throw new IllegalStateException("type '" + description + "'has been collected");
             } else {
                 return Cast.uncheckedCast(ModelType.of(type));
             }
@@ -125,7 +128,7 @@ public abstract class ModelType<T> {
     }
 
     public WeakRef<T> weaken() {
-        return new WeakRef<T>(getRuntimeType());
+        return new WeakRef<T>(this);
     }
 
     public Class<? super T> getRawClass() {
