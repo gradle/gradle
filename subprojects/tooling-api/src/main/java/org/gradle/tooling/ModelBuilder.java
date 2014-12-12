@@ -125,11 +125,12 @@ public interface ModelBuilder<T> extends LongRunningOperation {
     ModelBuilder<T> withCancellationToken(CancellationToken cancellationToken);
 
     /**
-     * Specifies the tasks to execute before building the model. By default, no tasks are executed.
+     * Specifies the tasks to execute before building the model.
+     *
+     * If not configured, null, or an empty array is passed, then no tasks will be executed.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     *
      * @since 1.2
      */
     @Incubating
