@@ -75,7 +75,7 @@ public abstract class GradleConnector {
     }
 
     /**
-     * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(URI)}, {@link #useGradleVersion(String)}, or {@link #useProjectDistribution()}.
+     * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(URI)}, {@link #useGradleVersion(String)}, or {@link #useBuildDistribution()}.
      * Defaults to a project-specific Gradle version.
      *
      * @param gradleHome The Gradle installation directory.
@@ -86,7 +86,7 @@ public abstract class GradleConnector {
 
     /**
      * Specifies which Gradle version to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory. This replaces any value specified using {@link
-     * #useInstallation(File)}, {@link #useDistribution(URI)}, or {@link #useProjectDistribution()}. Defaults to a project-specific Gradle version.
+     * #useInstallation(File)}, {@link #useDistribution(URI)}, or {@link #useBuildDistribution()}. Defaults to a project-specific Gradle version.
      *
      * @param gradleVersion The version to use.
      * @return this
@@ -96,7 +96,7 @@ public abstract class GradleConnector {
 
     /**
      * Specifies which Gradle distribution to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory. This replaces any value specified using {@link
-     * #useInstallation(File)}, {@link #useGradleVersion(String)}, or {@link #useProjectDistribution()}. Defaults to a project-specific Gradle version.
+     * #useInstallation(File)}, {@link #useGradleVersion(String)}, or {@link #useBuildDistribution()}. Defaults to a project-specific Gradle version.
      *
      * @param gradleDistribution The distribution to use.
      * @return this
@@ -105,14 +105,14 @@ public abstract class GradleConnector {
     public abstract GradleConnector useDistribution(URI gradleDistribution);
 
     /**
-     * Specifies to use the Gradle distribution defined by the target Gradle project. The appropriate distribution defined by the target Gradle project is downloaded and installed into the user's
-     * Gradle home directory. If the target Gradle project does not define the distribution that it should be built with, the Gradle version of this connector is used. This replaces any value
+     * Specifies to use the Gradle distribution defined by the target Gradle build. The appropriate distribution defined by the target Gradle build is downloaded and installed into the user's
+     * Gradle home directory. If the target Gradle build does not define the distribution that it should be built with, the Gradle version of this connector is used. This replaces any value
      * specified using {@link #useInstallation(File)}, {@link #useDistribution(URI)}, or {@link #useGradleVersion(String)}. Acts as the default behavior.
      *
      * @return this
      * @since 2.3
      */
-    public abstract GradleConnector useProjectDistribution();
+    public abstract GradleConnector useBuildDistribution();
 
     /**
      * Specifies the working directory to use.
