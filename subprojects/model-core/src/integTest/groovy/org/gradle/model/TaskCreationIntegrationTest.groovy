@@ -421,12 +421,12 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def "can create task with invalid model space name"() {
         when:
         buildFile << """
-            tasks.create(" . ")
+            tasks.create(".").doFirst {}
         """
 
-        run " . "
+        run "."
 
         then:
-        ": . " in executedTasks
+        ":." in executedTasks
     }
 }
