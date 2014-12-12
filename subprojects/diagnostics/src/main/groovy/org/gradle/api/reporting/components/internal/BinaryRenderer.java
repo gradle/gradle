@@ -19,4 +19,8 @@ package org.gradle.api.reporting.components.internal;
 import org.gradle.platform.base.BinarySpec;
 
 public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+    @Override
+    public Class<BinarySpec> getTargetType() {
+        return BinarySpec.class;
+    }
 }

@@ -21,6 +21,11 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
 public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
     @Override
+    public Class<NativeTestSuiteBinarySpec> getTargetType() {
+        return NativeTestSuiteBinarySpec.class;
+    }
+
+    @Override
     protected void renderTasks(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
         builder.item("run using task", binary.getTasks().getRun().getPath());
     }

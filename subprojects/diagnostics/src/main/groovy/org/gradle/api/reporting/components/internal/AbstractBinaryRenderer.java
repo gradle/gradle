@@ -22,9 +22,9 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
-// TODO - bust up this hierarchy and compose instead
-public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends ReportRenderer<T, TextReportBuilder> {
-    public void render(T binary, TextReportBuilder builder) {
+// TODO - bust up this hierarchy and compose using interfaces instead
+public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends ReportRenderer<BinarySpec, TextReportBuilder> {
+    public void render(BinarySpec binary, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
 
         textOutput.append(StringUtils.capitalize(binary.getDisplayName()));
@@ -34,12 +34,17 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         textOutput.println();
 
         builder.item("build using task", binary.getBuildTask().getPath());
-        renderTasks(binary, builder);
 
-        renderDetails(binary, builder);
+        T specialized = getTargetType().cast(binary);
 
-        renderOutputs(binary, builder);
+        renderTasks(specialized, builder);
+
+        renderDetails(specialized, builder);
+
+        renderOutputs(specialized, builder);
     }
+
+    public abstract Class<T> getTargetType();
 
     protected void renderOutputs(T binary, TextReportBuilder builder) {
     }

@@ -19,7 +19,7 @@ package org.gradle.api.reporting.components.internal;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.nativeplatform.NativeBinarySpec;
 
-public class AbstractNativeBinaryRenderer<T extends NativeBinarySpec> extends AbstractBinaryRenderer<T> {
+public abstract class AbstractNativeBinaryRenderer<T extends NativeBinarySpec> extends AbstractBinaryRenderer<T> {
     @Override
     protected void renderDetails(T binary, TextReportBuilder builder) {
         builder.item("platform", binary.getTargetPlatform().getName());

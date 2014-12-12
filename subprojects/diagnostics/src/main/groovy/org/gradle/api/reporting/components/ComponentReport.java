@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
+import org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
@@ -57,12 +58,17 @@ public class ComponentReport extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected TypeAwareBinaryRenderer getBinaryRenderer() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         Project project = getProject();
 
         StyledTextOutput textOutput = getTextOutputFactory().create(ComponentReport.class);
-        ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver());
+        ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver(), getBinaryRenderer());
         renderer.setOutput(textOutput);
 
         renderer.startProject(project);

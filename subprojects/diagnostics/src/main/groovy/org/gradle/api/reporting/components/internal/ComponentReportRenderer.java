@@ -38,10 +38,10 @@ public class ComponentReportRenderer extends TextReportRenderer {
     private final Set<LanguageSourceSet> componentSourceSets = new HashSet<LanguageSourceSet>();
     private final Set<BinarySpec> componentBinaries = new HashSet<BinarySpec>();
 
-    public ComponentReportRenderer(FileResolver fileResolver) {
+    public ComponentReportRenderer(FileResolver fileResolver, TypeAwareBinaryRenderer binaryRenderer) {
         setFileResolver(fileResolver);
         sourceSetRenderer = new SourceSetRenderer();
-        binaryRenderer = new TypeAwareBinaryRenderer();
+        this.binaryRenderer = binaryRenderer;
         componentRenderer = new ComponentRenderer(sourceSetRenderer, binaryRenderer);
     }
 

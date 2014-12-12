@@ -17,56 +17,41 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
+public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> implements BinaryRendererRegistry {
     private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>>();
 
-    public TypeAwareBinaryRenderer() {
-        add(NativeExecutableBinarySpec.class, new NativeExecutableBinaryRenderer());
-        add(NativeTestSuiteBinarySpec.class, new NativeTestSuiteBinaryRenderer());
-        add(SharedLibraryBinarySpec.class, new SharedLibraryBinaryRenderer());
-        add(StaticLibraryBinarySpec.class, new StaticLibraryBinaryRenderer());
-        add(JarBinarySpec.class, new JarBinaryRenderer());
-        add(ClassDirectoryBinarySpec.class, new ClassDirectoryBinaryRenderer());
-        add(PlayApplicationBinarySpec.class, new PlayApplicationBinaryRenderer());
-        add(BinarySpec.class, new BinaryRenderer());
-    }
-
-    <T extends BinarySpec> void add(final Class<T> type, final ReportRenderer<T, TextReportBuilder> renderer) {
-        renderers.put(type, new ReportRenderer<BinarySpec, TextReportBuilder>() {
-            @Override
-            public void render(BinarySpec model, TextReportBuilder output) throws IOException {
-                renderer.render(type.cast(model), output);
-            }
-        });
+    public void register(AbstractBinaryRenderer<?> renderer) {
+        renderers.put(renderer.getTargetType(), renderer);
     }
 
     @Override
     public void render(BinarySpec model, TextReportBuilder output) throws IOException {
-        Class<?> bestType = null;
-        ReportRenderer<BinarySpec, TextReportBuilder> renderer = null;
-        for (Map.Entry<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> entry : renderers.entrySet()) {
-            if (!entry.getKey().isInstance(model)) {
-                continue;
-            }
-            if (bestType == null || bestType.isAssignableFrom(entry.getKey())) {
-                bestType = entry.getKey();
-                renderer = entry.getValue();
-            }
-        }
+        ReportRenderer<BinarySpec, TextReportBuilder> renderer = getRendererForType(model.getClass());
         renderer.render(model, output);
+    }
+
+    private ReportRenderer<BinarySpec, TextReportBuilder> getRendererForType(Class<? extends BinarySpec> type) {
+        ReportRenderer<BinarySpec, TextReportBuilder> renderer = renderers.get(type);
+        if (renderer == null) {
+            Class<?> bestType = null;
+            for (Map.Entry<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> entry : renderers.entrySet()) {
+                if (!entry.getKey().isAssignableFrom(type)) {
+                    continue;
+                }
+                if (bestType == null || bestType.isAssignableFrom(entry.getKey())) {
+                    bestType = entry.getKey();
+                    renderer = entry.getValue();
+                }
+            }
+            renderers.put(type, renderer);
+        }
+        return renderer;
     }
 }

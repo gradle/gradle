@@ -21,6 +21,11 @@ import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 
 public class StaticLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<StaticLibraryBinarySpec> {
     @Override
+    public Class<StaticLibraryBinarySpec> getTargetType() {
+        return StaticLibraryBinarySpec.class;
+    }
+
+    @Override
     protected void renderOutputs(StaticLibraryBinarySpec binary, TextReportBuilder builder) {
         builder.item("static library file", binary.getStaticLibraryFile());
     }

@@ -21,6 +21,11 @@ import org.gradle.jvm.JarBinarySpec;
 
 public class JarBinaryRenderer extends AbstractJvmBinaryRenderer<JarBinarySpec> {
     @Override
+    public Class<JarBinarySpec> getTargetType() {
+        return JarBinarySpec.class;
+    }
+
+    @Override
     protected void renderOutputs(JarBinarySpec binary, TextReportBuilder builder) {
         builder.item("Jar file", binary.getJarFile());
     }

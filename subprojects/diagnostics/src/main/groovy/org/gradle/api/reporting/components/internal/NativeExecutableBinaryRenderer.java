@@ -21,6 +21,11 @@ import org.gradle.nativeplatform.NativeExecutableBinarySpec;
 
 public class NativeExecutableBinaryRenderer extends AbstractNativeBinaryRenderer<NativeExecutableBinarySpec> {
     @Override
+    public Class<NativeExecutableBinarySpec> getTargetType() {
+        return NativeExecutableBinarySpec.class;
+    }
+
+    @Override
     protected void renderTasks(NativeExecutableBinarySpec binary, TextReportBuilder builder) {
         builder.item("install using task", binary.getTasks().getInstall().getPath());
     }

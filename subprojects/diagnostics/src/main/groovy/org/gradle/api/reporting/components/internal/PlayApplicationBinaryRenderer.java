@@ -21,6 +21,11 @@ import org.gradle.play.PlayApplicationBinarySpec;
 
 public class PlayApplicationBinaryRenderer extends AbstractBinaryRenderer<PlayApplicationBinarySpec> {
     @Override
+    public Class<PlayApplicationBinarySpec> getTargetType() {
+        return PlayApplicationBinarySpec.class;
+    }
+
+    @Override
     protected void renderDetails(PlayApplicationBinarySpec binary, TextReportBuilder builder) {
         builder.item("platform", binary.getTargetPlatform().getName());
         builder.item("tool chain", binary.getToolChain().getDisplayName());
