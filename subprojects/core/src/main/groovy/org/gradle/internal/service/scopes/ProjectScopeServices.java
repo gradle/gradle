@@ -52,6 +52,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.MethodRuleDefinitionHandlers;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -118,7 +119,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginManagerInternal createPluginManager() {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
-        List<MethodRuleDefinitionHandler> coreHandlers = MethodRuleDefinitionHandlers.coreHandlers(get(Instantiator.class));
+        List<MethodRuleDefinitionHandler> coreHandlers = MethodRuleDefinitionHandlers.coreHandlers(
+                get(Instantiator.class),
+                get(ModelSchemaStore.class)
+        );
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
         PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
         return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);

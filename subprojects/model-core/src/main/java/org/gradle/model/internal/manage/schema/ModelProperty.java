@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.type.ModelType;
 
@@ -25,16 +28,21 @@ import java.util.Set;
 public class ModelProperty<T> {
 
     private final String name;
-    private final ModelType<T> type;
+    private final ModelType.WeakRef<T> type;
     private final boolean writable;
-    private final Set<ModelType<?>> declaredBy;
+    private final Set<ModelType.WeakRef<?>> declaredBy;
     private final boolean unmanaged;
 
     private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
         this.name = name;
-        this.type = type;
+        this.type = type.weaken();
         this.writable = writable;
-        this.declaredBy = declaredBy;
+        this.declaredBy = ImmutableSet.copyOf(Iterables.transform(declaredBy, new Function<ModelType<?>, ModelType.WeakRef<?>>() {
+            @Override
+            public ModelType.WeakRef<?> apply(ModelType<?> input) {
+                return input.weaken();
+            }
+        }));
         this.unmanaged = unmanaged;
     }
 
@@ -51,7 +59,7 @@ public class ModelProperty<T> {
     }
 
     public ModelType<T> getType() {
-        return type;
+        return type.get();
     }
 
     public boolean isWritable() {
@@ -59,7 +67,12 @@ public class ModelProperty<T> {
     }
 
     public Set<ModelType<?>> getDeclaredBy() {
-        return declaredBy;
+        return ImmutableSet.copyOf(Iterables.transform(declaredBy, new Function<ModelType.WeakRef<?>, ModelType<?>>() {
+            @Override
+            public ModelType<?> apply(ModelType.WeakRef<?> input) {
+                return input.get();
+            }
+        }));
     }
 
     @Override
@@ -80,7 +93,7 @@ public class ModelProperty<T> {
     @Override
     public int hashCode() {
         int result = name.hashCode();
-        result = 31 * result + type.hashCode();
+        result = 31 * result + type.get().hashCode();
         result = 31 * result + Boolean.valueOf(writable).hashCode();
         return result;
     }

@@ -19,11 +19,12 @@ package org.gradle.model.internal.inspect
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.*
 import org.gradle.model.internal.core.UnmanagedModelProjection
-import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,7 +36,7 @@ class ModelRuleBindingTest extends Specification {
     final static Instantiator UNUSED_INSTANTIATOR = null
 
     def modelRegistry = new DefaultModelRegistry()
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR))
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, new DefaultModelSchemaStore()))
 
     static class AmbiguousBindingsInOneSource {
         @Mutate

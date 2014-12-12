@@ -24,11 +24,15 @@ import org.gradle.model.internal.type.ModelType;
 @NotThreadSafe
 public class DefaultModelSchemaStore implements ModelSchemaStore {
 
-    private final ModelSchemaCache cache = new ModelSchemaCache();
-    private final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
+    final ModelSchemaCache cache = new ModelSchemaCache();
+    final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
         return extractor.extract(type, cache);
     }
 
+    @Override
+    public void cleanUp() {
+        cache.cleanUp();
+    }
 }

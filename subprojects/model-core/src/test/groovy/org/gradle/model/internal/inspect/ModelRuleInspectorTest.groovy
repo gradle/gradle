@@ -17,16 +17,13 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.model.Finalize
-import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.Model
-import org.gradle.model.Mutate
-import org.gradle.model.Path
+import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
@@ -41,7 +38,7 @@ class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR))
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, new DefaultModelSchemaStore()))
     def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {

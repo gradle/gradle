@@ -23,10 +23,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -38,16 +40,41 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * A type token for the type of a model element.
- * <p>
- * Borrows from Guava's type token.
- * Represent a fully resolved/bound type.
+ * A type token for the type of a model element. <p> Borrows from Guava's type token. Represent a fully resolved/bound type.
  */
 @ThreadSafe
 public abstract class ModelType<T> {
 
     // TODO analyze performance cost of wrapping Guava's type token instead of inlining the code
     // TODO there is no handling of TypeVariable here - at least need some validation that the incoming Type is not a variable
+
+    public static class WeakRef<T> {
+        private final WeakReference<Type> reference;
+        public WeakRef(Type type) {
+            this.reference = new WeakReference<Type>(type);
+        }
+
+        public ModelType<T> get() {
+            Type type = reference.get();
+            if (type == null) {
+                throw new IllegalStateException("type has been collected");
+            } else {
+                return Cast.uncheckedCast(ModelType.of(type));
+            }
+        }
+
+        @Nullable
+        public ModelType<T> unsafeGet() {
+            Type type = reference.get();
+            if (type == null) {
+                return null;
+            } else {
+                return Cast.uncheckedCast(ModelType.of(type));
+            }
+        }
+
+
+    }
 
     private static class Simple<T> extends ModelType<T> {
         private Simple(TypeToken<T> typeToken) {
@@ -80,10 +107,6 @@ public abstract class ModelType<T> {
         }
     }
 
-    public static ModelType<Object> untyped() {
-        return UNTYPED;
-    }
-
     public static <T> ModelType<T> of(Class<T> clazz) {
         return new Simple<T>(TypeToken.of(clazz));
     }
@@ -101,6 +124,10 @@ public abstract class ModelType<T> {
         return new Simple<T>(type);
     }
 
+    public WeakRef<T> weaken() {
+        return new WeakRef<T>(getRuntimeType());
+    }
+
     public Class<? super T> getRawClass() {
         return typeToken.getRawType();
     }
@@ -109,6 +136,14 @@ public abstract class ModelType<T> {
         @SuppressWarnings("unchecked")
         Class<T> concreteClass = (Class<T>) getRawClass();
         return concreteClass;
+    }
+
+    public Type getRuntimeType() {
+        return typeToken.getType();
+    }
+
+    public static ModelType<Object> untyped() {
+        return UNTYPED;
     }
 
     public boolean isParameterized() {

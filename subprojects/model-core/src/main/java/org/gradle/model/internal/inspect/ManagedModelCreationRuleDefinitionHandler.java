@@ -31,7 +31,6 @@ import org.gradle.model.internal.manage.instance.ModelInstantiator;
 import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -41,12 +40,13 @@ import java.util.List;
 @NotThreadSafe
 public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
 
-    private final ModelSchemaStore schemaStore = new DefaultModelSchemaStore();
+    private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
     private final ModelInstantiator modelInstantiator;
 
-    public ManagedModelCreationRuleDefinitionHandler(Instantiator instantiator) {
-        modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory, instantiator);
+    public ManagedModelCreationRuleDefinitionHandler(ModelSchemaStore schemaStore, Instantiator instantiator) {
+        this.schemaStore = schemaStore;
+        this.modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory, instantiator);
     }
 
     public String getDescription() {

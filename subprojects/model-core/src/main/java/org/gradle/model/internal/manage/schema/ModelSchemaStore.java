@@ -21,4 +21,7 @@ import org.gradle.model.internal.type.ModelType;
 public interface ModelSchemaStore {
 
     <T> ModelSchema<T> getSchema(ModelType<T> type);
+
+    void cleanUp();
+
 }

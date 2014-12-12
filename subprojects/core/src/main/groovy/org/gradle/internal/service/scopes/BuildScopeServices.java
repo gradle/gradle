@@ -322,10 +322,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultComponentTypeRegistry();
     }
 
-    protected ModelRuleSourceDetector createModelRuleSourceDetector() {
-        return new ModelRuleSourceDetector();
-    }
-
     protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
         return new PluginInspector(modelRuleSourceDetector);
     }

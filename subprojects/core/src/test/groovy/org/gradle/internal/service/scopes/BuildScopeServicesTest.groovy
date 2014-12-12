@@ -45,6 +45,7 @@ import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.MessagingServer
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
@@ -86,6 +87,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(PluginRequestApplicator) >> Mock(PluginRequestApplicator)
         parent.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
         parent.get(ClassLoaderCacheFactory) >> Stub(ClassLoaderCacheFactory)
+        parent.get(ModelRuleSourceDetector) >> Mock(ModelRuleSourceDetector)
     }
 
     def delegatesToParentForUnknownService() {
