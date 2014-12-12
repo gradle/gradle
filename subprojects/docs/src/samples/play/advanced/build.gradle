@@ -15,9 +15,8 @@
  */
 
 plugins {
-    id 'play-application'
+    id 'play'
     id 'play-coffeescript'
-    id 'play-javascript'
 }
 
 repositories{
