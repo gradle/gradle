@@ -49,7 +49,7 @@ task checkBinaries << {
     def "can combine jvm and native components in the same project"() {
         buildFile << """
 plugins {
-    //id 'native-component'
+    id 'native-component'
     id 'jvm-component'
 }
 
