@@ -92,7 +92,7 @@ class EclipseWtpPluginTest extends Specification {
                 new Facet(FacetType.installed, 'jst.java', '1.7')])
     }
 
-    def applyToJavaProject_shouldAllowToAddDefaultFacetsManually() {
+    def "can add custom facets to java default facets"() {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
@@ -101,7 +101,6 @@ class EclipseWtpPluginTest extends Specification {
         project.eclipse.wtp {
             facet {
                 facet name: 'someCoolFacet', version: '1.3'
-                defaultFacets()
             }
         }
 
@@ -153,7 +152,7 @@ class EclipseWtpPluginTest extends Specification {
                 new Facet(FacetType.installed, "jst.java", "1.8")])
     }
 
-    def applyToWarProject_shouldAllowToAddDefaultFacetsManually() {
+    def "can add custom facets to war default facets"() {
         when:
         project.apply(plugin: 'war')
         wtpPlugin.apply(project)
@@ -161,7 +160,6 @@ class EclipseWtpPluginTest extends Specification {
 
         project.eclipse.wtp {
             facet {
-                defaultFacets()
                 facet name: 'someCoolFacet', version: '1.4'
             }
         }
@@ -228,14 +226,13 @@ class EclipseWtpPluginTest extends Specification {
                 ['eclipse-wtp', 'ear', 'java']]
     }
 
-    def applyToEarProject_shouldAllowToAddDefaultFacetsManually() {
+    def "can add custom facets to ear project"() {
         when:
         project.apply(plugin: 'ear')
         wtpPlugin.apply(project)
 
         project.eclipse.wtp {
             facet {
-                defaultFacets()
                 facet name: 'someFancyFacet', version: '2.0'
             }
         }
@@ -248,10 +245,11 @@ class EclipseWtpPluginTest extends Specification {
     }
 
     @Issue(['GRADLE-2186', 'GRADLE-2221'])
-    def applyToJavaProject_shouldAllowToChangeWtpComponentAndFacets() {
+    def "can change WTP components and add facets when java plugin is applied"() {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
+        project.sourceCompatibility = 1.7
 
         project.eclipse.wtp {
             component {
@@ -266,8 +264,12 @@ class EclipseWtpPluginTest extends Specification {
         then:
         project.eclipse.wtp.component.deployName == 'ejb-jar'
         project.eclipse.wtp.component.properties == [new WbProperty('mood', ':-D')]
-        checkEclipseWtpFacet([new Facet(FacetType.installed, 'jst.ejb', '3.0')])
+        checkEclipseWtpFacet([new Facet(FacetType.fixed, 'jst.java', null),
+                              new Facet(FacetType.installed, 'jst.utility', '1.0'),
+                              new Facet(FacetType.installed, 'jst.java', '1.7'),
+                              new Facet(FacetType.installed, 'jst.ejb', '3.0')])
     }
+
 
     private void checkEclipseWtpComponentForEar(def expectedSourceDirs) {
         def wtp = checkAndGetEclipseWtpComponent()

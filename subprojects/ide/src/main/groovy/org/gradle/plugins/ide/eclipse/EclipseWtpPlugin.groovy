@@ -34,7 +34,8 @@ class EclipseWtpPlugin extends IdePlugin {
     static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet"
     static final String WEB_LIBS_CONTAINER = 'org.eclipse.jst.j2ee.internal.web.container'
 
-    @Override protected String getLifecycleTaskName() {
+    @Override
+    protected String getLifecycleTaskName() {
         return "eclipseWtp"
     }
 
@@ -69,7 +70,9 @@ class EclipseWtpPlugin extends IdePlugin {
         project.plugins.withType(JavaPlugin) {
             def deleteWtpDependentModule = []
             eclipseModel.classpath.file.whenMerged { Classpath classpath ->
-                if (hasWarOrEarPlugin(project)) { return }
+                if (hasWarOrEarPlugin(project)) {
+                    return
+                }
 
                 def minusFiles = eclipseModel.wtp.component.minusConfigurations*.files?.flatten() ?: project.files()
                 def libFiles = eclipseModel.wtp.component.libConfigurations*.files?.flatten() ?: project.files()
@@ -90,9 +93,11 @@ class EclipseWtpPlugin extends IdePlugin {
                 }
             }
             eclipseModel.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
-                if (hasWarOrEarPlugin(project)) { return }
-                wtpComponent.wbModuleEntries.removeAll{ wbModule ->
-                    wbModule instanceof WbDependentModule && deleteWtpDependentModule.any{ lib -> wbModule.handle.contains(lib) }
+                if (hasWarOrEarPlugin(project)) {
+                    return
+                }
+                wtpComponent.wbModuleEntries.removeAll { wbModule ->
+                    wbModule instanceof WbDependentModule && deleteWtpDependentModule.any { lib -> wbModule.handle.contains(lib) }
                 }
             }
         }
@@ -125,7 +130,9 @@ class EclipseWtpPlugin extends IdePlugin {
 
             component.conventionMapping.deployName = { model.project.name }
             project.plugins.withType(JavaPlugin) {
-                if (hasWarOrEarPlugin(project)) { return }
+                if (hasWarOrEarPlugin(project)) {
+                    return
+                }
 
                 component.libConfigurations = [project.configurations.runtime]
                 component.minusConfigurations = []
@@ -148,8 +155,8 @@ class EclipseWtpPlugin extends IdePlugin {
                 component.minusConfigurations = []
                 component.classesDeployPath = "/"
                 component.libDeployPath = "/lib"
-                component.conventionMapping.sourceDirs = { [project.file{ project.appDirName }] as Set }
-                project.plugins.withType(JavaPlugin){
+                component.conventionMapping.sourceDirs = { [project.file { project.appDirName }] as Set }
+                project.plugins.withType(JavaPlugin) {
                     component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                 }
             }
@@ -167,34 +174,33 @@ class EclipseWtpPlugin extends IdePlugin {
             eclipseModel.wtp.facet = facet
 
             project.plugins.withType(JavaPlugin) {
-                if (hasWarOrEarPlugin(project)) { return }
+                if (hasWarOrEarPlugin(project)) {
+                    return
+                }
 
-                configureFacets({
+                facet.conventionMapping.facets = {
                     [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.installed, "jst.utility", "1.0"),
-                      new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
-                }, eclipseModel)
+                     new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                }
             }
             project.plugins.withType(WarPlugin) {
-                configureFacets({
+                facet.conventionMapping.facets = {
                     [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                      new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
-                }, eclipseModel)
+                     new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                }
             }
             project.plugins.withType(EarPlugin) {
-                configureFacets({
+                facet.conventionMapping.facets = {
                     [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")]
-                }, eclipseModel)
+                }
             }
         }
     }
 
-    private void configureFacets(Closure facets, EclipseModel eclipseModel) {
-        eclipseModel.wtp.facet.defaults = facets
-        eclipseModel.wtp.facet.conventionMapping.facets = facets
-    }
-
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
-        if (project.tasks.findByName(taskName)) { return }
+        if (project.tasks.findByName(taskName)) {
+            return
+        }
         def task = project.tasks.create(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)
