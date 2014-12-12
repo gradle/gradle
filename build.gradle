@@ -122,7 +122,7 @@ apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/testGroupings.gradle"
 apply from: "gradle/taskOrdering.gradle"
-
+apply from: "gradle/fix-GRADLE-2492.gradle"
 
 allprojects {
     group = 'org.gradle'
