@@ -40,6 +40,7 @@ import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * Plugin for executing tests from a Play Framework application.
@@ -72,6 +73,8 @@ public class PlayTestPlugin {
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
+
+                    binary.getTasks().add(scalaCompile);
                 }
             });
 
@@ -86,19 +89,20 @@ public class PlayTestPlugin {
                     test.setTestSrcDirs(Arrays.asList(testSourceDir));
                     test.setWorkingDir(projectIdentifier.getProjectDir());
                     test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
+
+                    binary.getTasks().add(test);
+                    // TODO:DAZ Would be good if we could add as a dependency to 'check' lifecycle task here.
                 }
             });
         }
     }
 
-    /**
-     * This is a very special handling for adding play related test tasks as a dependency to the 'check' task.
-     * It needs a more general solution where the check lifecycle task depends on all available test tasks for binaries (CppUnit, Test, etc.)
-     * */
+    // TODO Need a better mechanism to wire tasks into lifecycle
     @Finalize
-    public void addCheckDependency(final TaskContainer tasks, BinaryContainer binaryContainer) {
-        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(String.format("test%s", StringUtils.capitalize(binary.getName())));
+    public void wireTestTasksIntoCheckLifecycle(final TaskContainer tasks, BinaryContainer binaryContainer) {
+        Set<PlayApplicationBinarySpec> playBinaries = binaryContainer.withType(PlayApplicationBinarySpec.class);
+        for (final PlayApplicationBinarySpec binary : playBinaries) {
+            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(binary.getTasks().withType(Test.class));
         }
     }
 }

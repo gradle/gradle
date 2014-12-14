@@ -16,7 +16,6 @@
 
 package org.gradle.play.plugins
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
@@ -26,6 +25,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
@@ -34,33 +34,32 @@ import spock.lang.Specification
 
 class PlayTestPluginTest extends Specification {
 
-    CollectionBuilder<Task> taskCollectionBuilder = Mock()
-    BinaryContainer binaryContainer = Mock()
-    ProjectIdentifier projectIdentifier = Mock()
-    PlayApplicationBinarySpec binary = Mock()
-    PlayPlatform playPlatform = Mock()
-    PlayToolChainInternal playToolChain = Mock()
+    CollectionBuilder<Task> taskCollectionBuilder = Mock(CollectionBuilder)
+    def binaryContainer = Mock(BinaryContainer)
+    def projectIdentifier = Mock(ProjectIdentifier)
+    def binary = Mock(PlayApplicationBinarySpec)
+    def playPlatform = Mock(PlayPlatform)
+    def playToolChain = Mock(PlayToolChainInternal)
+    def playToolProvider = Mock(PlayToolProvider)
+
     File buildDir = new File("tmp")
-
-    FileResolver fileResolver = Mock()
-    ConfigurationContainer configurationContainer = Mock();
-    FileCollection fileCollection = Mock();
-
-    PlayToolProvider playToolProvider = Mock()
 
     PlayTestPlugin plugin = new PlayTestPlugin()
 
     def setup(){
-        1 * binaryContainer.withType(PlayApplicationBinarySpec.class) >> binaryContainer
-        1 * binaryContainer.iterator() >> [binary].iterator()
+        _ * binaryContainer.withType(PlayApplicationBinarySpec.class) >> binaryContainer
+        _ * binaryContainer.iterator() >> [binary].iterator()
         _ * binary.name >> "someBinary"
     }
 
     def "adds test related tasks per binary"() {
         given:
+        def fileResolver = Mock(FileResolver)
+        def resolvedFiles = Mock(FileCollection);
+        1 * fileResolver.resolveFiles(_) >> resolvedFiles
+
         1 * binary.getTargetPlatform() >> playPlatform
         1 * playToolChain.select(playPlatform) >> playToolProvider
-        1 * fileResolver.resolveFiles(_) >> fileCollection
 
         when:
         plugin.createTestTasks(taskCollectionBuilder, binaryContainer, playToolChain, fileResolver, projectIdentifier, buildDir)
@@ -74,13 +73,21 @@ class PlayTestPluginTest extends Specification {
 
     def "adds play test task dependency to check task"() {
         given:
-        TaskContainer taskContainer = Mock()
-        Task check = Mock()
+        def taskContainer = Mock(TaskContainer)
+        def check = Mock(Task)
         _ * taskContainer.getByName(LifecycleBasePlugin.CHECK_TASK_NAME) >> check
 
+        def binaryTasks = Mock(BinaryTasksCollection)
+        def testTasks = Mock(BinaryTasksCollection)
+
         when:
-        plugin.addCheckDependency(taskContainer, binaryContainer)
+        binary.tasks >> binaryTasks
+        binaryTasks.withType(Test) >> testTasks
+
+        and:
+        plugin.wireTestTasksIntoCheckLifecycle(taskContainer, binaryContainer)
+
         then:
-        1 * check.dependsOn("testSomeBinary")
+        1 * check.dependsOn(testTasks)
     }
 }
