@@ -184,7 +184,7 @@ class EclipseWtpComponent {
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
     void resource(Map<String, String> args) {
-        resources.add(new WbResource(args.deployPath, args.sourcePath))
+        resources = getResources() + new WbResource(args.deployPath, args.sourcePath)
     }
 
     /**
