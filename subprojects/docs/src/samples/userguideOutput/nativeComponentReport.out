@@ -37,6 +37,7 @@ Source sets
 Binaries
     Executable 'main:executable'
         build using task: :mainExecutable
+        install using task: :installMainExecutable
         platform: current
         build type: debug
         flavor: default
