@@ -54,10 +54,10 @@ import java.util.concurrent.Callable;
 public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
-    public static final String BUILD_TASK_NAME = "build";
+    public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
+    public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
-    public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     private final Instantiator instantiator;
@@ -80,7 +80,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         configureJavaDoc(project, javaConvention);
         configureTest(project, javaConvention);
-        configureBuild(project);
         configureBuildNeeded(project);
         configureBuildDependents(project);
     }
@@ -219,14 +218,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-    }
-
-    private void configureBuild(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project.");
-        buildTask.setGroup(BasePlugin.BUILD_GROUP);
-        buildTask.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME);
-        buildTask.dependsOn(CHECK_TASK_NAME);
     }
 
     private void configureBuildNeeded(Project project) {

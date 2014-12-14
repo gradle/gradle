@@ -16,10 +16,7 @@
 
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
@@ -34,6 +31,7 @@ public class LifecycleBasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean";
     public static final String ASSEMBLE_TASK_NAME = "assemble";
     public static final String CHECK_TASK_NAME = "check";
+    public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
 
@@ -42,6 +40,7 @@ public class LifecycleBasePlugin implements Plugin<Project> {
         addCleanRule(project);
         addAssemble(project);
         addCheck(project);
+        addBuild(project);
     }
 
     private void addClean(final Project project) {
@@ -69,5 +68,13 @@ public class LifecycleBasePlugin implements Plugin<Project> {
         Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
         checkTask.setDescription("Runs all checks.");
         checkTask.setGroup(VERIFICATION_GROUP);
+    }
+
+    private void addBuild(Project project) {
+        DefaultTask buildTask = project.getTasks().create(BUILD_TASK_NAME, DefaultTask.class);
+        buildTask.setDescription("Assembles and tests this project.");
+        buildTask.setGroup(BUILD_GROUP);
+        buildTask.dependsOn(ASSEMBLE_TASK_NAME);
+        buildTask.dependsOn(CHECK_TASK_NAME);
     }
 }
