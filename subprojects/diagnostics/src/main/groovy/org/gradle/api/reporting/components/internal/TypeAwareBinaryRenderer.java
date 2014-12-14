@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> implements BinaryRendererRegistry {
+public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
     private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>>();
 
     public void register(AbstractBinaryRenderer<?> renderer) {

@@ -4,6 +4,7 @@ dependencies {
     compile project(":languageJvm")
     compile project(":languageScala")
     compile project(":javascript")
+    compile project(":diagnostics")
 }
 
 useClassycle()

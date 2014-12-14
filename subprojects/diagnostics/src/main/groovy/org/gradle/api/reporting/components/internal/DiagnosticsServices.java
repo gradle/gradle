@@ -32,7 +32,9 @@ public class DiagnosticsServices implements PluginServiceRegistry {
                 renderer.register(new StaticLibraryBinaryRenderer());
                 renderer.register(new NativeExecutableBinaryRenderer());
                 renderer.register(new NativeTestSuiteBinaryRenderer());
-                renderer.register(new PlayApplicationBinaryRenderer());
+                for (AbstractBinaryRenderer binaryRenderer : services.getAll(AbstractBinaryRenderer.class)) {
+                    renderer.register(binaryRenderer);
+                }
                 return renderer;
             }
         });

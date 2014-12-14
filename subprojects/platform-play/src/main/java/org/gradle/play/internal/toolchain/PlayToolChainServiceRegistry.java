@@ -22,10 +22,16 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
 
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 
     public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            PlayApplicationBinaryRenderer createBinaryRenderer() {
+                return new PlayApplicationBinaryRenderer();
+            }
+        });
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
