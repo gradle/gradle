@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
@@ -89,6 +90,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
 
                 testBinary.getTasks().add(runTask);
+
+                tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(runTask);
             }
         }
     }

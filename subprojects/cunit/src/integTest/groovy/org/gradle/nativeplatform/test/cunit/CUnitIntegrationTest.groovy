@@ -108,7 +108,7 @@ binaries.withType(CUnitTestSuiteBinarySpec) {
         useStandardConfig()
 
         when:
-        run "runHelloTestCUnitExe"
+        run "check"
 
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
@@ -145,7 +145,7 @@ model {
 """
 
         when:
-        run "runHelloTestCUnitExe"
+        run "check"
 
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
@@ -202,7 +202,7 @@ model {
 """
 
         then:
-        succeeds "runHelloTestCUnitExe"
+        succeeds "check"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
@@ -229,7 +229,7 @@ model {
         useStandardConfig()
 
         then:
-        succeeds "runHelloTestCUnitExe"
+        succeeds "check"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
@@ -261,7 +261,7 @@ binaries.withType(CUnitTestSuiteBinarySpec) {
 """
 
         then:
-        succeeds "runHelloTestCUnitExe"
+        succeeds "check"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
@@ -291,7 +291,7 @@ model {
 """
 
         then:
-        succeeds "runHelloTestCUnitExe"
+        succeeds "check"
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
