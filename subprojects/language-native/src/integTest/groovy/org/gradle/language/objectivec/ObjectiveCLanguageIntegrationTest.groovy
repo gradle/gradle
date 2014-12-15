@@ -15,14 +15,14 @@
  */
 package org.gradle.language.objectivec
 
-import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-class ObjectiveCLanguageIntegrationTest extends AbstractLanguageIntegrationTest{
+class ObjectiveCLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest{
 
     @Override
     HelloWorldApp getHelloWorldApp() {

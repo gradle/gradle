@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import spock.lang.Unroll
 
-abstract class AbstractLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     IncrementalHelloWorldApp app
     String compileTask
     TestFile sourceFile

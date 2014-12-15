@@ -25,7 +25,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     abstract HelloWorldApp getHelloWorldApp()
 
