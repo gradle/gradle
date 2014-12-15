@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 
 import java.util.Collection;
@@ -28,4 +29,6 @@ public interface EmbeddableJavaProject {
     Collection<String> getBuildTasks();
 
     FileCollection getRuntimeClasspath();
+
+    Configuration getCompileDependencies();
 }

@@ -143,6 +143,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     @TaskAction
     public void report() {
+        def configuration = getConfiguration()
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                     + "\nIt can be specified from the command line, e.g: '$path --configuration someConf --dependency someDep'")
@@ -165,7 +166,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         if (selectedDependencies.empty) {
-            output.println("No dependencies matching given input were found in $configuration")
+            output.println("No dependencies matching given input were found in ${configuration}")
             return
         }
 
@@ -174,7 +175,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         def nodeRenderer = new NodeRenderer() {
             void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
                 boolean leaf = node.children.empty
-                target.text(leaf ? DependencyInsightReportTask.this.configuration.name : node.name);
+                target.text(leaf ? configuration.name : node.name);
                 if (alreadyRendered && !leaf) {
                     target.withStyle(Info).text(" (*)")
                 }

@@ -200,5 +200,9 @@ public class JavaPlugin implements Plugin<Project> {
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
             return runtimeClasspath.minus(gradleApi);
         }
+
+        public Configuration getCompileDependencies() {
+            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+        }
     }
 }
