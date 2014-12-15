@@ -25,7 +25,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
     public DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
         results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests")
-        results << new JUnitXmlTestExecutionResult(projectDir, buildDirName)
+        results << new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results")
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {

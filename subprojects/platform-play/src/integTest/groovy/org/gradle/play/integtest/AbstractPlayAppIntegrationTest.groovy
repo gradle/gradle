@@ -69,7 +69,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
 
         then:
-        verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test", "xml"))
+        verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test/xml"))
 
         when:
         succeeds("check")
