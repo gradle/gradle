@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.CodeSource;
 import java.util.*;
 
 public class ClasspathUtil {
@@ -60,11 +61,20 @@ public class ClasspathUtil {
     public static File getClasspathForClass(Class<?> targetClass) {
         URI location;
         try {
-            location = targetClass.getProtectionDomain().getCodeSource().getLocation().toURI();
-            if (!location.getScheme().equals("file")) {
-                throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
+            CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
+            if (codeSource != null && codeSource.getLocation() != null) {
+                location = codeSource.getLocation().toURI();
+                if (!location.getScheme().equals("file")) {
+                    throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
+                }
+                return new File(location);
             }
-            return new File(location);
+            String resourceName = targetClass.getName().replace(".", "/") + ".class";
+            URL resource = targetClass.getClassLoader().getResource(resourceName);
+            if (resource != null) {
+                return getClasspathForResource(resource, resourceName);
+            }
+            throw new GradleException(String.format("Cannot determine classpath for class %s.", targetClass.getName()));
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
