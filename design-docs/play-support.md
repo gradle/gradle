@@ -47,15 +47,17 @@ The goal is to get something working pretty quickly, and work to improve the con
 
 Add a `play-application` plugin that provides Play application component:
 
-    plugins {
-        id 'play-application'
-    }
+```gradle
+plugins {
+    id 'play-application'
+}
 
-    model {
-        components {
-            myapp(PlayApplicationSpec) 
-        }
+model {
+    components {
+        myapp(PlayApplicationSpec) 
     }
+}
+```
 
 - ~~Running `gradle assemble` builds an empty Jar file.~~
 - ~~Running `gradle components` shows some basic details about the Play application. ~~
@@ -153,25 +155,27 @@ At this stage, only the default generated Play application is supported, with a 
 
 Add a new 'scala-lang' plugin to add Scala language support implemented in the same manner as the JavaLanguagePlugin.
 
-    plugins {
-        id 'jvm-component'
-        id 'scala-lang'
-    }
-    model {
-        components {
-            myLib(JvmLibrarySpec)
-            myOtherLib(JvmLibrarySpec) {
-                sources {
-                    scala {
-                        source.srcDir "src/myOtherLib/myScala"
-                    }
-                    otherScala(ScalaSourceSet) {
-                        source.srcDir "src/otherScala"
-                    }
+```gradle
+plugins {
+    id 'jvm-component'
+    id 'scala-lang'
+}
+model {
+    components {
+        myLib(JvmLibrarySpec)
+        myOtherLib(JvmLibrarySpec) {
+            sources {
+                scala {
+                    source.srcDir "src/myOtherLib/myScala"
+                }
+                otherScala(ScalaSourceSet) {
+                    source.srcDir "src/otherScala"
                 }
             }
         }
     }
+}
+```
 
 ##### Test cases
 
@@ -202,27 +206,28 @@ Extend the Play support to full model Scala sources and Jvm resources.
 - All source sets are listed in the component report for a play application
 - All Scala source sets in a Play application are joint-compiled
 
-
-    plugins {
-        id 'play-application'
-    }
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                sources {
-                    scala {
-                        source.include "extraStuff/**"
-                    }
-                    resources {
-                        source.srcDir "src/assets"
-                    }
-                    extraScala(ScalaSourceSet) {
-                        source.srcDir "src/extraScala"
-                    }
+```gradle
+plugins {
+    id 'play-application'
+}
+model {
+    components {
+        play(PlayApplicationSpec) {
+            sources {
+                scala {
+                    source.include "extraStuff/**"
+                }
+                resources {
+                    source.srcDir "src/assets"
+                }
+                extraScala(ScalaSourceSet) {
+                    source.srcDir "src/extraScala"
                 }
             }
         }
     }
+}
+```
 
 #### Test cases
 
@@ -284,26 +289,28 @@ Any files under `/public` in the application sources are available under `/asset
 
 Add a coffee script plugin as well as JavaScriptSourceSet and CoffeeScriptSourceSets and permit multiple instances.
 
-    plugins {
-        id 'play-application'
-        id 'play-coffeescript'
-    }
+```gradle
+plugins {
+    id 'play-application'
+    id 'play-coffeescript'
+}
 
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                sources {
-                    extraCoffeeScript(CoffeeScriptSourceSet) {
-                        sources.srcDir "src/extraCoffeeScript"
-                    }
+model {
+    components {
+        play(PlayApplicationSpec) {
+            sources {
+                extraCoffeeScript(CoffeeScriptSourceSet) {
+                    sources.srcDir "src/extraCoffeeScript"
+                }
 
-                    extraJavaScript(JavaScriptSourceSet) {
-                        sources.srcDir "src/extraJavaScript"
-                    }
+                extraJavaScript(JavaScriptSourceSet) {
+                    sources.srcDir "src/extraJavaScript"
                 }
             }
         }
     }
+}
+```
 
 - Default coffeescript sourceset should be "app/assets/**/*.coffee"
 - Compiled coffeescript files will be added to the jar under "public"
@@ -341,12 +348,14 @@ Play plugin:
 
 This allows the developer to easily add repositories to the build script using a convenience extension on the RepositoryContainer object.
 
-    buildscript {
-        repositories {
-            gradlePlay()
-        }
+```gradle
+buildscript {
+    repositories {
+        gradlePlay()
     }
-    
+}
+```
+ 
 This should point to a virtual repository (play-public) at gradle.repo.org that's backed by the default repositories required for play functionality.
 Currently the following repositories would be required:
 - https://repo.typesafe.com/typesafe/maven-releases (play support)
@@ -421,14 +430,16 @@ Play plugin:
 
 ### Story: Build author declares target Play platform
 
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                platform play: "2.3.7"
-                platform play: "2.2.3"
-            }
+```gradle
+model {
+    components {
+        play(PlayApplicationSpec) {
+            platform play: "2.3.7"
+            platform play: "2.2.3"
         }
     }
+}
+```
 
 #### Test cases
 
@@ -444,45 +455,51 @@ Play plugin:
 
 ### Story: Build author declares target Scala platform
 
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                platform play: "2.3.7", scala: "2.11"
-            }
+```gradle
+model {
+    components {
+        play(PlayApplicationSpec) {
+            platform play: "2.3.7", scala: "2.11"
         }
     }
-
+}
+```
 
 ### Story: Build author declares target Java platform for Play application
 
-    model {
-        components {
-            play(PlayApplicationSpec) {
-                platform play: "2.3.7", scala: "2.11", java: "1.8"
-            }
+```gradle
+model {
+    components {
+        play(PlayApplicationSpec) {
+            platform play: "2.3.7", scala: "2.11", java: "1.8"
         }
     }
+}
+```
 
 ### Story: New target platform DSL for JVM components
 
-    model {
-        components {
-            jvmLib(JvmLibrarySpec) {
-                platform java: "1.8"
-            }
+```gradle
+model {
+    components {
+        jvmLib(JvmLibrarySpec) {
+            platform java: "1.8"
         }
     }
+}
+```
 
 ### Story: New target platform DSL for native components
 
-    model {
-        components {
-            nativeLib(NativeLibrarySpec) {
-                platform os: "windows", arch: "x86"
-            }
+```gradle
+model {
+    components {
+        nativeLib(NativeLibrarySpec) {
+            platform os: "windows", arch: "x86"
         }
     }
-
+}
+```
 
 ## Feature: Developer builds and runs Play application
 
