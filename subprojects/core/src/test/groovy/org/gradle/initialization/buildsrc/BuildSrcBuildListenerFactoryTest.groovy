@@ -20,7 +20,7 @@ import spock.lang.Specification
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.Convention
-import org.gradle.api.internal.plugins.BuildableJavaComponent
+import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.StartParameter
 
 class BuildSrcBuildListenerFactoryTest extends Specification {

@@ -18,7 +18,7 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.BuildAdapter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.plugins.BuildableJavaComponent;
+import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.util.WrapUtil;

@@ -22,7 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.internal.java.JavaLibrary
-import org.gradle.api.internal.plugins.BuildableJavaComponent
+import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
