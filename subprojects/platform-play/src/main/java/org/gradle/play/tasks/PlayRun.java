@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -95,13 +96,13 @@ public class PlayRun extends ConventionTask {
         while (true) {
             try {
                 int c = System.in.read();
-                if(c == -1 || c == 4){
+                if (c == -1 || c == 4) {
                     // STOP on Ctrl-D or EOF.
                     logger.info("received end of stream (ctrl+d)");
                     return;
                 }
             } catch (IOException e) {
-                logger.error("Error reading input", e);
+                throw new UncheckedIOException(e);
             }
         }
     }
