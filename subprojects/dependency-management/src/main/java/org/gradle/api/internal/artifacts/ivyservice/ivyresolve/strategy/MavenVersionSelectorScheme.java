@@ -51,11 +51,11 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
         if (version.equals(LATEST_RELEASE)) {
             return RELEASE;
         }
-        if(version.startsWith("]")){
-            version = version.replaceFirst("]", "(");
+        if (version.startsWith("]")) {
+            version = '(' + version.substring(1);
         }
-        if(version.endsWith("[")){
-            version = String.format("%s)", version.substring(0, version.length()-1));
+        if (version.endsWith("[")) {
+            version = version.substring(0, version.length() - 1) + ')';
         }
         return version;
     }
