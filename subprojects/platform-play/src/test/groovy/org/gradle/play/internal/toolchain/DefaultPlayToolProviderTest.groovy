@@ -44,25 +44,21 @@ class DefaultPlayToolProviderTest extends Specification {
     Factory<WorkerProcessBuilder> workerProcessBuilderFactory = Mock()
     PlayRunSpec playRunSpec = Mock()
 
-
-    def setup(){
-        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, playPlatform)
-        _ * playPlatform.scalaPlatform >> scalaPlatform
-    }
-
     @Unroll
     def "provides playRunner for play #playVersion"(){
         setup:
-        FileCollection applicationFiles = Mock()
+        def applicationFiles = Mock(FileCollection)
         1 * applicationFiles.getFiles() >> []
         1 * fileResolver.resolveFiles(_) >> applicationFiles
         _ * dependencyHandler.create(_)  >> Mock(Dependency);
 
-        Configuration runConfiguration = Mock()
+        def runConfiguration = Mock(Configuration)
 
-        _ * playPlatform.getPlayVersion() >> playVersion
+        _ * playPlatform.scalaPlatform >> scalaPlatform
 
         when:
+        _ * playPlatform.getPlayVersion() >> playVersion
+        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, playPlatform)
         def runner = playToolProvider.newApplicationRunner(workerProcessBuilderFactory, playRunSpec)
 
         then:
@@ -74,16 +70,14 @@ class DefaultPlayToolProviderTest extends Specification {
         playVersion << ["2.2.x", "2.3.x"]
     }
 
-    def "fails on providing playRunner unsupported play versions"(){
-        setup:
-        1 * playPlatform.getPlayVersion() >> playVersion
-
+    def "cannot create tool provider for unsupported play versions"() {
         when:
-        playToolProvider.newApplicationRunner(workerProcessBuilderFactory, playRunSpec)
+        _ * playPlatform.getPlayVersion() >> playVersion
+        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, playPlatform)
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
-        exception.message == "Could not find a compatible Play version for the Run service. This plugin is compatible with: 2.3.x, 2.2.x"
+        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: 2.3.x, 2.2.x"
 
         and: "no dependencies resolved"
         0 * dependencyHandler.create(_)
@@ -93,9 +87,14 @@ class DefaultPlayToolProviderTest extends Specification {
         playVersion << ["2.1.x", "2.4.x", "3.0.0"]
     }
 
-    def "newCompiler provides decent error for unsupported CompileSpec"(){
+    def "newCompiler provides decent error for unsupported CompileSpec"() {
+        setup:
+        _ * playPlatform.getPlayVersion() >> "2.3.7"
+        playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, playPlatform)
+
         when:
         playToolProvider.newCompiler(new UnknownCompileSpec())
+
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "Cannot create Compiler for unsupported CompileSpec type 'UnknownCompileSpec'"
@@ -103,4 +102,4 @@ class DefaultPlayToolProviderTest extends Specification {
 
 }
 
-class UnknownCompileSpec implements CompileSpec{}
+class UnknownCompileSpec implements CompileSpec {}

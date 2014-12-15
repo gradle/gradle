@@ -19,16 +19,28 @@ package org.gradle.play.internal.run;
 import java.io.Serializable;
 
 public class PlayAppLifecycleUpdate implements Serializable {
+    private final boolean running;
     private final Exception exception;
-    private PlayAppStatus status;
 
-    public PlayAppLifecycleUpdate(PlayAppStatus status) {
-        this.status = status;
+    public static PlayAppLifecycleUpdate stopped() {
+        return new PlayAppLifecycleUpdate(false);
+    }
+
+    public static PlayAppLifecycleUpdate running() {
+        return new PlayAppLifecycleUpdate(true);
+    }
+
+    public static PlayAppLifecycleUpdate failed(Exception exception) {
+        return new PlayAppLifecycleUpdate(exception);
+    }
+
+    private PlayAppLifecycleUpdate(boolean isRunning) {
+        this.running = isRunning;
         this.exception = null;
     }
 
-    public PlayAppLifecycleUpdate(Exception exception) {
-        this.status = PlayAppStatus.FAILED;
+    private PlayAppLifecycleUpdate(Exception exception) {
+        this.running = false;
         this.exception = exception;
     }
 
@@ -36,7 +48,15 @@ public class PlayAppLifecycleUpdate implements Serializable {
         return exception;
     }
 
-    public PlayAppStatus getStatus() {
-        return status;
+    public boolean isRunning() {
+        return running && exception == null;
+    }
+
+    public boolean isStopped() {
+        return !running && exception == null;
+    }
+
+    public boolean isFailed() {
+        return exception != null;
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.toolchain;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -41,6 +42,7 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -55,7 +57,8 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final CompilerDaemonManager compilerDaemonManager;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
-    private PlayPlatform targetPlatform;
+    private final PlayPlatform targetPlatform;
+    private final PlayVersion playVersion;
 
     public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, PlayPlatform targetPlatform) {
         this.fileResolver = fileResolver;
@@ -63,6 +66,18 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.targetPlatform = targetPlatform;
+        this.playVersion = parsePlayVersion(targetPlatform);
+    }
+
+    private PlayVersion parsePlayVersion(PlayPlatform targetPlatform) {
+        VersionNumber versionNumber = VersionNumber.parse(targetPlatform.getPlayVersion());
+        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 2) {
+            return PlayVersion.PLAY_2_2_X;
+        }
+        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 3) {
+            return PlayVersion.PLAY_2_3_X;
+        }
+        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: 2.3.x, 2.2.x", targetPlatform.getPlayVersion()));
     }
 
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
@@ -83,49 +98,47 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec) {
-        PlayRunVersion version = PlayRunVersion.parse(targetPlatform.getPlayVersion());
-
         List<File> playRunClasspath = new ArrayList<File>();
+
         Set<File> applicationFiles = fileResolver.resolveFiles(spec.getClasspath()).getFiles();
-        FileCollection playDependencyFiles = getDependencies(getPlayDependencyNotation(), getDocsDependencyNotation());
+        FileCollection playDependencyFiles = getPlatformDependencies("play", "play-docs");
         playRunClasspath.addAll(applicationFiles);
         playRunClasspath.addAll(playDependencyFiles.getFiles());
 
-        VersionedPlayRunSpec versionedSpec = create(version, spec, playRunClasspath);
+        VersionedPlayRunSpec versionedSpec = createPlayRunner(spec, playRunClasspath);
         return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec);
     }
 
     public FileCollection getPlayDependencies() {
-        return getDependencies(getPlayDependencyNotation());
+        return getPlatformDependencies("play");
     }
 
     public FileCollection getPlayTestDependencies() {
-        return getDependencies(String.format("com.typesafe.play:play-test_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion(), targetPlatform.getPlayVersion()));
+        return getPlatformDependencies("play-test");
     }
 
-    private FileCollection getDependencies(Object... dependencyNotations) {
-        List<Dependency> dependencies = CollectionUtils.collect(dependencyNotations, new Transformer<Dependency, Object>() {
-            public Dependency transform(Object dependencyNotation) {
+    private FileCollection getPlatformDependencies(String... modules) {
+        List<Dependency> dependencies = CollectionUtils.collect(modules, new Transformer<Dependency, String>() {
+            public Dependency transform(String module) {
+                String dependencyNotation = getDependencyNotation(module);
                 return dependencyHandler.create(dependencyNotation);
             }
         });
         Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
-        Configuration detachedConfiguration = configurationContainer.detachedConfiguration(dependenciesArray);
-        return detachedConfiguration;
+        return configurationContainer.detachedConfiguration(dependenciesArray);
     }
 
-    public Object getDocsDependencyNotation() {
-        return String.format("com.typesafe.play:play-docs_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion(), targetPlatform.getPlayVersion());
+    private String getDependencyNotation(String module) {
+        return String.format("com.typesafe.play:%s_%s:%s", module, targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion());
     }
 
-    public VersionedPlayRunSpec create(PlayRunVersion version, PlayRunSpec spec, Iterable<File> classpath) {
-        switch (version) {
-            case V_22X:
+    public VersionedPlayRunSpec createPlayRunner(PlayRunSpec spec, Iterable<File> classpath) {
+        switch (playVersion) {
+            case PLAY_2_2_X:
                 return new PlayRunSpecV22X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
-            case V_23X:
-                return new PlayRunSpecV23X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
+            case PLAY_2_3_X:
             default:
-                throw new RuntimeException("Could not create play run spec for version: " + version);
+                return new PlayRunSpecV23X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
         }
     }
 
@@ -136,8 +149,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
             }
         });
         Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
-        Configuration detachedConfiguration = configurationContainer.detachedConfiguration(dependenciesArray);
-        return detachedConfiguration;
+        return configurationContainer.detachedConfiguration(dependenciesArray);
     }
 
     public boolean isAvailable() {
@@ -145,10 +157,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public void explain(TreeVisitor<? super String> visitor) {
-    }
-
-    private String getPlayDependencyNotation() {
-        return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion());
     }
 
     private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T> {
@@ -163,5 +171,10 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         public WorkResult execute(T spec) {
             return delegate.execute(mapping.get(spec));
         }
+    }
+
+    private enum PlayVersion {
+        PLAY_2_2_X,
+        PLAY_2_3_X
     }
 }

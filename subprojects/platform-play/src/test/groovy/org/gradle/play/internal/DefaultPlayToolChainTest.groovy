@@ -31,6 +31,10 @@ class DefaultPlayToolChainTest extends Specification {
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
 
+    def setup() {
+        _ * playPlatform.playVersion >> "2.3.7"
+    }
+
     def "provides meaningful name"() {
         given:
         def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
