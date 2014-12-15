@@ -36,7 +36,7 @@ class PlayJavaScriptPluginTest extends Specification {
 
         then:
         project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
-            assert spec.getSource().find { it.name == "javaScriptSources" && it instanceof JavaScriptSourceSet } != null
+            assert spec.getSource().find { it.name == "javaScriptAssets" && it instanceof JavaScriptSourceSet } != null
         }
     }
 }

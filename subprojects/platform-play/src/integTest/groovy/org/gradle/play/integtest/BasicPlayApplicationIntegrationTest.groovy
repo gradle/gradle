@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 
-class BasicPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest{
+class BasicPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
     PlayApp playApp = new BasicPlayApp()
 
     @Override

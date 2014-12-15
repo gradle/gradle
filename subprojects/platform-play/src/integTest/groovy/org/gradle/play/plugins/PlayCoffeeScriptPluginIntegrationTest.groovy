@@ -45,7 +45,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
-    CoffeeScript source 'play:coffeeScriptSources'
+    CoffeeScript source 'play:coffeeScriptAssets'
         app${File.separator}assets
 """))
     }
@@ -56,7 +56,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
                 doLast {
                     assert tasks.withType(CoffeeScriptCompile).size() == 1
                     def coffeeScriptCompileTask = tasks.withType(CoffeeScriptCompile).iterator().next()
-                    assert coffeeScriptCompileTask.name == "compilePlayBinaryPlayCoffeeScriptSources"
+                    assert coffeeScriptCompileTask.name == "compilePlayBinaryCoffeeScriptAssets"
                 }
             }
         """

@@ -91,7 +91,7 @@ Binaries
         skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        jar("build/jars/play/playBinary.jar").hasDescendants()
+        jar("build/playBinary/lib/play.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {

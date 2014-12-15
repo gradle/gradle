@@ -19,7 +19,6 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-
 class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -47,11 +46,11 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":processPlayBinaryPlayJavaScriptSources",
+                ":processPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test.js").exists()
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "public/test.js"
         )
 
@@ -60,19 +59,19 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        skipped(":processPlayBinaryPlayJavaScriptSources",
+        skipped(":processPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
 
         // Detects missing output
         when:
         processed("test.js").delete()
-        file("build/jars/play/playBinary.jar").delete()
+        file("build/playBinary/lib/play.jar").delete()
         succeeds "assemble"
 
         then:
         executedAndNotSkipped(
-                ":processPlayBinaryPlayJavaScriptSources",
+                ":processPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test.js").exists()
@@ -83,9 +82,10 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped(":processPlayBinaryPlayJavaScriptSources",
-                 ":createPlayBinaryJar",
-                 ":playBinary")
+        executedAndNotSkipped(
+                ":processPlayBinaryJavaScriptAssets",
+                ":createPlayBinaryJar",
+                ":playBinary")
     }
 
     def "processes multiple javascript source sets as part of play application build" () {
@@ -114,15 +114,15 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":processPlayBinaryPlayJavaScriptSources",
-                ":processPlayBinaryPlayExtraJavaScript",
-                ":processPlayBinaryPlayAnotherJavaScript",
+                ":processPlayBinaryJavaScriptAssets",
+                ":processPlayBinaryExtraJavaScript",
+                ":processPlayBinaryAnotherJavaScript",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test1.js").exists()
-        processed("javascripts/test2.js").exists()
-        processed("a/b/c/test3.js").exists()
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        processed("ExtraJavaScript", "javascripts/test2.js").exists()
+        processed("AnotherJavaScript", "a/b/c/test3.js").exists()
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "public/test1.js",
                 "public/javascripts/test2.js",
                 "public/a/b/c/test3.js"
@@ -132,9 +132,9 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        skipped(":processPlayBinaryPlayJavaScriptSources",
-                ":processPlayBinaryPlayExtraJavaScript",
-                ":processPlayBinaryPlayAnotherJavaScript",
+        skipped(":processPlayBinaryJavaScriptAssets",
+                ":processPlayBinaryExtraJavaScript",
+                ":processPlayBinaryAnotherJavaScript",
                 ":createPlayBinaryJar",
                 ":playBinary")
     }
@@ -143,7 +143,7 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         new JarTestFixture(file(fileName))
     }
 
-    File processed(String fileName) {
-        file("build/playBinary/javascript/${fileName}")
+    File processed(String sourceSet = "JavaScriptAssets", String fileName) {
+        file("build/playBinary/src/processPlayBinary${sourceSet}/${fileName}")
     }
 }

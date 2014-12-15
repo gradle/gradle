@@ -58,13 +58,13 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         """
 
         when:
-        succeeds "compilePlayBinaryPlayCoffeeScriptSources", "compilePlayBinaryPlayExtra"
+        succeeds "assemble"
 
         then:
-        file('build/playBinary/coffeescript/test.js').exists()
-        file('build/playBinary/coffeescript/test2.js').exists()
-        file('build/playBinary/coffeescript/test.js').text == expectedJavaScript()
-        file('build/playBinary/coffeescript/test2.js').text == expectedJavaScript()
+        file('build/playBinary/src/compilePlayBinaryCoffeeScriptAssets/test.js').exists()
+        file('build/playBinary/src/compilePlayBinaryExtra/test2.js').exists()
+        file('build/playBinary/src/processPlayBinaryCoffeeScriptAssets/test.js').text == expectedJavaScript()
+        file('build/playBinary/src/processPlayBinaryExtra/test2.js').text == expectedJavaScript()
     }
 
     def "can compile coffeescript with a custom implementation from configuration"() {
@@ -94,13 +94,13 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         """
 
         when:
-        succeeds "compilePlayBinaryPlayCoffeeScriptSources", "compilePlayBinaryPlayExtra"
+        succeeds "assemble"
 
         then:
-        file('build/playBinary/coffeescript/test.js').exists()
-        file('build/playBinary/coffeescript/test2.js').exists()
-        file('build/playBinary/coffeescript/test.js').text == expectedJavaScript()
-        file('build/playBinary/coffeescript/test2.js').text == expectedJavaScript()
+        file('build/playBinary/src/compilePlayBinaryCoffeeScriptAssets/test.js').exists()
+        file('build/playBinary/src/compilePlayBinaryExtra/test2.js').exists()
+        file('build/playBinary/src/processPlayBinaryCoffeeScriptAssets/test.js').text == expectedJavaScript()
+        file('build/playBinary/src/processPlayBinaryExtra/test2.js').text == expectedJavaScript()
     }
 
     String testCoffeeScript() {

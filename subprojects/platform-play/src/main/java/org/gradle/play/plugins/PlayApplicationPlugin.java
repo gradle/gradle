@@ -147,6 +147,7 @@ public class PlayApplicationPlugin {
                         final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
         for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
             final String binaryName = String.format("%sBinary", componentSpec.getName());
+            final File binaryBuildDir = new File(buildDir, binaryName);
             binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
@@ -154,10 +155,10 @@ public class PlayApplicationPlugin {
                     playBinaryInternal.setTargetPlatform(chosenPlatform);
                     playBinaryInternal.setToolChain(playToolChainInternal);
 
-                    playBinaryInternal.setJarFile(new File(buildDir, String.format("jars/%s/%s.jar", componentSpec.getName(), playBinaryInternal.getName())));
+                    playBinaryInternal.setJarFile(new File(binaryBuildDir, String.format("lib/%s.jar", componentSpec.getName())));
 
                     JvmClasses classes = playBinary.getClasses();
-                    classes.setClassesDir(new File(buildDir, String.format("classes/%s", binaryName)));
+                    classes.setClassesDir(new File(binaryBuildDir, "classes"));
 
                     // TODO:DAZ These should be configured on the component
                     classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
@@ -185,11 +186,12 @@ public class PlayApplicationPlugin {
         final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
         tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
             public void execute(TwirlCompile twirlCompile) {
-                File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/twirl", binary.getName()));
                 twirlCompile.setPlatform(binary.getTargetPlatform());
-                twirlCompile.setOutputDirectory(new File(twirlCompilerOutputDirectory, "views"));
                 twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
                 twirlCompile.include("**/*.html");
+
+                File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), twirlCompileTaskName));
+                twirlCompile.setOutputDirectory(twirlCompilerOutputDirectory);
 
                 binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
                 binary.getGeneratedScala().builtBy(twirlCompile);
@@ -202,13 +204,14 @@ public class PlayApplicationPlugin {
         final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
         tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
             public void execute(RoutesCompile routesCompile) {
-                final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src_managed", binary.getName()));
                 routesCompile.setPlatform(binary.getTargetPlatform());
-                routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
                 routesCompile.setAdditionalImports(new ArrayList<String>());
                 routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
                 routesCompile.include("*.routes");
                 routesCompile.include("routes");
+
+                final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), routesCompileTaskName));
+                routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
 
                 binary.getGeneratedScala().getSource().srcDir(routesCompilerOutputDirectory);
                 binary.getGeneratedScala().builtBy(routesCompile);

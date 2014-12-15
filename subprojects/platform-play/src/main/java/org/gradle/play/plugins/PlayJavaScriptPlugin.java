@@ -52,7 +52,7 @@ public class PlayJavaScriptPlugin {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
             registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
 
-            JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptSources", JavaScriptSourceSet.class);
+            JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
             javaScriptSourceSet.getSource().srcDir("app/assets");
             javaScriptSourceSet.getSource().include("**/*.js");
         }
@@ -72,13 +72,12 @@ public class PlayJavaScriptPlugin {
     @BinaryTasks
     void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
-            LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) javaScriptSourceSet;
-            if (sourceSetInternal.getMayHaveSources()) {
-                String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+            if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
+                final String processTaskName = "process" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
                 tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
                     @Override
                     public void execute(JavaScriptProcessResources javaScriptProcessResources) {
-                        File javascriptOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
+                        File javascriptOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), processTaskName));
                         javaScriptProcessResources.from(javaScriptSourceSet.getSource());
                         javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
 

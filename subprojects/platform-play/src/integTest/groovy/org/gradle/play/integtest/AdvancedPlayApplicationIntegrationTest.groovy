@@ -48,7 +48,7 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
     void verifyJar() {
         super.verifyJar()
 
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "views/html/awesome/index.class",
                 "special/strangename/Application.class",
                 "models/DataType.class",

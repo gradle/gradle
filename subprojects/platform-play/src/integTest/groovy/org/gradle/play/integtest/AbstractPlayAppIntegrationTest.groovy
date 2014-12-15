@@ -69,7 +69,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":createPlayBinaryJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
 
         then:
-        verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/reports/test/playBinary", "junit"))
+        verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test", "xml"))
 
         when:
         succeeds("check")
@@ -120,7 +120,7 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     }
 
     void verifyJar() {
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "Routes.class",
                 "views/html/index.class",
                 "views/html/main.class",

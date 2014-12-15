@@ -59,7 +59,7 @@ public class PlayTestPlugin {
             final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
             // TODO:DAZ Model a test suite
             final File testSourceDir = fileResolver.resolve("test");
-            final File testClassesDir = new File(buildDir, String.format("testClasses/%s", binary.getName()));
+            final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.dependsOn(binary.getBuildTask());
@@ -78,13 +78,14 @@ public class PlayTestPlugin {
                 }
             });
 
-            String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
+            final String testTaskName = String.format("test%s", StringUtils.capitalize(binary.getName()));
+            final File binaryBuildDir = new File(buildDir, binary.getName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
                     test.setTestClassesDir(testClassesDir);
-                    test.setBinResultsDir(new File(buildDir, String.format("tmp/testResults/%s", test.getName())));
-                    test.getReports().getJunitXml().setDestination(new File(buildDir, String.format("reports/test/%s/junit", binary.getName())));
-                    test.getReports().getHtml().setDestination(new File(buildDir, String.format("reports/test/%s", binary.getName())));
+                    test.setBinResultsDir(new File(binaryBuildDir, String.format("results/%s/bin", testTaskName)));
+                    test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
+                    test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
                     test.dependsOn(testCompileTaskName);
                     test.setTestSrcDirs(Arrays.asList(testSourceDir));
                     test.setWorkingDir(projectIdentifier.getProjectDir());

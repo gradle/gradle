@@ -41,7 +41,7 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
-    JavaScript source 'play:javaScriptSources'
+    JavaScript source 'play:javaScriptAssets'
         app${File.separator}assets
 """))
     }
@@ -52,7 +52,7 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
                 doLast {
                     assert tasks.withType(JavaScriptProcessResources).size() == 1
                     def javascriptTask = tasks.withType(JavaScriptProcessResources).iterator().next()
-                    assert javascriptTask.name == "processPlayBinaryPlayJavaScriptSources"
+                    assert javascriptTask.name == "processPlayBinaryJavaScriptAssets"
                 }
             }
         """

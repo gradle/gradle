@@ -34,6 +34,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptProcessResources;
@@ -67,7 +68,7 @@ public class PlayCoffeeScriptPlugin {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
             registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
 
-            CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptSources", CoffeeScriptSourceSet.class);
+            CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
             coffeeScriptSourceSet.getSource().srcDir("app/assets");
             coffeeScriptSourceSet.getSource().include("**/*.coffee");
         }
@@ -88,21 +89,19 @@ public class PlayCoffeeScriptPlugin {
     void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
-                final File coffeeScriptCompileOutputDirectory = new File(buildDir, String.format("%s/coffeescript", binary.getName()));
-                String compileTaskName = createCoffeeScriptCompile(tasks, binary, coffeeScriptSourceSet, coffeeScriptCompileOutputDirectory);
-                createJavaScriptCompile(tasks, binary, coffeeScriptSourceSet, buildDir, coffeeScriptCompileOutputDirectory, compileTaskName);
+                String compileTaskName = createCoffeeScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet);
+                createJavaScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet, compileTaskName);
             }
         }
     }
 
-    private String createCoffeeScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
-                                           final CoffeeScriptSourceSet coffeeScriptSourceSet, final File coffeeScriptCompileOutputDirectory) {
-        LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) coffeeScriptSourceSet;
-        final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+    private String createCoffeeScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir,
+                                           final CoffeeScriptSourceSet coffeeScriptSourceSet) {
+        final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
         tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
             @Override
             public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
-                coffeeScriptCompile.setDestinationDir(coffeeScriptCompileOutputDirectory);
+                coffeeScriptCompile.setDestinationDir(outputDirectory(buildDir, binary, compileTaskName));
                 coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
                 // TODO:DAZ This is a workaround for ordering issues in setting coffeeScriptJs (need something like convention mapping)
                 if (!coffeeScriptCompile.hasCustomCoffeeScriptJs()) {
@@ -114,21 +113,24 @@ public class PlayCoffeeScriptPlugin {
         return compileTaskName;
     }
 
-    private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final CoffeeScriptSourceSet coffeeScriptSourceSet,
-                                         final File buildDir, final File coffeeScriptCompileOutputDirectory, final String compileTaskName) {
-        LanguageSourceSetInternal sourceSetInternal = (LanguageSourceSetInternal) coffeeScriptSourceSet;
-        String processTaskName = "process" + capitalize(binary.getName()) + capitalize(sourceSetInternal.getFullName());
+    private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
+                                         final String compileTaskName) {
+        final String processTaskName = "process" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
         tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
             @Override
             public void execute(JavaScriptProcessResources processGeneratedJavascript) {
-                // TODO:DAZ Should not be sharing this output directory with non-coffeescript javascript (harder for task to be up-to-date)
-                File coffeeScriptProcessOutputDirectory = new File(buildDir, String.format("%s/javascript", binary.getName()));
                 processGeneratedJavascript.dependsOn(compileTaskName);
-                processGeneratedJavascript.from(coffeeScriptCompileOutputDirectory);
+                processGeneratedJavascript.from(outputDirectory(buildDir, binary, compileTaskName));
+
+                File coffeeScriptProcessOutputDirectory = outputDirectory(buildDir, binary, processTaskName);
                 processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
                 binary.getAssets().builtBy(processGeneratedJavascript);
                 binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
             }
         });
+    }
+
+    private File outputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
+        return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
     }
 }

@@ -37,7 +37,7 @@ class PlayCoffeeScriptPluginTest extends Specification {
 
         then:
         project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
-            assert spec.getSource().find { it.name == "coffeeScriptSources" && it instanceof CoffeeScriptSourceSet } != null
+            assert spec.getSource().find { it.name == "coffeeScriptAssets" && it instanceof CoffeeScriptSourceSet } != null
         }
     }
 }

@@ -50,13 +50,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptSources",
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test.js").exists()
         compareWithoutWhiteSpace processed("test.js").text, expectedJavaScript()
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "public/test.js"
         )
 
@@ -65,8 +65,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        skipped(":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptSources",
+        skipped(":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
 
@@ -74,13 +74,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         when:
         processed("test.js").delete()
         processedJS("test.js").delete()
-        file("build/jars/play/playBinary.jar").delete()
+        file("build/playBinary/lib/play.jar").delete()
         succeeds "assemble"
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptSources",
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test.js").exists()
@@ -92,8 +92,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptSources",
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
     }
@@ -126,23 +126,23 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptSources",
-                ":compilePlayBinaryPlayExtraCoffeeScript",
-                ":processPlayBinaryPlayExtraCoffeeScript",
-                ":compilePlayBinaryPlayAnotherCoffeeScript",
-                ":processPlayBinaryPlayAnotherCoffeeScript",
-                ":processPlayBinaryPlayJavaScriptSources",
-                ":processPlayBinaryPlayExtraJavaScript",
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
+                ":compilePlayBinaryExtraCoffeeScript",
+                ":processPlayBinaryExtraCoffeeScript",
+                ":compilePlayBinaryAnotherCoffeeScript",
+                ":processPlayBinaryAnotherCoffeeScript",
+                ":processPlayBinaryJavaScriptAssets",
+                ":processPlayBinaryExtraJavaScript",
                 ":createPlayBinaryJar",
                 ":playBinary")
         processed("test1.js").exists()
-        processed("xxx/test2.js").exists()
-        processed("a/b/c/test3.js").exists()
+        processed("ExtraCoffeeScript", "xxx/test2.js").exists()
+        processed("AnotherCoffeeScript", "a/b/c/test3.js").exists()
         compareWithoutWhiteSpace processed("test1.js").text, expectedJavaScript()
-        compareWithoutWhiteSpace processed("xxx/test2.js").text, expectedJavaScript()
-        compareWithoutWhiteSpace processed("a/b/c/test3.js").text, expectedJavaScript()
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        compareWithoutWhiteSpace processed("ExtraCoffeeScript", "xxx/test2.js").text, expectedJavaScript()
+        compareWithoutWhiteSpace processed("AnotherCoffeeScript", "a/b/c/test3.js").text, expectedJavaScript()
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "public/test1.js",
                 "public/xxx/test2.js",
                 "public/a/b/c/test3.js",
@@ -160,7 +160,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        jar("build/jars/play/playBinary.jar").containsDescendants(
+        jar("build/playBinary/lib/play.jar").containsDescendants(
                 "public/test1.js",
                 "public/test2.js"
         )
@@ -171,13 +171,13 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryPlayCoffeeScriptSources",
-                ":processPlayBinaryPlayCoffeeScriptSources",
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":playBinary")
         ! processed("test2.js").exists()
         ! processedJS("test2.js").exists()
-        jar("build/jars/play/playBinary.jar").countFiles("public/test2.js") == 0
+        jar("build/playBinary/lib/play.jar").countFiles("public/test2.js") == 0
     }
 
     def "produces sensible error on compile failure" () {
@@ -188,7 +188,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         fails "assemble"
 
         then:
-        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryPlayCoffeeScriptSources'."
+        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryCoffeeScriptAssets'."
         failure.assertHasCause "Failed to compile coffeescript file: test1.coffee"
         failure.assertHasCause "SyntaxError: unexpected if (coffee-script-js-1.8.0.js#10)"
     }
@@ -197,12 +197,12 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         new JarTestFixture(file(fileName))
     }
 
-    File processed(String fileName) {
-        file("build/playBinary/coffeescript/${fileName}")
+    File processed(String sourceSet = "CoffeeScriptAssets", String fileName) {
+        file("build/playBinary/src/compilePlayBinary${sourceSet}/${fileName}")
     }
 
     File processedJS(String fileName) {
-        file("build/playBinary/javascript/${fileName}")
+        file("build/playBinary/src/processPlayBinaryCoffeeScriptAssets/${fileName}")
     }
 
     File assets(String fileName) {
