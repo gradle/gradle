@@ -17,8 +17,8 @@
 package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.file.RelativeFile;
+import org.gradle.plugins.javascript.base.SourceTransformationException;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileDestinationCalculator;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
@@ -63,7 +63,7 @@ public class CoffeeScriptCompilerWorker implements RhinoWorker<Boolean, Serializ
                 try {
                     return (String) context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
                 } catch (JavaScriptException jse) {
-                    throw new InvalidUserCodeException(String.format("Failed to compile coffeescript file: %s", sourceName), jse);
+                    throw new SourceTransformationException(String.format("Failed to compile coffeescript file: %s", sourceName), jse);
                 }
             }
         });
