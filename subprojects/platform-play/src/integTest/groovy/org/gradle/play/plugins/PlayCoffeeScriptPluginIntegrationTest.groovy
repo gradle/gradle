@@ -48,12 +48,12 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        normalizedOutput.contains("""
     CoffeeScript source 'play:coffeeScriptAssets'
         app/assets
     CoffeeScript source 'play:otherCoffeeScript'
         src/play/otherCoffeeScript
-"""))
+""")
     }
 
     def "creates and configures compile task when source exists"() {
@@ -85,5 +85,9 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "checkTasks"
+    }
+
+    private String getNormalizedOutput() {
+        return TextUtil.normaliseLineSeparators(TextUtil.normaliseFileSeparators(output))
     }
 }

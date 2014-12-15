@@ -44,12 +44,12 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "components"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
+        normalizedOutput.contains("""
     JavaScript source 'play:javaScriptAssets'
         app/assets
     JavaScript source 'play:otherJavaScript'
         src/play/otherJavaScript
-"""))
+""")
     }
 
     def "creates and configures process task when source exists"() {
@@ -81,5 +81,9 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "checkTasks"
+    }
+
+    private String getNormalizedOutput() {
+        return TextUtil.normaliseLineSeparators(TextUtil.normaliseFileSeparators(output))
     }
 }
