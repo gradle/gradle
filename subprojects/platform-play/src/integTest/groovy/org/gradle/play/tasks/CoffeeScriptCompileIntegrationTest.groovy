@@ -18,6 +18,7 @@ package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.file.TestFile
 
 class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -42,10 +43,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "compiles default coffeescript source set as part of play application build" () {
-        given:
-        withCoffeeScriptSource(assets("test.coffee"))
-
         when:
+        withCoffeeScriptSource(assets("test.coffee"))
         succeeds "assemble"
 
         then:
@@ -56,46 +55,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 ":playBinary")
         processed("test.js").exists()
         compareWithoutWhiteSpace processed("test.js").text, expectedJavaScript()
+
         jar("build/playBinary/lib/play.jar").containsDescendants(
                 "public/test.js"
         )
-
-        // Up-to-date works
-        when:
-        succeeds "assemble"
-
-        then:
-        skipped(":compilePlayBinaryCoffeeScriptAssets",
-                ":processPlayBinaryCoffeeScriptAssets",
-                ":createPlayBinaryJar",
-                ":playBinary")
-
-        // Detects missing output
-        when:
-        processed("test.js").delete()
-        processedJS("test.js").delete()
-        file("build/playBinary/lib/play.jar").delete()
-        succeeds "assemble"
-
-        then:
-        executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":processPlayBinaryCoffeeScriptAssets",
-                ":createPlayBinaryJar",
-                ":playBinary")
-        processed("test.js").exists()
-
-        // Detects changed input
-        when:
-        assets("test.coffee") << '\nalert "this is a change!"'
-        succeeds "assemble"
-
-        then:
-        executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":processPlayBinaryCoffeeScriptAssets",
-                ":createPlayBinaryJar",
-                ":playBinary")
     }
 
     def "compiles multiple coffeescript source sets as part of play application build" () {
@@ -151,6 +114,58 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    def "does not recompile when inputs and outputs are unchanged" () {
+        given:
+        withCoffeeScriptSource(assets("test.coffee"))
+        succeeds "assemble"
+
+        when:
+        succeeds "assemble"
+
+        then:
+        skipped(":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
+                ":createPlayBinaryJar",
+                ":playBinary")
+    }
+
+    def "recompiles when inputs are changed" () {
+        given:
+        withCoffeeScriptSource(assets("test.coffee"))
+        succeeds "assemble"
+
+        when:
+        assets("test.coffee") << '\nalert "this is a change!"'
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
+                ":createPlayBinaryJar",
+                ":playBinary")
+    }
+
+    def "recompiles when outputs are removed" () {
+        given:
+        withCoffeeScriptSource(assets("test.coffee"))
+        succeeds "assemble"
+
+        when:
+        processed("test.js").delete()
+        processedJS("test.js").delete()
+        file("build/playBinary/lib/play.jar").delete()
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+                ":compilePlayBinaryCoffeeScriptAssets",
+                ":processPlayBinaryCoffeeScriptAssets",
+                ":createPlayBinaryJar",
+                ":playBinary")
+        processed("test.js").exists()
+    }
+
     def "cleans removed source file on compile" () {
         given:
         withCoffeeScriptSource(assets("test1.coffee"))
@@ -170,11 +185,6 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScriptAssets",
-                ":processPlayBinaryCoffeeScriptAssets",
-                ":createPlayBinaryJar",
-                ":playBinary")
         ! processed("test2.js").exists()
         ! processedJS("test2.js").exists()
         jar("build/playBinary/lib/play.jar").countFiles("public/test2.js") == 0
@@ -197,15 +207,15 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         new JarTestFixture(file(fileName))
     }
 
-    File processed(String sourceSet = "CoffeeScriptAssets", String fileName) {
+    TestFile processed(String sourceSet = "CoffeeScriptAssets", String fileName) {
         file("build/playBinary/src/compilePlayBinary${sourceSet}/${fileName}")
     }
 
-    File processedJS(String fileName) {
+    TestFile processedJS(String fileName) {
         file("build/playBinary/src/processPlayBinaryCoffeeScriptAssets/${fileName}")
     }
 
-    File assets(String fileName) {
+    TestFile assets(String fileName) {
         file("app/assets/${fileName}")
     }
 

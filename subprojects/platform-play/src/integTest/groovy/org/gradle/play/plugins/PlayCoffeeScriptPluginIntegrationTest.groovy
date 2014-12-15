@@ -15,26 +15,30 @@
  */
 
 package org.gradle.play.plugins
-
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
+class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
-
-    @Override
-    String getPluginName() {
-        return 'play-coffeescript'
-    }
 
     def setup() {
         buildFile << """
             plugins {
                 id 'play-application'
                 id 'play-coffeescript'
+            }
+
+            model {
+                components {
+                    play {
+                        sources {
+                            otherCoffeeScript(CoffeeScriptSourceSet)
+                        }
+                    }
+                }
             }
         """
     }
@@ -46,7 +50,9 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     CoffeeScript source 'play:coffeeScriptAssets'
-        app${File.separator}assets
+        app/assets
+    CoffeeScript source 'play:otherCoffeeScript'
+        src/play/otherCoffeeScript
 """))
     }
 
@@ -54,15 +60,15 @@ class PlayCoffeeScriptPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             task checkTasks {
                 doLast {
-                    assert tasks.withType(CoffeeScriptCompile).size() == 1
-                    def coffeeScriptCompileTask = tasks.withType(CoffeeScriptCompile).iterator().next()
-                    assert coffeeScriptCompileTask.name == "compilePlayBinaryCoffeeScriptAssets"
+                    assert tasks.withType(CoffeeScriptCompile).size() == 2
+                    tasks.withType(CoffeeScriptCompile)*.name as Set == ["compilePlayBinaryCoffeeScriptAssets", "compilePlayBinaryOtherCoffeeScript"] as Set
                 }
             }
         """
 
         when:
         file("app/assets/test.coffee") << "test"
+        file("src/play/otherCoffeeScript/other.coffee") << "test"
 
         then:
         succeeds "checkTasks"

@@ -15,16 +15,10 @@
  */
 
 package org.gradle.play.plugins
-
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
-class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
-
-    @Override
-    String getPluginName() {
-        return 'play-javascript'
-    }
+class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -32,17 +26,29 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
                 id 'play-application'
                 id 'play-javascript'
             }
+
+            model {
+                components {
+                    play {
+                        sources {
+                            otherJavaScript(JavaScriptSourceSet)
+                        }
+                    }
+                }
+            }
         """
     }
 
-    def "javascript source set appears in component listing"() {
+    def "javascript source sets appear in component listing"() {
         when:
         succeeds "components"
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     JavaScript source 'play:javaScriptAssets'
-        app${File.separator}assets
+        app/assets
+    JavaScript source 'play:otherJavaScript'
+        src/play/otherJavaScript
 """))
     }
 
@@ -50,15 +56,15 @@ class PlayJavaScriptPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             task checkTasks {
                 doLast {
-                    assert tasks.withType(JavaScriptProcessResources).size() == 1
-                    def javascriptTask = tasks.withType(JavaScriptProcessResources).iterator().next()
-                    assert javascriptTask.name == "processPlayBinaryJavaScriptAssets"
+                    assert tasks.withType(JavaScriptProcessResources).size() == 2
+                    tasks.withType(JavaScriptProcessResources)*.name as Set == ["processPlayBinaryJavaScriptAssets", "processPlayBinaryOtherJavaScript"] as Set
                 }
             }
         """
 
         when:
         file("app/assets/test.js") << "test"
+        file("src/play/otherJavaScript/other.js") << "test"
 
         then:
         succeeds "checkTasks"
