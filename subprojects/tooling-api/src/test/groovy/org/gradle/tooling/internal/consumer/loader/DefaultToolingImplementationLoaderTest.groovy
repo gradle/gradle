@@ -52,7 +52,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
                 ClasspathUtil.getClasspathForClass(Logger.class),
                 ClasspathUtil.getClasspathForClass(GroovyObject.class),
-                getVersionResourcesDir(),
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
@@ -87,7 +86,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
                 ClasspathUtil.getClasspathForClass(Logger.class),
                 ClasspathUtil.getClasspathForClass(GroovyObject.class),
-                getVersionResourcesDir(),
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
@@ -101,10 +99,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def dir = tmpDir.createDir('resources')
         dir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << implementation.name
         return dir;
-    }
-
-    private getVersionResourcesDir() {
-        return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/build-receipt.properties")
     }
 
     def "creates broken connection when resource not found"() {
