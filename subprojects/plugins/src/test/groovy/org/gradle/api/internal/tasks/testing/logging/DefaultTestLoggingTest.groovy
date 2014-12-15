@@ -63,4 +63,20 @@ class DefaultTestLoggingTest extends Specification {
         then:
         logging.stackTraceFilters == [TRUNCATE, GROOVY] as Set
     }
+
+    def "allows standardStreams to be turned off"() {
+        when:
+        logging.showStandardStreams = false
+
+        then:
+        logging.showStandardStreams == false
+    }
+
+    def "allows standardStreams to be turned on"() {
+        when:
+        logging.showStandardStreams = true
+
+        then:
+        logging.showStandardStreams == true
+    }
 }
