@@ -83,13 +83,14 @@ public class PlayTestPlugin {
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
                     test.setTestClassesDir(testClassesDir);
+                    final FileCollection testRuntimeClasspath = testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir));
+                    test.setClasspath(testRuntimeClasspath);
                     test.setBinResultsDir(new File(binaryBuildDir, String.format("results/%s/bin", testTaskName)));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
                     test.dependsOn(testCompileTaskName);
                     test.setTestSrcDirs(Arrays.asList(testSourceDir));
                     test.setWorkingDir(projectIdentifier.getProjectDir());
-                    test.setClasspath(testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir)));
 
                     binary.getTasks().add(test);
                     // TODO:DAZ Would be good if we could add as a dependency to 'check' lifecycle task here.
