@@ -18,16 +18,16 @@ package org.gradle.play.internal.run;
 
 import java.io.Serializable;
 
-public class PlayAppLifecycleUpdate implements Serializable{
+public class PlayAppLifecycleUpdate implements Serializable {
     private final Exception exception;
     private PlayAppStatus status;
 
-    public PlayAppLifecycleUpdate(PlayAppStatus status){
+    public PlayAppLifecycleUpdate(PlayAppStatus status) {
         this.status = status;
         this.exception = null;
     }
 
-    public PlayAppLifecycleUpdate(Exception exception){
+    public PlayAppLifecycleUpdate(Exception exception) {
         this.status = PlayAppStatus.FAILED;
         this.exception = exception;
     }

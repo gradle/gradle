@@ -26,8 +26,12 @@ import java.io.File;
 
 public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec, BinarySpecInternal {
     void setTargetPlatform(PlayPlatform platform);
+
     void setToolChain(PlayToolChainInternal toolChain);
+
     PlayToolChainInternal getToolChain();
+
     void setJarFile(File file);
+
     void setGeneratedScala(ScalaLanguageSourceSet scalaSources);
 }

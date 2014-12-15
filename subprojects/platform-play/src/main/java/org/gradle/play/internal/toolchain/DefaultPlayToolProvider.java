@@ -57,7 +57,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final DependencyHandler dependencyHandler;
     private PlayPlatform targetPlatform;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler,  PlayPlatform targetPlatform) {
+    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, PlayPlatform targetPlatform) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;
@@ -67,13 +67,13 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
         if (spec instanceof TwirlCompileSpec) {
-            TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec)spec;
+            TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec) spec;
             VersionedTwirlCompileSpec versionedSpec = TwirlCompileSpecFactory.create(twirlCompileSpec, targetPlatform);
             DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()).getFiles());
             @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) new MappingSpecCompiler<TwirlCompileSpec, VersionedTwirlCompileSpec>(compiler, WrapUtil.toMap(twirlCompileSpec, versionedSpec));
             return twirlCompileSpecCompiler;
-        } else if(spec instanceof RoutesCompileSpec){
-            RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec)spec;
+        } else if (spec instanceof RoutesCompileSpec) {
+            RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec) spec;
             VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, targetPlatform);
             DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()).getFiles());
             @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
@@ -119,7 +119,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public VersionedPlayRunSpec create(PlayRunVersion version, PlayRunSpec spec, Iterable<File> classpath) {
-        switch (version){
+        switch (version) {
             case V_22X:
                 return new PlayRunSpecV22X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
             case V_23X:
@@ -151,11 +151,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         return String.format("com.typesafe.play:play_%s:%s", targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion());
     }
 
-    private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T>  {
+    private class MappingSpecCompiler<T extends CompileSpec, V extends T> implements Compiler<T> {
         private Compiler<V> delegate;
         private final Map<T, V> mapping;
 
-        public MappingSpecCompiler(Compiler<V> delegate, Map<T, V> mapping){
+        public MappingSpecCompiler(Compiler<V> delegate, Map<T, V> mapping) {
             this.delegate = delegate;
             this.mapping = mapping;
         }

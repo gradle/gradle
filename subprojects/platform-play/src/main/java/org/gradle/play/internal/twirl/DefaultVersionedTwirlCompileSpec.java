@@ -48,7 +48,9 @@ public abstract class DefaultVersionedTwirlCompileSpec extends DefaultTwirlCompi
     }
 
     protected abstract String defaultFormatterType();
+
     protected abstract String defaultJavaAdditionalImports(String format);
+
     protected abstract String defaultScalaAdditionalImports(String format);
 
     public String getFormatterType() {

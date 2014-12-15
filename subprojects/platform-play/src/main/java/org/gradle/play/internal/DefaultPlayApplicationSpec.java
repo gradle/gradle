@@ -30,6 +30,7 @@ public class DefaultPlayApplicationSpec extends BaseComponentSpec implements Pla
     public String getPlayVersion() {
         return playVersion;
     }
+
     public void playVersion(String playVersion) {
         this.playVersion = playVersion;
     }

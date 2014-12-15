@@ -23,14 +23,14 @@ import org.gradle.platform.base.Platform;
 
 /**
  * Defines and configures a Play Framework environment including versions of Play, Scala and Java.
- * */
+ */
 public interface PlayPlatform extends Platform {
 
     public String getPlayVersion();
 
     /**
      * Should be managed at one point
-     * */
+     */
     @Unmanaged
     public ScalaPlatform getScalaPlatform();
 

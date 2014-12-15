@@ -81,8 +81,6 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
         return ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
     }
 
-
-
     public Iterable<String> getSharedPackages() {
         return Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
     }

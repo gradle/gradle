@@ -32,10 +32,13 @@ import java.io.File;
 @HasInternalProtocol
 public interface PlayApplicationBinarySpec extends BinarySpec {
     PlayPlatform getTargetPlatform();
+
     PlayToolChain getToolChain();
+
     File getJarFile();
 
     JvmClasses getClasses();
+
     PublicAssets getAssets();
 
     ScalaLanguageSourceSet getGeneratedScala();

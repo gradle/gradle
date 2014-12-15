@@ -16,9 +16,6 @@
 
 package org.gradle.play.internal.run;
 
-/**
- * Created by Rene on 13/11/14.
- */
 public enum PlayAppStatus {
     RUNNING,
     FAILED,

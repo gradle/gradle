@@ -96,7 +96,7 @@ public class PlayCoffeeScriptPlugin {
     }
 
     private String createCoffeeScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir,
-                                           final CoffeeScriptSourceSet coffeeScriptSourceSet) {
+                                             final CoffeeScriptSourceSet coffeeScriptSourceSet) {
         final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
         tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
             @Override

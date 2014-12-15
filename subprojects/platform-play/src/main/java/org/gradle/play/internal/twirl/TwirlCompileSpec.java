@@ -24,7 +24,10 @@ import java.io.Serializable;
 
 public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
+
     File getSourceDirectory();
+
     boolean isJavaProject();
+
     BaseForkOptions getForkOptions();
 }

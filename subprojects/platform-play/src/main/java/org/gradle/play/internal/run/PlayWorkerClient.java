@@ -29,9 +29,9 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
     public void update(PlayAppLifecycleUpdate update) {
         try {
             PlayAppStatus status = update.getStatus();
-            if(status == PlayAppStatus.RUNNING || status == PlayAppStatus.FAILED){
+            if (status == PlayAppStatus.RUNNING || status == PlayAppStatus.FAILED) {
                 startEvent.put(update);
-            }else{
+            } else {
                 stopEvent.put(update);
             }
         } catch (InterruptedException e) {

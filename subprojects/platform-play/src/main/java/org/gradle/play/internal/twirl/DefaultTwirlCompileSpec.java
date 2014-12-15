@@ -20,7 +20,7 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
 
-public class DefaultTwirlCompileSpec implements TwirlCompileSpec{
+public class DefaultTwirlCompileSpec implements TwirlCompileSpec {
     private final File sourceDirectory;
     private final Iterable<File> sources;
     private final File destinationDir;

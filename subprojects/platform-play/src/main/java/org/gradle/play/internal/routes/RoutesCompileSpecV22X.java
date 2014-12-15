@@ -57,7 +57,7 @@ public class RoutesCompileSpecV22X extends DefaultVersionedRoutesCompileSpec {
     }
 
     public Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        return new Object[]{
+        return new Object[] {
                 file,
                 getDestinationDir(),
                 ScalaListBuffer.fromList(cl, getAdditionalImports()),

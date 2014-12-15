@@ -17,7 +17,6 @@
 /**
  * Plugins that add support for the Play framework.
  */
-@Incubating
-package org.gradle.play.plugins;
+@Incubating package org.gradle.play.plugins;
 
 import org.gradle.api.Incubating;

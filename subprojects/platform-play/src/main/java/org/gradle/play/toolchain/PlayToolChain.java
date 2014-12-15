@@ -21,10 +21,9 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.ToolChain;
 
 /**
- * A set of tools for building applications
- * using the Play Framework.
+ * A set of tools for building applications using the Play Framework.
  */
 @Incubating
 @HasInternalProtocol
-public interface PlayToolChain extends ToolChain{
+public interface PlayToolChain extends ToolChain {
 }

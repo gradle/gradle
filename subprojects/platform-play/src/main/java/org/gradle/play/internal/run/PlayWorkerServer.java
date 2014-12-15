@@ -45,7 +45,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
             stop.await();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        }finally {
+        } finally {
             clientProtocol.update(new PlayAppLifecycleUpdate(PlayAppStatus.STOPPED));
         }
     }

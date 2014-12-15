@@ -25,8 +25,12 @@ import java.util.List;
 
 public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
+
     BaseForkOptions getForkOptions();
+
     boolean isJavaProject();
+
     public List<String> getAdditionalImports();
+
     public boolean isNamespaceReverseRouter();
 }

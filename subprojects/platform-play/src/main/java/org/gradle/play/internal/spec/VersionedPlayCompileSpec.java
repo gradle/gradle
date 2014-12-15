@@ -26,11 +26,15 @@ import java.util.List;
 
 /**
  * A spec that provides version depending compiler metadata.
- * */
-public interface VersionedPlayCompileSpec extends CompileSpec{
+ */
+public interface VersionedPlayCompileSpec extends CompileSpec {
     Object getDependencyNotation();
+
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
+
     Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+
     List<String> getClassLoaderPackages();
+
     BaseForkOptions getForkOptions();
 }

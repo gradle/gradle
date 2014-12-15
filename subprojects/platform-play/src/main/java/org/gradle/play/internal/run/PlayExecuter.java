@@ -25,7 +25,7 @@ import java.util.jar.JarFile;
 public class PlayExecuter {
     public JarFile getDocJar(Iterable<File> docsClasspath) throws IOException {
         File docJarFile = null;
-        for (File file: docsClasspath) {
+        for (File file : docsClasspath) {
             if (file.getName().startsWith("play-docs")) {
                 docJarFile = file;
                 break;
