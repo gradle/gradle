@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.test.fixtures.server.http
 
 import org.junit.rules.ExternalResource
@@ -53,12 +52,17 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
-        def handler = new CyclicBarrierRequestHandler((additionalExpectedCalls.toList() + expectedCall) as Set)
+        def handler = new CyclicBarrierRequestHandler((additionalExpectedCalls.toList() + expectedCall) as Set, {})
         collection.addHandler(handler)
     }
 
     void expectSerialExecution(String expectedCall) {
-        def handler = new CyclicBarrierRequestHandler(expectedCall)
+        def handler = new CyclicBarrierRequestHandler(expectedCall, {})
+        collection.addHandler(handler)
+    }
+
+    void expectConcurrentExecution(Iterable<String> tasks, Runnable latch) {
+        def handler = new CyclicBarrierRequestHandler(tasks as Set, latch)
         collection.addHandler(handler)
     }
 
@@ -96,12 +100,15 @@ server state: ${server.dump()}
         final List<String> received = []
         final Set<String> pending
         boolean shortCircuit
+        private final Runnable latch
 
-        CyclicBarrierRequestHandler(Set calls) {
+        CyclicBarrierRequestHandler(Set calls, Runnable latch) {
+            this.latch = latch
             pending = calls
         }
 
-        CyclicBarrierRequestHandler(String call) {
+        CyclicBarrierRequestHandler(String call, Runnable latch) {
+            this.latch = latch
             pending = [call] as Set
         }
 
@@ -127,6 +134,7 @@ server state: ${server.dump()}
                     // barrier open, let it travel on
                     return
                 }
+                latch.run()
                 received.add(path)
                 condition.signalAll()
                 while (!pending.empty && !shortCircuit) {

@@ -19,9 +19,11 @@ package org.gradle.integtests
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.util.concurrent.PollingConditions
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
@@ -109,10 +111,16 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             bPing.outputs.file "dir/file"
         """
         expect:
-        blockingServer.expectSerialExecution(":aPing")
+        GradleHandle handle
+        def handleStarter = {  handle = executer.withTasks(":aPing", ":bPing").start() }
+        blockingServer.expectConcurrentExecution([":aPing"]) {
+            new PollingConditions().eventually {
+                assert handle.standardOutput.contains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
+            }
+        }
         blockingServer.expectSerialExecution(":bPing")
-        run ":aPing", ":bPing"
-        output.contains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
+        handleStarter.call()
+        handle.waitForFinish()
     }
 
     def "info is logged when task is prevented from executing in parallel due to custom actions"() {
@@ -125,10 +133,16 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             bPing.doLast {}
         """
         expect:
-        blockingServer.expectSerialExecution(":aPing")
+        GradleHandle handle
+        def handleStarter = {  handle = executer.withTasks(":aPing", ":bPing").start() }
+        blockingServer.expectConcurrentExecution([":aPing"]) {
+            new PollingConditions().eventually {
+                assert handle.standardOutput.contains("Unable to parallelize task :bPing due to presence of custom actions (e.g. doFirst()/doLast())")
+            }
+        }
         blockingServer.expectSerialExecution(":bPing")
-        run ":aPing", ":bPing"
-        output.contains("Unable to parallelize task :bPing due to presence of custom actions (e.g. doFirst()/doLast())")
+        handleStarter.call()
+        handle.waitForFinish()
     }
 
     def "two independent parallelizable tasks execute in parallel"() {
