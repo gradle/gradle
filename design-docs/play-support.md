@@ -330,6 +330,41 @@ model {
     - Removal of generated javascript triggers recompile
     - Removal of coffeescript source files removes generated javascript
 
+### Story: Developer includes minified javascript assets in Play application
+
+Extend the basic JavaScript plugin to include minified javascript assets in the Play application.
+Use the Google Closure Compiler to produce a minified version of all Javascript assets. The minified files
+should be named `<original-name>.min.<original-extension>` (usually the extension will be `.js`).
+
+```gradle
+plugins {
+    id 'play'
+}
+
+model {
+    components {
+        play(PlayApplicationSpec) {
+            sources {
+                extraJavaScript(JavaScriptSourceSet) {
+                    sources.srcDir "src/extraJavaScript"
+                }
+            }
+        }
+    }
+}
+```
+
+#### Test cases
+- Any javascript file in `app/assets` is available in minified form in the app.
+- Any javascript file in a configured JavaScriptSourceSet is available in minified form in the app.
+- Any compiled coffeeScript source file is available in both non-minified and minified javascript forms. 
+- Build is incremental:
+    - Minifier is not executed when no source inputs have changed
+    - Changed javascript source produces changed minified javasript
+    - Changed coffeescript source produces changed minified javascript
+    - Removal of javascript source removes minified javascript
+    - Removal of coffeescript source removes both minified and non-minified javascript
+
 ## Feature: Developer builds Play application distribution
 
 Introduce some lifecycle tasks to allow the developer to package up the Play application. For example, the
