@@ -23,7 +23,7 @@ import java.util.Collection;
 /**
  * Meta-info about a Java project which can be embedded in the build.
  */
-public interface EmbeddableJavaProject {
+public interface BuildableJavaComponent {
     Collection<String> getRebuildTasks();
 
     Collection<String> getBuildTasks();

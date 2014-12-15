@@ -22,7 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.internal.java.JavaLibrary
-import org.gradle.api.internal.plugins.EmbeddableJavaProject
+import org.gradle.api.internal.plugins.BuildableJavaComponent
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
@@ -50,7 +50,7 @@ class JavaPluginTest {
     @Test public void appliesBasePluginsAndAddsConventionObject() {
         javaPlugin.apply(project)
 
-        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
+        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(BuildableJavaComponent))
         assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.buildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, notNullValue())

@@ -20,15 +20,15 @@ import spock.lang.Specification
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.Convention
-import org.gradle.api.internal.plugins.EmbeddableJavaProject
+import org.gradle.api.internal.plugins.BuildableJavaComponent
 import org.gradle.StartParameter
 
 class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def startParameter = Mock(StartParameter)
-    def plugin = Stub(EmbeddableJavaProject)
+    def plugin = Stub(BuildableJavaComponent)
     def convention = Mock(Convention) {
-        getPlugin(EmbeddableJavaProject) >> plugin
+        getPlugin(BuildableJavaComponent) >> plugin
     }
     def project = Mock(ProjectInternal) {
         getConvention() >> convention

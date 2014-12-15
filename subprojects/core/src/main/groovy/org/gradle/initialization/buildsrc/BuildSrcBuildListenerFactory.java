@@ -18,7 +18,7 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.BuildAdapter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.plugins.EmbeddableJavaProject;
+import org.gradle.api.internal.plugins.BuildableJavaComponent;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.util.WrapUtil;
@@ -53,7 +53,7 @@ public class BuildSrcBuildListenerFactory {
         }
 
         public void onConfigure(GradleInternal gradle) {
-            EmbeddableJavaProject projectInfo = gradle.getRootProject().getConvention().getPlugin(EmbeddableJavaProject.class);
+            BuildableJavaComponent projectInfo = gradle.getRootProject().getConvention().getPlugin(BuildableJavaComponent.class);
             gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
             classpath = projectInfo.getRuntimeClasspath().getFiles();
         }

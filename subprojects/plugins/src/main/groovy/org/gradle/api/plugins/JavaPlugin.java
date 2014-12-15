@@ -27,7 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.plugins.EmbeddableJavaProject;
+import org.gradle.api.internal.plugins.BuildableJavaComponent;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
@@ -67,7 +67,7 @@ public class JavaPlugin implements Plugin<Project> {
         });
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));
+        project.getConvention().getPlugins().put("embeddedJavaProject", new BuildableJavaComponentImpl(javaConvention));
 
         configureSourceSets(javaConvention);
         configureConfigurations(project);
@@ -179,10 +179,10 @@ public class JavaPlugin implements Plugin<Project> {
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
 
-    private static class EmbeddableJavaProjectImpl implements EmbeddableJavaProject {
+    private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
         private final JavaPluginConvention convention;
 
-        public EmbeddableJavaProjectImpl(JavaPluginConvention convention) {
+        public BuildableJavaComponentImpl(JavaPluginConvention convention) {
             this.convention = convention;
         }
 
