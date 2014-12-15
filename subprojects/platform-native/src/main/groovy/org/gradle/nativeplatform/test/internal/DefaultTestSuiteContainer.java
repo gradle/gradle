@@ -18,11 +18,11 @@ package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
-public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<NativeTestSuiteSpec> implements TestSuiteContainer {
+public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<TestSuiteSpec> implements TestSuiteContainer {
     public DefaultTestSuiteContainer(Instantiator instantiator) {
-        super(NativeTestSuiteSpec.class, instantiator);
+        super(TestSuiteSpec.class, instantiator);
     }
 }
