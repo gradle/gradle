@@ -77,8 +77,7 @@ task publishJar(type: Jar) {
         classesDir = sourceSets.main.output.classesDir
         classpath = sourceSets.main.runtimeClasspath
         instruction 'Import-Package', 'org.slf4j'
-        instruction 'Export-Package', '!org.gradle.tooling.internal.*,!org.gradle.tooling.model.internal.*,' +
-                'org.gradle.tooling.*,org.gradle.api,org.gradle.api.specs,org.gradle.tooling.internal.consumer,org.gradle.util'
+        instruction 'Export-Package', '!org.gradle.tooling.internal.*,!org.gradle.tooling.model.internal.*,org.gradle.tooling.*'
         instruction 'Implementation-Title', 'Gradle'
         instruction 'Implementation-Version', version
     }
