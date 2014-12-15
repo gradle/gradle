@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test;
+package org.gradle.platform.base.internal.test;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
-/**
- * A container of {@link TestSuiteSpec} instances.
- */
-@Incubating
-public interface TestSuiteContainer extends NamedDomainObjectContainer<TestSuiteSpec> {
+public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<TestSuiteSpec> implements TestSuiteContainer {
+    public DefaultTestSuiteContainer(Instantiator instantiator) {
+        super(TestSuiteSpec.class, instantiator);
+    }
 }

@@ -29,7 +29,7 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.nativeplatform.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;

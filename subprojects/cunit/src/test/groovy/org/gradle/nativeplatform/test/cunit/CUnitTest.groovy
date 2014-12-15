@@ -18,7 +18,7 @@ import org.gradle.language.c.plugins.CPlugin
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.nativeplatform.test.TestSuiteContainer
+import org.gradle.platform.base.test.TestSuiteContainer
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitPlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
