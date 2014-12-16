@@ -21,11 +21,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            JarBinaryRenderer createJarBinaryRenderer() {
-                return new JarBinaryRenderer();
-            }
-        });
+        registration.add(JarBinaryRenderer.class);
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
