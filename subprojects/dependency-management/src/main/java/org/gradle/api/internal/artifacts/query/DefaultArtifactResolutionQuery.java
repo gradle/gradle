@@ -122,7 +122,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             private void handleNonModuleComponentIdentifier(ComponentIdentifier componentId) {
                 if (!(componentId instanceof ModuleComponentIdentifier)) {
                     if(componentId instanceof ProjectComponentIdentifier) {
-                        throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for the project component with path %s", ((ProjectComponentIdentifier) componentId).getProjectPath()));
+                        throw new IllegalArgumentException(String.format("Cannot query artifacts for a project component (%s).", componentId.getDisplayName()));
                     }
 
                     throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));

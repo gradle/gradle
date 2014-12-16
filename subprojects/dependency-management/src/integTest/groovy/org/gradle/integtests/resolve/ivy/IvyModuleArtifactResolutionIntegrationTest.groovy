@@ -89,7 +89,7 @@ repositories {
         ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("Cannot resolve the artifacts for the project component with path :")
+        failure.assertHasCause("Cannot query artifacts for a project component (project :).")
     }
 
     def "request an ivy descriptor for an ivy module with no descriptor"() {
@@ -101,9 +101,8 @@ repositories {
                .expectResolvedComponentResult().expectMetadataFiles([] as Set)
                .createVerifyTaskModuleComponentIdentifier()
 
-        // TODO: Need to look into expectations
-        module.ivy.expectGet()
-        module.ivy.expectGet()
+        module.ivy.expectGetMissing()
+        module.ivy.expectGetMissing()
         module.jar.expectHead()
 
         then:

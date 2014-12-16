@@ -89,7 +89,7 @@ repositories {
         ExecutionFailure failure = fails('verify')
 
         then:
-        failure.assertHasCause("Cannot resolve the artifacts for the project component with path :")
+        failure.assertHasCause("Cannot query artifacts for a project component (project :)")
     }
 
     def "request an Maven POM for a Maven module with no metadata"() {
@@ -101,9 +101,8 @@ repositories {
                .expectResolvedComponentResult().expectMetadataFiles([] as Set)
                .createVerifyTaskModuleComponentIdentifier()
 
-        // TODO: Need to look into expectations
-        module.pom.expectGet()
-        module.pom.expectGet()
+        module.pom.expectGetMissing()
+        module.pom.expectGetMissing()
         module.artifact.expectHead()
 
         then:
