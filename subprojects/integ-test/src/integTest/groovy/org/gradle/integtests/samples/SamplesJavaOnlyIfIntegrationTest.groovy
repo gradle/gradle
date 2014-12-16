@@ -71,7 +71,7 @@ public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/reports/tests/index.report')
+        assertExists(javaprojectDir, 'build/reports/tests/index.html')
     }
 
     private static void assertExists(File baseDir, String path) {
