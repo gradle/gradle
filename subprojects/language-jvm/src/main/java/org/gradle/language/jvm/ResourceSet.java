@@ -19,5 +19,5 @@ package org.gradle.language.jvm;
  * @deprecated Use JvmResourceSet instead of ResourceSet
  */
 @Deprecated
-public interface ResourceSet {
+public interface ResourceSet extends JvmResourceSet {
 }
