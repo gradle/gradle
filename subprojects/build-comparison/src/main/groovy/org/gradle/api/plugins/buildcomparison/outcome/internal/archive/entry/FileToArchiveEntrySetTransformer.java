@@ -62,14 +62,9 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
                         public void close() throws IOException {
                         }
                     };
-                    try {
-                        bis.mark(Integer.MAX_VALUE);
-                        zipEntry = new ZipInputStream(bis).getNextEntry() != null;
-                    } catch (IOException e) {
-                        zipEntry = false;
-                    } finally {
-                        bis.reset();
-                    }
+                    bis.mark(Integer.MAX_VALUE);
+                    zipEntry = new ZipInputStream(bis).getNextEntry() != null;
+                    bis.reset();
                     if (zipEntry) {
                         ImmutableList<String> nextParentPaths = ImmutableList.<String>builder().addAll(parentPaths).add(entry.getName()).build();
                         ImmutableSet<ArchiveEntry> subEntries = walk(bis, allEntries, nextParentPaths);
