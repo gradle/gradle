@@ -46,7 +46,7 @@ public class ArchiveEntry {
                 } else if (hasLeft && !hasRight) {
                     return 1;
                 } else {
-                    int result = components.get(i).compareToIgnoreCase(o.components.get(i));
+                    int result = components.get(i).compareTo(o.components.get(i));
                     if (result != 0) {
                         return result;
                     }
