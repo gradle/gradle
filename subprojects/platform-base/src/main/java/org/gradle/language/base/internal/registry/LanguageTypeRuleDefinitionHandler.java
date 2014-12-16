@@ -30,7 +30,7 @@ import org.gradle.platform.base.internal.registry.ComponentModelRuleDefinitionHa
 public class LanguageTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
 
     public LanguageTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("language", LanguageType.class, LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class), new RegistrationAction(instantiator));
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class), new RegistrationAction(instantiator));
     }
 
     public static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilder<LanguageSourceSet> {

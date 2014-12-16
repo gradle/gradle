@@ -31,7 +31,7 @@ import org.gradle.platform.base.binary.BaseBinarySpec;
 public class BinaryTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
 
     public BinaryTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("binary", BinaryType.class, BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class), new RegistrationAction(instantiator));
+        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class), new RegistrationAction(instantiator));
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {

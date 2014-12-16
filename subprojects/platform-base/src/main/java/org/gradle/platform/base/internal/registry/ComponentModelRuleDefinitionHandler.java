@@ -39,17 +39,14 @@ import java.util.List;
 public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<A> {
 
     private final String modelName;
-    private final Class<A> annotationClass;
     private final ModelType<T> baseInterface;
     private final ModelType<U> baseImplementation;
     private final ModelType<?> builderInterface;
     private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
     private final Action<? super RegistrationContext<T, U>> registerer;
 
-    public ComponentModelRuleDefinitionHandler(String modelName, Class<A> annotationClass,
-                                               Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
+    public ComponentModelRuleDefinitionHandler(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
         this.modelName = modelName;
-        this.annotationClass = annotationClass;
         this.typeBuilderFactory = typeBuilderFactory;
         this.registerer = registerer;
         this.baseInterface = ModelType.of(baseInterface);
