@@ -56,16 +56,16 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")
-        javadocsDir.file("index.report").assertIsFile()
-        javadocsDir.file("index.report").assertContents(containsString('mixedJavaAndGroovy 1.0 API'))
-        javadocsDir.file("org/gradle/Person.report").assertIsFile()
-        javadocsDir.file("org/gradle/JavaPerson.report").assertIsFile()
+        javadocsDir.file("index.html").assertIsFile()
+        javadocsDir.file("index.html").assertContents(containsString('mixedJavaAndGroovy 1.0 API'))
+        javadocsDir.file("org/gradle/Person.html").assertIsFile()
+        javadocsDir.file("org/gradle/JavaPerson.html").assertIsFile()
 
         TestFile groovydocsDir = projectDir.file("build/docs/groovydoc")
-        groovydocsDir.file("index.report").assertIsFile()
-        groovydocsDir.file("overview-summary.report").assertContents(containsString('mixedJavaAndGroovy 1.0 API'))
-        groovydocsDir.file("org/gradle/JavaPerson.report").assertIsFile()
-        groovydocsDir.file("org/gradle/GroovyPerson.report").assertIsFile()
-        groovydocsDir.file("org/gradle/PersonList.report").assertIsFile()
+        groovydocsDir.file("index.html").assertIsFile()
+        groovydocsDir.file("overview-summary.html").assertContents(containsString('mixedJavaAndGroovy 1.0 API'))
+        groovydocsDir.file("org/gradle/JavaPerson.html").assertIsFile()
+        groovydocsDir.file("org/gradle/GroovyPerson.html").assertIsFile()
+        groovydocsDir.file("org/gradle/PersonList.html").assertIsFile()
     }
 }

@@ -67,8 +67,8 @@ class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
         // Build docs
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
-        testProjectDir.file('build/docs/javadoc/index.report').assertIsFile()
-        testProjectDir.file('build/docs/groovydoc/index.report').assertIsFile()
-        testProjectDir.file('build/docs/groovydoc/org/gradle/GroovyPerson.report').assertIsFile()
+        testProjectDir.file('build/docs/javadoc/index.html').assertIsFile()
+        testProjectDir.file('build/docs/groovydoc/index.html').assertIsFile()
+        testProjectDir.file('build/docs/groovydoc/org/gradle/GroovyPerson.html').assertIsFile()
     }
 }

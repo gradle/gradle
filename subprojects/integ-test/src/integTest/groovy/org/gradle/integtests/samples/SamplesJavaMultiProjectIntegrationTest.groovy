@@ -143,14 +143,14 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void multiProjectJavaDoc() {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.report').assertIsFile()
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.report').assertContents(containsString("shared 1.0 API"))
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/Person.report').assertIsFile()
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.report').assertContents(containsString("These are the shared classes."))
-        javaprojectDir.file(API_NAME, 'build/docs/javadoc/index.report').assertIsFile()
-        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/PersonList.report').assertIsFile()
-        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.report').assertContents(containsString("These are the API classes"))
-        javaprojectDir.file(WEBAPP_PATH, 'build/docs/javadoc/index.report').assertIsFile()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertContents(containsString("shared 1.0 API"))
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/Person.html').assertIsFile()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').assertContents(containsString("These are the shared classes."))
+        javaprojectDir.file(API_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/PersonList.html').assertIsFile()
+        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').assertContents(containsString("These are the API classes"))
+        javaprojectDir.file(WEBAPP_PATH, 'build/docs/javadoc/index.html').assertIsFile()
     }
 
     @Test

@@ -34,7 +34,7 @@ class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTe
 
         executer.withTasks("groovydoc").run();
 
-        TestFile indexFile = file("build/docs/groovydoc/index.report");
+        TestFile indexFile = file("build/docs/groovydoc/index.html");
         indexFile.assertIsFile();
         TestFile.Snapshot snapshot = indexFile.snapshot();
 
