@@ -202,17 +202,27 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     excludeSpecs.add(new ExcludeRuleSpec(rule));
                     continue;
                 }
-                ModuleId moduleId = rule.getId().getModuleId();
-                boolean wildcardGroup = PatternMatcher.ANY_EXPRESSION.equals(moduleId.getOrganisation());
+                ArtifactId artifactId = rule.getId();
+                ModuleId moduleId = artifactId.getModuleId();
+                boolean wildcardOrganisation = PatternMatcher.ANY_EXPRESSION.equals(moduleId.getOrganisation());
                 boolean wildcardModule = PatternMatcher.ANY_EXPRESSION.equals(moduleId.getName());
-                if (wildcardGroup && wildcardModule) {
+
+                if (wildcardOrganisation && wildcardModule) {
                     excludeSpecs.add(new ExcludeRuleSpec(rule));
-                } else if (wildcardGroup) {
+                } else if (wildcardOrganisation) {
                     excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
                 } else if (wildcardModule) {
                     excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
                 } else {
-                    excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
+                    boolean wildcardName = PatternMatcher.ANY_EXPRESSION.equals(artifactId.getName());
+                    boolean wildcardType = PatternMatcher.ANY_EXPRESSION.equals(artifactId.getType());
+                    boolean wildcardExt = PatternMatcher.ANY_EXPRESSION.equals(artifactId.getExt());
+
+                    if(wildcardName && wildcardType && wildcardExt) {
+                        excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
+                    } else {
+                        excludeSpecs.add(new ExcludeRuleSpec(rule));
+                    }
                 }
             }
         }

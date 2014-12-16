@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultModuleResolutionFilterTest extends Specification {
     def "accepts all modules and artifacts by default"() {
@@ -41,6 +42,99 @@ class DefaultModuleResolutionFilterTest extends Specification {
     def "default specs accept the same modules as each other"() {
         expect:
         DefaultModuleResolutionFilter.forExcludes().acceptsSameModulesAs(DefaultModuleResolutionFilter.forExcludes())
+    }
+
+    @Unroll
+    def "does not accept module that matches single module exclude rule (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+
+        then:
+        !spec.acceptModule(moduleId('org', 'module'))
+
+        where:
+        rule << [excludeRule('*', '*'),
+                 excludeRule('*', 'module'),
+                 excludeRule('org', '*'),
+                 excludeRule('org', 'module'),
+                 regexpExcludeRule('or.*', "module"),
+                 regexpExcludeRule('org', "mod.*")]
+    }
+
+    @Unroll
+    def "accepts module that doesn't match single module exclude rule (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+
+        then:
+        spec.acceptModule(moduleId('org', 'module'))
+
+        where:
+        rule << [excludeRule('*', 'module2'),
+                 excludeRule('org2', '*'),
+                 excludeRule('org2', 'module2'),
+                 regexpExcludeRule('or.*2', "module"),
+                 regexpExcludeRule('org', "mod.*2")]
+    }
+
+    @Unroll
+    def "does not accept artifact that matches single artifact exclude rule (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+
+        then:
+        !spec.acceptArtifact(moduleId('org', 'module'), artifactName('mylib', 'jar', 'jar'))
+
+        where:
+        rule << [excludeRule('*', '*', '*', '*', '*'),
+                 excludeRule('*', 'module', '*', '*', '*'),
+                 excludeRule('org', '*', '*', '*', '*'),
+                 excludeRule('org', 'module', '*', '*', '*'),
+                 excludeRule('org', 'module', 'mylib', 'jar', 'jar'),
+                 excludeRule('org', 'module', '*', 'jar', 'jar'),
+                 excludeRule('org', 'module', 'mylib', '*', 'jar'),
+                 excludeRule('org', 'module', 'mylib', 'jar', '*'),
+                 regexpExcludeRule('or.*', "module", '*', '*', '*'),
+                 regexpExcludeRule('org', "mod.*", '*', '*', '*'),
+                 regexpExcludeRule('org', "module", 'my.*', 'jar', 'jar'),
+                 regexpExcludeRule('org', "module", 'mylib', 'j.*', 'jar'),
+                 regexpExcludeRule('org', "module", 'mylib', 'jar', 'j.*')]
+    }
+
+    @Unroll
+    def "accepts artifact that doesn't match single artifact exclude rule (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+
+        then:
+        spec.acceptArtifact(moduleId('org', 'module'), artifactName('mylib', 'jar', 'jar'))
+
+        where:
+        rule << [excludeRule('*', 'module2', '*', '*', '*'),
+                 excludeRule('org2', '*', '*', '*', '*'),
+                 excludeRule('org2', 'module2', '*', '*', '*'),
+                 excludeRule('org', 'module', 'mylib', 'sources', 'jar'),
+                 excludeRule('org', 'module', 'mylib', 'jar', 'war'),
+                 excludeRule('org', 'module', 'otherlib', 'jar', 'jar'),
+                 excludeRule('org', 'module', 'otherlib', '*', '*'),
+                 excludeRule('org', 'module', '*', 'sources', 'jar'),
+                 excludeRule('org', 'module', 'otherlib', '*', 'jar'),
+                 excludeRule('org', 'module', 'otherlib', 'jar', '*'),
+                 excludeArtifactRule('mylib', 'sources', 'jar'),
+                 excludeArtifactRule('mylib', 'jar', 'war'),
+                 excludeArtifactRule('otherlib', 'jar', 'jar'),
+                 excludeArtifactRule('otherlib', '*', '*'),
+                 excludeArtifactRule('*', 'sources', 'jar'),
+                 excludeArtifactRule('otherlib', '*', 'jar'),
+                 excludeArtifactRule('otherlib', 'jar', '*'),
+                 regexpExcludeRule('or.*2', 'module', '*', '*', '*'),
+                 regexpExcludeRule('org', 'mod.*2', '*', '*', '*'),
+                 regexpExcludeRule('org', 'module', 'my.*2', '*', '*'),
+                 regexpExcludeRule('org', 'module', 'mylib', 'j.*2', '*'),
+                 regexpExcludeRule('org', 'module', 'mylib', 'jar', 'j.*2'),
+                 regexpExcludeArtifactRule('my.*2', '*', '*'),
+                 regexpExcludeArtifactRule('mylib', 'j.*2', '*'),
+                 regexpExcludeArtifactRule('mylib', 'jar', 'j.*2')]
     }
 
     def "does not accept module version that matches any exclude rule"() {
