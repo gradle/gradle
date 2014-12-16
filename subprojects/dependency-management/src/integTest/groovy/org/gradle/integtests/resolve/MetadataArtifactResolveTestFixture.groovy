@@ -89,8 +89,8 @@ if (project.hasProperty('nocache')) {
         this
     }
 
-    MetadataArtifactResolveTestFixture expectMetadataFiles(Set<File> metadataFiles) {
-        this.expectedMetadataFiles = metadataFiles
+    MetadataArtifactResolveTestFixture expectMetadataFiles(File... metadataFiles) {
+        this.expectedMetadataFiles = metadataFiles as Set
         this
     }
 

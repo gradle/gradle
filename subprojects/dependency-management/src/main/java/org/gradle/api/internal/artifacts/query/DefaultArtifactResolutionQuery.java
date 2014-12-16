@@ -107,26 +107,26 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 Set<ComponentResult> componentResults = Sets.newHashSet();
 
                 for (ComponentIdentifier componentId : componentIds) {
-                    handleNonModuleComponentIdentifier(componentId);
-                    ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
                     try {
+                        ModuleComponentIdentifier moduleComponentId = validateComponentIdentifier(componentId);
                         componentResults.add(buildComponentResult(moduleComponentId, repositoryChain, artifactResolver));
                     } catch (Throwable t) {
-                        componentResults.add(new DefaultUnresolvedComponentResult(moduleComponentId, t));
+                        componentResults.add(new DefaultUnresolvedComponentResult(componentId, t));
                     }
                 }
 
                 return new DefaultArtifactResolutionResult(componentResults);
             }
 
-            private void handleNonModuleComponentIdentifier(ComponentIdentifier componentId) {
-                if (!(componentId instanceof ModuleComponentIdentifier)) {
-                    if(componentId instanceof ProjectComponentIdentifier) {
-                        throw new IllegalArgumentException(String.format("Cannot query artifacts for a project component (%s).", componentId.getDisplayName()));
-                    }
-
-                    throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
+            private ModuleComponentIdentifier validateComponentIdentifier(ComponentIdentifier componentId) {
+                if (componentId instanceof ModuleComponentIdentifier) {
+                    return (ModuleComponentIdentifier) componentId;
                 }
+                if(componentId instanceof ProjectComponentIdentifier) {
+                    throw new IllegalArgumentException(String.format("Cannot query artifacts for a project component (%s).", componentId.getDisplayName()));
+                }
+
+                throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
             }
         });
     }
