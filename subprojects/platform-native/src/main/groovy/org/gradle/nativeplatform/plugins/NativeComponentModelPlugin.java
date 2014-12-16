@@ -25,8 +25,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -41,17 +40,14 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
-import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -60,30 +56,8 @@ import java.io.File;
 @Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
-    private final Instantiator instantiator;
-
-    @Inject
-    public NativeComponentModelPlugin(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
-
-        ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
-        ComponentSpecContainer components = project.getExtensions().getByType(ComponentSpecContainer.class);
-        components.registerFactory(NativeExecutableSpec.class, new NativeExecutableSpecFactory(instantiator, sources, project));
-        NamedDomainObjectContainer<NativeExecutableSpec> nativeExecutables = components.containerWithType(NativeExecutableSpec.class);
-
-        components.registerFactory(NativeLibrarySpec.class, new NativeLibrarySpecFactory(instantiator, sources, project));
-        NamedDomainObjectContainer<NativeLibrarySpec> nativeLibraries = components.containerWithType(NativeLibrarySpec.class);
-
-        project.getExtensions().create("nativeRuntime", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
-
-        // TODO:DAZ Remove these: should not pollute the global namespace
-        project.getExtensions().add("nativeComponents", components.withType(NativeComponentSpec.class));
-        project.getExtensions().add("executables", nativeExecutables);
-        project.getExtensions().add("libraries", nativeLibraries);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**
@@ -92,6 +66,16 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
+
+        @ComponentType
+        void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {
+            builder.defaultImplementation(DefaultNativeExecutableSpec.class);
+        }
+
+        @ComponentType
+        void nativeLibrary(ComponentTypeBuilder<NativeLibrarySpec> builder) {
+            builder.defaultImplementation(DefaultNativeLibrarySpec.class);
+        }
 
         @Model
         Repositories repositories(ServiceRegistry serviceRegistry, FlavorContainer flavors, PlatformContainer platforms, BuildTypeContainer buildTypes) {
@@ -139,11 +123,13 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 }
             };
 
-            //TODO freekh: remove cast/this comment when registerDefault exists on interface
-            ((DefaultPlatformContainer) platforms).registerDefaultFactory(nativePlatformFactory);
             platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
+
+            // TODO:DAZ This is only here for backward compatibility: platforms should be typed on creation, I think.
+            platforms.registerFactory(Platform.class, nativePlatformFactory);
         }
 
+        // TODO:DAZ Migrate to @BinaryType and @ComponentBinaries
         @Mutate
         public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
                                          LanguageRegistry languages, NativeToolChainRegistryInternal toolChains,
@@ -166,12 +152,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
+        @Mutate
         public void createDefaultPlatforms(PlatformContainer platforms) {
-            if (platforms.withType(NativePlatform.class).isEmpty()) {
-                // TODO:DAZ Create a set of known platforms, rather than a single 'default'
-                NativePlatform defaultPlatform = platforms.create(NativePlatform.DEFAULT_NAME, NativePlatform.class);
-            }
+            // TODO:DAZ Should be creating, not adding
+            platforms.addAll(NativePlatforms.defaultPlatformDefinitions());
         }
 
         @Finalize
@@ -195,10 +179,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Mutate
-        void configureGeneratedSourceSets(ProjectSourceSet sources) {
-            for (FunctionalSourceSet functionalSourceSet : sources) {
-                for (LanguageSourceSetInternal languageSourceSet : functionalSourceSet.withType(LanguageSourceSetInternal.class)) {
+        @Finalize
+            // This should be @Mutate for each component in a container, rather than finalizing the container itself
+        void configureGeneratedSourceSets(ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs) {
+                for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
                     Task generatorTask = languageSourceSet.getGeneratorTask();
                     if (generatorTask != null) {
                         languageSourceSet.builtBy(generatorTask);
@@ -211,13 +196,14 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-        public void applyHeaderSourceSetConventions(ProjectSourceSet sources) {
-            for (FunctionalSourceSet functionalSourceSet : sources) {
+        @Finalize // This is providing defaults for each component in the container, but the only mechanism for now is to finalize the collection
+        public void applyHeaderSourceSetConventions(ComponentSpecContainer componentSpecs) {
+            for (ComponentSpec componentSpec : componentSpecs) {
+                DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
                 for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
                     // Only apply default locations when none explicitly configured
                     if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", functionalSourceSet.getName()));
+                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
                     }
 
                     headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());

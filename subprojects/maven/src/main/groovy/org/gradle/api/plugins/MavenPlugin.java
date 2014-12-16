@@ -80,7 +80,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         this.project = project;
-        project.getPlugins().apply(BasePlugin.class);
+        project.getPluginManager().apply(BasePlugin.class);
 
         DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
@@ -124,7 +124,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         configurationActionContainer.add(new Action<Project>() {
             public void execute(Project project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
-                if (uploadArchives == null) { return; }
+                if (uploadArchives == null) {
+                    return;
+                }
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 ModuleInternal module = configuration.getModule();

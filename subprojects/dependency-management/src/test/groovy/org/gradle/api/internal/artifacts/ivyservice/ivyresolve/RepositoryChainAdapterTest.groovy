@@ -18,7 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
@@ -30,18 +31,22 @@ class RepositoryChainAdapterTest extends Specification {
     def metaDataResolver = Mock(DependencyToComponentResolver)
     def dynamicVersionResolver = Mock(DependencyToComponentIdResolver)
     def idResult = Mock(BuildableComponentIdResolveResult)
-    def versionMatcher = Stub(VersionMatcher)
+    def versionSelectorScheme = Stub(VersionSelectorScheme)
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
     def id = new DefaultModuleComponentIdentifier("group", "module", "version")
     def mvId = new DefaultModuleVersionIdentifier("group", "module", "version")
     def dependency = Stub(DependencyMetaData) {
         getRequested() >> requested
     }
-    def resolver = new RepositoryChainAdapter(dynamicVersionResolver, metaDataResolver, versionMatcher)
+    def resolver = new RepositoryChainAdapter(dynamicVersionResolver, metaDataResolver, versionSelectorScheme)
 
     def "short-circuits static version resolution"() {
         given:
-        versionMatcher.isDynamic("version") >> false
+        versionSelectorScheme.parseSelector("version") >> {
+            Stub(VersionSelector) {
+                isDynamic() >> false
+            }
+        }
 
         when:
         resolver.resolve(dependency, idResult)
@@ -52,7 +57,11 @@ class RepositoryChainAdapterTest extends Specification {
 
     def "resolves dynamic version"() {
         given:
-        versionMatcher.isDynamic("version") >> true
+        versionSelectorScheme.parseSelector("version") >> {
+            Stub(VersionSelector) {
+                isDynamic() >> true
+            }
+        }
 
         when:
         resolver.resolve(dependency, idResult)

@@ -21,8 +21,9 @@ apply plugin: "groovy"
 
 dependencies {
     compile libraries.slf4j_api
-    compile project(':baseServices')
+    compile project(':baseServicesGroovy')
     compile libraries.commons_lang
+    compile libraries.jcip
 
     testCompile libraries.groovy
 

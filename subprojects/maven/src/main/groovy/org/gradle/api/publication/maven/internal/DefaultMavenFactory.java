@@ -15,13 +15,15 @@
  */
 package org.gradle.api.publication.maven.internal;
 
-import org.gradle.api.artifacts.maven.*;
-import org.gradle.internal.Factory;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.ant.DefaultExcludeRuleConverter;
 import org.gradle.api.publication.maven.internal.ant.DefaultPomDependenciesConverter;
+import org.gradle.internal.Factory;
 
 import java.util.Map;
 
@@ -36,7 +38,7 @@ public class DefaultMavenFactory implements MavenFactory {
     }
 
     private PomDependenciesConverter createPomDependenciesConverter() {
-        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter());
+        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter(), new MavenVersionRangeMapper());
     }
 
     public Conf2ScopeMappingContainer createConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {

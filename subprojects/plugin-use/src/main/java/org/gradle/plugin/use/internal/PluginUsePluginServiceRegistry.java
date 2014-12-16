@@ -23,9 +23,10 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.cache.CacheRepository;
@@ -33,7 +34,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
@@ -77,18 +77,21 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
-        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, VersionMatcher versionMatcher, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
+        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, VersionSelectorScheme versionSelectorScheme,
+                                                                              StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
+                                                                              final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                                              ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
             final ProjectFinder projectFinder = new ProjectFinder() {
                 public ProjectInternal getProject(String path) {
                     throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
                 }
             };
 
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, instantiator, versionMatcher, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
                 public DependencyResolutionServices create() {
                     return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
                 }
-            });
+            }, pluginInspector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver) {

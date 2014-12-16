@@ -27,7 +27,7 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:
-        project.apply(plugin: JavaLibraryDistributionPlugin)
+        project.pluginManager.apply(JavaLibraryDistributionPlugin)
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
@@ -38,7 +38,7 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
     def "adds distZip task to project"() {
         when:
-        project.apply(plugin: JavaLibraryDistributionPlugin)
+        project.pluginManager.apply(JavaLibraryDistributionPlugin)
 
         then:
         def task = project.tasks.distZip

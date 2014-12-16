@@ -1,7 +1,5 @@
 package org.gradle;
 
-import java.util.logging.Logger;
-
 import static org.testng.Assert.*;
 
 public class OkTest {
@@ -30,10 +28,5 @@ public class OkTest {
         // check other environmental stuff
         assertEquals("Test worker", Thread.currentThread().getName());
         assertNull(System.getSecurityManager());
-
-        // check logging
-        System.out.println("stdout");
-        System.err.println("stderr");
-        Logger.getLogger("test").warning("a warning");
     }
 }

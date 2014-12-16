@@ -19,22 +19,38 @@ package org.gradle.model.internal.core;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
-public class ModelPath {
+@ThreadSafe
+public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     public static final String SEPARATOR = ".";
     public static final Splitter PATH_SPLITTER = Splitter.on('.');
     public static final Joiner PATH_JOINER = Joiner.on('.');
 
     private final String path;
+    private final List<String> components;
 
     public ModelPath(String path) {
         this.path = path;
+        this.components = PATH_SPLITTER.splitToList(path);
+    }
+
+    public ModelPath(Collection<String> parts) {
+        this.path = PATH_JOINER.join(parts);
+        this.components = ImmutableList.copyOf(parts);
+    }
+
+    public int compareTo(ModelPath other) {
+        return path.compareTo(other.path);
     }
 
     @Override
@@ -56,6 +72,18 @@ public class ModelPath {
         return path.hashCode();
     }
 
+    public int getDepth() {
+        return components.size();
+    }
+
+    public List<String> getComponents() {
+        return components;
+    }
+
+    public Iterator<String> iterator() {
+        return components.iterator();
+    }
+
     @Override
     public String toString() {
         return path;
@@ -75,6 +103,14 @@ public class ModelPath {
 
     public ModelPath child(String child) {
         return path(path + SEPARATOR + child);
+    }
+
+    public boolean isTopLevel() {
+        return getRootParent() == null;
+    }
+
+    public ModelPath getRootParent() {
+        return components.size() == 1 ? null : ModelPath.path(components.get(0));
     }
 
     public ModelPath getParent() {
@@ -115,7 +151,7 @@ public class ModelPath {
 
     private static final CharMatcher VALID_FIRST_CHAR_MATCHER = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
     private final static CharMatcher INVALID_FIRST_CHAR_MATCHER = VALID_FIRST_CHAR_MATCHER.negate().precomputed();
-    private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).negate().precomputed();
+    private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).or(CharMatcher.is('-')).negate().precomputed();
 
     public static void validateName(String name) {
         if (name.isEmpty()) {

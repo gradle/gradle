@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
+import org.gradle.nativeplatform.platform.internal.Architectures
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -69,9 +69,9 @@ class ReadelfBinaryInfo implements BinaryInfo {
         def archString = readFirstHeaderValue(lines, "Machine:", "Maschine:")
         switch (archString) {
             case "Intel 80386":
-                return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
+                return Architectures.forInput("x86")
             case "Advanced Micro Devices X86-64":
-                return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
+                return Architectures.forInput("x86_64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}\nreadelf output:\n${lines}")
         }

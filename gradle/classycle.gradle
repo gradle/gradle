@@ -14,7 +14,7 @@ allprojects {
 
         sourceSets.all { sourceSet ->
             def taskName = sourceSet.getTaskName('classycle', null)
-            task(taskName){
+            task(taskName) {
                 def reportFile = reporting.file("classcycle/${sourceSet.name}.txt")
                 inputs.files sourceSet.output
                 outputs.file reportFile

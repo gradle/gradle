@@ -34,13 +34,26 @@ class SingleEntryModuleLibrary extends ModuleLibrary {
      * Creates single entry module library
      *
      * @param library a path to jar or class folder in idea format
-     * @param javadoc a path to javadoc jar or javadoc folder
-     * @param source a path to source jar or source folder
+     * @param javadoc paths to javadoc jars or javadoc folders
+     * @param source paths to source jars or source folders
      * @param scope scope
      * @return
      */
-    SingleEntryModuleLibrary(FilePath library, FilePath javadoc, FilePath source, String scope) {
-        super([library] as Set, [javadoc] - null as Set, [source] - null as Set, [] as Set, scope)
+    SingleEntryModuleLibrary(FilePath library, Set<FilePath> javadoc, Set<FilePath> source, String scope) {
+        super([library] as Set, javadoc, source, [] as Set, scope)
+    }
+
+    /**
+     * Creates single entry module library
+     *
+     * @param library a path to jar or class folder in idea format
+     * @param javadoc path to javadoc jars or javadoc folders
+     * @param source paths to source jars or source folders
+     * @param scope scope
+     * @return
+     */
+    SingleEntryModuleLibrary(FilePath library, @Nullable FilePath javadoc, @Nullable FilePath source, String scope) {
+        super([library] as Set, javadoc ? [javadoc] : [], source ? [source] : [], [] as Set, scope)
     }
 
     /**
@@ -51,7 +64,7 @@ class SingleEntryModuleLibrary extends ModuleLibrary {
      * @return
      */
     SingleEntryModuleLibrary(FilePath library, String scope) {
-        this(library, null, null, scope)
+        this(library, [] as Set, [] as Set, scope)
     }
 
     /**

@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.language.c
-
-import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import spock.lang.Issue
 import spock.lang.Unroll
-
 // TODO:DAZ Some of these tests should apply to all single-language integration tests
-class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
 
@@ -36,14 +33,16 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-             executables {
-                 main {}
-             }
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
          """
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
     }
 
     def "can manually define C source sets"() {
@@ -56,12 +55,10 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
-
-            sources {
-                main {
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
                     c {
                         exportedHeaders {
                             srcDirs "src/shared/headers"
@@ -82,6 +79,8 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
+        }
+    }
 """
 
         when:
@@ -100,12 +99,15 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
             it.writeToFile(file("src/main/c/${it.name}"))
         }
         buildFile << """
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.source.include "**/*.c"
+            }
+        }
     }
-    sources {
-        main.c.source.include "**/*.c"
-    }
+}
 """
 
         when:
@@ -122,13 +124,15 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "can define macro #output"() {
         given:
         buildFile << """
-            executables {
-                main {
+        model {
+            components {
+                main(NativeExecutableSpec) {
                     binaries.all {
                         ${helloWorldApp.compilerDefine('CUSTOM', inString)}
                     }
                 }
             }
+        }
         """
 
         and:
@@ -153,8 +157,9 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "compiler and linker args can contain quotes and spaces"() {
         given:
         buildFile << '''
-            executables {
-                main {
+        model {
+            components {
+                main(NativeExecutableSpec) {
                     binaries.all {
                         // These are just some dummy arguments to test we don't blow up. Their effects are not verified.
                         if (toolChain in VisualCpp) {
@@ -172,6 +177,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
+        }
         '''
 
         and:
@@ -184,9 +190,11 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             executables {
-                 main {}
-             }
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
          """
 
         and:

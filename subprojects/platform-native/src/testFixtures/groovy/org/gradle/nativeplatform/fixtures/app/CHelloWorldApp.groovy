@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
@@ -120,8 +122,8 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
 
-    TestComponent getCunitTests() {
-        return new TestComponent() {
+    TestNativeComponent getCunitTests() {
+        return new TestNativeComponent() {
             List<SourceFile> sourceFiles = [
                     sourceFile("c", "test.c", """
 #include <CUnit/Basic.h>

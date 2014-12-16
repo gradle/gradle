@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
@@ -52,11 +53,10 @@ class LogToClient extends BuildCommandOnly {
             }
         };
 
-        LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
+        LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         loggingOutput.addOutputEventListener(listener);
-        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
-
         try {
+            LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
             execution.proceed();
         } finally {
             loggingOutput.removeOutputEventListener(listener);

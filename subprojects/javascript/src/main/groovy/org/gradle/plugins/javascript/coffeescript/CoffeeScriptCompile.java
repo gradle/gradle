@@ -55,15 +55,6 @@ public class CoffeeScriptCompile extends SourceTask {
         this.coffeeScriptJs = coffeeScriptJs;
     }
 
-    @OutputDirectory
-    public File getDestinationDir() {
-        return getProject().file(destinationDir);
-    }
-
-    public void setDestinationDir(Object destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
     @InputFiles
     public FileCollection getRhinoClasspath() {
         return getProject().files(rhinoClasspath);
@@ -71,6 +62,15 @@ public class CoffeeScriptCompile extends SourceTask {
 
     public void setRhinoClasspath(Object rhinoClasspath) {
         this.rhinoClasspath = rhinoClasspath;
+    }
+
+    @OutputDirectory
+    public File getDestinationDir() {
+        return getProject().file(destinationDir);
+    }
+
+    public void setDestinationDir(Object destinationDir) {
+        this.destinationDir = destinationDir;
     }
 
     public CoffeeScriptCompileOptions getOptions() {

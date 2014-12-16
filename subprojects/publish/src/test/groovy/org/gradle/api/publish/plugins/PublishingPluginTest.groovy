@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.PublicationInternal
@@ -26,11 +26,11 @@ import spock.lang.Specification
 
 class PublishingPluginTest extends Specification {
 
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
     PublishingExtension extension
 
     def setup() {
-        project.plugins.apply(PublishingPlugin)
+        project.pluginManager.apply(PublishingPlugin)
         extension = project.extensions.getByType(PublishingExtension)
     }
 

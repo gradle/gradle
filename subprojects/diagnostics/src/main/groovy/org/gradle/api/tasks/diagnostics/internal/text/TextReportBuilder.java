@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.text;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
+import java.io.File;
 import java.util.Collection;
 
 public interface TextReportBuilder {
@@ -27,6 +28,14 @@ public interface TextReportBuilder {
     void subheading(String heading);
 
     <T> void collection(String title, Collection<? extends T> collection, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural);
+
+    void item(String title, String value);
+
+    void item(String title, File value);
+
+    void item(String value);
+
+    void item(File value);
 
     StyledTextOutput getOutput();
 }

@@ -88,6 +88,13 @@ public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    ModelBuilder<T> setColorOutput(boolean colorOutput);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-7
      */
     ModelBuilder<T> setStandardInput(InputStream inputStream);
@@ -111,11 +118,19 @@ public interface ModelBuilder<T> extends LongRunningOperation {
     ModelBuilder<T> addProgressListener(ProgressListener listener);
 
     /**
-     * Specifies the tasks to execute before building the model. By default, no tasks are executed.
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    ModelBuilder<T> withCancellationToken(CancellationToken cancellationToken);
+
+    /**
+     * Specifies the tasks to execute before building the model.
+     *
+     * If not configured, null, or an empty array is passed, then no tasks will be executed.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     *
      * @since 1.2
      */
     @Incubating

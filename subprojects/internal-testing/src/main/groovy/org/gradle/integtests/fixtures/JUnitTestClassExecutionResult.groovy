@@ -86,6 +86,19 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
+        Map<String, Node> testMethods = findTests()
+        String failureMethodName = "execution failure"
+        Assert.assertThat(testMethods.keySet(), Matchers.hasItem(failureMethodName))
+
+        String causeLinePrefix = "Caused by: "
+        def failures = testMethods[failureMethodName].failure
+        def cause = failures[0].text().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
+
+        Assert.assertThat(cause, causeMatcher)
+        this
+    }
+
     TestClassExecutionResult assertTestSkipped(String name) {
         throw new UnsupportedOperationException()
     }

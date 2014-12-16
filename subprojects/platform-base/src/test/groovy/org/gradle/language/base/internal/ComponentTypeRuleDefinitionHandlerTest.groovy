@@ -93,10 +93,10 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
 
         where:
         methodName                         | expectedMessage                                                                                                         | descr
-        "extraParameter"                   | "ComponentType method must have a single parameter of type '${ComponentTypeBuilder.name}'."                             | "additional rule parameter"
-        "binaryTypeBuilder"                | "ComponentType method must have a single parameter of type '${ComponentTypeBuilder.name}'."                             | "wrong builder type"
-        "returnValue"                      | "ComponentType method must not have a return value."                                                                    | "method with return type"
-        "implementationSetMultipleTimes"   | "ComponentType method cannot set default implementation multiple times."                                                | "implementation set multiple times"
+        "extraParameter"                   | "Method annotated with @ComponentType must have a single parameter of type '${ComponentTypeBuilder.name}'."             | "additional rule parameter"
+        "binaryTypeBuilder"                | "Method annotated with @ComponentType must have a single parameter of type '${ComponentTypeBuilder.name}'."             | "wrong builder type"
+        "returnValue"                      | "Method annotated with @ComponentType must not have a return value."                                                    | "method with return type"
+        "implementationSetMultipleTimes"   | "Method annotated with @ComponentType cannot set default implementation multiple times."                                | "implementation set multiple times"
         "noTypeParam"                      | "Parameter of type '${ComponentTypeBuilder.name}' must declare a type parameter."                                       | "missing type parameter"
         "wildcardType"                     | "Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                               | "wildcard type parameter"
         "extendsType"                      | "Component type '? extends ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"

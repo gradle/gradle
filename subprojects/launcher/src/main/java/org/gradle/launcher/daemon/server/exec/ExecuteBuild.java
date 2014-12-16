@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.ReportedException;

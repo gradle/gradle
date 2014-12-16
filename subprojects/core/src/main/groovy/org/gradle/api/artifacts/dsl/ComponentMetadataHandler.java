@@ -21,20 +21,31 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 
 /**
- * Allows to modify the metadata of depended-on software components.
+ * Allows the build to provide rules that modify the metadata of depended-on software components.
+ *
+ * <p>Possible uses of component metadata rules are:
+ * <ul>
+ *     <li>Setting the status and status scheme of a component, overriding the value specified in the component descriptor.</li>
+ *     <li>Declaring whether or not a component is 'changing', thus impacting the cache behaviour of the component.</li>
+ * </ul>
  *
  * <p> Example:
  * <pre autoTested=''>
  * dependencies {
  *     components {
- *         //triggered during dependency resolution, for each component:
- *         eachComponent { ComponentMetadataDetails details ->
+ *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
+ *         all { ComponentMetadataDetails details ->
  *             if (details.id.group == "org.foo") {
  *                 def version = details.id.version
  *                 // assuming status is last part of version string
  *                 details.status = version.substring(version.lastIndexOf("-") + 1)
  *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
  *             }
+ *         }
+ *
+ *         // Treat all components in the module "org.foo:bar" as changing
+ *         withModule("org.foo:bar") { ComponentMetadataDetails details ->
+ *             details.changing = true
  *         }
  *     }
  * }
@@ -45,34 +56,94 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
 @Incubating
 public interface ComponentMetadataHandler {
     /**
-     * Adds a rule to modify the metadata of depended-on software components.
-     * For example, this allows to set a component's status and status scheme
-     * from within the build script, overriding any value specified in the
-     * component descriptor.
+     * Adds a rule action that may modify the metadata of any resolved software component.
      *
      * @param rule the rule to be added
+     * @return this
      */
-    void eachComponent(Action<? super ComponentMetadataDetails> rule);
+    ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
     /**
-     * Adds a rule to modify the metadata of depended-on software components.
-     * For example, this allows to set a component's status and status scheme
-     * from within the build script, overriding any value specified in the
-     * component descriptor.
+     * Adds a rule closure that may modify the metadata of any resolved software component.
      *
-     * <p>The rule must declare a {@link ComponentMetadataDetails} as it's first parameter,
+     * <p>The supplied rule closure must declare a {@link ComponentMetadataDetails} as it's first parameter,
      * allowing the component metadata to be modified.
      *
      * <p>In addition, the rule can declare additional (read-only) parameters, which may provide extra details
-     * about the component. The order of these additional parameters is irrelevant.
+     * about the component. The order of these additional parameters is not significant.
      *
-     * <p>Presently, the following additional parameter types are supported:
+     * <p>The following additional parameter types are supported:
      * <ul>
-     *     <li>{@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} Additional Ivy-specific
+     *     <li>{@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} - additional Ivy-specific
      *     metadata. Rules declaring this parameter will only be invoked for components packaged as an Ivy module.</li>
      * </ul>
      *
      * @param rule the rule to be added
+     * @return this
      */
-    void eachComponent(Closure<?> rule);
+    ComponentMetadataHandler all(Closure<?> rule);
+
+    /**
+     * Adds a rule that may modify the metadata of any resolved software component.
+     *
+     * <p>The ruleSource is an Object that has a single rule method annotated with {@link org.gradle.model.Mutate}.
+     *
+     * <p>This rule method:
+     * <ul>
+     *     <li>must return void.</li>
+     *     <li>must have {@link ComponentMetadataDetails} as the first parameter.</li>
+     *     <li>may have an additional parameter of type {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
+     * </ul>
+     *
+     * @param ruleSource  the rule source object to be added
+     * @return this
+     */
+    ComponentMetadataHandler all(Object ruleSource);
+
+    /**
+     * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param rule the rule to be added
+     * @return this
+     */
+    ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule);
+
+    /**
+     * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * <p>The rule closure parameter is subject to the same requirements as {@link #all(groovy.lang.Closure)}.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param rule the rule to be added
+     * @return this
+     */
+    ComponentMetadataHandler withModule(Object id, Closure<?> rule);
+
+    /**
+     * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * <p>The rule source parameter is subject to the same requirements as {@link #all(Object)}.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param ruleSource  the rule source object to be added
+     * @return this
+     */
+    ComponentMetadataHandler withModule(Object id, Object ruleSource);
+
+    /**
+      * Adds a rule to modify the metadata of depended-on software components.
+     *
+     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
+     */
+    @Deprecated
+     void eachComponent(Action<? super ComponentMetadataDetails> rule);
+
+     /**
+      * Adds a rule to modify the metadata of depended-on software components.
+      *
+      * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
+      */
+     @Deprecated
+     void eachComponent(Closure<?> rule);
 }

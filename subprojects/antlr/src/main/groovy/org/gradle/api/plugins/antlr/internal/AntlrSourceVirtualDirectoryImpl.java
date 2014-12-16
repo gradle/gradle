@@ -32,6 +32,7 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
         final String displayName = String.format("%s Antlr source", parentDisplayName);
         antlr = new DefaultSourceDirectorySet(displayName, fileResolver);
         antlr.getFilter().include("**/*.g");
+        antlr.getFilter().include("**/*.g4");  
     }
 
     public SourceDirectorySet getAntlr() {

@@ -26,7 +26,7 @@ import org.gradle.api.plugins.JavaPlugin
  */
 public class OsgiPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
 
         def osgiConvention = new OsgiPluginConvention(project)
         project.convention.plugins.osgi = osgiConvention

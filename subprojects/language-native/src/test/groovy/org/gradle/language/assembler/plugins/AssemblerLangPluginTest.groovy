@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 class AssemblerLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
     def getPluginClass() {
-        return AssemblerPlugin
+        return AssemblerLangPlugin
     }
 
     @Override

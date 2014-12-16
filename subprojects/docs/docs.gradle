@@ -252,6 +252,7 @@ task dslHtml(type: Docbook2Xhtml) {
     resources = cssFiles + fileTree(dslSrcDir) {
         include '*.js'
     }
+    ext.entryPoint = "$destDir/index.html"
 }
 
 // This is used in the distribution and for the online version
@@ -279,6 +280,7 @@ task userguideHtml(type: Docbook2Xhtml) {
     resources = fileTree(userguideSrcDir) {
         include 'img/*.png'
     } + cssFiles
+    ext.entryPoint = "$destDir/userguide.html"
 }
 
 task userguideSingleHtml(type: Docbook2Xhtml) {
@@ -288,6 +290,7 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
     resources = fileTree(userguideSrcDir) {
         include 'img/*.png'
     } + cssFiles
+    ext.entryPoint = destFile
 }
 
 task pdfUserguideXhtml(type: Docbook2Xhtml) {
@@ -297,6 +300,7 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
     resources = fileTree(userguideSrcDir) {
         include 'img/*.png'
     } + cssFiles
+    ext.entryPoint = destFile
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
@@ -308,7 +312,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     classpath = configurations.userGuideTask
 }
 
-def javaApiUrl = "https://docs.oracle.com/javase/1.5.0/docs/api/"
+def javaApiUrl = "https://docs.oracle.com/javase/6/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
 
 task javadocAll(type: Javadoc) {
@@ -331,10 +335,13 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/buildinit/**'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/ide/**'
+    include 'org/gradle/ivy/**'
     include 'org/gradle/jvm/**'
     include 'org/gradle/language/**'
+    include 'org/gradle/maven/**'
     include 'org/gradle/nativeplatform/**'
     include 'org/gradle/platform/**'
+    include 'org/gradle/play/**'
     include 'org/gradle/plugin/use/*'
     include 'org/gradle/plugins/**'
     include 'org/gradle/process/**'
@@ -342,12 +349,15 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/testing/jacoco/**'
     include 'org/gradle/sonar/runner/**'
     include 'org/gradle/tooling/**'
+    include 'org/gradle/model/Mutate.*'
+    include 'org/gradle/model/Model.*'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {
         title = "Gradle API $version"
     }
+    ext.entryPoint = "$destinationDir/index.html"
 }
 
 task configureGroovydocAll {
@@ -383,6 +393,7 @@ task groovydocAll(type: Groovydoc, dependsOn: configureGroovydocAll) {
         def index = new File(destinationDir, "index.html")
         index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
     }
+    ext.entryPoint = "$destinationDir/index.html"
 }
 
 task checkstyleApi(type: Checkstyle) {
@@ -432,12 +443,22 @@ task releaseNotes(type: Copy) {
     from releaseNotesMarkdown
     jsoup.plugins "src/transforms/release-notes.gradle"
     filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
+    ext.entryPoint = file("$docsDir/$fileName")
 }
 
-task viewReleaseNotes(dependsOn: releaseNotes) {
-    group = "release notes"
-    doLast {
-        Class.forName("java.awt.Desktop").newInstance().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
+tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
+    if (taskName.startsWith("view")) {
+        def realTaskName = (taskName - "view")
+        realTaskName = realTaskName[0].toLowerCase() + realTaskName[1..-1]
+        def task = tasks.findByName(realTaskName)
+        if (task && task.hasProperty("entryPoint")) {
+            tasks.create(taskName) {
+                dependsOn task
+                doLast {
+                    Class.forName("java.awt.Desktop").newInstance().browse(file(task.entryPoint).toURI())
+                }
+            }
+        }
     }
 }
 

@@ -15,13 +15,12 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.TestUtil
-import org.gradle.api.plugins.JavaBasePlugin
-
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
@@ -29,10 +28,10 @@ import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class CheckstylePluginTest extends Specification {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(CheckstylePlugin)
+        project.pluginManager.apply(CheckstylePlugin)
     }
 
     def "applies reporting-base plugin"() {
@@ -61,7 +60,7 @@ class CheckstylePluginTest extends Specification {
     }
 
     def "configures checkstyle task for each source set"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -105,7 +104,7 @@ class CheckstylePluginTest extends Specification {
     }
 
     def "adds checkstyle tasks to check lifecycle task"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -117,7 +116,7 @@ class CheckstylePluginTest extends Specification {
     }
     
     def "can customize settings via extension"() {
-        project.plugins.apply(JavaBasePlugin)
+        project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -178,7 +177,7 @@ class CheckstylePluginTest extends Specification {
     }
 
     def "can use legacy configFile extension property"() {
-        project.plugins.apply(JavaPlugin)
+        project.pluginManager.apply(JavaPlugin)
 
         project.checkstyle {
             configFile = project.file("checkstyle-config")

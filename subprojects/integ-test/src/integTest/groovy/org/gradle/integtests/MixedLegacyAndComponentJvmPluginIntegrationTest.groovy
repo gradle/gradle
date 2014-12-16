@@ -28,9 +28,9 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
             apply plugin: "jvm-component"
             apply plugin: "java-lang"
 
-            jvm {
-                libraries {
-                    jvmLib
+            model {
+                components {
+                    jvmLib(JvmLibrarySpec)
                 }
             }
 
@@ -70,9 +70,9 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
             apply plugin: "jvm-component"
             apply plugin: "java-lang"
 
-            jvm {
-                libraries {
-                    jvmLib
+            model {
+                components {
+                    jvmLib(JvmLibrarySpec)
                 }
             }
 """

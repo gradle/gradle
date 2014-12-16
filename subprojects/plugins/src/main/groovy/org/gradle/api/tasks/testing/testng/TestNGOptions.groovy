@@ -25,6 +25,7 @@ class TestNGOptions extends TestFrameworkOptions {
 
     static final String JDK_ANNOTATIONS = 'JDK'
     static final String JAVADOC_ANNOTATIONS = 'Javadoc'
+    public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
 
     /**
      * The location to write TestNG's output.
@@ -64,6 +65,12 @@ class TestNGOptions extends TestFrameworkOptions {
      * The set of groups to exclude.
      */
     Set<String> excludeGroups = new HashSet<String>()
+
+    /**
+     * Option for what to do for other tests that use a configuration step when that step fails.
+     * Can be "skip" or "continue", defaults to "skip".
+     */
+    String configFailurePolicy = DEFAULT_CONFIG_FAILURE_POLICY
 
     /**
      * Fully qualified classes that are TestNG listeners (instances of org.testng.ITestListener or

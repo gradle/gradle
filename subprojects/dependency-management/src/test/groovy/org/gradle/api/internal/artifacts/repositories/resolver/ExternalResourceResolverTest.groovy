@@ -34,7 +34,7 @@ class ExternalResourceResolverTest extends Specification {
     LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
     ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
-        getDisplayName() >> 'some-artifact'
+        getDisplayName() >> '<some-artifact>'
     }
     ModuleComponentArtifactMetaData artifact = Stub() {
         getId() >> artifactIdentifier
@@ -71,7 +71,7 @@ class ExternalResourceResolverTest extends Specification {
 
         then:
         1 * result.failed(_) >> { ArtifactResolveException exception ->
-            assert exception.message == "Could not download artifact 'some-artifact'"
+            assert exception.message == "Could not download <some-artifact>"
             assert exception.cause.message == "DOWNLOAD FAILURE"
         }
         0 * result._

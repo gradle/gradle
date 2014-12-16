@@ -17,9 +17,11 @@
 package org.gradle.model.dsl.internal.inputs;
 
 import com.google.common.collect.ImmutableMap;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelRuleInput;
 
+@ThreadSafe
 public abstract class RuleInputAccessBacking {
 
     private RuleInputAccessBacking() {

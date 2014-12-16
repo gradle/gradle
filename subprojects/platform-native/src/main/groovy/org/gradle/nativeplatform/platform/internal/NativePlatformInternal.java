@@ -21,6 +21,4 @@ public interface NativePlatformInternal extends NativePlatform {
     ArchitectureInternal getArchitecture();
 
     OperatingSystemInternal getOperatingSystem();
-
-    String getCompatibilityString();
 }

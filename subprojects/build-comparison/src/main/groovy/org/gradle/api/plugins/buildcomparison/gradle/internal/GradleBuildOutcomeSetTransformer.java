@@ -34,6 +34,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 /**
  * Transforms from the Gradle specific build outcomes into source agnostic outcomes.
  */
@@ -88,7 +90,11 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
             BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), resource, relativePath);
             translatedOutcomes.add(buildOutcome);
         } else {
-            translatedOutcomes.add(new UnknownBuildOutcome(outcome.getTaskPath(), outcome.getDescription()));
+            String outcomeName = outcome.getTaskPath();
+            if (isEmpty(outcomeName)) {
+                outcomeName = GFileUtils.relativePath(rootProject.getProjectDirectory(), outcome.getFile());
+            }
+            translatedOutcomes.add(new UnknownBuildOutcome(outcomeName, outcome.getDescription()));
         }
     }
 

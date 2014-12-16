@@ -1,0 +1,6 @@
+<project-modules id="moduleCoreId" project-version="2.0">
+	<wb-module deploy-name="api">
+		<wb-resource deploy-path="/" source-path="src/main/java"/>
+		<wb-resource deploy-path="/" source-path="src/main/resources"/>
+	</wb-module>
+</project-modules>

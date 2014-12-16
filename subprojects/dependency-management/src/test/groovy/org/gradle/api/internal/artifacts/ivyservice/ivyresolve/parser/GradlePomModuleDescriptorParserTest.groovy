@@ -46,7 +46,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 </project>
 """
 
-
         when:
         def metaData = parseMetaData()
         def descriptor = metaData.descriptor
@@ -2161,6 +2160,53 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
     }
+
+    @Unroll
+    def "converts #inputVersion version to #outputVersion"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>$inputVersion</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-three</groupId>
+            <artifactId>artifact-three</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>$inputVersion</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 2
+        descriptor.dependencies.every{it.dependencyRevisionId.revision == outputVersion}
+        where:
+        inputVersion | outputVersion
+        "RELEASE"    | "latest.release"
+        "LATEST"     | "latest.integration"
+    }
+
 
     @Unroll
     def "handles dependency with type #type"() {

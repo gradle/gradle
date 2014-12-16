@@ -39,7 +39,9 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(19)
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("Could not find method foo()")
     }
 
@@ -63,16 +65,20 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(18)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
         where:
         parameters                           | message
         "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
-        "ComponentSelection vs, String s ->" | "Unsupported parameter type: java.lang.String"
+        "ComponentSelection vs, String s ->" | "Rule may not have an input parameter of type: java.lang.String. " +
+                                               "Valid types (for the second and subsequent parameters) are: " +
+                                               "[org.gradle.api.artifacts.ComponentMetadata, org.gradle.api.artifacts.ivy.IvyModuleDescriptor]."
     }
 
-    def "produces sensible error when rule throws an exception" () {
+    def "produces sensible error when closure rule throws an exception" () {
         buildFile << """
             $baseBuildFile
 
@@ -83,7 +89,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection cs -> throw new Exception("From test") }
+                        withModule("org.utils:api") { ComponentSelection cs -> throw new Exception("From test") }
                     }
                 }
             }
@@ -92,7 +98,9 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(18)
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("From test")
     }
 
@@ -116,51 +124,37 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(18)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
-    def "produces sensible error when @Mutate method provides invalid arguments" () {
+    def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
         buildFile << """
             $baseBuildFile
-
-            dependencies {
-                conf "org.utils:api:1.2"
-            }
-
-            def ruleSource = new Select11()
-
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all ruleSource
+                        all(new BadRuleSource())
                     }
                 }
             }
 
-            class Select11 {
+            class BadRuleSource {
                 def candidates = []
 
                 @org.gradle.model.Mutate
-                void select(${parameters}) {
-                    if (selection.candidate.version != '1.1') {
-                        selection.reject("not 1.1")
-                    }
-                    candidates << selection.candidate.version
-                }
+                void select(String s) { }
             }
         """
 
         expect:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failureHasCause(message)
-
-        where:
-        parameters                               | message
-        "String selection"                       | "Type Select11 is not a valid model rule source: first parameter of rule method must be of type org.gradle.api.artifacts.ComponentSelection"
-        "ComponentSelection selection, String s" | "The rule source provided does not provide a valid rule for 'ComponentSelectionRules'."
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(13)
+        failureHasCause("Type BadRuleSource is not a valid model rule source: \n- first parameter of rule method 'select' must be of type org.gradle.api.artifacts.ComponentSelection")
     }
 
     def "produces sensible error when rule source throws an exception" () {
@@ -194,7 +188,9 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         expect:
         fails 'resolveConf'
         failure.assertHasDescription("Execution failed for task ':resolveConf'.")
-        failure.assertHasCause("Could not apply component selection rule with all().")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(30)
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 }

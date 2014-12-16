@@ -1,9 +1,13 @@
+buildscript {
+  repositories.mavenCentral()
+  dependencies.classpath 'junit:junit:4.+'
+}
 import static org.junit.Assert.*
 
 apply plugin: 'java'
 repositories.mavenCentral()
 dependencies.testCompile 'junit:junit:4.+'
-test.stopAtFailuresOrErrors = false
+test.ignoreFailures = false
 
 def events = []
 // START SNIPPET testListenerImpl

@@ -41,14 +41,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final ClassLoaderScope classLoaderScope;
-    private final Object[] defaultTargets;
+    private final Object defaultTarget;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope, Object... defaultTargets) {
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.classLoaderScope = classLoaderScope;
-        this.defaultTargets = defaultTargets;
+        this.defaultTarget = defaultTarget;
     }
 
     public ObjectConfigurationAction to(Object... targets) {
@@ -77,7 +77,16 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     public ObjectConfigurationAction plugin(final String pluginId) {
         actions.add(new Runnable() {
             public void run() {
-                applyPlugin(pluginId);
+                applyType(pluginId);
+            }
+        });
+        return this;
+    }
+
+    public ObjectConfigurationAction type(final Class<?> pluginClass) {
+        actions.add(new Runnable() {
+            public void run() {
+                applyType(pluginClass);
             }
         });
         return this;
@@ -95,36 +104,32 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
-        for (Object target : targets) {
-            if (target instanceof PluginAware) {
-                try {
-                    ((PluginAware) target).getPlugins().apply(pluginClass);
-                } catch (Exception e) {
-                    throw new PluginApplicationException("class '" + pluginClass.getName() + "'", e);
-                }
-            } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
-            }
-        }
+        applyType(pluginClass);
     }
 
-    private void applyPlugin(String pluginId) {
+    private void applyType(String pluginId) {
         for (Object target : targets) {
             if (target instanceof PluginAware) {
-                try {
-                    ((PluginAware) target).getPlugins().apply(pluginId);
-                } catch (Exception e) {
-                    throw new PluginApplicationException("id '" + pluginId + "'", e);
-                }
+                ((PluginAware) target).getPluginManager().apply(pluginId);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
             }
         }
     }
 
+    private void applyType(Class<?> pluginClass) {
+        for (Object target : targets) {
+            if (target instanceof PluginAwareInternal) {
+                ((PluginAwareInternal) target).getPluginManager().apply(pluginClass);
+            } else {
+                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
+            }
+        }
+    }
+
     public void execute() {
         if (targets.isEmpty()) {
-            to(defaultTargets);
+            to(defaultTarget);
         }
 
         for (Runnable action : actions) {

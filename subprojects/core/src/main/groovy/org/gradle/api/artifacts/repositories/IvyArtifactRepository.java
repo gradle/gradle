@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import java.net.URI;
@@ -144,7 +145,17 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * <p>The available pattern tokens are listed as part of <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">Ivy's Main Concepts documentation</a>.</p>
      *
      * @param layoutName The name of the layout to use.
+     * @param config The action used to configure the layout.
+     * @since 2.3 (feature was already present in Groovy DSL, this particular method introduced in 2.3)
+     */
+    void layout(String layoutName, Action<? extends RepositoryLayout> config);
+
+    /**
+     * Specifies how the items of the repository are organized. See {@link #layout(String, org.gradle.api.Action)}
+     *
+     * @param layoutName The name of the layout to use.
      * @param config The closure used to configure the layout.
+     * An instance of {@link RepositoryLayout} is passed as a parameter to the closure.
      */
     void layout(String layoutName, Closure config);
 

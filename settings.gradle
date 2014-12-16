@@ -61,11 +61,13 @@ include 'languageJvm'
 include 'languageJava'
 include 'languageGroovy'
 include 'languageNative'
+include 'languageScala'
 include 'pluginUse'
 include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
 include 'cunit'
+include 'platformPlay'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

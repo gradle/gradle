@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile;
 
 public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
@@ -30,8 +31,8 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
     }
 
 
-    public TestComponent getGreetingsLibrary() {
-        return new TestComponent() {
+    public TestNativeComponent getGreetingsLibrary() {
+        return new TestNativeComponent() {
             @Override
             public List<SourceFile> getHeaderFiles() {
                 return Arrays.asList(getGreetingsHeader())

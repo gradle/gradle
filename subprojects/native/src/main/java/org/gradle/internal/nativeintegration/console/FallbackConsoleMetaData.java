@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-public class FallbackConsoleMetaData implements ConsoleMetaData{
+public class FallbackConsoleMetaData implements ConsoleMetaData {
     public boolean isStdOut() {
         return true;
     }

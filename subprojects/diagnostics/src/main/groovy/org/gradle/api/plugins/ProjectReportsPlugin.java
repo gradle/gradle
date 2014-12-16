@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -38,7 +39,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String PROJECT_REPORT = "projectReport";
 
     public void apply(Project project) {
-        project.getPlugins().apply(ReportingBasePlugin.class);
+        project.apply(ImmutableMap.of("type", ReportingBasePlugin.class));
         final ProjectReportsPluginConvention convention = new ProjectReportsPluginConvention(project);
         project.getConvention().getPlugins().put("projectReports", convention);
 

@@ -16,15 +16,15 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 //TODO find a better name
-@Requires(TestPrecondition.NOT_WINDOWS)
-class MixedObjectiveCIntegrationTest extends AbstractLanguageIntegrationTest{
+@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+class MixedObjectiveCIntegrationTest extends AbstractNativeLanguageIntegrationTest{
 
     @Override
     HelloWorldApp getHelloWorldApp() {

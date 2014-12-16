@@ -16,16 +16,10 @@
 
 package org.gradle.language
 
+import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.language.fixtures.app.*
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateCppBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateMixedSameBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
-import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
-import org.gradle.nativeplatform.fixtures.app.SourceFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -43,22 +37,21 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         }
 
         buildFile << """
-        binaries.all{
-            linker.args "-v"
+model {
+    platforms {
+        x86 {
+            architecture "i386"
         }
-        """
-        buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "i386"
-                    }
-                }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatforms "x86"
+            binaries.all {
+                linker.args "-v"
             }
-            executables {
-                main {}
-            }
-
+        }
+    }
+}
             """
         expect:
         succeeds "mainExecutable"
@@ -67,8 +60,8 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         testApp                                              |   expectedOutput
         new DuplicateCBaseNamesTestApp()                     |    "foo1foo2"
         new DuplicateCppBaseNamesTestApp()                   |    "foo1foo2"
-        new DuplicateAssemblerBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)    |    "foo1foo2"
-        new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
+        new DuplicateAssemblerBaseNamesTestApp(toolChain)    |    "foo1foo2"
+        new DuplicateMixedSameBaseNamesTestApp(toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
     /**
@@ -94,46 +87,44 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
             buildFile << "apply plugin: '$plugin'\n"
         }
 
-        buildFile << "executables { main {} }"
+        buildFile << """
+model {
+    platforms {
+        x86 {
+            architecture "i386"
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatforms "x86"
+            binaries.all {
+                linker.args "-v"
+            }
+            sources {"""
 
         testApp.functionalSourceSets.each { name, filterPattern ->
                 buildFile << """
-                sources {
-                        main {
-                            $name {
-                                source {
-                                    include '$filterPattern'
-                                    srcDirs "src/main/all"
-                                }
-                            }
-                        }
-                }
-                """
+                $name {
+                    source {
+                        include '$filterPattern'
+                        srcDirs "src/main/all"
+                    }
+                }"""
         }
 
         buildFile << """
-
-        binaries.all{
-            linker.args "-v"
-        }
-
-        model {
-            platforms {
-                x86 {
-                    architecture "i386"
-                }
             }
         }
+    }
+}
+"""
 
-
-        """
         expect:
         succeeds "mainExecutable"
         executable("build/binaries/mainExecutable/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
-    //TODO Rene: inline with testcase above once we got coverage for objective-c and objective-cpp on windows
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
         setup:
         testApp.writeSources(file("src/main"))
@@ -144,10 +135,11 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         buildFile << testApp.extraConfiguration
 
         buildFile << """
-            executables {
-                main {}
-            }
-
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
             """
         expect:
         succeeds "mainExecutable"
@@ -166,12 +158,15 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
             buildFile << "apply plugin: '$plugin'\n"
         }
         buildFile <<"""
+model {
+    components {
+        main(NativeExecutableSpec) {
             binaries.all {
                 linker.args "user32.lib"
             }
-            executables {
-                main {}
-            }
+        }
+    }
+}
             """
         expect:
         succeeds "mainExecutable"

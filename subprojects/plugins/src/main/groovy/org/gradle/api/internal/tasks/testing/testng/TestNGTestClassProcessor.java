@@ -20,12 +20,14 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
-import org.gradle.logging.StandardOutputRedirector;
+import org.gradle.messaging.actor.Actor;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.*;
@@ -42,28 +44,30 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final TestNGSpec options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
-    private final StandardOutputRedirector outputRedirector;
-    private TestNGTestResultProcessorAdapter testResultProcessor;
+    private final TimeProvider timeProvider;
+    private final ActorFactory actorFactory;
     private ClassLoader applicationClassLoader;
+    private Actor resultProcessorActor;
+    private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator,
-                                    StandardOutputRedirector outputRedirector) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, TimeProvider timeProvider, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
-        this.outputRedirector = outputRedirector;
+        this.timeProvider = timeProvider;
+        this.actorFactory = actorFactory;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector);
-
-        testResultProcessor = new TestNGTestResultProcessorAdapter(resultProcessorChain, idGenerator);
-
+        // Wrap the processor in an actor, to make it thread-safe
+        resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
+        this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
+        // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
         try {
             testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
         } catch (Throwable e) {
@@ -72,12 +76,29 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void stop() {
+        try {
+            runTests();
+        } finally {
+            resultProcessorActor.stop();
+        }
+    }
+
+    private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());
         testNg.setDefaultTestName(options.getDefaultTestName());
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
+        String configFailurePolicy = options.getConfigFailurePolicy();
+        try {
+            JavaReflectionUtil.method(TestNG.class, Object.class, "setConfigFailurePolicy", String.class).invoke(testNg, configFailurePolicy);
+        } catch (NoSuchMethodException e) {
+            if (!configFailurePolicy.equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
+                // Should not reach this point as this is validated in the test framework implementation - just propagate the failure
+                throw e;
+            }
+        }
         try {
             JavaReflectionUtil.method(TestNG.class, Object.class, "setAnnotations").invoke(testNg, options.getAnnotations());
         } catch (NoSuchMethodException e) {
@@ -101,7 +122,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
                 throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }
         }
-        testNg.addListener((Object) adaptListener(testResultProcessor));
+
         if (!options.getIncludedTests().isEmpty()) {
             testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
         }
@@ -111,7 +132,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
         }
-
+        testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
         testNg.run();
     }
 

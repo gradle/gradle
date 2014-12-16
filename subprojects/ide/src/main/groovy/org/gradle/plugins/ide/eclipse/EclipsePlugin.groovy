@@ -43,7 +43,6 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
     private final Instantiator instantiator
-    EclipseModel model
 
     @Inject
     EclipsePlugin(Instantiator instantiator) {
@@ -51,18 +50,18 @@ class EclipsePlugin extends IdePlugin {
     }
 
     @Override protected String getLifecycleTaskName() {
-        return 'eclipse'
+        return ECLIPSE_TASK_NAME
     }
 
     @Override protected void onApply(Project project) {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
 
-        model = project.extensions.create("eclipse", EclipseModel)
+        def model = project.extensions.create("eclipse", EclipseModel)
 
-        configureEclipseProject(project)
-        configureEclipseClasspath(project)
-        configureEclipseJdt(project)
+        configureEclipseProject(project, model)
+        configureEclipseClasspath(project, model)
+        configureEclipseJdt(project, model)
 
         hookDeduplicationToTheRoot(project)
     }
@@ -79,7 +78,7 @@ class EclipsePlugin extends IdePlugin {
         new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 
-    private void configureEclipseProject(Project project) {
+    private void configureEclipseProject(Project project, EclipseModel model) {
         maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
             //task properties:
             description = "Generates the Eclipse project file."
@@ -114,7 +113,7 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
-    private void configureEclipseClasspath(Project project) {
+    private void configureEclipseClasspath(Project project, EclipseModel model) {
         model.classpath = instantiator.newInstance(EclipseClasspath, project)
         model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
@@ -159,7 +158,7 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
-    private void configureEclipseJdt(Project project) {
+    private void configureEclipseJdt(Project project, EclipseModel model) {
         project.plugins.withType(JavaBasePlugin) {
             maybeAddTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) {
                 //task properties:

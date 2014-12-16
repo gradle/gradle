@@ -189,7 +189,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     void doDaemonContext(gradleHandle, Closure assertions) {
-        DaemonContextParser.parseFrom(gradleHandle.standardOutput).with(assertions)
+        DaemonContextParser.parseFromString(gradleHandle.standardOutput).with(assertions)
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
@@ -218,28 +218,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         when:
         startForegroundDaemon()
 
-        then:
-        idle()
-
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-    }
-
-    def "existing idle background daemons are used"() {
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-        
-        when:
-        completeBuild()
-        
         then:
         idle()
 

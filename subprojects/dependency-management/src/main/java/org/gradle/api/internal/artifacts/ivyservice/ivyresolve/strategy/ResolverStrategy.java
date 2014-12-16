@@ -22,16 +22,12 @@ import org.apache.ivy.plugins.matcher.*;
 import java.util.Map;
 
 public class ResolverStrategy {
-    private final VersionMatcher versionMatcher;
+    private final VersionSelectorScheme versionSelectorScheme;
     private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
+    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator();
 
     public ResolverStrategy() {
-        ChainVersionMatcher chain = new ChainVersionMatcher();
-        chain.add(new VersionRangeMatcher(new ExactVersionMatcher()));
-        chain.add(new SubVersionMatcher(new ExactVersionMatcher()));
-        chain.add(new LatestVersionMatcher());
-        chain.add(new ExactVersionMatcher());
-        versionMatcher = chain;
+        versionSelectorScheme = new DefaultVersionSelectorScheme();
 
         addMatcher(ExactPatternMatcher.INSTANCE);
         addMatcher(RegexpPatternMatcher.INSTANCE);
@@ -43,8 +39,12 @@ public class ResolverStrategy {
         matchers.put(instance.getName(), instance);
     }
 
-    public VersionMatcher getVersionMatcher() {
-        return versionMatcher;
+    public VersionSelectorScheme getVersionSelectorScheme() {
+        return versionSelectorScheme;
+    }
+
+    public VersionComparator getVersionComparator() {
+        return versionComparator;
     }
 
     public PatternMatcher getPatternMatcher(String name) {

@@ -20,7 +20,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.LibraryBinaryLocator;
 import org.gradle.nativeplatform.internal.resolve.ProjectLocator;

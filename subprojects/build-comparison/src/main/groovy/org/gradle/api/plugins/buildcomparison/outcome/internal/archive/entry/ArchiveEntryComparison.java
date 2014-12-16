@@ -17,19 +17,20 @@
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry;
 
 import org.gradle.api.plugins.buildcomparison.compare.internal.ComparisonResultType;
+import org.gradle.util.GUtil;
 
-public class ArchiveEntryComparison {
+public class ArchiveEntryComparison implements Comparable<ArchiveEntryComparison> {
 
-    private final String path;
+    private final ArchiveEntry.Path path;
     private final ArchiveEntry source;
     private final ArchiveEntry target;
 
-    public ArchiveEntryComparison(String path, ArchiveEntry source, ArchiveEntry target) {
+    public ArchiveEntryComparison(ArchiveEntry source, ArchiveEntry target) {
         if (source == null && target == null) {
             throw new IllegalArgumentException("Both 'from' and 'to' cannot be null");
         }
 
-        this.path = path;
+        this.path = GUtil.elvis(source, target).getPath();
         this.source = source;
         this.target = target;
     }
@@ -45,7 +46,7 @@ public class ArchiveEntryComparison {
         }
     }
 
-    public String getPath() {
+    public ArchiveEntry.Path getPath() {
         return path;
     }
 
@@ -55,5 +56,10 @@ public class ArchiveEntryComparison {
 
     public ArchiveEntry getTarget() {
         return target;
+    }
+
+    @SuppressWarnings("NullableProblems")
+    public int compareTo(ArchiveEntryComparison o) {
+        return path.compareTo(o.path);
     }
 }

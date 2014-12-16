@@ -17,13 +17,9 @@ package org.gradle.nativeplatform.platform.internal;
 
 public class DefaultArchitecture implements ArchitectureInternal {
     private final String name;
-    private final InstructionSet instructionSet;
-    private final int registerSize;
 
-    public DefaultArchitecture(String name, InstructionSet instructionSet, int registerSize) {
+    public DefaultArchitecture(String name) {
         this.name = name;
-        this.instructionSet = instructionSet;
-        this.registerSize = registerSize;
     }
 
     public String getName() {
@@ -39,62 +35,36 @@ public class DefaultArchitecture implements ArchitectureInternal {
         return String.format("architecture '%s'", name);
     }
 
-    public InstructionSet getInstructionSet() {
-        return instructionSet;
-    }
-
-    public int getRegisterSize() {
-        return registerSize;
-    }
-
     public boolean isI386() {
-        return instructionSet == InstructionSet.X86 && registerSize == 32;
+        return Architectures.X86.isAlias(name);
     }
 
     public boolean isAmd64() {
-        return instructionSet == InstructionSet.X86 && registerSize == 64;
+        return Architectures.X86_64.isAlias(name);
     }
 
     public boolean isIa64() {
-        return instructionSet == InstructionSet.ITANIUM && registerSize == 64;
+        return Architectures.IA_64.isAlias(name);
     }
 
     public boolean isArm() {
-        return instructionSet == InstructionSet.ARM && registerSize == 32;
+        return Architectures.ARM_V7.isAlias(name);
     }
 
-    public boolean isArmv8() {
-        return instructionSet == InstructionSet.ARM && registerSize == 64;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultArchitecture other = (DefaultArchitecture) o;
+        return name.equals(other.name);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((instructionSet == null) ? 0 : instructionSet.hashCode());
-        result = prime * result + registerSize;
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        DefaultArchitecture other = (DefaultArchitecture) obj;
-        if (instructionSet != other.instructionSet) {
-            return false;
-        }
-        if (registerSize != other.registerSize) {
-            return false;
-        }
-        return true;
+        return name.hashCode();
     }
 }

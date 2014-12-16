@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.result.ComponentResult;
 
 import java.util.Set;
 
-// TODO:DAZ Unit tests
 public class DefaultArtifactResolutionResult implements ArtifactResolutionResult {
     private final Set<ComponentResult> componentResults;
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.logging;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 import java.io.Serializable;
@@ -22,7 +23,7 @@ import java.io.Serializable;
 public class LoggingConfiguration implements Serializable {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    private boolean colorOutput = true;
+    private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
 
     public LogLevel getLogLevel() {
         return logLevel;
@@ -39,7 +40,7 @@ public class LoggingConfiguration implements Serializable {
      * @return true if logging output should be displayed in color.
      */
     public boolean isColorOutput() {
-        return colorOutput;
+        return consoleOutput != ConsoleOutput.Plain;
     }
 
     /**
@@ -48,7 +49,17 @@ public class LoggingConfiguration implements Serializable {
      * @param colorOutput true if logging output should be displayed in color.
      */
     public void setColorOutput(boolean colorOutput) {
-        this.colorOutput = colorOutput;
+        this.consoleOutput = colorOutput ? ConsoleOutput.Auto : ConsoleOutput.Plain;
+    }
+
+    @Incubating
+    public ConsoleOutput getConsoleOutput() {
+        return consoleOutput;
+    }
+
+    @Incubating
+    public void setConsoleOutput(ConsoleOutput colorOutput) {
+        this.consoleOutput = colorOutput;
     }
 
     public ShowStacktrace getShowStacktrace() {

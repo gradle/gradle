@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -82,7 +83,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         IdGenerator<Object> idGenerator = testServices.get(IdGenerator.class);
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
-                workerProcessContext.getDisplayName(), new TrueTimeProvider());
+                workerProcessContext.getDisplayName(), testServices.get(TimeProvider.class));
         ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
                 TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
@@ -125,6 +126,10 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             this.workerProcessContext = workerProcessContext;
         }
 
+        protected TimeProvider createTimeProvider() {
+            return new TrueTimeProvider();
+        }
+
         protected IdGenerator<Object> createIdGenerator() {
             return new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
         }
@@ -133,8 +138,8 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             return new DefaultExecutorFactory();
         }
 
-        protected ActorFactory createActorFactory() {
-            return new DefaultActorFactory(get(ExecutorFactory.class));
+        protected ActorFactory createActorFactory(ExecutorFactory executorFactory) {
+            return new DefaultActorFactory(executorFactory);
         }
     }
 }

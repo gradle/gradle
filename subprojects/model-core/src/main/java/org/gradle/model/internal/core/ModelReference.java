@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.type.ModelType;
 
 /**
  * A model reference is a speculative reference to a potential model element.
@@ -29,6 +31,7 @@ import org.gradle.api.Nullable;
  *
  * @param <T> the type of the reference.
  */
+@ThreadSafe
 public class ModelReference<T> {
 
     private final ModelPath path;
@@ -49,16 +52,24 @@ public class ModelReference<T> {
         return new ModelReference<T>(path, type, null);
     }
 
+    public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
+        return of(path, ModelType.of(type));
+    }
+
     public static <T> ModelReference<T> of(String path, Class<T> type) {
         return of(ModelPath.path(path), ModelType.of(type));
     }
 
+    public static <T> ModelReference<T> of(String path, ModelType<T> type) {
+        return of(ModelPath.path(path), type);
+    }
+
     public static <T> ModelReference<T> of(Class<T> type) {
-        return of(null, ModelType.of(type));
+        return of((ModelPath) null, ModelType.of(type));
     }
 
     public static <T> ModelReference<T> of(ModelType<T> type) {
-        return of(null, type);
+        return of((ModelPath) null, type);
     }
 
     public static ModelReference<?> of(String path) {
@@ -102,8 +113,8 @@ public class ModelReference<T> {
 
         ModelReference<?> that = (ModelReference<?>) o;
 
-        if(path == null){
-            if (that.path == null){
+        if (path == null) {
+            if (that.path == null) {
                 return type.equals(that.type);
             }
             return false;

@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
@@ -67,7 +66,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         this.metaDataProvider = metaDataProvider;
         this.instantiator = instantiator;
 
-        target(new ToolChainDefaultArchitecture());
         target(new Intel32Architecture());
         target(new Intel64Architecture());
         configInsertLocation = 0;
@@ -184,16 +182,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             }
         }
         return null;
-    }
-
-    private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent()
-                    && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
-        }
-
-        public void apply(DefaultGccPlatformToolChain platformToolChain) {
-        }
     }
 
     private class Intel32Architecture implements TargetPlatformConfiguration {

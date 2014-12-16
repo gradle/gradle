@@ -17,10 +17,9 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
 
     private final List<Object> libs = new ArrayList<Object>();
 
-    public AbstractHeaderExportingDependentSourceSet(String name, FunctionalSourceSet parent, FileResolver fileResolver, String typeName, SourceDirectorySet source) {
+    public AbstractHeaderExportingDependentSourceSet(String name, String parent, FileResolver fileResolver, String typeName, SourceDirectorySet source) {
         super(name, parent, fileResolver, typeName, source);
     }
 

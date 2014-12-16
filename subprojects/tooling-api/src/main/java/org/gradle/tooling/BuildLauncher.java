@@ -74,6 +74,62 @@ import java.io.OutputStream;
  */
 public interface BuildLauncher extends LongRunningOperation {
     /**
+     * {@inheritDoc}
+     * @since 1.0
+     */
+    BuildLauncher withArguments(String ... arguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 1.0-milestone-3
+     */
+    BuildLauncher setStandardOutput(OutputStream outputStream);
+
+    /**
+     * {@inheritDoc}
+     * @since 1.0-milestone-3
+     */
+    BuildLauncher setStandardError(OutputStream outputStream);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    BuildLauncher setColorOutput(boolean colorOutput);
+
+    /**
+     * {@inheritDoc}
+     * @since 1.0-milestone-7
+     */
+    BuildLauncher setStandardInput(InputStream inputStream);
+
+    /**
+     * {@inheritDoc}
+     * @since 1.0-milestone-8
+     */
+    BuildLauncher setJavaHome(File javaHome);
+
+    /**
+     * {@inheritDoc}
+     * @since 1.0-milestone-9
+     */
+    BuildLauncher setJvmArguments(String... jvmArguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 1.0-milestone-3
+     */
+    BuildLauncher addProgressListener(ProgressListener listener);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    BuildLauncher withCancellationToken(CancellationToken cancellationToken);
+
+    /**
      * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
@@ -123,48 +179,6 @@ public interface BuildLauncher extends LongRunningOperation {
      */
     @Incubating
     BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0
-     */
-    BuildLauncher withArguments(String ... arguments);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    BuildLauncher setStandardOutput(OutputStream outputStream);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    BuildLauncher setStandardError(OutputStream outputStream);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-7
-     */
-    BuildLauncher setStandardInput(InputStream inputStream);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-8
-     */
-    BuildLauncher setJavaHome(File javaHome);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-9
-     */
-    BuildLauncher setJvmArguments(String... jvmArguments);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    BuildLauncher addProgressListener(ProgressListener listener);
 
     /**
      * Executes the build, blocking until it is complete.

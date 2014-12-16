@@ -89,9 +89,4 @@ public interface NativeBinarySpec extends BinarySpec {
      * The static archiver settings used for creating this binary.
      */
     Tool getStaticLibArchiver();
-
-    /**
-     * The set of tasks associated with this binary.
-     */
-    NativeBinaryTasks getTasks();
 }

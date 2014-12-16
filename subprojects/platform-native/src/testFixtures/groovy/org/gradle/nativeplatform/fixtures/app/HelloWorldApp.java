@@ -43,6 +43,10 @@ public abstract class HelloWorldApp extends TestApp {
         return "";
     }
 
+    public String getExtraConfiguration(String binaryName) {
+        return "";
+    }
+
     public String getSourceType() {
         return getMainSource().getPath();
     }

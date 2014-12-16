@@ -1,0 +1,33 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
+                </tr>
+            </thead>
+                <tr>
+                    <td>manifest</td>
+                    <td/>
+                </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>manifest</td>
+            </tr>
+            <tr>
+                <td>metaInf</td>
+            </tr>
+        </table>
+    </section>
+</section>

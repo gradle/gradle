@@ -15,20 +15,17 @@
  */
 
 package org.gradle.api.reporting.components
+
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
+class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
-
-    def setup() {
-        settingsFile << "rootProject.name = 'test'"
-    }
+    private String currentNative = NativePlatforms.defaultPlatformName
 
     def "informs the user when project has no components defined"() {
         when:
@@ -90,9 +87,9 @@ plugins {
     id 'java-lang'
 }
 
-jvm {
-    libraries {
-        someLib
+model {
+    components {
+        someLib(JvmLibrarySpec)
     }
 }
 """
@@ -105,13 +102,13 @@ JVM library 'someLib'
 ---------------------
 
 Source sets
-    JVM resources 'someLib:resources'
-        src/someLib/resources
     Java source 'someLib:java'
         src/someLib/java
+    JVM resources 'someLib:resources'
+        src/someLib/resources
 
 Binaries
-    Jar 'someLib:jar'
+    Jar 'someLibJar'
         build using task: :someLibJar
         platform: $currentJava
         tool chain: $currentJdk
@@ -130,11 +127,8 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-nativeRuntime {
-    libraries {
-        someLib
+    components {
+        someLib(NativeLibrarySpec)
     }
 }
 """
@@ -153,14 +147,14 @@ Source sets
 Binaries
     Shared library 'someLib:sharedLibrary'
         build using task: :someLibSharedLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/someLibSharedLibrary/libsomeLib.dylib
     Static library 'someLib:staticLibrary'
         build using task: :someLibStaticLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
@@ -182,11 +176,10 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-nativeRuntime {
-    libraries {
-        someLib
+    components {
+        someLib(NativeLibrarySpec) {
+            targetPlatform "windows"
+        }
     }
 }
 """
@@ -220,67 +213,6 @@ Binaries
 """
     }
 
-    def "shows details of native C executable with test suite"() {
-        given:
-        buildFile << """
-plugins {
-    id 'c'
-    id 'cunit'
-}
-
-model {
-    toolChains {
-        ${toolChain.buildScriptConfig}
-    }
-}
-
-nativeRuntime {
-    executables {
-        someExe
-    }
-}
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches output, """
-Native executable 'someExe'
----------------------------
-
-Source sets
-    C source 'someExe:c'
-        src/someExe/c
-
-Binaries
-    Executable 'someExe:executable'
-        build using task: :someExeExecutable
-        platform: current
-        build type: debug
-        flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
-
-Cunit test suite 'someExeTest'
-------------------------------
-
-Source sets
-    C source 'someExeTest:cunitLauncher'
-        build/src/someExeTest/cunitLauncher/c
-    C source 'someExeTest:c'
-        src/someExeTest/c
-
-Binaries
-    C unit exe 'someExeTest:cUnitExe'
-        build using task: :someExeTestCUnitExe
-        platform: current
-        build type: debug
-        flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestCUnitExe/someExeTest
-"""
-    }
-
     def "shows details of polyglot native library with multiple variants"() {
         given:
         buildFile << """
@@ -302,12 +234,9 @@ model {
         free
         paid
     }
-}
-
-nativeRuntime {
-    libraries {
-        someLib {
-            targetPlatforms "i386", "amd64"
+    components {
+        someLib(NativeLibrarySpec) {
+            targetPlatform "i386", "amd64"
         }
     }
 }
@@ -321,12 +250,12 @@ Native library 'someLib'
 ------------------------
 
 Source sets
+    Assembler source 'someLib:asm'
+        src/someLib/asm
     C source 'someLib:c'
         src/someLib/c
     C++ source 'someLib:cpp'
         src/someLib/cpp
-    Assembler source 'someLib:asm'
-        src/someLib/asm
 
 Binaries
     Shared library 'someLib:amd64:free:sharedLibrary'
@@ -402,38 +331,30 @@ model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
-}
-
-jvm {
-    libraries {
-        jvmLib {
+    components {
+        jvmLib(JvmLibrarySpec) {
             targetPlatform "$currentJava"
         }
+        nativeLib(NativeLibrarySpec)
     }
 }
-nativeRuntime {
-    libraries {
-        nativeLib
-    }
-}
-""" //TODO freekh: should not really need to specify targetPlatforms for jvmLib here
+"""
         when:
         succeeds "components"
 
         then:
-        // TODO - flesh this out when languages are associated with correct component types
         outputMatches output, """
 JVM library 'jvmLib'
 --------------------
 
 Source sets
-    JVM resources 'jvmLib:resources'
-        src/jvmLib/resources
     Java source 'jvmLib:java'
         src/jvmLib/java
+    JVM resources 'jvmLib:resources'
+        src/jvmLib/resources
 
 Binaries
-    Jar 'jvmLib:jar'
+    Jar 'jvmLibJar'
         build using task: :jvmLibJar
         platform: ${currentJava}
         tool chain: $currentJdk
@@ -443,22 +364,22 @@ Native library 'nativeLib'
 --------------------------
 
 Source sets
-    C++ source 'nativeLib:cpp'
-        src/nativeLib/cpp
     C source 'nativeLib:c'
         src/nativeLib/c
+    C++ source 'nativeLib:cpp'
+        src/nativeLib/cpp
 
 Binaries
     Shared library 'nativeLib:sharedLibrary'
         build using task: :nativeLibSharedLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/nativeLibSharedLibrary/libnativeLib.dylib
     Static library 'nativeLib:staticLibrary'
         build using task: :nativeLibStaticLibrary
-        platform: current
+        platform: $currentNative
         build type: debug
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
@@ -473,9 +394,9 @@ Binaries
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    jvm {
-        libraries {
-            myLib {
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
                 targetPlatform "java5", "java6", "java7"
             }
         }
@@ -490,50 +411,122 @@ JVM library 'myLib'
 -------------------
 
 Source sets
-    JVM resources 'myLib:resources'
-        src/myLib/resources
     Java source 'myLib:java'
         src/myLib/java
+    JVM resources 'myLib:resources'
+        src/myLib/resources
 
 Binaries
-    Jar 'myLib:java5:jar'
+    Jar 'java5MyLibJar'
         build using task: :java5MyLibJar
         platform: java5
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java5/myLib.jar
-    Jar 'myLib:java6:jar'
+        Jar file: build/jars/java5MyLibJar/myLib.jar
+    Jar 'java6MyLibJar'
         build using task: :java6MyLibJar
         platform: java6
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java6/myLib.jar
-    Jar 'myLib:java7:jar'
+        Jar file: build/jars/java6MyLibJar/myLib.jar
+    Jar 'java7MyLibJar'
         build using task: :java7MyLibJar
         platform: java7
         tool chain: $currentJdk
-        Jar file: build/jars/myLibJar/java7/myLib.jar
+        Jar file: build/jars/java7MyLibJar/myLib.jar
 """
     }
 
-    private boolean outputMatches(String actualOutput, String expectedOutput) {
-        String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
-        assert cleaned == expected(expectedOutput)
-        return true
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "shows which jvm libraries are buildable"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    model {
+        components {
+            myLib(JvmLibrarySpec) {
+                targetPlatform "java5", "java6", "java9"
+            }
+        }
     }
-
-    String expected(String normalised) {
-        String raw = """:components
-
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-""" + normalised + """
-Note: currently not all plugins register their components, so some components may not be visible here.
-
 """
-        return new ComponentReportOutputFormatter(toolChain).transform(raw)
+        when:
+        succeeds "components"
+
+        then:
+        outputMatches output, """
+JVM library 'myLib'
+-------------------
+
+Source sets
+    Java source 'myLib:java'
+        src/myLib/java
+    JVM resources 'myLib:resources'
+        src/myLib/resources
+
+Binaries
+    Jar 'java5MyLibJar'
+        build using task: :java5MyLibJar
+        platform: java5
+        tool chain: $currentJdk
+        Jar file: build/jars/java5MyLibJar/myLib.jar
+    Jar 'java6MyLibJar'
+        build using task: :java6MyLibJar
+        platform: java6
+        tool chain: $currentJdk
+        Jar file: build/jars/java6MyLibJar/myLib.jar
+    Jar 'java9MyLibJar' (not buildable)
+        build using task: :java9MyLibJar
+        platform: java9
+        tool chain: $currentJdk
+        Jar file: build/jars/java9MyLibJar/myLib.jar
+"""
     }
 
-    AvailableToolChains.InstalledToolChain getToolChain() {
-        return AvailableToolChains.defaultToolChain
+    def "shows an error when targeting a native platform from a jvm component"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'native-component'
+    apply plugin: 'java-lang'
+
+    model {
+        platforms {
+            i386 { architecture 'i386' }
+        }
+        components {
+            myLib(JvmLibrarySpec) {
+                targetPlatform "i386"
+            }
+        }
+    }
+"""
+        when:
+        fails "components"
+
+        then:
+        failure.assertHasCause("Invalid JavaPlatform: i386")
+    }
+
+    def "shows an error when targeting a jvm platform from a native component"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+    apply plugin: 'native-component'
+    apply plugin: 'java-lang'
+
+    model {
+        components {
+            myLib(NativeLibrarySpec) {
+                targetPlatform "java8"
+            }
+        }
+    }
+"""
+        when:
+        fails "components"
+
+        then:
+        failure.assertHasCause("Invalid NativePlatform: java8")
     }
 }

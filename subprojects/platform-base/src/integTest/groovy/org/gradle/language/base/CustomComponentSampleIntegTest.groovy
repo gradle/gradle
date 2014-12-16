@@ -15,10 +15,8 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TextUtil
 import org.junit.Rule
 
 class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
@@ -29,14 +27,13 @@ class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
         sample customComponent
         customComponent.dir.file("build.gradle") << """
 
-
 task checkModel << {
     assert project.componentSpecs.size() == 2
-    def coreLib = project.componentSpecs.core
-    assert coreLib instanceof SampleLibrary
-    assert coreLib.projectPath == project.path
-    assert coreLib.displayName == "DefaultSampleLibrary 'core'"
-    assert coreLib.binaries.collect{it.name}.sort() == ['coreOsxBinary', 'coreUnixBinary', 'coreWindowsBinary']
+    def titleAImage = project.componentSpecs.TitleA
+    assert titleAImage instanceof ImageComponent
+    assert titleAImage.projectPath == project.path
+    assert titleAImage.displayName == "DefaultImageComponent 'TitleA'"
+    assert titleAImage.binaries.collect{it.name}.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
 }
 
 """
@@ -50,23 +47,12 @@ task checkModel << {
         when:
         succeeds "assemble"
         then:
-        output.contains(TextUtil.toPlatformLineSeparators(""":coreOsxBinaryCreationTask
-:coreOsxBinary
-:coreUnixBinaryCreationTask
-:coreUnixBinary
-:coreWindowsBinaryCreationTask
-:coreWindowsBinary
-:featureOsxBinaryCreationTask
-:featureOsxBinary
-:featureUnixBinaryCreationTask
-:featureUnixBinary
-:featureWindowsBinaryCreationTask
-:featureWindowsBinary
-:assemble
+        executedAndNotSkipped ":renderTitleA14pxSvg", ":TitleA14pxBinary", ":renderTitleA28pxSvg", ":TitleA28pxBinary", ":renderTitleA40pxSvg",
+                              ":TitleA40pxBinary", ":renderTitleB14pxSvg", ":TitleB14pxBinary", ":renderTitleB28pxSvg", ":TitleB28pxBinary",
+                              ":renderTitleB40pxSvg", ":TitleB40pxBinary", ":assemble"
 
-BUILD SUCCESSFUL"""))
         and:
-        customComponent.dir.file("build/binaries").assertHasDescendants("coreOsxBinary.svg", "coreUnixBinary.svg", "coreWindowsBinary.svg", "featureOsxBinary.svg",
-                                                                        "featureUnixBinary.svg", "featureWindowsBinary.svg")
+        customComponent.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",
+                                                                         "TitleB_28px.svg", "TitleB_40px.svg")
     }
 }

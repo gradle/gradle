@@ -24,7 +24,7 @@ import java.util.Set;
 
 public interface ComponentSpecInternal extends ComponentSpec {
 
-    FunctionalSourceSet getMainSource();
+    FunctionalSourceSet getSources();
 
     Set<Class<? extends TransformationFileType>> getInputTypes();
 }

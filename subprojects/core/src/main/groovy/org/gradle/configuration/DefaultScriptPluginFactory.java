@@ -21,8 +21,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.PluginAwareInternal;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
@@ -32,6 +33,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginDependenciesService;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -48,6 +50,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRequestApplicator pluginRequestApplicator;
     private final FileLookup fileLookup;
     private final DocumentationRegistry documentationRegistry;
+    private final ModelRuleSourceDetector modelRuleSourceDetector;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
@@ -56,7 +59,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       PluginRequestApplicator pluginRequestApplicator,
                                       FileLookup fileLookup,
-                                      DocumentationRegistry documentationRegistry) {
+                                      DocumentationRegistry documentationRegistry,
+                                      ModelRuleSourceDetector modelRuleSourceDetector) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
@@ -65,6 +69,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.fileLookup = fileLookup;
         this.documentationRegistry = documentationRegistry;
+        this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
@@ -104,6 +109,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
             services.add(FileLookup.class, fileLookup);
+            services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
 
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
@@ -127,8 +133,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.run();
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
-            PluginAware pluginAware = target instanceof PluginAware ? (PluginAware) target : null;
-            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginAware, targetScope);
+            PluginManager pluginManager = target instanceof PluginAwareInternal ? ((PluginAwareInternal) target).getPluginManager() : null;
+            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 
             compiler.setClassloader(targetScope.getLocalClassLoader());
 

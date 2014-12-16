@@ -16,11 +16,10 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.plugins.CorePluginRegistry;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.internal.plugins.PotentialPluginWithId;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -38,9 +37,12 @@ public class CorePluginResolver implements PluginResolver {
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
 
-        if (!id.isQualified() || id.inNamespace(CorePluginRegistry.CORE_PLUGIN_NAMESPACE)) {
-            try {
-                Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(id.getName());
+        if (!id.isQualified() || id.inNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
+            PotentialPluginWithId lookup = pluginRegistry.lookup(id.getName());
+            if (lookup == null) {
+                result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
+            } else {
+                Class<?> typeForId = lookup.asClass();
                 if (pluginRequest.getVersion() != null) {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "
@@ -48,11 +50,9 @@ public class CorePluginResolver implements PluginResolver {
                     );
                 }
                 result.found(getDescription(), new SimplePluginResolution(id, typeForId));
-            } catch (UnknownPluginException e) {
-                result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             }
         } else {
-            result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", CorePluginRegistry.CORE_PLUGIN_NAMESPACE));
+            result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", DefaultPluginManager.CORE_PLUGIN_NAMESPACE));
         }
     }
 

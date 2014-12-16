@@ -16,15 +16,14 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Plugin;
 import org.gradle.plugin.internal.PluginId;
 
 public class SimplePluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
-    private final Class<? extends Plugin> pluginClass;
+    private final Class<?> pluginClass;
 
-    public SimplePluginResolution(PluginId pluginId, Class<? extends Plugin> pluginClass) {
+    public SimplePluginResolution(PluginId pluginId, Class<?> pluginClass) {
         this.pluginId = pluginId;
         this.pluginClass = pluginClass;
     }
@@ -33,7 +32,7 @@ public class SimplePluginResolution implements PluginResolution {
         return pluginId;
     }
 
-    public Class<? extends Plugin> resolve() {
+    public Class<?> resolve() {
         return pluginClass;
     }
 

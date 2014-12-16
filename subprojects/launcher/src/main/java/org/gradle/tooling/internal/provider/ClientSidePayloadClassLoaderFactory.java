@@ -83,14 +83,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private boolean found;
 
             private AnnotationDetector() {
-                super(Opcodes.ASM4);
+                super(Opcodes.ASM5);
             }
 
             public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 if (desc.equals(ANNOTATION_DESCRIPTOR)) {
                     found = true;
                 }
-                return new AnnotationVisitor(Opcodes.ASM4) {
+                return new AnnotationVisitor(Opcodes.ASM5) {
 
                     @Override
                     public void visit(String name, Object value) {
@@ -106,7 +106,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private final String mixInInterface;
 
             public TransformingAdapter(ClassWriter classWriter, String mixInInterface) {
-                super(Opcodes.ASM4, classWriter);
+                super(Opcodes.ASM5, classWriter);
                 this.mixInInterface = mixInInterface;
             }
 

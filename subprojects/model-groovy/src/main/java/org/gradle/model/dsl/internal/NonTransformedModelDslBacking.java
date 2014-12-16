@@ -20,12 +20,10 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -34,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@NotThreadSafe
 public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     // TODO include link to documentation giving more explanation of what's going on here.
@@ -64,7 +63,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                 return ModelReference.untyped(modelPath);
             }
 
-            public void mutate(Object object, Inputs inputs) {
+            public void mutate(ModelNode modelNode, Object object, Inputs inputs) {
                 new ClosureBackedAction<Object>(action).execute(object);
             }
 
@@ -107,7 +106,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
             if (args.length != 1 || !(args[0] instanceof Closure)) {
                 throw new MissingMethodException(name, getClass(), args);
             } else {
-                Closure closure = (Closure) args[0];
+                Closure<?> closure = (Closure) args[0];
                 getChildPath(name).registerConfigurationAction(closure);
                 return null;
             }

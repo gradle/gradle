@@ -49,9 +49,8 @@ public class ArtifactResolveException extends GradleException {
 
     private static String format(ComponentArtifactIdentifier artifact, String message) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Could not download artifact '");
+        builder.append("Could not download ");
         builder.append(artifact.getDisplayName());
-        builder.append("'");
         if (GUtil.isTrue(message)) {
             builder.append(": ");
             builder.append(message);
@@ -61,9 +60,8 @@ public class ArtifactResolveException extends GradleException {
 
     private static String format(ComponentIdentifier component, String message) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Could not determine artifacts for component '");
+        builder.append("Could not determine artifacts for ");
         builder.append(component.getDisplayName());
-        builder.append("'");
         if (GUtil.isTrue(message)) {
             builder.append(": ");
             builder.append(message);

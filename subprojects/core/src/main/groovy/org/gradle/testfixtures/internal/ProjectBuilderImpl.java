@@ -76,7 +76,7 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
 
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(GLOBAL_SERVICES, startParameter, homeDir);
-        GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
+        GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
                 topLevelRegistry.get(FileResolver.class));

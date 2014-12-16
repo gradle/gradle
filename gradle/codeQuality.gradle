@@ -1,5 +1,6 @@
 apply plugin: 'checkstyle'
 apply plugin: 'codenarc'
+apply from: new File(buildscript.sourceFile.parentFile, 'dependencies.gradle')
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
@@ -14,6 +15,8 @@ codenarc {
     configFile = new File(configDir, "codenarc.xml")
 }
 
+configurations.codenarc.resolutionStrategy.force(libraries.groovy)
+
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->
         task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
@@ -25,8 +28,10 @@ plugins.withType(GroovyBasePlugin) {
     }
 }
 
+def codeQualityTasks = tasks.matching { task ->
+    [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle].any { it.isInstance(task) }
+}
+
 task codeQuality {
-    dependsOn tasks.matching { task ->
-        [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle].any { it.isInstance(task) }
-    }
+    dependsOn codeQualityTasks
 }

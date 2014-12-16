@@ -26,7 +26,7 @@ class JavaScriptBasePluginTest extends Specification {
 
     def "extension is available"() {
         when:
-        project.apply(plugin: JavaScriptBasePlugin)
+        project.pluginManager.apply(JavaScriptBasePlugin)
 
         then:
         project.javaScript != null
@@ -34,7 +34,7 @@ class JavaScriptBasePluginTest extends Specification {
 
     def "can get public repo"() {
         when:
-        project.apply(plugin: JavaScriptBasePlugin)
+        project.pluginManager.apply(JavaScriptBasePlugin)
 
         then:
         project.repositories.javaScript.gradle()

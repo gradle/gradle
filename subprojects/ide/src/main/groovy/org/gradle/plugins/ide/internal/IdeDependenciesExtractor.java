@@ -110,13 +110,13 @@ public class IdeDependenciesExtractor {
             for (IdeExtendedRepoFileDependency dependency : dependencies.get(componentResult.getId())) {
                 for (ArtifactResult sourcesResult : componentResult.getArtifacts(SourcesArtifact.class)) {
                     if (sourcesResult instanceof ResolvedArtifactResult) {
-                        dependency.setSourceFile(((ResolvedArtifactResult) sourcesResult).getFile());
+                        dependency.addSourceFile(((ResolvedArtifactResult) sourcesResult).getFile());
                     }
                 }
 
                 for (ArtifactResult javadocResult : componentResult.getArtifacts(JavadocArtifact.class)) {
                     if (javadocResult instanceof ResolvedArtifactResult) {
-                        dependency.setJavadocFile(((ResolvedArtifactResult) javadocResult).getFile());
+                        dependency.addJavadocFile(((ResolvedArtifactResult) javadocResult).getFile());
                     }
                 }
             }

@@ -25,12 +25,13 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
 
     def setup() {
         buildFile << """
-        apply plugin: 'cpp'
-
-        executables {
-            main {}
-        }
-        """
+apply plugin: 'cpp'
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
 
         helloWorldApp.executable.writeSources(file("src/main"))
     }
@@ -39,25 +40,28 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         when:
         helloWorldApp.writeSources(file("src/main"))
         buildFile << """
-        apply plugin: 'cpp'
-        model {
-            toolChains {
-                ${toolChain.id} {
-                    eachPlatform {
-                        cppCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
-                        }
-                        linker.withArguments { args ->
-                            args.remove "CUSTOM"
-                        }
-                    }
+model {
+    toolChains {
+        ${toolChain.id} {
+            eachPlatform {
+                cppCompiler.withArguments { args ->
+                    Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
+                }
+                linker.withArguments { args ->
+                    args.remove "CUSTOM"
                 }
             }
         }
-        binaries.all {
-            cppCompiler.args "CUSTOM"
-            linker.args "CUSTOM"
+    }
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                cppCompiler.args "CUSTOM"
+                linker.args "CUSTOM"
+            }
         }
+    }
+}
         """
         and:
         succeeds "mainExecutable"

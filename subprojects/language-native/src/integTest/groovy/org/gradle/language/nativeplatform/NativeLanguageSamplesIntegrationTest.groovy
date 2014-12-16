@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -22,6 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
@@ -42,6 +44,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "assembler"() {
         given:
         sample assembler
@@ -87,7 +90,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(cpp.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "objectiveC"() {
         given:
         sample objectiveC
@@ -102,7 +105,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executable(objectiveC.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
     def "objectiveCpp"() {
         given:
         sample objectiveCpp

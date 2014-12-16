@@ -30,6 +30,8 @@ import java.util.Properties;
 public class GradleWrapperMain {
     public static final String GRADLE_USER_HOME_OPTION = "g";
     public static final String GRADLE_USER_HOME_DETAILED_OPTION = "gradle-user-home";
+    public static final String GRADLE_QUIET_OPTION = "q";
+    public static final String GRADLE_QUIET_DETAILED_OPTION = "quiet";
 
     public static void main(String[] args) throws Exception {
         File wrapperJar = wrapperJar();
@@ -39,6 +41,7 @@ public class GradleWrapperMain {
         CommandLineParser parser = new CommandLineParser();
         parser.allowUnknownOptions();
         parser.option(GRADLE_USER_HOME_OPTION, GRADLE_USER_HOME_DETAILED_OPTION).hasArgument();
+        parser.option(GRADLE_QUIET_OPTION, GRADLE_QUIET_DETAILED_OPTION);
 
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
         converter.configure(parser);
@@ -49,13 +52,15 @@ public class GradleWrapperMain {
         systemProperties.putAll(converter.convert(options, new HashMap<String, String>()));
 
         File gradleUserHome = gradleUserHome(options);
-
+        
         addSystemProperties(gradleUserHome, rootDir);
+        
+        Logger logger = logger(options);
 
-        WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out);
+        WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, logger);
         wrapperExecutor.execute(
                 args,
-                new Install(new Download("gradlew", wrapperVersion()), new PathAssembler(gradleUserHome)),
+                new Install(logger, new Download(logger, "gradlew", wrapperVersion()), new PathAssembler(gradleUserHome)),
                 new BootstrapMainStarter());
     }
 
@@ -112,5 +117,9 @@ public class GradleWrapperMain {
             return new File(options.option(GRADLE_USER_HOME_OPTION).getValue());
         }
         return GradleUserHomeLookup.gradleUserHome();
+    }
+    
+    private static Logger logger(ParsedCommandLine options) {
+        return new Logger(options.hasOption(GRADLE_QUIET_OPTION));
     }
 }

@@ -100,6 +100,7 @@ class PerformanceTestRunnerTest extends ResultSpecification {
 
     def runner() {
         return new PerformanceTestRunner(testId: 'some-test',
-                timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector, current: currentGradle, reporter: reporter)
+                timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector,
+                current: currentGradle, reporter: reporter, executerProvider: Stub(GradleExecuterProvider))
     }
 }

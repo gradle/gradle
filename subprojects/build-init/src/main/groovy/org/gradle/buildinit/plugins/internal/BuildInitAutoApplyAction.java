@@ -19,13 +19,15 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
+import java.util.Collections;
+
 public class BuildInitAutoApplyAction implements ProjectConfigureAction {
 
     public void execute(final ProjectInternal projectInternal) {
         if (projectInternal.getParent() == null) {
             projectInternal.getTasks().addPlaceholderAction("init", new Runnable() {
                 public void run() {
-                    projectInternal.getPlugins().apply("build-init");
+                    projectInternal.apply(Collections.singletonMap("plugin", "build-init"));
                 }
             });
         }

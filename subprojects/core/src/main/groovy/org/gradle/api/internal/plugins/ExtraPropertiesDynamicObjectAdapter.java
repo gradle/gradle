@@ -48,4 +48,14 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
         super.setProperty(name, value);
     }
+
+    @Override
+    public boolean isMayImplementMissingMethods() {
+        return false;
+    }
+
+    @Override
+    public boolean isMayImplementMissingProperties() {
+        return false;
+    }
 }

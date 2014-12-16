@@ -47,7 +47,7 @@ dependencies {
     compile 'group1:projectA:1.0'
     compile 'group2:projectB:2.0-SNAPSHOT'
     components {
-        eachComponent {
+        all {
             assert it.status == it.id.name == "projectA" ? "release" : "integration"
             assert it.statusScheme == ['integration', 'milestone', 'release']
         }

@@ -17,22 +17,22 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.reporting.ReportRenderer;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Comparator;
 
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
-    private final SourceSetRenderer sourceSetRenderer;
-    private final BinaryRenderer renderer;
+    private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
+    private final ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
 
-    public ComponentRenderer(FileResolver fileResolver) {
-        sourceSetRenderer = new SourceSetRenderer(fileResolver);
-        renderer = new BinaryRenderer(fileResolver);
+    public ComponentRenderer(ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer, ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer) {
+        this.sourceSetRenderer = sourceSetRenderer;
+        this.binaryRenderer = binaryRenderer;
     }
 
     @Override
@@ -45,6 +45,6 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
             public int compare(BinarySpec binary1, BinarySpec binary2) {
                 return binary1.getName().compareTo(binary2.getName());
             }
-        }), renderer, "binaries");
+        }), binaryRenderer, "binaries");
     }
 }

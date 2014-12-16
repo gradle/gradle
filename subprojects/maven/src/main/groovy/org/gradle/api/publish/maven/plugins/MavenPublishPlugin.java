@@ -76,7 +76,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.getPlugins().apply(PublishingPlugin.class);
+        project.getPluginManager().apply(PublishingPlugin.class);
 
         final TaskContainer tasks = project.getTasks();
         final Task publishLocalLifecycleTask = tasks.create(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);

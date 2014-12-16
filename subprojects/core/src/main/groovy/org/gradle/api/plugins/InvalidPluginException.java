@@ -23,8 +23,11 @@ import org.gradle.api.GradleException;
  */
 public class InvalidPluginException extends GradleException {
 
+    public InvalidPluginException(String message) {
+        super(message);
+    }
+
     public InvalidPluginException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

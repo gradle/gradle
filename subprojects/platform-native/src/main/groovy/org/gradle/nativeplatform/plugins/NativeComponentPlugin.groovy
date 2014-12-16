@@ -40,8 +40,8 @@ import org.gradle.platform.base.BinaryContainer
 public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        project.plugins.apply(NativeComponentModelPlugin.class);
-        project.plugins.apply(StandardToolChainsPlugin)
+        project.pluginManager.apply(NativeComponentModelPlugin.class);
+        project.pluginManager.apply(StandardToolChainsPlugin)
 
         createTasks(project.tasks, project.binaries)
     }

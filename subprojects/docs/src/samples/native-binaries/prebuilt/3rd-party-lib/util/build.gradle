@@ -4,17 +4,17 @@ model {
         debug
         release
     }
-}
-libraries {
-    util {
-        binaries.all {
-            if (buildType == buildTypes.debug) {
-                cppCompiler.define 'DEBUG'
-                if (toolChain in VisualCpp) {
-                    cppCompiler.args '/Zi'
-                    linker.args '/DEBUG'
-                } else {
-                    cppCompiler.args "-g"
+    components {
+        util(NativeLibrarySpec) {
+            binaries.all {
+                if (buildType == buildTypes.debug) {
+                    cppCompiler.define 'DEBUG'
+                    if (toolChain in VisualCpp) {
+                        cppCompiler.args '/Zi'
+                        linker.args '/DEBUG'
+                    } else {
+                        cppCompiler.args "-g"
+                    }
                 }
             }
         }

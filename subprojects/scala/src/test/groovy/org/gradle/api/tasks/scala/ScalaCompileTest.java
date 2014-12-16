@@ -17,13 +17,17 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,6 +37,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.util.HashSet;
 
 public class ScalaCompileTest extends AbstractCompileTest {
     @Rule
@@ -72,7 +77,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
             one(scalaCompiler).execute((ScalaJavaJointCompileSpec) with(IsNull.notNullValue()));
         }});
 
-        scalaCompile.compile();
+        scalaCompile.execute();
     }
 
     @Test
@@ -82,10 +87,10 @@ public class ScalaCompileTest extends AbstractCompileTest {
             allowing(scalaClasspath).isEmpty(); will(returnValue(true));
         }});
 
-        thrown.expect(InvalidUserDataException.class);
-        thrown.expectMessage("'testTask.scalaClasspath' must not be empty");
+        thrown.expect(TaskExecutionException.class);
+        thrown.expectCause(new CauseMatcher(InvalidUserDataException.class, "'testTask.scalaClasspath' must not be empty"));
 
-        scalaCompile.compile();
+        scalaCompile.execute();
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
@@ -95,9 +100,38 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        scalaClasspath = context.mock(FileCollection.class);
+        scalaClasspath = context.mock(FileTree.class);
         compile.setScalaClasspath(scalaClasspath);
-        compile.setClasspath(context.mock(FileCollection.class));
+        final FileTree classpath = context.mock(FileTree.class);
+        final FileTree zincClasspath = context.mock(FileTree.class);
+
+        context.checking(new Expectations(){{
+            allowing(scalaClasspath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(classpath).getFiles(); will(returnValue(new HashSet<File>()));
+            allowing(zincClasspath).getFiles(); will(returnValue(new HashSet<File>()));
+        }});
+        compile.setClasspath(classpath);
+        compile.setZincClasspath(zincClasspath);
+        compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
     }
 
+
+    private class CauseMatcher<T extends Exception> extends BaseMatcher<T> {
+        private final Class<T> throwableClass;
+        private final String expectedMessage;
+
+        public CauseMatcher(Class<T> throwableClass, String expectedMessage) {
+            this.throwableClass = throwableClass;
+            this.expectedMessage = expectedMessage;
+        }
+
+        public boolean matches(Object item) {
+            return item.getClass().isAssignableFrom(throwableClass)
+                        && ((T)item).getMessage().contains(expectedMessage);
+        }
+
+        public void describeTo(Description description) {
+
+        }
+    }
 }

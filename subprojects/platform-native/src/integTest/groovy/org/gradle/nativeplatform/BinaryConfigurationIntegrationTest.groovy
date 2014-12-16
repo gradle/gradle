@@ -29,16 +29,18 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+apply plugin: "cpp"
 
-            executables {
-                main {
-                    binaries.all {
-                        cppCompiler.define 'ENABLE_GREETING'
-                    }
-                }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                cppCompiler.define 'ENABLE_GREETING'
             }
-        """
+        }
+    }
+}
+"""
 
         and:
         file("src/main/cpp/helloworld.cpp") << """
@@ -63,21 +65,23 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+apply plugin: "cpp"
 
-            executables {
-                main {
-                    binaries.all {
-                        if (toolChain in VisualCpp) {
-                            cppCompiler.args '/Zi'
-                            linker.args '/DEBUG'
-                        } else {
-                            cppCompiler.args '-g'
-                        }
-                    }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                if (toolChain in VisualCpp) {
+                    cppCompiler.args '/Zi'
+                    linker.args '/DEBUG'
+                } else {
+                    cppCompiler.args '-g'
                 }
             }
-        """
+        }
+    }
+}
+"""
 
         and:
         file("src/main/cpp/helloworld.cpp") << """
@@ -103,23 +107,23 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+apply plugin: "cpp"
 
-            libraries {
-                hello {
-                    binaries.all {
-                        cppCompiler.define 'ENABLE_GREETING'
-                    }
-                }
+model {
+    components { comp ->
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                cppCompiler.define 'ENABLE_GREETING'
             }
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello.static
-                    }
-                }
+        }
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib comp.hello.static
             }
-        """
+        }
+    }
+}
+"""
         settingsFile << "rootProject.name = 'test'"
 
         and:
@@ -159,33 +163,30 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
     def "can configure a binary to use additional source sets"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+apply plugin: "cpp"
 
-            libraries {
-                util {}
-            }
-
-            executables {
-                main {
-                    binaries.all {
-                        source sources.util.cpp
-                    }
-                }
-            }
-
+model {
+    components { comp ->
+        util(NativeLibrarySpec) {
             sources {
-                main {
-                    cpp {
-                        exportedHeaders.srcDir "src/shared/headers"
-                    }
-                }
-                util {
-                    cpp {
-                        exportedHeaders.srcDir "src/shared/headers"
-                    }
+                cpp {
+                    exportedHeaders.srcDir "src/shared/headers"
                 }
             }
-        """
+        }
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    exportedHeaders.srcDir "src/shared/headers"
+                }
+            }
+            binaries.all {
+                source comp.util.sources.cpp
+            }
+        }
+    }
+}
+"""
         settingsFile << "rootProject.name = 'test'"
 
         and:
@@ -223,32 +224,35 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
         def helloWorldApp = new CppHelloWorldApp()
         given:
         buildFile << """
-            apply plugin: 'cpp'
-            executables {
-                main {}
-            }
+apply plugin: 'cpp'
 
-            binaries.withType(NativeExecutableBinary) { binary ->
-                def preLink = task("\${binary.name}PreLink") {
-                    dependsOn binary.tasks.withType(CppCompile)
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
 
-                    doLast {
-                        println "Pre Link"
-                    }
-                }
-                binary.tasks.link.dependsOn preLink
+binaries.withType(NativeExecutableBinary) { binary ->
+    def preLink = task("\${binary.name}PreLink") {
+        dependsOn binary.tasks.withType(CppCompile)
 
-                def postLink = task("\${binary.name}PostLink") {
-                    dependsOn binary.tasks.link
+        doLast {
+            println "Pre Link"
+        }
+    }
+    binary.tasks.link.dependsOn preLink
 
-                    doLast {
-                        println "Post Link"
-                    }
-                }
+    def postLink = task("\${binary.name}PostLink") {
+        dependsOn binary.tasks.link
 
-                binary.builtBy postLink
-            }
-        """
+        doLast {
+            println "Post Link"
+        }
+    }
+
+    binary.builtBy postLink
+}
+"""
 
         and:
         helloWorldApp.writeSources(file("src/main"))
@@ -267,12 +271,14 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
         given:
         settingsFile << "include ':a', ':b'"
         buildFile << """
-            subprojects {
-                apply plugin: 'cpp'
-                executables {
-                    main {}
-                }
-            }
+subprojects {
+    apply plugin: 'cpp'
+    model {
+        components {
+            main(NativeExecutableSpec)
+        }
+    }
+}
         """
 
         and:
@@ -296,29 +302,29 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            executables {
-                main {
-                    binaries.all {
-                        executableFile = modPath(executableFile)
-                    }
-                }
+apply plugin: 'cpp'
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                executableFile = modPath(executableFile)
             }
-            libraries {
-                hello {
-                    binaries.withType(SharedLibraryBinarySpec) {
-                        sharedLibraryFile = modPath(sharedLibraryFile)
-                        sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
-                    }
-                    binaries.withType(StaticLibraryBinarySpec) {
-                        staticLibraryFile = modPath(staticLibraryFile)
-                    }
-                }
+        }
+        hello(NativeLibrarySpec) {
+            binaries.withType(SharedLibraryBinarySpec) {
+                sharedLibraryFile = modPath(sharedLibraryFile)
+                sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
             }
+            binaries.withType(StaticLibraryBinarySpec) {
+                staticLibraryFile = modPath(staticLibraryFile)
+            }
+        }
+    }
+}
 
-            def modPath(File file) {
-                new File("\${file.parentFile}/new_output/_\${file.name}")
-            }
+def modPath(File file) {
+    new File("\${file.parentFile}/new_output/_\${file.name}")
+}
 """
 
         when:
@@ -341,28 +347,29 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            apply plugin: 'cpp'
-            executables {
-                main {}
-            }
-            libraries {
-                hello {
-                    binaries.withType(SharedLibraryBinarySpec) {
-                        sharedLibraryFile = modPath(sharedLibraryFile)
-                        sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
-                    }
-                    binaries.withType(StaticLibraryBinarySpec) {
-                        staticLibraryFile = modPath(staticLibraryFile)
-                    }
-                }
-            }
+apply plugin: 'cpp'
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib libraries.hello.${linkage}
+                cpp.lib library: "hello", linkage: "${linkage}"
             }
+        }
+        hello(NativeLibrarySpec) {
+            binaries.withType(SharedLibraryBinarySpec) {
+                sharedLibraryFile = modPath(sharedLibraryFile)
+                sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
+            }
+            binaries.withType(StaticLibraryBinarySpec) {
+                staticLibraryFile = modPath(staticLibraryFile)
+            }
+        }
+    }
+}
 
-            def modPath(File file) {
-                new File("\${file.parentFile}/new_output/_\${file.name}")
-            }
+def modPath(File file) {
+    new File("\${file.parentFile}/new_output/_\${file.name}")
+}
 """
 
         when:

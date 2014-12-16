@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
@@ -62,6 +63,8 @@ public class AbstractReportTaskTest {
     public void completesRendererAtEndOfGeneration() throws IOException {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
+            one(renderer).setClientMetaData((BuildClientMetaData) with(notNullValue()));
+            inSequence(sequence);
             one(renderer).setOutput((StyledTextOutput) with(notNullValue()));
             inSequence(sequence);
             one(renderer).startProject(project);
@@ -83,6 +86,8 @@ public class AbstractReportTaskTest {
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
+            one(renderer).setClientMetaData((BuildClientMetaData) with(notNullValue()));
+            inSequence(sequence);
             one(renderer).setOutputFile(file);
             inSequence(sequence);
             one(renderer).startProject(project);
@@ -106,7 +111,8 @@ public class AbstractReportTaskTest {
         task.setProjects(project.getAllprojects());
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
-
+            one(renderer).setClientMetaData((BuildClientMetaData) with(notNullValue()));
+            inSequence(sequence);
             one(renderer).setOutput((StyledTextOutput) with(notNullValue()));
             inSequence(sequence);
             one(renderer).startProject(project);

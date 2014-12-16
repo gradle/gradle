@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
 public class MixedLanguageHelloWorldApp extends HelloWorldApp {
@@ -38,6 +39,9 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
                         architecture "i386"
                     }
                 }
+            }
+            componentSpecs.all {
+                it.targetPlatforms "x86"
             }
 """
     }

@@ -28,12 +28,12 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyResultSorterSpec extends Specification {
-    def matcher = new ResolverStrategy().versionMatcher
+    def versionSelectorScheme = new ResolverStrategy().versionSelectorScheme
 
     @Unroll
     def "throws exception if dependencyt or requested component selector is null (#d1, #d2)"() {
         when:
-        DependencyResultSorter.sort([d1, d2], matcher)
+        DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
@@ -53,7 +53,7 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(DefaultModuleComponentSelector.newSelector("org.aha", "aha", "1.0"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         sorted == [d1, d2]
@@ -64,7 +64,7 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(new DefaultProjectComponentSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         sorted == [d2, d1]
@@ -83,7 +83,7 @@ class DependencyResultSorterSpec extends Specification {
         def d7 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "zzzz", "2.0"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4], matcher)
+        def sorted = DependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4], versionSelectorScheme)
 
         then:
         sorted == [d1, d2, d3, d4, d5, d6, d7]
@@ -97,7 +97,7 @@ class DependencyResultSorterSpec extends Specification {
         def d5 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "3.0"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.2"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d3, d1, d5, d2, d4], matcher)
+        def sorted = DependencyResultSorter.sort([d3, d1, d5, d2, d4], versionSelectorScheme)
 
         then:
         sorted == [d1, d2, d3, d4, d5]
@@ -114,7 +114,7 @@ class DependencyResultSorterSpec extends Specification {
         def d8 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "2"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d4, d7, d1, d6, d8, d5, d3, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d4, d7, d1, d6, d8, d5, d3, d2], versionSelectorScheme)
 
         then:
         sorted == [d1, d2, d3, d4, d5, d6, d7, d8]
@@ -132,7 +132,7 @@ class DependencyResultSorterSpec extends Specification {
         def d9 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "latest.zzz"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d4, d7, d1, d6, d8, d5, d3, d9, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d4, d7, d1, d6, d8, d5, d3, d9, d2], versionSelectorScheme)
 
         then:
         sorted == [d1, d2, d3, d4, d5, d6, d7, d8, d9]
@@ -149,7 +149,7 @@ class DependencyResultSorterSpec extends Specification {
         def d8 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "other", "1.0"), DefaultModuleComponentIdentifier.newId("org.gradle", "other", "1.0"), DefaultModuleComponentIdentifier.newId("org.b", "a", "0.9.1"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d7, d8, d1, d3, d5, d2, d4, d6], matcher)
+        def sorted = DependencyResultSorter.sort([d7, d8, d1, d3, d5, d2, d4, d6], versionSelectorScheme)
 
 
         then:
@@ -169,7 +169,7 @@ class DependencyResultSorterSpec extends Specification {
         def d7 = newDependency(new DefaultProjectComponentSelector(":project5"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4], matcher)
+        def sorted = DependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4], versionSelectorScheme)
 
         then:
         sorted == [d1, d2, d3, d4, d5, d6, d7]
@@ -180,7 +180,7 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "1.0"), DefaultProjectComponentIdentifier.newId(":project5"), DefaultProjectComponentIdentifier.newId(":project1"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         sorted == [d2, d1]
@@ -191,7 +191,7 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "1.0"), DefaultProjectComponentIdentifier.newId(":project6"), DefaultModuleComponentIdentifier.newId("org.gradle", "xxxx", "1.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         sorted == [d2, d1]
@@ -202,7 +202,7 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "1.0"), DefaultProjectComponentIdentifier.newId(":project6"), DefaultModuleComponentIdentifier.newId("org.gradle", "xxxx", "1.0"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         sorted == [d1, d2]
@@ -213,7 +213,7 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(DefaultModuleComponentSelector.newSelector("org.gradle", "core", "1.0"), DefaultProjectComponentIdentifier.newId(":project5"), DefaultProjectComponentIdentifier.newId(":project1"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme)
 
         then:
         sorted == [d2, d1]

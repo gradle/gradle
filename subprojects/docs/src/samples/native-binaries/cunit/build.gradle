@@ -7,6 +7,11 @@ model {
         passing
         failing
     }
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+    }
     repositories {
         libs(PrebuiltLibraries) {
             cunit {
@@ -19,10 +24,11 @@ model {
             }
         }
     }
-}
-
-libraries {
-    operators {}
+    components {
+        operators(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
 }
 // START SNIPPET configure-test-binary
 binaries.withType(CUnitTestSuiteBinarySpec) {

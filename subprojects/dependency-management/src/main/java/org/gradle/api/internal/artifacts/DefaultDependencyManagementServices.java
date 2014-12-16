@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -79,7 +80,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
                     resolverStrategy,
-                    artifactIdentifierFileStore
+                    artifactIdentifierFileStore,
+                    new GradlePomModuleDescriptorParser(resolverStrategy.getVersionSelectorScheme())
             );
         }
 

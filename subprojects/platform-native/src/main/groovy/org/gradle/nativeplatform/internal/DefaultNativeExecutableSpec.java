@@ -15,14 +15,9 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativeplatform.NativeExecutableSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
 
 public class DefaultNativeExecutableSpec extends AbstractTargetedNativeComponentSpec implements NativeExecutableSpec {
-    public DefaultNativeExecutableSpec(ComponentSpecIdentifier id, FunctionalSourceSet functionalSourceSet) {
-        super(id, functionalSourceSet);
-    }
 
     public String getDisplayName() {
         return String.format("native executable '%s'", getName());

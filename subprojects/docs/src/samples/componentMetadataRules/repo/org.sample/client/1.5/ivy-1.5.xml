@@ -1,0 +1,9 @@
+<ivy-module version="2.0">
+    <info organisation="org.sample"
+          module="client"
+          revision="1.5"
+          status="integration" />
+    <publications>
+        <artifact />
+    </publications>
+</ivy-module>

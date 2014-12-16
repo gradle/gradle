@@ -180,6 +180,9 @@ ear {
     }
 
     void "works with existing descriptor containing a doctype declaration"() {
+        //make sure that the test is not executed in embedded mode because test classpath is polluted with xerces
+        //which means that test result is not representative for some java versions (i.e. JDK8)
+        requireGradleHome()
         // We serve the DTD locally because the the parser actually pulls on this URL,
         // and we don't want it reaching out to the Internet in our tests
         def dtdResource = getClass().getResource("application_1_3.dtd")

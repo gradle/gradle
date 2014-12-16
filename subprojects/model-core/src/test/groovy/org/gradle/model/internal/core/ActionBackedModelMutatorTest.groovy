@@ -32,10 +32,10 @@ class ActionBackedModelMutatorTest extends Specification {
         def descriptor = new SimpleModelRuleDescriptor("foo")
 
         def fooList = []
-        registry.create(ModelCreators.of(foo, fooList).descriptor(descriptor).build())
+        registry.create(ModelCreators.bridgedInstance(foo, fooList).descriptor(descriptor).build())
 
         def barList = []
-        registry.create(ModelCreators.of(bar, barList).descriptor(descriptor).build())
+        registry.create(ModelCreators.bridgedInstance(bar, barList).descriptor(descriptor).build())
 
         registry.mutate(ActionBackedModelMutator.of(bar, [], descriptor) {
             it.add("bar")

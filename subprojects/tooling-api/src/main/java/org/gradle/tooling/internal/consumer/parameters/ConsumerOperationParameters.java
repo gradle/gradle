@@ -50,6 +50,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private ConnectionParameters parameters;
         private OutputStream stdout;
         private OutputStream stderr;
+        private Boolean colorOutput;
         private InputStream stdin;
         private File javaHome;
         private List<String> jvmArguments;
@@ -76,6 +77,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
         public Builder setStderr(OutputStream stderr) {
             this.stderr = stderr;
+            return this;
+        }
+
+        public Builder setColorOutput(Boolean colorOutput) {
+            this.colorOutput = colorOutput;
             return this;
         }
 
@@ -134,7 +140,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public ConsumerOperationParameters build() {
-            return new ConsumerOperationParameters(parameters, stdout, stderr, stdin,
+            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin,
                     javaHome, jvmArguments, arguments, tasks, launchables, progressListener, cancellationToken);
         }
     }
@@ -146,6 +152,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     private final OutputStream stdout;
     private final OutputStream stderr;
+    private final Boolean colorOutput;
     private final InputStream stdin;
 
     private final File javaHome;
@@ -154,12 +161,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
 
-    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, InputStream stdin,
+    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks,
                                         List<InternalLaunchable> launchables, ProgressListenerAdapter listener, CancellationToken cancellationToken) {
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
+        this.colorOutput = colorOutput;
         this.stdin = stdin;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
@@ -229,6 +237,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public OutputStream getStandardError() {
         return stderr;
+    }
+
+    public Boolean isColorOutput() {
+        return colorOutput;
     }
 
     public ProgressListenerVersion1 getProgressListener() {

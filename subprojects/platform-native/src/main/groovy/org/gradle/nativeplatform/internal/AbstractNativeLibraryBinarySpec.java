@@ -19,17 +19,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeLibrarySpec;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.platform.base.LibraryBinarySpec;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.Collections;
@@ -37,11 +29,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
-
-    protected AbstractNativeLibraryBinarySpec(NativeLibrarySpec library, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider,
-                                              NativePlatform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(library, flavor, toolChain, toolProvider, targetPlatform, buildType, namingScheme, resolver);
-    }
 
     protected boolean hasSources() {
         for (LanguageSourceSet sourceSet : getSource()) {

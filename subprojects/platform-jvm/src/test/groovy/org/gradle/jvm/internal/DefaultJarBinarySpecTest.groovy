@@ -15,16 +15,15 @@
  */
 
 package org.gradle.jvm.internal
-
-import org.gradle.jvm.platform.JavaPlatform
-import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.JvmLibrarySpec
+import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
+import org.gradle.platform.base.binary.BaseBinarySpec
 import spock.lang.Specification
 
 class DefaultJarBinarySpecTest extends Specification {
     def library = Mock(JvmLibrarySpec)
-    def namingScheme = Mock(BinaryNamingScheme)
     def toolChain = Mock(JavaToolChain)
     def platform = Mock(JavaPlatform)
 
@@ -32,14 +31,9 @@ class DefaultJarBinarySpecTest extends Specification {
         when:
         def binary = binary()
 
-        and:
-        namingScheme.lifecycleTaskName >> "jvm-lib-jar"
-        namingScheme.description >> "the jar"
-
         then:
-        binary.library == library
         binary.name == "jvm-lib-jar"
-        binary.displayName == "the jar"
+        binary.displayName == "Jar 'jvm-lib-jar'"
     }
 
     def "binary has properties for classesDir and jar file"() {
@@ -63,15 +57,7 @@ class DefaultJarBinarySpecTest extends Specification {
         binary.classesDir == classesDir
     }
 
-    def "binary has tool chain"() {
-        when:
-        def binary = binary()
-
-        then:
-        binary.toolChain == toolChain
-    }
-
     private DefaultJarBinarySpec binary() {
-        new DefaultJarBinarySpec(library, namingScheme, toolChain, platform)
+        BaseBinarySpec.create(DefaultJarBinarySpec, "jvm-lib-jar", new DirectInstantiator())
     }
 }

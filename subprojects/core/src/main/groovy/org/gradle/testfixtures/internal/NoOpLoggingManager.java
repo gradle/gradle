@@ -17,8 +17,11 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.logging.ConsoleOutput;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEventListener;
+
+import java.io.OutputStream;
 
 public class NoOpLoggingManager implements LoggingManagerInternal {
     private LogLevel level = LogLevel.LIFECYCLE;
@@ -76,9 +79,21 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
     public void removeOutputEventListener(OutputEventListener listener) {
     }
 
-    public void attachConsole(boolean colorOutput) {
+    public void removeAllOutputEventListeners() {
     }
 
-    public void addStandardOutputAndError() {
+    public void attachProcessConsole(ConsoleOutput consoleOutput) {
+    }
+
+    public void attachAnsiConsole(OutputStream outputStream) {
+    }
+
+    public void addStandardOutputListener(OutputStream outputStream) {
+    }
+
+    public void addStandardErrorListener(OutputStream outputStream) {
+    }
+
+    public void attachSystemOutAndErr() {
     }
 }

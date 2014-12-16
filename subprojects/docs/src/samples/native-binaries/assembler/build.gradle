@@ -28,33 +28,27 @@ model {
 }
 
 // START SNIPPET assembler-args
-executables {
-    main {
-        binaries.all {
-            if (toolChain in VisualCpp) {
-// END SNIPPET assembler-args
-                source sources.i386_masm.asm
-// START SNIPPET assembler-args
-                assembler.args "/Zi"
-            } else {
-// END SNIPPET assembler-args
-                source sources.i386_gcc.asm
-// START SNIPPET assembler-args
-                assembler.args "-g"
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "x86"
+            binaries.all {
+                if (toolChain in VisualCpp) {
+                    sources {
+                        platformAsm(AssemblerSourceSet) {
+                            source.srcDir "src/main/asm_i386_masm"
+                        }
+                    }
+                    assembler.args "/Zi"
+                } else {
+                    sources {
+                        platformAsm(AssemblerSourceSet) {
+                            source.srcDir "src/main/asm_i386_gcc"
+                        }
+                    }
+                    assembler.args "-g"
+                }
             }
-        }
-    }
-}
-
-sources {
-    i386_masm {
-        asm(AssemblerSourceSet) {
-            source.srcDir "src/main/asm_i386_masm"
-        }
-    }
-    i386_gcc {
-        asm(AssemblerSourceSet) {
-            source.srcDir "src/main/asm_i386_gcc"
         }
     }
 }

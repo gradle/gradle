@@ -79,6 +79,18 @@ public class CurrentProcessTest extends Specification {
         System.getProperty('baz') != null
     }
 
+    def "when required opts contain an immutable default setting ignore it"() {
+        //if the user does not configure any jvm args Gradle uses some defaults
+        //however, we don't want those defaults to influence the decision whether to use existing process or not
+        //e.g. those defaults should only be used for launching a new process
+        //TODO SF this is a bit messy, let's try to clean this up
+        when:
+        CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
+
+        then:
+        currentProcess.configureForBuild(buildParameters(["-Xmx1024m"]))
+    }
+
     private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
         return buildParameters(currentJavaHome, jvmArgs)
     }

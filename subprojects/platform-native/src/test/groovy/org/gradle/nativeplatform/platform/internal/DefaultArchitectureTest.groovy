@@ -20,10 +20,37 @@ import spock.lang.Specification
 
 class DefaultArchitectureTest extends Specification {
     def "has useful string representation"() {
-        def architecture = new DefaultArchitecture("arch", ArchitectureInternal.InstructionSet.ARM, 32)
+        def architecture = new DefaultArchitecture("arch")
 
         expect:
         architecture.toString() == "architecture 'arch'"
         architecture.displayName == "architecture 'arch'"
+    }
+
+    def "recognises key architectures"() {
+        def arch = new DefaultArchitecture(name)
+
+        expect:
+        arch.name == name
+        arch.i386 == i386
+        arch.amd64 == amd64
+        arch.ia64 == ia64
+        arch.arm == arm
+
+        where:
+        name        | i386  | amd64 | ia64  | arm
+        "x86"       | true  | false | false | false
+        "x86-64"    | false | true  | false | false
+        "ia-64"     | false | false | true  | false
+        "arm-v7"    | false | false | false | true
+        "arbitrary" | false | false | false | false
+    }
+
+    def "can create arbitrary operating system"() {
+        def arch = new DefaultArchitecture("arbitrary")
+
+        expect:
+        arch.name == "arbitrary"
+        arch.toString() == "architecture 'arbitrary'"
     }
 }

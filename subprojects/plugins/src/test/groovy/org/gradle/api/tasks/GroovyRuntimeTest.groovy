@@ -26,7 +26,7 @@ class GroovyRuntimeTest extends Specification {
     def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(GroovyBasePlugin)
+        project.pluginManager.apply(GroovyBasePlugin)
     }
 
     GroovyRuntime getGroovyRuntime() {

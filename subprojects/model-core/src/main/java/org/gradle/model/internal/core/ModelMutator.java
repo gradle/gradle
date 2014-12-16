@@ -24,7 +24,7 @@ public interface ModelMutator<T> {
 
     ModelReference<T> getSubject();
 
-    void mutate(T object, Inputs inputs);
+    void mutate(ModelNode modelNode, T object, Inputs inputs);
 
     List<ModelReference<?>> getInputs();
 

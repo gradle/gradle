@@ -48,8 +48,8 @@ class EnvJsPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(RhinoPlugin)
-        project.plugins.apply(ReportingBasePlugin)
+        project.pluginManager.apply(RhinoPlugin)
+        project.pluginManager.apply(ReportingBasePlugin)
 
         JavaScriptExtension jsExtension = project.extensions.getByType(JavaScriptExtension)
         EnvJsExtension envJsExtension = jsExtension.extensions.create(EnvJsExtension.NAME, EnvJsExtension)

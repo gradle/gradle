@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 class WindowsResourceHelloWorldApp extends HelloWorldApp {
     @Override
     String getEnglishOutput() {

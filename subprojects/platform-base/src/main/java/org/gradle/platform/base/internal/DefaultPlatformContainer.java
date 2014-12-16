@@ -16,21 +16,41 @@
 
 package org.gradle.platform.base.internal;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
 
-    public DefaultPlatformContainer(Class<? extends Platform> type, Instantiator instantiator) {
-        super(type, instantiator);
+    public DefaultPlatformContainer(Instantiator instantiator) {
+        super(Platform.class, instantiator);
     }
 
-    public <T extends Platform> List<T> select(final Class<T> type, final List<String> targets) {
-        return new NamedElementSelector<T>(type, targets).transform(this);
+    public <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets) {
+        NamedDomainObjectSet<T> allWithType = withType(type);
+
+        List<T> matching = Lists.newArrayList();
+        final List<String> notFound = Lists.newArrayList(targets);
+        CollectionUtils.filter(allWithType, matching, new Spec<T>() {
+            public boolean isSatisfiedBy(T element) {
+                return notFound.remove(element.getName());
+            }
+        });
+
+        if (notFound.size() == 1) {
+            throw new InvalidUserDataException(String.format("Invalid %s: %s", type.getSimpleName(), notFound.get(0)));
+        } else if (notFound.size() > 1) {
+            throw new InvalidUserDataException(String.format("Invalid %ss: %s", type.getSimpleName(), notFound));
+        }
+        return matching;
     }
 
 }

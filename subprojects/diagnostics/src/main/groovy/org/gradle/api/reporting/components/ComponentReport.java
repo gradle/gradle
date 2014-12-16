@@ -21,14 +21,15 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
+import org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.test.TestSuiteContainer;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
@@ -57,37 +58,39 @@ public class ComponentReport extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected TypeAwareBinaryRenderer getBinaryRenderer() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         Project project = getProject();
 
         StyledTextOutput textOutput = getTextOutputFactory().create(ComponentReport.class);
-        ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver());
+        ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver(), getBinaryRenderer());
         renderer.setOutput(textOutput);
 
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ComponentSpecContainer componentSpecs = project.getExtensions().findByType(ComponentSpecContainer.class);
+        ComponentSpecContainer componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
         if (componentSpecs != null) {
             components.addAll(componentSpecs);
         }
 
-        try {
-            TestSuiteContainer testSuites = getModelRegistry().get(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
+        TestSuiteContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
+        if (testSuites != null) {
             components.addAll(testSuites);
-        } catch (IllegalStateException e) {
-            // TODO - need a better contract here
-            // Ignore for now
         }
 
         renderer.renderComponents(components);
 
-        ProjectSourceSet sourceSets = project.getExtensions().findByType(ProjectSourceSet.class);
+        ProjectSourceSet sourceSets = getModelRegistry().find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet.class));
         if (sourceSets != null) {
             renderer.renderSourceSets(sourceSets);
         }
-        BinaryContainer binaries = project.getExtensions().findByType(BinaryContainer.class);
+        BinaryContainer binaries = getModelRegistry().find(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
         if (binaries != null) {
             renderer.renderBinaries(binaries);
         }

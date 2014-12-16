@@ -27,11 +27,12 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 /**
  * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder, with minor changes: 1) Do not create artifact for empty classifier. (Previously did so for all non-null
@@ -148,14 +149,17 @@ public class GradlePomModuleDescriptorBuilder {
         });
     }
 
-
+    private final VersionSelectorScheme defaultVersionSelectorScheme;
+    private final VersionSelectorScheme mavenVersionSelectorScheme;
     private final DefaultModuleDescriptor ivyModuleDescriptor;
 
     private ModuleRevisionId mrid;
 
     private final PomReader pomReader;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
+        this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
+        this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date());
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
@@ -211,7 +215,8 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         String version = determineVersion(dep);
-        ModuleRevisionId moduleRevId = IvyUtil.createModuleRevisionId(dep.getGroupId(), dep.getArtifactId(), version);
+        String mappedVersion = convertVersionFromMavenSyntax(version);
+        ModuleRevisionId moduleRevId = IvyUtil.createModuleRevisionId(dep.getGroupId(), dep.getArtifactId(), mappedVersion);
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
@@ -268,6 +273,12 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         ivyModuleDescriptor.addDependency(dd);
+    }
+
+    // TODO:DAZ Would be better if we held onto the VersionSelector and only rendered it when required
+    private String convertVersionFromMavenSyntax(String version) {
+        VersionSelector versionSelector = mavenVersionSelectorScheme.parseSelector(version);
+        return defaultVersionSelectorScheme.renderSelector(versionSelector);
     }
 
     /**

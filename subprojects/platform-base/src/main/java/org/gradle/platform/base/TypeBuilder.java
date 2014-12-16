@@ -17,12 +17,14 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A TypeBuilder to configure read the implementation class of a type.
  * @param <C> The component type.
  * */
 @Incubating
+@HasInternalProtocol
 public interface TypeBuilder<C> {
 
     /**

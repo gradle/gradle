@@ -21,7 +21,7 @@
 
     <note>
         <para>
-            The ANTLR plugin only supports ANTLR version 2.
+            The ANTLR plugin supports ANTLR version 2, 3 and 4.
         </para>
     </note>
 
@@ -127,11 +127,17 @@
 
     <section>
         <title>Dependency management</title>
-        <para>The ANTLR plugin adds an <literal>antlr</literal> dependency configuration. You use this to declare the
-            ANTLR dependency that you wish to use.</para>
+        <para>
+            The ANTLR plugin adds an <literal>antlr</literal> dependency configuration which provides the ANTLR implementation to use.
+            The following example shows how to use ANTLR version 3.
+        </para>
         <sample id="declareAntlrVersion" dir="antlr" title="Declare ANTLR version">
             <sourcefile file="build.gradle" snippet="declare-dependency"/>
         </sample>
+        <para>
+            If no dependency is declared, <literal>antlr:antlr:2.7.7</literal> will be used as the default.
+            To use a different ANTLR version add the appropriate dependency to the <literal>antlr</literal> dependency configuration as above.
+        </para>
     </section>
 
     <section>
@@ -182,6 +188,18 @@
                 </td>
             </tr>
         </table>
+    </section>
+    <section>
+        <title>Controlling the ANTLR generator process</title>
+        <para>
+            The ANTLR tool is executed in a forked process.
+            This allows fine grained control over memory settings for the ANTLR process.
+            To set the heap size of a ANTLR process, the <literal>maxHeapSize</literal> property
+            of <apilink class="org.gradle.api.plugins.antlr.AntlrTask"/> can be used.
+        </para>
+        <sample id="advanced" dir="antlr" title="setting custom max heap size for ANTLR">
+            <sourcefile file="build.gradle" snippet="memory-settings"/>
+        </sample>
     </section>
 
 </chapter>

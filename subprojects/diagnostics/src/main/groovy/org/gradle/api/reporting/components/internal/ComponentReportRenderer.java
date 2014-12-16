@@ -16,13 +16,14 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -33,14 +34,15 @@ import static org.gradle.logging.StyledTextOutput.Style.Info;
 public class ComponentReportRenderer extends TextReportRenderer {
     private final ComponentRenderer componentRenderer;
     private final SourceSetRenderer sourceSetRenderer;
-    private final BinaryRenderer binaryRenderer;
+    private final TypeAwareBinaryRenderer binaryRenderer;
     private final Set<LanguageSourceSet> componentSourceSets = new HashSet<LanguageSourceSet>();
     private final Set<BinarySpec> componentBinaries = new HashSet<BinarySpec>();
 
-    public ComponentReportRenderer(FileResolver fileResolver) {
-        componentRenderer = new ComponentRenderer(fileResolver);
-        sourceSetRenderer = new SourceSetRenderer(fileResolver);
-        binaryRenderer = new BinaryRenderer(fileResolver);
+    public ComponentReportRenderer(FileResolver fileResolver, TypeAwareBinaryRenderer binaryRenderer) {
+        setFileResolver(fileResolver);
+        sourceSetRenderer = new SourceSetRenderer();
+        this.binaryRenderer = binaryRenderer;
+        componentRenderer = new ComponentRenderer(sourceSetRenderer, binaryRenderer);
     }
 
     @Override
@@ -68,13 +70,11 @@ public class ComponentReportRenderer extends TextReportRenderer {
         }
     }
 
-    public void renderSourceSets(Collection<FunctionalSourceSet> sourceSets) {
+    public void renderSourceSets(Collection<LanguageSourceSet> sourceSets) {
         Set<LanguageSourceSet> additionalSourceSets = new LinkedHashSet<LanguageSourceSet>();
-        for (FunctionalSourceSet functionalSourceSet : sourceSets) {
-            for (LanguageSourceSet sourceSet : functionalSourceSet) {
-                if (!componentSourceSets.contains(sourceSet)) {
-                    additionalSourceSets.add(sourceSet);
-                }
+        for (LanguageSourceSet sourceSet : sourceSets) {
+            if (!componentSourceSets.contains(sourceSet)) {
+                additionalSourceSets.add(sourceSet);
             }
         }
         if (!additionalSourceSets.isEmpty()) {
@@ -97,7 +97,11 @@ public class ComponentReportRenderer extends TextReportRenderer {
             getBuilder().getOutput().println();
             getBuilder().subheading("Additional binaries");
             for (BinarySpec binary : additionalBinaries) {
-                binaryRenderer.render(binary, getBuilder());
+                try {
+                    binaryRenderer.render(binary, getBuilder());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         }
     }

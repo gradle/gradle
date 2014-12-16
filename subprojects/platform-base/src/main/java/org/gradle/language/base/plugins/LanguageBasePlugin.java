@@ -27,9 +27,9 @@ import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -37,6 +37,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 /**
  * Base plugin for language support.
@@ -59,19 +60,18 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        target.getPlugins().apply(LifecycleBasePlugin.class);
+        target.apply(Collections.singletonMap("plugin", LifecycleBasePlugin.class));
 
-        target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+        target.getExtensions().create("sources", DefaultProjectSourceSet.class);
+
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
-
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("binaries", BinaryContainer.class), binaries)
+                ModelCreators.bridgedInstance(ModelReference.of("binaries", BinaryContainer.class), binaries)
                         .simpleDescriptor("Project.<init>.binaries()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(binaries, BinarySpec.class))
+                        .inputs(Collections.singletonList(ModelReference.of(ExtensionContainer.class)))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(instantiator, binaries, BinarySpec.class))
                         .build()
         );
-
-
     }
 
     /**
@@ -90,7 +90,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
-                    Task binaryLifecycleTask = tasks.create(binary.getNamingScheme().getLifecycleTaskName());
+                    Task binaryLifecycleTask = tasks.create(binary.getName());
                     binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                     binary.setBuildTask(binaryLifecycleTask);

@@ -15,13 +15,13 @@
  */
 
 package org.gradle.jvm.internal.plugins
+
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.platform.base.BinaryContainer
-import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.jvm.JvmBinaryTasks
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.plugins.JvmComponentPlugin
+import org.gradle.jvm.tasks.Jar
+import org.gradle.platform.base.BinaryContainer
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
@@ -33,7 +33,6 @@ class CreateTasksForJarBinariesTest extends Specification {
 
     def "creates a 'jar' tasks for each jar library binary"() {
         def jarBinary = Mock(JarBinarySpecInternal)
-        def namingScheme = Mock(BinaryNamingScheme)
         def jarTask = Mock(Jar)
         def binaryTasks = Mock(JvmBinaryTasks)
         def classesDir = new File("classes")
@@ -48,16 +47,14 @@ class CreateTasksForJarBinariesTest extends Specification {
 
         then:
         _ * jarBinary.name >> "binaryName"
-        2 * jarBinary.namingScheme >> namingScheme
-        1 * namingScheme.description >> "binaryDisplayName"
+        _ * jarBinary.toString() >> "binaryDisplayName"
         1 * jarBinary.classesDir >> classesDir
         1 * jarBinary.resourcesDir >> resourcesDir
         2 * jarBinary.jarFile >> jarFile
         1 * jarFile.parentFile >> jarFile
         1 * jarFile.name >> "binary.jar"
-        1 * namingScheme.getTaskName("create") >> "theTaskName"
 
-        1 * tasks.create("theTaskName", Jar) >> jarTask
+        1 * tasks.create("createBinaryName", Jar) >> jarTask
         1 * jarTask.setDescription("Creates the binary file for binaryDisplayName.")
         1 * jarTask.from(classesDir)
         1 * jarTask.from(resourcesDir)

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.platform.base.internal.registry
+
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -93,12 +94,12 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
         where:
         methodName                         | expectedMessage                                                                                                        | descr
-        "extraParameter"                   | "BinaryType method must have a single parameter of type '${BinaryTypeBuilder.name}'."                                  | "additional rule parameter"
-        "returnValue"                      | "BinaryType method must not have a return value."                                                                      | "method with return type"
-        "implementationSetMultipleTimes"   | "BinaryType method cannot set default implementation multiple times."                                                  | "implementation set multiple times"
+        "extraParameter"                   | "Method annotated with @BinaryType must have a single parameter of type '${BinaryTypeBuilder.name}'."                                  | "additional rule parameter"
+        "returnValue"                      | "Method annotated with @BinaryType must not have a return value."                                                                      | "method with return type"
+        "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                                  | "implementation set multiple times"
         "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                         | "missing type parameter"
-        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                               | "type not extending BinarySpec"
-        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                  | "type is BinarySpec"
+        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                        | "type not extending BinarySpec"
+        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                           | "type is BinarySpec"
         "wildcardType"                     | "Binary type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                 | "wildcard type parameter"
         "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
         "superType"                        | "Binary type '? super ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"

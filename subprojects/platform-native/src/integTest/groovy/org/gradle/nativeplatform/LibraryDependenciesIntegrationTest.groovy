@@ -50,23 +50,26 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         and:
         settingsFile.text = "include ':exe', ':other'"
         buildFile << """
-        project(":exe") {
-            executables {
-                main {}
+project(":exe") {
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib ${dependencyNotation}
+                }
             }
-            libraries {
-                hello {}
-            }
-            sources {
-                main.cpp.lib ${dependencyNotation}
-            }
+            hello(NativeLibrarySpec)
         }
-        project(":other") {
-            libraries {
-                hello {}
-            }
+    }
+}
+project(":other") {
+    model {
+        components {
+            hello(NativeLibrarySpec)
         }
-        """
+    }
+}
+"""
 
         when:
         fails ":exe:mainExecutable"
@@ -91,16 +94,17 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
-            libraries {
-                hello {}
-            }
+model {
+    components { comp ->
+        hello(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib ${notation}
+                cpp.lib ${notation}
             }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable"
@@ -110,7 +114,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         where:
         notationName | notation
-        "direct"     | "libraries.hello"
+        "direct"     | "comp.hello"
         "map"        | "library: 'hello'"
     }
 
@@ -123,17 +127,17 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
-                main {
-                    binaries.all { binary ->
-                        binary.lib ${notation}
-                    }
-                }
+model {
+    components { comp ->
+        hello(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
+            binaries.all { binary ->
+                binary.lib ${notation}
             }
-            libraries {
-                hello {}
-            }
-        """
+        }
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable"
@@ -143,7 +147,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         where:
         notationName | notation
-        "direct"     | "libraries.hello"
+        "direct"     | "comp.hello"
         "map"        | "library: 'hello'"
     }
 
@@ -155,16 +159,17 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib library: 'hello', linkage: 'static'
+                cpp.lib library: 'hello', linkage: 'static'
             }
-            libraries {
-                hello {}
-            }
-        """
+        }
+        hello(NativeLibrarySpec)
+    }
+}
+"""
 
         when:
         succeeds "mainExecutable"
@@ -183,21 +188,26 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         and:
         settingsFile.text = "include ':lib', ':exe'"
         buildFile << """
-        project(":exe") {
-            ${explicitEvaluation}
-            executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib project: ':lib', library: 'hello'
-            }
-        }
-        project(":lib") {
-            libraries {
-                hello {}
+project(":exe") {
+    ${explicitEvaluation}
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
+                }
             }
         }
-        """
+    }
+}
+project(":lib") {
+    model {
+        components {
+            hello(NativeLibrarySpec)
+        }
+    }
+}
+"""
 
         when:
         if (configureOnDemand) {
@@ -228,28 +238,36 @@ project.afterEvaluate {
         and:
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
-        project(":exe") {
-            executables {
-                main {}
-            }
-            sources {
-                main.cpp.lib project: ':lib', library: 'hello'
-            }
-        }
-        project(":lib") {
-            libraries {
-                hello {}
-            }
-            sources {
-                hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+project(":exe") {
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
+                }
             }
         }
-        project(":greet") {
-            libraries {
-                greetings {}
+    }
+}
+project(":lib") {
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                sources {
+                    cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+                }
             }
         }
-        """
+    }
+}
+project(":greet") {
+    model {
+        components {
+            greetings(NativeLibrarySpec)
+        }
+    }
+}
+"""
 
         when:
         succeeds ":exe:installMainExecutable"
@@ -266,28 +284,32 @@ project.afterEvaluate {
         and:
         settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
-        project(":exe") {
-            apply plugin: "cpp"
-            executables {
-                main {}
+project(":exe") {
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
+                }
             }
-            libraries {
-                greetings {}
-            }
-            sources {
-                main.cpp.lib project: ':lib', library: 'hello'
+            greetings(NativeLibrarySpec)
+        }
+    }
+}
+project(":lib") {
+    apply plugin: "cpp"
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                sources {
+                    cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+                }
             }
         }
-        project(":lib") {
-            apply plugin: "cpp"
-            libraries {
-                hello {}
-            }
-            sources {
-                hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
-            }
-        }
-        """
+    }
+}
+"""
 
         when:
         succeeds ":exe:installMainExecutable"
@@ -303,20 +325,24 @@ project.afterEvaluate {
 
         and:
         buildFile << """
-            apply plugin: "cpp"
-            executables {
-                main {}
-            }
-            libraries {
-                hello {}
-                greetings {}
-            }
+apply plugin: "cpp"
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib libraries.hello.shared
-                main.cpp.lib libraries.greetings.static
-                hello.cpp.lib libraries.greetings.static
+                cpp.lib library: "hello"
+                cpp.lib library: "greetings", linkage: "static"
             }
-        """
+        }
+        hello(NativeLibrarySpec) {
+            sources {
+                cpp.lib library: "greetings", linkage: "static"
+            }
+        }
+        greetings(NativeLibrarySpec)
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable"
@@ -336,20 +362,24 @@ project.afterEvaluate {
 
         and:
         buildFile << """
-            apply plugin: "cpp"
-            executables {
-                main {}
-            }
-            libraries {
-                hello {}
-                greetings {}
-            }
+apply plugin: "cpp"
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib libraries.hello.shared
-                main.cpp.lib libraries.greetings.shared
-                hello.cpp.lib libraries.greetings.static
+                cpp.lib library: "hello", linkage: "shared"
+                cpp.lib library: "greetings", linkage: "shared"
             }
-        """
+        }
+        hello(NativeLibrarySpec) {
+            sources {
+                cpp.lib library: "greetings", linkage: "static"
+            }
+        }
+        greetings(NativeLibrarySpec)
+    }
+}
+"""
 
         when:
         succeeds "installMainExecutable"

@@ -48,7 +48,7 @@ class SonarRunnerPluginTest extends Specification {
     def leafProject = TestUtil.builder().withName("leaf").withParent(childProject).build()
 
     def setup() {
-        parentProject.plugins.apply(SonarRunnerPlugin)
+        parentProject.pluginManager.apply(SonarRunnerPlugin)
         parentProject.repositories {
             mavenCentral()
         }
@@ -78,9 +78,9 @@ class SonarRunnerPluginTest extends Specification {
 
     def "makes sonarRunner task depend on test tasks of the target project and its subprojects"() {
         when:
-        rootProject.plugins.apply(JavaPlugin)
-        parentProject.plugins.apply(JavaPlugin)
-        childProject.plugins.apply(JavaPlugin)
+        rootProject.pluginManager.apply(JavaPlugin)
+        parentProject.pluginManager.apply(JavaPlugin)
+        childProject.pluginManager.apply(JavaPlugin)
 
         then:
         expect(parentSonarRunnerTask(), TaskDependencyMatchers.dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
@@ -88,9 +88,9 @@ class SonarRunnerPluginTest extends Specification {
 
     def "doesn't make sonarRunner task depend on test task of skipped projects"() {
         when:
-        rootProject.plugins.apply(JavaPlugin)
-        parentProject.plugins.apply(JavaPlugin)
-        childProject.plugins.apply(JavaPlugin)
+        rootProject.pluginManager.apply(JavaPlugin)
+        parentProject.pluginManager.apply(JavaPlugin)
+        childProject.pluginManager.apply(JavaPlugin)
         childProject.sonarRunner.skipProject = true
 
         then:
@@ -147,8 +147,8 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "adds additional default properties for 'java-base' projects"() {
-        parentProject.plugins.apply(JavaBasePlugin)
-        childProject.plugins.apply(JavaBasePlugin)
+        parentProject.pluginManager.apply(JavaBasePlugin)
+        childProject.pluginManager.apply(JavaBasePlugin)
         parentProject.sourceCompatibility = 1.5
         parentProject.targetCompatibility = 1.6
         childProject.sourceCompatibility = 1.6
@@ -165,7 +165,7 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "adds additional default properties for 'java' projects"() {
-        parentProject.plugins.apply(JavaPlugin)
+        parentProject.pluginManager.apply(JavaPlugin)
 
         parentProject.sourceSets.main.java.srcDirs = ["src"]
         parentProject.sourceSets.test.java.srcDirs = ["test"]
@@ -198,7 +198,7 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "only adds existing directories"() {
-        parentProject.plugins.apply(JavaPlugin)
+        parentProject.pluginManager.apply(JavaPlugin)
 
         when:
         def properties = parentSonarRunnerTask().sonarProperties
@@ -212,7 +212,7 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "adds empty 'sonar.sources' property if no sources exist (because Sonar Runner 2.0 always expects this property to be set)"() {
-        childProject2.plugins.apply(JavaPlugin)
+        childProject2.pluginManager.apply(JavaPlugin)
 
         when:
         def properties = parentSonarRunnerTask().sonarProperties
@@ -269,7 +269,7 @@ class SonarRunnerPluginTest extends Specification {
         def project2 = TestUtil.builder().withName("parent2").withParent(rootProject).build()
         def childProject = TestUtil.builder().withName("child").withParent(project).build()
 
-        rootProject.plugins.apply(SonarRunnerPlugin)
+        rootProject.pluginManager.apply(SonarRunnerPlugin)
 
         when:
         def properties = rootProject.tasks.sonarRunner.sonarProperties
@@ -349,7 +349,7 @@ class SonarRunnerPluginTest extends Specification {
         def project = TestUtil.builder().withName("parent").withParent(rootProject).build()
 
         rootProject.allprojects { version = 1.3 }
-        rootProject.plugins.apply(SonarRunnerPlugin)
+        rootProject.pluginManager.apply(SonarRunnerPlugin)
         System.setProperty("sonar.some.key", "some value")
         System.setProperty("sonar.projectVersion", "3.2")
 

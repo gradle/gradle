@@ -148,7 +148,7 @@
     <section>
         <title>Building a library</title>
         <para>
-            To build either a static or shared native library, you define a library component in the <literal>libraries</literal> container. The following sample
+            To build either a static or shared native library, you define a library component in the <literal>components</literal> container. The following sample
             defines a library called <literal>hello</literal>:
         </para>
         <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
@@ -163,7 +163,7 @@
     <section>
         <title>Building an executable</title>
         <para>
-            To build a native executable, you define an executable component in the <literal>executables</literal> container. The following sample defines
+            To build a native executable, you define an executable component in the <literal>components</literal> container. The following sample defines
             an executable called <literal>main</literal>:
         </para>
         <sample id="cppExecutables" dir="native-binaries/c" title="Defining executable components">
@@ -568,7 +568,7 @@
             </sample>
             <para>
                 Here you can see that the <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetPlatforms"/> method is used to
-                select the set of platforms to target for <literal>executables.main</literal>.
+                select the set of platforms to target for the <literal>NativeExecutableSpec</literal> named <literal>main</literal>.
             </para>
             <para>
                 A similar mechanism exists for selecting <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetBuildTypes"/>

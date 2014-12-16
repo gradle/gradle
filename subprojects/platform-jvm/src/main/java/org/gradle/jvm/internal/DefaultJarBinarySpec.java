@@ -16,88 +16,53 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 
 import java.io.File;
 
-public class DefaultJarBinarySpec extends AbstractBuildableModelElement implements JarBinarySpecInternal {
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
-    private final JvmLibrarySpec library;
-    private final BinaryNamingScheme namingScheme;
-    private final JavaToolChain toolChain;
-    private final JavaPlatform platform;
-    private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
+public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
+    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
+    private JavaToolChain toolChain;
+    private JavaPlatform platform;
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
-    private boolean buildable;
-
-    public DefaultJarBinarySpec(JvmLibrarySpec library, BinaryNamingScheme namingScheme, JavaToolChain toolChain, JavaPlatform platform) {
-        this.library = library;
-        this.namingScheme = namingScheme;
-        this.toolChain = toolChain;
-        this.platform = platform;
-    }
-
-    public boolean isBuildable() {
-        return buildable;
-    }
-
-    public void setBuildable(boolean buildable) {
-        this.buildable = buildable;
-    }
-
-    public boolean isLegacyBinary() {
-        return false;
-    }
-
-    public String getDisplayName() {
-        return namingScheme.getDescription();
-    }
+    private String baseName;
 
     @Override
-    public String toString() {
-        return getDisplayName();
+    protected String getTypeName() {
+        return "Jar";
     }
 
-    public String getName() {
-        return namingScheme.getLifecycleTaskName();
+    public String getBaseName() {
+        return baseName == null ? getName() : baseName;
     }
 
-    public JvmLibrarySpec getLibrary() {
-        return library;
+    public void setBaseName(String baseName) {
+        this.baseName = baseName;
+    }
+
+    public JvmBinaryTasks getTasks() {
+        return tasks;
     }
 
     public JavaToolChain getToolChain() {
         return toolChain;
     }
 
+    public void setToolChain(JavaToolChain toolChain) {
+        this.toolChain = toolChain;
+    }
+
     public JavaPlatform getTargetPlatform() {
         return platform;
     }
 
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
-    }
-
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
-    }
-
-    public void source(Object sources) {
-        sourceSets.source(sources);
-    }
-
-    public JvmBinaryTasks getTasks() {
-        return tasks;
+    public void setTargetPlatform(JavaPlatform platform) {
+        this.platform = platform;
     }
 
     public File getJarFile() {

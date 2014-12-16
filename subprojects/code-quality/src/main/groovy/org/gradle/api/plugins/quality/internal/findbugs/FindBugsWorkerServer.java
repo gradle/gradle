@@ -32,20 +32,19 @@ public class FindBugsWorkerServer implements Action<WorkerProcessContext>, Seria
     }
 
     public void execute(WorkerProcessContext context) {
-        final FindBugsResult result = execute();
+        final FindBugsResult result = execute(new FindBugsExecuter());
         final FindBugsWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(FindBugsWorkerClientProtocol.class);
         context.getServerConnection().connect();
         clientProtocol.executed(result);
     }
 
-    public FindBugsResult execute() {
+    FindBugsResult execute(FindBugsExecuter executer) {
         LOGGER.debug("Executing FindBugs worker.");
         try {
-            FindBugsExecuter findBugsExecuter = new FindBugsExecuter();
-            return findBugsExecuter.runFindbugs(spec);
-        } catch (Exception e) {
-            LOGGER.warn("Exception occurred while running FindBugs.", e);
-            return new FindBugsResult(0, 0, 1, e); //mark result with error count 1
+            return executer.runFindbugs(spec);
+        } catch (Throwable t) {
+            LOGGER.warn("Exception occurred while running FindBugs.", t);
+            return new FindBugsResult(0, 0, 1, t); //mark result with error count 1
         }
     }
 }

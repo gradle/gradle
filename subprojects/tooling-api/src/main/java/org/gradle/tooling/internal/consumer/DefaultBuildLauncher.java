@@ -52,7 +52,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
-        operationParamsBuilder.setLaunchables(tasks);
+        forLaunchables(tasks);
         return this;
     }
 

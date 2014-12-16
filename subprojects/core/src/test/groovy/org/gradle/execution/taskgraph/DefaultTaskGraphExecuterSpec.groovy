@@ -19,17 +19,18 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.listener.ListenerManager
+import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 class DefaultTaskGraphExecuterSpec extends Specification {
     def cancellationToken = Mock(BuildCancellationToken)
-    def project = Stub(ProjectInternal)
+    def project = ProjectBuilder.builder().build()
     def listenerManager = Stub(ListenerManager) {
         _ * createAnonymousBroadcaster(_) >> { Class cl -> new ListenerBroadcast(cl) }
     }
@@ -95,6 +96,9 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.mustRunAfter >> Stub(TaskDependency)
         _ * mock.shouldRunAfter >> Stub(TaskDependency)
         _ * mock.compareTo(_) >> { Task t -> name.compareTo(t.name) }
+        _ * mock.outputs >> Stub(TaskOutputsInternal) {
+            getFiles() >> project.files()
+        }
         return mock
     }
 }

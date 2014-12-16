@@ -23,4 +23,8 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface JvmLibraryBinarySpec extends JvmBinarySpec {
+    /**
+     * The ProjectJvmLibrary that this binary belongs to.
+     */
+    JvmLibrarySpec getLibrary();
 }

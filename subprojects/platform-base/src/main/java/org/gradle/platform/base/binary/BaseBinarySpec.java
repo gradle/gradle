@@ -16,16 +16,18 @@
 
 package org.gradle.platform.base.binary;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
@@ -40,17 +42,20 @@ import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 @Incubating
 public abstract class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
+
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks = new DefaultBinaryTasksCollection(this);
 
-    private final BinaryNamingScheme namingScheme;
+    private final String name;
     private final String typeName;
 
-    public static <T extends BaseBinarySpec> T create(Class<T> type, BinaryNamingScheme namingScheme, Instantiator instantiator) {
+    private boolean buildable = true;
+
+    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator) {
         if (type.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
-        nextBinaryInfo.set(new BinaryInfo(namingScheme, type.getSimpleName()));
+        nextBinaryInfo.set(new BinaryInfo(name, type.getSimpleName()));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -70,22 +75,47 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
+        this.name = info.name;
         this.typeName = info.typeName;
-        this.namingScheme = info.namingScheme;
+    }
+
+    protected String getTypeName() {
+        return typeName;
     }
 
     public String getDisplayName() {
-        return String.format("%s: '%s'", typeName, getName());
+        return String.format("%s '%s'", getTypeName(), getName());
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean isBuildable() {
-        return true;
+        return buildable;
+    }
+
+    public void setBuildable(boolean buildable) {
+        this.buildable = buildable;
+    }
+
+    public FunctionalSourceSet getBinarySources() {
+        return sourceSets.getMainSources();
+    }
+
+    public void setBinarySources(FunctionalSourceSet sources) {
+        sourceSets.setMainSources(sources);
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
+        return sourceSets.getSources();
     }
 
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        action.execute(sourceSets.getMainSources());
+    }
+
+    // TODO:DAZ Remove this
     public void source(Object source) {
         sourceSets.source(source);
     }
@@ -94,25 +124,16 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
        return tasks;
     }
 
-    public String getName() {
-        return namingScheme.getLifecycleTaskName();
-    }
-
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
-    }
-
     public boolean isLegacyBinary() {
         return false;
     }
 
     private static class BinaryInfo {
-        final BinaryNamingScheme namingScheme;
+        final String name;
         final String typeName;
 
-        private BinaryInfo(BinaryNamingScheme namingScheme,
-                           String typeName) {
-            this.namingScheme = namingScheme;
+        private BinaryInfo(String name, String typeName) {
+            this.name = name;
             this.typeName = typeName;
         }
     }

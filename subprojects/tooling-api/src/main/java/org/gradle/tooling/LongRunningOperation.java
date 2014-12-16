@@ -60,6 +60,16 @@ public interface LongRunningOperation {
     LongRunningOperation setStandardError(OutputStream outputStream);
 
     /**
+     * Specifies whether to generate colored (ANSI encoded) output for logging. The default is to not generate color output.
+     *
+     * @param colorOutput {@code true} to request color output (using ANSI encoding).
+     * @return this
+     * @since 2.3
+     */
+    @Incubating
+    LongRunningOperation setColorOutput(boolean colorOutput);
+
+    /**
      * Sets the {@link java.io.InputStream} that will be used as standard input for this operation.
      * Defaults to an empty input stream.
      * <p>
@@ -81,7 +91,7 @@ public interface LongRunningOperation {
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
-     * If not configured or null passed the sensible default will be used.
+     * If not configured or null is passed, then the sensible default will be used.
      *
      * @param javaHome to use for the Gradle process
      * @return this
@@ -99,7 +109,7 @@ public interface LongRunningOperation {
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
-     * If not configured, null an empty array passed then the reasonable default will be used.
+     * If not configured, null, or an empty array is passed, then the reasonable default will be used.
      *
      * @param jvmArguments to use for the Gradle process
      * @return this
@@ -131,6 +141,8 @@ public interface LongRunningOperation {
      * if you happen to specify other tasks via the build arguments.
      * <p>
      * See the example in the docs for {@link BuildLauncher}
+     *
+     * If not configured, null, or an empty array is passed, then the reasonable default will be used.
      *
      * @param arguments Gradle command line arguments
      * @return this

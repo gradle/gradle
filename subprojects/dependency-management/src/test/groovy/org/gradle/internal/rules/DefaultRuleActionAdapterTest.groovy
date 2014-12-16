@@ -28,17 +28,42 @@ class DefaultRuleActionAdapterTest extends Specification {
             validate(_) >> { RuleAction ruleAction -> ruleAction }
         }
     }
+
     def "can adapt from closure" () {
         ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
         def closureCalled = ""
 
         when:
-        def ruleAction = ruleActionAdapter.createFromClosure(String, { String s -> closureCalled = "yep" })
-        ruleAction.execute("", [])
+        def ruleAction = ruleActionAdapter.createFromClosure(String, { String s -> closureCalled = s })
+        ruleAction.execute("string", [])
 
         then:
         ruleAction.inputTypes == []
-        closureCalled == "yep"
+        closureCalled == "string"
+
+        when:
+        ruleAction = ruleActionAdapter.createFromClosure(String, { s -> closureCalled = s })
+        ruleAction.execute("object", [])
+
+        then:
+        ruleAction.inputTypes == []
+        closureCalled == "object"
+
+        when:
+        ruleAction = ruleActionAdapter.createFromClosure(String, { -> closureCalled = delegate })
+        ruleAction.execute("zero", [])
+
+        then:
+        ruleAction.inputTypes == []
+        closureCalled == "zero"
+
+        when:
+        ruleAction = ruleActionAdapter.createFromClosure(String, { closureCalled = it })
+        ruleAction.execute("it", [])
+
+        then:
+        ruleAction.inputTypes == []
+        closureCalled == "it"
 
         when:
         ruleAction = ruleActionAdapter.createFromClosure(String, { String s, String input1, Integer input2 -> closureCalled = input1 + input2 })
@@ -61,19 +86,6 @@ class DefaultRuleActionAdapterTest extends Specification {
 
         then:
         actionCalled
-    }
-
-    def "fails to adapt empty closure" () {
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
-
-        when:
-        ruleActionAdapter.createFromClosure(String, {})
-
-        then:
-        def failure = thrown(InvalidUserCodeException)
-        failure.message == "The closure provided is not valid as a rule for 'context'."
-        failure.cause instanceof RuleActionValidationException
-        failure.cause.message == "First parameter of rule action closure must be of type 'String'."
     }
 
     def "fails to adapt closure with invalid subject" () {

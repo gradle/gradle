@@ -17,6 +17,7 @@
 package org.gradle.language.base.plugins
 
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -32,6 +33,7 @@ import org.gradle.platform.base.TransformationFileType
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.util.TestUtil
+import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class ComponentModelBasePluginTest extends Specification {
@@ -39,34 +41,20 @@ class ComponentModelBasePluginTest extends Specification {
 
     def "adds componentSpecs extension"() {
         when:
-        project.apply(plugin: ComponentModelBasePlugin)
+        project.pluginManager.apply(ComponentModelBasePlugin)
         then:
         project.componentSpecs != null
     }
 
     def "adds componentSpecs model"() {
         when:
-        project.apply(plugin: ComponentModelBasePlugin)
+        project.pluginManager.apply(ComponentModelBasePlugin)
         then:
-        project.modelRegistry.get(ModelPath.path("componentSpecs")) != null
+        project.modelRegistry.get(ModelPath.path("components")) != null
     }
 
-    def "registers language sourceset factory per functional sourceset"() {
+    def "registers language sourceset factory and created default source set for component"() {
         setup:
-        project.apply(plugin: ComponentModelBasePlugin)
-        project.languages.add(new TestLanguageRegistration())
-
-        when:
-        def fSourceSet = project.sources.create("testFunctionalSourceSet")
-
-        then:
-        fSourceSet.create("test", TestSourceSet) != null
-    }
-
-    def "creates language sourceSets for component"() {
-        setup:
-        project.apply(plugin: ComponentModelBasePlugin)
-        project.languages.add(new TestLanguageRegistration())
 
         def componentSpecInternal = Mock(ComponentSpecInternal)
         _ * componentSpecInternal.name >> "testComponent"
@@ -74,13 +62,22 @@ class ComponentModelBasePluginTest extends Specification {
 
         def componentFunctionalSourceSet = Mock(FunctionalSourceSet)
         _ * componentFunctionalSourceSet.name >> "testComponentSources"
-        _ * componentSpecInternal.mainSource >> componentFunctionalSourceSet
+        _ * componentSpecInternal.sources >> componentFunctionalSourceSet
+        _ * componentSpecInternal.source >> WrapUtil.toDomainObjectSet(LanguageSourceSet)
 
         when:
+        project.pluginManager.apply(ComponentModelBasePlugin)
+        project.model {
+            languages {
+                add(new TestLanguageRegistration())
+            }
+        }
         project.componentSpecs.add(componentSpecInternal)
+        project.evaluate()
 
         then:
-        1 * componentFunctionalSourceSet.maybeCreate("test", _)
+        1 * componentFunctionalSourceSet.registerFactory(TestSourceSet, _ as NamedDomainObjectFactory)
+        1 * componentFunctionalSourceSet.maybeCreate("test", TestSourceSet)
         0 * componentFunctionalSourceSet._
     }
 
@@ -124,7 +121,7 @@ class ComponentModelBasePluginTest extends Specification {
     public static class TestSourceImplementation implements TestSourceSet {
         String name
 
-        public TestSourceImplementation(String name, FunctionalSourceSet parent, FileResolver fileResolver) {
+        public TestSourceImplementation(String name, String parent, FileResolver fileResolver) {
             this.name = name;
         }
 

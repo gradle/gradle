@@ -77,7 +77,7 @@ public class DaemonMain extends EntryPoint {
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
-        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newProcessLogging();
+        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager);
         File daemonLog = daemonServices.getDaemonLogFile();
@@ -144,7 +144,7 @@ public class DaemonMain extends EntryPoint {
 
         //after redirecting we need to add the new std out/err to the renderer singleton
         //so that logging gets its way to the daemon log:
-        loggingManager.addStandardOutputAndError();
+        loggingManager.attachSystemOutAndErr();
 
         //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
         //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)

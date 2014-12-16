@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer.loader
 
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
@@ -51,7 +52,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
                 ClasspathUtil.getClasspathForClass(Logger.class),
                 ClasspathUtil.getClasspathForClass(GroovyObject.class),
-                getVersionResourcesDir(),
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
@@ -86,7 +86,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
                 ClasspathUtil.getClasspathForClass(Logger.class),
                 ClasspathUtil.getClasspathForClass(GroovyObject.class),
-                getVersionResourcesDir(),
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
@@ -97,12 +96,9 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 
     private getToolingApiResourcesDir(Class implementation) {
-        tmpDir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << implementation.name
-        return tmpDir.testDirectory;
-    }
-
-    private getVersionResourcesDir() {
-        return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/build-receipt.properties")
+        def dir = tmpDir.createDir('resources')
+        dir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << implementation.name
+        return dir;
     }
 
     def "creates broken connection when resource not found"() {
@@ -113,6 +109,26 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         expect:
         loader.create(distribution, loggerFactory, connectionParameters, cancellationToken) instanceof NoToolingApiConnection
+    }
+
+    def "created classloader can load logback configuration"() {
+        def classLoader = new MutableURLClassLoader(DefaultToolingImplementationLoader.classLoader, getLogbackResourcesDir().toURI().toURL())
+        def loader = new DefaultToolingImplementationLoader(classLoader)
+
+        when:
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath()
+        def providerLoader = loader.createImplementationClassLoader(distribution, loggerFactory, userHomeDir, cancellationToken)
+
+        then:
+        providerLoader.getResource('logback.xml') != null
+        providerLoader.getResource('logback-test.xml') != null
+    }
+
+    private getLogbackResourcesDir() {
+        def dir = tmpDir.createDir('logback-config')
+        dir.createFile('tooling-api-logback-test.xml')
+        dir.createFile('tooling-api-logback.xml')
+        return dir;
     }
 }
 

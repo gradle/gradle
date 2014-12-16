@@ -1,0 +1,60 @@
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}
+
+configurations {
+    customTestCompile.extendsFrom testCompile
+    customTestRuntime.extendsFrom testRuntime
+}
+
+sourceSets {
+    custom
+    customTest
+}
+
+task customTest(type: Test) {
+    testClassesDir = sourceSets.customTest.output.classesDir
+    classpath = sourceSets.customTest.runtimeClasspath
+}
+
+check.dependsOn customTest
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+task customJar(type: Jar) {
+    from sourceSets.custom.output
+    classifier = 'custom'
+}
+
+task customJavadoc(type: Javadoc) {
+    classpath = sourceSets.custom.output
+    source = sourceSets.custom.allJava
+}
+
+task customJavadocJar(type: Jar) {
+    from customJavadoc
+    classifier = 'javadoc'
+}
+
+task customSourcesJar(type: Jar) {
+    from sourceSets.custom.allSource
+    classifier = 'custom-sources'
+}
+
+artifacts {
+    archives javadocJar, sourcesJar, customJar, customJavadocJar, customSourcesJar
+}

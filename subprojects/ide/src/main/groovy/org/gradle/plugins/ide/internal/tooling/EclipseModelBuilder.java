@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -65,7 +66,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private void applyEclipsePlugin(Project root) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
-            p.getPlugins().apply(EclipsePlugin.class);
+            p.apply(ImmutableMap.of("type", EclipsePlugin.class));
         }
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
@@ -78,7 +79,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     }
 
     private void populate(Project project) {
-        EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
         EclipseClasspath classpath = eclipseModel.getClasspath();
 
         classpath.setProjectDependenciesOnly(projectDependenciesOnly);
@@ -113,7 +114,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setSourceDirectories(sourceDirectories);
 
         List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
-        for(Link r: eclipseModel.getProject().getLinkedResources()) {
+        for (Link r : eclipseModel.getProject().getLinkedResources()) {
             linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
         eclipseProject.setLinkedResources(linkedResources);
@@ -135,7 +136,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             children.add(buildHierarchy(child));
         }
 
-        EclipseModel eclipseModel = project.getPlugins().getPlugin(EclipsePlugin.class).getModel();
+        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);

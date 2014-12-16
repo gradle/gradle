@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
@@ -65,11 +65,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final CacheLockingManager cacheLockingManager;
     private final IvyContextManager ivyContextManager;
     private final ResolutionResultsStoreFactory storeFactory;
-    private final LatestStrategy latestStrategy;
+    private final VersionComparator versionComparator;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
                                      ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
-                                     ResolutionResultsStoreFactory storeFactory, LatestStrategy latestStrategy) {
+                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator) {
         this.ivyFactory = ivyFactory;
         this.localComponentFactory = localComponentFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -77,7 +77,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.cacheLockingManager = cacheLockingManager;
         this.ivyContextManager = ivyContextManager;
         this.storeFactory = storeFactory;
-        this.latestStrategy = latestStrategy;
+        this.versionComparator = versionComparator;
     }
 
     public void resolve(final ConfigurationInternal configuration,
@@ -101,7 +101,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
                     conflictResolver = new StrictConflictResolver();
                 } else {
-                    conflictResolver = new LatestModuleConflictResolver(latestStrategy);
+                    conflictResolver = new LatestModuleConflictResolver(versionComparator);
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
                 ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());

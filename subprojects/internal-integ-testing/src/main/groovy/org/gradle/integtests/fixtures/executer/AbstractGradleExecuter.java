@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -81,6 +82,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private final TestDirectoryProvider testDirectoryProvider;
     private final GradleDistribution distribution;
+    private boolean classLoaderCaching;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -217,6 +219,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (requireGradleHome) {
             executer.requireGradleHome();
         }
+        executer.withClassLoaderCaching(classLoaderCaching);
 
         return executer;
     }
@@ -443,6 +446,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
+    public GradleExecuter withClassLoaderCaching(boolean classLoaderCaching) {
+        this.classLoaderCaching = classLoaderCaching;
+        return this;
+    }
+
     protected File getDaemonBaseDir() {
         return daemonBaseDir;
     }
@@ -536,6 +544,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (eagerClassLoaderCreationChecksOn) {
             properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
+        }
+
+        if (classLoaderCaching) {
+            properties.put(ClassLoaderCacheFactory.TOGGLE_CACHING_PROPERTY, "true");
         }
 
         return properties;

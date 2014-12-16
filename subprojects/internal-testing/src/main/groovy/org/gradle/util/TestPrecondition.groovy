@@ -116,6 +116,10 @@ enum TestPrecondition {
     }),
     CAN_INSTALL_EXECUTABLE({
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
+    }),
+    // TODO:DAZ Should be detecting this based on tool chain, not OS
+    OBJECTIVE_C_SUPPORT({
+        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     });
 
     /**

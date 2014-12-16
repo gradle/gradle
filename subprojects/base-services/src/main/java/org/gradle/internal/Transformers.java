@@ -86,6 +86,7 @@ public abstract class Transformers {
 
     /**
      * Returns a transformer that names objects with the given {@link Namer}
+     *
      * @param namer The namer to name the objects with
      * @param <T> The type of objects to be named
      * @return The naming transformer.

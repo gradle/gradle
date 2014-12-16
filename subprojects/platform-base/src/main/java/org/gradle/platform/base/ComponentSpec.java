@@ -16,9 +16,7 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
@@ -44,17 +42,9 @@ public interface ComponentSpec extends Named {
     DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
-     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
-     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
-     * </ul>
+     * Configure the source sets used to build this component.
      */
-    void source(Object source);
+    void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
 
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.

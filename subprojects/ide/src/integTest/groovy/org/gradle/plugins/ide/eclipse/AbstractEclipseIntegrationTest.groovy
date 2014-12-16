@@ -69,7 +69,19 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
         assert libs*.@path*.text().collect { new File(it).name } as Set == filenames as Set
     }
 
+    protected EclipseWtpComponentFixture getWtpComponent() {
+        return new EclipseWtpComponentFixture(testDirectory)
+    }
+
+    protected EclipseWtpComponentFixture wtpComponent(String project) {
+        return new EclipseWtpComponentFixture(testDirectory.file(project))
+    }
+
     protected EclipseClasspathFixture getClasspath() {
         return new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+    }
+
+    protected EclipseClasspathFixture classpath(String path) {
+        return new EclipseClasspathFixture(testDirectory.file(path), executer.gradleUserHomeDir)
     }
 }

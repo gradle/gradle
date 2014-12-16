@@ -70,7 +70,31 @@ class DefaultStandardOutputRedirectorTest extends Specification {
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
     }
-    
+
+    def receivesPartialOutput() {
+        when:
+        redirector.redirectStandardOutputTo(stdOutListener)
+        redirector.start()
+        System.out.print('this is stdout')
+        redirector.stop()
+
+        then:
+        1 * stdOutListener.onOutput('this is stdout')
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
+    }
+
+    def receivesPartialOutputOnFlush() {
+        when:
+        redirector.redirectStandardOutputTo(stdOutListener)
+        redirector.start()
+        System.out.print('this is stdout')
+        System.out.flush()
+
+        then:
+        1 * stdOutListener.onOutput('this is stdout')
+    }
+
     def canRedirectMultipleTimes() {
         when:
         redirector.redirectStandardErrorTo(stdErrListener)

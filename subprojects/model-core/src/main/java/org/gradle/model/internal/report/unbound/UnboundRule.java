@@ -16,19 +16,22 @@
 
 package org.gradle.model.internal.report.unbound;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.File;
 import java.util.List;
 
+@ThreadSafe
 public class UnboundRule {
 
     private final String descriptor;
 
-    private final List<UnboundRuleInput> immutableInputs;
-    private final List<UnboundRuleInput> mutableInputs;
+    private final ImmutableList<UnboundRuleInput> immutableInputs;
+    private final ImmutableList<UnboundRuleInput> mutableInputs;
 
-    private UnboundRule(String descriptor, List<UnboundRuleInput> immutableInputs, List<UnboundRuleInput> mutableInputs) {
+    private UnboundRule(String descriptor, ImmutableList<UnboundRuleInput> immutableInputs, ImmutableList<UnboundRuleInput> mutableInputs) {
         this.descriptor = descriptor;
         this.immutableInputs = immutableInputs;
         this.mutableInputs = mutableInputs;
@@ -54,11 +57,12 @@ public class UnboundRule {
         return new Builder(String.format("%s @ build file '%s' line %d, column %d", descriptor, location.getAbsolutePath(), line, column));
     }
 
+    @NotThreadSafe
     public static class Builder {
 
         private String descriptor;
-        private final List<UnboundRuleInput> immutableInputs = Lists.newLinkedList();
-        private final List<UnboundRuleInput> mutableInputs = Lists.newLinkedList();
+        private final ImmutableList.Builder<UnboundRuleInput> immutableInputs = ImmutableList.builder();
+        private final ImmutableList.Builder<UnboundRuleInput> mutableInputs = ImmutableList.builder();
 
         private Builder(String descriptor) {
             this.descriptor = descriptor;
@@ -75,7 +79,7 @@ public class UnboundRule {
         }
 
         public UnboundRule build() {
-            return new UnboundRule(descriptor, immutableInputs, mutableInputs);
+            return new UnboundRule(descriptor, immutableInputs.build(), mutableInputs.build());
         }
     }
 }

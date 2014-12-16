@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.tasks.AbstractExecTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.logging.ConsoleRenderer
 /**
@@ -27,6 +28,7 @@ import org.gradle.logging.ConsoleRenderer
  */
 @Incubating
 @SuppressWarnings("unchecked")
+@ParallelizableTask
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     public RunTestExecutable() {
         super(RunTestExecutable.class);

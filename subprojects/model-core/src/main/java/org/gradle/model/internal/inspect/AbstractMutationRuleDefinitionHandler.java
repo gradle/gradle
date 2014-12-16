@@ -16,7 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -24,9 +27,12 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+@ThreadSafe
 public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
 
     public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+        validate(ruleDefinition);
+
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
 
         ModelReference<?> subject = bindings.get(0);
@@ -41,6 +47,12 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
     }
 
     protected abstract boolean isFinalize();
+
+    private <R> void validate(MethodRuleDefinition<R> ruleDefinition) {
+        if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
+            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "only void can be used as return type for mutation rules");
+        }
+    }
 
     private static <T> MethodModelMutator<T> toMutator(MethodRuleDefinition<?> ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
         return new MethodModelMutator<T>(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), first, tail);
@@ -71,7 +83,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
             return inputs;
         }
 
-        public void mutate(T object, Inputs inputs) {
+        public void mutate(ModelNode modelNode, T object, Inputs inputs) {
             Object[] args = new Object[1 + this.inputs.size()];
             args[0] = object;
             for (int i = 0; i < inputs.size(); ++i) {

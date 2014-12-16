@@ -18,7 +18,7 @@ package org.gradle.language.c.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
 /**
@@ -29,10 +29,10 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * <li>Creates a {@link org.gradle.language.c.tasks.CCompile} task for each {@link org.gradle.language.c.CSourceSet} to compile the C sources.</li>
  */
 @Incubating
-public class CPlugin implements Plugin<ProjectInternal> {
-    public void apply(ProjectInternal project) {
-        project.getPlugins().apply(NativeComponentPlugin.class);
-        project.getPlugins().apply(CLangPlugin.class);
+public class CPlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(CLangPlugin.class);
     }
 
 }

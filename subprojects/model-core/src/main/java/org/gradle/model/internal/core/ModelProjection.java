@@ -17,14 +17,19 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
-public interface ModelProjection<M> {
+public interface ModelProjection {
 
     <T> boolean canBeViewedAsWritable(ModelType<T> type);
+
     <T> boolean canBeViewedAsReadOnly(ModelType<T> type);
-    <T> ModelView<? extends T> asWritable(ModelBinding<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry, M instance);
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, M instance);
+
+    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode modelNode);
+
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode);
 
     Iterable<String> getWritableTypeDescriptions();
+
     Iterable<String> getReadableTypeDescriptions();
 }

@@ -24,9 +24,9 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.server.exec.DaemonStateControl;
-import org.gradle.launcher.daemon.server.exec.DaemonStoppedException;
-import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException;
+import org.gradle.launcher.daemon.server.api.DaemonStateControl;
+import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
+import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 import org.slf4j.Logger;
 
 import java.util.Date;

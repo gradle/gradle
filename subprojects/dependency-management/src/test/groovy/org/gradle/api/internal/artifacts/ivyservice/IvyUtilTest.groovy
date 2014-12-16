@@ -16,17 +16,30 @@
  
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.junit.Test
+import spock.lang.Specification
 
-import static org.junit.Assert.assertEquals
-
-class IvyUtilTest {
-    @Test public void testModuleRevisionId() {
+class IvyUtilTest extends Specification {
+    def "create module revision ID"() {
+        when:
         List l = ['myorg', 'myname', 'myrev']
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(*l)
-        assertEquals(l[0], moduleRevisionId.organisation)
-        assertEquals(l[1], moduleRevisionId.name)
-        assertEquals(l[2], moduleRevisionId.revision)
+
+        then:
+        l[0] == moduleRevisionId.organisation
+        l[1] == moduleRevisionId.name
+        l[2] == moduleRevisionId.revision
+    }
+
+    def "create artifact ID"() {
+        when:
+        ArtifactId artifactId = IvyUtil.createArtifactId('org', 'module', 'test', 'jar', 'jar')
+
+        then:
+        artifactId.moduleId == IvyUtil.createModuleId('org', 'module')
+        artifactId.name == 'test'
+        artifactId.type == 'jar'
+        artifactId.ext == 'jar'
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,7 +34,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     public DomainObjectSet<T> matching(Closure spec) {
-        return backingSet.matching(spec);
+        return matching(Specs.convertClosureToSpec(spec));
     }
 
     public DomainObjectSet<T> matching(Spec<? super T> spec) {
@@ -49,7 +50,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     public void all(Closure action) {
-        backingSet.all(action);
+        all(new ClosureBackedAction<T>(action));
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
@@ -57,7 +58,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     public void whenObjectAdded(Closure action) {
-        backingSet.whenObjectAdded(action);
+        whenObjectAdded(new ClosureBackedAction<T>(action));
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
@@ -65,7 +66,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     public void whenObjectRemoved(Closure action) {
-        backingSet.whenObjectRemoved(action);
+        whenObjectRemoved(new ClosureBackedAction<T>(action));
     }
 
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
@@ -73,7 +74,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return backingSet.withType(type, configureClosure);
+        return withType(type, new ClosureBackedAction<T>(configureClosure));
     }
 
     public boolean add(T o) {

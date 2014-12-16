@@ -114,6 +114,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (className == null) {
             //this means that we receive an output before even starting any class (or too late).
             //we don't have a place for such output in any of the reports so skipping.
+            //Unfortunately, this happens pretty often with current level of TestNG support
+            //because output events emitted by constructor, beforeTest, beforeClass
+            // are sent before test start event is started and there is no parent class event emitted by TestNG.
+            //In short, the TestNG support could be better. See also TestNGOutputEventsIntegrationTest
             return;
         }
         TestClassResult classResult = results.get(className);

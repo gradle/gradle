@@ -38,12 +38,12 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -59,10 +59,13 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -173,13 +176,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
+                ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .simpleDescriptor("Project.<init>.serviceRegistry()")
                         .build()
         );
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("buildDir", File.class), new Factory<File>() {
+                ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
                     public File create() {
                         return getBuildDir();
                     }
@@ -189,13 +192,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
+                ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .simpleDescriptor("Project.<init>.projectIdentifier()")
                         .build()
         );
 
         modelRegistry.create(
-                ModelCreators.of(ModelReference.of("extensions", ExtensionContainer.class), new Factory<ExtensionContainer>() {
+                ModelCreators.unmanagedInstance(ModelReference.of("extensions", ExtensionContainer.class), new Factory<ExtensionContainer>() {
                     public ExtensionContainer create() {
                         return getExtensions();
                     }
@@ -204,33 +207,24 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build()
         );
 
-        modelRegistry.create(
-                ModelCreators.of(ModelReference.of(TaskContainerInternal.MODEL_PATH, ModelType.of(TaskContainer.class)), taskContainer)
-                        .simpleDescriptor("Project.<init>.tasks()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<TaskContainerInternal, Task>(taskContainer, Task.class))
-                        .build());
+        Instantiator instantiator = getServices().get(Instantiator.class);
 
-        taskContainer.all(new Action<Task>() {
-            public void execute(final Task task) {
-                final String name = task.getName();
-                final ModelPath modelPath = TaskContainerInternal.MODEL_PATH.child(name);
-
-                ModelState state = modelRegistry.state(modelPath);
-                if (state == null || state.getStatus() != ModelState.Status.IN_CREATION) {
-                    modelRegistry.create(
-                            ModelCreators.of(ModelReference.of(modelPath, ModelType.typeOf(task)), task)
-                                    .simpleDescriptor("Project.<init>.tasks." + name + "()")
-                                    .build()
-                    );
+        PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                modelRegistry,
+                instantiator,
+                ModelType.of(TaskContainerInternal.class),
+                ModelType.of(TaskContainer.class),
+                ModelType.of(Task.class),
+                TaskContainerInternal.MODEL_PATH,
+                taskContainer,
+                new Task.Namer(),
+                "Project.<init>.tasks()",
+                new Transformer<String, String>() {
+                    public String transform(String s) {
+                        return "Project.<init>.tasks." + s + "()";
+                    }
                 }
-            }
-        });
-
-        taskContainer.whenObjectRemoved(new Action<Task>() {
-            public void execute(Task task) {
-                modelRegistry.remove(TaskContainerInternal.MODEL_PATH.child(task.getName()));
-            }
-        });
+        );
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
@@ -247,12 +241,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public GradleInternal getGradle() {
         return gradle;
-    }
-
-    @Inject
-    public PluginContainer getPlugins() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
     }
 
     public ProjectEvaluator getProjectEvaluator() {
@@ -895,10 +883,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+    }
+
+    @Inject
+    public PluginManagerInternal getPluginManager() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     @Inject

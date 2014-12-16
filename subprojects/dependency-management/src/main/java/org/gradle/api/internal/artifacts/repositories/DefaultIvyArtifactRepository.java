@@ -16,10 +16,13 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.artifacts.repositories.RepositoryLayout;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
@@ -33,7 +36,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -41,7 +43,7 @@ import java.util.Set;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private Object baseUrl;
-    private RepositoryLayout layout;
+    private AbstractRepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
@@ -125,15 +127,19 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         } else if ("maven".equals(layoutName)) {
             layout = instantiator.newInstance(MavenRepositoryLayout.class);
         } else if ("pattern".equals(layoutName)) {
-            layout = instantiator.newInstance(PatternRepositoryLayout.class);
+            layout = instantiator.newInstance(DefaultIvyPatternRepositoryLayout.class);
         } else {
             layout = instantiator.newInstance(GradleRepositoryLayout.class);
         }
     }
 
     public void layout(String layoutName, Closure config) {
+        layout(layoutName, new ClosureBackedAction<RepositoryLayout>(config));
+    }
+
+    public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
         layout(layoutName);
-        ConfigureUtil.configure(config, layout);
+        ((Action) config).execute(layout);
     }
 
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
@@ -143,7 +149,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     /**
      * Layout for applying additional patterns added via {@link #artifactPatterns} and {@link #ivyPatterns}.
      */
-    private static class AdditionalPatternsRepositoryLayout extends RepositoryLayout {
+    private static class AdditionalPatternsRepositoryLayout extends AbstractRepositoryLayout {
         private final FileResolver fileResolver;
         private final Set<String> artifactPatterns = new LinkedHashSet<String>();
         private final Set<String> ivyPatterns = new LinkedHashSet<String>();

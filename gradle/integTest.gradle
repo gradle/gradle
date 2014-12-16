@@ -26,6 +26,23 @@ import org.gradle.util.GradleVersion
 
 import java.util.regex.Pattern
 
+def removeDodgyCacheFiles(File dir) {
+    if (dir.directory) {
+        for (File cacheDir: dir.listFiles()) {
+            if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
+                continue
+            }
+            for (String name: ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+                def stateDir = new File(cacheDir, name)
+                if (stateDir.directory) {
+                    println "Removing old cache directory : ${stateDir}"
+                    delete(stateDir)
+                }
+            }
+        }
+    }
+}
+
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
@@ -77,12 +94,18 @@ project(":") {
                 return candidateVersion.snapshot && candidateVersion < testedVersion
             }
 
+            // Remove state for old versions of Gradle that we're unlikely to ever require again
             removeOldVersionsFromDir(file("buildSrc/.gradle"), expireTaskCache)
             removeOldVersionsFromDir(file(".gradle"), expireTaskCache)
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/daemon"), expireIntegTestCache)
+
+            // Remove old distributions used by wrapper that we're unlikely to ever require again
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache, "gradle-", "-bin")
             delete(file("intTestHomeDir/worker-1/wrapper/dists/dist"))
+
+            // Remove caches that weren't multi-process safe and may be corrupt
+            removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
         }
     }
 }
@@ -111,12 +134,21 @@ project(":") {
                 }
                 def pid = matcher.group(1)
                 println "killing daemon with pid $pid"
-                exec {
+                def killOutput = new ByteArrayOutputStream()
+                def result = exec {
                     if (org.gradle.internal.os.OperatingSystem.current().windows) {
                         commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
                     } else {
                         commandLine = ["kill", pid]
                     }
+                    standardOutput = killOutput
+                    errorOutput = killOutput
+                    ignoreExitValue = true
+                }
+                if (result.exitValue != 0) {
+                    throw new GradleException("""Failed to kill daemon process $pid.
+Output: ${killOutput}
+""")
                 }
             }
         }
@@ -126,6 +158,8 @@ project(":") {
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage', ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
+    shouldRunAfter 'test'
+    
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
@@ -136,7 +170,9 @@ integTestTasks.all { Test task ->
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default';
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
+
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? project.multiVersion : 'all'
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {

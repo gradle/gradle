@@ -17,24 +17,19 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Set;
 
+@ThreadSafe
 public class ModelRuleInspector {
 
     private final Iterable<MethodRuleDefinitionHandler> handlers;
@@ -68,23 +63,6 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
-    public Set<Class<?>> getDeclaredSources(Class<?> container) {
-        Class<?>[] declaredClasses = container.getDeclaredClasses();
-        if (declaredClasses.length == 0) {
-            return Collections.emptySet();
-        } else {
-            ImmutableSet.Builder<Class<?>> found = ImmutableSet.builder();
-            for (Class<?> declaredClass : declaredClasses) {
-                if (declaredClass.isAnnotationPresent(RuleSource.class)) {
-                    found.add(declaredClass);
-                }
-            }
-
-            return found.build();
-        }
-    }
-
     // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
     public <T> void inspect(Class<T> source, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         validate(source);
@@ -98,10 +76,10 @@ public class ModelRuleInspector {
         });
 
         for (Method method : methods) {
-            validate(method);
             MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
+                validate(method);
                 // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
                 // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
                 // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
@@ -160,13 +138,10 @@ public class ModelRuleInspector {
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
-        if (constructors.length > 1) {
-            throw invalid(source, "cannot have more than one constructor");
-        }
-
-        Constructor<?> constructor = constructors[0];
-        if (constructor.getParameterTypes().length > 0) {
-            throw invalid(source, "constructor cannot take any arguments");
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getParameterTypes().length > 0) {
+                throw invalid(source, "cannot declare a constructor that takes arguments");
+            }
         }
 
         Field[] fields = source.getDeclaredFields();
@@ -184,6 +159,23 @@ public class ModelRuleInspector {
         if (ruleMethod.getTypeParameters().length > 0) {
             throw invalid(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
         }
+
+        Type returnType = ruleMethod.getGenericReturnType();
+        if (isRawInstanceOfParameterizedType(returnType)) {
+            throw invalid(ruleMethod, "raw type " + ((Class) returnType).getName() + " used for return type (all type parameters must be specified of parameterized type)");
+        }
+
+        int i = 0;
+        for (Type type : ruleMethod.getGenericParameterTypes()) {
+            ++i;
+            if (isRawInstanceOfParameterizedType(type)) {
+                throw invalid(ruleMethod, "raw type " + ((Class) type).getName() + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+            }
+        }
+    }
+
+    private boolean isRawInstanceOfParameterizedType(Type type) {
+        return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
     }
 
 }

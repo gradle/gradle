@@ -34,7 +34,7 @@ model introduced by the new language plugins:
 
 - Split `gradle tasks` into 'what can I do with this build?' and a 'what are all the tasks in this project?'.
 
-### GRADLE-2434 - IDE visualises and runs task selectors
+### GRADLE-2434 - IDE visualises and runs task selectors (DONE)
 
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
 and all its subprojects.
@@ -43,7 +43,7 @@ Expose some information to allow the IDE to visualise this and execute builds in
 
 See [tooling-api-improvements.md](tooling-api-improvements.md#story-gradle-2434---expose-the-aggregate-tasks-for-a-project)
 
-### IDE hides implementation tasks
+### IDE hides implementation tasks (DONE)
 
 On the command-line I can run `gradle tasks` and see the public tasks for the build, and `gradle tasks --all` to see all the tasks.
 
@@ -185,7 +185,7 @@ Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
     - Include JvmLibrary main artifact in query results
     - Replace `IdeDependenciesExtractor.extractRepoFileDependencies` with single ArtifactResolutionQuery
 
-## Feature - Tooling API client cancels an operation
+## Feature - Tooling API client cancels an operation (DONE)
 
 Add some way for a tooling API client to request that an operation be cancelled.
 
@@ -326,8 +326,8 @@ Extend the above mechanism to support prompting the user, when running via the t
 
 Some more features to mix into the above plan:
 
+- `IdeaSingleEntryLibraryDependency` should expose multiple source or javadoc artifacts.
 - Honour same environment variables as command-line `gradle` invocation.
-- Cancelled build is gracefully stopped
 - Richer events during execution:
     - Task execution
     - Custom events

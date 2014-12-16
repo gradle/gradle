@@ -18,6 +18,7 @@ dependencies {
     compile project(":core")
     compile project(":dependencyManagement")
     compile project(":resourcesHttp")
+    compile libraries.gson
 
     testFixturesCompile project(":internalIntegTesting")
 }

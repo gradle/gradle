@@ -60,7 +60,11 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
     public void apply(Project project) {
-        project.getPlugins().apply(JavaBasePlugin.class);
+        project.apply(new Action<ObjectConfigurationAction>() {
+            public void execute(ObjectConfigurationAction objectConfigurationAction) {
+                objectConfigurationAction.plugin(JavaBasePlugin.class);
+            }
+        });
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));

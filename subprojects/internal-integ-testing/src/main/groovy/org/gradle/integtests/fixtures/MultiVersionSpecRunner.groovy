@@ -20,33 +20,41 @@ package org.gradle.integtests.fixtures
  * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
 class MultiVersionSpecRunner extends AbstractMultiTestRunner {
+
+    public static final String MULTI_VERSION_SYS_PROP = "org.gradle.integtest.multiversion"
+
     MultiVersionSpecRunner(Class<?> target) {
         super(target)
     }
 
     @Override
     protected void createExecutions() {
+        boolean enableAllVersions = "all".equals(System.getProperty(MULTI_VERSION_SYS_PROP, "all"))
         def versions = target.getAnnotation(TargetVersions)
         def coverage = target.getAnnotation(TargetCoverage)
+        def versionUnderTest
+
         if (versions != null) {
-            versions.value().each { add(new VersionExecution(it)) }
+            versionUnderTest = enableAllVersions ? versions.value() : [versions.value().last()]
         } else if (coverage != null) {
-            coverage.value().newInstance(target, target).call().each { add(new VersionExecution(it)) }
+            def coverageTargets = coverage.value().newInstance(target, target).call()
+            versionUnderTest = enableAllVersions ? coverageTargets : [coverageTargets.last()]
         } else {
             throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
+        versionUnderTest.each { add(new VersionExecution(it)) }
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {
-        final String version
+        final def version
 
-        VersionExecution(String version) {
+        VersionExecution(def version) {
             this.version = version
         }
 
         @Override
         protected String getDisplayName() {
-            return version
+            return version.toString()
         }
 
         @Override

@@ -16,21 +16,23 @@
 
 package org.gradle.model.internal.report.unbound;
 
+import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.type.ModelType;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
+@ThreadSafe
 public class UnboundRuleInput {
 
     private final String path;
     private final String type;
     private final boolean bound;
     private final String description;
-    private final Collection<String> suggestedPaths;
+    private final ImmutableList<String> suggestedPaths;
 
     public String getPath() {
         return path;
@@ -44,7 +46,7 @@ public class UnboundRuleInput {
         return bound;
     }
 
-    public Collection<? extends String> getSuggestedPaths() {
+    public ImmutableList<? extends String> getSuggestedPaths() {
         return suggestedPaths;
     }
 
@@ -52,7 +54,7 @@ public class UnboundRuleInput {
         return description;
     }
 
-    private UnboundRuleInput(String path, String type, boolean bound, List<String> suggestedPaths, String description) {
+    private UnboundRuleInput(String path, String type, boolean bound, ImmutableList<String> suggestedPaths, String description) {
         this.path = path;
         this.type = type;
         this.bound = bound;
@@ -72,12 +74,13 @@ public class UnboundRuleInput {
         return type(type.toString());
     }
 
+    @NotThreadSafe
     public static class Builder {
 
         private String path;
         private String type;
         private boolean bound;
-        private List<String> suggestedPaths = new ArrayList<String>();
+        private ImmutableList.Builder<String> suggestedPaths = ImmutableList.builder();
         private String description;
 
         private Builder(String type) {
@@ -113,7 +116,7 @@ public class UnboundRuleInput {
         }
 
         public UnboundRuleInput build() {
-            return new UnboundRuleInput(path, type, bound, suggestedPaths, description);
+            return new UnboundRuleInput(path, type, bound, suggestedPaths.build(), description);
         }
     }
 }

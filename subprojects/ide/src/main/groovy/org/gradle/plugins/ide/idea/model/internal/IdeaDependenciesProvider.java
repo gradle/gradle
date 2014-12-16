@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -31,6 +32,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeDependencyKey;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
@@ -38,7 +40,7 @@ import java.util.*;
 public class IdeaDependenciesProvider {
 
     private final IdeDependenciesExtractor dependenciesExtractor;
-    private Function<File, FilePath> getPath;
+    private Transformer<FilePath, File> getPath;
 
     /**
      * List of mappings used to assign IDEA classpath scope to project dependencies.
@@ -69,9 +71,9 @@ public class IdeaDependenciesProvider {
     }
 
     Set<Dependency> provide(final IdeaModule ideaModule) {
-        getPath = new Function<File, FilePath>() {
+        getPath = new Transformer<FilePath, File>() {
             @Nullable
-            public FilePath apply(File file) {
+            public FilePath transform(File file) {
                 return file != null ? ideaModule.getPathFactory().path(file) : null;
             }
         };
@@ -82,7 +84,7 @@ public class IdeaDependenciesProvider {
                 String scope = singleEntryLibrary.getKey();
                 for (File file : singleEntryLibrary.getValue()) {
                     if (file != null && file.isDirectory()) {
-                        result.add(new SingleEntryModuleLibrary(getPath.apply(file), scope));
+                        result.add(new SingleEntryModuleLibrary(getPath.transform(file), scope));
                     }
                 }
             }
@@ -116,8 +118,10 @@ public class IdeaDependenciesProvider {
                             ideRepoFileDependency,
                             new IdeDependencyKey.DependencyBuilder<IdeExtendedRepoFileDependency, Dependency>() {
                                 public Dependency buildDependency(IdeExtendedRepoFileDependency dependency, String scope) {
+                                    Set<FilePath> javadoc = CollectionUtils.collect(dependency.getJavadocFiles(), new LinkedHashSet<FilePath>(), getPath);
+                                    Set<FilePath> source = CollectionUtils.collect(dependency.getSourceFiles(), new LinkedHashSet<FilePath>(), getPath);
                                     SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(
-                                            getPath.apply(dependency.getFile()), getPath.apply(dependency.getJavadocFile()), getPath.apply(dependency.getSourceFile()), scope);
+                                            getPath.transform(dependency.getFile()), javadoc, source, scope);
                                     library.setModuleVersion(dependency.getId());
                                     return library;
                                 }});
@@ -132,7 +136,7 @@ public class IdeaDependenciesProvider {
                         fileDependency,
                         new IdeDependencyKey.DependencyBuilder<IdeLocalFileDependency, Dependency>() {
                             public Dependency buildDependency(IdeLocalFileDependency dependency, String scope) {
-                                return new SingleEntryModuleLibrary(getPath.apply(dependency.getFile()), scope);
+                                return new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()), scope);
                             }});
                 dependencyToConfigurations.put(key, configuration.getName());
             }

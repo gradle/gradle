@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.initialization
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -33,7 +33,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     ClassLoaderScope root
     ClassLoaderScope scope
 
-    Cache<DefaultClassLoaderCache.Key, ClassLoader> backingCache = CacheBuilder.newBuilder().build()
+    Map<DefaultClassLoaderCache.Key, ClassLoader> backingCache = [:]
     ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(backingCache)
 
     @Rule
@@ -211,33 +211,26 @@ class DefaultClassLoaderScopeTest extends Specification {
     }
 
     def "class loaders are reused"() {
-        expect:
-        backingCache.size() == 0
-
-        when:
+        given:
         def c1 = classPath("c1")
         def c2 = classPath("c2")
-        scope.export(c1).local(c2).lock()
-        scope.exportClassLoader
-
-        then:
-        backingCache.size() == 2
 
         when:
-        def sibling = root.createChild().export(c1).local(c2).lock()
-        sibling.exportClassLoader
+        def scope1 = root.createChild().export(c1).local(c2).lock()
+        scope1.exportClassLoader
+
+        def scope2 = root.createChild().export(c1).local(c2).lock()
+        scope2.exportClassLoader
 
         then:
-        sibling.exportClassLoader.is scope.exportClassLoader
-        backingCache.size() == 2
+        scope1.exportClassLoader.is scope2.exportClassLoader
 
         when:
-        def child = scope.createChild().export(c1).lock()
+        def child = scope1.createChild().export(c1).local(c2).lock()
         child.exportClassLoader
 
         then:
         child.exportClassLoader != scope.exportClassLoader // classpath is the same, but root is different
-        backingCache.size() == 3
     }
 
     def "pessimistic structure has parent visibility"() {
@@ -250,4 +243,13 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.lock().localClassLoader.getResource("root").text == "root"
     }
 
+    def "knows class loader id"() {
+        scope = (DefaultClassLoaderScope) scope
+
+        expect:
+        scope.id.localId().toString() == "scope:root:c1-local"
+        scope.id.exportId().toString() == "scope:root:c1-export"
+        ((DefaultClassLoaderScope) scope.createChild()).id.localId().toString() == "scope:root:c1:c1-local"
+        ((DefaultClassLoaderScope) scope.createChild()).id.exportId().toString() == "scope:root:c1:c2-export"
+    }
 }

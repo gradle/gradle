@@ -20,18 +20,19 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.internal.project.ProjectInternal
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
  */
 @Incubating
-class JavaLibraryDistributionPlugin implements Plugin<Project> {
+class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
     private Project project
 
-    public void apply(Project project) {
+    public void apply(ProjectInternal project) {
         this.project = project
-        project.plugins.apply(JavaPlugin)
-        project.plugins.apply(DistributionPlugin)
+        project.pluginManager.apply(JavaPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         def contents = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].contents
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
         contents.with {

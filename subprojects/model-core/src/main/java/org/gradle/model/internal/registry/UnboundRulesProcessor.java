@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelBinding;
 import org.gradle.model.internal.core.ModelPath;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@ThreadSafe
 public class UnboundRulesProcessor {
 
     private final Iterable<? extends RuleBinder<?>> binders;

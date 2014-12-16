@@ -16,44 +16,42 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.apache.tools.ant.taskdefs.optional.ANTLR;
-import org.apache.tools.ant.types.Path;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.antlr.internal.GenerationPlan;
-import org.gradle.api.plugins.antlr.internal.GenerationPlanBuilder;
-import org.gradle.api.plugins.antlr.internal.MetadataExtracter;
-import org.gradle.api.plugins.antlr.internal.XRef;
+import org.gradle.api.plugins.antlr.internal.AntlrResult;
+import org.gradle.api.plugins.antlr.internal.AntlrSpec;
+import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GFileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
- * <p>Generates parsers from Antlr grammars.</p>
- *
- * <p>Most properties here are self-evident, but I wanted to highlight one in particular: {@link #setAntlrClasspath} is
- * used to define the classpath that should be passed along to the Ant {@link ANTLR} task as its classpath.  That is the
- * classpath it uses to perform generation execution.  This <b>should</b> really only require the antlr jar.  In {@link
- * AntlrPlugin} usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
- * created and exposed by the {@link AntlrPlugin} itself.</p>
+ * Generates parsers from Antlr grammars.
  */
 public class AntlrTask extends SourceTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntlrTask.class);
 
     private boolean trace;
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
+    private List<String> arguments = new ArrayList<String>();
 
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
+    private String maxHeapSize = "1g";
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -99,6 +97,24 @@ public class AntlrTask extends SourceTask {
         this.traceTreeWalker = traceTreeWalker;
     }
 
+    public String getMaxHeapSize() {
+        return maxHeapSize;
+    }
+
+    public void setMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
+    }
+
+    public void setArguments(List<String> arguments) {
+        if (arguments != null) {
+            this.arguments = arguments;
+        }
+    }
+
+    public List<String> getArguments() {
+        return arguments;
+    }
+
     /**
      * Returns the directory to generate the parser source files into.
      *
@@ -130,44 +146,89 @@ public class AntlrTask extends SourceTask {
 
     /**
      * Specifies the classpath containing the Ant ANTLR task implementation.
-     *
+     *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
     public void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;
     }
 
+    @Inject
+    public Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
-    public void generate() {
-        // Determine the grammar files and the proper ordering amongst them
-        XRef xref = new MetadataExtracter().extractMetadata(getSource());
-        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
+    public void execute(IncrementalTaskInputs inputs) {
+        final List<File> grammarFiles = new ArrayList<File>();
+        final Set<File> sourceFiles = getSource().getFiles();
 
-        for (GenerationPlan generationPlan : generationPlans) {
-            if (!generationPlan.isOutOfDate()) {
-                LOGGER.info("grammar [" + generationPlan.getId() + "] was up-to-date; skipping");
-                continue;
-            }
+        inputs.outOfDate(
+                new Action<InputFileDetails>() {
+                    public void execute(InputFileDetails details) {
+                        File input = details.getFile();
+                        for (File file : sourceFiles) {
+                            if (file.getAbsolutePath().equals(input.getAbsolutePath())) {
+                                grammarFiles.add(input);
+                                break;
+                            }
+                        }
+                    }
+                }
+        );
 
-            LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
+        List<String> args = buildArguments(grammarFiles);
+        AntlrWorkerManager manager = new AntlrWorkerManager();
+        AntlrSpec spec = new AntlrSpec(args, maxHeapSize);
+        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
+        evaluateAntlrResult(result);
+    }
 
-            //noinspection ResultOfMethodCallIgnored
-            GFileUtils.mkdirs(generationPlan.getGenerationDirectory());
-
-            ANTLR antlr = new ANTLR();
-            antlr.setProject(getAnt().getAntProject());
-            Path antlrTaskClasspath = antlr.createClasspath();
-            for (File dep : getAntlrClasspath()) {
-                antlrTaskClasspath.createPathElement().setLocation(dep);
-            }
-            antlr.setTrace(trace);
-            antlr.setTraceLexer(traceLexer);
-            antlr.setTraceParser(traceParser);
-            antlr.setTraceTreeWalker(traceTreeWalker);
-            antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
-            antlr.setTarget(generationPlan.getSource());
-
-            antlr.execute();
+    public void evaluateAntlrResult(AntlrResult result) {
+        int errorCount = result.getErrorCount();
+        if (errorCount == 1) {
+            throw new GradleException("There was 1 error during grammar generation");
+        } else if (errorCount > 1) {
+            throw new GradleException("There were "
+                + errorCount
+                + " errors during grammar generation");
         }
+    }
+
+    /**
+     * Finalizes the list of arguments that will be sent to the ANTLR tool.
+     */
+    List<String> buildArguments(List<File> grammarFiles) {
+        List<String> args = new ArrayList<String>();    // List for finalized arguments
+        
+        // Output file
+        args.add("-o");
+        args.add(outputDirectory.getAbsolutePath());
+        
+        // Custom arguments
+        for (String argument : arguments) {
+            args.add(argument);
+        }
+
+        // Add trace parameters, if they don't already exist
+        if (isTrace() && !arguments.contains("-trace")) {
+            args.add("-trace");
+        }
+        if (isTraceLexer() && !arguments.contains("-traceLexer")) {
+            args.add("-traceLexer");
+        }
+        if (isTraceParser() && !arguments.contains("-traceParser")) {
+            args.add("-traceParser");
+        }
+        if (isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
+            args.add("-traceTreeWalker");
+        }
+
+        // Files in source directory
+        for (File file : grammarFiles) {
+            args.add(file.getAbsolutePath());
+        }
+
+        return args;
     }
 }

@@ -28,7 +28,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.*;
-import org.gradle.launcher.daemon.server.exec.DaemonStoppedException;
+import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEvent;

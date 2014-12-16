@@ -58,7 +58,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.extraInfo.get('foo') == 'fooValue'
@@ -90,7 +90,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             descriptor.extraInfo.get('foo')
         }
@@ -127,7 +127,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.branch == '${sq(branch)}'
             details.statusScheme = [ '${sq(status)}' ]
@@ -164,7 +164,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details ->
+        all { ComponentMetadataDetails details ->
             ruleInvoked = true
         }
     }
@@ -183,7 +183,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -217,7 +217,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.branch == 'someBranch'
@@ -253,7 +253,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ruleInvoked = true
             file("metadata").delete()
             file("metadata") << descriptor.extraInfo.asMap().toString()
@@ -280,6 +280,29 @@ resolve.doLast { assert ruleInvoked }
         then:
         succeeds 'resolve'
         assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
+    }
+
+    def "produces sensible error when @Mutate method does not have ComponentMetadata as first parameter" () {
+        buildFile << """
+            dependencies {
+                components {
+                    all(new BadRuleSource())
+                }
+            }
+
+            class BadRuleSource {
+                @org.gradle.model.Mutate
+                void doSomething(String s) { }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        fails 'resolveConf'
+        failureDescriptionStartsWith("A problem occurred evaluating root project")
+        failure.assertHasCause("Type BadRuleSource is not a valid model rule source: \n- first parameter of rule method 'doSomething' must be of type org.gradle.api.artifacts.ComponentMetadataDetails")
     }
 
     def ns(String name) {

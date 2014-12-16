@@ -40,7 +40,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
-public class    DefaultCacheAccess implements CacheCoordinator {
+public class DefaultCacheAccess implements CacheCoordinator {
 
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
@@ -180,10 +180,15 @@ public class    DefaultCacheAccess implements CacheCoordinator {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
 
-        takeOwnership(operationDisplayName);
         boolean wasStarted = false;
+        lock.lock();
         try {
+            takeOwnership(operationDisplayName);
             wasStarted = onStartWork();
+        } finally {
+            lock.unlock();
+        }
+        try {
             return factory.create();
         } finally {
             lock.lock();

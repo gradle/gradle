@@ -15,42 +15,36 @@
  */
 package org.gradle.jvm.plugins;
 
-import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmComponentExtension;
 import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.internal.configure.DefaultJarBinariesFactory;
-import org.gradle.jvm.internal.configure.JarBinariesFactory;
-import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
-import org.gradle.jvm.internal.configure.JvmLibrarySpecInitializer;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
-import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,20 +55,7 @@ import java.util.List;
 public class JvmComponentPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
-
-        ComponentSpecContainer componentSpecs = project.getExtensions().getByType(ComponentSpecContainer.class);
-
-        final ProjectSourceSet sources = project.getExtensions().getByType(ProjectSourceSet.class);
-        componentSpecs.registerFactory(JvmLibrarySpec.class, new NamedDomainObjectFactory<JvmLibrarySpec>() {
-            public JvmLibrarySpec create(String name) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(project.getPath(), name);
-                return new DefaultJvmLibrarySpec(id, sources.maybeCreate(name));
-            }
-        });
-
-        final NamedDomainObjectContainer<JvmLibrarySpec> jvmLibraries = componentSpecs.containerWithType(JvmLibrarySpec.class);
-        project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**
@@ -83,10 +64,20 @@ public class JvmComponentPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     public static class Rules {
+        @ComponentType
+        void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
+            builder.defaultImplementation(DefaultJvmLibrarySpec.class);
+        }
+
+        @BinaryType
+        void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
+            builder.defaultImplementation(DefaultJarBinarySpec.class);
+        }
 
         @Model
-        NamedDomainObjectCollection<JvmLibrarySpec> jvmLibraries(ComponentSpecContainer components) {
-            return components.withType(JvmLibrarySpec.class);
+        JvmComponentExtension jvm(ServiceRegistry serviceRegistry) {
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultJvmComponentExtension.class);
         }
 
         @Model
@@ -111,35 +102,52 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createJavaPlatforms(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            //Create default platforms available for Java
-            for (JavaVersion javaVersion: JavaVersion.values()) {
-                DefaultJavaPlatform javaPlatform = instantiator.newInstance(DefaultJavaPlatform.class, javaVersion);
+        public void createJavaPlatforms(PlatformContainer platforms) {
+            // TODO:DAZ Should be creating, not adding
+            for (JavaVersion javaVersion : JavaVersion.values()) {
+                DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
                 platforms.add(javaPlatform);
             }
         }
 
-        @Mutate
-        public void createBinaries(BinaryContainer binaries, PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder,
-                                   NamedDomainObjectCollection<JvmLibrarySpec> libraries, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        @ComponentBinaries
+        public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
+                                   PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
+                                   @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
-            List<Action<? super JarBinarySpec>> actions = Lists.newArrayList();
-            actions.add(new JarBinarySpecInitializer(buildDir));
-            actions.add(new MarkBinariesBuildable());
-            Action<JarBinarySpec> initAction = Actions.composite(actions);
-            JarBinariesFactory factory = new DefaultJarBinariesFactory(instantiator, initAction);
+            final File binariesDir = new File(buildDir, "jars");
+            final File classesDir = new File(buildDir, "classes");
 
-            Action<JvmLibrarySpec> createBinariesAction =
-                    new JvmLibrarySpecInitializer(factory, namingSchemeBuilder, toolChains, platforms);
+            List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
+            if (targetPlatforms.isEmpty()) {
+                // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
+                targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
+            }
+            List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms);
+            for (final JavaPlatform platform : selectedPlatforms) {
+                final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
+                final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
 
-            for (JvmLibrarySpec jvmLibrary : libraries) {
-                createBinariesAction.execute(jvmLibrary);
-                binaries.addAll(jvmLibrary.getBinaries());
+                binaries.create(binaryName, new Action<JarBinarySpec>() {
+                    public void execute(JarBinarySpec jarBinary) {
+                        JarBinarySpecInternal jarBinaryInternal = (JarBinarySpecInternal) jarBinary;
+                        jarBinaryInternal.setBaseName(jvmLibrary.getName());
+                        jarBinary.setToolChain(toolChain);
+                        jarBinary.setTargetPlatform(platform);
+
+                        File outputDir = new File(classesDir, jarBinary.getName());
+                        jarBinary.setClassesDir(outputDir);
+                        jarBinary.setResourcesDir(outputDir);
+                        jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinaryInternal.getBaseName())));
+
+                        boolean canBuild = toolChain.select(jarBinary.getTargetPlatform()).isAvailable();
+                        jarBinaryInternal.setBuildable(canBuild);
+
+                        jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
+                    }
+                });
             }
         }
-
 
         @Mutate
         public void createTasks(TaskContainer tasks, BinaryContainer binaries) {
@@ -151,8 +159,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         private Task createJarTask(TaskContainer tasks, JarBinarySpecInternal binary) {
-            Jar jar = tasks.create(binary.getNamingScheme().getTaskName("create"), Jar.class);
-            jar.setDescription(String.format("Creates the binary file for %s.", binary.getNamingScheme().getDescription()));
+            String taskName = "create" + StringUtils.capitalize(binary.getName());
+            Jar jar = tasks.create(taskName, Jar.class);
+            jar.setDescription(String.format("Creates the binary file for %s.", binary));
             jar.from(binary.getClassesDir());
             jar.from(binary.getResourcesDir());
 
@@ -161,14 +170,16 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             return jar;
         }
-    }
 
-    //TODO: Refactor out common code for Native and Jvm
-    private static class MarkBinariesBuildable implements Action<JarBinarySpec> {
-        public void execute(JarBinarySpec jarBinarySpec) {
-            JavaToolChainInternal toolChain = (JavaToolChainInternal) jarBinarySpec.getToolChain();
-            boolean canBuild = toolChain.select(jarBinarySpec.getTargetPlatform()).isAvailable();
-            ((JarBinarySpecInternal) jarBinarySpec).setBuildable(canBuild);
+        private String createBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
+            BinaryNamingSchemeBuilder componentBuilder = namingSchemeBuilder
+                    .withComponentName(jvmLibrary.getName())
+                    .withTypeString("jar");
+            if (selectedPlatforms.size() > 1) {
+                componentBuilder = componentBuilder.withVariantDimension(platform.getName());
+            }
+            return componentBuilder.build().getLifecycleTaskName();
         }
     }
+
 }

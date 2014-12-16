@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.diagnostics.internal.text;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -30,9 +32,27 @@ import static org.gradle.logging.StyledTextOutput.Style.Normal;
 public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
     private StyledTextOutput textOutput;
+    private final FileResolver fileResolver;
 
-    public DefaultTextReportBuilder(StyledTextOutput textOutput) {
+    public DefaultTextReportBuilder(StyledTextOutput textOutput, FileResolver fileResolver) {
         this.textOutput = textOutput;
+        this.fileResolver = fileResolver;
+    }
+
+    public void item(String title, String value) {
+        textOutput.append("    ").append(title).append(": ").append(value).println();
+    }
+
+    public void item(String title, File value) {
+        item(title, fileResolver.resolveAsRelativePath(value));
+    }
+
+    public void item(String value) {
+        textOutput.append("    ").append(value).println();
+    }
+
+    public void item(File value) {
+        item(fileResolver.resolveAsRelativePath(value));
     }
 
     public void heading(String heading) {

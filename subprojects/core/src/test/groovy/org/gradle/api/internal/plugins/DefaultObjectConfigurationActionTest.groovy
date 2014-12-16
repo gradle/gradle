@@ -19,7 +19,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScript

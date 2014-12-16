@@ -17,7 +17,7 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.platform.base.BinaryTasksCollection;
 
 /**

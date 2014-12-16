@@ -120,4 +120,15 @@ class MultiParentClassLoaderTest extends Specification {
         1 * visitor.visitParent(parent2)
         0 * visitor._
     }
+
+    def "equals and hashcode"() {
+        def c1 = new URLClassLoader()
+        def c2 = new CachingClassLoader(c1)
+        expect:
+        new MultiParentClassLoader(c1, c2) == new MultiParentClassLoader(c1, c2)
+        new MultiParentClassLoader(c1, c2).hashCode() == new MultiParentClassLoader(c1, c2).hashCode()
+
+        new MultiParentClassLoader(c1, c2) != new MultiParentClassLoader(c1, c2, new URLClassLoader())
+        new MultiParentClassLoader(c1, c2).hashCode() != new MultiParentClassLoader(c1, c2, new URLClassLoader()).hashCode()
+    }
 }

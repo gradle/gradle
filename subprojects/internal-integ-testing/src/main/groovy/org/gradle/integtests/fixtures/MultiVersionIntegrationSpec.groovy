@@ -21,9 +21,9 @@ import org.gradle.util.VersionNumber
 
 @RunWith(MultiVersionSpecRunner)
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
-    static String version
+    static def version
 
     static VersionNumber getVersionNumber() {
-        VersionNumber.parse(version)
+        VersionNumber.parse(version.toString())
     }
 }

@@ -203,6 +203,41 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
+    def "maps version range to maven syntax"() {
+        def dependency1 = Mock(MavenDependencyInternal)
+        def dependency2 = Mock(MavenDependencyInternal)
+
+        when:
+        generator.addRuntimeDependency(dependency1)
+        generator.addRuntimeDependency(dependency2)
+
+        then:
+        dependency1.artifacts >> new HashSet<DependencyArtifact>()
+        dependency1.groupId >> "dep-group"
+        dependency1.version >> "latest.release"
+        dependency1.excludeRules >> []
+
+        dependency2.artifacts >> new HashSet<DependencyArtifact>()
+        dependency2.groupId >> "dep-group"
+        dependency2.version >> "latest.integration"
+        dependency2.excludeRules >> []
+
+        and:
+        with (pom) {
+            dependencies.dependency.size() == 2
+            with (dependencies[0].dependency[0]) {
+                groupId == "dep-group"
+                version == "RELEASE"
+                scope == "runtime"
+            }
+            with (dependencies[0].dependency[1]) {
+                groupId == "dep-group"
+                version == "LATEST"
+                scope == "runtime"
+            }
+        }
+    }
+
     def "applies withXml actions"() {
         when:
         generator.withXml(new Action<XmlProvider>() {

@@ -16,6 +16,8 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.cli.CommandLineArgumentException
+import org.gradle.logging.ConsoleOutput
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
 import spock.lang.Specification
@@ -60,6 +62,29 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--no-color'])
     }
 
+    def convertsColor() {
+        expectedConfig.consoleOutput = consoleOutput
+
+        expect:
+        checkConversion([arg])
+
+        where:
+        arg               | consoleOutput
+        "--console=plain" | ConsoleOutput.Plain
+        "--console=auto"  | ConsoleOutput.Auto
+        "--console=AUTO"  | ConsoleOutput.Auto
+        "--console=rich"  | ConsoleOutput.Rich
+    }
+
+    def reportsUnknownColorOption() {
+        when:
+        converter.convert(["--console", "unknown"], new LoggingConfiguration())
+
+        then:
+        CommandLineArgumentException e = thrown()
+        e.message == /Unrecognized value 'unknown' for console./
+    }
+
     def convertsShowStacktrace() {
         expectedConfig.showStacktrace = ShowStacktrace.ALWAYS
 
@@ -93,7 +118,7 @@ class LoggingCommandLineConverterTest extends Specification {
     void checkConversion(List<String> args) {
         def actual = converter.convert(args, new LoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
-        assert actual.colorOutput == expectedConfig.colorOutput
+        assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
     }
 }

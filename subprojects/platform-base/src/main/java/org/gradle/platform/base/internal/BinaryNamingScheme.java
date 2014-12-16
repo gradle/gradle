@@ -20,7 +20,14 @@ import org.gradle.api.Nullable;
 
 import java.util.List;
 
+// TODO:DAZ Split data from behaviour
+// data: fullName + component parts [typeName, dimensions, baseName?]
+// Can determine baseName
+
+// behaviour: composing these
 public interface BinaryNamingScheme {
+    String getBaseName();
+
     String getLifecycleTaskName();
 
     String getTaskName(@Nullable String verb);

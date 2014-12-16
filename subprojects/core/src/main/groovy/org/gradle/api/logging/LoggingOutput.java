@@ -16,9 +16,12 @@
 
 package org.gradle.api.logging;
 
+import org.gradle.internal.HasInternalProtocol;
+
 /**
  * Provides access to the output of the Gradle logging system.
  */
+@HasInternalProtocol
 public interface LoggingOutput {
     /**
      * Adds a listener which receives output written to standard output by the Gradle logging system.

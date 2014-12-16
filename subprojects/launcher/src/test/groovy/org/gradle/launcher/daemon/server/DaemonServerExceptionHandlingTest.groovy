@@ -25,12 +25,12 @@ import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
+import org.gradle.launcher.daemon.client.StubDaemonHealthServices
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.launcher.daemon.server.exec.DaemonCommandAction
+import org.gradle.launcher.daemon.server.api.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
-import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
@@ -76,7 +76,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
             DaemonCommandExecuter createDaemonCommandExecuter() {
                 return new DefaultDaemonCommandExecuter(new InProcessBuildActionExecuter(get(GradleLauncherFactory)),
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
-                        new File("dummy"), new NoOpDaemonCommandAction()) {
+                        new File("dummy"), new StubDaemonHealthServices()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
                         def actions = new LinkedList(super.createActions(daemonContext));
                         configureDeamonActions(actions);

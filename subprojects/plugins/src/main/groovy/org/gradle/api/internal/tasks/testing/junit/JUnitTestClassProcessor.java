@@ -19,12 +19,9 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.slf4j.Logger;
@@ -34,24 +31,22 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final IdGenerator<?> idGenerator;
     private final ActorFactory actorFactory;
-    private final StandardOutputRedirector outputRedirector;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final TimeProvider timeProvider;
     private final JUnitSpec spec;
     private JUnitTestClassExecuter executer;
     private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory,
-                                   StandardOutputRedirector standardOutputRedirector) {
+    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, TimeProvider timeProvider) {
         this.idGenerator = idGenerator;
         this.spec = spec;
         this.actorFactory = actorFactory;
-        this.outputRedirector = standardOutputRedirector;
+        this.timeProvider = timeProvider;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Build a result processor chain
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
-        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector));
+        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(resultProcessor);
         TestClassExecutionEventGenerator eventGenerator = new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, timeProvider);
 
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe

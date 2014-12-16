@@ -16,12 +16,14 @@
 
 package org.gradle.nativeplatform.tasks
 import org.gradle.api.Incubating
+import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec
 import org.gradle.nativeplatform.internal.LinkerSpec
 /**
  * Links a binary executable from object files and libraries.
  */
 @Incubating
+@ParallelizableTask
 class LinkExecutable extends AbstractLinkTask {
 
     @Override

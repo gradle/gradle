@@ -26,7 +26,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class AbstractLongRunningOperation<T extends LongRunningOperation> implements LongRunningOperation {
+public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
     protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
 
@@ -63,6 +63,11 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
         return getThis();
     }
 
+    public T setColorOutput(boolean colorOutput) {
+        operationParamsBuilder.setColorOutput(colorOutput);
+        return getThis();
+    }
+
     public T setJavaHome(File javaHome) {
         operationParamsBuilder.setJavaHome(javaHome);
         return getThis();
@@ -78,7 +83,7 @@ public abstract class AbstractLongRunningOperation<T extends LongRunningOperatio
         return getThis();
     }
 
-    public LongRunningOperation withCancellationToken(CancellationToken cancellationToken) {
+    public T withCancellationToken(CancellationToken cancellationToken) {
         operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
         return getThis();
     }

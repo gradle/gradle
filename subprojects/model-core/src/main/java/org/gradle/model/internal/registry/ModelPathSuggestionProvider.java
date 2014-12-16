@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelPath;
@@ -26,6 +27,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
+@ThreadSafe
 class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelPath> {
 
     private static final Predicate<Suggestion> REMOVE_NULLS = new Predicate<Suggestion>() {
@@ -34,13 +36,13 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         }
     };
 
-
     private final Iterable<ModelPath> availablePaths;
 
     public ModelPathSuggestionProvider(Iterable<ModelPath> availablePaths) {
         this.availablePaths = availablePaths;
     }
 
+    @ThreadSafe
     private static class Suggestion implements Comparable<Suggestion> {
 
         private static final Transformer<ModelPath, Suggestion> EXTRACT_PATH = new Transformer<ModelPath, Suggestion>() {

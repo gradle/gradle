@@ -62,39 +62,38 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            apply plugin: "cpp"
-            libraries {
-                lib1
-            }
-
-            executables {
-                main {}
-            }
-
+apply plugin: "cpp"
+model {
+    components {
+        lib1(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
             sources {
-                other {
-                    cpp(CppSourceSet)
-                }
-                main {
-                    cpp(CppSourceSet)
-                    cpp1(CppSourceSet)
-                }
+                cpp(CppSourceSet)
+                cpp1(CppSourceSet)
             }
+        }
+    }
+}
 """
     }
 
     def "library dependency of binary is available when linking all source sets"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    source sources.other
-                    binaries.all {
-                        lib library: 'lib1', linkage: 'static'
-                    }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                other(CppSourceSet) {
+                    source.srcDir "src/other/cpp"
                 }
             }
-
+            binaries.all {
+                lib library: 'lib1', linkage: 'static'
+            }
+        }
+    }
+}
 """
         when:
         succeeds "installMainExecutable"
@@ -106,12 +105,18 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
     def "library dependency of 1 language source set is available to another when linking"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    source sources.other
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                other(CppSourceSet) {
+                    source.srcDir "src/other/cpp"
+                    lib library: 'lib1', linkage: 'static'
                 }
             }
-            sources.other.cpp.lib library: 'lib1', linkage: 'static'
+        }
+    }
+}
 """
 
         when:
@@ -124,14 +129,20 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
     def "dependencies of language source set added to binary are available when linking"() {
         given:
         buildFile << """
-            executables {
-                main {
-                    binaries.all {
-                        source sources.other
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                sources {
+                    other(CppSourceSet) {
+                        source.srcDir "src/other/cpp"
+                        lib library: 'lib1', linkage: 'static'
                     }
                 }
             }
-            sources.other.cpp.lib library: 'lib1', linkage: 'static'
+        }
+    }
+}
 """
 
         when:

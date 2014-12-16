@@ -17,7 +17,9 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.platform.base.ApplicationBinarySpec;
+import org.gradle.platform.base.BinaryTasksCollection;
 
 import java.io.File;
 
@@ -27,6 +29,21 @@ import java.io.File;
 @Incubating
 public interface NativeExecutableBinarySpec extends NativeBinarySpec, ApplicationBinarySpec {
     /**
+     * Provides access to key tasks used for building the binary.
+     */
+    public interface TasksCollection extends BinaryTasksCollection {
+        /**
+         * The link task.
+         */
+        Task getLink();
+
+        /**
+         * The install task.
+         */
+        Task getInstall();
+    }
+
+    /**
      * The executable file.
      */
     File getExecutableFile();
@@ -35,4 +52,9 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
      * The executable file.
      */
     void setExecutableFile(File executableFile);
+
+    /**
+     * {@inheritDoc}
+     */
+    TasksCollection getTasks();
 }

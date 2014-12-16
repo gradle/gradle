@@ -26,13 +26,14 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Compiles native source files into object files.
@@ -51,6 +52,12 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
+        getInputs().property("outputType", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+            }
+        });
     }
 
     @Inject
@@ -79,11 +86,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
-
-    @Input
-    public String getOutputType() {
-        return toolChain.getOutputType() + ":" + targetPlatform.getCompatibilityString();
-    }
 
     /**
      * The tool chain used for compilation.

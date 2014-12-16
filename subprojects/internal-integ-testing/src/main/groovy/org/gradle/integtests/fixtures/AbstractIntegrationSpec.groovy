@@ -75,6 +75,10 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         testDirectory.file('settings.gradle')
     }
 
+    protected TestNameTestDirectoryProvider getTestDirectoryProvider() {
+        temporaryFolder
+    }
+
     TestFile getTestDirectory() {
         temporaryFolder.testDirectory
     }
@@ -104,6 +108,11 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     protected GradleExecuter requireOwnGradleUserHomeDir() {
         executer.requireOwnGradleUserHomeDir()
+        executer
+    }
+
+    protected GradleExecuter requireGradleHome() {
+        executer.requireGradleHome()
         executer
     }
 
@@ -150,6 +159,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
     
     protected void executedAndNotSkipped(String... tasks) {
+        if (GradleContextualExecuter.parallel) {
+            return
+        }
         tasks.each {
             assert it in executedTasks
             assert !skippedTasks.contains(it)
@@ -157,6 +169,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected void skipped(String... tasks) {
+        if (GradleContextualExecuter.parallel) {
+            return
+        }
         tasks.each {
             assert it in executedTasks
             assert skippedTasks.contains(it)

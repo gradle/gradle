@@ -16,11 +16,13 @@
 
 package org.gradle.model.internal.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
+@ThreadSafe
 public class ActionBackedModelMutator<T> implements ModelMutator<T> {
 
     private final ModelReference<T> subject;
@@ -43,7 +45,7 @@ public class ActionBackedModelMutator<T> implements ModelMutator<T> {
         return subject;
     }
 
-    public void mutate(T object, Inputs inputs) {
+    public void mutate(ModelNode modelNode, T object, Inputs inputs) {
         action.execute(object);
     }
 

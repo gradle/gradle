@@ -23,17 +23,15 @@ import java.util.Map;
 
 import static org.fusesource.jansi.Ansi.Attribute;
 import static org.fusesource.jansi.Ansi.Attribute.*;
-import static org.fusesource.jansi.Ansi.Attribute.ITALIC;
-import static org.fusesource.jansi.Ansi.Color.*;
+import static org.fusesource.jansi.Ansi.Color.DEFAULT;
 import static org.gradle.logging.StyledTextOutput.Style.*;
-import static org.gradle.logging.StyledTextOutput.Style.Success;
+import static org.gradle.logging.StyledTextOutput.Style.Error;
 
 public class DefaultColorMap implements ColorMap {
     private static final String STATUSBAR = "statusbar";
     private static final String BOLD = "bold";
     private final Map<String, String> defaults = new HashMap<String, String>();
     private final Map<String, Color> colors = new HashMap<String, Color>();
-    private boolean useColor = true;
     private final Color noDecoration = new Color() {
         public void on(Ansi ansi) {
         }
@@ -63,10 +61,6 @@ public class DefaultColorMap implements ColorMap {
         defaults.put(style, color);
     }
 
-    public void setUseColor(boolean useColor) {
-        this.useColor = useColor;
-    }
-
     public Color getStatusBarColor() {
         return getColor(STATUSBAR);
     }
@@ -76,10 +70,6 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private Color getColor(String style) {
-        if (!useColor) {
-            return noDecoration;
-        }
-
         Color color = colors.get(style);
         if (color == null) {
             color = createColor(style);

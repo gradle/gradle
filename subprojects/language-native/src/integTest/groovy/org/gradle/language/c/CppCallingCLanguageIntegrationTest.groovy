@@ -16,11 +16,11 @@
 
 package org.gradle.language.c
 
-import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
-class CppCallingCLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class CppCallingCLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     HelloWorldApp helloWorldApp = new CppCallingCHelloWorldApp()
 }
 

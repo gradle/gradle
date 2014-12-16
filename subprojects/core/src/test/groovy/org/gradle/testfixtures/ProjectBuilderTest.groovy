@@ -21,6 +21,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskAction
+import org.gradle.model.Model
+import org.gradle.model.RuleSource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -31,8 +33,10 @@ import spock.lang.Specification
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ProjectBuilderTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    @Rule public final Resources resources = new Resources()
+    @Rule
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    public final Resources resources = new Resources()
 
     def canCreateARootProject() {
 
@@ -50,9 +54,13 @@ class ProjectBuilderTest extends Specification {
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 
+    private Project buildProject() {
+        ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+    }
+
     def canCreateARootProjectWithAGivenProjectDir() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
 
         then:
         project.projectDir == temporaryFolder.testDirectory
@@ -60,9 +68,9 @@ class ProjectBuilderTest extends Specification {
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 
-    def canApplyACustomPluginByType() {
+    def canApplyACustomPluginUsingClass() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
         project.apply plugin: CustomPlugin
 
         then:
@@ -71,8 +79,17 @@ class ProjectBuilderTest extends Specification {
 
     def canApplyACustomPluginById() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
         project.apply plugin: 'custom-plugin'
+
+        then:
+        project.tasks.hello instanceof DefaultTask
+    }
+
+    def canApplyACustomPluginByType() {
+        when:
+        def project = buildProject()
+        project.pluginManager.apply(CustomPlugin)
 
         then:
         project.tasks.hello instanceof DefaultTask
@@ -80,7 +97,7 @@ class ProjectBuilderTest extends Specification {
 
     def canCreateAndExecuteACustomTask() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
         def task = project.task('custom', type: CustomTask)
         task.doStuff()
 
@@ -90,7 +107,7 @@ class ProjectBuilderTest extends Specification {
 
     def canApplyABuildScript() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
         project.apply from: resources.getResource('ProjectBuilderTest.gradle')
 
         then:
@@ -102,7 +119,7 @@ class ProjectBuilderTest extends Specification {
         def latch = new AtomicBoolean(false)
 
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
 
         project.afterEvaluate {
             latch.getAndSet(true)
@@ -122,7 +139,7 @@ class ProjectBuilderTest extends Specification {
         def latch = new AtomicBoolean(false)
 
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
+        def project = buildProject()
 
         project.getTasksByName('myTask', true)
 
@@ -150,5 +167,14 @@ public class CustomTask extends DefaultTask {
 public class CustomPlugin implements Plugin<Project> {
     void apply(Project target) {
         target.task('hello');
+    }
+}
+
+@RuleSource
+public class CustomRuleSource {
+
+    @Model
+    String foo() {
+        "bar"
     }
 }

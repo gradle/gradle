@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 
+@ThreadSafe
 public class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private final ModelRuleDescriptor parent;

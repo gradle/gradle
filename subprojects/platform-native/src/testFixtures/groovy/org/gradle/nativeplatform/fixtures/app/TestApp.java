@@ -16,18 +16,20 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.integtests.fixtures.SourceFile;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class TestApp extends TestComponent {
+public abstract class TestApp extends TestNativeComponent {
     public abstract SourceFile getMainSource();
     public abstract SourceFile getLibraryHeader();
     public abstract List<SourceFile> getLibrarySources();
 
-    public TestComponent getLibrary() {
-        return new TestComponent() {
+    public TestNativeComponent getLibrary() {
+        return new TestNativeComponent() {
             @Override
             public List<SourceFile> getSourceFiles() {
                 return getLibrarySources();
@@ -40,8 +42,8 @@ public abstract class TestApp extends TestComponent {
         };
     }
 
-    public TestComponent getExecutable() {
-        return new TestComponent() {
+    public TestNativeComponent getExecutable() {
+        return new TestNativeComponent() {
             @Override
             public List<SourceFile> getHeaderFiles() {
                 return Collections.emptyList();

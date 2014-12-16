@@ -16,13 +16,15 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.reporting.ReportRenderer
 import spock.lang.Specification
 
 class DefaultTextReportBuilderTest extends Specification {
     def output = new TestStyledTextOutput()
-    def builder = new DefaultTextReportBuilder(output)
+    def fileResolver = Stub(FileResolver)
+    def builder = new DefaultTextReportBuilder(output, fileResolver)
 
     def "formats heading"() {
         given:
@@ -74,6 +76,48 @@ heading
         then:
         output.value == """Things
     No things.
+"""
+    }
+
+    def "formats item"() {
+        when:
+        builder.item("some value")
+
+        then:
+        output.value == """    some value
+"""
+    }
+
+    def "formats item with file value"() {
+        def file = new File("thing")
+        fileResolver.resolveAsRelativePath(file) >> "path/thing"
+
+        when:
+        builder.item(file)
+
+        then:
+        output.value == """    path/thing
+"""
+    }
+
+    def "formats item with title"() {
+        when:
+        builder.item("the title", "the value")
+
+        then:
+        output.value == """    the title: the value
+"""
+    }
+
+    def "formats item with title and file value"() {
+        def file = new File("thing")
+        fileResolver.resolveAsRelativePath(file) >> "path/thing"
+
+        when:
+        builder.item("the title", file)
+
+        then:
+        output.value == """    the title: path/thing
 """
     }
 }

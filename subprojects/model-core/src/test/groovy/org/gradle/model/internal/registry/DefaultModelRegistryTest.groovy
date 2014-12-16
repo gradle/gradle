@@ -17,7 +17,9 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class DefaultModelRegistryTest extends Specification {
@@ -25,11 +27,11 @@ class DefaultModelRegistryTest extends Specification {
     def registry = new DefaultModelRegistry()
 
     def "can register creator that is bound immediately"() {
-        def foo = ModelCreators.of(ModelReference.of("foo", String), "foo").simpleDescriptor("foo").build()
-        def bar = ModelCreators.of(ModelReference.of("bar", Integer), 1).simpleDescriptor("bar").build()
+        def foo = ModelCreators.bridgedInstance(ModelReference.of("foo", String), "foo").simpleDescriptor("foo").build()
+        def bar = ModelCreators.bridgedInstance(ModelReference.of("bar", Integer), 1).simpleDescriptor("bar").build()
 
         // importantly, this creator has a type only input reference to something that is already bindable
-        def other = ModelCreators.of(ModelReference.of("other", String), "other")
+        def other = ModelCreators.bridgedInstance(ModelReference.of("other", String), "other")
                 .simpleDescriptor("other")
                 .inputs([ModelReference.of(String)])
                 .build()
@@ -41,5 +43,14 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can maybe get non existing"() {
+        when:
+        registry.get(ModelPath.path("foo"), ModelType.untyped())
+
+        then:
+        thrown IllegalStateException
+        registry.find(ModelPath.path("foo"), ModelType.untyped()) == null
     }
 }

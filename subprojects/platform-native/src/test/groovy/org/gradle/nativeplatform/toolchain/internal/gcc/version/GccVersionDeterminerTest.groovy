@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version
 
 import org.gradle.api.Transformer
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
@@ -85,9 +84,6 @@ class GccVersionDeterminerTest extends Specification {
     @Unroll
     "can scrape architecture from GCC output"() {
         expect:
-        def result = output(gcc4)
-        result.defaultArchitecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-
         def x86 = output(gccX86)
         x86.defaultArchitecture.isI386()
 

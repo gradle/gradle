@@ -19,10 +19,13 @@ import org.gradle.internal.os.OperatingSystem;
 
 public class DefaultOperatingSystem implements OperatingSystemInternal {
     private static final OperatingSystem CURRENT_OS = OperatingSystem.current();
-    public static final OperatingSystemInternal TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", CURRENT_OS);
 
     private final String name;
     private final OperatingSystem internalOs;
+
+    public DefaultOperatingSystem(String name) {
+        this(name, OperatingSystem.forName(name));
+    }
 
     public DefaultOperatingSystem(String name, OperatingSystem internalOs) {
         this.name = name;
@@ -68,5 +71,22 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
 
     public boolean isFreeBSD() {
         return internalOs == OperatingSystem.FREE_BSD;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultOperatingSystem that = (DefaultOperatingSystem) o;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
     }
 }

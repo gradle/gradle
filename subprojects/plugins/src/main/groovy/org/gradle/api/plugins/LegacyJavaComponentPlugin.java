@@ -20,12 +20,13 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
@@ -33,10 +34,10 @@ import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.jvm.toolchain.JavaToolChain;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -61,7 +62,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
 
-        target.getPlugins().apply(LanguageBasePlugin.class);
+        target.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {

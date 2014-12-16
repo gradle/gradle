@@ -16,13 +16,15 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompilerSupport;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
-public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec>
-        implements Compiler<ScalaJavaJointCompileSpec> {
+/**
+ * Cleaning compiler for scala. Not required for compiling with Zinc.
+ */
+public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec> {
     private final Compiler<ScalaJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
 
@@ -38,9 +40,6 @@ public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJava
 
     @Override
     protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
-        if (spec.getScalaCompileOptions().isUseAnt()) {
-            return new SimpleStaleClassCleaner(taskOutputs);
-        }
-        return new NoOpStaleClassCleaner();
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

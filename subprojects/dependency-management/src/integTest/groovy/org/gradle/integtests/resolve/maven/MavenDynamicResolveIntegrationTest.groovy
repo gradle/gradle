@@ -128,6 +128,8 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
+
+
     def "falls back to directory listing when maven-metadata.xml is missing"() {
         given:
         mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()

@@ -19,23 +19,18 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.options.OptionReader
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
-import org.gradle.execution.BuildExecuter
-import org.gradle.execution.DefaultBuildExecuter
-import org.gradle.execution.ProjectConfigurer
-import org.gradle.execution.TaskGraphExecuter
-import org.gradle.execution.TaskSelector
+import org.gradle.execution.*
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
@@ -61,8 +56,9 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ExecutorFactory) >> Stub(ExecutorFactory)
         parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
         parent.get(ProjectConfigurer) >> Stub(ProjectConfigurer)
+        parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
         gradle.getStartParameter() >> startParameter
-        pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
+        pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
 
     def "can create services for a project instance"() {
@@ -95,16 +91,6 @@ public class GradleScopeServicesTest extends Specification {
         serviceRegistry2.closed
     }
 
-    def "provides a plugin registry"() {
-        when:
-        def pluginRegistry = registry.get(PluginRegistry)
-        def secondRegistry = registry.get(PluginRegistry)
-
-        then:
-        pluginRegistry == pluginRegistryChild
-        secondRegistry sameInstance(pluginRegistry)
-    }
-
     def "provides a build executer"() {
         when:
         def buildExecuter = registry.get(BuildExecuter)
@@ -113,16 +99,6 @@ public class GradleScopeServicesTest extends Specification {
         then:
         buildExecuter instanceof DefaultBuildExecuter
         buildExecuter sameInstance(secondExecuter)
-    }
-
-    def "provides a plugin container"() {
-        when:
-        def pluginContainer = registry.get(PluginContainer)
-        def secondPluginContainer = registry.get(PluginContainer)
-
-        then:
-        pluginContainer instanceof DefaultPluginContainer
-        secondPluginContainer sameInstance(pluginContainer)
     }
 
     def "provides a task graph executer"() {

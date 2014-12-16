@@ -16,30 +16,20 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashSet;
+import java.io.*;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class FileToArchiveEntrySetTransformer implements Transformer<Set<ArchiveEntry>, File> {
 
-    private final Transformer<ArchiveEntry, ZipEntry> entryTransformer;
-
-    public FileToArchiveEntrySetTransformer(Transformer<ArchiveEntry, ZipEntry> entryTransformer) {
-        this.entryTransformer = entryTransformer;
-    }
-
     public Set<ArchiveEntry> transform(File archiveFile) {
-        Set<ArchiveEntry> entries = new HashSet<ArchiveEntry>();
-
         FileInputStream fileInputStream;
         try {
             fileInputStream = new FileInputStream(archiveFile);
@@ -47,12 +37,44 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
             throw new UncheckedIOException(e);
         }
 
-        ZipInputStream zipStream = new ZipInputStream(fileInputStream);
+        ImmutableSet.Builder<ArchiveEntry> allEntries = ImmutableSet.builder();
+        walk(fileInputStream, allEntries, ImmutableList.<String>of());
+        return allEntries.build();
+    }
+
+    private ImmutableSet<ArchiveEntry> walk(InputStream archiveInputStream, ImmutableSet.Builder<ArchiveEntry> allEntries, ImmutableList<String> parentPaths) {
+        ImmutableSet.Builder<ArchiveEntry> entries = ImmutableSet.builder();
+        ZipInputStream zipStream = new ZipInputStream(archiveInputStream);
 
         try {
             ZipEntry entry = zipStream.getNextEntry();
             while (entry != null) {
-                entries.add(entryTransformer.transform(entry));
+                ArchiveEntry.Builder builder = new ArchiveEntry.Builder();
+                builder.setParentPaths(parentPaths);
+                builder.setPath(entry.getName());
+                builder.setCrc(entry.getCrc());
+                builder.setDirectory(entry.isDirectory());
+                builder.setSize(entry.getSize());
+                if (!builder.isDirectory() && (zipStream.available() == 1)) {
+                    boolean zipEntry;
+                    final BufferedInputStream bis = new BufferedInputStream(zipStream) {
+                        @Override
+                        public void close() throws IOException {
+                        }
+                    };
+                    bis.mark(Integer.MAX_VALUE);
+                    zipEntry = new ZipInputStream(bis).getNextEntry() != null;
+                    bis.reset();
+                    if (zipEntry) {
+                        ImmutableList<String> nextParentPaths = ImmutableList.<String>builder().addAll(parentPaths).add(entry.getName()).build();
+                        ImmutableSet<ArchiveEntry> subEntries = walk(bis, allEntries, nextParentPaths);
+                        builder.setSubEntries(subEntries);
+                    }
+                }
+
+                ArchiveEntry archiveEntry = builder.build();
+                entries.add(archiveEntry);
+                allEntries.add(archiveEntry);
                 zipStream.closeEntry();
                 entry = zipStream.getNextEntry();
             }
@@ -62,7 +84,7 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
             IOUtils.closeQuietly(zipStream);
         }
 
-        return entries;
+        return entries.build();
     }
 
 }

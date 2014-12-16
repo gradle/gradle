@@ -34,7 +34,7 @@ class ProjectDependencyArtifactIdExtractorHackTest extends Specification {
     }
 
     def "artifact ID honors archivesBaseName"() {
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.archivesBaseName = "changed"
 
         expect:
@@ -42,7 +42,7 @@ class ProjectDependencyArtifactIdExtractorHackTest extends Specification {
     }
 
     def "artifact ID honors mavenDeployer.pom.artifactId over archivesBaseName"() {
-        project.plugins.apply(MavenPlugin)
+        project.pluginManager.apply(MavenPlugin)
 
         project.archivesBaseName = "changed"
         project.uploadArchives {
@@ -56,7 +56,7 @@ class ProjectDependencyArtifactIdExtractorHackTest extends Specification {
     }
 
     def "artifact ID defaults to project name if Ivy repository is configured"() {
-        project.plugins.apply(BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.archivesBaseName = "changed"
 
         project.uploadArchives {
@@ -70,7 +70,7 @@ class ProjectDependencyArtifactIdExtractorHackTest extends Specification {
     }
 
     def "artifact ID defaults to project name if different mavenDeployer.pom.artifactId's are configured"() {
-        project.plugins.apply(MavenPlugin)
+        project.pluginManager.apply(MavenPlugin)
 
         project.configurations { other }
         project.uploadArchives {

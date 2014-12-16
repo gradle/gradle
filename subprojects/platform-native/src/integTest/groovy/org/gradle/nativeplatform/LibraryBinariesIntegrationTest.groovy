@@ -29,19 +29,20 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
     def "executable can use a mix of static and shared libraries"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            executables {
-                main {}
-            }
-            libraries {
-                helloStatic {}
-                helloShared {}
-            }
+apply plugin: "cpp"
+model {
+    components {
+        helloStatic(NativeLibrarySpec)
+        helloShared(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib libraries.helloStatic.static
-                main.cpp.lib libraries.helloShared
+                cpp.lib library: 'helloStatic', linkage: 'static'
+                cpp.lib library: 'helloShared', linkage: 'shared'
             }
-        """
+        }
+    }
+}
+"""
 
         and:
         file("src/helloStatic/cpp/hellostatic.cpp") << """
@@ -107,29 +108,33 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
 include 'exe', 'lib'
 """
         buildFile << """
-            project('lib') {
-                apply plugin: "cpp"
-                libraries {
-                    helloLib {}
-                }
-            }
-            project('exe') {
-                evaluationDependsOn(":lib")
-                apply plugin: "cpp"
-                executables {
-                    main {}
-                }
-                libraries {
-                    helloMain {}
-                }
+project('lib') {
+    apply plugin: "cpp"
+    model {
+        components {
+            helloLib(NativeLibrarySpec)
+        }
+    }
+}
+project('exe') {
+// TODO:DAZ Remove this
+    evaluationDependsOn(":lib")
+    apply plugin: "cpp"
+    model {
+        components {
+            main(NativeExecutableSpec) {
                 sources {
-                    main.cpp {
-                        lib libraries.helloMain
-                        lib project(":lib").libraries.helloLib
+                    cpp {
+                        lib library: "helloMain"
+                        lib project: ":lib", library: "helloLib"
                     }
                 }
             }
-        """
+            helloMain(NativeLibrarySpec)
+        }
+    }
+}
+"""
 
         and:
         file("lib/src/helloLib/cpp/hellolib.cpp") << """
@@ -199,20 +204,22 @@ include 'exe', 'lib'
     def "source set library dependencies are not shared with other source sets"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            apply plugin: "c"
-            executables {
-                main {}
-            }
-            libraries {
-                libCpp {}
-                libC {}
-            }
+apply plugin: "cpp"
+apply plugin: "c"
+
+model {
+    components {
+        libCpp(NativeLibrarySpec)
+        libC(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
             sources {
-                main.cpp.lib libraries.libCpp.static
-                main.c.lib libraries.libC.static
+                cpp.lib library: 'libCpp', linkage: 'static'
+                c.lib library: 'libC', linkage: 'static'
             }
-        """
+        }
+    }
+}
+"""
 
         and:
         file("src/main/headers/head.h") << """
@@ -274,29 +281,28 @@ include 'exe', 'lib'
         def app = new CppHelloWorldApp()
         given:
         buildFile << """
-            apply plugin: "cpp"
+apply plugin: "cpp"
 
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                helloLib {
-                    cpp(CppSourceSet)
-                }
+                cpp.lib library: "hello"
             }
-
-            executables {
-                main {}
-            }
-
-            libraries {
-                hello {
-                    binaries.all {
-                        source sources.helloLib.cpp
+        }
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                sources {
+                    helloLib(CppSourceSet) {
+                        source.srcDir "src/helloLib/cpp"
+                        exportedHeaders.srcDir "src/helloLib/headers"
                     }
                 }
             }
-            sources {
-                main.cpp.lib libraries.hello
-            }
-        """
+        }
+    }
+}
+"""
 
         and:
         app.executable.writeSources(file("src/main"))

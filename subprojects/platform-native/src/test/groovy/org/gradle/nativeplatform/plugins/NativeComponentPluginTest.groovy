@@ -15,8 +15,9 @@
  */
 
 package org.gradle.nativeplatform.plugins
-
 import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -28,12 +29,16 @@ class NativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(NativeComponentPlugin)
+        project.pluginManager.apply(NativeComponentPlugin)
     }
 
     def "creates link and install task for executable"() {
         when:
-        project.nativeRuntime.executables.create "test"
+        project.model {
+            components {
+                test(NativeExecutableSpec)
+            }
+        }
         project.evaluate()
 
         then:
@@ -45,7 +50,6 @@ class NativeComponentPluginTest extends Specification {
             it.targetPlatform == testExecutable.targetPlatform
             it.linkerArgs == testExecutable.linker.args
         }
-        testExecutable.tasks.createStaticLib == null
 
         and:
         def lifecycleTask = project.tasks.testExecutable
@@ -57,7 +61,11 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link task and static archive task for library"() {
         when:
-        project.nativeRuntime.libraries.create "test"
+        project.model {
+            components {
+                test(NativeLibrarySpec)
+            }
+        }
         project.evaluate()
 
         then:
@@ -69,7 +77,6 @@ class NativeComponentPluginTest extends Specification {
             it.targetPlatform == sharedLibraryBinary.targetPlatform
             it.linkerArgs == sharedLibraryBinary.linker.args
         }
-        sharedLibraryBinary.tasks.createStaticLib == null
 
         and:
         def sharedLibTask = project.tasks.testSharedLibrary
@@ -84,7 +91,6 @@ class NativeComponentPluginTest extends Specification {
             it.targetPlatform == staticLibraryBinary.targetPlatform
             it.staticLibArgs == staticLibraryBinary.staticLibArchiver.args
         }
-        staticLibraryBinary.tasks.link == null
 
         and:
         def staticLibTask = project.tasks.testStaticLibrary

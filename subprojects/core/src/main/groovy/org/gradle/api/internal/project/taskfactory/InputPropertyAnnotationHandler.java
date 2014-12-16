@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.Input;
 
 import java.lang.annotation.Annotation;
@@ -28,7 +28,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     public void attachActions(final PropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
-            public void update(Task task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().property(context.getName(), futureValue);
             }
         });

@@ -27,7 +27,6 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
 
 class TestNGIntegrationTest extends AbstractIntegrationTest {
 
@@ -40,11 +39,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void executesTestsInCorrectEnvironment() {
-        ExecutionResult result = executer.withTasks('test').run();
-
-        assertThat(result.output, not(containsString('stdout')))
-        assertThat(result.error, not(containsString('stderr')))
-        assertThat(result.error, not(containsString('a warning')))
+        executer.withTasks('test').run();
 
         new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
@@ -57,6 +52,8 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
         assert containsLine(result.getOutput(), "FINISH [tests] [Test Run]");
         assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
         assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
+        assert containsLine(result.getOutput(), "START [test 'Gradle suite'] [Gradle suite]");
+        assert containsLine(result.getOutput(), "FINISH [test 'Gradle suite'] [Gradle suite]");
         assert containsLine(result.getOutput(), "START [test 'Gradle test'] [Gradle test]");
         assert containsLine(result.getOutput(), "FINISH [test 'Gradle test'] [Gradle test]");
         assert containsLine(result.getOutput(), "START [test method pass(SomeTest)] [pass]");

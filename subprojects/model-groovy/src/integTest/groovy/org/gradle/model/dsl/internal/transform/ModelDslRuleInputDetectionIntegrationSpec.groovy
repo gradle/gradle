@@ -68,8 +68,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-              void apply(Project project) {}
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -79,7 +78,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
               }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
               foo {
@@ -105,8 +104,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate void addPrintTask(CollectionBuilder<Task> tasks, List<String> strings) {
@@ -134,7 +132,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 strings {
@@ -166,10 +164,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-
-              void apply(Project project) {}
-
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -179,7 +174,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
               }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
               tasks {
@@ -190,7 +185,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber(21)
+        failure.assertHasLineNumber(18)
         failure.assertThatCause(containsString("Invalid model path given as rule input."))
         failure.assertThatCause(containsString("Model path 'foo. bar' is invalid due to invalid name component."))
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
@@ -202,9 +197,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
-
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
                     @Mutate
@@ -215,7 +208,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 tasks {
@@ -231,10 +224,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.tasks", buildFile, 21, 17)
+                UnboundRule.descriptor("model.tasks", buildFile, 19, 17)
                         .mutableInput(UnboundRuleInput.type(Object).path("tasks").bound())
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 22"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 23"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 20"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 21"))
         ))
     }
 

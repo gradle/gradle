@@ -35,7 +35,7 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
         return binary.getBuildTask();
     }
 
-    protected <T extends Task> T findSingleTaskWithType(Class<T> type) {
+    public <T extends Task> T findSingleTaskWithType(Class<T> type) {
         DomainObjectSet<T> tasks = withType(type);
         if (tasks.size() == 0) {
             return null;

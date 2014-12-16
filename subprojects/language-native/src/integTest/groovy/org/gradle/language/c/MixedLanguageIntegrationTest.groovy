@@ -16,48 +16,47 @@
 
 package org.gradle.language.c
 
-import org.gradle.language.AbstractLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.SourceFile
 
-class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class MixedLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(toolChain)
 
     def "can have all source files co-located in a common directory"() {
         given:
         buildFile << """
-            executables {
-                main {}
-            }
-
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                main {
-                    cpp {
-                        source {
-                            srcDirs "src/main/flat"
-                            include "**/*.cpp"
-                        }
+                cpp {
+                    source {
+                        srcDirs "src/main/flat"
+                        include "**/*.cpp"
                     }
-                    c {
-                        source {
-                            srcDirs "src/main/flat"
-                            include "**/*.c"
-                        }
-                        exportedHeaders {
-                            srcDirs "src/main/flat"
-                        }
+                }
+                c {
+                    source {
+                        srcDirs "src/main/flat"
+                        include "**/*.c"
                     }
-                    asm {
-                        source {
-                            srcDirs "src/main/flat"
-                            include "**/*.s"
-                        }
+                    exportedHeaders {
+                        srcDirs "src/main/flat"
+                    }
+                }
+                asm {
+                    source {
+                        srcDirs "src/main/flat"
+                        include "**/*.s"
                     }
                 }
             }
+        }
+    }
+}
         """
 
         and:
@@ -77,32 +76,32 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """
-            executables {
-                main {}
-            }
-
-                        sources {
-                main {
-                    cpp {
-                        source {
-                            srcDirs "source"
-                            include "**/*.cpp"
-                        }
-                        exportedHeaders {
-                            srcDirs "source/hello", "include"
-                        }
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs "source"
+                        include "**/*.cpp"
                     }
-                    c {
-                        source {
-                            srcDirs "source", "include"
-                            include "**/*.c"
-                        }
-                        exportedHeaders {
-                            srcDirs "source/hello", "include"
-                        }
+                    exportedHeaders {
+                        srcDirs "source/hello", "include"
+                    }
+                }
+                c {
+                    source {
+                        srcDirs "source", "include"
+                        include "**/*.c"
+                    }
+                    exportedHeaders {
+                        srcDirs "source/hello", "include"
                     }
                 }
             }
+        }
+    }
+}
         """
         settingsFile << "rootProject.name = 'test'"
 

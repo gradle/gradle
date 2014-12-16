@@ -3,18 +3,15 @@ apply plugin: 'cpp'
 apply plugin: 'windows-resources'
 // END SNIPPET apply-plugin
 
-libraries {
-    hello {}
-}
-
-executables {
-    main {}
-}
-
-sources {
-    main {
-        cpp {
-            lib libraries.hello
+model {
+    components {
+        hello(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    lib library: 'hello'
+                }
+            }
         }
     }
 }

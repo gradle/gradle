@@ -119,9 +119,74 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         tables.size() == 3
         tables[0].select("th").text() == "Source Target Distance"
         tables[0].select("td")[0].text() == "a"
-        tables[2].select("td")[2].text() == comparisons.last.distance.toString()
+        tables[1].select("td")[2].text() == comparisons.last.distance.toString()
         html.select(".build-outcome.source").find { it.id() == "foo" }
         html.select(".build-outcome.target").find { it.id() == "bar" }
     }
 
+    def "sort buildcomparison report by name"() {
+        given:
+        comparisonRenderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())
+        outcomeRenderers.registerRenderer(new StringBuildOutcomeHtmlRenderer())
+
+        and:
+        comparisons << strcmp("a", "a")
+        comparisons << strcmp("c", "a")
+        comparisons << strcmp("b", "a")
+
+        and:
+        unassociatedFrom << str("ufa")
+        unassociatedFrom << str("ufc")
+        unassociatedFrom << str("ufb")
+
+        and:
+        unassociatedTo << str("uta")
+        unassociatedTo << str("utc")
+        unassociatedTo << str("utb")
+
+        when:
+        def html = render()
+
+        then:
+        def tables = html.select(".build-outcome-comparison table")
+        tables[0].select("td")[0].text() == "b"
+        tables[1].select("td")[0].text() == "c"
+        tables[2].select("td")[0].text() == "a"
+
+        and:
+        def uncomparedFroms = html.select(".build-outcome.source p")
+        uncomparedFroms[0].text() == "ufa"
+        uncomparedFroms[1].text() == "ufb"
+        uncomparedFroms[2].text() == "ufc"
+
+        and:
+        def uncomparedTos = html.select(".build-outcome.target p")
+        uncomparedTos[0].text() == "uta"
+        uncomparedTos[1].text() == "utb"
+        uncomparedTos[2].text() == "utc"
+    }
+
+    def "show differences first in the buildcomparison report"() {
+        given:
+        comparisonRenderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())
+        outcomeRenderers.registerRenderer(new StringBuildOutcomeHtmlRenderer())
+
+        and:
+        comparisons << strcmp("a", "a")
+        comparisons << strcmp("c", "a")
+        comparisons << strcmp("b", "a")
+        comparisons << strcmp("e", "e")
+        comparisons << strcmp("d", "d")
+
+        when:
+        def html = render()
+
+        then:
+        def tables = html.select(".build-outcome-comparison table")
+        tables[0].select("td")[0].text() == "b"
+        tables[1].select("td")[0].text() == "c"
+        tables[2].select("td")[0].text() == "a"
+        tables[3].select("td")[0].text() == "d"
+        tables[4].select("td")[0].text() == "e"
+    }
 }

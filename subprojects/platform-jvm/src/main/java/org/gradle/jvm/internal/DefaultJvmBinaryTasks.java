@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 public class DefaultJvmBinaryTasks extends DefaultBinaryTasksCollection implements JvmBinaryTasks {

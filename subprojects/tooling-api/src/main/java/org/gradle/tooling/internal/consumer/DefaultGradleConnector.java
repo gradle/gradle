@@ -77,7 +77,7 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
-    public GradleConnector useDefaultDistribution() {
+    public GradleConnector useBuildDistribution() {
         distribution = null;
         return this;
     }
@@ -120,6 +120,8 @@ public class DefaultGradleConnector extends GradleConnector {
         connectionParamsBuilder.setVerboseLogging(verboseLogging);
         return this;
     }
+
+
 
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());

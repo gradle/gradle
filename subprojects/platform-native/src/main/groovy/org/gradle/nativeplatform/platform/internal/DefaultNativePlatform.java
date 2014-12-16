@@ -16,25 +16,38 @@
 
 package org.gradle.nativeplatform.platform.internal;
 
-import org.gradle.internal.typeconversion.NotationParser;
+import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.internal.os.OperatingSystem;
 
 public class DefaultNativePlatform implements NativePlatformInternal {
-    private final NotationParser<Object, ArchitectureInternal> archParser;
-    private final NotationParser<Object, OperatingSystemInternal> osParser;
     private final String name;
     private ArchitectureInternal architecture;
     private OperatingSystemInternal operatingSystem;
 
-    public DefaultNativePlatform(String name, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystemInternal> osParser) {
-        this.name = name;
-        this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
-        this.operatingSystem = DefaultOperatingSystem.TOOL_CHAIN_DEFAULT;
-        this.archParser = archParser;
-        this.osParser = osParser;
+    public DefaultNativePlatform(String name) {
+        this(name, getCurrentOperatingSystem(), getCurrentArchitecture());
     }
 
-    public DefaultNativePlatform(String name) {
-        this(name, ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+    protected DefaultNativePlatform(String name, OperatingSystemInternal operatingSystem, ArchitectureInternal architecture) {
+        this.name = name;
+        this.architecture = architecture;
+        this.operatingSystem = operatingSystem;
+    }
+
+    private static DefaultOperatingSystem getCurrentOperatingSystem() {
+        return new DefaultOperatingSystem(System.getProperty("os.name"), OperatingSystem.current());
+    }
+
+    public static ArchitectureInternal getCurrentArchitecture() {
+        String architectureName;
+        try {
+            architectureName = Native.get(SystemInfo.class).getArchitectureName();
+        } catch (NativeException e) {
+            architectureName = System.getProperty("os.arch");
+        }
+        return Architectures.forInput(architectureName);
     }
 
     public String getName() {
@@ -54,19 +67,19 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return architecture;
     }
 
-    public void architecture(Object notation) {
-        architecture = archParser.parseNotation(notation);
+    public void architecture(String name) {
+        architecture = Architectures.forInput(name);
     }
 
     public OperatingSystemInternal getOperatingSystem() {
         return operatingSystem;
     }
 
-    public void operatingSystem(Object notation) {
-        operatingSystem = osParser.parseNotation(notation);
+    public void operatingSystem(String name) {
+        operatingSystem = new DefaultOperatingSystem(name);
     }
 
     public String getCompatibilityString() {
-        return String.format("%s:%s", architecture.getName(), operatingSystem.getName());
+        return String.format("%s:%s", getArchitecture().getName(), getOperatingSystem().getName());
     }
 }

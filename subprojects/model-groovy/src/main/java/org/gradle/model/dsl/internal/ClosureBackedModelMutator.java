@@ -17,18 +17,17 @@
 package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.List;
 
+@ThreadSafe
 class ClosureBackedModelMutator implements ModelMutator<Object> {
 
     private final Closure<?> action;
@@ -47,7 +46,7 @@ class ClosureBackedModelMutator implements ModelMutator<Object> {
         return ModelReference.untyped(modelPath);
     }
 
-    public void mutate(final Object object, Inputs inputs) {
+    public void mutate(ModelNode modelNode, final Object object, Inputs inputs) {
         RuleInputAccessBacking.runWithContext(inputs, new Runnable() {
             public void run() {
                 new ClosureBackedAction<Object>(action).execute(object);

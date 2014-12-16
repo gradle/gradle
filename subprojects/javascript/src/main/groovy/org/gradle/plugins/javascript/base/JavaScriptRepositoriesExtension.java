@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.javascript.base;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.internal.Actions;
-import org.gradle.api.internal.artifacts.repositories.layout.PatternRepositoryLayout;
 
 public class JavaScriptRepositoriesExtension {
 
@@ -61,9 +60,8 @@ public class JavaScriptRepositoriesExtension {
             public void execute(IvyArtifactRepository repo) {
                 repo.setName("googleApisJs");
                 repo.setUrl(GOOGLE_APIS_REPO_URL);
-                repo.layout("pattern", new Closure(this) {
-                    public void doCall() {
-                        PatternRepositoryLayout layout = (PatternRepositoryLayout) getDelegate();
+                repo.layout("pattern", new Action<IvyPatternRepositoryLayout>() {
+                    public void execute(IvyPatternRepositoryLayout layout) {
                         layout.artifact("[organization]/[revision]/[module].[ext]");
                         layout.ivy("[organization]/[revision]/[module].xml");
                     }

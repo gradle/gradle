@@ -25,7 +25,6 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -33,9 +32,12 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
@@ -50,11 +52,12 @@ import java.util.concurrent.Callable;
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
 public class JavaBasePlugin implements Plugin<ProjectInternal> {
-    public static final String CHECK_TASK_NAME = "check";
-    public static final String BUILD_TASK_NAME = "build";
+    public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
+
+    public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
+    public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
-    public static final String VERIFICATION_GROUP = "verification";
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     private final Instantiator instantiator;
@@ -65,9 +68,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(ProjectInternal project) {
-        project.getPlugins().apply(BasePlugin.class);
-        project.getPlugins().apply(ReportingBasePlugin.class);
-        project.getPlugins().apply(LegacyJavaComponentPlugin.class);
+        project.getPluginManager().apply(BasePlugin.class);
+        project.getPluginManager().apply(ReportingBasePlugin.class);
+        project.getPluginManager().apply(LegacyJavaComponentPlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
@@ -77,8 +80,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         configureJavaDoc(project, javaConvention);
         configureTest(project, javaConvention);
-        configureCheck(project);
-        configureBuild(project);
         configureBuildNeeded(project);
         configureBuildDependents(project);
     }
@@ -128,11 +129,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
                 sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
-                FunctionalSourceSet functionalSourceSet = projectSourceSet.create(sourceSet.getName());
+                FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, sourceSet.getName(), instantiator, projectSourceSet);
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getJava(), compileClasspath, functionalSourceSet);
+                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
                 functionalSourceSet.add(javaSourceSet);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
                 functionalSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
@@ -219,20 +220,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureCheck(final Project project) {
-        Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
-        checkTask.setDescription("Runs all checks.");
-        checkTask.setGroup(VERIFICATION_GROUP);
-    }
-
-    private void configureBuild(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project.");
-        buildTask.setGroup(BasePlugin.BUILD_GROUP);
-        buildTask.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME);
-        buildTask.dependsOn(CHECK_TASK_NAME);
-    }
-
     private void configureBuildNeeded(Project project) {
         DefaultTask buildTask = project.getTasks().create(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
@@ -268,7 +255,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void overwriteDebugIfDebugPropertyIsSet(Test test) {
         String debugProp = getTaskPrefixedProperty(test, "debug");
         if (debugProp != null) {
-            test.doFirst(new Action<Task>() {
+            test.prependParallelSafeAction(new Action<Task>() {
                 public void execute(Task task) {
                     task.getLogger().info("Running tests for remote debugging.");
                 }
@@ -286,7 +273,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             test.getInputs().source(test.getCandidateClassFiles());
             return;
         }
-        test.doFirst(new Action<Task>() {
+        test.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
                 test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
             }

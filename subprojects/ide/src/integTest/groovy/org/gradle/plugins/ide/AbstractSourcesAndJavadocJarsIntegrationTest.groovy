@@ -28,14 +28,6 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         buildFile << baseBuildScript
     }
 
-    private useIvyRepo(def repo) {
-        buildFile << """repositories { ivy { url "$repo.uri" } }"""
-    }
-
-    private useMavenRepo(def repo) {
-        buildFile << """repositories { maven { url "$repo.uri" } }"""
-    }
-
     def "sources and javadoc jars from maven repositories are not downloaded if not required"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0").withSourceAndJavadoc().publish()
@@ -54,24 +46,33 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
+        module.artifact(classifier: "api")
         module.artifact(classifier: "sources")
         module.artifact(classifier: "javadoc")
         module.publish()
         module.allowAll()
+
+        buildFile << """
+dependencies {
+    compile 'some:module:1.0:api'
+}
+"""
 
         when:
         useMavenRepo(repo)
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry()
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
+        ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
 
         when:
         server.resetExpectations()
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry()
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
+        ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
     def "ignores missing sources and javadoc jars in maven repositories"() {
@@ -86,7 +87,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    void "ignores broken source or javadoc artifacts in maven repository"() {
+    def "ignores broken source or javadoc artifacts in maven repository"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
         final sourceArtifact = module.artifact(classifier: "sources")
@@ -139,14 +140,74 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
 
         when:
         server.resetExpectations()
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
+    }
+
+    def "all sources and javadoc jars resolved from ivy repo are attached to all artifacts for module"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        addCompleteConfigurations(module)
+
+        module.configuration("api")
+        module.configuration("tests")
+        module.artifact(type: "api", classifier: "api", ext: "jar", conf: "api")
+        module.artifact(type: "tests", classifier: "tests", ext: "jar", conf: "tests")
+        module.artifact(name: "other-source", type: "source", ext: "jar", conf: "sources")
+        module.artifact(name: "other-javadoc", type: "javadoc", ext: "jar", conf: "javadoc")
+
+        module.publish()
+        module.allowAll()
+
+        when:
+        useIvyRepo(repo)
+        buildFile << """
+dependencies {
+    compile 'some:module:1.0:api'
+    testCompile 'some:module:1.0:tests'
+}"""
+
+        succeeds ideTask
+
+        then:
+        def sources = ["module-1.0-my-sources.jar", "other-source-1.0.jar"]
+        def javadoc = ["module-1.0-my-javadoc.jar", "other-javadoc-1.0.jar"]
+        ideFileContainsEntry("module-1.0.jar", sources, javadoc)
+        ideFileContainsEntry("module-1.0-api.jar", sources, javadoc)
+        ideFileContainsEntry("module-1.0-tests.jar", sources, javadoc)
+    }
+
+    def "all sources jars from ivy repositories are attached when there are multiple unclassified artifacts"() {
+        def repo = ivyHttpRepo
+
+        def version = "1.0"
+        def module = repo.module("some", "module", version)
+
+        module.configuration("default")
+        module.configuration("sources")
+        module.configuration("javadoc")
+        module.artifact(name: "foo", type: "jar", ext: "jar", conf: "default")
+        module.artifact(name: "foo-sources", type: "jar", ext: "jar", conf: "sources")
+        module.artifact(name: "foo-javadoc", type: "jar", ext: "jar", conf: "javadoc")
+        module.artifact(name: "foo-api", type: "jar", ext: "jar", conf: "default")
+        module.artifact(name: "foo-api-sources", type: "jar", ext: "jar", conf: "sources")
+        module.artifact(name: "foo-api-javadoc", type: "jar", ext: "jar", conf: "javadoc")
+        module.publish()
+        module.allowAll()
+
+        when:
+        useIvyRepo(repo)
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("foo-1.0.jar", ["foo-api-sources-1.0.jar", "foo-sources-1.0.jar"], ["foo-api-javadoc-1.0.jar", "foo-javadoc-1.0.jar"])
+        ideFileContainsEntry("foo-api-1.0.jar", ["foo-api-sources-1.0.jar", "foo-sources-1.0.jar"], ["foo-api-javadoc-1.0.jar", "foo-javadoc-1.0.jar"])
     }
 
     def "ignores missing sources and javadoc jars in ivy repositories"() {
@@ -166,7 +227,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    void "ignores broken source or javadoc artifacts in ivy repository"() {
+    def "ignores broken source or javadoc artifacts in ivy repository"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
         addCompleteConfigurations(module)
@@ -206,69 +267,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
-    }
-
-    def "sources and javadoc jars resolved from maven repo are attached to all artifacts with same base name"() {
-        def repo = mavenHttpRepo
-        def module = repo.module("some", "module", "1.0")
-        def api = module.artifact(classifier: "api")
-        def tests = module.artifact(classifier:"tests")
-        def sources = module.artifact(classifier:"sources")
-        def javadoc = module.artifact(classifier:"javadoc")
-        module.publish()
-
-        when:
-        useMavenRepo(repo)
-
-        and:
-        buildFile << """
-dependencies {
-    compile 'some:module:1.0:api'
-    testCompile 'some:module:1.0:tests'
-}"""
-
-        and:
-        module.pom.expectGet()
-        module.artifact.expectGet()
-        api.expectGet()
-        tests.expectGet()
-        javadoc.expectGet()
-        javadoc.expectHead()
-        sources.expectGet()
-        sources.expectHead()
-
-        then:
-        succeeds ideTask
-
-        and:
-        ideFileContainsSourcesAndJavadocEntryForEachLib()
-    }
-
-    def "sources and javadoc jars resolved from ivy repo are attached to all artifacts with same base name"() {
-        def repo = ivyHttpRepo
-        def module = repo.module("some", "module", "1.0")
-        addCompleteConfigurations(module)
-        module.configuration("api")
-        module.configuration("tests")
-        module.artifact(type: "api", classifier: "api", ext: "jar", conf: "api")
-        module.artifact(type: "tests", classifier: "tests", ext: "jar", conf: "tests")
-
-        module.publish()
-        module.allowAll()
-
-        when:
-        useIvyRepo(repo)
-        buildFile << """
-dependencies {
-    compile 'some:module:1.0:api'
-    testCompile 'some:module:1.0:tests'
-}"""
-
-        succeeds ideTask
-
-        then:
-        ideFileContainsSourcesAndJavadocEntryForEachLib("my-sources", "my-javadoc")
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
 
@@ -282,8 +281,17 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry()
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
+
+    private useIvyRepo(def repo) {
+        buildFile << """repositories { ivy { url "$repo.uri" } }"""
+    }
+
+    private useMavenRepo(def repo) {
+        buildFile << """repositories { maven { url "$repo.uri" } }"""
+    }
+
 
     private static void addCompleteConfigurations(IvyHttpModule module) {
         module.configuration("default")
@@ -333,10 +341,11 @@ task resolve << {
 
     abstract String getIdeTask()
 
-    abstract void ideFileContainsSourcesAndJavadocEntry()
-    abstract void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier, String javadocClassifier)
+    void ideFileContainsEntry(String jar, String sources, String javadoc) {
+        ideFileContainsEntry(jar, [sources], [javadoc])
+    }
+    abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
-    abstract void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier, String javadocClassifier)
 }

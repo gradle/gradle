@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import net.jcip.annotations.ThreadSafe;
+
+@ThreadSafe
 public abstract class AbstractModelRuleDescriptor implements ModelRuleDescriptor {
 
     @Override

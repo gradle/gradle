@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.InstanceModelView
 import org.gradle.model.internal.core.ModelBinding
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleInput
-import org.gradle.model.internal.core.ModelType
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class DefaultInputsTest extends Specification {

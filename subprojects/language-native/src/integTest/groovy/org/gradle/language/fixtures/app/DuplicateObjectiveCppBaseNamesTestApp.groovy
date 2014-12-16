@@ -16,10 +16,10 @@
 
 package org.gradle.language.fixtures.app
 
-import org.gradle.nativeplatform.fixtures.app.SourceFile
-import org.gradle.nativeplatform.fixtures.app.TestComponent
+import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
+class DuplicateObjectiveCppBaseNamesTestApp extends TestNativeComponent{
     def plugins = ["objective-cpp"]
     @Override
     List<SourceFile> getSourceFiles() {

@@ -18,17 +18,18 @@ package org.gradle.plugins.javascript.rhino
 
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 import org.gradle.util.DynamicDelegate
+import spock.lang.Specification
 
 class RhinoPluginTest extends Specification {
 
     Project project = ProjectBuilder.builder().build()
-    @Delegate DynamicDelegate delegate = new DynamicDelegate(project)
+    @Delegate
+    DynamicDelegate delegate = new DynamicDelegate(project)
     RhinoExtension extension
 
     def setup() {
-        apply(plugin: RhinoPlugin)
+        project.pluginManager.apply(RhinoPlugin)
         extension = javaScript.rhino
     }
 

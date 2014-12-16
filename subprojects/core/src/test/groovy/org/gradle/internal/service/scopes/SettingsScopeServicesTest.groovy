@@ -19,10 +19,9 @@ package org.gradle.internal.service.scopes
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
@@ -38,18 +37,8 @@ class SettingsScopeServicesTest extends Specification {
         settings.getSettingsDir() >> new File("settings-dir").absoluteFile
         parent.get(org.gradle.internal.nativeintegration.filesystem.FileSystem) >> Stub(org.gradle.internal.nativeintegration.filesystem.FileSystem)
         parent.get(PluginRegistry) >> pluginRegistryParent
-        pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
-    }
-
-
-    def "provides a plugin container"() {
-        when:
-        def pluginContainer = registry.get(PluginContainer)
-        def secondPluginContainer = registry.get(PluginContainer)
-
-        then:
-        pluginContainer instanceof DefaultPluginContainer
-        secondPluginContainer sameInstance(pluginContainer)
+        parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
+        pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
 
     def "provides a file resolver"() {
@@ -62,14 +51,4 @@ class SettingsScopeServicesTest extends Specification {
         secondFileResolver sameInstance(fileResolver)
     }
 
-
-    def "provides a plugin registry"() {
-        when:
-        def pluginRegistry = registry.get(PluginRegistry)
-        def secondPluginRegistry = registry.get(PluginRegistry)
-
-        then:
-        pluginRegistry == pluginRegistryChild
-        secondPluginRegistry sameInstance(pluginRegistry)
-    }
 }

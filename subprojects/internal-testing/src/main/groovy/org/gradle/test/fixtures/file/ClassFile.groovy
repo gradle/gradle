@@ -29,7 +29,7 @@ class ClassFile {
     }
 
     ClassFile(InputStream inputStream) {
-        def methodVisitor = new MethodVisitor(Opcodes.ASM4) {
+        def methodVisitor = new MethodVisitor(Opcodes.ASM5) {
             @Override
             void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
                 hasLocalVars = true
@@ -40,7 +40,7 @@ class ClassFile {
                 hasLineNumbers = true
             }
         }
-        def visitor = new ClassVisitor(Opcodes.ASM4) {
+        def visitor = new ClassVisitor(Opcodes.ASM5) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 classFileVersion = version

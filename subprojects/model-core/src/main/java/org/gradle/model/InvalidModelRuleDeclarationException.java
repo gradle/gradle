@@ -37,10 +37,18 @@ public class InvalidModelRuleDeclarationException extends GradleException {
     }
 
     public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, Throwable cause) {
-        super("Declaration of model rule " + descriptor.toString() + " in invalid.", cause);
+        super("Declaration of model rule " + descriptor.toString() + " is invalid.", cause);
         if (cause == null) {
             throw new IllegalArgumentException("'cause' cannot be null");
         }
+    }
+
+    public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, String message) {
+        super(String.format("%s is not a valid model rule method: %s", descriptor, message));
+    }
+
+    public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, String message, Throwable cause) {
+        super(String.format("%s is not a valid model rule method: %s", descriptor, message), cause);
     }
 
 }

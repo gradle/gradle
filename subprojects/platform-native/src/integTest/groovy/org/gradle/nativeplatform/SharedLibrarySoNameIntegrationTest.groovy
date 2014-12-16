@@ -30,11 +30,13 @@ class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainInteg
         app.library.writeSources(file("src/hello"))
 
         buildFile << """
-            apply plugin: 'cpp'
-            libraries {
-                hello {}
-            }
-        """
+apply plugin: 'cpp'
+model {
+    components {
+        hello(NativeLibrarySpec)
+    }
+}
+"""
     }
 
     def "library soname is file name when installName is not set"() {
@@ -49,10 +51,10 @@ class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainInteg
     def "library soname uses specified installName"() {
         given:
         buildFile << """
-            tasks.withType(LinkSharedLibrary) {
-                it.installName = 'hello-install-name'
-            }
-        """
+tasks.withType(LinkSharedLibrary) {
+    it.installName = 'hello-install-name'
+}
+"""
 
         when:
         succeeds "helloSharedLibrary"
@@ -64,10 +66,10 @@ class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainInteg
     def "library soname defaults when installName is null"() {
         given:
         buildFile << """
-            tasks.withType(LinkSharedLibrary) {
-                it.installName = null
-            }
-        """
+tasks.withType(LinkSharedLibrary) {
+    it.installName = null
+}
+"""
 
         when:
         succeeds "helloSharedLibrary"

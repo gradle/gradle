@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive
 
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Sets
 import org.gradle.api.Transformer
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
@@ -29,7 +31,8 @@ import static org.gradle.api.plugins.buildcomparison.compare.internal.Comparison
 
 class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
 
     def transformer = Mock(Transformer)
     def comparator = new GeneratedArchiveBuildOutcomeComparator(transformer)
@@ -42,12 +45,19 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     }
 
     ArchiveEntry entry(Map attrs) {
-        new ArchiveEntry(attrs)
+        ArchiveEntry.of(attrs)
+    }
+
+    Set<ArchiveEntry> flatten(Set<ArchiveEntry> archiveEntries) {
+        archiveEntries.collect {
+            [it] + flatten(it.subEntries)
+        }.flatten()
     }
 
     void mockEntries(File archive, ArchiveEntry... entries) {
+        def flattened = flatten(Sets.newHashSet(entries))
         interaction {
-            _ * transformer.transform(archive) >>> [entries as Set]
+            _ * transformer.transform(archive) >> flattened
         }
     }
 
@@ -59,7 +69,22 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
                 entry(path: "d1/f1", size: 10), // diff
                 entry(path: "d1/f2"), // only in from
                 entry(path: "d2/"), // only in from
-                entry(path: "f2") // only in from
+                entry(path: "f2"), // only in from
+                entry(path: "sourceSub.zip", subEntries: ImmutableSet.of( // only in from
+                        entry(parentPaths: ["sourceSub.zip"], path: "a.txt"), // only in from
+                        entry(parentPaths: ["sourceSub.zip"], path: "b/"), // only in from
+                        entry(parentPaths: ["sourceSub.zip"], path: "b/c.txt") // only in from
+                )),
+                entry(path: "sameSub.zip", subEntries: ImmutableSet.of(
+                        entry(parentPaths: ["sameSub.zip"], path: "a.txt"),
+                        entry(parentPaths: ["sameSub.zip"], path: "b/"),
+                        entry(parentPaths: ["sameSub.zip"], path: "b/c.txt")
+                )),
+                entry(path: "differentSub.zip", subEntries: ImmutableSet.of(
+                        entry(parentPaths: ["differentSub.zip"], path: "a.txt", size: 0),
+                        entry(parentPaths: ["differentSub.zip"], path: "b/"),
+                        entry(parentPaths: ["differentSub.zip"], path: "b/c.txt")
+                ))
         )
 
         and:
@@ -69,13 +94,55 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
                 entry(path: "d1/f1", size: 20),
                 entry(path: "d1/f3"), // only in to
                 entry(path: "d3/"), // only in to
-                entry(path: "f3") // only in to
+                entry(path: "f3"), // only in to
+                entry(path: "targetSub.zip", subEntries: ImmutableSet.of( // only in from
+                        entry(parentPaths: ["targetSub.zip"], path: "a.txt"), // only in from
+                        entry(parentPaths: ["targetSub.zip"], path: "b/"), // only in from
+                        entry(parentPaths: ["targetSub.zip"], path: "b/c.txt") // only in from
+                )),
+                entry(path: "sameSub.zip", subEntries: ImmutableSet.of(
+                        entry(parentPaths: ["sameSub.zip"], path: "a.txt"),
+                        entry(parentPaths: ["sameSub.zip"], path: "b/"),
+                        entry(parentPaths: ["sameSub.zip"], path: "b/c.txt")
+                )),
+                entry(path: "differentSub.zip", subEntries: ImmutableSet.of(
+                        entry(parentPaths: ["differentSub.zip"], path: "a.txt", size: 1),
+                        entry(parentPaths: ["differentSub.zip"], path: "b/"),
+                        entry(parentPaths: ["differentSub.zip"], path: "b/c.txt")
+                ))
         )
 
         then:
         def result = compare(existingFrom, existingTo)
-        result.entryComparisons*.path == ["d1/", "d1/f1", "d1/f2", "d1/f3", "d2/", "d3/", "f1", "f2", "f3"]
-        Map<String, ArchiveEntryComparison> indexed = result.entryComparisons.collectEntries { [it.path, it] }
+        result.entryComparisons*.path*.toString() == [
+                "d1/",
+                "d1/f1",
+                "d1/f2",
+                "d1/f3",
+                "d2/",
+                "d3/",
+                "differentSub.zip",
+                "differentSub.zip!/a.txt",
+                "differentSub.zip!/b/",
+                "differentSub.zip!/b/c.txt",
+                "f1",
+                "f2",
+                "f3",
+                "sameSub.zip",
+                "sameSub.zip!/a.txt",
+                "sameSub.zip!/b/",
+                "sameSub.zip!/b/c.txt",
+                "sourceSub.zip",
+                "sourceSub.zip!/a.txt",
+                "sourceSub.zip!/b/",
+                "sourceSub.zip!/b/c.txt",
+                "targetSub.zip",
+                "targetSub.zip!/a.txt",
+                "targetSub.zip!/b/",
+                "targetSub.zip!/b/c.txt"
+        ]
+
+        Map<String, ArchiveEntryComparison> indexed = result.entryComparisons.collectEntries { [it.path.toString(), it] }
 
         indexed["f1"].comparisonResultType == EQUAL
         indexed["f2"].comparisonResultType == SOURCE_ONLY
@@ -88,6 +155,26 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
         indexed["d2/"].comparisonResultType == SOURCE_ONLY
         indexed["d3/"].comparisonResultType == TARGET_ONLY
+
+        indexed["sourceSub.zip"].comparisonResultType == SOURCE_ONLY
+        indexed["sourceSub.zip!/a.txt"].comparisonResultType == SOURCE_ONLY
+        indexed["sourceSub.zip!/b/"].comparisonResultType == SOURCE_ONLY
+        indexed["sourceSub.zip!/b/c.txt"].comparisonResultType == SOURCE_ONLY
+
+        indexed["targetSub.zip"].comparisonResultType == TARGET_ONLY
+        indexed["targetSub.zip!/a.txt"].comparisonResultType == TARGET_ONLY
+        indexed["targetSub.zip!/b/"].comparisonResultType == TARGET_ONLY
+        indexed["targetSub.zip!/b/c.txt"].comparisonResultType == TARGET_ONLY
+
+        indexed["sameSub.zip"].comparisonResultType == EQUAL
+        indexed["sameSub.zip!/a.txt"].comparisonResultType == EQUAL
+        indexed["sameSub.zip!/b/"].comparisonResultType == EQUAL
+        indexed["sameSub.zip!/b/c.txt"].comparisonResultType == EQUAL
+
+        indexed["differentSub.zip"].comparisonResultType == UNEQUAL
+        indexed["differentSub.zip!/a.txt"].comparisonResultType == UNEQUAL
+        indexed["differentSub.zip!/b/"].comparisonResultType == EQUAL
+        indexed["differentSub.zip!/b/c.txt"].comparisonResultType == EQUAL
     }
 
 
@@ -113,7 +200,7 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
         !compare(notExistingFrom, existingTo).outcomesAreIdentical
         !compare(existingFrom, notExistingTo).outcomesAreIdentical
         !compare(existingFrom, unequal).outcomesAreIdentical
-        !compare(notExistingFrom, notExistingTo).outcomesAreIdentical
+        compare(notExistingFrom, notExistingTo).outcomesAreIdentical
     }
 
     protected GeneratedArchiveBuildOutcomeComparisonResult compare(from, to) {

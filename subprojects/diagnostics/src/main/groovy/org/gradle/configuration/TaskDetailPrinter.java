@@ -67,6 +67,7 @@ public class TaskDetailPrinter {
             for (Task task : tasksByType) {
                 pathOutput.withStyle(UserInput).println(task.getPath());
             }
+
             output.println();
             final LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
             typeOutput.println("Type");
@@ -77,6 +78,10 @@ public class TaskDetailPrinter {
 
             output.println();
             printTaskDescription(output, tasksByType);
+
+            output.println();
+            printTaskGroup(output, tasksByType);
+
             if (multipleClasses) {
                 output.println();
                 output.println("----------------------");
@@ -117,17 +122,36 @@ public class TaskDetailPrinter {
     }
 
     private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
-        int differentDescriptionsCount = differentDescriptions(tasks);
-        final LinePrefixingStyledTextOutput descriptorOutput = createIndentedOutput(output, INDENT);
-        descriptorOutput.println(differentDescriptionsCount > 1 ? "Descriptions" : "Description");
-        if (differentDescriptionsCount == 1) {
-            // all tasks have the same description
+        printTaskAttribute(output, "Description", tasks, new Transformer<String, Task>() {
+            public String transform(Task task) {
+                return task.getDescription();
+            }
+        });
+    }
+
+    private void printTaskGroup(StyledTextOutput output, List<Task> tasks) {
+        printTaskAttribute(output, "Group", tasks, new Transformer<String, Task>() {
+            public String transform(Task task) {
+                return task.getGroup();
+            }
+        });
+    }
+
+    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<Task> tasks, Transformer<String, Task> transformer) {
+        int count = collect(tasks, new HashSet<String>(), transformer).size();
+        final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
+        if (count == 1) {
+            // all tasks have the same value
+            attributeOutput.println(attributeHeader);
             final Task task = tasks.iterator().next();
-            descriptorOutput.println(task.getDescription() == null ? "-" : task.getDescription());
+            String value = transformer.transform(task);
+            attributeOutput.println(value == null ? "-" : value);
         } else {
+            attributeOutput.println(attributeHeader + "s");
             for (Task task : tasks) {
-                descriptorOutput.withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
-                descriptorOutput.println(task.getDescription() == null ? "-" : task.getDescription());
+                attributeOutput.withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
+                String value = transformer.transform(task);
+                attributeOutput.println(value == null ? "-" : value);
             }
         }
     }
@@ -192,15 +216,5 @@ public class TaskDetailPrinter {
 
     private LinePrefixingStyledTextOutput createIndentedOutput(StyledTextOutput output, String prefix) {
         return new LinePrefixingStyledTextOutput(output, prefix);
-    }
-
-    private int differentDescriptions(List<Task> tasks) {
-        return toSet(
-                collect(tasks, new Transformer<String, Task>() {
-                    public String transform(Task original) {
-                        return original.getDescription();
-                    }
-                })
-        ).size();
     }
 }

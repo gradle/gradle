@@ -132,7 +132,7 @@ repositories {
         buildFile << """
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { details ->
             details.changing = true
         }
     }
@@ -180,7 +180,7 @@ if (project.hasProperty('nocache')) {
         buildFile << """
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { ComponentMetadataDetails details ->
             details.changing = true
         }
     }
@@ -275,10 +275,10 @@ if (project.hasProperty('nocache')) {
 
         fixture.expectSourceArtifact("my-sources")
                 .expectSourceArtifactFailure(new ArtifactResolveException(
-                                                "Could not download artifact 'some-artifact-broken-sources.jar (some.group:some-artifact:1.0)'",
+                                                "Could not download some-artifact-broken-sources.jar (some.group:some-artifact:1.0)",
                                                 new Throwable("Received status code 500 from server: broken")))
                 .expectJavadocArtifactFailure(new ArtifactResolveException(
-                                                "Could not download artifact 'some-artifact-my-javadoc.jar (some.group:some-artifact:1.0)'",
+                                                "Could not download some-artifact-my-javadoc.jar (some.group:some-artifact:1.0)",
                                                 new Throwable("Received status code 500 from server: broken")))
                 .prepare()
 

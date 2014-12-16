@@ -16,19 +16,56 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LoggingOutput;
+import org.gradle.logging.ConsoleOutput;
+
+import java.io.OutputStream;
 
 public interface LoggingOutputInternal extends LoggingOutput {
     /**
-     * Add standard output and error as logging destinations.
+     * Adds System.out and System.err as logging destinations. The output will include plain text only, with no color or dynamic text.
      */
-    void addStandardOutputAndError();
+    void attachSystemOutAndErr();
 
     /**
-     * Adds the console as logging destination, if available.
+     * Adds the current processes' stdout and stderr as logging destinations. The output will also include color and dynamic text when one of these
+     * is connected to a console.
+     *
+     * <p>Removes standard output and/or error as a side-effect.
      */
-    void attachConsole(boolean colorOutput);
+    void attachProcessConsole(ConsoleOutput consoleOutput);
 
+    /**
+     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings
+     * and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences.
+     *
+     * <p>Removes standard output and/or error as a side-effect.
+     */
+    void attachAnsiConsole(OutputStream outputStream);
+
+    /**
+     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and
+     * encoded using the system character encoding.
+     */
+    void addStandardOutputListener(OutputStream outputStream);
+
+    /**
+     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stderr logging formatted according to the current logging settings and
+     * encoded using the system character encoding.
+     */
+    void addStandardErrorListener(OutputStream outputStream);
+
+    /**
+     * Adds the given listener as a logging destination.
+     */
     void addOutputEventListener(OutputEventListener listener);
 
+    /**
+     * Adds the given listener.
+     */
     void removeOutputEventListener(OutputEventListener listener);
+
+    /**
+     * Removes all non-standard output event listeners (also the ones attached with attachConsole)
+     */
+    void removeAllOutputEventListeners();
 }

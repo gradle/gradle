@@ -15,8 +15,12 @@
  */
 package org.gradle.util;
 
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -572,6 +576,20 @@ public abstract class CollectionUtils {
     public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
         ImmutableList<T> list = ImmutableList.copyOf(iterable);
         return list.isEmpty() ? null : list;
+    }
+
+    public static <T> List<T> dedup(Iterable<T> source, final Equivalence<T> equivalence) {
+        Iterable<Equivalence.Wrapper<T>> wrappers = Iterables.transform(source, new Function<T, Equivalence.Wrapper<T>>() {
+            public Equivalence.Wrapper<T> apply(@Nullable T input) {
+                return equivalence.wrap(input);
+            }
+        });
+        Set<Equivalence.Wrapper<T>> deduped = ImmutableSet.copyOf(wrappers);
+        return ImmutableList.copyOf(Iterables.transform(deduped, new Function<Equivalence.Wrapper<T>, T>() {
+            public T apply(Equivalence.Wrapper<T> input) {
+                return input.get();
+            }
+        }));
     }
 
 }

@@ -85,7 +85,11 @@ public abstract class DefaultScript extends BasicScript {
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
         ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class);
         return new DefaultObjectConfigurationAction(
-                getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), __scriptServices.get(ScriptHandlerFactory.class), classLoaderScope, getScriptTarget()
+                getFileResolver(),
+                __scriptServices.get(ScriptPluginFactory.class),
+                __scriptServices.get(ScriptHandlerFactory.class),
+                classLoaderScope,
+                getScriptTarget()
         );
     }
 

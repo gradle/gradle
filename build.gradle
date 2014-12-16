@@ -36,8 +36,8 @@ buildTypes {
     // A full (in-process) test
     developerBuild "check"
 
-    // Used by the first phase of the build pipeline
-    quickTest "runtimeTests", "runtimeIntegTests"
+    // Used by the first phase of the build pipeline, running only last version on multiversion - tests
+    quickTest "runtimeTests", "runtimeIntegTests", multiVersion: "last"
 
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
@@ -92,8 +92,8 @@ ext {
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
-        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy',
-        'platformNative', 'languageNative', 'ideNative', 'cunit',
+        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
+        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'cunit',
         'pluginDevelopment', 'pluginUse'
     ].collect {
         project(it)
@@ -121,7 +121,8 @@ apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/testGroupings.gradle"
-
+apply from: "gradle/taskOrdering.gradle"
+apply from: "gradle/fix-GRADLE-2492.gradle"
 
 allprojects {
     group = 'org.gradle'

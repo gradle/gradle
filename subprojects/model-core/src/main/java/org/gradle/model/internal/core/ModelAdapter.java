@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,14 @@ package org.gradle.model.internal.core;
 
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 public interface ModelAdapter {
 
     @Nullable
-        // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asWritable(ModelBinding<T> reference, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelRuleRegistrar modelRegistry);
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode node);
 
     @Nullable
-        // if the model can't be viewed as this type
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type);
-
-    // TODO some kind of description of the model item?
+    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode node);
 
 }

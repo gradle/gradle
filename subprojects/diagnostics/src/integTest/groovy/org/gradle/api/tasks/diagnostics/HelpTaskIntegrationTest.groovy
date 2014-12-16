@@ -45,6 +45,8 @@ To see a list of available tasks, run gradle tasks
 
 To see a list of command-line options, run gradle --help
 
+To see more detail about a task, run gradle help --task <task>
+
 BUILD SUCCESSFUL
 """))
     }
@@ -67,6 +69,9 @@ Options
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
 
+Group
+     help
+
 BUILD SUCCESSFUL"""))
     }
 
@@ -87,6 +92,9 @@ Options
 
 Description
      Displays a help message.
+
+Group
+     help
 
 BUILD SUCCESSFUL"""))
     }
@@ -120,7 +128,57 @@ Type
 
 Descriptions
      (:hello) hello task from root
-     (:someproj:hello) hello task from someproj"""))
+     (:someproj:hello) hello task from someproj
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
+    }
+
+    def "help for tasks same type different groups"() {
+        setup:
+        settingsFile.text = """
+include ":someproj1"
+include ":someproj2"
+"""
+        buildFile.text = """
+        task hello {
+            group = "group of root task"
+        }
+        project(":someproj1"){
+            task hello {
+                group = "group of subproject task"
+            }
+        }
+        project(":someproj2"){
+            task hello {
+                group = "group of subproject task"
+            }
+        }
+"""
+        when:
+        run "help", "--task", "hello"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task information for hello
+
+Paths
+     :hello
+     :someproj1:hello
+     :someproj2:hello
+
+Type
+     Task (org.gradle.api.Task)
+
+Description
+     -
+
+Groups
+     (:hello) group of root task
+     (:someproj1:hello) group of subproject task
+     (:someproj2:hello) group of subproject task
+
+BUILD SUCCESSFUL"""))
     }
 
     def "matchingTasksOfSameType"() {
@@ -141,6 +199,9 @@ Type
 Description
      Assembles a jar archive containing the main classes.
 
+Group
+     build
+
 BUILD SUCCESSFUL"""))
 
         when:
@@ -157,6 +218,9 @@ Type
 
 Description
      Assembles a jar archive containing the main classes.
+
+Group
+     build
 
 BUILD SUCCESSFUL"""))
 
@@ -189,6 +253,9 @@ Type
 Description
      a copy operation
 
+Group
+     -
+
 ----------------------
 
 Path
@@ -199,6 +266,9 @@ Type
 
 Description
      an archiving operation
+
+Group
+     -
 
 ----------------------
 
@@ -232,7 +302,12 @@ Type
      Task (org.gradle.api.Task)
 
 Description
-     a description"""))
+     a description
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
 
     }
 
@@ -270,7 +345,12 @@ Options
                           GHIJKL
 
 Description
-     -"""))
+     -
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
     }
 
     def "listsCommonDynamicAvailableValues"() {
@@ -293,6 +373,12 @@ Options
                             optionB
 
 Description
-     -"""))
+     -
+
+Group
+     -
+
+BUILD SUCCESSFUL"""))
     }
+
 }

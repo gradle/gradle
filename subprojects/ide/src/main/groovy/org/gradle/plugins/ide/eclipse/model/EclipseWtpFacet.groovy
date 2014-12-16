@@ -81,7 +81,7 @@ class EclipseWtpFacet {
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
     void facet(Map<String, ?> args) {
-        facets << ConfigureUtil.configureByMap(args, new Facet())
+        facets = getFacets() + ConfigureUtil.configureByMap(args, new Facet())
     }
 
     /**

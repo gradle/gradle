@@ -51,7 +51,9 @@ public class JavadocGenerator implements Compiler<JavadocSpec> {
         try {
             execAction.execute();
         } catch (ExecException e) {
-            LOG.info("Problems generating Javadoc. The generated Javadoc options file used by Gradle has following contents:\n------\n{}------", GFileUtils.readFileQuietly(spec.getOptionsFile()));
+            LOG.info("Problems generating Javadoc."
+                    + "\n  Command line issued: " + execAction.getCommandLine()
+                    + "\n  Generated Javadoc options file has following contents:\n------\n{}------", GFileUtils.readFileQuietly(spec.getOptionsFile()));
             throw new GradleException(String.format("Javadoc generation failed. Generated Javadoc options file (useful for troubleshooting): '%s'", spec.getOptionsFile()), e);
         }
 

@@ -18,8 +18,10 @@ package org.gradle.jvm.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.component.BaseComponentSpec
 import spock.lang.Specification
 
 class DefaultJvmLibrarySpecTest extends Specification {
@@ -27,11 +29,11 @@ class DefaultJvmLibrarySpecTest extends Specification {
     FunctionalSourceSet mainSourceSet
 
     def setup(){
-        mainSourceSet = new DefaultFunctionalSourceSet("testFss", new DirectInstantiator());
+        mainSourceSet = new DefaultFunctionalSourceSet("testFss", new DirectInstantiator(), Stub(ProjectSourceSet));
     }
 
     def "library has name and path"() {
-        def library = new DefaultJvmLibrarySpec(libraryId, mainSourceSet)
+        def library = createJvmLibrarySpec()
 
         when:
         _ * libraryId.name >> "jvm-lib"
@@ -40,6 +42,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
         then:
         library.name == "jvm-lib"
         library.projectPath == ":project-path"
+        library.displayName == "JVM library 'jvm-lib'"
     }
 
     def "contains sources of associated main sourceSet"() {
@@ -48,12 +51,16 @@ class DefaultJvmLibrarySpecTest extends Specification {
         mainSourceSet.add(lss1)
 
         and:
-        def library = new DefaultJvmLibrarySpec(libraryId, mainSourceSet)
+        def library = createJvmLibrarySpec()
         def lss2 = languageSourceSet("lss2")
         mainSourceSet.add(lss2)
 
         then:
         library.getSource() as List == [lss1, lss2]
+    }
+
+    private DefaultJvmLibrarySpec createJvmLibrarySpec() {
+        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, mainSourceSet, new DirectInstantiator())
     }
 
     def languageSourceSet(String name) {

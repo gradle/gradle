@@ -27,7 +27,13 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
     PlatformToolProvider select(NativePlatformInternal targetPlatform);
 
     /**
-     * Returns a unique identifier for the output produced by this toolchain on the current platform.
+     * Returns a unique, opaque, getOutputType for the output produced by this toolchain on the current operating system.
      */
     String getOutputType();
+
+    public static class Identifier {
+        public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {
+            return String.format("%s:%s:%s", toolChain.getOutputType(), platform.getArchitecture().getName(), platform.getOperatingSystem().getName());
+        }
+    }
 }

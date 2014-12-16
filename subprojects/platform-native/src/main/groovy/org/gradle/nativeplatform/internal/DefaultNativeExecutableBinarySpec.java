@@ -16,22 +16,18 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.*;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.nativeplatform.NativeExecutableBinary;
+import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private File executableFile;
-
-    public DefaultNativeExecutableBinarySpec(NativeExecutableSpec executable, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider,
-                                             NativePlatform platform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(executable, flavor, toolChain, toolProvider, platform, buildType, namingScheme, resolver);
-    }
 
     public File getExecutableFile() {
         return executableFile;
@@ -43,5 +39,28 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
 
     public File getPrimaryOutput() {
         return getExecutableFile();
+    }
+
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getLink();
+    }
+
+    public NativeExecutableBinarySpec.TasksCollection getTasks() {
+        return tasks;
+    }
+
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements NativeExecutableBinarySpec.TasksCollection {
+        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
+            super(binary);
+        }
+
+        public LinkExecutable getLink() {
+            return findSingleTaskWithType(LinkExecutable.class);
+        }
+
+        public InstallExecutable getInstall() {
+            return findSingleTaskWithType(InstallExecutable.class);
+        }
     }
 }

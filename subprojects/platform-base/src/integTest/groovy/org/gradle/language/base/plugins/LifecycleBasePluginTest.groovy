@@ -15,32 +15,46 @@
  */
 
 package org.gradle.language.base.plugins
+
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.*
 import static org.hamcrest.Matchers.instanceOf
 
 class LifecycleBasePluginTest extends Specification {
-    private final Project project = TestUtil.createRootProject()
+    private final DefaultProject project = TestUtil.createRootProject()
 
     public void createsTasksAndAppliesMappings() {
         when:
-        project.plugins.apply(LifecycleBasePlugin)
+        project.pluginManager.apply(LifecycleBasePlugin)
 
         then:
-        def clean = project.tasks[LifecycleBasePlugin.CLEAN_TASK_NAME]
+        def clean = project.tasks[CLEAN_TASK_NAME]
         clean instanceOf(Delete)
         clean dependsOn()
         clean.targetFiles.files == [project.buildDir] as Set
 
         and:
-        def assemble = project.tasks[LifecycleBasePlugin.ASSEMBLE_TASK_NAME]
+        def assemble = project.tasks[ASSEMBLE_TASK_NAME]
+        assemble.group == BUILD_GROUP
         assemble instanceOf(DefaultTask)
+
+        and:
+        def check = project.tasks[CHECK_TASK_NAME]
+        check.group == VERIFICATION_GROUP
+        check instanceOf(DefaultTask)
+
+        and:
+        def build = project.tasks[BUILD_TASK_NAME]
+        build.group == LifecycleBasePlugin.BUILD_GROUP
+        build dependsOn(ASSEMBLE_TASK_NAME, CHECK_TASK_NAME)
+        check instanceOf(DefaultTask)
     }
 
     public void addsACleanRule() {
@@ -49,7 +63,7 @@ class LifecycleBasePluginTest extends Specification {
         test.outputs.files(project.buildDir)
 
         when:
-        project.plugins.apply(LifecycleBasePlugin)
+        project.pluginManager.apply(LifecycleBasePlugin)
 
         then:
         Task cleanTest = project.tasks['cleanTest']
@@ -63,7 +77,7 @@ class LifecycleBasePluginTest extends Specification {
         project.task('12')
 
         when:
-        project.plugins.apply(LifecycleBasePlugin)
+        project.pluginManager.apply(LifecycleBasePlugin)
 
         then:
         project.tasks.findByName('cleantestTask') == null

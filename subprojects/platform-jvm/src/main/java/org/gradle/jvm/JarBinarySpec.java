@@ -25,13 +25,7 @@ import java.io.File;
  * Definition of a Jar file binary that is to be built by Gradle.
  */
 @Incubating @HasInternalProtocol
-public interface
-        JarBinarySpec extends JvmLibraryBinarySpec {
-    /**
-     * The ProjectJvmLibrary that this binary belongs to.
-     */
-    JvmLibrarySpec getLibrary();
-
+public interface JarBinarySpec extends JvmBinarySpec {
     /**
      * The jar file output for this binary.
      */

@@ -38,7 +38,7 @@ task checkModel << {
     assert project.binaries.size() == 1
     def sampleBinary = project.binaries.sampleBinary
     assert sampleBinary instanceof SampleBinary
-    assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+    assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
 }
 """
         then:
@@ -116,7 +116,7 @@ task checkModel << {
             assert project.binaries.size() == 1
             def sampleBinary = project.binaries.sampleBinary
             assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
         }
 """
         then:
@@ -162,11 +162,11 @@ task checkModel << {
             assert project.binaries.size() == 2
             def sampleBinary = project.binaries.sampleBinary
             assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary: 'sampleBinary'"
+            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
 
             def anotherSampleBinary = project.binaries.anotherSampleBinary
             assert anotherSampleBinary instanceof AnotherSampleBinary
-            assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary: 'anotherSampleBinary'"
+            assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary 'anotherSampleBinary'"
         }
 """
         then:
@@ -200,7 +200,7 @@ task checkModel << {
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
         failure.assertHasCause "MySamplePlugin\$Rules#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>, java.lang.String) is not a valid binary model rule method."
-        failure.assertHasCause "BinaryType method must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
+        failure.assertHasCause "Method annotated with @BinaryType must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
     }
 
     def "cannot register same binary type multiple times"(){
@@ -248,7 +248,7 @@ No components defined for this project.
 
 Additional binaries
 -------------------
-DefaultSampleBinary: 'sampleBinary'
+DefaultSampleBinary 'sampleBinary'
     build using task: :sampleBinary
 
 Note: currently not all plugins register their components, so some components may not be visible here.

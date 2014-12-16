@@ -18,7 +18,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
@@ -30,9 +29,6 @@ import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules
 import org.gradle.api.specs.Specs
-import org.gradle.internal.Factory
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import spock.lang.Specification
@@ -48,10 +44,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "all non-rejecting rules are evaluated" () {
-        def moduleAccess = Stub(Factory) {
-            create() >> {
-                return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
-            }
+        def metadataProvider = Stub(MetadataProvider) {
+            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
         }
         def closureCalled = []
         when:
@@ -65,7 +59,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
 
         and:
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         !componentSelection.rejected
@@ -76,10 +70,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "all non-rejecting targeted rules are evaluated" () {
-        def moduleAccess = Stub(Factory) {
-            create() >> {
-                return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
-            }
+        def metadataProvider = Stub(MetadataProvider) {
+            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
         }
         def closureCalled = []
         when:
@@ -93,7 +85,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 7 }
 
         and:
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         !componentSelection.rejected
@@ -104,10 +96,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "can call both targeted and untargeted rules" () {
-        def moduleAccess = Stub(Factory) {
-            create() >> {
-                return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
-            }
+        def metadataProvider = Stub(MetadataProvider) {
+            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
         }
         def closureCalled = []
         when:
@@ -129,7 +119,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closureCalled << 15 }
 
         and:
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         !componentSelection.rejected
@@ -140,7 +130,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "short-circuit prefers non-metadata rules over rules requiring metadata"() {
-        def moduleAccess = Mock(Factory)
+        def metadataProvider = Mock(MetadataProvider)
         def closuresCalled = []
 
         when:
@@ -155,7 +145,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         }
 
         and:
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         componentSelection.rejected
@@ -167,11 +157,11 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled.contains(5)
 
         and:
-        0 * moduleAccess._
+        0 * metadataProvider._
     }
 
     def "short-circuit prefers non-metadata rules over rules requiring metadata for targeted rules"() {
-        def moduleAccess = Mock(Factory)
+        def metadataProvider = Mock(MetadataProvider)
         def closuresCalled = []
 
         when:
@@ -186,7 +176,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         }
 
         and:
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         componentSelection.rejected
@@ -198,29 +188,29 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled.contains(5)
 
         and:
-        0 * moduleAccess._
+        0 * metadataProvider._
     }
 
     def "metadata is not requested for rules that don't require it"() {
-        def moduleAccess = Mock(Factory)
+        def metadataProvider = Mock(MetadataProvider)
         def closuresCalled = []
 
         when:
         rule { ComponentSelection cs -> closuresCalled << 0 }
         targetedRule("group", "module") { ComponentSelection cs -> closuresCalled << 1 }
 
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         !componentSelection.rejected
         closuresCalled.sort() == [0, 1]
 
         and:
-        0 * moduleAccess._
+        0 * metadataProvider._
     }
 
     def "metadata is not requested for non-targeted components"() {
-        def moduleAccess = Mock(Factory)
+        def metadataProvider = Mock(MetadataProvider)
         def closuresCalled = []
 
         when:
@@ -228,51 +218,48 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group1", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
         targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closuresCalled << 2 }
 
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         !componentSelection.rejected
         closuresCalled == []
 
         and:
-        0 * moduleAccess._
+        0 * metadataProvider._
     }
 
     def "produces sensible error when rule action throws exception" () {
-        def moduleAccess = Mock(Factory)
+        def metadataProvider = Mock(MetadataProvider)
+        def failure = new Exception("From test")
 
         when:
-        rule { ComponentSelection selection -> throw new Exception("From test")}
-        apply(moduleAccess)
+        rule { ComponentSelection selection -> throw failure }
+        apply(metadataProvider)
 
         then:
         def e = thrown(InvalidUserCodeException)
-        e.message == "Could not apply component selection rule with all()."
-        e.cause.message == "From test"
+        e.message == "There was an error while evaluating a component selection rule for group:module:version."
+        e.cause == failure
     }
 
     def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
-        def moduleAccess = Stub(Factory) {
-            create() >> {
-                return new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
-            }
+        def metadataProvider = Stub(MetadataProvider) {
+            getIvyModuleDescriptor() >> null
         }
         def closuresCalled = []
 
         when:
         rule { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closuresCalled << 0 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor ivm, ComponentMetadata cm -> closuresCalled << 1 }
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         closuresCalled == []
     }
 
     def "only matching targeted rules get called" () {
-        def moduleAccess = Stub(Factory) {
-            create() >> {
-                return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
-            }
+        def metadataProvider = Stub(MetadataProvider) {
+            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
         }
         def closuresCalled = []
         when:
@@ -290,7 +277,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module1") { ComponentSelection cs, ModuleComponentResolveMetaData mvm, ComponentMetadata cm -> closuresCalled << 11 }
 
         and:
-        apply(moduleAccess)
+        apply(metadataProvider)
 
         then:
         !componentSelection.rejected
@@ -311,7 +298,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         )
     }
 
-    def apply(def moduleAccess) {
-        processor.apply(componentSelection, rules, moduleAccess)
+    def apply(def metadataProvider) {
+        processor.apply(componentSelection, rules, metadataProvider)
     }
 }

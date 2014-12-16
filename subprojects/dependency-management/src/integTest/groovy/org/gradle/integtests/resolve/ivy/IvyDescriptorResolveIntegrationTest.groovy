@@ -16,8 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
-import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -174,19 +172,19 @@ task check(type: Sync) {
         succeeds "check"
 
         then:
-        def jars = ['test_exclude-1.134.jar', 'dep_module-1.134.jar'] + transitiveJars
+        def jars = ['test_exclude-1.134.jar'] + transitiveJars
         file("libs").assertHasDescendants(jars.toArray(new String[0]))
 
         where:
         name                       | excludeAttributes                          | transitiveJars
         "empty exclude"            | [:]                                        | []
-        "unmatched exclude"        | [module: "different"]                      | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-        "module exclude"           | [module: "mod_one"]                        | ['mod_two-2.2.jar']
-        "org exclude"              | [org: "org.gradle.two"]                    | ['mod_one-1.1.jar', 'mod_one-1.1.war']
-        "module and org exclude"   | [org: "org.gradle.two", module: "mod_one"] | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
-        "regex module exclude"     | [module: "mod.*"]                          | []
-        "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['mod_two-2.2.jar']
-        "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "unmatched exclude"        | [module: "different"]                      | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "module exclude"           | [module: "mod_one"]                        | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
+        "org exclude"              | [org: "org.gradle.two"]                    | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war']
+        "module and org exclude"   | [org: "org.gradle.two", module: "mod_one"] | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
+        "regex module exclude"     | [module: "mod.*"]                          | ['dep_module-1.134.jar']
+        "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
+        "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
 //  GRADLE-2674
 //        "type exclude"           | [type: "war"]                              | ['mod_one-1.1.jar', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
     }
@@ -236,39 +234,5 @@ task syncMerged(type: Sync) {
 
         then:
         file("libs").assertHasDescendants(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar'] as String[])
-    }
-
-    @Ignore
-    @Issue("GRADLE-3147")
-    def "module exclude using artifact attribute only excludes specified artifact from dependencies"() {
-        given:
-        ivyRepo.module("b").publish()
-        ivyRepo.module("c").publish()
-        ivyRepo.module("a")
-               .dependsOn("b", "c")
-               .withXml {
-                    asNode().dependencies[0].appendNode("exclude", [artifact: "b"])
-                }
-               .publish()
-
-        and:
-        buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile "org.gradle.test:a:1.0"
-}
-
-task check(type: Sync) {
-    into "libs"
-    from configurations.compile
-}
-"""
-
-        when:
-        succeeds "check"
-
-        then:
-        file("libs").assertHasDescendants(['a-1.0.jar', 'c-1.0.jar'] as String[])
     }
 }

@@ -18,13 +18,12 @@ package org.gradle.nativeplatform.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.*;
-import org.gradle.nativeplatform.internal.DefaultNativeExecutableBinarySpec;
-import org.gradle.nativeplatform.internal.DefaultSharedLibraryBinarySpec;
-import org.gradle.nativeplatform.internal.DefaultStaticLibraryBinarySpec;
+import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
@@ -47,12 +46,26 @@ public class DefaultNativeBinariesFactory implements NativeBinariesFactory {
             createNativeBinary(DefaultNativeExecutableBinarySpec.class, component, namingScheme.withTypeString("Executable").build(), toolChain, toolProvider, platform, buildType, flavor);
         }
     }
-
-    private void createNativeBinary(Class<? extends NativeBinarySpec> type, NativeComponentSpec component, BinaryNamingScheme namingScheme,
-                            NativeToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform platform, BuildType buildType, Flavor flavor) {
-        NativeBinarySpec nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, toolProvider, platform, buildType, namingScheme, resolver);
+    private <T extends AbstractNativeBinarySpec> void createNativeBinary(Class<T> type, NativeComponentSpec component, BinaryNamingScheme namingScheme,
+                                                                         NativeToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform platform, BuildType buildType, Flavor flavor) {
+        T nativeBinary = create(type, instantiator, component, namingScheme, resolver, toolChain, toolProvider, platform, buildType, flavor);
         setupDefaults(nativeBinary);
         component.getBinaries().add(nativeBinary);
+    }
+
+    public static <T extends AbstractNativeBinarySpec> T create(Class<T> type, Instantiator instantiator,
+                                                                NativeComponentSpec component, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver,
+                                                                NativeToolChain toolChain, PlatformToolProvider toolProvider, NativePlatform platform, BuildType buildType, Flavor flavor) {
+        T nativeBinary = BaseBinarySpec.create(type, namingScheme.getLifecycleTaskName(), instantiator);
+        nativeBinary.setNamingScheme(namingScheme);
+        nativeBinary.setComponent(component);
+        nativeBinary.setTargetPlatform(platform);
+        nativeBinary.setToolChain(toolChain);
+        nativeBinary.setPlatformToolProvider(toolProvider);
+        nativeBinary.setBuildType(buildType);
+        nativeBinary.setFlavor(flavor);
+        nativeBinary.setResolver(resolver);
+        return nativeBinary;
     }
 
     private void setupDefaults(NativeBinarySpec nativeBinary) {

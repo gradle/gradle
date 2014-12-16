@@ -30,7 +30,7 @@ import java.net.URI;
  * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
  * Note that the resolver will follow the layout only, but will <em>not</em> use .pom files for meta data. Ivy metadata files are required/published.
  */
-public class MavenRepositoryLayout extends RepositoryLayout {
+public class MavenRepositoryLayout extends AbstractRepositoryLayout {
 
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {

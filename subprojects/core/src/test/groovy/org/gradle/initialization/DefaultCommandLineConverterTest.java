@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.logging.ConsoleOutput;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -55,6 +56,7 @@ public class DefaultCommandLineConverterTest {
     private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
+    private ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
     private StartParameter actualStartParameter;
     private boolean expectedProfile;
     private File expectedProjectCacheDir;
@@ -92,6 +94,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
+        assertEquals(expectedConsoleOutput, startParameter.getConsoleOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
@@ -303,7 +306,14 @@ public class DefaultCommandLineConverterTest {
     @Test
     public void withNoColor() {
         expectedColorOutput = false;
+        expectedConsoleOutput = ConsoleOutput.Plain;
         checkConversion("--no-color");
+    }
+
+    @Test
+    public void withColor() {
+        expectedConsoleOutput = ConsoleOutput.Rich;
+        checkConversion("--console", "rich");
     }
 
     @Test(expected = CommandLineArgumentException.class)

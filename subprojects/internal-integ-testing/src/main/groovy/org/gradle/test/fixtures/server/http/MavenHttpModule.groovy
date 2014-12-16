@@ -103,6 +103,11 @@ class MavenHttpModule implements MavenModule, HttpModule {
         return this
     }
 
+    MavenHttpModule withNoMetaData() {
+        backingModule.withNoMetaData()
+        return this
+    }
+
     TestFile getPomFile() {
         return backingModule.pomFile
     }

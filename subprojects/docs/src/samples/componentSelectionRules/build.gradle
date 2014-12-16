@@ -26,7 +26,7 @@ repositories {
 // Set up the status scheme so that "experimental" is a valid status for "org.sample" artifacts
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { ComponentMetadataDetails details ->
             if (details.id.group == "org.sample") {
                 details.statusScheme = ["experimental", "integration", "milestone", "release"]
             }

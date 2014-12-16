@@ -216,7 +216,7 @@
         <section>
             <title>Using your plugin in another project</title>
             <para>To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To
-                do this, you use a “<literal>buildscript { }</literal>” block, as described in <xref linkend="sec:external_dependencies"/>.
+                do this, you use a “<literal>buildscript { }</literal>” block, as described in <xref linkend="sec:applying_plugins_buildscript"/>.
                 The following example shows how you might do this when the JAR containing the plugin has been published
                 to a local repository:
             </para>
@@ -229,7 +229,7 @@
                 Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see <xref linkend="sec:plugins_block" />)
                 to apply the plugin:
             </para>
-            <sample id="useCommunityPluginDSL" dir="plugin-dsl" title="Applying a community plugin with the plugins DSL">
+            <sample id="useCommunityPluginDSL" dir="plugins/dsl" title="Applying a community plugin with the plugins DSL">
                 <sourcefile file="build.gradle" snippet="use-community-plugin"/>
             </sample>
         </section>

@@ -31,9 +31,8 @@ class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: 'cpp'
-
-        """
+plugins { id 'cpp' }
+"""
 
         helloWorld.writeSources(file("src/main"))
     }
@@ -48,29 +47,28 @@ class MultipleNativeToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            model {
-                platforms {
-                    i386 {
-                        architecture "i386"
-                    }
-                    sparc {
-                        architecture "sparc"
-                    }
-                }
-                toolChains {
-                    ${x86ToolChain.buildScriptConfig}
-                    ${sparcToolChain.buildScriptConfig}
-                    ${sparcToolChain.id} {
-                        target("sparc")
-                    }
-                }
-            }
-
-            executables {
-                main {
-                    targetPlatforms "i386", "sparc"
-                }
-            }
+model {
+    platforms {
+        i386 {
+            architecture "i386"
+        }
+        sparc {
+            architecture "sparc"
+        }
+    }
+    toolChains {
+        ${x86ToolChain.buildScriptConfig}
+        ${sparcToolChain.buildScriptConfig}
+        ${sparcToolChain.id} {
+            target("sparc")
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "i386", "sparc"
+        }
+    }
+}
 """
 
         then:

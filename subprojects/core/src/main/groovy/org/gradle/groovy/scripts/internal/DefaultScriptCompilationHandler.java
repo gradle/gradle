@@ -29,19 +29,20 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.initialization.ClassLoaderIds;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.List;
 
@@ -49,9 +50,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
     private final EmptyScriptGenerator emptyScriptGenerator;
+    private final ClassLoaderCache classLoaderCache;
 
-    public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator) {
+    public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache) {
         this.emptyScriptGenerator = emptyScriptGenerator;
+        this.classLoaderCache = classLoaderCache;
     }
 
     public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir,
@@ -150,8 +153,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         try {
-            URLClassLoader urlClassLoader = new URLClassLoader(WrapUtil.toArray(scriptCacheDir.toURI().toURL()), classLoader);
-            return urlClassLoader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
+            ClassLoader loader = this.classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()), new DefaultClassPath(scriptCacheDir), classLoader, null);
+            return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
             File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
             if (!expectedClassFile.exists()) {

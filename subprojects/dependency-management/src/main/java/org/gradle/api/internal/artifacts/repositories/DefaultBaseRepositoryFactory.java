@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -42,6 +43,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
     private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
+    private final MetaDataParser pomParser;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -49,7 +51,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
                                         ResolverStrategy resolverStrategy,
-                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
+                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser pomParser) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -57,6 +59,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.resolverStrategy = resolverStrategy;
         this.artifactFileStore = artifactFileStore;
+        this.pomParser = pomParser;
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
@@ -66,7 +69,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, artifactFileStore);
+                locallyAvailableResourceFinder, artifactFileStore, pomParser);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -91,7 +94,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, artifactFileStore);
+                locallyAvailableResourceFinder, artifactFileStore, pomParser);
     }
 
     private PasswordCredentials createPasswordCredentials() {

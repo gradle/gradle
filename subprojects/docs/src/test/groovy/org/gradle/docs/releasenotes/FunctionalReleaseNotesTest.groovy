@@ -88,7 +88,7 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
             return
         }
 
-        page.fixedIssuesListItems.size() == numFixedIssues
+        waitFor { page.fixedIssuesListItems.size() == numFixedIssues }
         fixed.eachWithIndex { json, i ->
             def issue = page.fixedIssuesListItems[i]
             assert issue.text() == "[$json.key] - ${json.summary}"

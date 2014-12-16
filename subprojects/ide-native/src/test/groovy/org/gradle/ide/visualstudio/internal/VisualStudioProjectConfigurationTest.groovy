@@ -15,6 +15,7 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -22,13 +23,15 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet
+import org.gradle.language.PreprocessingTool
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativeplatform.*
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet
+import org.gradle.nativeplatform.NativeDependencySet
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
-import org.gradle.language.PreprocessingTool
 import org.gradle.nativeplatform.platform.NativePlatform
 import spock.lang.Specification
 
@@ -64,7 +67,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
     def "configuration tasks are binary tasks"() {
         given:
-        def tasks = Mock(NativeBinaryTasks)
+        def tasks = Mock(NativeExecutableBinarySpec.TasksCollection)
         def lifecycleTask = Mock(Task)
         when:
         exeBinary.tasks >> tasks

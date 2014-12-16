@@ -20,8 +20,8 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.jvm.Jvm
-import org.junit.Assert
 import org.gradle.util.TextUtil
+import org.junit.Assert
 
 /**
  * Check that the actual output lines match the expected output lines in content and order.

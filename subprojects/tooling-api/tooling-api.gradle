@@ -1,3 +1,5 @@
+apply plugin: 'osgi'
+
 import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
@@ -56,6 +58,31 @@ task jarjarJar(type: JarJarJar) {
     keep('org.gradle.tooling.**')
 }
 
+// revert manifest back after applying 'osgi' plugin
+ext.gradleManifest = manifest {
+    attributes("Implementation-Title": "Gradle",
+            "Implementation-Version": version)
+}
+jar {
+    manifest = project.manifest {
+        from gradleManifest
+    }
+}
+
+task publishJar(type: Jar) {
+    appendix = "bundle"
+    dependsOn jar, jarjarJar
+    from(zipTree(jarjarJar.getArchivePath()), { exclude 'META-INF/MANIFEST.MF'})
+    manifest = osgiManifest {
+        classesDir = sourceSets.main.output.classesDir
+        classpath = sourceSets.main.runtimeClasspath
+        instruction 'Import-Package', 'org.slf4j'
+        instruction 'Export-Package', '!org.gradle.tooling.internal.*,!org.gradle.tooling.model.internal.*,org.gradle.tooling.*'
+        instruction 'Implementation-Title', 'Gradle'
+        instruction 'Implementation-Version', version
+    }
+}
+
 sourceJar{
     configurations.compile.allDependencies.withType(ProjectDependency).each {
         from it.dependencyProject.sourceSets.main.groovy.srcDirs
@@ -64,11 +91,11 @@ sourceJar{
 }
 
 artifacts {
-    publishCompileWithProjectJar jarjarJar
-    publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
+    publishCompileWithProjectJar publishJar
+    publishRuntime file: publishJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: publishJar
 }
 
-configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
+configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask in [jar, jarjarJar] } }
 
 eclipse {
     classpath {

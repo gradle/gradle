@@ -33,12 +33,14 @@ model {
             }
         }
     }
-}
-executables {
-    main {}
-}
-sources {
-    main.cpp.lib library: 'boost', linkage: 'api'
-    main.cpp.lib library: 'util', linkage: 'static'
+
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'boost', linkage: 'api'
+                cpp.lib library: 'util', linkage: 'static'
+            }
+        }
+    }
 }
 

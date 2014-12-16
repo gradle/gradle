@@ -15,21 +15,20 @@
  */
 
 package org.gradle.language.objectivec
-
 import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.AbstractLanguageIncrementalBuildIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-@Requires(TestPrecondition.NOT_WINDOWS)
-class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
+@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLanguageIncrementalBuildIntegrationTest{
 
-    def setupSpec(){
-        multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
+    @Override
+    boolean isCanBuildForMultiplePlatforms() {
+        false
     }
 
     @Ignore("Demos a problem with clang on ubuntu creating randomly differerent object files")

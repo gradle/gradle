@@ -19,7 +19,8 @@ package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture;
+import org.gradle.nativeplatform.platform.internal.Architectures;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -27,7 +28,10 @@ import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -124,12 +128,22 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             minor = toInt(defines.get("__GNUC_MINOR__"));
             patch = toInt(defines.get("__GNUC_PATCHLEVEL__"));
         }
+        final ArchitectureInternal architecture = determineArchitecture(defines);
+        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
+    }
+
+    private ArchitectureInternal determineArchitecture(Map<String, String> defines) {
         boolean i386 = defines.containsKey("__i386__");
         boolean amd64 = defines.containsKey("__amd64__");
-        ArchitectureInternal architecture = i386 ? new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 32)
-                : amd64 ? new DefaultArchitecture("amd64", ArchitectureInternal.InstructionSet.X86, 64)
-                : ArchitectureInternal.TOOL_CHAIN_DEFAULT;
-        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
+        final ArchitectureInternal architecture;
+        if (i386) {
+            architecture = Architectures.forInput("i386");
+        } else if (amd64) {
+            architecture = Architectures.forInput("amd64");
+        } else {
+            architecture = DefaultNativePlatform.getCurrentArchitecture();
+        }
+        return architecture;
     }
 
     private int toInt(String value) {

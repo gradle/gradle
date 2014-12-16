@@ -17,9 +17,11 @@
 package org.gradle.api.reporting.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import spock.lang.IgnoreIf
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -238,6 +240,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     void 'buildDashboard is incremental'() {
         given:
         goodCode()
@@ -253,6 +256,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -283,6 +287,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':codenarcMain', 'text')
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
         given:
         goodCode()

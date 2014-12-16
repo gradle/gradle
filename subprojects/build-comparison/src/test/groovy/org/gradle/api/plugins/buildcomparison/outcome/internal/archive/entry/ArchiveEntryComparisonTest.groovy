@@ -22,24 +22,23 @@ import spock.lang.Specification
 class ArchiveEntryComparisonTest extends Specification {
 
     ArchiveEntry entry(Map attrs) {
-        new ArchiveEntry(attrs)
+        ArchiveEntry.of(attrs)
     }
 
-    def path
+    String path = "path"
     def from = entry(path: path, size: 10)
     def to = entry(path: path, size: 10)
 
-    ArchiveEntryComparison comparison(String path = path, ArchiveEntry from = from, ArchiveEntry to = to) {
-        new ArchiveEntryComparison(path, from, to)
+    ArchiveEntryComparison comparison() {
+        new ArchiveEntryComparison(from, to)
     }
-
 
     def "comparisons"() {
         expect:
         comparison().comparisonResultType == ComparisonResultType.EQUAL
 
         when:
-        from.size += 1
+        from = entry(path: path, size: 11)
 
         then:
         comparison().comparisonResultType == ComparisonResultType.UNEQUAL
@@ -58,7 +57,7 @@ class ArchiveEntryComparisonTest extends Specification {
         comparison().comparisonResultType == ComparisonResultType.SOURCE_ONLY
     }
 
-    def "from or to must be null"() {
+    def "from or to must be non null"() {
         given:
         from = null
         to = null
@@ -69,4 +68,5 @@ class ArchiveEntryComparisonTest extends Specification {
         then:
         thrown IllegalArgumentException
     }
+
 }

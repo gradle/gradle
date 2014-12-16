@@ -16,6 +16,9 @@
 
 package org.gradle.model.dsl.internal.transform;
 
+import net.jcip.annotations.ThreadSafe;
+
+@ThreadSafe
 public class SourceLocation {
     private final String scriptSourceDescription;
     private final int lineNumber;

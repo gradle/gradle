@@ -33,7 +33,6 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.destinationDir = new File("dest")
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.classpath = files("Dep1.jar", "Dep2.jar")
-        spec.scalaClasspath = files("scala-compiler.jar", "scala-library.jar")
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
         spec.scalaCompileOptions = new ScalaCompileOptions()
@@ -50,10 +49,6 @@ class NormalizingScalaCompilerTest extends Specification {
             assert spec.source as List == old(spec.source as List)
 
             assert spec.classpath as List == files("Dep1.jar", "Dep2.jar", "dest") as List
-
-            assert spec.scalaClasspath as List == old(spec.scalaClasspath as List)
-
-            assert spec.zincClasspath as List == old(spec.zincClasspath as List)
 
             workResult
         }

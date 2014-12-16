@@ -18,12 +18,14 @@ package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultNativeExecutableSpec
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
@@ -46,11 +48,11 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
     def instantiator = new DirectInstantiator();
     def factory = new DefaultNativeBinariesFactory(instantiator, configAction, resolver)
-    def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator);
+    def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet));
 
     def "creates binaries for executable"() {
         given:
-        def executable = new DefaultNativeExecutableSpec(id, mainSourceSet)
+        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
 
         when:
         1 * configAction.execute(_)
@@ -71,7 +73,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def library = new DefaultNativeLibrarySpec(id, mainSourceSet)
+        def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, mainSourceSet, new DirectInstantiator())
 
         when:
         2 * configAction.execute(_)

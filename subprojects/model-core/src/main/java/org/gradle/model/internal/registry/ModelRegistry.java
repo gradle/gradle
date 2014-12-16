@@ -17,16 +17,22 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelRegistrar;
+import org.gradle.model.internal.core.ModelSearchResult;
+import org.gradle.model.internal.type.ModelType;
 
-public interface ModelRegistry extends ModelRuleRegistrar {
+public interface ModelRegistry extends ModelRegistrar {
 
     public <T> T get(ModelPath path, ModelType<T> type);
 
-    public ModelElement element(ModelPath path);
+    @Nullable
+    <T> T find(ModelPath path, ModelType<T> type);
 
-    @Nullable // if not registered/known
-    public ModelState state(ModelPath path);
+    ModelSearchResult search(ModelPath path);
+
+    public ModelNode node(ModelPath path);
 
     void remove(ModelPath path);
 

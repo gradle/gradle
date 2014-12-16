@@ -31,27 +31,27 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     def setup() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-    class GenerateSources extends DefaultTask {
-        @InputDirectory File inputDir
-        @OutputDirectory File sourceDir
-        @OutputDirectory @Optional File headerDir
+class GenerateSources extends DefaultTask {
+    @InputDirectory File inputDir
+    @OutputDirectory File sourceDir
+    @OutputDirectory @Optional File headerDir
 
-        @TaskAction
-        void processInputFiles() {
-            project.copy {
-                from inputDir
-                into sourceDir.parentFile
-                filter { String line ->
-                    line.replaceAll('REMOVE_ME', '')
-                }
+    @TaskAction
+    void processInputFiles() {
+        project.copy {
+            from inputDir
+            into sourceDir.parentFile
+            filter { String line ->
+                line.replaceAll('REMOVE_ME', '')
             }
         }
     }
-    task generateCSources(type: GenerateSources) {
-        inputDir project.file("src/input")
-        headerDir project.file("build/src/generated/headers")
-        sourceDir project.file("build/src/generated/c")
-    }
+}
+task generateCSources(type: GenerateSources) {
+    inputDir project.file("src/input")
+    headerDir project.file("build/src/generated/headers")
+    sourceDir project.file("build/src/generated/c")
+}
 """
     }
 
@@ -69,14 +69,17 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.generatedBy tasks.generateCSources
+            }
+        }
     }
-    sources {
-        main.c.generatedBy tasks.generateCSources
-    }
+}
 """
 
         then:
@@ -96,19 +99,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    executables {
-        main {}
-    }
-    sources {
-        generated {
-            cHeaders(CSourceSet) {
-                generatedBy tasks.generateCSources
+model {
+    components { comp ->
+        headersOnly(NativeLibrarySpec) {
+            sources {
+                c.generatedBy tasks.generateCSources
+            }
+        }
+        main(NativeExecutableSpec) {
+            sources {
+                c.lib comp.headersOnly.sources.c
             }
         }
     }
-    sources {
-        main.c.lib sources.generated.cHeaders
-    }
+}
 """
 
         then:
@@ -124,22 +128,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    executables {
-        main {}
-    }
-    sources {
-        generated {
-            c(CSourceSet) {
-                generatedBy tasks.generateCSources
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                generatedC(CSourceSet) {
+                    generatedBy tasks.generateCSources
+                }
+                c.lib sources.generatedC
             }
         }
     }
-    sources {
-        main.c.lib sources.generated.c
-    }
-    executables.main.source sources.generated.c
+}
 """
 
         then:
@@ -155,24 +157,24 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    executables {
-        main {}
-    }
-    libraries {
-        hello {}
-    }
-    sources {
-        hello {
-            c {
-                generatedBy tasks.generateCSources
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.lib library: 'hello', linkage: 'static'
+            }
+        }
+        hello(NativeLibrarySpec) {
+            sources {
+                c {
+                    generatedBy tasks.generateCSources
+                }
             }
         }
     }
-    sources {
-        main.c.lib library: 'hello', linkage: 'static'
-    }
+}
 """
 
         then:
@@ -190,24 +192,24 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    executables {
-        main {}
-    }
-    libraries {
-        hello {}
-    }
-    sources {
-        hello {
-            c {
-                generatedBy tasks.generateCSources
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.lib library: 'hello', linkage: 'api'
+            }
+        }
+        hello(NativeLibrarySpec) {
+            sources {
+                c {
+                    generatedBy tasks.generateCSources
+                }
             }
         }
     }
-    sources {
-        main.c.lib library: 'hello', linkage: 'api'
-    }
+}
 """
 
         then:
@@ -222,20 +224,23 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'cpp'
+apply plugin: 'cpp'
 
-    task generateCppSources(type: GenerateSources) {
-        inputDir project.file("src/input")
-        headerDir project.file("build/src/generated/headers")
-        sourceDir project.file("build/src/generated/cpp")
-    }
+task generateCppSources(type: GenerateSources) {
+    inputDir project.file("src/input")
+    headerDir project.file("build/src/generated/headers")
+    sourceDir project.file("build/src/generated/cpp")
+}
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.generatedBy tasks.generateCppSources
+            }
+        }
     }
-    sources {
-        main.cpp.generatedBy tasks.generateCppSources
-    }
+}
 """
 
         then:
@@ -256,17 +261,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
         buildFile << """
-    task generateAsmSources(type: GenerateSources) {
-        inputDir project.file("src/input")
-        sourceDir project.file("build/src/generated/asm")
-    }
+task generateAsmSources(type: GenerateSources) {
+    inputDir project.file("src/input")
+    sourceDir project.file("build/src/generated/asm")
+}
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                asm.generatedBy tasks.generateAsmSources
+            }
+        }
     }
-    sources {
-        main.asm.generatedBy tasks.generateAsmSources
-    }
+}
 """
 
         then:
@@ -287,17 +295,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
         buildFile << """
-    task generateRcSources(type: GenerateSources) {
-        inputDir project.file("src/input")
-        sourceDir project.file("build/src/generated/rc")
-    }
+task generateRcSources(type: GenerateSources) {
+    inputDir project.file("src/input")
+    sourceDir project.file("build/src/generated/rc")
+}
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                rc.generatedBy tasks.generateRcSources
+            }
+        }
     }
-    sources {
-        main.rc.generatedBy tasks.generateRcSources
-    }
+}
 """
 
         then:
@@ -307,17 +318,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     def "produces reasonable error message when generator task does not have sourceDir property"() {
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    task generateSources {
-    }
+task generateSources {
+}
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.generatedBy tasks.generateSources
+            }
+        }
     }
-    sources {
-        main.c.generatedBy tasks.generateSources
-    }
+}
 """
 
         and:
@@ -336,24 +350,25 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    executables {
-        main {}
-    }
-    sources {
-        main {
-            c {
-                builtBy tasks.generateCSources
-                source {
-                    srcDirs tasks.generateCSources.sourceDir
-                }
-                exportedHeaders {
-                    srcDirs tasks.generateCSources.headerDir
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c {
+                    builtBy tasks.generateCSources
+                    source {
+                        srcDirs tasks.generateCSources.sourceDir
+                    }
+                    exportedHeaders {
+                        srcDirs tasks.generateCSources.headerDir
+                    }
                 }
             }
         }
     }
+}
 """
 
         then:
@@ -368,22 +383,25 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         when:
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    task lateConfiguredGenerator(type: GenerateSources)
+task lateConfiguredGenerator(type: GenerateSources)
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.generatedBy tasks.lateConfiguredGenerator
+            }
+        }
     }
-    sources {
-        main.c.generatedBy tasks.lateConfiguredGenerator
-    }
+}
 
-    lateConfiguredGenerator {
-        inputDir project.file("src/input")
-        headerDir project.file("build/src/generated/headers")
-        sourceDir project.file("build/src/generated/c")
-    }
+lateConfiguredGenerator {
+    inputDir project.file("src/input")
+    headerDir project.file("build/src/generated/headers")
+    sourceDir project.file("build/src/generated/c")
+}
 """
 
         then:
@@ -398,15 +416,18 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         and:
         buildFile << """
-    apply plugin: 'visual-studio'
-    apply plugin: 'c'
+apply plugin: 'visual-studio'
+apply plugin: 'c'
 
-    executables {
-        main {}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                c.generatedBy tasks.generateCSources
+            }
+        }
     }
-    sources {
-        main.c.generatedBy tasks.generateCSources
-    }
+}
 """
 
         when:
@@ -426,8 +447,10 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         ] as Set
         projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
+        // TODO:DAZ It would be preferable if the default location wasn't included when a generator task was provided
+        // but the way the rules work presently, this is hard to do (multiple @Finalize rules).
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "build/src/generated/headers"
+            includePath == "src/main/headers;build/src/generated/headers"
         }
     }
 

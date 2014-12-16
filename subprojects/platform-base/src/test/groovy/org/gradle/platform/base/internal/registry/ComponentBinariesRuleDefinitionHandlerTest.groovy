@@ -15,6 +15,7 @@
  */
 
 package org.gradle.platform.base.internal.registry
+
 import org.gradle.api.initialization.Settings
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -55,10 +56,10 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         1 * modelRegistry.mutate(_)
 
         where:
-        ruleName          |  descr
-        "rawBinarySpec"   |  "for plain BinarySpec"
-        "validTypeRule"   |  "for plain sample binary"
-        "librarySubType"  |  "for library sub types"
+        ruleName         | descr
+        "rawBinarySpec"  | "for plain BinarySpec"
+        "validTypeRule"  | "for plain sample binary"
+        "librarySubType" | "for library sub types"
     }
 
     def "can use plain BinarySpec"() {
@@ -96,13 +97,13 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         ex.cause.message == expectedMessage
 
         where:
-        methodName                  | expectedMessage                                                                                                               | descr
-        "noParams"                  | "ComponentBinaries method must have a parameter of type '${CollectionBuilder.name}'."                                         | "no CollectionBuilder parameter"
-        "wrongSubject"              | "ComponentBinaries method first parameter must be of type '${CollectionBuilder.name}'."                                       | "wrong rule subject type"
-        "multipileComponentSpecs"   | "ComponentBinaries method must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
-        "noComponentSpec"           | "ComponentBinaries method must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
-        "returnValue"               | "ComponentBinaries method must not have a return value."                                                                      | "non void method"
-        "rawCollectionBuilder"      | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'BinarySpec'."                                 | "non typed CollectionBuilder parameter"
+        methodName                | expectedMessage                                                                                                                               | descr
+        "noParams"                | "Method annotated with @ComponentBinaries must have a parameter of type '${CollectionBuilder.name}'."                                         | "no CollectionBuilder parameter"
+        "wrongSubject"            | "Method annotated with @ComponentBinaries first parameter must be of type '${CollectionBuilder.name}'."                                       | "wrong rule subject type"
+        "multipileComponentSpecs" | "Method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
+        "noComponentSpec"         | "Method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
+        "returnValue"             | "Method annotated with @ComponentBinaries must not have a return value."                                                                      | "non void method"
+        "rawCollectionBuilder"    | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'BinarySpec'."                                                 | "non typed CollectionBuilder parameter"
     }
 
     def getStringDescription(MethodRuleDefinition ruleDefinition) {
@@ -124,9 +125,12 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
     }
 
     interface SomeBinarySpec extends BinarySpec {}
+
     interface SomeLibrary extends ComponentSpec {}
+
     interface RawLibrary extends ComponentSpec {}
-    interface SomeBinarySubType extends SomeBinarySpec{}
+
+    interface SomeBinarySubType extends SomeBinarySpec {}
 
 
     static class Rules {

@@ -16,36 +16,36 @@
 
 package org.gradle.test.fixtures.plugin
 
+import org.gradle.language.base.internal.LanguageRegistry
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-abstract class AbstractLanguagePluginSpec extends Specification{
+abstract class AbstractLanguagePluginSpec extends Specification {
     final def project = TestUtil.createRootProject()
 
     abstract def getPluginClass()
+
     abstract def getLanguageSourceSet()
+
     abstract String getLanguageId()
-
-    @Unroll
-    def "adds support for custom #sourceSetClass.simpleName"() {
-        when:
-        project.plugins.apply(pluginClass)
-        project.sources.create "test"
-        then:
-        project.sources.test.create("test_sourceSet", sourceSetClass) in sourceSetClass
-
-        where:
-        sourceSetClass = languageSourceSet
-    }
 
     @Unroll
     def "registers #language in language registration"() {
         when:
-        project.plugins.apply(pluginClass)
+        project.pluginManager.apply(pluginClass)
+        project.evaluate()
+
+
         then:
-        // project.languages is not a NamedObjectContainer
-        project.languages.matching { it.name == language } != null
+        def languageRegistry = project.modelRegistry.get(new ModelPath("languages"), ModelType.of(LanguageRegistry))
+        def languageRegistration = languageRegistry.find { it.name == language }
+
+        languageRegistration != null
+        languageRegistration.sourceSetType == languageSourceSet
+
         where:
         language = languageId
     }

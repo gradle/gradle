@@ -16,6 +16,15 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import org.gradle.api.Action
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.specs.Specs
+import org.gradle.internal.rules.RuleAction
+import org.gradle.internal.rules.RuleActionAdapter
+import org.gradle.internal.rules.RuleActionValidationException
+import org.gradle.internal.typeconversion.NotationParser
+
 import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
@@ -29,7 +38,157 @@ import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class DefaultComponentMetadataHandlerTest extends Specification {
+    private static final String GROUP = "group"
+    private static final String MODULE = "module"
+
+    // For testing ModuleMetadataProcessor capabilities
     def handler = new DefaultComponentMetadataHandler(new DirectInstantiator())
+
+    // For testing ComponentMetadataHandler capabilities
+    RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
+    NotationParser<Object, String> notationParser = Mock(NotationParser)
+    def mockedHandler = new DefaultComponentMetadataHandler(new DirectInstantiator(), adapter, notationParser)
+    def ruleAction = Stub(RuleAction)
+
+    def "add action rule that applies to all components" () {
+        def action = new Action<ComponentMetadataDetails>() {
+            @Override
+            void execute(ComponentMetadataDetails componentMetadataDetails) { }
+        }
+
+        when:
+        mockedHandler.all action
+
+        then:
+        1 * adapter.createFromAction(action) >> ruleAction
+
+        and:
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec == Specs.satisfyAll()
+    }
+
+    def "add closure rule that applies to all components" () {
+        def closure = { ComponentMetadataDetails cmd -> }
+
+        when:
+        mockedHandler.all closure
+
+        then:
+        1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
+
+        and:
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec == Specs.satisfyAll()
+    }
+
+    def "add rule source rule that applies to all components" () {
+        def ruleSource = new Object()
+
+        when:
+        mockedHandler.all(ruleSource)
+
+        then:
+        1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
+
+        and:
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec == Specs.satisfyAll()
+    }
+
+    def "add action rule that applies to module" () {
+        def action = new Action<ComponentMetadataDetails>() {
+            @Override
+            void execute(ComponentMetadataDetails componentMetadataDetails) { }
+        }
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        mockedHandler.withModule(notation, action)
+
+        then:
+        1 * adapter.createFromAction(action) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "add closure rule that applies to module" () {
+        def closure = { ComponentMetadataDetails cmd -> }
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        mockedHandler.withModule(notation, closure)
+
+        then:
+        1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "add rule source rule that applies to module" () {
+        def ruleSource = new Object()
+        def notation = "${GROUP}:${MODULE}"
+
+        when:
+        mockedHandler.withModule(notation, ruleSource)
+
+        then:
+        1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
+        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
+
+        and:
+        mockedHandler.rules.size() == 1
+        mockedHandler.rules[0].action == (ruleAction)
+        mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "propagates error creating rule for closure" () {
+        when:
+        mockedHandler.all { }
+
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "bad closure"
+
+        and:
+        1 * adapter.createFromClosure(ComponentMetadataDetails, _) >> { throw new InvalidUserCodeException("bad closure") }
+    }
+
+    def "propagates error creating rule for action" () {
+        def action = Mock(Action)
+
+        when:
+        mockedHandler.all action
+
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "bad action"
+
+        and:
+        1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad action") }
+    }
+
+    def "propagates error creating rule for rule source" () {
+        when:
+        mockedHandler.all(new Object())
+
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "bad rule source"
+
+        and:
+        1 * adapter.createFromRuleSource(ComponentMetadataDetails, _) >> { throw new InvalidUserCodeException("bad rule source") }
+    }
 
     def "processing fails when status is not present in status scheme"() {
         def metadata = Stub(MutableModuleComponentResolveMetaData) {
@@ -46,30 +205,42 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
     }
 
-    def "supports rule with untyped ComponentMetaDataDetails parameter"() {
-        def metadata = Stub(MutableModuleComponentResolveMetaData) {
+    def "produces sensible error when rule action throws an exception" () {
+        def failure = new Exception("from test")
+        def metadata = Stub(TestIvyMetaData) {
+            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+        }
+
+        when:
+        handler.all { throw failure }
+
+        and:
+        handler.processMetadata(metadata)
+
+        then:
+        InvalidUserCodeException e = thrown()
+        e.message == "There was an error while evaluating a component metadata rule for group:module:version."
+        e.cause == failure
+    }
+
+    def "all rules get evaluated" () {
+        def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
         }
-        def capturedDetails = null
-        handler.eachComponent { details ->
-            capturedDetails = details
-        }
+        def closuresCalled = []
 
         when:
+        handler.all { ComponentMetadataDetails cmd -> closuresCalled << 1 }
+        handler.all { ComponentMetadataDetails cmd -> closuresCalled << 2 }
+        handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
+
+        and:
         handler.processMetadata(metadata)
 
         then:
-        noExceptionThrown()
-        capturedDetails instanceof ComponentMetadataDetails
-        with(capturedDetails) {
-            id.group == "group"
-            id.name == "module"
-            id.version == "version"
-            status == "integration"
-            statusScheme == ["integration", "release"]
-        }
+        closuresCalled.sort() == [ 1, 2, 3 ]
     }
 
     def "supports rule with typed ComponentMetaDataDetails parameter"() {
@@ -79,7 +250,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatusScheme() >> ["integration", "release"]
         }
         def capturedDetails = null
-        handler.eachComponent { ComponentMetadataDetails details ->
+        handler.all { ComponentMetadataDetails details ->
             capturedDetails = details
         }
 
@@ -109,7 +280,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getBranch() >> "someBranch"
         }
         def capturedDescriptor = null
-        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
+        handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             capturedDescriptor = descriptor
         }
 
@@ -134,7 +305,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         def invoked = false
-        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
+        handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             invoked = true
         }
 
@@ -145,26 +316,15 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         !invoked
     }
 
-    def "complains if rule has no parameters"() {
-        handler.eachComponent { -> }
-
-        when:
-        handler.processMetadata(Stub(MutableModuleComponentResolveMetaData))
-
-        then:
-        InvalidUserCodeException e = thrown()
-        e.message == "A component metadata rule needs to have at least one parameter."
-    }
-
     def "complains if first parameter type isn't assignment compatible with ComponentMetadataDetails"() {
-        handler.eachComponent { String s -> }
-
         when:
-        handler.processMetadata(Stub(MutableModuleComponentResolveMetaData))
+        handler.all { String s -> }
 
         then:
         InvalidUserCodeException e = thrown()
-        e.message == "First parameter of a component metadata rule needs to be of type 'ComponentMetadataDetails'."
+        e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
+        e.cause instanceof RuleActionValidationException
+        e.cause.message == "First parameter of rule action closure must be of type 'ComponentMetadataDetails'."
     }
 
     def "complains if rule has unsupported parameter type"() {
@@ -174,18 +334,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatusScheme() >> ["integration", "release"]
         }
 
-        def invoked = false
-        handler.eachComponent { details, String str ->
-            invoked = true
-        }
-
         when:
-        handler.processMetadata(metadata)
+        handler.all { ComponentMetadataDetails details, String str -> }
 
         then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "Unsupported parameter type for component metadata rule: java.lang.String"
-        !invoked
+        InvalidUserCodeException e = thrown()
+        e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
+        e.cause instanceof RuleActionValidationException
+        e.cause.message == "Rule may not have an input parameter of type: java.lang.String. Second parameter must be of type: org.gradle.api.artifacts.ivy.IvyModuleDescriptor."
     }
 
     def "supports rule with multiple inputs in arbitrary order"() {
@@ -202,7 +358,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def capturedDescriptor1 = null
         def capturedDescriptor2 = null
 
-        handler.eachComponent { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
+        handler.all { ComponentMetadataDetails details1, IvyModuleDescriptor descriptor1, IvyModuleDescriptor descriptor2  ->
             capturedDetails1 = details1
             capturedDescriptor1 = descriptor1
             capturedDescriptor2 = descriptor2
@@ -229,6 +385,26 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         with(capturedDescriptor2) {
             extraInfo.asMap() == [(new QName(id1.namespace, id1.name)): "info1 value", (new QName(id2.namespace, id2.name)): "info2 value"]
         }
+    }
+
+    def "ComponentMetadataDetailsSpec matches on group and name" () {
+        def spec = new DefaultComponentMetadataHandler.ComponentMetadataDetailsMatchingSpec(DefaultModuleIdentifier.newId(group, name))
+        def id = Mock(ModuleVersionIdentifier) {
+            1 * getGroup() >> { "org.gradle" }
+            (0..1) * getName() >> { "api" }
+        }
+        def details = Stub(ComponentMetadataDetails) {
+            getId() >> id
+        }
+
+        expect:
+        spec.isSatisfiedBy(details) == matches
+
+        where:
+        group        | name  | matches
+        "org.gradle" | "api" | true
+        "com.gradle" | "api" | false
+        "org.gradle" | "lib" | false
     }
 
     interface TestIvyMetaData extends IvyModuleResolveMetaData, MutableModuleComponentResolveMetaData {}

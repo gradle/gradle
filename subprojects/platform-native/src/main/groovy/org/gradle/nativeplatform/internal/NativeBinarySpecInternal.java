@@ -16,24 +16,48 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.Collection;
 
 public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
+    void setComponent(NativeComponentSpec component);
+
+    void setFlavor(Flavor flavor);
+
+    void setToolChain(NativeToolChain toolChain);
+
+    void setTargetPlatform(NativePlatform targetPlatform);
+
+    void setBuildType(BuildType buildType);
+
+    BinaryNamingScheme getNamingScheme();
+
+    void setNamingScheme(BinaryNamingScheme namingScheme);
+
+    PlatformToolProvider getPlatformToolProvider();
+
+    void setPlatformToolProvider(PlatformToolProvider toolProvider);
+
+    void setResolver(NativeDependencyResolver resolver);
+
     File getPrimaryOutput();
 
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 
-    void setBuildable(boolean buildable);
-
     Collection<NativeLibraryBinary> getDependentBinaries();
 
-    PlatformToolProvider getPlatformToolProvider();
+    /**
+     * Adds some files to include as input to the link/assemble step of this binary.
+     */
+    void binaryInputs(FileCollection files);
 }

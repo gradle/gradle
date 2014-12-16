@@ -28,4 +28,6 @@ public interface NativeTestSuiteSpec extends TestSuiteSpec, NativeComponentSpec 
      * {@inheritDoc}
      */
     NativeComponentSpec getTestedComponent();
+
+    void setTestedComponent(NativeComponentSpec testedComponent);
 }

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.platform
-
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
@@ -37,23 +36,26 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
 
     def setup() {
         buildFile << """
-            apply plugin: 'cpp'
-
-            executables {
-                main {}
-            }
-        """
+plugins {
+    id 'cpp'
+}
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
 
         testApp.writeSources(file("src/main"))
     }
 
+    // Tests will only work on x86 and x86-64 architectures
     def currentArch() {
-        def arch =  [name: "x86_64", altName: "amd64"]
-        // Tool chains on Windows currently build for i386 by default, even on amd64
+        // On windows we currently target i386 by default, even on amd64
         if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
-            arch = [name: "x86", altName: "i386"]
+            return [name: "x86", altName: "i386"]
         }
-        return arch;
+        return [name: "x86-64", altName: "amd64"]
     }
 
     def "build binary for a default target platform"() {
@@ -73,20 +75,22 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     def "configure component for a single target platform"() {
         when:
         buildFile << """
-            model {
-                platforms {
-                    sparc {
-                        architecture "sparc"
-                    }
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
-                    }
-                }
-            }
-            executables.main.targetPlatforms "x86"
+model {
+    platforms {
+        sparc {
+            architecture "sparc"
+        }
+        x86 {
+            architecture "x86"
+        }
+        x86_64 {
+            architecture "x86_64"
+        }
+    }
+    components {
+        main.targetPlatform "x86"
+    }
+}
 """
 
         and:
@@ -99,17 +103,20 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-
-    def "use platform as default when only one platform is defined"() {
+    def "defaults to current platform when platforms are defined but not targeted"() {
+        def arch = currentArch()
         when:
         buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "x86"
-                    }
-                }
-            }
+model {
+    platforms {
+        sparc {
+            architecture "sparc"
+        }
+        x86 {
+            architecture "x86"
+        }
+    }
+}
 """
 
         and:
@@ -118,42 +125,40 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == arch.name
+        executable("build/binaries/mainExecutable/main").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
-    def "library with matching platform is chosen by dependency resolution"() {
+    def "library with matching platform is enforced by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
         testApp.library.writeSources(file("src/hello"))
         when:
         buildFile << """
-            model {
-                platforms {
-                    sparc {
-                        architecture "sparc"
-                    }
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
-                    }
-                }
-            }
-            executables {
-                exe {
-                    targetPlatforms "x86"
-                }
-            }
-            libraries {
-                hello {
-                    targetPlatforms "x86", "x86_64"
-                }
-            }
+model {
+    platforms {
+        sparc {
+            architecture "sparc"
+        }
+        x86 {
+            architecture "x86"
+        }
+        x86_64 {
+            architecture "x86_64"
+        }
+    }
+    components {
+        exe(NativeExecutableSpec) {
+            targetPlatform "x86"
             sources {
-                exe.cpp.lib libraries.hello.static
+                cpp.lib library: "hello", linkage: "static"
             }
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+}
 """
 
         and:
@@ -166,27 +171,60 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         executable("build/binaries/exeExecutable/exe").exec().out == "i386 ${os.familyName}" * 2
     }
 
+    def "library with no platform defined is correctly chosen by dependency resolution"() {
+        def arch = currentArch();
+
+        given:
+        testApp.executable.writeSources(file("src/exe"))
+        testApp.library.writeSources(file("src/hello"))
+        when:
+        buildFile << """
+model {
+    components {
+        exe(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: 'hello', linkage: 'static'
+            }
+        }
+        hello(NativeLibrarySpec)
+    }
+}
+"""
+
+        and:
+        succeeds "exeExecutable"
+
+        then:
+        executedAndNotSkipped(":exeExecutable")
+        executable("build/binaries/exeExecutable/exe").binaryInfo.arch.name == arch.name
+        executable("build/binaries/exeExecutable/exe").exec().out == "${arch.altName} ${os.familyName}" * 2
+    }
+
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
-            model {
-                platforms {
-                    x86 {
-                        architecture "x86"
-                    }
-                    x86_64 {
-                        architecture "x86_64"
-                    }
-                    itanium {
-                        architecture "ia-64"
-                    }
-                    arm {
-                        architecture "arm"
-                    }
-                }
-            }
+model {
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+        x86_64 {
+            architecture "x86_64"
+        }
+        itanium {
+            architecture "ia-64"
+        }
+        arm {
+            architecture "arm"
+        }
+    }
+    components {
+        main {
+            targetPlatform "x86", "x86_64", "itanium", "arm"
+        }
+    }
+}
 
-            executables.main.targetPlatforms "x86", "x86_64", "itanium", "arm"
 """
 
         and:
@@ -209,7 +247,7 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         // Itanium only supported on visualCpp
         if (toolChain.visualCpp) {
             executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
-            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"),"build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
+            binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/mainExecutable/itanium/mainCpp")).arch.name == "ia-64"
         } else {
             executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
@@ -224,53 +262,72 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def "can configure binary for multiple target operating systems"() {
+        String currentOs
+        if (os.windows) {
+            currentOs = "windows"
+        } else if (os.linux) {
+            currentOs = "linux"
+        } else if (os.macOsX) {
+            currentOs = "osx"
+        } else {
+            throw new AssertionError("Unexpected operating system")
+        }
+
         when:
         buildFile << """
-            model {
-                platforms {
-                    windows {
-                        operatingSystem "windows"
-                    }
-                    linux {
-                        operatingSystem "linux"
-                    }
-                    osx {
-                        operatingSystem "osx"
-                    }
-                }
-            }
+model {
+    platforms {
+        osx {
+            operatingSystem "osx"
+            architecture "x86"
+        }
+        windows {
+            operatingSystem "windows"
+            architecture "x86"
+        }
+        linux {
+            operatingSystem "linux"
+            architecture "x86"
+        }
+    }
+    components {
+        main.targetPlatform "$currentOs"
+    }
+}
 
-            binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
-                cppCompiler.define "FRENCH"
-            }
+binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
+    cppCompiler.define "FRENCH"
+}
         """
-
         and:
         succeeds "assemble"
 
         then:
         if (os.windows) {
-            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "i386 windows" * 2
         } else if (os.linux) {
-            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "i386 linux" * 2
         } else if (os.macOsX) {
-            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x" * 2
+            executable("build/binaries/mainExecutable/main").exec().out == "i386 os x" * 2
         } else {
             throw new AssertionError("Unexpected operating system")
         }
     }
 
     @Unroll
-    def "fails with reasonable error message when trying to build for an unavailable #type"() {
+    def "fails with reasonable error message when trying to build for an #type"() {
         when:
         buildFile << """
-            model {
-                platforms {
-                    unavailable {
-                        ${config}
-                    }
-                }
-            }
+model {
+    platforms {
+        unavailable {
+            ${config}
+        }
+    }
+    components {
+        main.targetPlatform 'unavailable'
+    }
+}
 """
 
         and:
@@ -282,48 +339,25 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
   - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
 
         where:
-        type               | config
-        "architecture"     | "architecture 'sparc'"
-        "operating system" | "operatingSystem 'solaris'"
-    }
-
-    @Unroll
-    def "fails with reasonable error message when trying to build for an unknown #type"() {
-        when:
-        settingsFile << """rootProject.name = 'bad'"""
-        buildFile << """
-            model {
-                platforms {
-                    bad {
-                        ${badConfig}
-                    }
-                }
-            }
-"""
-
-        and:
-        fails "mainExecutable"
-
-        then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad'.")
-        failure.assertHasCause("Cannot convert the provided notation to an object of type ${type}: bad.")
-
-        where:
-        type               | badConfig
-        "Architecture"     | "architecture 'bad'"
-        "OperatingSystem" | "operatingSystem 'bad'"
+        type                           | config
+        "unavailable architecture"     | "architecture 'sparc'"
+        "unavailable operating system" | "operatingSystem 'solaris'"
+        "unknown architecture"         | "architecture 'unknown'"
+        "unknown operating system"     | "operatingSystem 'unknown'"
     }
 
     def "fails with reasonable error message when trying to target an unknown platform"() {
         when:
         settingsFile << "rootProject.name = 'bad-platform'"
         buildFile << """
-            model {
-                platforms {
-                    main
-                }
-            }
-            executables.main.targetPlatforms "unknown"
+model {
+    platforms {
+        main
+    }
+    components {
+        main.targetPlatform "unknown"
+    }
+}
 """
 
         and:
@@ -338,29 +372,29 @@ class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainInte
         when:
         settingsFile << "rootProject.name = 'no-matching-platform'"
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                platforms {
-                    one
-                    two
-                }
-            }
-            libraries {
-                hello {
-                    targetPlatforms "two"
-                }
-            }
-
+model {
+    platforms {
+        one
+        two
+    }
+    components {
+        hello(NativeLibrarySpec) {
+            targetPlatform "two"
+        }
+        main {
+            targetPlatform "one"
             sources {
-                main.cpp.lib libraries.hello
+                cpp.lib library: 'hello'
             }
+        }
+    }
+}
 """
 
         and:
-        fails "oneMainExecutable"
+        fails "mainExecutable"
 
         then:
-        //TODO freekh: This error message is not particularly descriptive: it is hard to understand what to do and how to fix it.
         failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 

@@ -130,6 +130,12 @@ class OperatingSystemTest extends Specification {
 
         then:
         OperatingSystem.current() instanceof OperatingSystem.MacOs
+
+        when:
+        System.properties['os.name'] = 'osx'
+
+        then:
+        OperatingSystem.current() instanceof OperatingSystem.MacOs
     }
 
     def "Mac OS X identifies itself correctly"() {
@@ -141,10 +147,17 @@ class OperatingSystemTest extends Specification {
         os.macOsX
     }
 
-    def "uses os.name property to determine if solaris"() {
+    def "uses os.name property to determine if sunos"() {
+        when:
         System.properties['os.name'] = 'SunOS'
 
-        expect:
+        then:
+        OperatingSystem.current() instanceof OperatingSystem.Solaris
+
+        when:
+        System.properties['os.name'] = 'solaris'
+
+        then:
         OperatingSystem.current() instanceof OperatingSystem.Solaris
     }
 

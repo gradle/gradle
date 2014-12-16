@@ -38,14 +38,14 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void addsConventionToProject() {
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         assertThat(project.getConvention().getPlugin(MavenPluginConvention.class), notNullValue());
     }
     
     @org.junit.Test
     public void defaultConventionValues() {
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         MavenPluginConvention convention = project.getConvention().getPlugin(MavenPluginConvention.class);
         assertThat(convention.getMavenPomDir(), equalTo(new File(project.getBuildDir(), "poms")));
@@ -54,8 +54,8 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithWarPlugin() {
-        project.getPlugins().apply(WarPlugin.class);
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(WarPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
                 MavenPlugin.PROVIDED_COMPILE_PRIORITY);
@@ -77,8 +77,8 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithJavaPlugin() {
-        project.getPlugins().apply(JavaPlugin.class);
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         assertHasConfigurationAndMapping(project, JavaPlugin.COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
                 MavenPlugin.COMPILE_PRIORITY);
@@ -96,8 +96,8 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void addsAndConfiguresAnInstallTask() {
-        project.getPlugins().apply(JavaPlugin.class);
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         Upload task = project.getTasks().withType(Upload.class).getByName(MavenPlugin.INSTALL_TASK_NAME);
         assertThat(task.getRepositories().get(0), instanceOf(MavenResolver.class));
@@ -105,8 +105,8 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void addsConventionMappingToTheRepositoryContainerOfEachUploadTask() {
-        project.getPlugins().apply(JavaPlugin.class);
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         Upload task = project.getTasks().withType(Upload.class).getByName(MavenPlugin.INSTALL_TASK_NAME);
         MavenRepositoryHandlerConvention convention = new DslObject(task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
@@ -119,7 +119,7 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithoutWarPlugin() {
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         assertThat(project.getConfigurations().findByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
                 nullValue());
@@ -127,7 +127,7 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithoutJavaPlugin() {
-        project.getPlugins().apply(MavenPlugin.class);
+        project.getPluginManager().apply(MavenPlugin.class);
 
         assertThat(project.getConfigurations().findByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
                 nullValue());

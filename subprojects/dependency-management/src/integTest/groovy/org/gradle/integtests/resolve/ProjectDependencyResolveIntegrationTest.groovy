@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -290,7 +292,7 @@ project(":b") {
         fails 'test'
 
         and:
-        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'b.jar (test:a:unspecified)' not found.")
+        failure.assertResolutionFailure(":b:compile").assertHasCause("Could not find b.jar (test:a:unspecified).")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {
@@ -391,6 +393,7 @@ project('c') {
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
     // project dependencies that are “built” by built in plugins like the Java plugin's created jars
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can use zip files as project dependencies"() {
         given:
         file("settings.gradle") << "include 'a'; include 'b'"

@@ -36,16 +36,44 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             import org.gradle.model.*
+            import org.gradle.model.internal.core.*
+            import org.gradle.model.internal.core.rule.describe.*
+            import org.gradle.model.internal.type.*
             import org.gradle.model.collection.*
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {}
+            def paths = "$normalisedPath".split("\\\\.")
+            def root = paths[0]
+            def rest = paths.tail()
+            def type = new ModelType<List<String>>() {}
+
+            modelRegistry.create(
+              ModelCreators.of(ModelReference.of(root, type)) {
+                return { node ->
+                    node.setPrivateData(type, [])
+                    def pathParts = [root]
+                    rest.each { p ->
+                      def projection = new UnmanagedModelProjection(type, true, true)
+                      node = node.addLink(
+                        p,
+                        new SimpleModelRuleDescriptor("foo"),
+                        new ProjectionBackedModelPromise([projection]),
+                        new ProjectionBackedModelAdapter([projection])
+                      )
+                      node.setPrivateData(type, [])
+                      pathParts << p
+                    }
+                } as Action
+              }
+              .simpleDescriptor("foo")
+              .withProjection(new UnmanagedModelProjection(type, true, true))
+              .build()
+            )
+
+            modelRegistry.node(ModelPath.path(root))
+
+            class MyPlugin {
                 @RuleSource
                 static class Rules {
-                    @Model("$normalisedPath") List<String> strings() {
-                        []
-                    }
-
                     @Mutate
                     void addTask(CollectionBuilder<Task> tasks, @Path("$normalisedPath") List<String> strings) {
                         tasks.create("printStrings") {
@@ -57,7 +85,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
                 $path {

@@ -29,7 +29,7 @@ import java.net.URI;
  *
  * Note the pattern is the same for both artifacts and ivy files.
  */
-public class GradleRepositoryLayout extends RepositoryLayout {
+public class GradleRepositoryLayout extends AbstractRepositoryLayout {
 
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {

@@ -24,6 +24,7 @@ import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -49,6 +50,9 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 
 import java.util.List;
 
@@ -121,7 +125,7 @@ public class GlobalScopeServices {
     ListenerManager createListenerManager() {
         return new DefaultListenerManager();
     }
-   
+
     ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
     }
@@ -170,6 +174,18 @@ public class GlobalScopeServices {
 
     FileLookup createFileLookup(FileSystem fileSystem) {
         return new DefaultFileLookup(fileSystem);
+    }
+
+    ClassLoaderCacheFactory createClassLoaderCacheFactory() {
+        return new ClassLoaderCacheFactory();
+    }
+
+    protected ModelSchemaStore createModelSchemaStore() {
+        return new DefaultModelSchemaStore();
+    }
+
+    protected ModelRuleSourceDetector createModelRuleSourceDetector() {
+        return new ModelRuleSourceDetector();
     }
 
 }

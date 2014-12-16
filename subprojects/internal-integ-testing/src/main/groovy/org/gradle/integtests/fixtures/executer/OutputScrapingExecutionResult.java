@@ -79,18 +79,27 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public ExecutionResult assertTasksSkipped(String... taskPaths) {
+        if (GradleContextualExecuter.isParallel()) {
+            return this;
+        }
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
         return this;
     }
 
     public ExecutionResult assertTaskSkipped(String taskPath) {
+        if (GradleContextualExecuter.isParallel()) {
+            return this;
+        }
         Set<String> tasks = new HashSet<String>(getSkippedTasks());
         assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;
     }
 
     public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
+        if (GradleContextualExecuter.isParallel()) {
+            return this;
+        }
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
@@ -104,6 +113,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
+        if (GradleContextualExecuter.isParallel()) {
+            return this;
+        }
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;

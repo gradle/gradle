@@ -69,7 +69,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         task.setCompilerArgs(rcCompiler.getArgs());
 
         FileTree resourceOutputs = task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.res"));
-        binary.getTasks().getCreateOrLink().source(resourceOutputs);
+        binary.binaryInputs(resourceOutputs);
         if (binary instanceof StaticLibraryBinarySpecInternal) {
             ((StaticLibraryBinarySpecInternal) binary).additionalLinkFiles(resourceOutputs);
         }

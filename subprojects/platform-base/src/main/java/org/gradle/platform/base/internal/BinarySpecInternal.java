@@ -16,10 +16,15 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.platform.base.BinarySpec;
 
 public interface BinarySpecInternal extends BinarySpec {
-    BinaryNamingScheme getNamingScheme();
+    FunctionalSourceSet getBinarySources();
+
+    void setBinarySources(FunctionalSourceSet sources);
+
+    void setBuildable(boolean buildable);
 
     boolean isLegacyBinary();
 }

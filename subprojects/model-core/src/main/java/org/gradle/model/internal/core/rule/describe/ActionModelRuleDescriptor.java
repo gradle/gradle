@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 
+@ThreadSafe
 public class ActionModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private final Action<? super Appendable> action;

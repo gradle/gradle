@@ -69,15 +69,15 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
         }
 
         if (result.comparisonResultType == NON_EXISTENT) {
-            resultMsg "Neither side produced the archive.", false, context
+            resultMsg "Neither side produced the archive.", result.outcomesAreIdentical, context
         } else if (result.comparisonResultType == SOURCE_ONLY) {
-            resultMsg "The archive was only produced by the source build.", false, context
+            resultMsg "The archive was only produced by the source build.", result.outcomesAreIdentical, context
         } else if (result.comparisonResultType == TARGET_ONLY) {
-            resultMsg "The archive was only produced by the target build.", false, context
+            resultMsg "The archive was only produced by the target build.", result.outcomesAreIdentical, context
         } else if (result.comparisonResultType == EQUAL) {
-            resultMsg "The archives are completely identical.", true, context
+            resultMsg "The archives are completely identical.", result.outcomesAreIdentical, context
         } else if (result.comparisonResultType == UNEQUAL) {
-            resultMsg "There are differences within the archive.", false, context
+            resultMsg "There are differences within the archive.", result.outcomesAreIdentical, context
             renderUnequal(context, result.entryComparisons)
         } else {
             result.comparisonResultType.throwUnsupported()
@@ -99,11 +99,23 @@ class GeneratedArchiveBuildOutcomeComparisonResultHtmlRenderer extends BuildOutc
                 }
 
                 entryComparisons.each { entryComparison ->
-                    if (entryComparison.comparisonResultType != EQUAL) {
-                        tr {
-                            td entryComparison.path
-                            td toDifferenceDescription(entryComparison)
-                        }
+                    if (entryComparison.comparisonResultType == EQUAL) {
+                        return
+                    }
+
+                    if ((entryComparison.comparisonResultType == SOURCE_ONLY)
+                            && entryComparisons.find { (it.comparisonResultType == SOURCE_ONLY) && (it.source.subEntries.contains(entryComparison.source)) }) {
+                        return
+                    }
+
+                    if ((entryComparison.comparisonResultType == TARGET_ONLY)
+                            && entryComparisons.find { (it.comparisonResultType == TARGET_ONLY) && (it.target.subEntries.contains(entryComparison.target)) }) {
+                        return
+                    }
+
+                    tr {
+                        td entryComparison.path
+                        td toDifferenceDescription(entryComparison)
                     }
                 }
             }

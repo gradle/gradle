@@ -16,8 +16,10 @@
 package org.gradle.nativeplatform.test;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.test.TestSuiteBinarySpec;
 
 import java.io.File;
@@ -27,6 +29,26 @@ import java.io.File;
  */
 @Incubating @HasInternalProtocol
 public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBinarySpec {
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    public interface TasksCollection extends BinaryTasksCollection {
+        /**
+         * The link task.
+         */
+        Task getLink();
+
+        /**
+         * The install task.
+         */
+        Task getInstall();
+
+        /**
+         * The run task.
+         */
+        Task getRun();
+    }
+
     /**
      * The tested binary.
      */
@@ -41,4 +63,9 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
      * The executable file.
      */
     void setExecutableFile(File executableFile);
+
+    /**
+     * {@inheritDoc}
+     */
+    TasksCollection getTasks();
 }

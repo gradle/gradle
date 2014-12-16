@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
+import net.jcip.annotations.NotThreadSafe;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
@@ -38,7 +39,7 @@ import org.gradle.model.internal.core.ModelPath;
 import java.util.List;
 import java.util.Map;
 
-// This is explicitly not threadsafe
+@NotThreadSafe
 public class RuleVisitor extends CodeVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";

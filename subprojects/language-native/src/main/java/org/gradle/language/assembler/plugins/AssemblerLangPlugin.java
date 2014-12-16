@@ -18,15 +18,17 @@ package org.gradle.language.assembler.plugins;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
+import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultTool;
-import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 
 import java.util.Map;
 
@@ -34,11 +36,22 @@ import java.util.Map;
  * Adds core Assembler language support.
  */
 @Incubating
-public class AssemblerLangPlugin implements Plugin<ProjectInternal> {
+public class AssemblerLangPlugin implements Plugin<Project> {
 
-    public void apply(ProjectInternal project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Assembler());
+    public void apply(Project project) {
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new Assembler());
+        }
     }
 
     private static class Assembler extends NativeLanguageRegistration<AssemblerSourceSet> {

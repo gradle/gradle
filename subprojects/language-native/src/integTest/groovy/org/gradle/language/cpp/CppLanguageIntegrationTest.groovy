@@ -16,22 +16,24 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
-class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class CppLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             executables {
-                 main {}
-             }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
          """
 
         and:
@@ -55,9 +57,11 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-             executables {
-                 main {}
-             }
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
          """
 
         expect:
@@ -75,32 +79,32 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-            executables {
-                main {}
-            }
-
+model {
+    components {
+        main(NativeExecutableSpec) {
             sources {
-                main {
-                    cpp {
-                        exportedHeaders {
-                            srcDirs "src/shared/headers"
-                        }
+                cpp {
+                    exportedHeaders {
+                        srcDirs "src/shared/headers"
                     }
-                    cpp2(CppSourceSet) {
-                        exportedHeaders {
-                            srcDirs "src/shared/headers"
-                        }
+                }
+                cpp2(CppSourceSet) {
+                    exportedHeaders {
+                        srcDirs "src/shared/headers"
                     }
-                    cpp3(CppSourceSet) {
-                        source {
-                            srcDir "src/main/sum-sources"
-                        }
-                        exportedHeaders {
-                            srcDirs "src/shared/headers"
-                        }
+                }
+                cpp3(CppSourceSet) {
+                    source {
+                        srcDir "src/main/sum-sources"
+                    }
+                    exportedHeaders {
+                        srcDirs "src/shared/headers"
                     }
                 }
             }
+        }
+    }
+}
 """
 
         when:

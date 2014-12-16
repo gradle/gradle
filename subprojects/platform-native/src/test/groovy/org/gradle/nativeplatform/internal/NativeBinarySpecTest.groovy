@@ -17,35 +17,38 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.nativeplatform.DependentSourceSet
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
-import org.gradle.nativeplatform.platform.internal.DefaultArchitecture
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.nativeplatform.platform.internal.Architectures
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.internal.BinaryNamingScheme
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
+import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
+
 class NativeBinarySpecTest extends Specification {
+    def instantiator = new DirectInstantiator()
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator())
-    def component = new TestNativeComponentSpec(id, sourceSet)
+    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))
+    def component = BaseComponentSpec.create(TestNativeComponentSpec, id, sourceSet, instantiator)
 
     def toolChain1 = Stub(NativeToolChainInternal) {
         getName() >> "ToolChain1"
     }
     def platform1 = Stub(NativePlatform) {
-        getArchitecture() >> new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 64)
+        getArchitecture() >> Architectures.forInput("i386")
     }
     def buildType1 = Stub(BuildType) {
         getName() >> "BuildType1"
@@ -54,11 +57,11 @@ class NativeBinarySpecTest extends Specification {
 
     def "binary uses source from its owner component"() {
         given:
-        def binary = testBinary(component)
         def sourceSet = Stub(LanguageSourceSet)
 
         when:
-        component.source(sourceSet)
+        component.sources.add(sourceSet)
+        def binary = testBinary(component)
 
         then:
         binary.source.contains(sourceSet)
@@ -67,7 +70,7 @@ class NativeBinarySpecTest extends Specification {
     def "binary uses all source sets from a functional source set"() {
         given:
         def binary = testBinary(component)
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator())
+        def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator, Stub(ProjectSourceSet))
         def sourceSet1 = Stub(LanguageSourceSet) {
             getName() >> "ss1"
         }
@@ -183,27 +186,18 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestNativeBinarySpec(owner, flavor, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
+        return create(TestNativeBinarySpec, instantiator, owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, flavor)
     }
 
-    class TestNativeComponentSpec extends AbstractNativeComponentSpec {
-        TestNativeComponentSpec(ComponentSpecIdentifier id, FunctionalSourceSet sourceSet) {
-            super(id, sourceSet)
-        }
-
+    static class TestNativeComponentSpec extends AbstractNativeComponentSpec {
         String getDisplayName() {
             return "test component"
         }
     }
 
-    class TestNativeBinarySpec extends AbstractNativeBinarySpec {
+    static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
-
-        TestNativeBinarySpec(NativeComponentSpec owner, Flavor flavor, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider, NativePlatform targetPlatform, BuildType buildType,
-                   BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-            super(owner, flavor, toolChain, toolProvider, targetPlatform, buildType, namingScheme, resolver)
-            this.owner = owner
-        }
+        def tasks = new DefaultBinaryTasksCollection(this)
 
         String getOutputFileName() {
             return null
@@ -213,5 +207,14 @@ class NativeBinarySpecTest extends Specification {
             File binaryOutputDir = getBinaryOutputDir();
             return new File(binaryOutputDir, getOutputFileName());
         }
+
+        @Override
+        protected ObjectFilesToBinary getCreateOrLink() {
+            return null;
+        }
+
+        DefaultBinaryTasksCollection getTasks() {
+           return tasks;
+       }
     }
 }

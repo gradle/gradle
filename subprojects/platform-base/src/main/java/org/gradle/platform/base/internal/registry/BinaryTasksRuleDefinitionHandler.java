@@ -20,16 +20,14 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.internal.DefaultCollectionBuilder;
-import org.gradle.model.entity.internal.NamedEntityInstantiator;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelType;
+import org.gradle.model.internal.core.DefaultCollectionBuilder;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
@@ -47,13 +45,13 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
 
-            Class<S> binaryType =  dataCollector.getParameterType(BinarySpec.class);
+            Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             dependencies.add(ComponentModelBasePlugin.class);
 
             final ModelReference<TaskContainer> tasks = ModelReference.of(ModelPath.path("tasks"), new ModelType<TaskContainer>() {
             });
 
-            modelRegistry.mutate(new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition, modelRegistry));
+            modelRegistry.mutate(new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition));
 
         } catch (InvalidComponentModelException e) {
             invalidModelRule(ruleDefinition, e);
@@ -76,32 +74,29 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
 
     private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, TaskContainer> {
 
-        private final ModelRegistry modelRegistry;
         private final Class<T> binaryType;
 
-        public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry) {
+        public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition) {
             super(subject, binaryType, ruleDefinition, ModelReference.of("binaries", BinaryContainer.class));
             this.binaryType = binaryType;
-            this.modelRegistry = modelRegistry;
         }
 
-        public void mutate(TaskContainer container, Inputs inputs) {
+        public void mutate(ModelNode modelNode, TaskContainer container, Inputs inputs) {
             BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
             for (T binary : binaries.withType(binaryType)) {
-                NamedEntityInstantiator<Task> instantiator = new Instantiator<Task>(binary, container);
+                NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);
                 DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
-                        getSubject().getPath(),
                         instantiator,
                         new SimpleModelRuleDescriptor("Project.<init>.tasks()"),
-                        inputs,
-                        modelRegistry);
+                        modelNode
+                );
 
                 invoke(inputs, collectionBuilder, binary, binaries);
             }
         }
     }
 
-    private class Instantiator<S extends Task> implements NamedEntityInstantiator<Task> {
+    private class Instantiator implements NamedEntityInstantiator<Task> {
         private final BinarySpec binarySpec;
         private final TaskContainer container;
 

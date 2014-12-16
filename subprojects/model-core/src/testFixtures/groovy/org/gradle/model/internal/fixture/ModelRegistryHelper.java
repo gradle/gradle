@@ -22,6 +22,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,7 +73,7 @@ public class ModelRegistryHelper {
                 return ModelReference.of(modelPath, type);
             }
 
-            public void mutate(T object, Inputs inputs) {
+            public void mutate(ModelNode modelNode, T object, Inputs inputs) {
                 configurer.execute(object);
             }
 

@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.integtests
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.plugins.quality.CodeNarc
-import org.gradle.api.plugins.quality.FindBugs
-import org.gradle.api.plugins.quality.Pmd
+import org.gradle.api.plugins.quality.*
+import org.gradle.api.plugins.sonar.SonarAnalyze
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.War
@@ -34,12 +32,12 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.plugins.ear.Ear
+import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
-
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
-@TargetVersions('0.9-rc-3+')
+@TargetVersions('1.0+')
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "can use task subclass compiled using previous Gradle version"() {
         given:
@@ -53,29 +51,23 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                 Jar,
                 Tar,
                 War,
-                Ear,
-                Test,
                 ScalaCompile,
                 GroovyCompile,
 //                JavaCompile,
                 CodeNarc,
-                FindBugs,
                 Checkstyle,
-                Pmd
+                Ear,
+                FindBugs,
+                Pmd,
+                JDepend,
+                Sign,
+                CreateStartScripts,
+                SonarAnalyze,
         ]
-
-        if (previous.version < GradleVersion.version("1.0-milestone-4")) {
-            taskClasses.remove(Ear)
-        }
-        if (previous.version < GradleVersion.version("1.0-milestone-8")) {
-            taskClasses.remove(FindBugs)
-            taskClasses.remove(Pmd)
-        }
-        if (previous.version < GradleVersion.version("1.1")) {
+        if (previous.version >= GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
-            taskClasses.remove(Test)
+            taskClasses << Test
         }
-
 
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }
 
@@ -104,6 +96,8 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
     ${className}() {
         // GRADLE-3185
         project.logger.lifecycle('task created')
+        // GRADLE-3207
+        super.getServices()
     }
 }"""
                 }.join("\n")

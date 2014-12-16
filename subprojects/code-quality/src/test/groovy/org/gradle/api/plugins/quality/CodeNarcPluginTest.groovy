@@ -15,22 +15,23 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.hasItems
 import static spock.util.matcher.HamcrestSupport.that
-import org.gradle.api.plugins.ReportingBasePlugin
 
 class CodeNarcPluginTest extends Specification {
-    Project project = TestUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(CodeNarcPlugin)
+        project.pluginManager.apply(CodeNarcPlugin)
     }
 
     def "applies reporting-base plugin"() {
@@ -63,7 +64,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "adds codenarc task for each source set"() {
-        project.plugins.apply(GroovyBasePlugin)
+        project.pluginManager.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -95,7 +96,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize per-source-set tasks via extension"() {
-        project.plugins.apply(GroovyBasePlugin)
+        project.pluginManager.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -181,7 +182,7 @@ class CodeNarcPluginTest extends Specification {
     }
     
     def "adds codenarc tasks from each source sets to check lifecycle task"() {
-        project.plugins.apply(GroovyBasePlugin)
+        project.pluginManager.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -195,7 +196,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize which tasks are added to check lifecycle task"() {
-        project.plugins.apply(GroovyBasePlugin)
+        project.pluginManager.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -228,7 +229,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can use legacy configFile extension property"() {
-        project.plugins.apply(GroovyPlugin)
+        project.pluginManager.apply(GroovyPlugin)
 
         project.codenarc {
             configFile = project.file("codenarc-config")

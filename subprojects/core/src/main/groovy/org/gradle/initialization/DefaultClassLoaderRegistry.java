@@ -41,7 +41,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
         this.apiAndPluginsClassLoader = restrictToGradleApi(classLoaderFactory, extensionsClassLoader);
     }
 
-    private CachingClassLoader restrictToGradleApi(ClassLoaderFactory classLoaderFactory, ClassLoader classLoader) {
+    private ClassLoader restrictToGradleApi(ClassLoaderFactory classLoaderFactory, ClassLoader classLoader) {
         FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader);
         rootClassLoader.allowPackage("org.gradle");
         rootClassLoader.allowResources("META-INF/gradle-plugins");

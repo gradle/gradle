@@ -16,11 +16,13 @@
 
 package org.gradle.model.internal.registry;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelBinding;
 import org.gradle.model.internal.core.ModelMutator;
 
 import java.util.List;
 
+@ThreadSafe
 class BoundModelMutator<T> {
 
     private final ModelMutator<T> mutator;

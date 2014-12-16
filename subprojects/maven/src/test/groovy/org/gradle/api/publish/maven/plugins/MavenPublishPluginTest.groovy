@@ -39,7 +39,7 @@ class MavenPublishPluginTest extends Specification {
     def component = Stub(SoftwareComponentInternal)
 
     def setup() {
-        project.plugins.apply(MavenPublishPlugin)
+        project.pluginManager.apply(MavenPublishPlugin)
         publishing = project.extensions.getByType(PublishingExtension)
         project.components.add(component)
 

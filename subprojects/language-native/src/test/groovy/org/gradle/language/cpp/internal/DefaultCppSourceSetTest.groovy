@@ -16,16 +16,13 @@
 
 package org.gradle.language.cpp.internal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.nativeplatform.NativeDependencySet
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibrarySpec
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
-    def parent = Stub(FunctionalSourceSet) {
-        getName() >> "main"
-    }
+    def parent = "main"
     def fileResolver = Mock(FileResolver)
     def sourceSet = new DefaultCppSourceSet("cpp", parent, fileResolver)
 

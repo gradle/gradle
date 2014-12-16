@@ -31,13 +31,19 @@ public class AnsiConsole implements Console {
     private final TextAreaImpl textArea;
     private final Screen container;
     private final ColorMap colorMap;
+    private final boolean forceAnsi;
 
     public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap) {
+        this(target, flushable, colorMap, false);
+    }
+
+    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, boolean forceAnsi) {
         this.target = target;
         this.flushable = flushable;
         this.colorMap = colorMap;
         container = new Screen();
         textArea = new TextAreaImpl(container);
+        this.forceAnsi = forceAnsi;
     }
 
     public Label getStatusBar() {
@@ -69,7 +75,11 @@ public class AnsiConsole implements Console {
     }
 
     Ansi createAnsi() {
-        return Ansi.ansi();
+        if(forceAnsi) {
+            return new Ansi();
+        } else {
+            return Ansi.ansi();
+        }
     }
 
     private interface Container {

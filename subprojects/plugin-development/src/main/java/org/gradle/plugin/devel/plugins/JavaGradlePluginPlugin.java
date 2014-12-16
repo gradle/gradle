@@ -16,11 +16,7 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.plugins.PluginDescriptor;
@@ -51,7 +47,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
 
     public void apply(Project project) {
-        project.getPlugins().apply(JavaPlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
     }
@@ -71,13 +67,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
-        jarTask.doLast(pluginValidationAction);
+        jarTask.appendParallelSafeAction(pluginValidationAction);
     }
 
     /**
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */
-    static class PluginValidationAction implements Action<Task>  {
+    static class PluginValidationAction implements Action<Task> {
         Collection<PluginDescriptor> descriptors;
         Set<String> classes;
 

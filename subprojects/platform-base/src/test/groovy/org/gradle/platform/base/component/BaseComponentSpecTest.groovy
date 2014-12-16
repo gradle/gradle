@@ -15,10 +15,10 @@
  */
 
 package org.gradle.platform.base.component
-
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.platform.base.ComponentSpecIdentifier
 import org.gradle.platform.base.ModelInstantiationException
@@ -30,7 +30,7 @@ class BaseComponentSpecTest extends Specification {
     FunctionalSourceSet functionalSourceSet;
 
     def setup() {
-        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
+        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator(), Stub(ProjectSourceSet));
     }
 
     def "cannot instantiate directly"() {

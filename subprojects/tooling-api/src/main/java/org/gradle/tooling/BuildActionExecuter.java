@@ -18,6 +18,10 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
  * Used to execute a {@link BuildAction} in the build process.
  *
@@ -26,6 +30,63 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface BuildActionExecuter<T> extends LongRunningOperation {
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> withArguments(String... arguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> setStandardOutput(OutputStream outputStream);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> setStandardError(OutputStream outputStream);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    BuildActionExecuter<T> setColorOutput(boolean colorOutput);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> setStandardInput(InputStream inputStream);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> setJavaHome(File javaHome);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> setJvmArguments(String... jvmArguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    BuildActionExecuter<T> addProgressListener(ProgressListener listener);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.3
+     */
+    @Incubating
+    BuildActionExecuter<T> withCancellationToken(CancellationToken cancellationToken);
+
     /**
      * Runs the action, blocking until its result is available.
      *

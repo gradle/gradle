@@ -19,5 +19,5 @@ package org.gradle.model.internal.inspect;
 import java.util.List;
 
 interface HasStrings<T> {
-        List<T> strings();
-    }
+    List<T> strings();
+}

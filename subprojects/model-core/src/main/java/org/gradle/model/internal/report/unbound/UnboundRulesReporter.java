@@ -17,9 +17,11 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.base.Joiner;
+import net.jcip.annotations.NotThreadSafe;
 
 import java.io.PrintWriter;
 
+@NotThreadSafe
 public class UnboundRulesReporter {
 
     private final PrintWriter writer;

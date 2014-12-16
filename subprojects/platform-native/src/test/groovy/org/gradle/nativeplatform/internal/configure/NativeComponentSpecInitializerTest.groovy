@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
@@ -28,11 +29,13 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
+import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
+    def instantiator = new DirectInstantiator()
     def toolChains = Mock(NativeToolChainRegistryInternal)
     def toolChain = Mock(NativeToolChainInternal)
     def toolProvider = Mock(PlatformToolProvider)
@@ -44,23 +47,24 @@ class NativeComponentSpecInitializerTest extends Specification {
     def flavor = createStub(Flavor, "flavor1")
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator());
-    def component = new DefaultNativeExecutableSpec(id, mainSourceSet)
+    def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator(), Stub(ProjectSourceSet));
+    def component = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
 
     def "does not use variant dimension names for single valued dimensions"() {
         def platforms = Mock(PlatformContainer)
         platforms.add(platform)
+        component.targetPlatforms("platform1")
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, platforms, [buildType], [flavor])
         factory.execute(component)
 
         then:
+        1 * platforms.chooseFromTargets(NativePlatform, ["platform1"]) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor)
-        1 * platforms.select(NativePlatform, []) >> [ platform ]
         0 * namingSchemeBuilder._
     }
 
@@ -79,7 +83,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, ["platform1"]) >> [ platform ]
+        1 * platforms.chooseFromTargets(NativePlatform, ["platform1"]) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -91,15 +95,16 @@ class NativeComponentSpecInitializerTest extends Specification {
         def platforms = Mock(PlatformContainer)
         def platform2 = createStub(NativePlatformInternal, "platform2")
         platforms.addAll([platform, platform2])
+        component.targetPlatform("platform1", "platform2")
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 platforms, [buildType], [flavor])
         factory.execute(component)
 
-        then:
-        1 * platforms.select(NativePlatform, []) >> [ platform, platform2 ]
 
+        then:
+        1 * platforms.chooseFromTargets(NativePlatform, ["platform1", "platform2"]) >> [ platform, platform2 ]
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
@@ -121,6 +126,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         final BuildType buildType2 = createStub(BuildType, "buildType2")
         def platforms = Mock(PlatformContainer)
         platforms.add(platform)
+        component.targetPlatforms("platform1")
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
@@ -128,7 +134,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, []) >> [platform]
+        1 * platforms.chooseFromTargets(NativePlatform, ["platform1"]) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -147,6 +153,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def "includes flavor in name for when multiple flavors"() {
         def platforms = Mock(PlatformContainer)
         platforms.add(platform)
+        component.targetPlatforms("platform1")
         final Flavor flavor2 = createStub(Flavor, "flavor2")
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
@@ -154,7 +161,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.select(NativePlatform, []) >> [platform]
+        1 * platforms.chooseFromTargets(NativePlatform, ["platform1"]) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder

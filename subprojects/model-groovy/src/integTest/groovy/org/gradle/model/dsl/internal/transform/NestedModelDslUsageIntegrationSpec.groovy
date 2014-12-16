@@ -38,7 +38,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             ${testPluginImpl()}
 
-            allprojects { apply plugin: TestPlugin }
+            allprojects { apply type: TestPlugin }
 
             $code {
                 model {
@@ -68,7 +68,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
             ${testPluginImpl()}
 
             allprojects {
-                apply plugin: TestPlugin
+                apply type: TestPlugin
 
                 model {
                     strings {
@@ -93,7 +93,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             ${testPluginImpl()}
 
-            allprojects { apply plugin: TestPlugin }
+            allprojects { apply type: TestPlugin }
 
             $code {
                 model {
@@ -123,7 +123,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
             ${testPluginImpl()}
 
             allprojects {
-                apply plugin: TestPlugin
+                apply type: TestPlugin
 
                 model {
                      strings {
@@ -143,7 +143,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             ${testPluginImpl()}
-            apply plugin: TestPlugin
+            apply type: TestPlugin
 
 
             def c = {
@@ -157,15 +157,14 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 24
+        failure.assertHasLineNumber 23
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(ModelBlockTransformer.NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE))
     }
 
     String testPluginImpl() {
         return """
-            class TestPlugin implements Plugin {
-                void apply(project) {}
+            class TestPlugin {
                 @org.gradle.model.RuleSource
                 static class Rules {
                     @org.gradle.model.Model String foo() { "foo" }

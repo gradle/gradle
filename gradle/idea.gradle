@@ -25,8 +25,8 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        languageLevel = '1.5'
-
+        languageLevel = '1.6'
+        vcs = 'Git'
         ipr {
             withXml { provider ->
                 // Exclude resource directories from compilation and add them back in as classpath resources
@@ -64,10 +64,6 @@ idea {
                     }
                 }
 
-                // Use git
-                def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
-                vcsConfig.mapping[0].'@vcs' = 'Git'
-
                 // Set gradle home
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
                 gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
@@ -76,6 +72,30 @@ idea {
                 def javacSettings = node.appendNode('component', [name: 'JavacSettings'])
                 javacSettings.appendNode('option', [name: 'MAXIMUM_HEAP_SIZE', value: "256"])
 
+                // Nullability annotations
+                def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
+                if (nullableManager) {
+                    nullableManager.parent().remove(nullableManager)
+                }
+
+                node.append(new XmlParser().parseText("""
+          <component name="NullableNotNullManager">
+            <option name="myDefaultNullable" value="org.gradle.api.Nullable" />
+            <option name="myDefaultNotNull" value="" />
+            <option name="myNullables">
+              <value>
+                <list size="1">
+                  <item index="0" class="java.lang.String" itemvalue="org.gradle.api.Nullable" />
+                </list>
+              </value>
+            </option>
+            <option name="myNotNulls">
+              <value>
+                <list size="0" />
+              </value>
+            </option>
+          </component>
+        """))
                 // license header
                 def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
                 copyrightManager.@default = "ASL2"

@@ -23,13 +23,13 @@ public class FindBugsResult implements Serializable {
     private final int bugCount;
     private final int missingClassCount;
     private final int errorCount;
-    private final Exception exception;
+    private final Throwable exception;
 
     public FindBugsResult(int bugCount, int missingClassCount, int errorCount) {
         this(bugCount, missingClassCount, errorCount, null);
     }
 
-    public FindBugsResult(int bugCount, int missingClassCount, int errorCount, Exception exception) {
+    public FindBugsResult(int bugCount, int missingClassCount, int errorCount, Throwable exception) {
         this.bugCount = bugCount;
         this.missingClassCount = missingClassCount;
         this.errorCount = errorCount;
@@ -48,7 +48,7 @@ public class FindBugsResult implements Serializable {
         return errorCount;
     }
 
-    public Exception getException() {
+    public Throwable getException() {
         return exception;
     }
 }

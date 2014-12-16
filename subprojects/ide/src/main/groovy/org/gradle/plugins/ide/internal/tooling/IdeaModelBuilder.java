@@ -16,13 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
@@ -51,7 +51,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     private void applyIdeaPlugin(Project root) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
-            p.getPlugins().apply(IdeaPlugin.class);
+            p.apply(ImmutableMap.of("type", IdeaPlugin.class));
         }
         root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }
@@ -128,8 +128,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
 
-    private Set<IdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
-        Set<IdeaSourceDirectory> out = new LinkedHashSet<IdeaSourceDirectory>();
+    private Set<DefaultIdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {
+        Set<DefaultIdeaSourceDirectory> out = new LinkedHashSet<DefaultIdeaSourceDirectory>();
         for (File s : sourceDirs) {
             DefaultIdeaSourceDirectory sourceDirectory = new DefaultIdeaSourceDirectory().setDirectory(s);
             if (generatedSourceDirs.contains(s)) {

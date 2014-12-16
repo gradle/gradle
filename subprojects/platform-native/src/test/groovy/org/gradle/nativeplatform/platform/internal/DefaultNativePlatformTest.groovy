@@ -15,13 +15,12 @@
  */
 package org.gradle.nativeplatform.platform.internal
 
-import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
 class DefaultNativePlatformTest extends Specification {
-    def archParser = Mock(NotationParser)
-    def osParser = Mock(NotationParser)
-    def platform = new DefaultNativePlatform("platform", archParser, osParser)
+    def os = Mock(OperatingSystemInternal)
+    def arch = Mock(ArchitectureInternal)
+    def platform = new DefaultNativePlatform("platform", os, arch)
 
     def "has useful string representation"() {
         expect:
@@ -29,33 +28,27 @@ class DefaultNativePlatformTest extends Specification {
         platform.toString() == "platform 'platform'"
     }
 
-    def "has default architecture and operating system"() {
-        expect:
-        platform.architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-        platform.operatingSystem == DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-    }
-
     def "can configure architecture"() {
-        def arch = Mock(ArchitectureInternal)
         when:
-        platform.architecture "ppc64"
+        platform.architecture "x86"
 
         then:
-        1 * archParser.parseNotation("ppc64") >> arch
+        platform.architecture.name == "x86"
+        platform.architecture.i386
 
-        and:
-        platform.architecture == arch
+        when:
+        platform.architecture "i386"
+
+        then:
+        platform.architecture.name == "x86"
+        platform.architecture.i386
     }
 
     def "can configure operating system"() {
-        def os = Mock(OperatingSystemInternal)
         when:
         platform.operatingSystem "the-os"
 
         then:
-        1 * osParser.parseNotation("the-os") >> os
-
-        and:
-        platform.operatingSystem == os
+        platform.operatingSystem.name == "the-os"
     }
 }

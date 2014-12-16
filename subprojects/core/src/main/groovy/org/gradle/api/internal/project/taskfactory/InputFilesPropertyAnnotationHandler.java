@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
 
@@ -30,7 +30,7 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
     public void attachActions(PropertyActionContext context) {
         final boolean isSourceFiles = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
-            public void update(Task task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, Callable<Object> futureValue) {
                 if (isSourceFiles) {
                     task.getInputs().source(futureValue);
                 } else {

@@ -16,7 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.*;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 
 import java.util.List;
 
@@ -25,5 +27,5 @@ import java.util.List;
  */
 @Incubating
 public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
-    <T extends Platform> List<T> select(Class<T> type,  List<String> targets); //TODO freekh: not sure I like this method here... it seems inconsistent with the rest of NamedDomainObjectContainer?
+    <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets);
 }

@@ -33,23 +33,21 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         app.library.writeSources(file("src/library"))
 
         buildFile << """
-    apply plugin: 'c'
+apply plugin: 'c'
 
-    sources{
-        library{
-            c(CSourceSet)
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                library(CSourceSet) {
+                    source.srcDir "src/library/c"
+                    exportedHeaders.srcDir "src/library/headers"
+                }
+                c.lib sources.library
+            }
         }
     }
-
-    executables {
-        main {
-            source sources.library
-        }
-    }
-
-    sources {
-        main.c.lib sources.library.c
-    }
+}
 """
         when:
         succeeds "mainExecutable"
@@ -65,22 +63,18 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         app.library.headerFiles*.writeToDir(file("src/library"))
 
         buildFile << """
-    apply plugin: 'c'
-    // library not required in executable: only headers are used
+apply plugin: 'c'
 
-    sources{
-        library{
-            c(CSourceSet)
+model {
+    components { comp ->
+        library(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
+            sources {
+                c.lib comp.library.sources.c
+            }
         }
     }
-
-    executables {
-        main {}
-    }
-
-    sources {
-        main.c.lib sources.library.c
-    }
+}
 """
         when:
         succeeds "mainExecutable"
@@ -95,25 +89,22 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         app.library.writeSources(file("src/library"))
 
         buildFile << """
-    apply plugin: 'cpp'
-    apply plugin: 'c'
+apply plugin: 'cpp'
+apply plugin: 'c'
 
-    sources{
-        library{
-            c(CSourceSet)
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                library(CSourceSet) {
+                    exportedHeaders.srcDir "src/library/headers"
+                    source.srcDir "src/library/c"
+                }
+                cpp.lib sources.library
+            }
         }
     }
-
-    executables {
-        main {
-            source sources.library
-        }
-    }
-
-    sources {
-        main.cpp.lib sources.library.c
-    }
-
+}
 """
         when:
         succeeds "mainExecutable"
@@ -132,20 +123,18 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 """
 
         buildFile << """
-    apply plugin: 'cpp'
-    executables {
-        main {}
-    }
+apply plugin: 'cpp'
 
-    sources{
-        extra{
-            cpp(CppSourceSet)
+model {
+    components { comp ->
+        extra(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib comp.extra.sources.cpp
+            }
         }
     }
-
-    sources {
-        main.cpp.lib sources.extra.cpp
-    }
+}
 """
         expect:
         succeeds "mainExecutable"
@@ -161,21 +150,18 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 """
 
         buildFile << """
-    apply plugin: 'cpp'
+apply plugin: 'cpp'
 
-    sources{
-        extra{
-            cpp(CppSourceSet)
-        }
-    }
-
-    executables {
-        main {
+model {
+    components { comp ->
+        extra(NativeLibrarySpec)
+        main(NativeExecutableSpec) {
             binaries.all {
-                lib sources.extra.cpp
+                lib comp.extra.sources.cpp
             }
         }
     }
+}
 """
         expect:
         succeeds "mainExecutable"

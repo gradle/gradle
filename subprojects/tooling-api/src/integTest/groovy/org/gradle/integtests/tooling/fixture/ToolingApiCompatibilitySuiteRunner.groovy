@@ -138,6 +138,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('spock')
             sharedClassLoader.allowPackage('org.spockframework')
             sharedClassLoader.allowClass(SetSystemProperties)
+            sharedClassLoader.allowClass(RedirectStdOutAndErr)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
             sharedClassLoader.allowPackage('org.gradle.test.fixtures')
             sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')

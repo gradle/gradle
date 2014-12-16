@@ -55,7 +55,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "cant remove task in after evaluate if task is used by a #annotationClass"() {
+    def "can remove task in after evaluate if task is used by unbound #annotationClass.name rule"() {
         given:
         buildScript """
             import org.gradle.model.*
@@ -67,30 +67,51 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
                 tasks.remove(foo)
             }
 
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-
-                }
-
-                @RuleSource
-                static class Rules {
-                    @$annotationClass
-                    void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
-                       // do nothing
-                    }
+            @RuleSource
+            class Rules {
+                @$annotationClass
+                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                   // do nothing
                 }
             }
 
-            apply plugin: MyPlugin
+            apply plugin: Rules
         """
 
         when:
         fails "foo"
 
         then:
-        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
+        failure.assertThatCause(Matchers.startsWith("The following model rules are unbound"))
 
         where:
         annotationClass << ["Mutate", "Finalize"]
+    }
+
+    @Unroll
+    def "cant remove task if used by rule"() {
+        when:
+        buildScript """
+            import org.gradle.model.*
+
+            task foo {}
+            task bar { doLast { tasks.remove(foo) } }
+
+
+            @RuleSource
+            class Rules {
+                @Mutate
+                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                   // do nothing
+                }
+            }
+
+            apply plugin: Rules
+        """
+
+        then:
+        fails "bar"
+        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
+
     }
 }

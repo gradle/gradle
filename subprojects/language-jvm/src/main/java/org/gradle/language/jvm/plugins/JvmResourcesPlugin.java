@@ -26,6 +26,8 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 
@@ -40,8 +42,19 @@ import java.util.Map;
 public class JvmResourcesPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new JvmResources());
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new JvmResources());
+        }
     }
 
     private static class JvmResources implements LanguageRegistration<JvmResourceSet> {

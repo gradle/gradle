@@ -19,7 +19,6 @@ package org.gradle.api.reporting.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.GenerateBuildDashboard;
@@ -32,12 +31,12 @@ import java.util.concurrent.Callable;
  * Adds a task, "buildDashboard", that aggregates the output of all tasks that produce reports.
  */
 @Incubating
-public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
+public class BuildDashboardPlugin implements Plugin<Project> {
 
     public static final String BUILD_DASHBOARD_TASK_NAME = "buildDashboard";
 
-    public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(ReportingBasePlugin.class);
+    public void apply(final Project project) {
+        project.getPluginManager().apply(ReportingBasePlugin.class);
 
         final GenerateBuildDashboard buildDashboardTask = project.getTasks().create(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard.class);
         buildDashboardTask.setDescription("Generates a dashboard of all the reports produced by this build.");

@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -31,13 +31,15 @@ public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
     private final RepositoryChainAdapter adapter;
     private final DynamicVersionResolver dynamicVersionResolver;
+    private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy, ComponentSelectionRulesInternal versionSelectionRules) {
-        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(latestStrategy, versionMatcher, versionSelectionRules);
+    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules) {
+        this.componentSelectionRules = componentSelectionRules;
+        NewestVersionComponentChooser componentChooser = new NewestVersionComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
         dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
-        adapter = new RepositoryChainAdapter(dynamicVersionResolver, dependencyResolver, versionMatcher);
+        adapter = new RepositoryChainAdapter(dynamicVersionResolver, dependencyResolver, versionSelectorScheme);
     }
 
     public DependencyToComponentIdResolver getComponentIdResolver() {
@@ -54,6 +56,10 @@ public class UserResolverChain implements RepositoryChain {
 
     public ArtifactResolver getArtifactResolver() {
         return artifactResolver;
+    }
+
+    public ComponentSelectionRulesInternal getComponentSelectionRules() {
+        return componentSelectionRules;
     }
 
     public void add(ModuleComponentRepository repository) {

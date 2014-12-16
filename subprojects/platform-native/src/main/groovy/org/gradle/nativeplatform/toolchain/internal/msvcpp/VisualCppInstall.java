@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.platform.Architecture;
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.util.VersionNumber;
 
@@ -37,18 +36,16 @@ public class VisualCppInstall implements Named {
     private final Map<Architecture, File> includePaths;
     private final Map<Architecture, String> assemblerFilenames;
     private final Map<Architecture, Map<String, String>> definitions;
-    private final Architecture defaultArchitecture;
     private final String name;
     private final VersionNumber version;
 
-    public VisualCppInstall(String name, VersionNumber version, Architecture defaultArchitecture,
+    public VisualCppInstall(String name, VersionNumber version,
             Map<Architecture, List<File>> paths, Map<Architecture, File> binaryPaths, Map<Architecture, File> libraryPaths,
             Map<Architecture, File> includePaths, Map<Architecture, String> assemblerFilenames,
             Map<Architecture, Map<String, String>> definitions) {
         this.paths = paths;
         this.name = name;
         this.version = version;
-        this.defaultArchitecture = defaultArchitecture;
         this.binaryPaths = binaryPaths;
         this.libraryPaths = libraryPaths;
         this.includePaths = includePaths;
@@ -110,7 +107,6 @@ public class VisualCppInstall implements Named {
     }
 
     private Architecture getPlatformArchitecture(NativePlatformInternal targetPlatform) {
-        ArchitectureInternal architecture = targetPlatform.getArchitecture();
-        return (architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT) ? defaultArchitecture : architecture;
+        return targetPlatform.getArchitecture();
     }
 }

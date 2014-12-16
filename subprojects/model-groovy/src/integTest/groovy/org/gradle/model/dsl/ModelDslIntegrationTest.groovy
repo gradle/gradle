@@ -38,10 +38,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-
-              void apply(Project project) {}
-
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -56,7 +53,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
               tasks {
@@ -82,10 +79,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-
-              void apply(Project project) {}
-
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -95,7 +89,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
               tasks {
@@ -122,10 +116,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-
-              void apply(Project project) {}
-
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -135,7 +126,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             model {
               tasks {
@@ -158,10 +149,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-
-              void apply(Project project) {}
-
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -177,7 +165,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             }
 
             subprojects {
-                apply plugin: MyPlugin
+                apply type: MyPlugin
                 apply from: "\$rootDir/script.gradle"
             }
         """
@@ -215,10 +203,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             import org.gradle.model.*
 
-            class MyPlugin implements Plugin<Project> {
-
-              void apply(Project project) {}
-
+            class MyPlugin {
               @RuleSource
               static class Rules {
                 @Model
@@ -228,7 +213,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               }
             }
 
-            apply plugin: MyPlugin
+            apply type: MyPlugin
 
             def c = {};
             model {
@@ -238,7 +223,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 21
+        failure.assertHasLineNumber 18
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(RulesVisitor.ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE))
     }

@@ -1150,32 +1150,60 @@ someroot/[artifact]-[revision].[ext]
                 <literal>latest.integration</literal> will select the highest module version regardless of its status (because <literal>integration</literal> is the least mature status),
                 whereas <literal>latest.release</literal> will select the highest module version with status <literal>release</literal>. Here is what this looks like in code:
             </para>
-            <sample id="latestSelector" dir="userguide/artifacts/componentMetadata" title="'Latest' version selector">
+            <sample id="latestSelector" dir="componentMetadataRules" title="'Latest' version selector">
                 <sourcefile file="build.gradle" snippet="latest-selector"/>
-                <output args="-q listFish"/>
+                <output args="-q listConfigs"/>
             </sample>
             <para>
-                The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a module metadata rule:
+                The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
             </para>
-            <sample id="customStatusScheme" dir="userguide/artifacts/componentMetadata" title="Custom status scheme">
+            <sample id="customStatusScheme" dir="componentMetadataRules" title="Custom status scheme">
                 <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
-                <output args="-q listBirds"/>
+            </sample>
+            <para>
+                Component metadata rules can be applied to a specified module.  Modules must be specified in the form of "group:module".
+            </para>
+            <sample id="customStatusSchemeModule" dir="componentMetadataRules" title="Custom status scheme by module">
+                <sourcefile file="build.gradle" snippet="custom-status-scheme-module"/>
             </sample>
             <para>
                 Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository.
                 Values from the Ivy descriptor are made available via the <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor"/> interface.
             </para>
-            <sample id="ivyComponentMetadataRule" dir="userguide/artifacts/componentMetadata" title="Ivy component metadata rule">
+            <sample id="ivyComponentMetadataRule" dir="componentMetadataRules" title="Ivy component metadata rule">
                 <sourcefile file="build.gradle" snippet="ivy-component-metadata-rule" />
+            </sample>
+            <para>
+                Note that any rule that declares specific arguments must <emphasis>always</emphasis> include a <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails"/> argument
+                as the first argument. The second Ivy metadata argument is optional.
+            </para>
+            <para>
+                Component metadata rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object
+                is any object that contains exactly one method that defines the rule action and is annotated with <literal>@Mutate</literal>.
+            </para>
+            <para>
+                This method:
+            </para>
+            <itemizedlist>
+                <listitem>must return void.</listitem>
+                <listitem>must have <apilink class="org.gradle.api.artifacts.ComponentMetadataDetails" /> as the first argument.</listitem>
+                <listitem>may have an additional parameter of type <apilink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.</listitem>
+            </itemizedlist>
+            <sample id="ruleSourceComponentMetadataRule" dir="componentMetadataRules" title="Rule source component metadata rule">
+                <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule" />
             </sample>
         </section>
         <section id="component_selection_rules">
             <title>Component Selection Rules</title>
             <para>
-                Component selection rules define how versions should be selected when multiple versions are available that match a given set of
-                coordinates.  Rules are applied against every available version and allow the version to be explicitly rejected by rule.  This
-                allows Gradle to ignore versions that do not satisfy conditions set by the rule.
+                Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector.
+                Rules are applied against every available version and allow the version to be explicitly rejected by rule.
+                This allows Gradle to ignore any component instance that does not satisfy conditions set by the rule. Examples include:
             </para>
+            <itemizedlist>
+                <listitem>For a dynamic version like '1.+' certain versions may be explicitly rejected from selection</listitem>
+                <listitem>For a static version like '1.4' an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.</listitem>
+            </itemizedlist>
             <para>
                 Rules are configured via the <apilink class="org.gradle.api.artifacts.ComponentSelectionRules"/> object.  Each rule configured
                 will be called with a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> object as an argument which contains information
@@ -1208,8 +1236,9 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="component-selection-with-metadata" />
             </sample>
             <para>
-                Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required when
-                declaring a component selection rule but the metadata arguments are optional.
+                Note that a <apilink class="org.gradle.api.artifacts.ComponentSelection"/> argument is <emphasis>always</emphasis> required as the first
+                parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared
+                in any order.
             </para>
             <para>
                 Lastly, component selection rules can also be defined using a <emphasis>rule source</emphasis> object.  A rule source object

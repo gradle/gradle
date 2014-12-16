@@ -17,11 +17,12 @@
 
 
 package org.gradle.api.reporting.components.internal
+
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.platform.base.BinarySpec
@@ -34,8 +35,10 @@ class ComponentRendererTest extends Specification {
     }
     def resolver = Stub(FileResolver)
     def output = new TestStyledTextOutput()
-    def builder = new DefaultTextReportBuilder(output)
-    def renderer = new ComponentRenderer(resolver)
+    def builder = new DefaultTextReportBuilder(output, resolver)
+    def sourceSetRenderer = Mock(SourceSetRenderer)
+    def binaryRenderer = Mock(BinaryRenderer)
+    def renderer = new ComponentRenderer(sourceSetRenderer, binaryRenderer)
 
     def "renders component"() {
         def component = Stub(ComponentSpec)
@@ -81,30 +84,23 @@ class ComponentRendererTest extends Specification {
         binaries.add(binary("bBinary"))
         binaries.add(binary("dBinary"))
         component.binaries >> binaries
+        binaryRenderer.render(_, _) >> { BinarySpec binary, TextReportBuilder output -> output.output.println("binary: $binary.name") }
 
         when:
         renderer.render(component, builder)
 
         then:
         output.value.contains("""Binaries
-    ABinary Display Name (not buildable)
-        build using task: aBinaryTask
-    BBinary Display Name (not buildable)
-        build using task: bBinaryTask
-    CBinary Display Name (not buildable)
-        build using task: cBinaryTask
-    DBinary Display Name (not buildable)
-        build using task: dBinaryTask""")
+    binary: aBinary
+    binary: bBinary
+    binary: cBinary
+    binary: dBinary
+""")
     }
 
     def binary(String name) {
         Mock(BinarySpec){
-            _ * getDisplayName() >> "$name Display Name"
             _ * getName() >> name
-            def buildTask = Mock(Task)
-            _ * buildTask.getPath() >> "${name}Task"
-            _ * getBuildTask() >> buildTask
         }
-
     }
 }

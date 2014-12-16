@@ -18,20 +18,16 @@ package org.gradle.jvm;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * The configuration for jvm components created by this build.
  */
+// TODO:DAZ Remove this. It's just a hack to allow Jar binaries to be configured in the DSL.
+// Can't use binaries.all since the action needs to execute _after_ the plugin-supplied actions
+// There's a story in the design doc to do this properly
 @Incubating
 public interface JvmComponentExtension {
-    /**
-     * Provides the set of JVM libraries that can be created by this build.
-     */
-    NamedDomainObjectContainer<JvmLibrarySpec> getLibraries();
+    void allBinaries(Action<? super JvmBinarySpec> action);
 
-    /**
-     * Configures the set of JVM libraries.
-     */
-    void libraries(Action<? super NamedDomainObjectContainer<? super JvmLibrarySpec>> action);
+    Action<JvmBinarySpec> getAllBinariesAction();
 }

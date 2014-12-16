@@ -15,27 +15,31 @@
  */
 package org.gradle.api.internal.jvm;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
+    private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryNamingScheme namingScheme;
-    private final LanguageSourceSetContainer source = new LanguageSourceSetContainer();
     private final String name;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
     private final DefaultJvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
     private File classesDir;
     private File resourcesDir;
+    private boolean buildable = true;
 
     public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JavaPlatform platform) {
         this.name = name;
@@ -63,8 +67,20 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return platform;
     }
 
+    public void setTargetPlatform(JavaPlatform platform) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void setToolChain(JavaToolChain toolChain) {
+        throw new UnsupportedOperationException();
+    }
+
     public boolean isBuildable() {
-        return true;
+        return buildable;
+    }
+
+    public void setBuildable(boolean buildable) {
+        this.buildable = buildable;
     }
 
     public boolean isLegacyBinary() {
@@ -95,12 +111,24 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         this.resourcesDir = resourcesDir;
     }
 
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return source;
+    public FunctionalSourceSet getBinarySources() {
+        throw new UnsupportedOperationException();
     }
 
-    public void source(Object sources) {
-        source.source(sources);
+    public void setBinarySources(FunctionalSourceSet sources) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets;
+    }
+
+    public void source(Object source) {
+        throw new UnsupportedOperationException();
     }
 
     public String getDisplayName() {
@@ -108,7 +136,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public String toString() {
-        return namingScheme.getDescription();
+        return getDisplayName();
     }
 
 }

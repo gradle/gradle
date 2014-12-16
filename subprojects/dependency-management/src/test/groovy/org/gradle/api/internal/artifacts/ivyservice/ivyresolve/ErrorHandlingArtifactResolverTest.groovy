@@ -35,7 +35,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
 
     def "wraps resolveArtifact exception as failure"() {
         def componentArtifactId = Stub(ComponentArtifactIdentifier) {
-            getDisplayName() >> "component-artifact"
+            getDisplayName() >> "<component-artifact>"
         }
         def componentArtifact = Stub(ComponentArtifactMetaData) {
             getId() >> componentArtifactId
@@ -52,14 +52,14 @@ class ErrorHandlingArtifactResolverTest extends Specification {
 
         then:
         1 * artifactResolveResult.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
-            assert e.message == "Could not download artifact 'component-artifact'"
+            assert e.message == "Could not download <component-artifact>"
             assert e.cause == failure
         }
     }
 
     def "wraps resolveModuleArtifacts exception as failure"() {
         def componentId = Stub(ComponentIdentifier) {
-            getDisplayName() >> "component"
+            getDisplayName() >> "<component>"
         }
         def component = Stub(ComponentResolveMetaData) {
             getComponentId() >> componentId
@@ -76,7 +76,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
 
         then:
         1 * result.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
-            assert e.message == "Could not determine artifacts for component 'component'"
+            assert e.message == "Could not determine artifacts for <component>"
             assert e.cause == failure
         }
         0 * _._
@@ -90,7 +90,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
 
         then:
         1 * result.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
-            assert e.message == "Could not determine artifacts for component 'component'"
+            assert e.message == "Could not determine artifacts for <component>"
             assert e.cause == failure
         }
         0 * _._

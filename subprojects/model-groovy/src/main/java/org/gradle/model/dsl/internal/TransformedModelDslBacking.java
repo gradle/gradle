@@ -18,6 +18,7 @@ package org.gradle.model.dsl.internal;
 
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
@@ -28,6 +29,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
+@ThreadSafe
 public class TransformedModelDslBacking {
 
     private static final Transformer<List<ModelReference<?>>, Closure<?>> INPUT_PATHS_EXTRACTOR = new Transformer<List<ModelReference<?>>, Closure<?>>() {
@@ -86,7 +88,7 @@ public class TransformedModelDslBacking {
     }
 
     public static boolean isTransformedBlock(Closure<?> closure) {
-        Class<? extends Closure> closureClass = closure.getClass();
+        Class<?> closureClass = closure.getClass();
         RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
         return annotation != null;
     }

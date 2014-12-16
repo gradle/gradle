@@ -18,8 +18,8 @@ package org.gradle.language.java.plugins;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
@@ -31,6 +31,8 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 
@@ -42,12 +44,23 @@ import java.util.Map;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
  */
-public class JavaLanguagePlugin implements Plugin<ProjectInternal> {
+public class JavaLanguagePlugin implements Plugin<Project> {
 
-    public void apply(ProjectInternal project) {
-        project.getPlugins().apply(ComponentModelBasePlugin.class);
-        project.getPlugins().apply(JvmResourcesPlugin.class);
-        project.getExtensions().getByType(LanguageRegistry.class).add(new Java());
+    public void apply(Project project) {
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(JvmResourcesPlugin.class);
+    }
+
+    /**
+     * Model rules.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @RuleSource
+    static class Rules {
+        @Mutate
+        void registerLanguage(LanguageRegistry languages) {
+            languages.add(new Java());
+        }
     }
 
     private static class Java implements LanguageRegistration<JavaSourceSet> {

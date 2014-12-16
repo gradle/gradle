@@ -21,9 +21,7 @@ dependencies {
     compile project(":plugins")
     compile project(":maven")
 
-    compile module("org.bouncycastle:bcpg-jdk15:1.46") {
-        dependency "org.bouncycastle:bcprov-jdk15:1.46@jar"
-    }
+    compile libraries.bouncycastle_pgp
 }
 
 useTestFixtures()

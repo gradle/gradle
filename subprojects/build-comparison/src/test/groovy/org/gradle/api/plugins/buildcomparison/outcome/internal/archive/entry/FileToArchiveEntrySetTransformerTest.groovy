@@ -23,20 +23,33 @@ import spock.lang.Specification
 
 class FileToArchiveEntrySetTransformerTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     Set<ArchiveEntry> entrySet
 
-    def transformer = new FileToArchiveEntrySetTransformer(new ZipEntryToArchiveEntryTransformer())
+    def transformer = new FileToArchiveEntrySetTransformer()
 
     TestFile contents
     TestFile zip
+    TestFile subZipContents
+    TestFile subZip
+    TestFile subSubZipContents
+    TestFile subSubZip
 
     def setup() {
         contents = dir.createDir("contents")
         zip = dir.file("zip.zip")
+        subZipContents = dir.createDir("subZipContents")
+        subZip = dir.file("contents/sub.zip")
+        subSubZipContents = dir.createDir("subSubZipContents")
+        subSubZip = dir.file("subZipContents/subSub.zip")
     }
 
-    def createZip(Closure c) {
+    def createZip(TestFile contents, TestFile zip) {
+        createZip(contents, zip) {}
+    }
+
+    def createZip(TestFile contents, TestFile zip, @DelegatesTo(TestFile) Closure c) {
         contents.with(c)
         contents.zipTo(zip)
         entrySet = transformer.transform(zip)
@@ -44,7 +57,7 @@ class FileToArchiveEntrySetTransformerTest extends Specification {
 
     def "can handle zip file"() {
         when:
-        createZip {
+        createZip(contents, zip) {
             createFile("f1.txt") << "f1"
             createFile("dir1/f2.txt") << "f2"
             createFile("dir1/f3.txt") << "f3"
@@ -53,14 +66,61 @@ class FileToArchiveEntrySetTransformerTest extends Specification {
 
         then:
         entrySet.size() == 6
-        entrySet*.path.sort() == ["dir1/", "dir1/f2.txt", "dir1/f3.txt", "dir2/", "dir2/f4.txt", "f1.txt"]
+        entrySet*.path.sort()*.toString() == ["dir1/", "dir1/f2.txt", "dir1/f3.txt", "dir2/", "dir2/f4.txt", "f1.txt"]
     }
 
-    def "can handle empty zip"() {
+    def "can handle empty zip file"() {
         when:
-        createZip { }
+        createZip(contents, zip)
 
         then:
         entrySet.empty
+    }
+
+    def "can handle recursive zip file"() {
+        when:
+        createZip(contents, zip) {
+            createFile("f1.txt") << "f1"
+            createFile("dir1/f2.txt") << "f2"
+            createFile("dir1/f3.txt") << "f3"
+            createFile("dir2/f4.txt") << "f3"
+            createZip(subZipContents, subZip) {
+                createFile("g1.txt") << "g1"
+                createFile("dir1/g2.txt") << "g2"
+                createFile("dir1/g3.txt") << "g3"
+                createFile("dir2/g4.txt") << "g3"
+                createZip(subSubZipContents, subSubZip) {
+                    createFile("h1.txt") << "h1"
+                    createFile("dir1/h2.txt") << "h2"
+                    createFile("dir1/h3.txt") << "h3"
+                    createFile("dir2/h4.txt") << "h3"
+                }
+            }
+        }
+
+        then:
+        entrySet.size() == 20
+        entrySet*.path.sort()*.toString() == [
+                "dir1/",
+                "dir1/f2.txt",
+                "dir1/f3.txt",
+                "dir2/",
+                "dir2/f4.txt",
+                "f1.txt",
+                "sub.zip",
+                "sub.zip!/dir1/",
+                "sub.zip!/dir1/g2.txt",
+                "sub.zip!/dir1/g3.txt",
+                "sub.zip!/dir2/",
+                "sub.zip!/dir2/g4.txt",
+                "sub.zip!/g1.txt",
+                "sub.zip!/subSub.zip",
+                "sub.zip!/subSub.zip!/dir1/",
+                "sub.zip!/subSub.zip!/dir1/h2.txt",
+                "sub.zip!/subSub.zip!/dir1/h3.txt",
+                "sub.zip!/subSub.zip!/dir2/",
+                "sub.zip!/subSub.zip!/dir2/h4.txt",
+                "sub.zip!/subSub.zip!/h1.txt"
+        ]
     }
 }

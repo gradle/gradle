@@ -16,28 +16,29 @@
 
 package org.gradle.platform.base.component;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetContainer;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Base class for custom component implementations.
  * A custom implementation of {@link ComponentSpec} must extend this type.
  */
 @Incubating
-public abstract class BaseComponentSpec implements ComponentSpec {
+public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
-    private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
@@ -71,7 +72,6 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
-        sourceSets.addMainSources(this.mainSourceSet);
     }
 
     public String getName() {
@@ -82,8 +82,12 @@ public abstract class BaseComponentSpec implements ComponentSpec {
         return identifier.getProjectPath();
     }
 
+    protected String getTypeName() {
+        return typeName;
+    }
+
     public String getDisplayName() {
-        return String.format("%s '%s'", typeName, getName());
+        return String.format("%s '%s'", getTypeName(), getName());
     }
 
     @Override
@@ -92,19 +96,23 @@ public abstract class BaseComponentSpec implements ComponentSpec {
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return sourceSets;
-    }
-
-    public void source(Object sources) {
-        sourceSets.source(sources);
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
     }
 
     public DomainObjectSet<BinarySpec> getBinaries() {
         return binaries;
     }
 
-    public FunctionalSourceSet getMainSource() {
+    public FunctionalSourceSet getSources() {
         return mainSourceSet;
+    }
+
+    public void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action) {
+        action.execute(mainSourceSet);
+    }
+
+    public Set<Class<? extends TransformationFileType>> getInputTypes() {
+        return Collections.emptySet();
     }
 
     private static class ComponentInfo {
