@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.internal;
+package org.gradle.nativeplatform.internal.services;
 
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer;
+import org.gradle.nativeplatform.internal.SharedLibraryBinaryRenderer;
+import org.gradle.nativeplatform.internal.StaticLibraryBinaryRenderer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolverServices;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinaryRenderer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
