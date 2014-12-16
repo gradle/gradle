@@ -18,8 +18,6 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
@@ -34,85 +32,6 @@ class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationT
         then:
         outputMatches output, """
 No components defined for this project.
-"""
-    }
-
-    def "shows details of legacy Java project"() {
-        given:
-        buildFile << """
-plugins {
-    id 'java'
-}
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches output, """
-No components defined for this project.
-
-Additional source sets
-----------------------
-Java source 'main:java'
-    src/main/java
-JVM resources 'main:resources'
-    src/main/resources
-Java source 'test:java'
-    src/test/java
-JVM resources 'test:resources'
-    src/test/resources
-
-Additional binaries
--------------------
-Classes 'main'
-    build using task: :classes
-    platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/main
-    resources dir: build/resources/main
-Classes 'test'
-    build using task: :testClasses
-    platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/test
-    resources dir: build/resources/test
-"""
-    }
-
-    def "shows details of Java library"() {
-        given:
-        buildFile << """
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-}
-
-model {
-    components {
-        someLib(JvmLibrarySpec)
-    }
-}
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches output, """
-JVM library 'someLib'
----------------------
-
-Source sets
-    Java source 'someLib:java'
-        src/someLib/java
-    JVM resources 'someLib:resources'
-        src/someLib/resources
-
-Binaries
-    Jar 'someLibJar'
-        build using task: :someLibJar
-        platform: $currentJava
-        tool chain: $currentJdk
-        Jar file: build/jars/someLibJar/someLib.jar
 """
     }
 
@@ -384,102 +303,6 @@ Binaries
         flavor: default
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/nativeLibStaticLibrary/libnativeLib.a
-"""
-    }
-
-    @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "shows details of jvm library with multiple targets"() {
-        given:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "java5", "java6", "java7"
-            }
-        }
-    }
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches output, """
-JVM library 'myLib'
--------------------
-
-Source sets
-    Java source 'myLib:java'
-        src/myLib/java
-    JVM resources 'myLib:resources'
-        src/myLib/resources
-
-Binaries
-    Jar 'java5MyLibJar'
-        build using task: :java5MyLibJar
-        platform: java5
-        tool chain: $currentJdk
-        Jar file: build/jars/java5MyLibJar/myLib.jar
-    Jar 'java6MyLibJar'
-        build using task: :java6MyLibJar
-        platform: java6
-        tool chain: $currentJdk
-        Jar file: build/jars/java6MyLibJar/myLib.jar
-    Jar 'java7MyLibJar'
-        build using task: :java7MyLibJar
-        platform: java7
-        tool chain: $currentJdk
-        Jar file: build/jars/java7MyLibJar/myLib.jar
-"""
-    }
-
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "shows which jvm libraries are buildable"() {
-        given:
-        buildFile << """
-    apply plugin: 'jvm-component'
-    apply plugin: 'java-lang'
-
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "java5", "java6", "java9"
-            }
-        }
-    }
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches output, """
-JVM library 'myLib'
--------------------
-
-Source sets
-    Java source 'myLib:java'
-        src/myLib/java
-    JVM resources 'myLib:resources'
-        src/myLib/resources
-
-Binaries
-    Jar 'java5MyLibJar'
-        build using task: :java5MyLibJar
-        platform: java5
-        tool chain: $currentJdk
-        Jar file: build/jars/java5MyLibJar/myLib.jar
-    Jar 'java6MyLibJar'
-        build using task: :java6MyLibJar
-        platform: java6
-        tool chain: $currentJdk
-        Jar file: build/jars/java6MyLibJar/myLib.jar
-    Jar 'java9MyLibJar' (not buildable)
-        build using task: :java9MyLibJar
-        platform: java9
-        tool chain: $currentJdk
-        Jar file: build/jars/java9MyLibJar/myLib.jar
 """
     }
 

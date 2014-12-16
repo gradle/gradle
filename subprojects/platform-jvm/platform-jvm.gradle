@@ -11,5 +11,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ':diagnostics')
+
 useClassycle()
 strictCompile()
