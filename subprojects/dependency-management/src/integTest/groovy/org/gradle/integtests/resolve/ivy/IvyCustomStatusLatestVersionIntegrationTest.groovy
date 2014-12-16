@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class IvyCustomStatusLatestVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "latest.xyz selects highest version with given or higher status"() {
@@ -103,5 +105,68 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants("projectA-1.1.jar")
+    }
+
+    @Ignore
+    @Issue("https://issues.gradle.org/browse/GRADLE-3216")
+    def "uses changing provided by component metadata rule for latest.xyz"() {
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'org.test:projectA:latest.release'
+    components {
+        all { ComponentMetadataDetails details ->
+            if(details.status == 'snapshot') {
+                details.changing = true
+            }
+
+            details.statusScheme = ['snapshot', 'release']
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        and:
+        ivyHttpRepo.directoryList('org.test', 'projectA').allowGet()
+        ivyHttpRepo.module('org.test', 'projectA', '1.1').withStatus("snapshot").publish().allowAll()
+        ivyHttpRepo.module('org.test', 'projectA', '1.2').withStatus("release").publish().allowAll()
+        ivyHttpRepo.module('org.test', 'projectA', '1.3').withStatus("snapshot").publish().allowAll()
+
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.2.jar")
+
+        when:
+        run 'retrieve'
+
+        then:
+        executer.withArgument("--refresh-dependencies")
+        file('libs').assertHasDescendants("projectA-1.2.jar")
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.2.jar")
     }
 }
