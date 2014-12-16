@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 
-public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
+public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<SharedLibraryBinarySpec> {
     @Override
-    public Class<NativeTestSuiteBinarySpec> getTargetType() {
-        return NativeTestSuiteBinarySpec.class;
+    public Class<SharedLibraryBinarySpec> getTargetType() {
+        return SharedLibraryBinarySpec.class;
     }
 
     @Override
-    protected void renderTasks(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
-        builder.item("run using task", binary.getTasks().getRun().getPath());
-    }
-
-    @Override
-    protected void renderOutputs(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
-        builder.item("executable file", binary.getExecutableFile());
+    protected void renderOutputs(SharedLibraryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("shared library file", binary.getSharedLibraryFile());
     }
 }

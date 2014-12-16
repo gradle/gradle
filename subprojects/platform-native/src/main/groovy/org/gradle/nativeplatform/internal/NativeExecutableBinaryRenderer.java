@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;

@@ -26,10 +26,6 @@ public class DiagnosticsServices implements PluginServiceRegistry {
             TypeAwareBinaryRenderer createBinaryRenderer(ServiceRegistry services) {
                 TypeAwareBinaryRenderer renderer = new TypeAwareBinaryRenderer();
                 renderer.register(new BinaryRenderer());
-                renderer.register(new SharedLibraryBinaryRenderer());
-                renderer.register(new StaticLibraryBinaryRenderer());
-                renderer.register(new NativeExecutableBinaryRenderer());
-                renderer.register(new NativeTestSuiteBinaryRenderer());
                 for (AbstractBinaryRenderer binaryRenderer : services.getAll(AbstractBinaryRenderer.class)) {
                     renderer.register(binaryRenderer);
                 }

@@ -19,6 +19,7 @@ dependencies {
     compile libraries.commons_io
     compile project(':core')
     compile project(":platformBase")
+    compile project(":diagnostics")
 
     integTestRuntime project(":maven")
     // Required to test visual studio project file generation for generated sources

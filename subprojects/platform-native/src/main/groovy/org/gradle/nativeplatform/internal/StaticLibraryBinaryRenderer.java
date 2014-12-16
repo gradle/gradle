@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 
-public abstract class AbstractNativeBinaryRenderer<T extends NativeBinarySpec> extends AbstractBinaryRenderer<T> {
+public class StaticLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<StaticLibraryBinarySpec> {
     @Override
-    protected void renderDetails(T binary, TextReportBuilder builder) {
-        builder.item("platform", binary.getTargetPlatform().getName());
-        builder.item("build type", binary.getBuildType().getName());
-        builder.item("flavor", binary.getFlavor().getName());
-        builder.item("tool chain", binary.getToolChain().getDisplayName());
+    public Class<StaticLibraryBinarySpec> getTargetType() {
+        return StaticLibraryBinarySpec.class;
+    }
+
+    @Override
+    protected void renderOutputs(StaticLibraryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("static library file", binary.getStaticLibraryFile());
     }
 }
