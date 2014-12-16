@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.component;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
-
-import java.util.Collection;
-
 /**
- * Meta-info about a Java component.
- *
- * TODO - this is some legacy stuff, to be merged into other component interfaces
+ * TODO - merge this and the component container
  */
-public interface BuildableJavaComponent {
-    Collection<String> getRebuildTasks();
+public class ComponentRegistry {
+    private BuildableJavaComponent mainComponent;
 
-    Collection<String> getBuildTasks();
+    public BuildableJavaComponent getMainComponent() {
+        return mainComponent;
+    }
 
-    FileCollection getRuntimeClasspath();
-
-    Configuration getCompileDependencies();
+    public void setMainComponent(BuildableJavaComponent mainComponent) {
+        this.mainComponent = mainComponent;
+    }
 }

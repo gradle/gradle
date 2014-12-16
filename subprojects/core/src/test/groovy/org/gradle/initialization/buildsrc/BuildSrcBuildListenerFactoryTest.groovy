@@ -16,22 +16,25 @@
 
 package org.gradle.initialization.buildsrc
 
-import spock.lang.Specification
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.Convention
-import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.StartParameter
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.component.BuildableJavaComponent
+import org.gradle.api.internal.component.ComponentRegistry
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.service.ServiceRegistry
+import spock.lang.Specification
 
 class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def startParameter = Mock(StartParameter)
-    def plugin = Stub(BuildableJavaComponent)
-    def convention = Mock(Convention) {
-        getPlugin(BuildableJavaComponent) >> plugin
+    def component = Stub(BuildableJavaComponent)
+    def services = Mock(ServiceRegistry) {
+        get(ComponentRegistry) >> Stub(ComponentRegistry) {
+            getMainComponent() >> component
+        }
     }
     def project = Mock(ProjectInternal) {
-        getConvention() >> convention
+        getServices() >> services
     }
     def gradle = Mock(GradleInternal) {
         getStartParameter() >> startParameter
@@ -40,7 +43,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def "configures task names when rebuild on"() {
         def listener = new BuildSrcBuildListenerFactory().create(true)
-        plugin.getRebuildTasks() >> ['fooBuild']
+        component.getRebuildTasks() >> ['fooBuild']
 
         when:
         listener.onConfigure(gradle)
@@ -51,7 +54,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def "configures task names when rebuild off"() {
         def listener = new BuildSrcBuildListenerFactory().create(false)
-        plugin.getBuildTasks() >> ['barBuild']
+        component.getBuildTasks() >> ['barBuild']
 
         when:
         listener.onConfigure(gradle)
