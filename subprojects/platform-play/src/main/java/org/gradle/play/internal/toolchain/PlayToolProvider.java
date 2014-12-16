@@ -27,17 +27,17 @@ public interface PlayToolProvider extends ToolProvider {
     public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec);
 
     /**
-     * FileCollection containing play test dependencies
-     */
-    FileCollection getPlayTestDependencies();
-
-    /**
-     * FileCollection containing play dependencies
+     * FileCollection containing play compile dependencies
      */
     FileCollection getPlayDependencies();
 
     /**
-     * FileCollection containing play dependencies
+     * FileCollection containing play run dependencies
      */
     FileCollection getPlayRuntimeDependencies();
+
+    /**
+     * FileCollection containing play test dependencies
+     */
+    FileCollection getPlayTestDependencies();
 }

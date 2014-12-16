@@ -91,7 +91,7 @@ public class PlayDistributionPlugin {
             CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(binary.getTasks().withType(Jar.class));
-            libSpec.from(binary.getCompileClasspath().getFiles());
+            libSpec.from(binary.getClasspath());
             CopySpec confSpec = distSpec.addChild().into("conf");
             confSpec.from("conf").exclude("routes");
             distSpec.from("README");
@@ -112,7 +112,7 @@ public class PlayDistributionPlugin {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
                     createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                    createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), binary.getCompileClasspath().getFiles()));
+                    createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), binary.getClasspath()));
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
                     createStartScripts.setApplicationName(binary.getName());
                     createStartScripts.setOutputDir(scriptsDir);

@@ -20,8 +20,10 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
@@ -35,8 +37,8 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
-import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
 import java.util.Arrays;
@@ -50,11 +52,11 @@ import java.util.Set;
 @Incubating
 public class PlayTestPlugin {
     @Mutate
-    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, PlayToolChainInternal playToolChain, final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-            final PlayPlatform targetPlatform = binary.getTargetPlatform();
-            FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
-            final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
+    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
+                         final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+            final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
+            final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
 
             final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
             // TODO:DAZ Model a test suite
@@ -62,8 +64,9 @@ public class PlayTestPlugin {
             final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.dependsOn(binary.getBuildTask());
                     scalaCompile.setClasspath(testCompileClasspath);
+
+                    scalaCompile.dependsOn(binary.getBuildTask());
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     scalaCompile.setDestinationDir(testClassesDir);
                     scalaCompile.setSource(testSourceDir);
@@ -82,9 +85,9 @@ public class PlayTestPlugin {
             final File binaryBuildDir = new File(buildDir, binary.getName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
+                    test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
+
                     test.setTestClassesDir(testClassesDir);
-                    final FileCollection testRuntimeClasspath = testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir));
-                    test.setClasspath(testRuntimeClasspath);
                     test.setBinResultsDir(new File(binaryBuildDir, String.format("results/%s/bin", testTaskName)));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
@@ -93,16 +96,26 @@ public class PlayTestPlugin {
                     test.setWorkingDir(projectIdentifier.getProjectDir());
 
                     binary.getTasks().add(test);
-                    // TODO:DAZ Would be good if we could add as a dependency to 'check' lifecycle task here.
                 }
             });
         }
     }
 
+    private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayToolProvider playToolProvider, PlayPluginConfigurations configurations) {
+        FileCollection testClasses = new SimpleFileCollection(binary.getJarFile());
+        Configuration testCompileDependencies = configurations.getPlayTest();
+        FileCollection platformTestDependencies = playToolProvider.getPlayTestDependencies();
+        return testClasses.plus(testCompileDependencies).plus(platformTestDependencies);
+    }
+
+    private FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {
+        return new SimpleFileCollection(testClassesDir).plus(testCompileClasspath);
+    }
+
     // TODO Need a better mechanism to wire tasks into lifecycle
     @Finalize
     public void wireTestTasksIntoCheckLifecycle(final TaskContainer tasks, BinaryContainer binaryContainer) {
-        Set<PlayApplicationBinarySpec> playBinaries = binaryContainer.withType(PlayApplicationBinarySpec.class);
+        Set<PlayApplicationBinarySpecInternal> playBinaries = binaryContainer.withType(PlayApplicationBinarySpecInternal.class);
         for (final PlayApplicationBinarySpec binary : playBinaries) {
             tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(binary.getTasks().withType(Test.class));
         }

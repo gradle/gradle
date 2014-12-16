@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.Factory;
@@ -59,6 +60,9 @@ public class PlayRun extends ConventionTask {
     @InputFile
     private File assetsJar;
 
+    @InputFiles
+    private FileCollection applicationClasspath;
+
     private BaseForkOptions forkOptions;
 
     private PlayApplicationRunnerToken runnerToken;
@@ -83,7 +87,9 @@ public class PlayRun extends ConventionTask {
         int httpPort = getHttpPort();
 
         PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
+
         FileCollection applicationJars = new SimpleFileCollection(applicationJar, assetsJar);
+        applicationJars = applicationJars.plus(applicationClasspath);
         applicationJars = applicationJars.plus(toolProvider.getPlayRuntimeDependencies());
 
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
@@ -149,5 +155,9 @@ public class PlayRun extends ConventionTask {
 
     public void setAssetsJar(File assetsJar) {
         this.assetsJar = assetsJar;
+    }
+
+    public void setApplicationClasspath(FileCollection applicationClasspath) {
+        this.applicationClasspath = applicationClasspath;
     }
 }

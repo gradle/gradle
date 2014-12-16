@@ -16,12 +16,11 @@
 
 package org.gradle.play.internal;
 
+import com.beust.jcommander.internal.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.jvm.Classpath;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
@@ -30,6 +29,7 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
+import java.util.List;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
@@ -39,6 +39,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private PlayToolChainInternal toolChain;
     private File jarFile;
     private File assetsJarFile;
+    private List<FileCollection> classpath = Lists.newArrayList();
 
     @Override
     protected String getTypeName() {
@@ -94,18 +95,20 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     @Override
-    public Classpath getCompileClasspath() {
-        return new Classpath() {
-            @Override
-            public FileCollection getFiles() {
-                return getToolChain().select(getTargetPlatform()).getPlayDependencies();
-            }
+    public FileCollection getClasspath() {
+        return join(getToolChain().select(getTargetPlatform()).getPlayDependencies(), classpath);
+    }
 
-            @Override
-            public TaskDependency getBuildDependencies() {
-                return DefaultPlayApplicationBinarySpec.this.getBuildDependencies();
-            }
-        };
+    @Override
+    public void addClasspath(FileCollection classpath) {
+        this.classpath.add(classpath);
+    }
+
+    private FileCollection join(FileCollection platformClasses, List<FileCollection> applicationClasses) {
+        List<FileCollection> all = Lists.newArrayList();
+        all.add(platformClasses);
+        all.addAll(applicationClasses);
+        return new UnionFileCollection(all);
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
