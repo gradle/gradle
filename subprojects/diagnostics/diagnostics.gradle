@@ -18,11 +18,12 @@ dependencies {
     compile libraries.groovy
     compile project(':core')
     compile project(':reporting')
-    compile project(':plugins')
     compile project(':platformBase')
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':dependencyManagement')
+
+    integTestRuntime project(':plugins')
 }
 
 useTestFixtures()

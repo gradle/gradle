@@ -30,6 +30,7 @@ dependencies {
     compile project(':languageJvm')
     compile project(':languageJava')
     compile project(':languageGroovy')
+    compile project(':diagnostics')
 
     compile libraries.ant
     compile libraries.asm

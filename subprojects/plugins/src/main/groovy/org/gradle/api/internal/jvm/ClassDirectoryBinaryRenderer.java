@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.api.internal.jvm;
 
+import org.gradle.jvm.internal.AbstractJvmBinaryRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 

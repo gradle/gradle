@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.jvm.internal;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
-public class DiagnosticsServices implements PluginServiceRegistry {
+public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            TypeAwareBinaryRenderer createBinaryRenderer(ServiceRegistry services) {
-                TypeAwareBinaryRenderer renderer = new TypeAwareBinaryRenderer();
-                renderer.register(new BinaryRenderer());
-                renderer.register(new SharedLibraryBinaryRenderer());
-                renderer.register(new StaticLibraryBinaryRenderer());
-                renderer.register(new NativeExecutableBinaryRenderer());
-                renderer.register(new NativeTestSuiteBinaryRenderer());
-                for (AbstractBinaryRenderer binaryRenderer : services.getAll(AbstractBinaryRenderer.class)) {
-                    renderer.register(binaryRenderer);
-                }
-                return renderer;
+            JarBinaryRenderer createJarBinaryRenderer() {
+                return new JarBinaryRenderer();
             }
         });
     }
