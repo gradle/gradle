@@ -276,6 +276,7 @@ We would like to thank the following community members for making contributions 
     - update supported play version to 2.3.7
 * [Mike Meesen](https://github.com/netmikey) - support external DTDs in ear application descriptors when building with Java 8
 * [Andrew Kowal](https://github.com/akowal) - Fix test class detection when using jdk8 '`-parameters`' compiler option (GRADLE-3157)
+* [Victor Bronstein](https://github.com/victorbr) - Optimise creation of static builder in ModuleVersionSelectorParsers
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
