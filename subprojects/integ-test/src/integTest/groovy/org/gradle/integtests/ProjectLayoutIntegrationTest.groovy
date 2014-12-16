@@ -136,11 +136,11 @@ sourceSets.each {
 
         executer.withTasks(tasks).run()
 
-        buildDir.file('docs/javadoc/index.html').assertIsFile()
-        buildDir.file('docs/groovydoc/index.html').assertIsFile()
+        buildDir.file('docs/javadoc/index.report').assertIsFile()
+        buildDir.file('docs/groovydoc/index.report').assertIsFile()
 
         if (runScalaDoc) {
-            buildDir.file('docs/scaladoc/index.html').assertIsFile()
+            buildDir.file('docs/scaladoc/index.report').assertIsFile()
         }
     }
 

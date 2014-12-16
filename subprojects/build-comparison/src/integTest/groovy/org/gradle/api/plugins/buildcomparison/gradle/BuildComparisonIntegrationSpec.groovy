@@ -16,12 +16,11 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle
 
+import org.gradle.api.plugins.buildcomparison.fixtures.BuildComparisonHtmlReportFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.junit.Rule
 
 class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
@@ -44,37 +43,25 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         applyPlugin()
     }
 
-    def compareArchives() {
-        given:
-        buildFile << """
-            compareGradleBuilds {
-                sourceBuild.projectDir "source"
-                targetBuild { projectDir "target" }
-            }
-        """
-
+    def compareSimpleArchives() {
         when:
-        fails "compareGradleBuilds"
+        buildsCompared("source", "target")
 
         then:
         failedBecauseNotIdentical()
 
-        def html = html()
+        def report = report()
+        report.outcomeName == ":jar"
 
-        // Name of outcome
-        html.select("h3").text() == ":jar"
-
-        // Entry comparisons
-        def rows = html.select("table")[2].select("tr").tail().collectEntries { [it.select("td")[0].text(), it.select("td")[1].text()] }
-        rows.size() == 8
+        def rows = report.entries
+        rows.size() == 7
         rows["org/gradle/Changed.class"] == "entry in the source build is 394 bytes - in the target build it is 471 bytes (+77)"
         rows["org/gradle/DifferentCrc.class"] == "entries are of identical size but have different content"
         rows["org/gradle/SourceBuildOnly.class"] == "entry does not exist in target build archive"
         rows["org/gradle/TargetBuildOnly.class"] == "entry does not exist in source build archive"
-        rows["sourceSub.zip"] == "entry does not exist in target build archive"
-        rows["targetSub.zip"] == "entry does not exist in source build archive"
-        rows["differentSub.zip"] == "entry in the source build is 688 bytes - in the target build it is 689 bytes (+1)"
-        rows["differentSub.zip!/a.txt"] == "entry in the source build is 0 bytes - in the target build it is 1 bytes (+1)"
+        rows["someSource.properties"] == "entry does not exist in target build archive"
+        rows["someTarget.properties"] == "entry does not exist in source build archive"
+        rows["dir1/different.txt"] == "entries are of identical size but have different content"
 
         and:
         storedFile("source").exists()
@@ -83,6 +70,45 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
 
         and: // old filestore not around
         !testDirectory.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
+    }
+
+    def compareNestedArchives() {
+        when:
+        buildsCompared("source", "target")
+
+        then:
+        failedBecauseNotIdentical()
+
+        def report = report()
+        report.outcomeName == ":jar"
+
+        // Entry comparisons
+        def rows = report.entries
+
+        rows.size() == 4
+        rows["sourceSub.zip"] == "entry does not exist in target build archive"
+        rows["targetSub.zip"] == "entry does not exist in source build archive"
+        rows["dir2/differentSub.zip"] == "entry in the source build is 688 bytes - in the target build it is 689 bytes (+1)"
+        rows["dir2/differentSub.zip!/a.txt"] == "entry in the source build is 0 bytes - in the target build it is 1 bytes (+1)"
+
+        and:
+        storedFile("source").exists()
+        storedFile("source/_jar").list().toList() == ["testBuild.jar"]
+        storedFile("target/_jar").list().toList() == ["testBuild.jar"]
+
+        and: // old filestore not around
+        !testDirectory.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
+    }
+
+
+    def buildsCompared(String source, String target) {
+        buildFile << """
+            compareGradleBuilds {
+                sourceBuild.projectDir "$source"
+                targetBuild { projectDir "$target" }
+            }
+        """
+        fails "compareGradleBuilds"
     }
 
     void failedBecauseNotIdentical() {
@@ -101,7 +127,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         run "compareGradleBuilds"
 
         then:
-        html().select("p").last().text() == "The archives are completely identical."
+        report().identical
         output.contains("The source build and target build are identical")
     }
 
@@ -130,7 +156,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         then:
         failedBecauseNotIdentical()
 
-        html().select("h3")[0].nextSibling().nextSibling().text() == "This version of Gradle does not understand this kind of build outcome."
+        report().select("h3")[0].nextSibling().nextSibling().text() == "This version of Gradle does not understand this kind of build outcome."
     }
 
     def "cannot compare when both sides are old"() {
@@ -226,7 +252,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the target build."
+        report().getResult(":jar") == "The archive was only produced by the target build."
     }
 
     def "can handle artifact not existing on target side"() {
@@ -246,7 +272,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        comparisonResultMsg(html(), ":jar") == "The archive was only produced by the source build."
+        report().getResult(":jar") == "The archive was only produced by the source build."
     }
 
     def "can handle uncompared outcomes"() {
@@ -286,27 +312,20 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         then:
         fails "compareGradleBuilds"
 
-        def html = html()
-        html.select("h2").find { it.text() == "Uncompared source outcomes" }
-        html.select("h2").find { it.text() == "Uncompared target outcomes" }
+        def report = report()
+        report.select("h2").find { it.text() == "Uncompared source outcomes" }
+        report.select("h2").find { it.text() == "Uncompared target outcomes" }
 
-        html.select(".build-outcome.source h3").text() == ":javadocJar"
-        html.select(".build-outcome.target h3").text() == ":sourceJar"
+        report.select(".build-outcome.source h3").text() == ":javadocJar"
+        report.select(".build-outcome.target h3").text() == ":sourceJar"
     }
 
-    Document html(path = "build/reports/compareGradleBuilds/index.html") {
-        Jsoup.parse(file(path), null)
+    BuildComparisonHtmlReportFixture report(path = "build/reports/compareGradleBuilds/index.html") {
+        new BuildComparisonHtmlReportFixture(Jsoup.parse(file(path), null))
     }
 
     TestFile storedFile(String path, String base = "build/reports/compareGradleBuilds/files") {
         file("$base/$path")
     }
-
-    String comparisonResultMsg(Document html, String id) {
-        outcomeComparison(html, id).select(".comparison-result-msg").text()
-    }
-
-    Element outcomeComparison(Document html, String id) {
-        html.select("div.build-outcome-comparison").find { it.id() == id }
-    }
 }
+

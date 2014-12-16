@@ -47,7 +47,7 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 'WEB-INF/additional.xml',
                 'WEB-INF/webapp.xml',
                 'WEB-INF/web.xml',
-                'webapp.html')
+                'webapp.report')
     }
 
     def "can execute servlet"() {

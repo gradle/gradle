@@ -35,7 +35,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         buildDir.file('reports/checkstyle/main.xml').assertIsFile()
-        buildDir.file('reports/codenarc/main.html').assertIsFile()
-        buildDir.file('reports/codenarc/test.html').assertIsFile()
+        buildDir.file('reports/codenarc/main.report').assertIsFile()
+        buildDir.file('reports/codenarc/test.report').assertIsFile()
     }
 }

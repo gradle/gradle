@@ -120,7 +120,7 @@ class ArchiveEntryTest extends Specification {
         a1.path != a2.path
     }
 
-        static ArchiveEntry.Path path(String... components) {
+    static ArchiveEntry.Path path(String... components) {
         new ArchiveEntry.Path(ImmutableList.copyOf(components))
     }
 }

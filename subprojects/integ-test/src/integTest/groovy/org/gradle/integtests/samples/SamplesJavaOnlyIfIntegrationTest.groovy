@@ -48,21 +48,21 @@ public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/reports/tests/index.html')
+        assertExists(javaprojectDir, 'build/reports/tests/index.report')
 
         // Check jar exists
         assertExists(javaprojectDir, "build/libs/onlyif.jar")
 
         // remove test results
         removeFile(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        removeFile(javaprojectDir, 'build/reports/tests/index.html')
+        removeFile(javaprojectDir, 'build/reports/tests/index.report')
 
         executer.inDirectory(javaprojectDir).withTasks('test').run()
 
         // assert that tests did not run
         // (since neither compile nor compileTests should have done anything)
         assertDoesNotExist(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertDoesNotExist(javaprojectDir, 'build/reports/tests/index.html')
+        assertDoesNotExist(javaprojectDir, 'build/reports/tests/index.report')
 
         // remove a compiled class file
         removeFile(javaprojectDir, 'build/classes/main/org/gradle/Person.class')
@@ -71,7 +71,7 @@ public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/reports/tests/index.html')
+        assertExists(javaprojectDir, 'build/reports/tests/index.report')
     }
 
     private static void assertExists(File baseDir, String path) {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle
 
+import org.gradle.api.plugins.buildcomparison.fixtures.BuildComparisonHtmlReportFixture
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -51,8 +52,9 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         sourceWasInferred()
 
         then:
-        sourceBuildVersion == previous.version.version
-        targetBuildVersion == current.version.version
+        def report = report();
+        report.sourceBuildVersion == previous.version.version
+        report.targetBuildVersion == current.version.version
     }
 
     def "can compare identical builds with target pre 1.2"() {
@@ -73,8 +75,9 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         targetWasInferred()
 
         then:
-        sourceBuildVersion == current.version.version
-        targetBuildVersion == previous.version.version
+        def report = report();
+        report.sourceBuildVersion == current.version.version
+        report.targetBuildVersion == previous.version.version
     }
 
     def "can compare different builds with source pre 1.2"() {
@@ -97,8 +100,9 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         sourceWasInferred()
 
         then:
-        sourceBuildVersion == previous.version.version
-        targetBuildVersion == current.version.version
+        def report = report();
+        report.sourceBuildVersion == previous.version.version
+        report.targetBuildVersion == current.version.version
     }
 
     def "can compare different builds with target pre 1.2"() {
@@ -121,8 +125,9 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         targetWasInferred()
 
         then:
-        sourceBuildVersion == current.version.version
-        targetBuildVersion == previous.version.version
+        def report = report();
+        report.sourceBuildVersion == current.version.version
+        report.targetBuildVersion == previous.version.version
     }
 
     protected versionGuard(TestFile file = buildFile, Closure string) {
@@ -140,16 +145,8 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         current.executer(temporaryFolder).requireGradleHome().withTasks("compareGradleBuilds")
     }
 
-    Document html(path = "build/reports/compareGradleBuilds/index.html") {
-        Jsoup.parse(file(path), null)
-    }
-
-    String getSourceBuildVersion(Document html = this.html()) {
-        html.body().select("table")[0].select("tr")[2].select("td")[0].text()
-    }
-
-    String getTargetBuildVersion(Document html = this.html()) {
-        html.body().select("table")[0].select("tr")[2].select("td")[1].text()
+    BuildComparisonHtmlReportFixture report(path = "build/reports/compareGradleBuilds/index.html") {
+        new BuildComparisonHtmlReportFixture(Jsoup.parse(file(path), null))
     }
 
     void failBecauseNotIdentical() {
@@ -157,12 +154,12 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         result.assertHasCause("The build outcomes were not found to be identical. See the report at: file:///")
     }
 
-    void sourceWasInferred(Document html = this.html()) {
+    void sourceWasInferred(Document html = this.report()) {
         hasInferredLogWarning("source")
         hasInferredHtmlWarning("source", html)
     }
 
-    void targetWasInferred(Document html = this.html()) {
+    void targetWasInferred(Document html = this.report()) {
         hasInferredLogWarning("target")
         hasInferredHtmlWarning("target", html)
     }
