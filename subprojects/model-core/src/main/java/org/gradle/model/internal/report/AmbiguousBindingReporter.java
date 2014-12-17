@@ -86,9 +86,9 @@ public class AmbiguousBindingReporter {
         if (referenceDescription != null) {
             writer.print(" (");
             writer.print(referenceDescription);
-            writer.print(") ");
+            writer.print(")");
         }
-        writer.println("is ambiguous as multiple model elements are available for this type:");
+        writer.println(" is ambiguous as multiple model elements are available for this type:");
 
         boolean first = true;
         for (Provider provider : providers) {

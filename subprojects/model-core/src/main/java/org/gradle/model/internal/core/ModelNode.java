@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.Map;
 
-public class ModelNode {
+public class ModelNode implements ModelCreation {
 
     private final ModelGraph modelGraph;
     private final ModelPath creationPath;
@@ -46,11 +46,11 @@ public class ModelNode {
         this.adapter = adapter;
     }
 
-    public ModelPath getCreationPath() {
+    public ModelPath getPath() {
         return creationPath;
     }
 
-    public ModelRuleDescriptor getCreationDescriptor() {
+    public ModelRuleDescriptor getDescriptor() {
         return descriptor;
     }
 
@@ -74,7 +74,7 @@ public class ModelNode {
             throw new DuplicateModelException(
                     String.format(
                             "Cannot create '%s' as it was already created by: %s",
-                            node.getCreationPath(), previous.getCreationDescriptor()
+                            node.getPath(), previous.getDescriptor()
                     )
             );
         }

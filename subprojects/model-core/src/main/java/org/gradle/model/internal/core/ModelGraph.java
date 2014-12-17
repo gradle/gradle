@@ -82,7 +82,7 @@ public class ModelGraph {
     }
 
     void onNewChildNode(ModelNode child) {
-        flattened.put(child.getCreationPath(), child);
+        flattened.put(child.getPath(), child);
         onAdd.execute(child);
     }
 

@@ -52,11 +52,12 @@ public class DefaultModelRegistry implements ModelRegistry {
              */
     private final ModelGraph modelGraph = new ModelGraph(new Action<ModelNode>() {
         public void execute(ModelNode modelNode) {
-            notifyCreationListeners(modelNode.getCreationDescriptor(), modelNode.getCreationPath(), modelNode.getPromise());
+            notifyCreationListeners(modelNode);
+            creations.add(modelNode);
         }
     });
 
-    private final Map<ModelPath, BoundModelCreator> creations = Maps.newHashMap();
+    private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
     private final Multimap<ModelPath, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedMutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, BoundModelMutator<?>> finalizers = ArrayListMultimap.create();
@@ -68,6 +69,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
     private BoundModelCreator inCreation;
+
+    private List<ModelCreation> creations = Lists.newLinkedList();
 
     private static String toString(ModelRuleDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -81,7 +84,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        BoundModelCreator existingCreation = creations.get(path);
+        BoundModelCreator existingCreation = creators.get(path);
 
         if (existingCreation != null) {
             throw new DuplicateModelException(
@@ -101,13 +104,14 @@ public class DefaultModelRegistry implements ModelRegistry {
                             "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",
                             toString(creator.getDescriptor()),
                             path,
-                            toString(searchResult.getTargetNode().getCreationDescriptor())
+                            toString(searchResult.getTargetNode().getDescriptor())
                     )
             );
         }
 
-        notifyCreationListeners(creator.getDescriptor(), creator.getPath(), creator.getPromise());
+        notifyCreationListeners(creator);
         bind(creator);
+        creations.add(creator);
     }
 
     public <T> void mutate(ModelMutator<T> mutator) {
@@ -122,7 +126,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), new Action<RuleBinder<Void>>() {
             public void execute(RuleBinder<Void> ruleBinding) {
                 BoundModelCreator boundCreator = new BoundModelCreator(creator, ruleBinding.getInputBindings());
-                creations.put(creator.getPath(), boundCreator);
+                creators.put(creator.getPath(), boundCreator);
             }
         });
 
@@ -205,20 +209,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         // Copy the creations we know about now because a listener may add creations, causing a CME.
         // This can happen when a listener is listening in order to bind a type-only reference, and the
         // reference binding causing the rule to fully bind and register a new creation.
-        List<ModelPath> creationKeys = new ArrayList<ModelPath>(creations.keySet());
+        List<ModelCreation> currentCreations = Lists.newArrayList(creations);
 
-        for (ModelPath key : creationKeys) {
-            BoundModelCreator boundCreator = creations.get(key);
-            ModelCreator creator = boundCreator.getCreator();
-            remove = listener.onCreate(creator.getDescriptor(), creator.getPath(), creator.getPromise());
-            if (remove) {
-                return;
-            }
-        }
-
-        for (Map.Entry<ModelPath, ModelNode> entry : modelGraph.getFlattened().entrySet()) {
-            ModelNode node = entry.getValue();
-            remove = listener.onCreate(node.getCreationDescriptor(), entry.getKey(), node.getPromise());
+        for (ModelCreation creation : currentCreations) {
+            remove = listener.onCreate(creation);
             if (remove) {
                 return;
             }
@@ -232,7 +226,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
         }
 
-        creations.remove(path);
+        creators.remove(path);
         modelGraph.remove(path);
     }
 
@@ -263,7 +257,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             if (unboundTopLevelModelPath != null) {
                 ModelPath rootParent = unboundTopLevelModelPath.getRootParent();
-                if (creations.containsKey(rootParent)) {
+                if (creators.containsKey(rootParent)) {
                     get(rootParent);
                 } else {
                     break;
@@ -274,7 +268,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (!binders.isEmpty()) {
-            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creations.keySet()));
+            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creators.keySet()));
             List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
             throw new UnboundModelRulesException(unboundRules);
         }
@@ -329,7 +323,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return targetNode;
         }
 
-        inCreation = creations.remove(path);
+        inCreation = creators.remove(path);
         if (inCreation == null) {
             return null;
         } else {
@@ -348,7 +342,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void close(ModelNode node) {
-        ModelPath path = node.getCreationPath();
+        ModelPath path = node.getPath();
         fireMutations(node, path, mutators.removeAll(path), usedMutators);
         fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
 
@@ -448,11 +442,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ModelRuleInput.of(binding, view);
     }
 
-    private void notifyCreationListeners(ModelRuleDescriptor descriptor, ModelPath path, ModelPromise promise) {
+    private void notifyCreationListeners(ModelCreation creation) {
         ListIterator<ModelCreationListener> modelCreationListenerListIterator = modelCreationListeners.listIterator();
         while (modelCreationListenerListIterator.hasNext()) {
             ModelCreationListener next = modelCreationListenerListIterator.next();
-            boolean remove = next.onCreate(descriptor, path, promise);
+            boolean remove = next.onCreate(creation);
             if (remove) {
                 modelCreationListenerListIterator.remove();
             }
@@ -474,7 +468,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             this.bindAction = bindAction;
         }
 
-        public boolean onCreate(ModelRuleDescriptor creatorDescriptor, ModelPath path, ModelPromise promise) {
+        public boolean onCreate(ModelCreation creation) {
+            ModelRuleDescriptor creatorDescriptor = creation.getDescriptor();
+            ModelPath path = creation.getPath();
+            ModelPromise promise = creation.getPromise();
             if (path.isTopLevel() && boundTo != null && isTypeCompatible(promise)) {
                 throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
                         new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()

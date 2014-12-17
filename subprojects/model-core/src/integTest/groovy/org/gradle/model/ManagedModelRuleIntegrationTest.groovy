@@ -913,7 +913,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains("fromScript: foo")
     }
 
-    def "rule can target property of property of managed element"() {
+    def "mutation rule can target property of managed element"() {
         given:
         EnableModelDsl.enable(executer)
 
@@ -965,6 +965,49 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains("fromPlugin: foo")
         output.contains("fromScript: foo")
+    }
+
+    def "creation rule can target property of managed element"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void operatingSystem(OperatingSystem operatingSystem) {
+                  operatingSystem.name = "foo"
+                }
+
+                @Model
+                String name(@Path("operatingSystem.name") String name) {
+                  name
+                }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, @Path("name") String name) {
+                  tasks.create("echo") {
+                    doLast { println "name: $name" }
+                  }
+                }
+
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: foo")
     }
 
     def "managed model interface can extend other interface"() {

@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public interface ModelCreator {
+public interface ModelCreator extends ModelCreation {
 
     ModelPath getPath();
 

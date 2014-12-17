@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.registry;
+package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.ModelCreation;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-public interface ModelCreationListener {
+public interface ModelCreation {
+    ModelRuleDescriptor getDescriptor();
 
-    boolean onCreate(ModelCreation registration);
+    ModelPath getPath();
+
+    ModelPromise getPromise();
 }
