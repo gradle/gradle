@@ -19,7 +19,6 @@ package org.gradle.model.internal.type;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.Objects;
 
 class ParameterizedTypeImpl implements ParameterizedType, TypeWrapper {
 
@@ -58,13 +57,17 @@ class ParameterizedTypeImpl implements ParameterizedType, TypeWrapper {
     @Override
     public boolean equals(Object o) {
         if (o instanceof ParameterizedType) {
-            ParameterizedType var2 = (ParameterizedType) o;
-            if (this == var2) {
+            ParameterizedType that = (ParameterizedType) o;
+            if (this == that) {
                 return true;
             } else {
-                Type var3 = var2.getOwnerType();
-                Type var4 = var2.getRawType();
-                return Objects.equals(getOwnerType(), var3) && Objects.equals(getRawType(), var4) && Arrays.equals(getActualTypeArguments(), var2.getActualTypeArguments());
+                Type ownerType = getOwnerType();
+                Type rawType = getRawType();
+                Type thatOwner = that.getOwnerType();
+                Type thatRawType = that.getRawType();
+                return (ownerType == null ? thatOwner == null : ownerType.equals(thatOwner))
+                        && (rawType == null ? thatRawType == null : rawType.equals(thatRawType))
+                        && Arrays.equals(getActualTypeArguments(), that.getActualTypeArguments());
             }
         } else {
             return false;
