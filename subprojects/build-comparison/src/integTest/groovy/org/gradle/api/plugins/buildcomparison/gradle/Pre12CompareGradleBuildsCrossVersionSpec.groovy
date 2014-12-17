@@ -155,7 +155,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
 
     void sourceWasInferred(def html = this.report()) {
         html.sourceWasInferred()
-        hasInferredLogWarning("target")
+        hasInferredLogWarning("source")
     }
 
     void targetWasInferred(def html = this.report()) {
