@@ -63,43 +63,39 @@ class WildcardTypeImpl implements WildcardType, TypeWrapper {
     }
 
     @Override
-    public String getTypeName() {
-        Type[] var1 = this.getLowerBounds();
-        Type[] var2 = var1;
-        StringBuilder var3 = new StringBuilder();
-        if (var1.length > 0) {
-            var3.append("? super ");
+    public String toString() {
+        Type[] lowerBounds = getLowerBounds();
+        Type[] bounds = lowerBounds;
+        StringBuilder sb = new StringBuilder();
+
+        if (lowerBounds.length > 0) {
+            sb.append("? super ");
         } else {
-            Type[] var4 = this.getUpperBounds();
-            if (var4.length <= 0 || var4[0].equals(Object.class)) {
+            Type[] upperBounds = getUpperBounds();
+            if (upperBounds.length > 0 && !upperBounds[0].equals(Object.class)) {
+                bounds = upperBounds;
+                sb.append("? extends ");
+            } else {
                 return "?";
             }
-
-            var2 = var4;
-            var3.append("? extends ");
         }
 
-        assert var2.length > 0;
+        assert bounds.length > 0;
 
-        boolean var9 = true;
-        Type[] var5 = var2;
-        int var6 = var2.length;
-
-        for (int var7 = 0; var7 < var6; ++var7) {
-            Type var8 = var5[var7];
-            if (!var9) {
-                var3.append(" & ");
+        boolean first = true;
+        for (Type bound : bounds) {
+            if (!first) {
+                sb.append(" & ");
             }
 
-            var9 = false;
-            var3.append(var8.getTypeName());
+            first = false;
+            if (bound instanceof Class) {
+                sb.append(((Class) bound).getName());
+            } else {
+                sb.append(bound.toString());
+            }
         }
-
-        return var3.toString();
+        return sb.toString();
     }
 
-    @Override
-    public String toString() {
-        return getTypeName();
-    }
 }

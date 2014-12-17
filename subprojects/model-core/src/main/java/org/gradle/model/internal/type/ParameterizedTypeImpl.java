@@ -77,54 +77,52 @@ class ParameterizedTypeImpl implements ParameterizedType, TypeWrapper {
     }
 
     @Override
-    public String getTypeName() {
-        StringBuilder var1 = new StringBuilder();
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
 
         Type ownerType = getOwnerType();
         Class<?> rawType = (Class<?>) getRawType();
         if (ownerType != null) {
             if (ownerType instanceof Class) {
-                var1.append(((Class) ownerType).getName());
+                sb.append(((Class) ownerType).getName());
             } else {
-                var1.append(ownerType.toString());
+                sb.append(ownerType.toString());
             }
 
-            var1.append(".");
+            sb.append(".");
 
             if (ownerType instanceof ParameterizedTypeImpl) {
-                Class<?> ownerClass = (Class<?>) ((ParameterizedTypeImpl) ownerType).getRawType();
-                var1.append(rawType.getName().replace(ownerClass.getName() + "$", ""));
+                // Find simple name of nested type by removing the
+                // shared prefix with owner.
+                Class<?> ownerRaw = (Class<?>) ((ParameterizedTypeImpl) ownerType).rawType.unwrap();
+                sb.append(rawType.getName().replace(ownerRaw.getName() + "$",
+                        ""));
             } else {
-                var1.append(rawType.getName());
+                sb.append(rawType.getName());
             }
         } else {
-            var1.append(rawType.getName());
+            sb.append(rawType.getName());
         }
 
         Type[] actualTypeArguments = getActualTypeArguments();
         if (actualTypeArguments != null && actualTypeArguments.length > 0) {
-            var1.append("<");
-            boolean var2 = true;
-            int var4 = actualTypeArguments.length;
-
-            for (int var5 = 0; var5 < var4; ++var5) {
-                Type var6 = actualTypeArguments[var5];
-                if (!var2) {
-                    var1.append(", ");
+            sb.append("<");
+            boolean first = true;
+            for (Type t : actualTypeArguments) {
+                if (!first) {
+                    sb.append(", ");
                 }
-
-                var1.append(var6.getTypeName());
-                var2 = false;
+                if (t instanceof Class) {
+                    sb.append(((Class) t).getName());
+                } else {
+                    sb.append(t.toString());
+                }
+                first = false;
             }
-
-            var1.append(">");
+            sb.append(">");
         }
 
-        return var1.toString();
+        return sb.toString();
     }
 
-    @Override
-    public String toString() {
-        return getTypeName();
-    }
 }
