@@ -138,7 +138,7 @@ public class NotationParserBuilder<T> {
     private NotationParser<Object, T> create() {
         List<NotationConverter<Object, ? extends T>> composites = new LinkedList<NotationConverter<Object, ? extends T>>();
         if (!resultingType.getTargetType().equals(Object.class) && implicitConverters) {
-            composites.add(new NotationParserToNotationConverterAdapter<Object, T>(new JustReturningParser<Object, T>(resultingType.getTargetType())));
+            composites.add(new JustReturningConverter<Object, T>(resultingType.getTargetType()));
         }
         composites.addAll(this.notationParsers);
 
