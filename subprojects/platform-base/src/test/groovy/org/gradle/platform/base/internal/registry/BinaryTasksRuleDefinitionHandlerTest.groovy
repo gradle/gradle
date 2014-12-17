@@ -25,7 +25,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
-import org.gradle.platform.base.InvalidComponentModelException
+import org.gradle.platform.base.InvalidModelException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
 
@@ -63,7 +63,7 @@ class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinit
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
         ex.message == "${ruleDescription} is not a valid BinaryTask model rule method."
-        ex.cause instanceof InvalidComponentModelException
+        ex.cause instanceof InvalidModelException
         ex.cause.message == expectedMessage
 
         where:

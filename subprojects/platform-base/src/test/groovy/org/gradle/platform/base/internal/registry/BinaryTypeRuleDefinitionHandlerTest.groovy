@@ -27,7 +27,7 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
-import org.gradle.platform.base.InvalidComponentModelException
+import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
@@ -89,7 +89,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
         ex.message == "${ruleDescription} is not a valid binary model rule method."
-        ex.cause instanceof InvalidComponentModelException
+        ex.cause instanceof InvalidModelException
         ex.cause.message == expectedMessage
 
         where:

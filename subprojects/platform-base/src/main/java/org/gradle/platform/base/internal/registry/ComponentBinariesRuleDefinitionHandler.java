@@ -50,7 +50,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             });
 
             configureMutationRule(modelRegistry, subject, componentType, binaryType, ruleDefinition);
-        } catch (InvalidComponentModelException e) {
+        } catch (InvalidModelException e) {
             invalidModelRule(ruleDefinition, e);
         }
     }
@@ -90,7 +90,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         }
     }
 
-    protected <R> void invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidComponentModelException e) {
+    protected <R> void invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid ComponentBinaries model rule method.");

@@ -88,7 +88,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
         ex.message == "${ruleDescription} is not a valid component model rule method."
-        ex.cause instanceof InvalidComponentModelException
+        ex.cause instanceof InvalidModelException
         ex.cause.message == expectedMessage
 
         where:

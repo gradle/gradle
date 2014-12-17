@@ -21,12 +21,12 @@ import org.gradle.api.GradleException;
 /**
  * Thrown when a component model is declared in an invalid way.
  */
-public class InvalidComponentModelException extends GradleException {
-    public InvalidComponentModelException(String message) {
+public class InvalidModelException extends GradleException {
+    public InvalidModelException(String message) {
         super(message);
     }
 
-    public InvalidComponentModelException(String message, Exception cause) {
+    public InvalidModelException(String message, Exception cause) {
         super(message, cause);
     }
 }

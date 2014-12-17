@@ -31,7 +31,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
-import org.gradle.platform.base.InvalidComponentModelException;
+import org.gradle.platform.base.InvalidModelException;
 
 public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTasks> {
 
@@ -53,7 +53,7 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
 
             modelRegistry.mutate(new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition));
 
-        } catch (InvalidComponentModelException e) {
+        } catch (InvalidModelException e) {
             invalidModelRule(ruleDefinition, e);
         }
     }
@@ -65,7 +65,7 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
     }
 
     //TODO extract common general method reusable by all AnnotationRuleDefinitionHandler
-    protected <R> void invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidComponentModelException e) {
+    protected <R> void invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid BinaryTask model rule method.");

@@ -23,8 +23,9 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
-import org.gradle.platform.base.InvalidComponentModelException
+import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
+import org.gradle.platform.base.internal.registry.LanguageTypeRuleDefinitionHandler
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -52,7 +53,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
         ex.message == "${ruleDescription} is not a valid language model rule method."
-        ex.cause instanceof InvalidComponentModelException
+        ex.cause instanceof InvalidModelException
         ex.cause.message == expectedMessage
 
         where:

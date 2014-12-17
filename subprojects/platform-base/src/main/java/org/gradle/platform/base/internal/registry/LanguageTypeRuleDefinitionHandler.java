@@ -14,23 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.registry;
+package org.gradle.platform.base.internal.registry;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.RuleSourceDependencies;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BaseLanguageSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.platform.base.internal.registry.AbstractTypeBuilder;
-import org.gradle.platform.base.internal.registry.ComponentModelRuleDefinitionHandler;
 
-public class LanguageTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
+public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
+
+    private Instantiator instantiator;
 
     public LanguageTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class), new RegistrationAction(instantiator));
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class));
+        this.instantiator = instantiator;
+    }
+
+    @Override
+    <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
+        ModelType<? extends BaseLanguageSourceSet> implementation = determineImplementationType(type, builder);
+        dependencies.add(LanguageBasePlugin.class);
+        if (implementation != null) {
+            ModelMutator<?> mutator = new RegisterTypeRule<LanguageSourceSet, BaseLanguageSourceSet>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator));
+            modelRegistry.mutate(mutator);
+        }
     }
 
     public static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilder<LanguageSourceSet> {

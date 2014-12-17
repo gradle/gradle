@@ -22,7 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Factory;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -30,25 +29,23 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.InvalidComponentModelException;
+import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.rules.RuleContext;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<A> {
+public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<A> {
 
     private final String modelName;
     private final ModelType<T> baseInterface;
     private final ModelType<U> baseImplementation;
     private final ModelType<?> builderInterface;
     private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
-    private final Action<? super RegistrationContext<T, U>> registerer;
 
-    public ComponentModelRuleDefinitionHandler(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory, Action<? super RegistrationContext<T, U>> registerer) {
+    public TypeRuleDefinitionHandler(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory) {
         this.modelName = modelName;
         this.typeBuilderFactory = typeBuilderFactory;
-        this.registerer = registerer;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
         this.builderInterface = ModelType.of(builderInterface);
@@ -57,55 +54,55 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
     public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
-            ModelType<? extends U> implementation = determineImplementationType(ruleDefinition, type);
 
-            dependencies.add(ComponentModelBasePlugin.class);
-            if (implementation != null) {
-                ModelMutator<?> mutator = new RegisterTypeRule<T, U>(type, implementation, ruleDefinition.getDescriptor(), registerer);
-                modelRegistry.mutate(mutator);
-            }
-        } catch (InvalidComponentModelException e) {
+            TypeBuilderInternal<T> builder = typeBuilderFactory.create();
+            ruleDefinition.getRuleInvoker().invoke(builder);
+
+
+            doRegister(ruleDefinition, modelRegistry, dependencies, type, builder);
+        } catch (InvalidModelException e) {
             invalidModelRule(ruleDefinition, e);
         }
     }
 
+    abstract <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
+
+
     protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidComponentModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
+            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
         }
         ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
         if (!builderInterface.isAssignableFrom(builder)) {
-            throw new InvalidComponentModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
+            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidComponentModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
+            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
         }
         ModelType<?> subType = builder.getTypeVariables().get(0);
 
         if (subType.isWildcard()) {
-            throw new InvalidComponentModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
+            throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
         }
 
         ModelType<? extends T> asSubclass = baseInterface.asSubclass(subType);
         if (asSubclass == null) {
-            throw new InvalidComponentModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+            throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
 
         return asSubclass;
     }
 
 
-    protected void invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidComponentModelException e) {
+    protected void invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(String.format(" is not a valid %s model rule method.", modelName));
         throw new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    protected ModelType<? extends U> determineImplementationType(MethodRuleDefinition<?> ruleDefinition, ModelType<? extends T> type) {
-        TypeBuilderInternal<T> builder = typeBuilderFactory.create();
-        ruleDefinition.getRuleInvoker().invoke(builder);
+    protected ModelType<? extends U> determineImplementationType(ModelType<? extends T> type, TypeBuilderInternal<T> builder) {
         Class<? extends T> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
@@ -115,17 +112,17 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
         ModelType<? extends U> asSubclass = baseImplementation.asSubclass(implementationType);
 
         if (asSubclass == null) {
-            throw new InvalidComponentModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
+            throw new InvalidModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
 
         if (!type.isAssignableFrom(asSubclass)) {
-            throw new InvalidComponentModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
+            throw new InvalidModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
         }
 
         try {
             asSubclass.getRawClass().getConstructor();
         } catch (NoSuchMethodException nsmException) {
-            throw new InvalidComponentModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
+            throw new InvalidModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
         }
 
         return asSubclass;
@@ -161,7 +158,7 @@ public class ComponentModelRuleDefinitionHandler<A extends Annotation, T, U exte
         }
     }
 
-    private static class RegisterTypeRule<T, U> implements ModelMutator<ExtensionContainer> {
+    protected static class RegisterTypeRule<T, U> implements ModelMutator<ExtensionContainer> {
         private final ModelType<? extends T> type;
         private final ModelType<? extends U> implementation;
         private final ModelRuleDescriptor descriptor;
