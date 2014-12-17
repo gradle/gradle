@@ -14,6 +14,8 @@ dependencies {
 
     testCompile libraries.groovy
 
+    integTestRuntime project(':plugins')
+
     startScriptGenerator project(':plugins')
 }
 

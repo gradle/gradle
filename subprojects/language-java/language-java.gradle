@@ -3,6 +3,9 @@ dependencies {
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")
+
+    // TODO - get rid of this cycle
+    integTestRuntime project(':plugins')
 }
 
 // These public packages have classes that are tangled with the corresponding internal package.
