@@ -28,6 +28,7 @@ dependencies {
     testCompile libraries.groovy
 
     integTestCompile project(":core")
+    integTestRuntime project(':plugins')
 
     testFixturesCompile project(":internalTesting")
     testFixturesCompile project(":core")
