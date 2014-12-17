@@ -53,4 +53,16 @@ class BuildComparisonHtmlReportFixture {
     String getTargetBuildVersion() {
         document.body().select("table")[0].select("tr")[2].select("td")[1].text()
     }
+
+    def sourceWasInferred(){
+        hasInferredHtmlWarning("source")
+    }
+
+    def targetWasInferred() {
+        hasInferredHtmlWarning("target")
+    }
+
+    private void hasInferredHtmlWarning(String buildName) {
+        assert document.body().select(".warning.inferred-outcomes").text().contains("Build outcomes were not able to be determined for the $buildName build")
+    }
 }
