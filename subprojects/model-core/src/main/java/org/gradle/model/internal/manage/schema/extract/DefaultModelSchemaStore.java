@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 @NotThreadSafe
@@ -35,4 +36,9 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
     public void cleanUp() {
         cache.cleanUp();
     }
+
+    public long size() {
+        return cache.size();
+    }
+
 }

@@ -16,133 +16,81 @@
 
 package org.gradle.model.internal.type;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
-import java.util.Arrays;
+import java.lang.reflect.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
- * A type token for the type of a model element. <p> Borrows from Guava's type token. Represent a fully resolved/bound type.
+ * A type token, representing a resolved type.
+ * <p>
+ * Importantly, instances do not hold strong references to class objects.
+ * <p>
+ * Construct a type via one of the public static methods, or by creating an AIC…
+ * <pre>{@code
+ * ModelType<List<String>> type = new ModelType<List<String>>() {};
+ * }</pre>
  */
 @ThreadSafe
 public abstract class ModelType<T> {
 
-    // TODO analyze performance cost of wrapping Guava's type token instead of inlining the code
-    // TODO there is no handling of TypeVariable here - at least need some validation that the incoming Type is not a variable
-
-    public static class WeakRef<T> {
-        private final WeakReference<Type> reference;
-        private final String description;
-
-        private WeakRef(ModelType<T> type) {
-            this.reference = new WeakReference<Type>(type.getRuntimeType());
-            this.description = type.toString();
-        }
-
-        public ModelType<T> get() {
-            Type type = reference.get();
-            if (type == null) {
-                throw new IllegalStateException("type '" + description + "'has been collected");
-            } else {
-                return Cast.uncheckedCast(ModelType.of(type));
-            }
-        }
-
-        @Nullable
-        public ModelType<T> unsafeGet() {
-            Type type = reference.get();
-            if (type == null) {
-                return null;
-            } else {
-                return Cast.uncheckedCast(ModelType.of(type));
-            }
-        }
-
-
-    }
-
-    private static class Simple<T> extends ModelType<T> {
-        private Simple(TypeToken<T> typeToken) {
-            super(typeToken);
-        }
-    }
-
     public static final ModelType<Object> UNTYPED = ModelType.of(Object.class);
 
-    private final TypeToken<T> typeToken;
+    private final TypeWrapper wrapper;
 
-    private ModelType(TypeToken<T> typeToken) {
-        this.typeToken = typeToken;
+    private ModelType(TypeWrapper wrapper) {
+        this.wrapper = wrapper;
     }
 
     protected ModelType() {
-        typeToken = new TypeToken<T>(getClass()) {
-        };
+        this.wrapper = wrap(new TypeToken<T>(getClass()) {
+        }.getType());
     }
 
-    protected ModelType(final Class<?> clazz) {
-        Type superclass = getClass().getGenericSuperclass();
-        checkArgument(superclass instanceof ParameterizedType, "%s isn't parameterized", superclass);
-        @SuppressWarnings("ConstantConditions") Type captured = ((ParameterizedType) superclass).getActualTypeArguments()[0];
-
-        if (captured instanceof Class) {
-            this.typeToken = Cast.uncheckedCast(TypeToken.of(captured));
-        } else {
-            this.typeToken = Cast.uncheckedCast(TypeToken.of(clazz).resolveType(captured));
-        }
+    private TypeToken<T> getTypeToken() {
+        return Cast.uncheckedCast(TypeToken.of(getType()));
     }
 
     public static <T> ModelType<T> of(Class<T> clazz) {
-        return new Simple<T>(TypeToken.of(clazz));
+        return new Simple<T>(clazz);
+    }
+
+    public static <T> ModelType<T> returnType(Method method) {
+        return new Simple<T>(method.getGenericReturnType());
+    }
+
+    public static <T> ModelType<T> paramType(Method method, int i) {
+        return new Simple<T>(method.getGenericParameterTypes()[i]);
     }
 
     public static <T> ModelType<T> typeOf(T instance) {
+        // TODO: should validate that clazz is of a non parameterized type
         @SuppressWarnings("unchecked") Class<T> clazz = (Class<T>) instance.getClass();
         return of(clazz);
     }
 
     public static ModelType<?> of(Type type) {
-        return toModelType(TypeToken.of(type));
-    }
-
-    private static <T> ModelType<T> toModelType(TypeToken<T> type) {
-        return new Simple<T>(type);
-    }
-
-    public WeakRef<T> weaken() {
-        return new WeakRef<T>(this);
+        return Simple.typed(type);
     }
 
     public Class<? super T> getRawClass() {
-        return typeToken.getRawType();
+        return getTypeToken().getRawType();
     }
 
     public Class<T> getConcreteClass() {
-        @SuppressWarnings("unchecked")
-        Class<T> concreteClass = (Class<T>) getRawClass();
-        return concreteClass;
+        return Cast.uncheckedCast(getRawClass());
     }
 
-    public Type getRuntimeType() {
-        return typeToken.getType();
+    public Type getType() {
+        return wrapper.unwrap();
     }
 
     public static ModelType<Object> untyped() {
@@ -150,17 +98,17 @@ public abstract class ModelType<T> {
     }
 
     public boolean isParameterized() {
-        return typeToken.getType() instanceof ParameterizedType;
+        return getType() instanceof ParameterizedType;
     }
 
     public List<ModelType<?>> getTypeVariables() {
         if (isParameterized()) {
-            List<Type> types = Arrays.asList(((ParameterizedType) typeToken.getType()).getActualTypeArguments());
-            return ImmutableList.<ModelType<?>>builder().addAll(Iterables.transform(types, new Function<Type, ModelType<?>>() {
-                public ModelType<?> apply(Type input) {
-                    return ModelType.of(input);
-                }
-            })).build();
+            Type[] typeArguments = ((ParameterizedType) getType()).getActualTypeArguments();
+            ImmutableList.Builder<ModelType<?>> builder = ImmutableList.builder();
+            for (Type typeArgument : typeArguments) {
+                builder.add(of(typeArgument));
+            }
+            return builder.build();
         } else {
             return Collections.emptyList();
         }
@@ -184,7 +132,7 @@ public abstract class ModelType<T> {
     }
 
     public boolean isAssignableFrom(ModelType<?> modelType) {
-        return typeToken.isAssignableFrom(modelType.typeToken);
+        return getTypeToken().isAssignableFrom(modelType.getTypeToken());
     }
 
     public boolean isWildcard() {
@@ -220,7 +168,7 @@ public abstract class ModelType<T> {
     }
 
     private WildcardType getWildcardType() {
-        Type type = typeToken.getType();
+        Type type = getType();
         if (type instanceof WildcardType) {
             return (WildcardType) type;
         } else {
@@ -242,22 +190,35 @@ public abstract class ModelType<T> {
         return false;
     }
 
-    public Iterable<ModelType<? super T>> getSuperTypes() {
-        Iterable<TypeToken<? super T>> superTypes = Iterables.filter(typeToken.getTypes(), new Predicate<TypeToken<? super T>>() {
-            public boolean apply(TypeToken<? super T> type) {
-                return !typeToken.equals(type);
-            }
-        });
-        return Iterables.transform(superTypes, new Function<TypeToken<? super T>, ModelType<? super T>>() {
-            public ModelType<? super T> apply(TypeToken<? super T> superType) {
-                return ModelType.toModelType(superType);
-            }
-        });
+    public List<Class<?>> getAllClasses() {
+        ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
+        addAllClasses(builder);
+        return builder.build();
     }
 
-    @Override
+    private void addAllClasses(ImmutableCollection.Builder<Class<?>> builder) {
+        Type runtimeType = getType();
+        if (runtimeType instanceof Class) {
+            builder.add((Class<?>) runtimeType);
+        } else if (runtimeType instanceof ParameterizedType) {
+            builder.add((Class<?>) ((ParameterizedType) runtimeType).getRawType());
+            for (Type type : ((ParameterizedType) runtimeType).getActualTypeArguments()) {
+                ModelType.of(type).addAllClasses(builder);
+            }
+        } else if (runtimeType instanceof WildcardType) {
+            for (Type type : ((WildcardType) runtimeType).getLowerBounds()) {
+                ModelType.of(type).addAllClasses(builder);
+            }
+            for (Type type : ((WildcardType) runtimeType).getUpperBounds()) {
+                ModelType.of(type).addAllClasses(builder);
+            }
+        } else {
+            throw new IllegalArgumentException("Unable to deal with type " + runtimeType + " (" + runtimeType.getClass() + ")");
+        }
+    }
+
     public String toString() {
-        return typeToken.toString();
+        return getTypeToken().toString();
     }
 
     @Override
@@ -271,12 +232,12 @@ public abstract class ModelType<T> {
 
         ModelType<?> modelType = (ModelType<?>) o;
 
-        return typeToken.equals(modelType.typeToken);
+        return getType().equals(modelType.getType());
     }
 
     @Override
     public int hashCode() {
-        return typeToken.hashCode();
+        return getTypeToken().hashCode();
     }
 
     abstract public static class Builder<T> {
@@ -289,13 +250,13 @@ public abstract class ModelType<T> {
 
         @SuppressWarnings("unchecked")
         public <I> Builder<T> where(Parameter<I> parameter, ModelType<I> type) {
-            TypeResolver resolver = new TypeResolver().where(parameter.typeVariable, type.typeToken.getType());
+            TypeResolver resolver = new TypeResolver().where(parameter.typeVariable, type.getTypeToken().getType());
             typeToken = (TypeToken<T>) TypeToken.of(resolver.resolveType(typeToken.getType()));
             return this;
         }
 
         public ModelType<T> build() {
-            return new Simple<T>(typeToken);
+            return Simple.typed(typeToken.getType());
         }
     }
 
@@ -315,7 +276,6 @@ public abstract class ModelType<T> {
     }
 
     public static abstract class Specs {
-
         public static Spec<ModelType<?>> isAssignableTo(final ModelType<?> type) {
             return new Spec<ModelType<?>>() {
                 public boolean isSatisfiedBy(ModelType<?> element) {
@@ -339,6 +299,70 @@ public abstract class ModelType<T> {
                 }
             };
         }
-
     }
+
+    private static final Type[] EMPTY_TYPE_ARRAY = new Type[0];
+    private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
+
+    private static TypeWrapper wrap(Type type) {
+        if (type == null) {
+            return NullTypeWrapper.INSTANCE;
+        } else if (type instanceof Class) {
+            return new ClassTypeWrapper((Class<?>) type);
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            return new ParameterizedTypeImpl(
+                    toWrappers(parameterizedType.getActualTypeArguments()),
+                    wrap(parameterizedType.getRawType()),
+                    wrap(parameterizedType.getOwnerType()),
+                    type.hashCode()
+            );
+        } else if (type instanceof WildcardType) {
+            WildcardType wildcardType = (WildcardType) type;
+            return new WildcardTypeImpl(
+                    toWrappers(wildcardType.getUpperBounds()),
+                    toWrappers(wildcardType.getLowerBounds()),
+                    type.hashCode()
+            );
+        } else {
+            throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
+        }
+    }
+
+    static TypeWrapper[] toWrappers(Type[] types) {
+        if (types.length == 0) {
+            return EMPTY_TYPE_WRAPPER_ARRAY;
+        } else {
+            TypeWrapper[] wrappers = new TypeWrapper[types.length];
+            int i = 0;
+            for (Type type : types) {
+                wrappers[i++] = wrap(type);
+            }
+            return wrappers;
+        }
+    }
+
+    static Type[] unwrap(TypeWrapper[] wrappers) {
+        if (wrappers.length == 0) {
+            return EMPTY_TYPE_ARRAY;
+        } else {
+            Type[] types = new Type[wrappers.length];
+            int i = 0;
+            for (TypeWrapper wrapper : wrappers) {
+                types[i++] = wrapper.unwrap();
+            }
+            return types;
+        }
+    }
+
+    private static class Simple<T> extends ModelType<T> {
+        public static <T> ModelType<T> typed(Type type) {
+            return new Simple<T>(type);
+        }
+
+        public Simple(Type type) {
+            super(wrap(type));
+        }
+    }
+
 }

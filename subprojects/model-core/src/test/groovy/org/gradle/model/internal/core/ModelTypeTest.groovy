@@ -67,9 +67,9 @@ class ModelTypeTest extends Specification {
     def m3(List<?> anything) {}
 
     def "wildcards"() {
-        def extendsString = ModelType.of(getClass().getDeclaredMethod("m1", List.class).getGenericParameterTypes()[0]).typeVariables[0]
-        def superString = ModelType.of(getClass().getDeclaredMethod("m2", List.class).getGenericParameterTypes()[0]).typeVariables[0]
-        def anything = ModelType.of(getClass().getDeclaredMethod("m3", List.class).getGenericParameterTypes()[0]).typeVariables[0]
+        def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
+        def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
+        def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
 
         expect:
         extendsString.wildcard
@@ -87,9 +87,9 @@ class ModelTypeTest extends Specification {
     }
 
     def "isSubclass"() {
-        def extendsString = ModelType.of(getClass().getDeclaredMethod("m1", List.class).getGenericParameterTypes()[0]).typeVariables[0]
-        def superString = ModelType.of(getClass().getDeclaredMethod("m2", List.class).getGenericParameterTypes()[0]).typeVariables[0]
-        def anything = ModelType.of(getClass().getDeclaredMethod("m3", List.class).getGenericParameterTypes()[0]).typeVariables[0]
+        def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
+        def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
+        def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
 
         expect:
         !ModelType.of(String).asSubclass(ModelType.of(String))

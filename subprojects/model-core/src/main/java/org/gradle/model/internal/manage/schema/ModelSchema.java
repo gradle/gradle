@@ -53,7 +53,7 @@ public class ModelSchema<T> {
         }
     }
 
-    private final ModelType.WeakRef<T> type;
+    private final ModelType<T> type;
     private final Kind kind;
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
 
@@ -74,7 +74,7 @@ public class ModelSchema<T> {
     }
 
     private ModelSchema(ModelType<T> type, Kind kind, Iterable<ModelProperty<?>> properties) {
-        this.type = type.weaken();
+        this.type = type;
         this.kind = kind;
 
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
@@ -89,7 +89,7 @@ public class ModelSchema<T> {
     }
 
     public ModelType<T> getType() {
-        return type.get();
+        return type;
     }
 
     public Kind getKind() {

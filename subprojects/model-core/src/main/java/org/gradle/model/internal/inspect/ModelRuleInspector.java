@@ -76,6 +76,10 @@ public class ModelRuleInspector {
         });
 
         for (Method method : methods) {
+            if (method.getTypeParameters().length > 0) {
+                throw invalid(method, "cannot have type variables (i.e. cannot be a generic method)");
+            }
+
             MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
@@ -156,10 +160,6 @@ public class ModelRuleInspector {
 
     private void validate(Method ruleMethod) {
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
-        if (ruleMethod.getTypeParameters().length > 0) {
-            throw invalid(ruleMethod, "cannot have type variables (i.e. cannot be a generic method)");
-        }
-
         Type returnType = ruleMethod.getGenericReturnType();
         if (isRawInstanceOfParameterizedType(returnType)) {
             throw invalid(ruleMethod, "raw type " + ((Class) returnType).getName() + " used for return type (all type parameters must be specified of parameterized type)");

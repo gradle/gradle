@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.type;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import java.lang.reflect.Type;
 
-public interface ModelSchemaExtractionStrategy {
+class NullTypeWrapper implements TypeWrapper {
+    final static TypeWrapper INSTANCE = new NullTypeWrapper();
 
-    @Nullable
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
-
-    Iterable<String> getSupportedManagedTypes();
-
+    @Override
+    public Type unwrap() {
+        return null;
+    }
 }

@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.type;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Type;
 
-public interface ModelSchemaExtractionStrategy {
+class ClassTypeWrapper implements TypeWrapper {
+    private final WeakReference<Class<?>> reference;
 
-    @Nullable
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
+    public ClassTypeWrapper(Class<?> clazz) {
+        this.reference = new WeakReference<Class<?>>(clazz);
+    }
 
-    Iterable<String> getSupportedManagedTypes();
-
+    @Override
+    public Type unwrap() {
+        return reference.get();
+    }
 }

@@ -43,9 +43,9 @@ public class ManagedProxyFactory {
             String methodName = method.getName();
             String propertyName = StringUtils.uncapitalize(methodName.substring(3));
             if (methodName.startsWith("get")) {
-                return getInstanceProperty(ModelType.of(method.getGenericReturnType()), propertyName);
+                return getInstanceProperty(ModelType.returnType(method), propertyName);
             } else if (methodName.startsWith("set")) {
-                setInstanceProperty(ModelType.of(method.getGenericParameterTypes()[0]), propertyName, args[0]);
+                setInstanceProperty(ModelType.paramType(method, 0), propertyName, args[0]);
                 return null;
             } else if (methodName.equals("hashCode")) {
                 return hashCode();
