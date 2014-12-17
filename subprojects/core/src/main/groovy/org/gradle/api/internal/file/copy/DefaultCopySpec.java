@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
-    private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationParser.create();
+    private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.create();
     protected final FileResolver fileResolver;
     private final Set<Object> sourcePaths;
     private Object destDir;

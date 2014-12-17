@@ -42,11 +42,6 @@ public class NotationParserBuilder<T> {
         typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : String.format("an object of type %s", resultingType.getTargetType().getSimpleName());
     }
 
-    public NotationParserBuilder<T> parser(NotationParser<Object, ? extends T> parser) {
-        this.notationParsers.add(new NotationParserToNotationConverterAdapter<Object, T>(parser));
-        return this;
-    }
-
     /**
      * Specifies the display name for the target type, to use in error messages. By default the target type's simple name is used.
      */
@@ -116,13 +111,6 @@ public class NotationParserBuilder<T> {
         return this;
     }
 
-    public NotationParserBuilder<T> parsers(Iterable<? extends NotationParser<Object, ? extends T>> notationParsers) {
-        for (NotationParser<Object, ? extends T> parser : notationParsers) {
-            parser(parser);
-        }
-        return this;
-    }
-
     public NotationParser<Object, Set<T>> toFlatteningComposite() {
         return wrapInErrorHandling(new FlatteningNotationParser<T>(create()));
     }
@@ -138,7 +126,7 @@ public class NotationParserBuilder<T> {
     private NotationParser<Object, T> create() {
         List<NotationConverter<Object, ? extends T>> composites = new LinkedList<NotationConverter<Object, ? extends T>>();
         if (!resultingType.getTargetType().equals(Object.class) && implicitConverters) {
-            composites.add(new NotationParserToNotationConverterAdapter<Object, T>(new JustReturningParser<Object, T>(resultingType.getTargetType())));
+            composites.add(new JustReturningConverter<Object, T>(resultingType.getTargetType()));
         }
         composites.addAll(this.notationParsers);
 

@@ -76,18 +76,6 @@ class NotationParserBuilderSpec extends Specification {
         parser.parseNotation("12") == "12"
     }
 
-    def "can add a parser"() {
-        def target = Mock(NotationParser)
-        given:
-        target.parseNotation(_) >> { Number n -> return "[${n}]" }
-
-        and:
-        def parser = NotationParserBuilder.toType(String.class).parser(target).toComposite()
-
-        expect:
-        parser.parseNotation(12) == "[12]"
-    }
-
     def "can opt in to allow null as input"() {
         def converter = Mock(NotationConverter)
         def parser = NotationParserBuilder

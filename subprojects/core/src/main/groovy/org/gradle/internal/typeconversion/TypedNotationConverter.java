@@ -18,16 +18,16 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-public abstract class TypedNotationParser<N, T> implements NotationParser<Object, T> {
+public abstract class TypedNotationConverter<N, T> implements NotationConverter<Object, T> {
 
     private final Class<N> typeToken;
 
-    public TypedNotationParser(Class<N> typeToken) {
+    public TypedNotationConverter(Class<N> typeToken) {
         assert typeToken != null : "typeToken cannot be null";
         this.typeToken = typeToken;
     }
 
-    public TypedNotationParser(TypeInfo<N> typeToken) {
+    public TypedNotationConverter(TypeInfo<N> typeToken) {
         assert typeToken != null : "typeToken cannot be null";
         this.typeToken = typeToken.getTargetType();
     }
@@ -36,11 +36,11 @@ public abstract class TypedNotationParser<N, T> implements NotationParser<Object
         candidateFormats.add(String.format("Instances of %s.", typeToken.getSimpleName()));
     }
 
-    public T parseNotation(Object notation) {
-        if (!typeToken.isInstance(notation)) {
-            throw new UnsupportedNotationException(notation);
+    @Override
+    public void convert(Object notation, NotationConvertResult<? super T> result) throws TypeConversionException {
+        if (typeToken.isInstance(notation)) {
+            result.converted(parseType(typeToken.cast(notation)));
         }
-        return parseType(typeToken.cast(notation));
     }
 
     abstract protected T parseType(N notation);

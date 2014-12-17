@@ -18,7 +18,7 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
@@ -26,10 +26,10 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId;
 
-public class ModuleIdentiferNotationParser extends TypedNotationParser<String, ModuleIdentifier> {
+public class ModuleIdentiferNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
     private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
 
-    public ModuleIdentiferNotationParser() {
+    public ModuleIdentiferNotationConverter() {
         super(String.class);
     }
 

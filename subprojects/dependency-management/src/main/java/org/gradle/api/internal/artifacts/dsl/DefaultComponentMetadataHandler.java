@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
+import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
@@ -72,7 +72,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .parser(new ModuleIdentiferNotationParser())
+                .converter(new ModuleIdentiferNotationConverter())
                 .toComposite();
     }
 

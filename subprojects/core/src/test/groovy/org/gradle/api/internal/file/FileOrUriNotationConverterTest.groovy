@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class FileOrUriNotationParserTest extends Specification {
+class FileOrUriNotationConverterTest extends Specification {
 
     @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
 
@@ -112,6 +112,6 @@ The following types/formats are supported:
     }
 
     def parse(def value) {
-        return FileOrUriNotationParser.create(TestFiles.fileSystem()).parseNotation(value)
+        return FileOrUriNotationConverter.create(TestFiles.fileSystem()).parseNotation(value)
     }
 }

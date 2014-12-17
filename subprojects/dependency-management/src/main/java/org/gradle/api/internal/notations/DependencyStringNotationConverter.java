@@ -30,11 +30,11 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DependencyStringNotationParser<T extends ExternalDependency> implements NotationConverter<String, T> {
+public class DependencyStringNotationConverter<T extends ExternalDependency> implements NotationConverter<String, T> {
     private final Instantiator instantiator;
     private final Class<T> wantedType;
 
-    public DependencyStringNotationParser(Instantiator instantiator, Class<T> wantedType) {
+    public DependencyStringNotationConverter(Instantiator instantiator, Class<T> wantedType) {
         this.instantiator = instantiator;
         this.wantedType = wantedType;
     }

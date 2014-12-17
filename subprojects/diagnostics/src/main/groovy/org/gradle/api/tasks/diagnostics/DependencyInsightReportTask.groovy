@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
+import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
@@ -115,7 +115,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      */
     @Option(option = "dependency", description = "Shows the details of given dependency.")
     public void setDependencySpec(Object dependencyInsightNotation) {
-        def parser = DependencyResultSpecNotationParser.create()
+        def parser = DependencyResultSpecNotationConverter.create()
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation)
     }
 

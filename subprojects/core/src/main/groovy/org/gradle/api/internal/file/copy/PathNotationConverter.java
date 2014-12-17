@@ -18,15 +18,13 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-public class PathNotationParser implements NotationParser<Object, String> {
+public class PathNotationConverter implements NotationConverter<Object, String> {
 
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("String or CharSequence instances e.g. 'some/path'");
@@ -42,34 +40,34 @@ public class PathNotationParser implements NotationParser<Object, String> {
                 .toType(String.class)
                 .noImplicitConverters()
                 .allowNullInput()
-                .parser(new PathNotationParser())
+                .converter(new PathNotationConverter())
                 .toComposite();
     }
 
-    public String parseNotation(Object notation) {
+    @Override
+    public void convert(Object notation, NotationConvertResult<? super String> result) throws TypeConversionException {
         if (notation == null) {
-            return null;
-        }
-        if (notation instanceof CharSequence
+            result.converted(null);
+        } else if (notation instanceof CharSequence
                 || notation instanceof File
                 || notation instanceof Number
                 || notation instanceof Boolean) {
-            return notation.toString();
-        }
-        if (notation instanceof Closure) {
+            result.converted(notation.toString());
+        } else if (notation instanceof Closure) {
             final Closure closure = (Closure) notation;
             final Object called = closure.call();
-            return parseNotation(called);
-        }
-        if (notation instanceof Callable) {
+            convert(called, result);
+        } else if (notation instanceof Callable) {
             try {
                 final Callable callableNotation = (Callable) notation;
                 final Object called = callableNotation.call();
-                return parseNotation(called);
+                convert(called, result);
+                if (!result.hasResult()) {
+                    throw new TypeConversionException("Couldn't convert " + notation);
+                }
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        throw new UnsupportedNotationException(notation);
     }
 }

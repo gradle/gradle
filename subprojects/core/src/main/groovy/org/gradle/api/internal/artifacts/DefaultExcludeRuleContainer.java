@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -26,7 +25,6 @@ import java.util.Set;
 
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private Set<ExcludeRule> addedRules = new LinkedHashSet<ExcludeRule>();
-    private final NotationParser<Object, ExcludeRule> notationParser = new ExcludeRuleNotationParser();
 
     public DefaultExcludeRuleContainer() {}
 
@@ -35,7 +33,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     }
 
     public void add(Map<String, String> args) {
-        addedRules.add(notationParser.parseNotation(args));
+        addedRules.add(ExcludeRuleNotationConverter.parser().parseNotation(args));
     }
 
     public Set<ExcludeRule> getRules() {

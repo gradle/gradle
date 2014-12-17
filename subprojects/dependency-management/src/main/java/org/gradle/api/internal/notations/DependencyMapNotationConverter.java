@@ -18,18 +18,18 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
+import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 
-public class DependencyMapNotationParser<T extends ExternalDependency> extends MapNotationParser<T> {
+public class DependencyMapNotationConverter<T extends ExternalDependency> extends MapNotationConverter<T> {
 
     private final Instantiator instantiator;
     private final Class<T> resultingType;
 
-    public DependencyMapNotationParser(Instantiator instantiator, Class<T> resultingType) {
+    public DependencyMapNotationConverter(Instantiator instantiator, Class<T> resultingType) {
         this.instantiator = instantiator;
         this.resultingType = resultingType;
     }

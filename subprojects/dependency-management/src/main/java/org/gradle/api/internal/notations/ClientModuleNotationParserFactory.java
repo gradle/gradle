@@ -32,8 +32,8 @@ public class ClientModuleNotationParserFactory implements Factory<NotationParser
 
     public NotationParser<Object, ClientModule> create() {
         return NotationParserBuilder.toType(ClientModule.class)
-                .fromCharSequence(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
-                .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
+                .fromCharSequence(new DependencyStringNotationConverter<DefaultClientModule>(instantiator, DefaultClientModule.class))
+                .converter(new DependencyMapNotationConverter<DefaultClientModule>(instantiator, DefaultClientModule.class))
                 .toComposite();
 
     }

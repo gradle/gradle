@@ -19,11 +19,12 @@ package org.gradle.api.internal.notations
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter
 import spock.lang.Specification
 
-public class DependencyMapNotationParserTest extends Specification {
+public class DependencyMapNotationConverterTest extends Specification {
 
-    def parser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class);
+    def parser = new NotationConverterToNotationParserAdapter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class));
 
     def "with artifact"() {
         when:

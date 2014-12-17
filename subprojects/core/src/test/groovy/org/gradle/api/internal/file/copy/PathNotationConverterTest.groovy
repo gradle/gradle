@@ -23,8 +23,8 @@ import java.util.concurrent.Callable
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import spock.lang.Specification
 
-class PathNotationParserTest extends Specification {
-    NotationParser<Object, String> pathNotationParser = PathNotationParser.create();
+class PathNotationConverterTest extends Specification {
+    NotationParser<Object, String> pathNotationParser = PathNotationConverter.create();
 
     def "with null"() {
         expect:

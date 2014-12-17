@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.Collection;
 
-public class DependencyProjectNotationParser implements NotationConverter<Project, ProjectDependency> {
+public class DependencyFilesNotationConverter implements NotationConverter<FileCollection, SelfResolvingDependency> {
+    private final Instantiator instantiator;
 
-    private final DefaultProjectDependencyFactory factory;
-
-    public DependencyProjectNotationParser(DefaultProjectDependencyFactory factory) {
-        this.factory = factory;
+    public DependencyFilesNotationConverter(Instantiator instantiator) {
+        this.instantiator = instantiator;
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Projects, e.g. project(':some:project:path').");
+        candidateFormats.add("FileCollections, e.g. files('some.jar', 'someOther.jar').");
     }
 
-    public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {
-        result.converted(factory.create(notation));
+    public void convert(FileCollection notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
+        result.converted(instantiator.newInstance(DefaultSelfResolvingDependency.class, notation));
     }
 }

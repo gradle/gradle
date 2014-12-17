@@ -43,25 +43,25 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
     }
 
     public NotationParser<Object, IvyArtifact> create() {
-        FileNotationParser fileNotationParser = new FileNotationParser(fileResolver);
-        ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
-        PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
+        FileNotationConverter fileNotationConverter = new FileNotationConverter(fileResolver);
+        ArchiveTaskNotationConverter archiveTaskNotationConverter = new ArchiveTaskNotationConverter();
+        PublishArtifactNotationConverter publishArtifactNotationConverter = new PublishArtifactNotationConverter();
 
         NotationParser<Object, IvyArtifact> sourceNotationParser = NotationParserBuilder
                 .toType(IvyArtifact.class)
-                .parser(archiveTaskNotationParser)
-                .parser(publishArtifactNotationParser)
-                .converter(fileNotationParser)
+                .converter(archiveTaskNotationConverter)
+                .converter(publishArtifactNotationConverter)
+                .converter(fileNotationConverter)
                 .toComposite();
 
-        IvyArtifactMapNotationParser ivyArtifactMapNotationParser = new IvyArtifactMapNotationParser(sourceNotationParser);
+        IvyArtifactMapNotationConverter ivyArtifactMapNotationConverter = new IvyArtifactMapNotationConverter(sourceNotationParser);
 
         NotationParserBuilder<IvyArtifact> parserBuilder = NotationParserBuilder
                 .toType(IvyArtifact.class)
-                .parser(archiveTaskNotationParser)
-                .parser(publishArtifactNotationParser)
-                .parser(ivyArtifactMapNotationParser)
-                .converter(fileNotationParser);
+                .converter(archiveTaskNotationConverter)
+                .converter(publishArtifactNotationConverter)
+                .converter(ivyArtifactMapNotationConverter)
+                .converter(fileNotationConverter);
 
         return parserBuilder.toComposite();
     }
@@ -79,8 +79,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         return ivyArtifact;
     }
 
-    private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, IvyArtifact> {
-        private ArchiveTaskNotationParser() {
+    private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, IvyArtifact> {
+        private ArchiveTaskNotationConverter() {
             super(AbstractArchiveTask.class);
         }
 
@@ -93,8 +93,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
     }
 
-    private class PublishArtifactNotationParser extends TypedNotationParser<PublishArtifact, IvyArtifact> {
-        private PublishArtifactNotationParser() {
+    private class PublishArtifactNotationConverter extends TypedNotationConverter<PublishArtifact, IvyArtifact> {
+        private PublishArtifactNotationConverter() {
             super(PublishArtifact.class);
         }
 
@@ -107,10 +107,10 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
     }
 
-    private class FileNotationParser implements NotationConverter<Object, IvyArtifact> {
+    private class FileNotationConverter implements NotationConverter<Object, IvyArtifact> {
         private final NotationParser<Object, File> fileResolverNotationParser;
 
-        private FileNotationParser(FileResolver fileResolver) {
+        private FileNotationConverter(FileResolver fileResolver) {
             this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
@@ -129,10 +129,10 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
     }
 
-    private class IvyArtifactMapNotationParser extends MapNotationParser<IvyArtifact> {
+    private class IvyArtifactMapNotationConverter extends MapNotationConverter<IvyArtifact> {
         private final NotationParser<Object, IvyArtifact> sourceNotationParser;
 
-        private IvyArtifactMapNotationParser(NotationParser<Object, IvyArtifact> sourceNotationParser) {
+        private IvyArtifactMapNotationConverter(NotationParser<Object, IvyArtifact> sourceNotationParser) {
             this.sourceNotationParser = sourceNotationParser;
         }
 
