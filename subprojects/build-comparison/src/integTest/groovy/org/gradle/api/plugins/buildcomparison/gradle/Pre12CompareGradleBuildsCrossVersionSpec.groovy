@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 
 @TargetVersions(["1.0", "1.1"])
 class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSpec {
@@ -154,22 +153,19 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         result.assertHasCause("The build outcomes were not found to be identical. See the report at: file:///")
     }
 
-    void sourceWasInferred(Document html = this.report()) {
-        hasInferredLogWarning("source")
-        hasInferredHtmlWarning("source", html)
-    }
-
-    void targetWasInferred(Document html = this.report()) {
+    void sourceWasInferred(def html = this.report()) {
+        html.sourceWasInferred()
         hasInferredLogWarning("target")
-        hasInferredHtmlWarning("target", html)
     }
 
-    void hasInferredLogWarning(String buildName) {
+    void targetWasInferred(def html = this.report()) {
+        html.targetWasInferred()
+        hasInferredLogWarning("target")
+    }
+
+    private void hasInferredLogWarning(String buildName) {
         assert result.output.contains("The build outcomes for the $buildName build will be inferred from the")
     }
 
-    void hasInferredHtmlWarning(String buildName, Document html) {
-        assert html.body().select(".warning.inferred-outcomes").text().contains("Build outcomes were not able to be determined for the $buildName build")
-    }
 
 }
