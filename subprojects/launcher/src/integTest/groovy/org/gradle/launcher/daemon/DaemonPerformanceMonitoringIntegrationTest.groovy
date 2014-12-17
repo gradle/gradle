@@ -31,7 +31,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def "when build leaks within available memory the daemon is not expired"() {
         expect:
-        !daemonIsExpiredEagerly("-Xmx100m")
+        !daemonIsExpiredEagerly("-Xmx500m")
     }
 
     private boolean daemonIsExpiredEagerly(String xmx) {
