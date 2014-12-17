@@ -54,11 +54,14 @@ class DefaultModuleResolutionFilterTest extends Specification {
 
         where:
         rule << [excludeRule('*', '*'),
-                 excludeRule('*', 'module'),
-                 excludeRule('org', '*'),
                  excludeRule('org', 'module'),
-                 regexpExcludeRule('or.*', "module"),
-                 regexpExcludeRule('org', "mod.*")]
+                 excludeRule('org', '*'),
+                 excludeRule('*', 'module'),
+                 regexpExcludeRule('*', '*'),
+                 regexpExcludeRule('or.*', 'module'),
+                 regexpExcludeRule('org', 'mod.*'),
+                 regexpExcludeRule('or.*', '*'),
+                 regexpExcludeRule('*', 'mod.*')]
     }
 
     @Unroll
@@ -70,11 +73,13 @@ class DefaultModuleResolutionFilterTest extends Specification {
         spec.acceptModule(moduleId('org', 'module'))
 
         where:
-        rule << [excludeRule('*', 'module2'),
+        rule << [excludeRule('org2', 'module2'),
+                 excludeRule('*', 'module2'),
                  excludeRule('org2', '*'),
-                 excludeRule('org2', 'module2'),
                  regexpExcludeRule('or.*2', "module"),
-                 regexpExcludeRule('org', "mod.*2")]
+                 regexpExcludeRule('org', "mod.*2"),
+                 regexpExcludeRule('or.*2', "*"),
+                 regexpExcludeRule('*', "mod.*2")]
     }
 
     @Unroll
@@ -87,18 +92,24 @@ class DefaultModuleResolutionFilterTest extends Specification {
 
         where:
         rule << [excludeRule('*', '*', '*', '*', '*'),
-                 excludeRule('*', 'module', '*', '*', '*'),
                  excludeRule('org', '*', '*', '*', '*'),
+                 excludeRule('*', 'module', '*', '*', '*'),
                  excludeRule('org', 'module', '*', '*', '*'),
                  excludeRule('org', 'module', 'mylib', 'jar', 'jar'),
                  excludeRule('org', 'module', '*', 'jar', 'jar'),
                  excludeRule('org', 'module', 'mylib', '*', 'jar'),
                  excludeRule('org', 'module', 'mylib', 'jar', '*'),
-                 regexpExcludeRule('or.*', "module", '*', '*', '*'),
-                 regexpExcludeRule('org', "mod.*", '*', '*', '*'),
-                 regexpExcludeRule('org', "module", 'my.*', 'jar', 'jar'),
-                 regexpExcludeRule('org', "module", 'mylib', 'j.*', 'jar'),
-                 regexpExcludeRule('org', "module", 'mylib', 'jar', 'j.*')]
+                 regexpExcludeRule('*', '*', '*', '*', '*'),
+                 regexpExcludeRule('or.*', '*', '*', '*', '*'),
+                 regexpExcludeRule('or.*', 'module', '*', '*', '*'),
+                 regexpExcludeRule('*', 'mod.*', '*', '*', '*'),
+                 regexpExcludeRule('org', 'mod.*', '*', '*', '*'),
+                 regexpExcludeRule('org', 'module', 'my.*', 'jar', 'jar'),
+                 regexpExcludeRule('org', 'module', 'my.*', '*', '*'),
+                 regexpExcludeRule('org', 'module', 'mylib', 'j.*', 'jar'),
+                 regexpExcludeRule('org', 'module', '*', 'j.*', 'jar'),
+                 regexpExcludeRule('org', 'module', 'mylib', 'jar', 'j.*'),
+                 regexpExcludeRule('org', 'module', 'mylib', '*', 'j.*')]
     }
 
     @Unroll
@@ -117,9 +128,10 @@ class DefaultModuleResolutionFilterTest extends Specification {
                  excludeRule('org', 'module', 'mylib', 'jar', 'war'),
                  excludeRule('org', 'module', 'otherlib', 'jar', 'jar'),
                  excludeRule('org', 'module', 'otherlib', '*', '*'),
-                 excludeRule('org', 'module', '*', 'sources', 'jar'),
                  excludeRule('org', 'module', 'otherlib', '*', 'jar'),
                  excludeRule('org', 'module', 'otherlib', 'jar', '*'),
+                 excludeRule('org', 'module', '*', 'sources', 'jar'),
+                 excludeRule('org', 'module', '*', 'sources', '*'),
                  excludeArtifactRule('mylib', 'sources', 'jar'),
                  excludeArtifactRule('mylib', 'jar', 'war'),
                  excludeArtifactRule('otherlib', 'jar', 'jar'),
