@@ -16,7 +16,8 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.PerformanceResults
+import org.gradle.performance.fixture.CrossBuildPerformanceResults
+import org.gradle.performance.fixture.CrossVersionPerformanceResults
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -24,8 +25,8 @@ import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Specification
 
 class ResultSpecification extends Specification {
-    PerformanceResults results(Map<String, ?> options = [:]) {
-        def results = new PerformanceResults()
+    CrossVersionPerformanceResults crossVersionResults(Map<String, ?> options = [:]) {
+        def results = new CrossVersionPerformanceResults()
         results.testId = "test-id"
         results.testProject = "test-project"
         results.tasks = ["clean", "build"]
@@ -34,6 +35,20 @@ class ResultSpecification extends Specification {
         results.jvm = "java 6"
         results.versionUnderTest = "1.7-rc-1"
         results.vcsBranch = "master"
+        options.each { key, value -> results."$key" = value }
+        return results
+    }
+
+    CrossBuildPerformanceResults crossBuildResults(Map<String, ?> options = [:]) {
+        def results = new CrossBuildPerformanceResults(
+                testId: "test-id",
+                jvm: "java 7",
+                versionUnderTest: "Gradle 1.0",
+                operatingSystem: "windows",
+                testTime: 100,
+                vcsBranch: "master",
+                vcsCommit: "abcdef"
+        )
         options.each { key, value -> results."$key" = value }
         return results
     }

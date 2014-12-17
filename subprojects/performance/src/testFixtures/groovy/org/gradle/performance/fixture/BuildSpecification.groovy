@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.fixture
 
-import org.gradle.performance.fixture.PerformanceResults;
+import groovy.transform.EqualsAndHashCode
 
-import java.util.List;
+@EqualsAndHashCode
+class BuildSpecification {
+    String projectName
+    String displayName
+    String[] tasksToRun = new String[0]
+    String[] args = new String[0]
+    String[] gradleOpts = new String[0]
 
-public interface TestExecutionHistory {
-    String getId();
-
-    String getName();
-
-    List<PerformanceResults> getPerformanceResults();
-
-    int getPerExecutionOperationsCount();
-
-    List<String> getOperationLabels();
+    String getDisplayName() {
+        displayName ?: projectName
+    }
 }

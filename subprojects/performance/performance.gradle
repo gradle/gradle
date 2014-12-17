@@ -126,18 +126,23 @@ task all(dependsOn: generators)
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects])
 
 task report {
-    def reportDir = new File(buildDir, "performance-tests/report")
+    def crossVersionReportDir = new File(buildDir, "performance-tests/report/cross-version")
+    def crossBuildReportDir = new File(buildDir, "performance-tests/report/cross-build")
     inputs.files sourceSets.testFixtures.runtimeClasspath
-    outputs.dir reportDir
+    outputs.dir crossVersionReportDir
+    outputs.dir crossBuildReportDir
 
     doLast {
         def cl = new URLClassLoader(sourceSets.testFixtures.runtimeClasspath.collect { it.toURI().toURL()} as URL[], ClassLoader.systemClassLoader.parent)
-        def store = cl.loadClass("org.gradle.performance.results.ResultsStore").newInstance()
+        def crossVersionStore = cl.loadClass("org.gradle.performance.results.CrossVersionResultsStore").newInstance()
+        def crossBuildStore = cl.loadClass("org.gradle.performance.results.CrossBuildResultsStore").newInstance()
         try {
             def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
-            generator.generate(store, reportDir)
+            generator.generate(crossVersionStore, crossVersionReportDir)
+            generator.generate(crossBuildStore, crossBuildReportDir)
         } finally {
-            store.close()
+            crossVersionStore.close()
+            crossBuildStore.close()
         }
     }
 }

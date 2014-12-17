@@ -16,18 +16,8 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.fixture.PerformanceResults;
+import java.sql.Connection;
 
-import java.util.List;
-
-public interface TestExecutionHistory {
-    String getId();
-
-    String getName();
-
-    List<PerformanceResults> getPerformanceResults();
-
-    int getPerExecutionOperationsCount();
-
-    List<String> getOperationLabels();
+public interface ConnectionAction<T> {
+    T execute(Connection connection) throws Exception;
 }

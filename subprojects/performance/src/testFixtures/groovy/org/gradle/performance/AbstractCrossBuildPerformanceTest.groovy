@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,25 @@
 
 package org.gradle.performance
 
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.performance.fixture.CompositeDataReporter
-import org.gradle.performance.fixture.PerformanceTestRunner
-import org.gradle.performance.fixture.TextFileDataReporter
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
-import org.gradle.performance.results.ResultsStore
+import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class AbstractPerformanceTest extends Specification {
+class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = new ResultsStore()
-    static def textReporter = new TextFileDataReporter(new File("build/performance-tests/results.txt"))
+    static def resultStore = new CrossBuildResultsStore()
 
-    final def runner = new PerformanceTestRunner(
+    final def runner = new CrossBuildPerformanceTestRunner(
             testDirectoryProvider: tmpDir,
-            current: new UnderDevelopmentGradleDistribution(),
             runs: 5,
             warmUpRuns: 1,
-            subRuns: 1,
-            targetVersions: ['1.0', '1.4', '1.8', 'last'],
-            maxExecutionTimeRegression: Duration.millis(500),
-            maxMemoryRegression: DataAmount.mbytes(25)
+            subRuns: 1
     )
 
     def setup() {
-        runner.reporter = new CompositeDataReporter([textReporter, resultStore])
+        runner.reporter = resultStore
     }
 
     static {

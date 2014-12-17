@@ -28,11 +28,11 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
-public class PerformanceTestRunner {
+public class CrossVersionPerformanceTestRunner {
     TestDirectoryProvider testDirectoryProvider
     GradleDistribution current
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    DataReporter reporter
+    CrossVersionDataReporter reporter
     OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
 
@@ -57,10 +57,10 @@ public class PerformanceTestRunner {
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
-    PerformanceResults results
+    CrossVersionPerformanceResults results
     GradleExecuterProvider executerProvider = new GradleExecuterProvider()
 
-    PerformanceResults run() {
+    CrossVersionPerformanceResults run() {
         assert !targetVersions.empty
         assert testId
 
@@ -69,7 +69,7 @@ public class PerformanceTestRunner {
             gcCollector.useDaemon()
         }
 
-        results = new PerformanceResults(
+        results = new CrossVersionPerformanceResults(
                 testId: testId,
                 testProject: testProject,
                 tasks: tasksToRun,

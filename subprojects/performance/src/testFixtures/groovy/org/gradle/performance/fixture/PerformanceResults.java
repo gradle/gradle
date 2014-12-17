@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
-
-import org.gradle.performance.fixture.PerformanceResults;
+package org.gradle.performance.fixture;
 
 import java.util.List;
 
-public interface TestExecutionHistory {
-    String getId();
+public interface PerformanceResults {
 
-    String getName();
+    String getVersionUnderTest();
+    String getVcsBranch();
+    long getTestTime();
 
-    List<PerformanceResults> getPerformanceResults();
+    String getVcsCommit();
 
-    int getPerExecutionOperationsCount();
+    List<MeasuredOperationList> getExecutionOperations();
 
-    List<String> getOperationLabels();
+    String getOperatingSystem();
+
+    String getJvm();
 }

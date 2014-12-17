@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class UpToDateBuildPerformanceTest extends AbstractPerformanceTest {
+class UpToDateBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' up-to-date build")
     def "build"() {
         given:

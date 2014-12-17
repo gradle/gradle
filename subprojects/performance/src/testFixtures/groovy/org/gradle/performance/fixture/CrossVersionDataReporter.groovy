@@ -16,6 +16,6 @@
 
 package org.gradle.performance.fixture
 
-interface DataReporter {
-    void report(PerformanceResults results)
+interface CrossVersionDataReporter {
+    void report(CrossVersionPerformanceResults results)
 }

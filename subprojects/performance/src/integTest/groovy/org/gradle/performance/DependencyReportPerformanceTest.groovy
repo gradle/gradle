@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class DependencyReportPerformanceTest extends AbstractPerformanceTest {
+class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' dependency report")
     def "dependency report"() {
         given:

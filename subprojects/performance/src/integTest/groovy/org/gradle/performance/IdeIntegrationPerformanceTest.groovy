@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
+class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' eclipse")
     def "eclipse"() {
         given:

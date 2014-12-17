@@ -18,8 +18,8 @@ package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
 
-public class PerformanceResults {
-    private final static LOGGER = Logging.getLogger(PerformanceResults.class)
+public class CrossVersionPerformanceResults {
+    private final static LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
 
     String testId
     String testProject

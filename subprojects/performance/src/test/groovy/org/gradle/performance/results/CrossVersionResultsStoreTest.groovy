@@ -23,12 +23,12 @@ import org.junit.Rule
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
-class ResultsStoreTest extends ResultSpecification {
+class CrossVersionResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final dbFile = tmpDir.file("results")
 
     def "persists results"() {
-        def result1 = results(testId: "test1",
+        def result1 = crossVersionResults(testId: "test1",
                 testProject: "test-project",
                 tasks: ["clean", "build"],
                 args: ["--arg1"],
@@ -51,14 +51,14 @@ class ResultsStoreTest extends ResultSpecification {
         baseline2.results << operation()
         baseline2.results << operation()
 
-        def result2 = results(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result2 = crossVersionResults(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
         result2.current << operation()
         result2.current << operation()
         def baseline3 = result2.baseline("1.0")
         baseline3.results << operation()
 
         when:
-        def writeStore = new ResultsStore(dbFile)
+        def writeStore = new CrossVersionResultsStore(dbFile)
         writeStore.report(result1)
         writeStore.report(result2)
         writeStore.close()
@@ -67,7 +67,7 @@ class ResultsStoreTest extends ResultSpecification {
         tmpDir.file("results.h2.db").exists()
 
         when:
-        def readStore = new ResultsStore(dbFile)
+        def readStore = new CrossVersionResultsStore(dbFile)
         def tests = readStore.testNames
 
         then:
@@ -128,14 +128,14 @@ class ResultsStoreTest extends ResultSpecification {
 
     def "returns test names in ascending order"() {
         given:
-        def writeStore = new ResultsStore(dbFile)
-        writeStore.report(results(testId: "test3"))
-        writeStore.report(results(testId: "test1"))
-        writeStore.report(results(testId: "test2"))
+        def writeStore = new CrossVersionResultsStore(dbFile)
+        writeStore.report(crossVersionResults(testId: "test3"))
+        writeStore.report(crossVersionResults(testId: "test1"))
+        writeStore.report(crossVersionResults(testId: "test2"))
         writeStore.close()
 
         when:
-        def readStore = new ResultsStore(dbFile)
+        def readStore = new CrossVersionResultsStore(dbFile)
         def tests = readStore.testNames
 
         then:
@@ -148,14 +148,14 @@ class ResultsStoreTest extends ResultSpecification {
 
     def "returns test executions in descending date order"() {
         given:
-        def writeStore = new ResultsStore(dbFile)
-        writeStore.report(results(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3"))
-        writeStore.report(results(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1"))
-        writeStore.report(results(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2"))
+        def writeStore = new CrossVersionResultsStore(dbFile)
+        writeStore.report(crossVersionResults(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3"))
+        writeStore.report(crossVersionResults(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1"))
+        writeStore.report(crossVersionResults(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2"))
         writeStore.close()
 
         when:
-        def readStore = new ResultsStore(dbFile)
+        def readStore = new CrossVersionResultsStore(dbFile)
         def results = readStore.getTestResults("some test")
 
         then:
@@ -170,16 +170,16 @@ class ResultsStoreTest extends ResultSpecification {
 
     def "the known versions for a test is the union of all baseline versions in ascending order and the union of test branches"() {
         given:
-        def writeStore = new ResultsStore(dbFile)
+        def writeStore = new CrossVersionResultsStore(dbFile)
 
-        def results1 = results(vcsBranch: "master")
+        def results1 = crossVersionResults(vcsBranch: "master")
         results1.baseline("1.8-rc-2").results << operation()
         results1.baseline("1.0").results << operation()
-        def results2 = results(vcsBranch: "release")
+        def results2 = crossVersionResults(vcsBranch: "release")
         results2.baseline("1.8-rc-1").results << operation()
         results2.baseline("1.0").results << operation()
         results2.baseline("1.10").results << operation()
-        def results3 = results(vcsBranch: "master")
+        def results3 = crossVersionResults(vcsBranch: "master")
         results3.baseline("1.8").results << operation()
         results3.baseline("1.10").results << operation()
 
@@ -189,7 +189,7 @@ class ResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         when:
-        def readStore = new ResultsStore(dbFile)
+        def readStore = new CrossVersionResultsStore(dbFile)
         def results = readStore.getTestResults("test-id")
 
         then:
@@ -204,16 +204,16 @@ class ResultsStoreTest extends ResultSpecification {
 
     def "the set of known versions is the union of all baseline versions and branches"() {
         given:
-        def writeStore = new ResultsStore(dbFile)
+        def writeStore = new CrossVersionResultsStore(dbFile)
 
-        def results1 = results(testId: "test-1", vcsBranch: "master")
+        def results1 = crossVersionResults(testId: "test-1", vcsBranch: "master")
         results1.baseline("1.8-rc-2").results << operation()
         results1.baseline("1.0").results << operation()
-        def results2 = results(testId: "test-2", vcsBranch: "release")
+        def results2 = crossVersionResults(testId: "test-2", vcsBranch: "release")
         results2.baseline("1.8-rc-1").results << operation()
         results2.baseline("1.0").results << operation()
         results2.baseline("1.10").results << operation()
-        def results3 = results(testId: "test-3", vcsBranch: "release")
+        def results3 = crossVersionResults(testId: "test-3", vcsBranch: "release")
         results3.baseline("1.8").results << operation()
         results3.baseline("2.0").results << operation()
 
@@ -223,7 +223,7 @@ class ResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         when:
-        def readStore = new ResultsStore(dbFile)
+        def readStore = new CrossVersionResultsStore(dbFile)
         def results = readStore.getVersions()
 
         then:
@@ -236,7 +236,7 @@ class ResultsStoreTest extends ResultSpecification {
 
     def "returns empty results for unknown id"() {
         given:
-        def store = new ResultsStore(dbFile)
+        def store = new CrossVersionResultsStore(dbFile)
 
         expect:
         store.getTestResults("unknown").baselineVersions.empty

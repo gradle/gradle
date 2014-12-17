@@ -20,8 +20,8 @@ import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 
-class PerformanceResultsTest extends ResultSpecification {
-    def PerformanceResults result = new PerformanceResults(testProject: "some-project", tasks: [])
+class CrossVersionPerformanceResultsTest extends ResultSpecification {
+    def CrossVersionPerformanceResults result = new CrossVersionPerformanceResults(testProject: "some-project", tasks: [])
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:

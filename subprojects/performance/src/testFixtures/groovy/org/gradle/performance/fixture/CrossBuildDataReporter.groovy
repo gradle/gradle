@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results;
+package org.gradle.performance.fixture
 
-import org.gradle.performance.fixture.PerformanceResults;
-
-import java.util.List;
-
-public interface TestExecutionHistory {
-    String getId();
-
-    String getName();
-
-    List<PerformanceResults> getPerformanceResults();
-
-    int getPerExecutionOperationsCount();
-
-    List<String> getOperationLabels();
+interface CrossBuildDataReporter {
+    void report(CrossBuildPerformanceResults results)
 }

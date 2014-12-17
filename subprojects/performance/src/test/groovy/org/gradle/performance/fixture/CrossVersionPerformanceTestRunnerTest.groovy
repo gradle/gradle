@@ -23,9 +23,9 @@ import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.util.GradleVersion
 
-class PerformanceTestRunnerTest extends ResultSpecification {
+class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     final timer = Mock(OperationTimer)
-    final reporter = Mock(DataReporter)
+    final reporter = Mock(CrossVersionDataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
     final dataCollector = Stub(DataCollector)
     final currentGradle = Stub(GradleDistribution)
@@ -99,7 +99,7 @@ class PerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        return new PerformanceTestRunner(testId: 'some-test',
+        return new CrossVersionPerformanceTestRunner(testId: 'some-test',
                 timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector,
                 current: currentGradle, reporter: reporter, executerProvider: Stub(GradleExecuterProvider))
     }
