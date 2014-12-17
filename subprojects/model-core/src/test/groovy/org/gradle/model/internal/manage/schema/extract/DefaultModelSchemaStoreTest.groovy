@@ -51,16 +51,40 @@ class DefaultModelSchemaStoreTest extends Specification {
         then:
         new PollingConditions(timeout: 10).eventually {
             System.gc()
-            store.cache.cleanUp()
-            store.cache.size() == 0
+            store.cleanUp()
+            store.size() == 0
         }
 
         where:
         impl << [
                 "class SomeThing {}",
+                "@${Managed.name} interface SomeThing { SomeThing getThing() }",
                 "@${Managed.name} interface SomeThing { ${ManagedSet.name}<SomeThing> getThings() }",
                 "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ManagedSet.name}<Child> getThings() }",
         ]
+    }
+
+    def "canonicalizes introspection for different sites of generic type"() {
+        when:
+        def cl = new GroovyClassLoader()
+        addClass(cl, "@${Managed.name} interface Thing {}")
+        addClass(cl, "@${Managed.name} interface Container1 { ${ManagedSet.name}<Thing> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container2 { ${ManagedSet.name}<Thing> getThings() }")
+
+        then:
+        store.cache.size() == 4
+    }
+
+    def "caches schema for different instances of same base type"() {
+        when:
+        def cl = new GroovyClassLoader()
+        addClass(cl, "@${Managed.name} interface Thing1 {}")
+        addClass(cl, "@${Managed.name} interface Thing2 {}")
+        addClass(cl, "@${Managed.name} interface Container1 { ${ManagedSet.name}<Thing1> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container2 { ${ManagedSet.name}<Thing2> getThings() }")
+
+        then:
+        store.cache.size() == 6
     }
 
     private void addClass(GroovyClassLoader cl, String impl) {

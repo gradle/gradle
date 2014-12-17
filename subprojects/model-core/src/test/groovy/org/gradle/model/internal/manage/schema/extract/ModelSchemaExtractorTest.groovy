@@ -20,6 +20,7 @@ import org.gradle.model.Managed
 import org.gradle.model.Unmanaged
 import org.gradle.model.collection.ManagedSet
 import org.gradle.model.internal.manage.schema.ModelSchema
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -445,10 +446,14 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "type argument of a managed set has to be specified"() {
         given:
-        def type = new ModelType<ManagedSet>() {}
+        def type = ModelType.returnType(TypeHolder.getDeclaredMethod("noParam"))
 
         expect:
         fail type, "type parameter of $ManagedSet.name has to be specified"
+    }
+
+    static interface TypeHolder {
+        ManagedSet noParam();
     }
 
     @Managed

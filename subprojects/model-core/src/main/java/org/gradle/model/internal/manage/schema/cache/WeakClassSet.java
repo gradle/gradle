@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.manage.schema.cache;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.type.ModelType;
 
-public interface ModelSchemaExtractionStrategy {
+import java.util.List;
 
-    @Nullable
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache);
+abstract class WeakClassSet {
 
-    Iterable<String> getSupportedManagedTypes();
+    static WeakClassSet of(ModelType<?> type) {
+        List<Class<?>> allClasses = type.getAllClasses();
+        if (allClasses.size() == 1) {
+            return new SingleWeakClassSet(allClasses.iterator().next());
+        } else {
+            return new MultiWeakClassSet(allClasses);
+        }
+    }
+
+    abstract boolean isCollected();
 
 }

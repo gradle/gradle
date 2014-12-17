@@ -27,6 +27,7 @@ import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
@@ -84,7 +85,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                         throw invalidMethod(extractionContext, "the 4th character of the getter method name must be an uppercase character", sampleMethod);
                     }
 
-                    ModelType<?> returnType = ModelType.of(sampleMethod.getGenericReturnType());
+                    ModelType<?> returnType = ModelType.returnType(sampleMethod);
 
                     String propertyNameCapitalized = methodName.substring(3);
                     String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
@@ -203,7 +204,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
             throw invalidMethod(extractionContext, "setter method must have exactly one parameter", setter);
         }
 
-        ModelType<?> setterType = ModelType.of(setterParameterTypes[0]);
+        ModelType<?> setterType = ModelType.paramType(setter, 0);
         if (!setterType.equals(propertyType)) {
             String message = "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")";
             throw invalidMethod(extractionContext, message, setter);
