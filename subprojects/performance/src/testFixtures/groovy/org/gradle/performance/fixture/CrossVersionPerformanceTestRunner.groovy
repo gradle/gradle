@@ -127,21 +127,45 @@ public class CrossVersionPerformanceTestRunner {
     void runNow(GradleDistribution dist, File projectDir, MeasuredOperationList results, int subRuns) {
         def operation = timer.measure { MeasuredOperation operation ->
             subRuns.times {
-                println "Sub-run ${it+1}..."
+                println "Sub-run ${it + 1}..."
                 //creation of executer is included in measuer operation
                 //this is not ideal but it does not prevent us from finding performance regressions
                 //because extra time is equally added to all executions
-                def executer = executerProvider.executer(this, dist, projectDir)
+                def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider)
                 dataCollector.beforeExecute(projectDir, executer)
                 executer.run()
             }
         }
         if (useDaemon) {
-            executerProvider.executer(this, dist, projectDir).withTasks("--stop").run()
+            executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider).withTasks("--stop").run()
         }
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }
         results.add(operation)
+    }
+
+    private static class RunnerBackedBuildParametersSpecification implements BuildParametersSpecification {
+
+        final CrossVersionPerformanceTestRunner runner
+
+        RunnerBackedBuildParametersSpecification(CrossVersionPerformanceTestRunner runner) {
+            this.runner = runner
+        }
+
+        @Override
+        String[] getTasksToRun() {
+            runner.tasksToRun as String[]
+        }
+
+        @Override
+        String[] getArgs() {
+            runner.args as String[]
+        }
+
+        @Override
+        String[] getGradleOpts() {
+            runner.gradleOpts as String[]
+        }
     }
 }

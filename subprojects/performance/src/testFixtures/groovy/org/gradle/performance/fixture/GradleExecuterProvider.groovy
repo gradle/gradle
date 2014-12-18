@@ -22,20 +22,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class GradleExecuterProvider {
 
-    GradleExecuter executer(CrossVersionPerformanceTestRunner runner, GradleDistribution dist, File projectDir) {
-        dist.executer(runner.testDirectoryProvider).
-                requireGradleHome().
-                requireIsolatedDaemons().
-                withDeprecationChecksDisabled().
-                withStackTraceChecksDisabled().
-                withArguments('-u').
-                inDirectory(projectDir).
-                withTasks(runner.tasksToRun).
-                withArguments(runner.args).
-                withGradleOpts(runner.gradleOpts as String[])
-    }
-
-    GradleExecuter executer(BuildSpecification buildSpecification, GradleDistribution dist, File projectDir, TestDirectoryProvider testDirectoryProvider) {
+    GradleExecuter executer(BuildParametersSpecification buildSpecification, GradleDistribution dist, File projectDir, TestDirectoryProvider testDirectoryProvider) {
         dist.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().
@@ -45,6 +32,6 @@ class GradleExecuterProvider {
                 inDirectory(projectDir).
                 withTasks(buildSpecification.tasksToRun).
                 withArguments(buildSpecification.args).
-                withGradleOpts(buildSpecification.gradleOpts as String[])
+                withGradleOpts(buildSpecification.gradleOpts)
     }
 }
