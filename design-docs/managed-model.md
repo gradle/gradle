@@ -537,6 +537,39 @@ Runtime error received when trying to mutate an immutable object should include 
 
 It should not be possible to call any of these methods until the set is realised.
 
+### Managed type is implemented as abstract class, with generative getters
+
+    @Managed
+    abstract class Person {
+        abstract String getFirstName()
+        abstract void setFirstName(String firstName)
+        abstract String getLastName()
+        abstract void setLastName(String lastName)        
+
+        String getName() {
+            return getFirstName() + " " + getLastName()
+        }
+    }
+    
+- Types must obey all the same rules as interface based impls
+- Only “getter” methods are allowed to be non `abstract`
+- No constructors are allowed (as best we can detect)
+- Can not declare any instance scoped fields
+- Should use same class generation techniques as existing decoration (but no necessarily share impl)
+- Subclass should be generated as soon as type is encountered to ensure it can be done
+- Instance should be created as soon as type is encountered to ensure it can be done
+
+#### Test Coverage
+
+- Class based managed type can be used everywhere interface based type can
+- Subclass impl is generated once for each type and reused
+- Subclass cache does not prevent class from being garbage collected
+- Class can implement interfaces (with methods conforming to managed type rules)
+- Class can extend other classes (all classes up to `Object` must conform to the same rules)
+- Constructor can not call any setter methods (at least a runtime error)
+- Class that cannot be instantiated (e.g. default constructor throws) 
+- Runtime error if provided getter (i.e. non abstract one) calls a setter method
+
 ### Support for polymorphic managed sets
 
 ```
