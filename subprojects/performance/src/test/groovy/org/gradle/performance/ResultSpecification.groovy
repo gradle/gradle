@@ -24,7 +24,7 @@ import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Specification
 
-class ResultSpecification extends Specification {
+abstract class ResultSpecification extends Specification {
     CrossVersionPerformanceResults crossVersionResults(Map<String, ?> options = [:]) {
         def results = new CrossVersionPerformanceResults()
         results.testId = "test-id"
