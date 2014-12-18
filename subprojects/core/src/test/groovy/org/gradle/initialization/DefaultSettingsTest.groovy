@@ -21,12 +21,12 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.plugins.PluginManager
+import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.service.ServiceRegistry
@@ -37,6 +37,8 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+
+import java.lang.reflect.Type
 
 import static org.junit.Assert.*
 
@@ -56,7 +58,7 @@ class DefaultSettingsTest {
     FileResolver fileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
-    PluginManager pluginManager
+    DefaultPluginManager pluginManager
 
     @Before
     public void setUp() {
@@ -66,7 +68,7 @@ class DefaultSettingsTest {
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
         rootClassLoaderScope = context.mock(ClassLoaderScope)
         classLoaderScope = context.mock(ClassLoaderScope)
-        pluginManager = context.mock(PluginManager)
+        pluginManager = context.mock(DefaultPluginManager)
 
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
@@ -80,20 +82,21 @@ class DefaultSettingsTest {
         context.checking {
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
             will(returnValue(settingsServices));
-            one(settingsServices).get(FileResolver.class);
+            allowing(settingsServices).get((Type)FileResolver.class);
             will(returnValue(fileResolver));
-            one(settingsServices).get(ScriptPluginFactory.class);
+            allowing(settingsServices).get((Type)ScriptPluginFactory.class);
             will(returnValue(scriptPluginFactory));
-            one(settingsServices).get(ScriptHandlerFactory.class);
+            allowing(settingsServices).get((Type)ScriptHandlerFactory.class);
             will(returnValue(scriptHandlerFactory));
-            one(settingsServices).get(ProjectDescriptorRegistry.class);
+            allowing(settingsServices).get((Type)ProjectDescriptorRegistry.class);
             will(returnValue(projectDescriptorRegistry));
-            one(settingsServices).get(PluginManager.class);
+            allowing(settingsServices).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
         }
-        settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
-                gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
 
+        AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
+        settings = classGenerator.newInstance(DefaultSettings, serviceRegistryFactory,
+                gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
     }
 
     @Test

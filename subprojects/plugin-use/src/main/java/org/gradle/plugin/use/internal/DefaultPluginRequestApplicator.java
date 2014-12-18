@@ -30,9 +30,9 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
@@ -55,7 +55,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginResolver = pluginResolver;
     }
 
-    public void applyPlugins(Collection<? extends PluginRequest> requests, final ScriptHandler scriptHandler, @Nullable final PluginAware target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(Collection<? extends PluginRequest> requests, final ScriptHandler scriptHandler, @Nullable final PluginManager target, ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
             return;
@@ -123,7 +123,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             final String id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
                 public void run() {
-                    target.apply(Collections.singletonMap("plugin", id));
+                    target.apply(id);
                 }
             });
         }

@@ -35,12 +35,12 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List strings) {
+                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -68,7 +68,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "configuration in script is not executed if not needed"() {
-        when:
+        given:
         buildScript '''
             import org.gradle.model.*
 
@@ -76,7 +76,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Model
-                    List strings() {
+                    List<String> strings() {
                       []
                     }
                 }
@@ -84,26 +84,17 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             apply type: MyPlugin
 
-            def called = false
-
             model {
                 strings {
-                    // this strategy for detecting if this was called might not work when we lock down outside access in rules
-                    called = true
-                    add "foo"
+                    throw new RuntimeException();
                 }
             }
 
-            task value {
-                doFirst { println "called: $called" }
-            }
+            task value
         '''
 
-        then:
+        expect:
         succeeds "value"
-
-        and:
-        output.contains "called: false"
     }
 
     def "informative error message when rules are invalid"() {
@@ -317,7 +308,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    project.apply(type: MyBasePlugin)
+                    project.pluginManager.apply(MyBasePlugin)
                 }
 
                 @RuleSource
@@ -328,7 +319,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, List strings) {
+                    void addTasks(CollectionBuilder<Task> tasks, List<String> strings) {
                         tasks.create("value") {
                             it.doLast {
                                 println "value: $strings"
@@ -410,7 +401,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 @RuleSource
                 static class Rules {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks, Exec execTask) {
+                    void addTasks(CollectionBuilder<Task> tasks, @Path("tasks.injected") Exec execTask) {
                         tasks.create("name") {
                             it.doLast {
                                 println "name: ${execTask.name}"

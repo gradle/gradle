@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 
 public interface ModelSchemaExtractionStrategy {
 

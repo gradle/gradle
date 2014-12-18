@@ -16,10 +16,8 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.tooling.BuildAction
-import spock.lang.Ignore
 
 class ClasspathInfererTest extends AbstractClassGraphSpec {
     def factory = new ClasspathInferer()
@@ -59,34 +57,6 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)
-    }
-
-    @Ignore
-    def "determines action and tooling API classpath when classloader uses unknown protocol"() {
-        // TODO(radim): looking for a classloading using unknown protocal but Class.getProtectionDomain().getCodeSource().getLocation() returns file: URL
-        def toolingCl = customClassLoader(toolingApiClassPath)
-        File classpathJar = ClasspathUtil.getClasspathForClass(CustomAction)
-        List<File> files = isolatedClasses(CustomAction, CustomModel)
-        def cl = new URLClassLoader(files.collect { new URL("custom", null, -1, it.toURI().toURL().getPath(), new CustomURLStreamHandler()) } as URL[], toolingCl)
-        println(Arrays.toString(cl.URLs))
-        def actionClass = cl.loadClass(CustomAction.name)
-
-        expect:
-        def classpath = []
-        factory.getClassPathFor(actionClass, classpath)
-        def loader = new URLClassLoader(BuildAction.classLoader, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
-        action.execute(null)
-    }
-
-    class CustomURLStreamHandler extends URLStreamHandler {
-
-        @Override
-        protected URLConnection openConnection(URL u) throws IOException {
-            def fileURL = new URL("file", null, u.getPath())
-            println(fileURL)
-            return fileURL.openConnection()
-        }
     }
 
     private List<File> getToolingApiClassPath() {

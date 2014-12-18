@@ -16,50 +16,6 @@
 
 package org.gradle.play.integtest.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
+class BasicPlayApp extends AbstractPlayApp {
 
-abstract class BasicPlayApp extends PlayApp{
-
-
-    List<SourceFile> getConfSources() {
-        return [
-                sourceFile("conf", "application.conf", """
-application.secret="TY9[b`xw2MeXUt;M<i_B0kUKm8/?PD1cS1WhFYyZ[1^6`Apew34q6DyNL=UqG/1l"
-application.langs="en"
-
-# Root logger:
-logger.root=ERROR
-
-# Logger used by the framework:
-logger.play=INFO
-
-# Logger provided to your application:
-logger.application=DEBUG
-""")
-        ]
-    }
-
-    @Override
-    List<SourceFile> getAssetSources() {
-        return [
-                sourceFile("public/images", "favicon.svg", """
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
- "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
-<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
- width="16.000000pt" height="16.000000pt" viewBox="0 0 16.000000 16.000000"
- preserveAspectRatio="xMidYMid meet">
-<g transform="translate(0.000000,16.000000) scale(0.100000,-0.100000)"
-fill="#000000" stroke="none">
-</g>
-</svg>"""),
-
-                sourceFile("public/javascripts", "hello.js", """
-                    if (window.console) {
-                        console.log("Welcome to your Play application's JavaScript!");
-                    }"""),
-
-                sourceFile("public/stylesheets", "main.css", "")
-        ]
-    }
 }

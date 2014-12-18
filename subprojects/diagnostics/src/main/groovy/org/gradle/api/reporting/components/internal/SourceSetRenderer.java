@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.logging.StyledTextOutput;
@@ -27,12 +26,6 @@ import java.io.File;
 import java.util.Set;
 
 class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
-    private final FileResolver fileResolver;
-
-    SourceSetRenderer(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
-
     @Override
     public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
         StyledTextOutput textOutput = builder.getOutput();
@@ -42,7 +35,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
             textOutput.println("    No source directories");
         } else {
             for (File file : srcDirs) {
-                textOutput.formatln("    %s", fileResolver.resolveAsRelativePath(file));
+                builder.item(file);
             }
         }
     }

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.internal
+
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
@@ -25,10 +26,12 @@ import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.Architectures
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
@@ -192,9 +195,9 @@ class NativeBinarySpecTest extends Specification {
         }
     }
 
-   static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
+    static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
-        def tasks = new AbstractNativeBinarySpec.DefaultNativeBinaryTasks(this)
+        def tasks = new DefaultBinaryTasksCollection(this)
 
         String getOutputFileName() {
             return null
@@ -205,7 +208,12 @@ class NativeBinarySpecTest extends Specification {
             return new File(binaryOutputDir, getOutputFileName());
         }
 
-       NativeBinarySpec.NativeBinaryTasks getTasks() {
+        @Override
+        protected ObjectFilesToBinary getCreateOrLink() {
+            return null;
+        }
+
+        DefaultBinaryTasksCollection getTasks() {
            return tasks;
        }
     }

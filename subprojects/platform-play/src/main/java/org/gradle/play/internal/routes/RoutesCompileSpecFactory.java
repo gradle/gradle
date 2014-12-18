@@ -22,7 +22,7 @@ public class RoutesCompileSpecFactory {
 
     public static VersionedRoutesCompileSpec create(RoutesCompileSpec spec, PlayPlatform playPlatform) {
         RoutesCompilerVersion version = RoutesCompilerVersion.parse(playPlatform.getPlayVersion());
-        switch (version){
+        switch (version) {
             case V_22X:
                 return new RoutesCompileSpecV22X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), spec.getForkOptions(), spec.isJavaProject(), playPlatform);
             case V_23X:

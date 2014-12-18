@@ -16,10 +16,9 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelCreation;
 
 public interface ModelCreationListener {
-    boolean onCreate(ModelRuleDescriptor creatorDescriptor, ModelPath path, ModelPromise promise);
+
+    boolean onCreate(ModelCreation registration);
 }

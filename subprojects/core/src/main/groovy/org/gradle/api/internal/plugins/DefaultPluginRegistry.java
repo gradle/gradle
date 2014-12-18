@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginInstantiationException;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -39,7 +40,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final Factory<? extends ClassLoader> classLoaderFactory;
 
     private final LoadingCache<Class<?>, PotentialPlugin> classMappings;
-    private final LoadingCache<PluginIdLookupCacheKey, Optional<PotentialPluginWithId>> idMappings;
+    private final LoadingCache<PluginIdLookupCacheKey, Optional<PotentialPluginWithId<?>>> idMappings;
 
     public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
         this(null, pluginInspector, Factories.constant(classLoader));
@@ -50,9 +51,9 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.pluginInspector = pluginInspector;
         this.classLoaderFactory = classLoaderFactory;
         this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
-        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PotentialPluginWithId>>() {
+        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PotentialPluginWithId<?>>>() {
             @Override
-            public Optional<PotentialPluginWithId> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
+            public Optional<PotentialPluginWithId<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
                 String pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
@@ -77,9 +78,12 @@ public class DefaultPluginRegistry implements PluginRegistry {
                             pluginDescriptor), e);
                 }
 
-                PotentialPlugin potentialPlugin = inspect(implClass);
-                return Optional.of(new PotentialPluginWithId(PluginId.unvalidated(pluginId), potentialPlugin));
+
+                PotentialPlugin<?> potentialPlugin = inspect(implClass);
+                PotentialPluginWithId<?> withId = PotentialPluginWithId.of(PluginId.unvalidated(pluginId), potentialPlugin);
+                return Cast.uncheckedCast(Optional.of(withId));
             }
+
         });
     }
 
@@ -91,10 +95,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
         });
     }
 
-    public PotentialPlugin inspect(Class<?> clazz) {
+    public <T> PotentialPlugin<T> inspect(Class<T> clazz) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
-        return uncheckedGet(classMappings, clazz);
+        return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
     }
 
     public PotentialPluginWithId lookup(String idOrName) {
@@ -102,7 +106,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         if (parent != null) {
             lookup = parent.lookup(idOrName);
             if (lookup == null) {
-                String qualified = PluginManager.maybeQualify(idOrName);
+                String qualified = DefaultPluginManager.maybeQualify(idOrName);
                 if (qualified != null) {
                     lookup = lookup(qualified);
                 }
@@ -121,7 +125,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
         PotentialPluginWithId lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(idOrName, classLoader)).orNull();
         if (lookup == null) {
-            String qualified = PluginManager.maybeQualify(idOrName);
+            String qualified = DefaultPluginManager.maybeQualify(idOrName);
             if (qualified != null) {
                 lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
             }

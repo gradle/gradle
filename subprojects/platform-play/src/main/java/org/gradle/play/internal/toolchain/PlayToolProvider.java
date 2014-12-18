@@ -16,17 +16,23 @@
 
 package org.gradle.play.internal.toolchain;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.Factory;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
-public interface PlayToolProvider extends ToolProvider{
+public interface PlayToolProvider extends ToolProvider {
     public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec);
 
     /**
-     * this should probably live somewhere else
-     * */
-    Object getPlayDependencyNotation();
+     * FileCollection containing play test dependencies
+     */
+    FileCollection getPlayTestDependencies();
+
+    /**
+     * FileCollection containing play dependencies
+     */
+    FileCollection getPlayDependencies();
 }

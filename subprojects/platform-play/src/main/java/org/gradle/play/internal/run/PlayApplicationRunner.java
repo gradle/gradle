@@ -41,11 +41,12 @@ public class PlayApplicationRunner {
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
+        PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
         process.getConnection().connect();
         PlayAppLifecycleUpdate result = clientCallBack.waitForRunning();
-        if(result.getStatus() == PlayAppStatus.RUNNING){
-            return new PlayApplicationRunnerToken(clientCallBack);
-        }else{
+        if (result.isRunning()) {
+            return new PlayApplicationRunnerToken(workerServer, clientCallBack);
+        } else {
             throw new GradleException("Unable to start Play application.", result.getException());
         }
     }
@@ -59,7 +60,6 @@ public class PlayApplicationRunner {
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
-        WorkerProcess process = builder.worker(new PlayWorkerServer(spec)).build();
-        return process;
+        return builder.worker(new PlayWorkerServer(spec)).build();
     }
 }

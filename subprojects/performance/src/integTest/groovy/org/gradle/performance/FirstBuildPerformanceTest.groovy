@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class FirstBuildPerformanceTest extends AbstractPerformanceTest {
+class FirstBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' first use")
     def "build"() {
         // This is just an approximation of first use. We simply recompile the scripts

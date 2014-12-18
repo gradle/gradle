@@ -25,7 +25,7 @@ import org.gradle.api.plugins.announce.internal.AnnouncingBuildListener
  */
 class BuildAnnouncementsPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.apply(type: AnnouncePlugin)
+        project.pluginManager.apply(AnnouncePlugin)
         AnnouncePluginExtension extension = project.extensions.findByType(AnnouncePluginExtension)
         def listener = new AnnouncingBuildListener(extension.local)
         project.gradle.addBuildListener(listener)

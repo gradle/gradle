@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,7 +31,7 @@ import spock.lang.Specification
 abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
+    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme())
     final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
 
@@ -44,13 +45,6 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
 
     protected MutableModuleComponentResolveMetaData parseMetaData() {
         parser.parseMetaData(parseContext, pomFile, true)
-    }
-
-    protected void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        assert descriptor.allArtifacts.length == 1
-        def artifact = descriptor.allArtifacts.first()
-        assert artifact.id == artifactId(descriptor.moduleRevisionId, name, type, ext)
-        assert artifact.extraAttributes['classifier'] == classifier
     }
 
     protected void hasDefaultDependencyArtifact(DependencyDescriptor descriptor) {

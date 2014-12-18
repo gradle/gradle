@@ -132,6 +132,6 @@ task slow << { new URL("${server.uri}").text }
     }
 
     private GradleExecuter daemonExecutor() {
-        targetDist.executer(temporaryFolder).withDaemonBaseDir(toolingApi.daemonBaseDir).withArguments("--daemon")
+        targetDist.executer(temporaryFolder).withDaemonBaseDir(toolingApi.daemonBaseDir).withArguments("--daemon").requireGradleHome()
     }
 }

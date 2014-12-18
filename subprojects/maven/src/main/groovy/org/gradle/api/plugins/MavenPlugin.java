@@ -46,7 +46,6 @@ import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
@@ -81,7 +80,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         this.project = project;
-        project.apply(Collections.singletonMap("plugin", BasePlugin.class));
+        project.getPluginManager().apply(BasePlugin.class);
 
         DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);

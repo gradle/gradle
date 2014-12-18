@@ -31,7 +31,6 @@ import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -40,7 +39,7 @@ import java.util.Map;
 @Incubating
 public class ObjectiveCppLangPlugin implements Plugin<Project> {
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

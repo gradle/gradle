@@ -26,7 +26,7 @@ public interface PluginRegistry {
     // Note: the methods taking a String 'idOrName' may implicitly resolve the name to an ID
     //       in such cases, the return value will convey the fully qualified ID
 
-    PotentialPlugin inspect(Class<?> clazz);
+    <T> PotentialPlugin<T> inspect(Class<T> clazz);
 
     @Nullable
     PotentialPluginWithId lookup(String idOrName);

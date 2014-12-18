@@ -33,7 +33,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds convention object and a main distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
 
         then:
         def distributions = project.extensions.getByType(DistributionContainer.class)
@@ -44,7 +44,7 @@ class DistributionPluginTest extends Specification {
 
     def "provides default values for additional distributions"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
 
         then:
         def distributions = project.extensions.getByType(DistributionContainer.class)
@@ -55,7 +55,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds distZip task for main distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
 
         then:
         def task = project.tasks.distZip
@@ -65,7 +65,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds distZip task for custom distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         project.distributions.create('custom')
 
         then:
@@ -76,7 +76,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds distTar task for main distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
 
         then:
         def task = project.tasks.distTar
@@ -86,7 +86,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds distTar task for custom distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         project.distributions.create('custom')
 
         then:
@@ -97,7 +97,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds assembleDist task for custom distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         project.distributions.create('custom')
 
         then:
@@ -108,7 +108,7 @@ class DistributionPluginTest extends Specification {
 
     def "distribution names include project version when specified"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         project.version = '1.2'
 
         then:
@@ -120,7 +120,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds installDist task for main distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
 
         then:
         def task = project.installDist
@@ -130,7 +130,7 @@ class DistributionPluginTest extends Specification {
 
     def "adds installDist task for custom distribution"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         project.distributions.create('custom')
 
         then:
@@ -141,7 +141,7 @@ class DistributionPluginTest extends Specification {
 
     public void "distribution name is configurable"() {
         when:
-        project.apply(plugin: DistributionPlugin)
+        project.pluginManager.apply(DistributionPlugin)
         project.distributions.main.baseName = "SuperApp";
 
         then:

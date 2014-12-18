@@ -16,16 +16,18 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.Plugin;
 import org.gradle.plugin.internal.PluginId;
 
-public class PotentialPluginWithId implements PotentialPlugin {
+public class PotentialPluginWithId<T> implements PotentialPlugin<T> {
 
     private final PluginId pluginId;
-    private final PotentialPlugin potentialPlugin;
+    private final PotentialPlugin<T> potentialPlugin;
 
-    public PotentialPluginWithId(PluginId pluginId, PotentialPlugin potentialPlugin) {
+    public static <T> PotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
+        return new PotentialPluginWithId<T>(pluginId, potentialPlugin);
+    }
+
+    private PotentialPluginWithId(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
         this.pluginId = pluginId;
         this.potentialPlugin = potentialPlugin;
     }
@@ -34,17 +36,16 @@ public class PotentialPluginWithId implements PotentialPlugin {
         return pluginId;
     }
 
-    public Class<?> asClass() {
+    public Class<T> asClass() {
         return potentialPlugin.asClass();
     }
 
-    @Nullable
-    public Class<? extends Plugin<?>> asImperativeClass() {
-        return potentialPlugin.asImperativeClass();
+    public boolean isImperative() {
+        return potentialPlugin.isImperative();
     }
 
-    public boolean hasRules() {
-        return potentialPlugin.hasRules();
+    public boolean isHasRules() {
+        return potentialPlugin.isHasRules();
     }
 
     public Type getType() {

@@ -21,7 +21,7 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultPlayRunSpec implements PlayRunSpec, Serializable{
+public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
     private final Iterable<File> classpath;
     private final File projectPath;
     private BaseForkOptions forkOptions;

@@ -18,15 +18,17 @@ package org.gradle.nativeplatform.test.internal;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 
 public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
-    private final NativeTestSuiteBinarySpec.NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private NativeBinarySpec testedBinary;
     private File executableFile;
 
@@ -55,17 +57,22 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return getExecutableFile();
     }
 
-    public NativeTestSuiteBinarySpec.NativeBinaryTasks getTasks() {
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getLink();
+    }
+
+    public NativeTestSuiteBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    public static class DefaultNativeBinaryTasks extends AbstractNativeBinarySpec.DefaultNativeBinaryTasks implements NativeTestSuiteBinarySpec.NativeBinaryTasks {
-        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements NativeTestSuiteBinarySpec.TasksCollection {
+        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }
 
-        public AbstractLinkTask getLink() {
-            return findSingleTaskWithType(AbstractLinkTask.class);
+        public LinkExecutable getLink() {
+            return findSingleTaskWithType(LinkExecutable.class);
         }
 
         public InstallExecutable getInstall() {

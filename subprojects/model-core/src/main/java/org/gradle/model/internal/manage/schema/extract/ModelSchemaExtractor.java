@@ -24,8 +24,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 import java.util.Queue;
@@ -49,7 +50,8 @@ public class ModelSchemaExtractor {
             new UnmanagedStrategy()
     );
 
-    public <T> ModelSchema<T> extract(ModelSchemaExtractionContext<T> context, ModelSchemaCache cache) {
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+        ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
         ModelSchemaExtractionContext<?> extractionContext = context;
@@ -68,10 +70,6 @@ public class ModelSchemaExtractor {
         }
 
         return cache.get(context.getType());
-    }
-
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
-        return extract(ModelSchemaExtractionContext.root(type), cache);
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {

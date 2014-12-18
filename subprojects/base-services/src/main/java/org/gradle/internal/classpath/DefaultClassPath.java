@@ -17,7 +17,6 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -34,7 +33,9 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     public DefaultClassPath(Iterable<File> files) {
         Set<File> noDuplicates = new LinkedHashSet<File>();
-        CollectionUtils.addAll(noDuplicates, files);
+        for (File file : files) {
+            noDuplicates.add(file);
+        }
         this.files = new ArrayList<File>(noDuplicates);
     }
 
@@ -44,7 +45,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     public DefaultClassPath(File... files) {
         Set<File> noDuplicates = new LinkedHashSet<File>();
-        CollectionUtils.addAll(noDuplicates, files);
+        Collections.addAll(noDuplicates, files);
         this.files = new ArrayList<File>(noDuplicates);
     }
 

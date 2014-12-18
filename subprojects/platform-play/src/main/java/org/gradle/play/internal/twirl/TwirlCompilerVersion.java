@@ -22,7 +22,7 @@ public enum TwirlCompilerVersion {
     V_22X,
     V_10X;
 
-    public static TwirlCompilerVersion parse(String version){
+    public static TwirlCompilerVersion parse(String version) {
         if (version == null) {
             throw new InvalidUserDataException("No version (version is null) of the Play Twirl Compiler detected");
         }

@@ -15,6 +15,6 @@
  */
 
 /**
- * Types for Java language support.
+ * Types for Scala language support.
  */
 package org.gradle.language.scala;

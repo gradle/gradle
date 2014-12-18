@@ -15,25 +15,33 @@
  */
 
 package org.gradle.nativeplatform.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.internal.DefaultStaticLibraryArchiverSpec
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.toolchain.NativeToolChain
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 
 import javax.inject.Inject
+
 /**
  * Assembles a static library from object files.
  */
 @Incubating
+@ParallelizableTask
 class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
     private FileCollection source
 
     @Inject
     CreateStaticLibrary() {
         source = project.files()
+        inputs.property("outputType") {
+            NativeToolChainInternal.Identifier.identify((NativeToolChainInternal) toolChain, (NativePlatformInternal) targetPlatform)
+        }
     }
 
     /**
@@ -46,12 +54,6 @@ class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
      */
     NativePlatform targetPlatform
 
-    // Invalidate output when the tool chain output changes
-    @Input
-    def getOutputType() {
-        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
-    }
-
     /**
      * The file where the output binary will be located.
      */
@@ -61,7 +63,9 @@ class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
     /**
      * The source object files to be passed to the archiver.
      */
-    @InputFiles @SkipWhenEmpty // Can't use field due to GRADLE-2026
+    @InputFiles
+    @SkipWhenEmpty
+    // Can't use field due to GRADLE-2026
     FileCollection getSource() {
         source
     }
@@ -69,7 +73,7 @@ class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
     /**
      * Adds a set of object files to be linked.
      * <p>
-     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object ...)}.
      */
     void source(Object source) {
         this.source.from source

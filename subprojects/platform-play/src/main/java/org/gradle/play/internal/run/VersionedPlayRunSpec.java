@@ -19,13 +19,11 @@ package org.gradle.play.internal.run;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.jar.JarFile;
 
 public interface VersionedPlayRunSpec extends PlayRunSpec {
     Object getBuildLink(ClassLoader classLoader) throws ClassNotFoundException;
 
-    Object getBuildDocHandler(ClassLoader docsClassLoader, JarFile docJar) throws NoSuchMethodException, ClassNotFoundException, IOException, InvocationTargetException, IllegalAccessException;
+    Object getBuildDocHandler(ClassLoader docsClassLoader) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException;
 
     ScalaMethod getNettyServerDevHttpMethod(ClassLoader classLoader, ClassLoader docsClassLoader) throws ClassNotFoundException;
 

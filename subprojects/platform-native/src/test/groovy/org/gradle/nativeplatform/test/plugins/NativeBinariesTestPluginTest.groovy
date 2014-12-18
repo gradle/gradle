@@ -54,5 +54,8 @@ class NativeBinariesTestPluginTest extends Specification {
         then:
         binary.tasks.withType(RunTestExecutable).size() == 1
         binary.tasks.run != null
+
+        and:
+        project.tasks.getByName("check") dependsOn("runTestBinary")
     }
 }

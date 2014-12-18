@@ -17,9 +17,9 @@
 package org.gradle.language.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.nativeplatform.fixtures.app.TestComponent
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateCBaseNamesTestApp extends TestComponent {
+class DuplicateCBaseNamesTestApp extends TestNativeComponent {
 
     def plugins = ["c"]
 

@@ -22,18 +22,18 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
-import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.language.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.language.PreprocessingTool;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 
@@ -99,8 +99,7 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
             task.setCompilerArgs(tool.getArgs());
         }
 
-
-        binary.getTasks().getCreateOrLink().source(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 
     private final LanguageRegistration<? extends LanguageSourceSet> language;

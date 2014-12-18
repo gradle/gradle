@@ -16,34 +16,67 @@
 
 package org.gradle.play.internal.routes;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.scala.internal.reflect.ScalaMethod;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Serializable {
     public WorkResult execute(VersionedRoutesCompileSpec spec) {
         boolean didWork = false;
-        try {
-            ClassLoader cl = getClass().getClassLoader();
-            Iterable<File> sources = spec.getSources();
-            ScalaMethod compile = spec.getCompileMethod(cl);
-            for (File sourceFile : sources) {
-                Object ret = compile.invoke(spec.createCompileParameters(cl, sourceFile));
-                if (ret != null && ret instanceof Boolean) {
-                    didWork = (Boolean) ret || didWork;
-                } else {
-                    didWork = true; //assume we did some work
-                }
+        Iterable<File> sources = spec.getSources();
+
+        ArrayList<File> secondaryRoutes = Lists.newArrayList();
+        CollectionUtils.filter(sources, secondaryRoutes, new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File file) {
+                return !file.getName().equals("routes");
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Error invoking the Play routes compiler.", e);
+        });
+
+        ArrayList<File> routes = Lists.newArrayList();
+        CollectionUtils.filter(sources, secondaryRoutes, new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File file) {
+                return file.getName().equals("routes");
+            }
+        });
+
+        // Compile all secondary routes files first
+        for (File sourceFile : secondaryRoutes) {
+            Boolean ret = compile(sourceFile, spec);
+            didWork = ret || didWork;
+        }
+
+        // Compile all main routes files last
+        for (File sourceFile : routes) {
+            Boolean ret = compile(sourceFile, spec);
+            didWork = ret || didWork;
         }
 
         return new SimpleWorkResult(didWork);
     }
 
+    private Boolean compile(File sourceFile, VersionedRoutesCompileSpec spec) {
+
+        try {
+            ClassLoader cl = getClass().getClassLoader();
+            ScalaMethod compile = spec.getCompileMethod(cl);
+            Object ret = compile.invoke(spec.createCompileParameters(cl, sourceFile));
+            if (ret != null && ret instanceof Boolean) {
+                return (Boolean) ret;
+            } else {
+                return true; //assume we did some work
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking the Play routes compiler.", e);
+        }
+    }
 }

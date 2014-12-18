@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFile;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
     public void attachActions(PropertyActionContext context) {
         context.setValidationAction(inputFileValidation);
         context.setConfigureAction(new UpdateAction() {
-            public void update(Task task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().files(futureValue);
             }
         });

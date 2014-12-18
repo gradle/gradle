@@ -28,7 +28,7 @@ class HelpTasksPluginSpec extends Specification {
 
     def "adds help tasks"() {
         when:
-        project.apply(plugin: 'help-tasks')
+        project.pluginManager.apply('org.gradle.help-tasks')
 
         then:
         hasHelpTask(ProjectInternal.HELP_TASK, Help)
@@ -45,8 +45,8 @@ class HelpTasksPluginSpec extends Specification {
         def child = TestUtil.createChildProject(project, "child")
 
         when:
-        project.apply(plugin: 'help-tasks')
-        child.apply(plugin: 'help-tasks')
+        project.pluginManager.apply('help-tasks')
+        child.pluginManager.apply('help-tasks')
 
         then:
         project.tasks[ProjectInternal.TASKS_TASK].description == "Displays the tasks runnable from root project 'test' (some of the displayed tasks may belong to subprojects)."
@@ -55,7 +55,7 @@ class HelpTasksPluginSpec extends Specification {
 
     def "configures tasks for java plugin"() {
         when:
-        project.apply(plugin: 'help-tasks')
+        project.pluginManager.apply('help-tasks')
 
         then:
         !project.tasks[HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK].configuration

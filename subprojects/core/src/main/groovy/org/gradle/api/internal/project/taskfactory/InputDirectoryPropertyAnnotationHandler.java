@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 
@@ -45,7 +45,7 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         context.setValidationAction(inputDirValidation);
         final boolean isSourceDir = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
-            public void update(Task task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, Callable<Object> futureValue) {
                 if (isSourceDir) {
                     task.getInputs().sourceDir(futureValue);
                 } else {

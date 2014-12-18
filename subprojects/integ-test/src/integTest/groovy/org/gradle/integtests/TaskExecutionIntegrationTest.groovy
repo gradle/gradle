@@ -281,7 +281,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         task someTask << {println "explicit sometask"}
         tasks.addPlaceholderAction("someTask"){
             println  "placeholder action triggered"
-            task someTask << { assert false }
+            task someTask << { throw new RuntimeException() }
         }
 """
         when:
@@ -408,14 +408,17 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "honours shouldRunAfter task ordering"() {
         buildFile << """
-    task a {
+
+    class NotParallel extends DefaultTask {}
+
+    task a(type: NotParallel) {
         dependsOn 'b'
     }
-    task b {
+    task b(type: NotParallel) {
         shouldRunAfter 'c'
     }
-    task c
-    task d {
+    task c(type: NotParallel)
+    task d(type: NotParallel) {
         dependsOn 'c'
     }
 """
@@ -428,28 +431,30 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
         buildFile << """
-    task a {
+    class NotParallel extends DefaultTask {}
+
+    task a(type: NotParallel) {
         dependsOn 'b', 'h'
     }
-    task b {
+    task b(type: NotParallel) {
         dependsOn 'c'
     }
-    task c {
+    task c(type: NotParallel) {
         dependsOn 'g'
         shouldRunAfter 'd'
     }
-    task d {
+    task d(type: NotParallel) {
         finalizedBy 'e'
         dependsOn 'f'
     }
-    task e
-    task f {
+    task e(type: NotParallel)
+    task f(type: NotParallel) {
         dependsOn 'c'
     }
-    task g {
+    task g(type: NotParallel) {
         shouldRunAfter 'h'
     }
-    task h {
+    task h(type: NotParallel) {
         dependsOn 'b'
     }
 """

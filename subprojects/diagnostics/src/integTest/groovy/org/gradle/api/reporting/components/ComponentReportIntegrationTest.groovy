@@ -17,23 +17,15 @@
 package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class ComponentReportIntegrationTest extends AbstractIntegrationSpec {
+class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
     private String currentNative = NativePlatforms.defaultPlatformName
-    //TODO freekh: this test feels completely uneccessary. The reason is that each time we change how we want the report to be, we have to update the test. It still hasn't actually caught an actual error
-    //SF - I generally agree. If there is some interesting logic that is useful to validate at the level of report content, I would cover it in unit tests. I would probably leave one smoke integration test for the report contents.
-
-    def setup() {
-        settingsFile << "rootProject.name = 'test'"
-    }
 
     def "informs the user when project has no components defined"() {
         when:
@@ -221,64 +213,6 @@ Binaries
 """
     }
 
-    def "shows details of native C executable with test suite"() {
-        given:
-        buildFile << """
-plugins {
-    id 'c'
-    id 'cunit'
-}
-
-model {
-    toolChains {
-        ${toolChain.buildScriptConfig}
-    }
-    components {
-        someExe(NativeExecutableSpec)
-    }
-}
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches output, """
-Native executable 'someExe'
----------------------------
-
-Source sets
-    C source 'someExe:c'
-        src/someExe/c
-
-Binaries
-    Executable 'someExe:executable'
-        build using task: :someExeExecutable
-        platform: $currentNative
-        build type: debug
-        flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeExecutable/someExe
-
-Cunit test suite 'someExeTest'
-------------------------------
-
-Source sets
-    C source 'someExeTest:c'
-        src/someExeTest/c
-    C source 'someExeTest:cunitLauncher'
-        build/src/someExeTest/cunitLauncher/c
-
-Binaries
-    C unit exe 'someExeTest:cUnitExe'
-        build using task: :someExeTestCUnitExe
-        platform: $currentNative
-        build type: debug
-        flavor: default
-        tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestCUnitExe/someExeTest
-"""
-    }
-
     def "shows details of polyglot native library with multiple variants"() {
         given:
         buildFile << """
@@ -409,7 +343,6 @@ model {
         succeeds "components"
 
         then:
-        // TODO - flesh this out when languages are associated with correct component types
         outputMatches output, """
 JVM library 'jvmLib'
 --------------------
@@ -575,7 +508,6 @@ Binaries
         failure.assertHasCause("Invalid JavaPlatform: i386")
     }
 
-
     def "shows an error when targeting a jvm platform from a native component"() {
         given:
         buildFile << """
@@ -596,28 +528,5 @@ Binaries
 
         then:
         failure.assertHasCause("Invalid NativePlatform: java8")
-    }
-
-    private boolean outputMatches(String actualOutput, String expectedOutput) {
-        String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
-        assert cleaned == expected(expectedOutput)
-        return true
-    }
-
-    String expected(String normalised) {
-        String raw = """:components
-
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
-""" + normalised + """
-Note: currently not all plugins register their components, so some components may not be visible here.
-
-"""
-        return new ComponentReportOutputFormatter(toolChain).transform(raw)
-    }
-
-    AvailableToolChains.InstalledToolChain getToolChain() {
-        return AvailableToolChains.defaultToolChain
     }
 }

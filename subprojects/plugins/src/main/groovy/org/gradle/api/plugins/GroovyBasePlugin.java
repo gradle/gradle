@@ -33,7 +33,6 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -55,7 +54,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         this.project = project;
-        project.apply(Collections.singletonMap("plugin", JavaBasePlugin.class));
+        project.getPluginManager().apply(JavaBasePlugin.class);
         JavaBasePlugin javaBasePlugin = project.getPlugins().getPlugin(JavaBasePlugin.class);
 
         configureGroovyRuntimeExtension();

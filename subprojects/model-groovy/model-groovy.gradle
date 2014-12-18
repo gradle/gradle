@@ -30,3 +30,4 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':modelCore', sourceSet: 'integTest')
 useClassycle()
+strictCompile()

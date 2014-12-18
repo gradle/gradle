@@ -30,7 +30,6 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultTool;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -40,7 +39,7 @@ import java.util.Map;
 public class AssemblerLangPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

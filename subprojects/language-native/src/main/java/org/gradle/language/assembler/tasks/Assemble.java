@@ -20,8 +20,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -30,11 +30,13 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Translates Assembly language source files into object files.
  */
 @Incubating
+@ParallelizableTask
 public class Assemble extends DefaultTask {
     private FileCollection source;
     private NativeToolChainInternal toolChain;
@@ -45,6 +47,12 @@ public class Assemble extends DefaultTask {
     @Inject
     public Assemble() {
         source = getProject().files();
+        getInputs().property("outputType", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+            }
+        });
     }
 
     @TaskAction
@@ -64,8 +72,8 @@ public class Assemble extends DefaultTask {
         setDidWork(result.getDidWork());
     }
 
-
-    @InputFiles @SkipWhenEmpty
+    @InputFiles
+    @SkipWhenEmpty
     public FileCollection getSource() {
         return source;
     }
@@ -87,12 +95,6 @@ public class Assemble extends DefaultTask {
 
     public void setAssemblerArgs(List<String> assemblerArgs) {
         this.assemblerArgs = assemblerArgs;
-    }
-
-
-    @Input
-    public String getOutputType() {
-        return toolChain.getOutputType() + ":" + targetPlatform.getCompatibilityString();
     }
 
     /**

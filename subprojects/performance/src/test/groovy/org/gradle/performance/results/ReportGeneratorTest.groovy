@@ -28,8 +28,8 @@ class ReportGeneratorTest extends ResultSpecification {
 
     def "generates report"() {
         setup:
-        def store = new ResultsStore(dbFile)
-        def result2 = results()
+        def store = new CrossVersionResultsStore(dbFile)
+        def result2 = crossVersionResults()
         result2.current << operation()
         result2.current << operation()
         store.report(result2)

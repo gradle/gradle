@@ -26,15 +26,15 @@ import org.gradle.api.plugins.BasePlugin
 class SigningPlugin implements Plugin<Project> {
 
     /**
-     * <p>Adds the ability to digitially sign files and artifacts.</p>
+     * <p>Adds the ability to digitally sign files and artifacts.</p>
      * 
-     * <p>Adds the extensnion {@link org.gradle.plugins.signing.SigningExtension} with the name “signing”.
+     * <p>Adds the extension {@link org.gradle.plugins.signing.SigningExtension} with the name “signing”.
      * <p>Also adds conventions to all {@link org.gradle.plugins.signing.Sign sign tasks} to use the signing extension setting defaults.</p>
      * 
      * @see org.gradle.plugins.signing.SigningExtension
      */
     void apply(Project project) {
-        project.apply(type: BasePlugin)
+        project.pluginManager.apply(BasePlugin)
 
         project.extensions.create("signing", SigningExtension, project)
     }

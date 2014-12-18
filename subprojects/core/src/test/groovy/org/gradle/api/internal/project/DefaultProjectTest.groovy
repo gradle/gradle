@@ -35,7 +35,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
-import org.gradle.api.internal.plugins.PluginManager
+import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
@@ -104,7 +104,7 @@ class DefaultProjectTest {
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
-    PluginManager pluginManager = context.mock(PluginManager.class)
+    PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache())
@@ -156,7 +156,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
-            allowing(serviceRegistryMock).get((Type) PluginManager); will(returnValue(pluginManager))
+            allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)

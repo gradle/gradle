@@ -21,20 +21,21 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class JUnitXmlTestExecutionResult implements TestExecutionResult {
-    private final TestFile buildDir
+    private final TestFile testResultsDir
     private final TestResultOutputAssociation outputAssociation
 
-    def JUnitXmlTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
-        this(projectDir, TestResultOutputAssociation.WITH_SUITE, buildDirName)
+    def JUnitXmlTestExecutionResult(TestFile projectDir, String testResultsDir = 'build/test-results') {
+        this(projectDir, TestResultOutputAssociation.WITH_SUITE, testResultsDir)
     }
 
-    def JUnitXmlTestExecutionResult(TestFile projectDir, TestResultOutputAssociation outputAssociation, String buildDirName = 'build') {
+    def JUnitXmlTestExecutionResult(TestFile projectDir, TestResultOutputAssociation outputAssociation, String testResultsDir = 'build/test-results') {
         this.outputAssociation = outputAssociation
-        this.buildDir = projectDir.file(buildDirName)
+        this.testResultsDir = projectDir.file(testResultsDir)
     }
 
     boolean hasJUnitXmlResults() {
-        xmlResultsDir().list().length > 0
+        testResultsDir.assertIsDir()
+        testResultsDir.list().length > 0
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
@@ -62,20 +63,16 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     }
 
     private def findClasses() {
-        xmlResultsDir().assertIsDir()
+        testResultsDir.assertIsDir()
 
         Map<String, File> classes = [:]
-        buildDir.file('test-results').eachFile { File file ->
+        testResultsDir.eachFile { File file ->
             def matcher = (file.name=~/TEST-(.+)\.xml/)
             if (matcher.matches()) {
                 classes[fromFileToTestClass(matcher.group(1))] = file
             }
         }
         return classes
-    }
-
-    private TestFile xmlResultsDir() {
-        buildDir.file('test-results')
     }
 }
 

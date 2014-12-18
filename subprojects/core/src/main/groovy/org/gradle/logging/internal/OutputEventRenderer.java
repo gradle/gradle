@@ -22,6 +22,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -44,7 +45,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
-    private boolean useAnsiConsole;
+    private ConsoleOutput consoleOutput;
 
     public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
@@ -58,7 +59,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
-    public boolean isUseAnsiConsole() { return useAnsiConsole; }
+    public ConsoleOutput getConsoleOutput() { return consoleOutput; }
 
     public OutputStream getOriginalStdOut() {
         return originalStdOut;
@@ -68,10 +69,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return originalStdErr;
     }
 
-    public void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole) {
+    public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            colourMap.setUseColor(colorOutput);
-            this.useAnsiConsole = useAnsiConsole;
+            this.consoleOutput = consoleOutput;
             consoleConfigureAction.execute(this);
         }
     }
@@ -79,8 +79,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     public void attachAnsiConsole(OutputStream outputStream) {
         synchronized (lock) {
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-            DefaultColorMap colourMap = new DefaultColorMap();
-            colourMap.setUseColor(true);
             Console console = new AnsiConsole(writer, writer, colourMap, true);
             addConsole(console, true, true, new FallbackConsoleMetaData());
         }

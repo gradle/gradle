@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.scala
-
-import spock.lang.Specification
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec
-import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.language.base.internal.compile.Compiler
+import spock.lang.Specification
 
 class DefaultScalaJavaJointCompilerTest extends Specification {
     private final Compiler<ScalaCompileSpec> scalaCompiler = Mock()
-    private final JvmLanguageCompileSpec scalaSpec = Mock()
     private final Compiler<JavaCompileSpec> javaCompiler = Mock()
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()

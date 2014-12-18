@@ -24,7 +24,10 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ModelBuilder
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -63,7 +66,7 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version.version}'
 
         when:
         toolingApi.withConnector { connector ->
-            connector.useProjectDistribution()
+            connector.useBuildDistribution()
         }
         toolingApi.withConnection { connection -> connection.newBuild().forTasks('check').run() }
 
@@ -84,7 +87,7 @@ allprojects {
 
         when:
         toolingApi.withConnector { connector ->
-            connector.useProjectDistribution()
+            connector.useBuildDistribution()
             connector.searchUpwards(true)
             connector.forProjectDirectory(projectDir.file('child'))
         }
@@ -128,6 +131,20 @@ allprojects {
             connector.useGradleVersion(otherVersion.version.version)
         }
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
+
+        then:
+        model != null
+    }
+
+    def "empty list of tasks to execute before building model is treated like null tasks"() {
+        projectDir.file('build.gradle')
+
+        when:
+        BuildEnvironment model = toolingApi.withConnection { ProjectConnection connection ->
+            ModelBuilder<BuildEnvironment> modelBuilder = connection.model(BuildEnvironment.class)
+            modelBuilder.forTasks(new String[0])
+            modelBuilder.get()
+        }
 
         then:
         model != null

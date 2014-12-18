@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
@@ -39,23 +40,38 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
-        final PlayAppLifecycleUpdate result = execute();
+        final PlayAppLifecycleUpdate result = startServer();
         try {
+            clientProtocol.update(result);
             stop.await();
-            clientProtocol.executed(result);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            clientProtocol.update(PlayAppLifecycleUpdate.stopped());
         }
     }
 
-    public PlayAppLifecycleUpdate execute() {
+    private PlayAppLifecycleUpdate startServer() {
         try {
-            PlayExecuter playExcutor = new PlayExecuter();
-            playExcutor.run(spec);
-            return new PlayAppLifecycleUpdate(true);
+            run(spec);
+            return PlayAppLifecycleUpdate.running();
         } catch (Exception e) {
             Logging.getLogger(this.getClass()).error("Failed to run Play", e);
-            return new PlayAppLifecycleUpdate(e);
+            return PlayAppLifecycleUpdate.failed(e);
+        }
+    }
+
+    private void run(VersionedPlayRunSpec spec) {
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            ClassLoader docsClassLoader = getClass().getClassLoader();
+
+            Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader);
+            ScalaMethod runMethod = spec.getNettyServerDevHttpMethod(classLoader, docsClassLoader);
+            Object buildLink = spec.getBuildLink(classLoader);
+            runMethod.invoke(buildLink, buildDocHandler, spec.getHttpPort());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

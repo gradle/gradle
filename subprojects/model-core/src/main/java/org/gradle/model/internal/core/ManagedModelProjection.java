@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
@@ -27,9 +28,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
+    private final ModelSchema<M> schema;
 
     public ManagedModelProjection(ModelType<M> type, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         super(type, true, true);
+        this.schema = schemaStore.getSchema(type);
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
     }
@@ -56,7 +59,22 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             // TODO we are relying on the creator having established these links, we should be checking
             class State implements ModelElementState {
                 public <T> T get(ModelType<T> modelType, String name) {
-                    return modelNode.getLinks().get(name).getPrivateData(modelType);
+                    ModelNode propertyNode = modelNode.getLinks().get(name);
+                    ModelProperty<?> property = schema.getProperties().get(name);
+
+                    if (!property.isWritable()) {
+                        // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the viewq
+                        ModelAdapter adapter = propertyNode.getAdapter();
+                        if (writable) {
+                            //noinspection ConstantConditions
+                            return adapter.asWritable(modelType, null, null, propertyNode).getInstance();
+                        } else {
+                            //noinspection ConstantConditions
+                            return adapter.asReadOnly(modelType, propertyNode).getInstance();
+                        }
+                    } else {
+                        return propertyNode.getPrivateData(modelType);
+                    }
                 }
 
                 public <T> void set(ModelType<T> propertyType, String name, T value) {

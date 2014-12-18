@@ -16,14 +16,14 @@
 
 package org.gradle.performance.fixture
 
-class TextFileDataReporter implements DataReporter {
+class TextFileDataReporter implements CrossVersionDataReporter {
     private final File outputFile
 
     TextFileDataReporter(File outputFile) {
         this.outputFile = outputFile
     }
 
-    void report(PerformanceResults results) {
+    void report(CrossVersionPerformanceResults results) {
         outputFile.parentFile.mkdirs()
         results.baselineVersions.each {
             outputFile << it.getSpeedStatsAgainst(results.displayName, results.current)

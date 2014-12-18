@@ -219,7 +219,7 @@ Use of `byte` and `Byte` is unsupported.
 
 - Is this the right set of things to support? Should we just directly support all of Java's primitive types? 
 
-### Plugin creates model element of a collection of managed model elements
+### ~~Plugin creates model element of a collection of managed model elements~~
 
     @Managed
     interface Person {
@@ -265,7 +265,7 @@ Notes:
 - ~~Attempt to create collection of non managed type~~
 - ~~Attempt to create collection of invalid managed type~~
     
-### Managed model interface extends other interfaces
+### ~~Managed model interface extends other interfaces~~
 
     interface Named {
         String getName(); void setName(String name);         
@@ -290,7 +290,7 @@ Notes:
 - ~~Two different types can extend same parent~~
 - ~~Property conflicts between super types are detected (different types for the same name)~~ 
 
-### Managed model type has a property of collection of managed types
+### ~~Managed model type has a property of collection of managed types~~
 
     @Managed
     interface Person {
@@ -329,7 +329,7 @@ Notes:
 - ~~Something like the snippet above~~
 - ~~Can set/get a reference to a collection of managed types~~
     
-### Managed model type has enum property
+### ~~Managed model type has enum property~~
 
 #### Notes
 
@@ -338,6 +338,27 @@ Notes:
 - Enum values are not strictly immutable/threadsafe in Java but almost always are, as such we will consider them to be at this stage
 - It doesn't have any impact at this stage, but only the enum value is strictly part of the model (all properties of an enum value are supplied by the runtime)
 
+### ~~Managed model element has unmanaged property~~
+
+    interface MyModel {        
+        @org.gradle.model.Unmanaged
+        SomeWeirdThing getThing()        
+        void setThing(SomeWeirdThing thing)
+    }
+    
+Properties of an unmanaged type must be explicitly annotated with `@Unmanaged`.
+The rationale for this is that the use of unmanaged properties will have a significant impact on tooling and functionality in general, as such it should be very clear to model consumers which properties are unmanaged.
+
+Unmanaged properties must be accompanied by a setter.
+
+#### Test Coverage
+
+- ~~Can attach an an unmanaged property~~
+- ~~Error when unmanaged property does not have annotation~~
+- ~~Subtype may declare setter for unmanaged type~~
+- ~~Unmanaged property of managed type can be targeted for mutation~~
+- ~~Unmanaged property of managed type can be used as input~~
+    
 ### Managed model element has “generated” display name indicating identity in model space
 
     package org.example;
@@ -376,7 +397,7 @@ Notes:
 - It is an error to define a setter for display name (may relax this in the future)
 - Exact format of error message is unimportant, but it must include the “address” of the object in the model space
     
-### Model rule accepts property of managed object as input
+### ~~Model rule accepts property of managed object as input~~
       
     @Managed
     interface Person {
@@ -406,13 +427,12 @@ Notes:
     
 ### Test Coverage
 
-- Can inject leaf type property (e.g. String, Number)
-- Can inject node type property (i.e. another managed type with properties)
-- Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`) 
-- Can inject by “path”
-- Can inject by “type”
+- ~~Can inject leaf type property (e.g. String, Number)~~
+- ~~Can inject node type property (i.e. another managed type with properties)~~
+- ~~Can inject property of property of managed type (i.e. given type `A` has property of managed type `B`, can inject properties of `B`)~~
+- ~~Can inject by “path”~~
 
-### Model rule mutates property of managed object
+### ~~Model rule mutates property of managed object~~
       
     @Managed
     interface Person {
@@ -449,66 +469,135 @@ Notes:
 
 (above)
 
-## Future candidate stories (unordered)
+### User receives runtime error trying to mutate managed object outside of mutation
 
-### Model designer augments generated display name to contain extra information
-
-Possible driver for this is the component report.
-
-### Plugin creates model element of custom type, containing a collecting of boxed primitive types, without supplying an implementation
-
-### User assigns reference type property using indirect identifier
-
-i.e. Something like the current scenario with `Platform.operatingSystem`. There is a set of objects of the referenced type, and they can be assigned as references some convenient way (e.g. by parsing a string)
-
-### User is prevented from mutating managed model object when being used as an input
-
-i.e. Something like the current scenario with `Platform.operatingSystem`. There is a set of objects of the referenced type, and they can be assigned as references some convenient way (e.g. by parsing a string)
-
-
-### Plugin creates item of managed type in collection property of managed type
- 
-### Plugin creates item of managed type in collection property of unmanaged type
- 
-> Need to find a use case for this to see if it's needed (i.e. do we mix managed/unmanaged) types
- 
-### Model rule creates property of managed object
-
-   @Managed
+    @Managed
     interface Person {
-      String getName(); void setName(String string)
-      Person getFather();
+      Person getPartner();
+      String getName(); 
+      void setName(String string)
+    }
+    
+    class Holder {
+        static Person person
     }
     
     class Rules {
       @Model
       void p1(Person person) {
         person.setName("foo");
+        Holder.person = person
       }
       
-      @Model("p1.father")
-      void father(Person father) {
-        father.setName("father")
+      @Mutate void setFather(CollectionBuilder<Task> tasks, Person person) {
+        Holder.person.setName("foo") // ← runtime error
+        Holder.person.partner.setName("foo") // ← runtime error  
+        person.setName("foo") // ← runtime error
+        person.partner.setName("foo") // ← runtime error
       }
+    }
+
+Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
+
+### User receives runtime error trying to mutate managed set and elements when used as input and outside of mutation method
+
+    @Managed
+    interface Platform {
+      ManagedSet<OperatingSystem> getOperatingSystems()
     }
     
-    model {
-      tasks {
-        create("test") {
-          it.doLast {
-            def p1 = $("p1")
-            assert p1.father.name == "father"
-          }
-        }
+    @Managed
+    interface OperatingSystem {
+        String getName()
+        void setName(String)
+    }
+        
+    class Holder {
+      static Platform platform
+    }
+    
+    class Rules {
+      @Model
+      void p(Platform platform) {
+        Holder.platform = platform
+        platform.operatingSystems.create { name = "foo" }
+      }
+      
+      @Mutate void setFather(CollectionBuilder<Task> tasks, Platform platform) {
+        Holder.platform.create(…) // ← runtime error
+        Holder.platform.toList()[0].setName(…) // ← runtime error
+        platform.create(…) // ← runtime error
+        platform.toList()[0].setName(…) // ← runtime error
       }
     }
 
-#### Notes
+Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
 
-Haven't identified a real use case for this yet. 
-In theory, it allows avoiding creating the nested property if it's not needed.
-However, given our current capabilities there's no real useful case for this.
+### “read” methods of ManagedSet throw exceptions when set is mutable
 
-### User sees useful type name in stack trace for managed model type and while debugging
+It should not be possible to call any of these methods until the set is realised.
 
-This is about ensuring that managed model instances don't make debugging more difficult by presenting type names that don't hint at the type.
+### Support for polymorphic managed sets
+
+```
+interface PolymorphicManagedSet<T> implements Set<T> {
+  void create(Class<? extends T> type, Action<? super T> initializer);
+  <O> Set<O> ofType(Class<O> type);
+}
+```
+
+- `<T>` does not need to be managed type (but can be)
+- `type` given to `create()` must be a valid managed type
+- All mutative methods of `Set` throw UnsupportedOperationException (like `ManagedSet`).
+- `create` throws exception when set has been realised (i.e. using as an input)
+- “read” methods (including `ofType`) throws exception when called on mutable instance
+- No constraints on `O` type parameter given to `ofType` method
+- set returned by `ofType` is immutable (exception thrown by mutative methods should include information about the model element of which it was derived)
+
+The initial target for this functionality will be to replace the `PlatformContainer` model element, but more functionality will be needed before this is possible.
+
+### Replace PlatformContainer with PolymorphicManagedSet<Platform>
+
+1. Make NativePlatform managed
+    - Remove `architecture()` & `operatingSystem()` (make inherent properties)
+    - Change Architecture and OperatingSystem to be managed (push methods out so somewhere else, remove internal subclasses)
+    - Provide string to Architecture/OS instance as static methods for time being (proper pattern comes later)
+2. Make ScalaPlatform managed
+3. Remove 'platforms' extension
+4. Introduce managed set for 'platforms' model element
+5. Change populating in NativePlatforms to use new container
+6. Push `chooseFromTargets` implementation out to static method
+7. Remove PlatformContainerInternal
+
+## Open Questions
+
+- Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
+- Should getters of subjects be allowed to be called during mutation rules? (i.e. we can't guarantee they won't change)
+- Should we allow setters being called more than once?
+
+## Backlog
+
+### Collections
+
+- Collections of value elements
+- Map type collections
+- Ordered collections
+- Semi ordered collections (e.g. command line, where some elements have an order relationship)
+- Maps of value elements
+- Maps of model elements
+- Collections of implicitly keyed elements, acting as a map
+- Equality concerns when using sets
+
+### Extensibility & views
+
+- Convenience and/or enforcement of “internal to plugin” properties of model elements
+- Extending model elements with new properties
+
+### Diagnostics
+
+- User sees useful type name in stack trace for managed model type and while debugging (i.e. not JDK proxy class names)
+
+### Misc
+
+- Allow some control over generated display name property
+- Semantics of equals/hashCode

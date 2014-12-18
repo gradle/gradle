@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
@@ -32,15 +31,16 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final IdGenerator<?> idGenerator;
     private final ActorFactory actorFactory;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final TimeProvider timeProvider;
     private final JUnitSpec spec;
     private JUnitTestClassExecuter executer;
     private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory) {
+    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, TimeProvider timeProvider) {
         this.idGenerator = idGenerator;
         this.spec = spec;
         this.actorFactory = actorFactory;
+        this.timeProvider = timeProvider;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {

@@ -18,7 +18,7 @@ package org.gradle.scala.internal.reflect;
 
 import java.io.Serializable;
 
-public class ScalaCodecMapper implements Serializable{
+public class ScalaCodecMapper implements Serializable {
     public static String getClassName() {
         return "scala.io.Codec";
     }

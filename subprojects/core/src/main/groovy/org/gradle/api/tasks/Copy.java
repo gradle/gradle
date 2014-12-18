@@ -67,6 +67,7 @@ import java.io.File;
  * }
  * </pre>
  */
+@ParallelizableTask
 public class Copy extends AbstractCopyTask {
 
     @Override

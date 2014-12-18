@@ -47,7 +47,7 @@ FailingIntegrationSpec > Application should::work from within a browser FAILED
         errorOutput.contains("6 tests completed, 2 failed")
         errorOutput.contains("> There were failing tests.")
 
-        def result = new JUnitXmlTestExecutionResult(testDirectory, "build/reports/test/playBinary")
+        def result = new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test/xml")
         result.assertTestClassesExecuted("ApplicationSpec", "IntegrationSpec", "FailingApplicationSpec", "FailingIntegrationSpec")
         result.testClass("ApplicationSpec").assertTestCount(2, 0, 0)
         result.testClass("IntegrationSpec").assertTestCount(1, 0, 0)

@@ -15,12 +15,9 @@
  */
 package org.gradle.jvm.plugins;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -29,12 +26,11 @@ import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.internal.configure.JarBinarySpecInitializer;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -59,7 +55,7 @@ import java.util.List;
 public class JvmComponentPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**
@@ -119,10 +115,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                    PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                    @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
-            List<Action<? super JarBinarySpec>> actions = Lists.newArrayList();
-            actions.add(new JarBinarySpecInitializer(buildDir));
-            actions.add(new MarkBinariesBuildable());
-            final Action<JarBinarySpec> initAction = Actions.composite(actions);
+            final File binariesDir = new File(buildDir, "jars");
+            final File classesDir = new File(buildDir, "classes");
 
             List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
@@ -131,15 +125,24 @@ public class JvmComponentPlugin implements Plugin<Project> {
             }
             List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms);
             for (final JavaPlatform platform : selectedPlatforms) {
-                final JavaToolChain toolChain = toolChains.getForPlatform(platform);
+                final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
                 final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
 
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     public void execute(JarBinarySpec jarBinary) {
-                        ((JarBinarySpecInternal) jarBinary).setBaseName(jvmLibrary.getName());
+                        JarBinarySpecInternal jarBinaryInternal = (JarBinarySpecInternal) jarBinary;
+                        jarBinaryInternal.setBaseName(jvmLibrary.getName());
                         jarBinary.setToolChain(toolChain);
                         jarBinary.setTargetPlatform(platform);
-                        initAction.execute(jarBinary);
+
+                        File outputDir = new File(classesDir, jarBinary.getName());
+                        jarBinary.setClassesDir(outputDir);
+                        jarBinary.setResourcesDir(outputDir);
+                        jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinaryInternal.getBaseName())));
+
+                        boolean canBuild = toolChain.select(jarBinary.getTargetPlatform()).isAvailable();
+                        jarBinaryInternal.setBuildable(canBuild);
+
                         jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
                     }
                 });
@@ -179,11 +182,4 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
     }
 
-    private static class MarkBinariesBuildable implements Action<JarBinarySpec> {
-        public void execute(JarBinarySpec jarBinarySpec) {
-            JavaToolChainInternal toolChain = (JavaToolChainInternal) jarBinarySpec.getToolChain();
-            boolean canBuild = toolChain.select(jarBinarySpec.getTargetPlatform()).isAvailable();
-            ((JarBinarySpecInternal) jarBinarySpec).setBuildable(canBuild);
-        }
-    }
 }

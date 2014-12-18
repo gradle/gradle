@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptAware;
@@ -38,7 +39,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope {
+public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
     // in the ‘core’ and ‘ui’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.

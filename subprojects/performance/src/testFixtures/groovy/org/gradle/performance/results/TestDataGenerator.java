@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.fixture.PerformanceResults;
@@ -33,7 +34,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
     @Override
     public void render(TestExecutionHistory testHistory, Writer output) throws IOException {
         PrintWriter out = new PrintWriter(output);
-        List<PerformanceResults> sortedResults = testHistory.getResultsOldestFirst();
+        List<PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("{");
         out.println("\"labels\": [");
         for (int i = 0; i < sortedResults.size(); i++) {
@@ -62,20 +63,20 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
     }
 
     void render(TestExecutionHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
-        List<PerformanceResults> sortedResults = testHistory.getResultsOldestFirst();
+        List<PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("  [");
-        for (int i = 0; i < testHistory.getKnownVersions().size(); i++) {
-            String version = testHistory.getKnownVersions().get(i);
+        List<String> labels = testHistory.getOperationLabels();
+        for (int i = 0; i < labels.size(); i++) {
             if (i > 0) {
                 out.println(",");
             }
             out.println("  {");
-            out.println("    \"label\": \"" + version + "\",");
+            out.println("    \"label\": \"" + labels.get(i) + "\",");
             out.print("\"data\": [");
             boolean empty = true;
             for (int j = 0; j < sortedResults.size(); j++) {
                 PerformanceResults results = sortedResults.get(j);
-                MeasuredOperationList measuredOperations = results.version(version).getResults();
+                MeasuredOperationList measuredOperations = results.getExecutionOperations().get(i);
                 if (!measuredOperations.isEmpty()) {
                     if (!empty) {
                         out.print(", ");

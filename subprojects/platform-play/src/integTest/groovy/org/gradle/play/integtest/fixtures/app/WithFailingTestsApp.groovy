@@ -18,61 +18,16 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class WithFailingTestsApp extends PlayNewApp {
+class WithFailingTestsApp extends AbstractPlayApp {
+    List<SourceFile> appSources
+    List<SourceFile> viewSources
+    List<SourceFile> confSources
+    List<SourceFile> testSources
 
-    @Override
-    List<SourceFile> getTestSources() {
-        return super.getTestSources() + [
-                sourceFile("test", "FailingApplicationSpec.scala", """
-                        import org.junit.Ignore
-                        import org.specs2.mutable._
-                        import org.specs2.runner._
-                        import org.junit.runner._
-
-                        import play.api.test._
-                        import play.api.test.Helpers._
-
-                        @RunWith(classOf[JUnitRunner])
-                        class FailingApplicationSpec extends Specification {
-
-                          "Application" should {
-
-                            "send 404 on a bad request" in new WithApplication{
-                              route(FakeRequest(GET, "/boum")) must beNone
-                            }
-
-                            "render the index page" in new WithApplication{
-                              val home = route(FakeRequest(GET, "/")).get
-
-                              status(home) must equalTo(OK)
-                              contentType(home) must beSome.which(_ == "text/html")
-                              contentAsString(home) must contain ("This application content is wrong")
-                            }
-                          }
-                        }"""),
-
-                sourceFile("test", "FailingIntegrationSpec.scala", """
-                        import org.specs2.mutable._
-                        import org.specs2.runner._
-                        import org.junit.runner._
-
-                        import play.api.test._
-                        import play.api.test.Helpers._
-
-                        @RunWith(classOf[JUnitRunner])
-                        class FailingIntegrationSpec extends Specification {
-
-                          "Application" should {
-
-                            "work from within a browser" in new WithBrowser {
-
-                              browser.goTo("http://localhost:" + port)
-
-                              browser.pageSource must contain("This application content is wrong.")
-                            }
-                          }
-                        }""")
-        ]
-
+    public WithFailingTestsApp(){
+        appSources = sourceFiles("app", "basicplayapp");
+        viewSources = sourceFiles("app/views", "basicplayapp");
+        confSources = sourceFiles("conf", "shared") + sourceFiles("conf", "basicplayapp")
+        testSources = sourceFiles("test") + sourceFiles("test", "basicplayapp")
     }
 }

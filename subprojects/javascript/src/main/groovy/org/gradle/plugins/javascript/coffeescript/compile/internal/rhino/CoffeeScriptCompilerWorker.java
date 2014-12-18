@@ -18,10 +18,12 @@ package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.RelativeFile;
+import org.gradle.plugins.javascript.base.SourceTransformationException;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.CoffeeScriptCompileDestinationCalculator;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 
@@ -58,7 +60,11 @@ public class CoffeeScriptCompilerWorker implements RhinoWorker<Boolean, Serializ
         return childScope(rootScope, new DefaultScopeOperation<String>() {
             public String action(Scriptable compileScope, Context context) {
                 compileScope.put("coffeeScriptSource", compileScope, source);
-                return (String)context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
+                try {
+                    return (String) context.evaluateString(compileScope, "CoffeeScript.compile(coffeeScriptSource, {});", sourceName, 0, null);
+                } catch (JavaScriptException jse) {
+                    throw new SourceTransformationException(String.format("Failed to compile coffeescript file: %s", sourceName), jse);
+                }
             }
         });
     }

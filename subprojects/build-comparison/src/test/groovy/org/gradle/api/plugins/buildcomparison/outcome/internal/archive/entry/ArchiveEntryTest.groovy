@@ -98,6 +98,28 @@ class ArchiveEntryTest extends Specification {
         path("a", "a") < path("a", "b")
     }
 
+    def "paths are case sensitive"() {
+        when:
+        def a1Props = [
+                path     : "foo",
+                size     : 10,
+                crc      : 10,
+                directory: false
+        ]
+        def a2Props = [
+                path     : "Foo",
+                size     : 10,
+                crc      : 10,
+                directory: false
+        ]
+
+        def a1 = ArchiveEntry.of(a1Props)
+        def a2 = ArchiveEntry.of(a2Props)
+
+        then:
+        a1.path != a2.path
+    }
+
     static ArchiveEntry.Path path(String... components) {
         new ArchiveEntry.Path(ImmutableList.copyOf(components))
     }

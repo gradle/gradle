@@ -24,7 +24,7 @@ class JavaScriptBasePlugin implements Plugin<Project> {
 
 
     void apply(Project project) {
-        project.apply(plugin: BasePlugin)
+        project.pluginManager.apply(BasePlugin)
         project.extensions.create(JavaScriptExtension.NAME, JavaScriptExtension)
         project.repositories.extensions.create(JavaScriptRepositoriesExtension.NAME, JavaScriptRepositoriesExtension, project.repositories)
     }

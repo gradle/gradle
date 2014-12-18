@@ -33,8 +33,10 @@ import spock.lang.Specification
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ProjectBuilderTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    @Rule public final Resources resources = new Resources()
+    @Rule
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    public final Resources resources = new Resources()
 
     def canCreateARootProject() {
 
@@ -87,7 +89,7 @@ class ProjectBuilderTest extends Specification {
     def canApplyACustomPluginByType() {
         when:
         def project = buildProject()
-        project.apply type: CustomPlugin
+        project.pluginManager.apply(CustomPlugin)
 
         then:
         project.tasks.hello instanceof DefaultTask

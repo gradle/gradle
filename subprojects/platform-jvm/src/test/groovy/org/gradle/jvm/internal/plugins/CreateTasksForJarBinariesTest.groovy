@@ -17,10 +17,10 @@
 package org.gradle.jvm.internal.plugins
 
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.jvm.JvmBinaryTasks
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.plugins.JvmComponentPlugin
+import org.gradle.jvm.tasks.Jar
 import org.gradle.platform.base.BinaryContainer
 import spock.lang.Specification
 

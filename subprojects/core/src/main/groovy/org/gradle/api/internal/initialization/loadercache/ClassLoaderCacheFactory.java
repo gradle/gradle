@@ -19,7 +19,7 @@ package org.gradle.api.internal.initialization.loadercache;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import static com.google.common.cache.CacheBuilder.newBuilder;
+import java.util.HashMap;
 
 public class ClassLoaderCacheFactory {
 
@@ -36,7 +36,7 @@ public class ClassLoaderCacheFactory {
     }
 
     private DefaultClassLoaderCache newCache(ClassPathSnapshotter snapshotter) {
-        return new DefaultClassLoaderCache(newBuilder().<DefaultClassLoaderCache.Key, ClassLoader>build(), snapshotter);
+        return new DefaultClassLoaderCache(new HashMap<DefaultClassLoaderCache.Key, ClassLoader>(), snapshotter);
     }
 
     private void maybeInit() {

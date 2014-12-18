@@ -17,35 +17,42 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.*;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
-import org.gradle.language.scala.ScalaSourceSet;
-import org.gradle.language.scala.internal.DefaultScalaSourceSet;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
+import org.gradle.language.scala.toolchain.ScalaToolChain;
+import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
 
 /**
- * Plugin for compiling Scala code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "scala"
- * language support with the {@link org.gradle.api.tasks.ScalaSourceSet}.
+ * Plugin for compiling Scala code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
+ * Registers "scala" language support with the {@link org.gradle.language.scala.ScalaLanguageSourceSet}.
  */
 @Incubating
 public class ScalaLanguagePlugin implements Plugin<Project> {
+
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
-        project.apply(Collections.singletonMap("plugin", JvmResourcesPlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
 
 
@@ -55,23 +62,29 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
+
+        @Model
+        ScalaToolChain scalaToolChain(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ScalaToolChain.class);
+        }
+
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
             languages.add(new Scala());
         }
     }
 
-    private static class Scala implements LanguageRegistration<ScalaSourceSet> {
+    private static class Scala implements LanguageRegistration<ScalaLanguageSourceSet> {
         public String getName() {
             return "scala";
         }
 
-        public Class<ScalaSourceSet> getSourceSetType() {
-            return ScalaSourceSet.class;
+        public Class<ScalaLanguageSourceSet> getSourceSetType() {
+            return ScalaLanguageSourceSet.class;
         }
 
-        public Class<? extends ScalaSourceSet> getSourceSetImplementation() {
-            return DefaultScalaSourceSet.class;
+        public Class<? extends ScalaLanguageSourceSet> getSourceSetImplementation() {
+            return DefaultScalaLanguageSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {
@@ -94,22 +107,28 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
-                    ScalaSourceSet scalaSourceSet = (ScalaSourceSet) sourceSet;
+                    ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
+                    JavaPlatform javaPlatform = binary.getTargetPlatform();
+                    // TODO RG resolve the scala platform from the binary
+
+                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+                    File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
+                    compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
 
                     compile.setDescription(String.format("Compiles %s.", scalaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
-                    compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(scalaSourceSet.getSource());
                     compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-                    compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
+                    compile.setTargetCompatibility(javaPlatform.getTargetCompatibility().toString());
+                    compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
 
                     compile.dependsOn(scalaSourceSet);
                     binary.getTasks().getJar().dependsOn(compile);
                 }
-            };        }
+            };
+        }
 
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof JvmBinarySpec;

@@ -5,8 +5,12 @@ dependencies {
     testCompile libraries.groovy
 
     testRuntime project(":languageJava")
+
+    testFixturesCompile project(":internalIntegTesting")
 }
 
 useClassycle()
 strictCompile()
 useTestFixtures()
+useTestFixtures(sourceSet: 'testFixtures')
+

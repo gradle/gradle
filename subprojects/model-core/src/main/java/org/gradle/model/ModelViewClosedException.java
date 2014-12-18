@@ -18,8 +18,8 @@ package org.gradle.model;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 @Incubating
 public class ModelViewClosedException extends GradleException {

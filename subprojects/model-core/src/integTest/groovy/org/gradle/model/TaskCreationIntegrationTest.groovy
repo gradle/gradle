@@ -43,7 +43,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     void addTasks(CollectionBuilder<Task> tasks, MyModel myModel) {
                         myModel.tasks.each { n ->
                             tasks.create(n) {
-                              it.description = "task \$n"
+                              description = "task \$n"
                             }
                         }
                     }
@@ -107,7 +107,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     void addTasks(CollectionBuilder<Task> tasks, MyTasks myTasks) {
                         myTasks.tasks.each { n ->
                             tasks.create(n, MessageTask) {
-                              it.description = "task \$n"
+                              description = "task \$n"
                             }
                         }
                     }
@@ -197,7 +197,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     void addTasks1(CollectionBuilder<Task> tasks, MyModel myModel) {
                         myModel.tasks.each { n ->
                             tasks.create(n) {
-                              it.description = "task \$n"
+                              description = "task \$n"
                             }
                         }
                     }
@@ -206,7 +206,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     void addTasks2(CollectionBuilder<Task> tasks, MyModel myModel) {
                         myModel.tasks.each { n ->
                             tasks.create(n) {
-                              it.description = "task \$n"
+                              description = "task \$n"
                             }
                         }
                     }
@@ -416,5 +416,17 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Cannot create 'tasks.foo' as it was already created by: Project.<init>.tasks.foo()")
+    }
+
+    def "can create task with invalid model space name"() {
+        when:
+        buildFile << """
+            tasks.create(".").doFirst {}
+        """
+
+        run "."
+
+        then:
+        ":." in executedTasks
     }
 }

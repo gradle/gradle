@@ -26,13 +26,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     plugins {
         id 'jvm-component'
     }
-    task check << {
+    task validate << {
         assert componentSpecs.empty
         assert binaries.empty
     }
 """
         then:
-        succeeds "check"
+        succeeds "validate"
 
         and:
         !file("build").exists()
@@ -51,7 +51,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    task check << {
+    task validate << {
         assert componentSpecs.size() == 1
         def myLib = componentSpecs.myLib
         assert myLib.name == 'myLib'
@@ -74,13 +74,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLibJar.buildTask == binaryTask
 
         def jarTask = tasks['createMyLibJar']
-        assert jarTask instanceof Jar
+        assert jarTask instanceof org.gradle.jvm.tasks.Jar
         assert jarTask.group == null
         assert jarTask.description == "Creates the binary file for Jar 'myLibJar'."
     }
 """
         then:
-        succeeds "check"
+        succeeds "validate"
     }
 
     def "creates empty jar when no language sources available"() {
@@ -202,7 +202,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    task check << {
+    task validate << {
         assert componentSpecs.size() == 2
         assert componentSpecs.myLibOne instanceof JvmLibrarySpec
         assert componentSpecs.myLibTwo instanceof JvmLibrarySpec
@@ -213,7 +213,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         then:
-        succeeds "check"
+        succeeds "validate"
     }
 
     def "can build multiple jvm libraries in single project"() {

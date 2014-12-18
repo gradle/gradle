@@ -15,8 +15,10 @@
  */
 
 package org.gradle.language
+
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
@@ -33,14 +35,17 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     abstract Class<? extends Plugin> getPluginClass();
+
     abstract Class<? extends LanguageSourceSet> getSourceSetClass();
+
     abstract Class<? extends Task> getCompileTaskClass();
+
     abstract String getPluginName();
 
     def "creates source set with conventional locations for components"() {
         when:
         dsl {
-            apply plugin: pluginClass
+            pluginManager.apply pluginClass
 
             model {
                 components {
@@ -76,7 +81,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     def "can configure source set locations"() {
         given:
         dsl {
-            apply plugin: pluginClass
+            pluginManager.apply pluginClass
 
             model {
                 components {
@@ -110,13 +115,13 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
 
         expect:
         def exe = project.componentSpecs.exe
-        with (exe.sources."$pluginName") {
+        with(exe.sources."$pluginName") {
             source.srcDirs*.name == ["d1", "d2"]
             exportedHeaders.srcDirs*.name == ["h1", "h2"]
         }
 
         def lib = project.componentSpecs.lib
-        with (lib.sources."$pluginName") {
+        with(lib.sources."$pluginName") {
             source.srcDirs*.name == ["d3"]
             exportedHeaders.srcDirs*.name == ["h3"]
         }
@@ -127,7 +132,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         touch("src/test/$pluginName/file.o")
         touch("src/test/anotherOne/file.o")
         dsl {
-            apply plugin: pluginClass
+            pluginManager.apply pluginClass
             model {
                 components {
                     test(NativeExecutableSpec) {
@@ -152,7 +157,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         and:
         binary.tasks.withType(compileTaskClass).each { compile ->
             compile.toolChain == binary.toolChain
-            compile.macros == [NDEBUG:null, LEVEL:"1"]
+            compile.macros == [NDEBUG: null, LEVEL: "1"]
             compile.compilerArgs == ["ARG1", "ARG2"]
         }
 
@@ -166,7 +171,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         GFileUtils.touch(project.file(filePath))
     }
 
-    def dsl(Closure closure) {
+    def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
         project.evaluate()

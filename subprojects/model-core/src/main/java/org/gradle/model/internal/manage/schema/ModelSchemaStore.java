@@ -21,4 +21,9 @@ import org.gradle.model.internal.type.ModelType;
 public interface ModelSchemaStore {
 
     <T> ModelSchema<T> getSchema(ModelType<T> type);
+
+    /**
+     * Remove any cached information for types that have been GC'd.
+     */
+    void cleanUp(); // TODO hook this in to the (daemon) build lifecycle
 }

@@ -20,16 +20,13 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
-import org.apache.sshd.common.Session
-import org.apache.sshd.common.file.FileSystemView
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
-import org.apache.sshd.common.file.virtualfs.VirtualFileSystemView
+import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.util.Buffer
 import org.apache.sshd.server.Command
 import org.apache.sshd.server.PasswordAuthenticator
 import org.apache.sshd.server.PublickeyAuthenticator
 import org.apache.sshd.server.command.ScpCommandFactory
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -43,7 +40,10 @@ import org.gradle.util.AvailablePortFinder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.security.KeyPair
+import java.security.KeyPairGenerator
 import java.security.PublicKey
+import java.security.SecureRandom
 
 class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
@@ -130,7 +130,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             }
         }));
         sshServer.setCommandFactory(new ScpCommandFactory());
-        sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir}/test-dsa.key"));
+        sshServer.setKeyPairProvider(new GeneratingKeyPairProvider());
 
         if(passwordAuthenticationEnabled){
             sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
@@ -269,11 +269,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
-        /**
-         * Create the appropriate user file system view.
-         */
-        public FileSystemView createFileSystemView(Session session) {
-            return new VirtualFileSystemView(session.getUsername(), baseDir.absolutePath);
+        TestVirtualFileSystemFactory() {
+            setDefaultHomeDir(baseDir.absolutePath)
         }
     }
 
@@ -288,7 +285,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
             int pos = buffer.rpos()
             def command = commandMessage(buffer, type)
-            println "Received SFTP command $command"
             buffer.rpos(pos)
 
             def matched = expectations.find { it.matches(buffer, type, id) }
@@ -472,6 +468,22 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             } else {
                 return false
             }
+        }
+    }
+
+    class GeneratingKeyPairProvider extends AbstractKeyPairProvider {
+
+        KeyPair keyPair
+
+        GeneratingKeyPairProvider() {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA")
+            generator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
+            keyPair = generator.generateKeyPair()
+        }
+
+        @Override
+        Iterable<KeyPair> loadKeys() {
+            [keyPair]
         }
     }
 }

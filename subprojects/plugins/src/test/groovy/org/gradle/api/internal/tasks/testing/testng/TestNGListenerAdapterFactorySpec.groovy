@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.tasks.testing.testng
 
-import spock.lang.Specification
 import org.testng.IConfigurationListener2
-import org.testng.ITestResult
+import org.testng.ITestContext
 import org.testng.ITestListener
+import org.testng.ITestResult
+import spock.lang.Specification
 
 class TestNGListenerAdapterFactorySpec extends Specification {
     TestNGListenerAdapterFactory factory = new TestNGListenerAdapterFactory(getClass().classLoader)
@@ -52,8 +53,9 @@ class TestNGListenerAdapterFactorySpec extends Specification {
     }
 
     def "adapter forwards all ITestListener calls"() {
-        ITestListener adapter = factory.createAdapter(listener)
-        ITestResult result = Mock()
+        def adapter = factory.createAdapter(listener)
+        def result = Mock(ITestResult)
+        def test = Mock(ITestContext)
 
         when:
         adapter.onTestStart(result)
@@ -61,8 +63,8 @@ class TestNGListenerAdapterFactorySpec extends Specification {
         adapter.onTestFailure(result)
         adapter.onTestSkipped(result)
         adapter.onTestFailedButWithinSuccessPercentage(result)
-        adapter.onStart(null) // we don't mock ITestContext as it would require us to put Guice on test class path
-        adapter.onFinish(null)
+        adapter.onStart(test)
+        adapter.onFinish(test)
 
         then:
         1 * listener.onTestStart(result)
@@ -70,8 +72,8 @@ class TestNGListenerAdapterFactorySpec extends Specification {
         1 * listener.onTestFailure(result)
         1 * listener.onTestSkipped(result)
         1 * listener.onTestFailedButWithinSuccessPercentage(result)
-        1 * listener.onStart(null)
-        1 * listener.onFinish(null)
+        1 * listener.onStart(test)
+        1 * listener.onFinish(test)
     }
 }
 

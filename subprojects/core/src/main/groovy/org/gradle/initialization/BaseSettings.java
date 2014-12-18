@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.plugins.PluginManager;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -33,6 +33,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class BaseSettings extends AbstractPluginAware implements SettingsInternal {
@@ -49,15 +50,9 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private GradleInternal gradle;
 
-    private ProjectDescriptorRegistry projectDescriptorRegistry;
-
-    private FileResolver fileResolver;
-
-    private final ScriptPluginFactory scriptPluginFactory;
-    private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
-    private final PluginManager pluginManager;
+    private final ServiceRegistry services;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -68,13 +63,8 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.classLoaderScope = classLoaderScope;
-        ServiceRegistry services = serviceRegistryFactory.createFor(this);
-        this.fileResolver = services.get(FileResolver.class);
-        this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
-        this.scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
-        this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
+        services = serviceRegistryFactory.createFor(this);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        pluginManager = services.get(PluginManager.class);
     }
 
     @Override
@@ -91,19 +81,19 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry, fileResolver);
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver());
     }
 
     public DefaultProjectDescriptor findProject(String path) {
-        return projectDescriptorRegistry.getProject(path);
+        return getProjectDescriptorRegistry().getProject(path);
     }
 
     public DefaultProjectDescriptor findProject(File projectDir) {
-        return projectDescriptorRegistry.getProject(projectDir);
+        return getProjectDescriptorRegistry().getProject(projectDir);
     }
 
     public DefaultProjectDescriptor project(String path) {
-        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProject(path);
+        DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(path);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
         }
@@ -111,7 +101,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     }
 
     public DefaultProjectDescriptor project(File projectDir) {
-        DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProject(projectDir);
+        DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(projectDir);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
         }
@@ -125,7 +115,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
             DefaultProjectDescriptor parentProjectDescriptor = rootProjectDescriptor;
             for (String pathElement : pathElements) {
                 subPath = subPath + ":" + pathElement;
-                DefaultProjectDescriptor projectDescriptor = projectDescriptorRegistry.getProject(subPath);
+                DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(subPath);
                 if (projectDescriptor == null) {
                     parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getProjectDir(), pathElement));
                 } else {
@@ -193,21 +183,18 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.settingsScript = settingsScript;
     }
 
+    @Inject
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-        return projectDescriptorRegistry;
-    }
-
-    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
+        throw new UnsupportedOperationException();
     }
 
     public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
-        return projectDescriptorRegistry;
+        return getProjectDescriptorRegistry();
     }
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(fileResolver, scriptPluginFactory, scriptHandlerFactory, getRootClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -218,7 +205,27 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         return classLoaderScope;
     }
 
-    public PluginManager getPluginManager() {
-        return pluginManager;
+    protected ServiceRegistry getServices() {
+        return services;
+    }
+
+    @Inject
+    protected ScriptHandlerFactory getScriptHandlerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public PluginManagerInternal getPluginManager() {
+        throw new UnsupportedOperationException();
     }
 }

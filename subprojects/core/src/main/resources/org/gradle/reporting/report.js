@@ -48,13 +48,21 @@
         return document.getElementById("label-for-line-wrapping-toggle");
     }
 
+    function findCodeBlocks() {
+        var spans = document.getElementById("tabs").getElementsByTagName("span");
+        var codeBlocks = [];
+        for (var i = 0; i < spans.length; ++i) {
+            if (spans[i].className.indexOf("code") >= 0) {
+                codeBlocks.push(spans[i]);
+            }
+        }
+        return codeBlocks;
+    }
+
     function forAllCodeBlocks(operation) {
-        var codeBlocks;
-        var i;
+        var codeBlocks = findCodeBlocks();
 
-        codeBlocks = document.getElementById("tabs").getElementsByTagName("span");
-
-        for (i = 0; i < codeBlocks.length; ++i) {
+        for (var i = 0; i < codeBlocks.length; ++i) {
             operation(codeBlocks[i], "wrapped");
         }
     }
@@ -70,13 +78,15 @@
     }
 
     function initControls() {
-        var checkBox = getCheckBox();
-        var label = getLabelForCheckBox();
+        if (findCodeBlocks().length > 0) {
+            var checkBox = getCheckBox();
+            var label = getLabelForCheckBox();
 
-        checkBox.onclick = toggleLineWrapping;
-        checkBox.checked = false;
+            checkBox.onclick = toggleLineWrapping;
+            checkBox.checked = false;
 
-        removeClass(label, "hidden");
+            removeClass(label, "hidden");
+         }
     }
 
     function switchTab() {

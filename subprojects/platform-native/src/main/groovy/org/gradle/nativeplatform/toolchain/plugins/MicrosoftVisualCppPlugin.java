@@ -34,8 +34,6 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
-import java.util.Collections;
-
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
@@ -43,7 +41,7 @@ import java.util.Collections;
 public class MicrosoftVisualCppPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
+        project.getPluginManager().apply(NativeComponentPlugin.class);
     }
 
     /**

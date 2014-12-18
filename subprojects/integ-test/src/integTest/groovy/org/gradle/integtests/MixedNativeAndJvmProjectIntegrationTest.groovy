@@ -61,7 +61,7 @@ model {
     }
 }
 
-task check << {
+task validate << {
     assert componentSpecs.size() == 3
     assert componentSpecs.nativeExe instanceof NativeExecutableSpec
     assert componentSpecs.nativeLib instanceof NativeLibrarySpec
@@ -75,7 +75,7 @@ task check << {
 }
 """
         expect:
-        succeeds "check"
+        succeeds "validate"
     }
 
     def "build mixed components in one project"() {

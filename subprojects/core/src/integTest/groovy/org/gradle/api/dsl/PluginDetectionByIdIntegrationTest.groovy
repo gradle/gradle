@@ -24,7 +24,7 @@ import spock.lang.Unroll
  */
 class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final ArrayList<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
+    public static final List<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
 
     @Unroll
     def "core plugins are detectable - applied by #appliedBy, detected by #detectedBy"() {
@@ -33,7 +33,7 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
             plugins.withId("$detectedBy") {
                 operations << 'withId for ' + it.class.simpleName
             }
-            withPlugin("$detectedBy") {
+            pluginManager.withPlugin("$detectedBy") {
                 operations << 'withPlugin'
             }
             operations << "applying"
@@ -42,10 +42,10 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
 
             assert plugins["$detectedBy"]
             assert plugins.getPlugin("$detectedBy")
-            assert hasPlugin("$detectedBy")
-            assert findPlugin("$detectedBy").id == "org.gradle.java"
-            assert findPlugin("$detectedBy").namespace == "org.gradle"
-            assert findPlugin("$detectedBy").name == "java"
+            assert pluginManager.hasPlugin("$detectedBy")
+            assert pluginManager.findPlugin("$detectedBy").id == "org.gradle.java"
+            assert pluginManager.findPlugin("$detectedBy").namespace == "org.gradle"
+            assert pluginManager.findPlugin("$detectedBy").name == "java"
 
             task verify << { assert operations == ['applying', 'withPlugin', 'withId for JavaPlugin', 'applied'] }
         """
@@ -79,7 +79,7 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId'
             }
 
-            withPlugin("test-rule-source") {
+            pluginManager.withPlugin("test-rule-source") {
                 operations << 'withPlugin'
             }
 

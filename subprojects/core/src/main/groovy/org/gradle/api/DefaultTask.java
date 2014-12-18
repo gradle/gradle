@@ -18,10 +18,12 @@ package org.gradle.api;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.NoConventionMapping;
+import org.gradle.api.tasks.ParallelizableTask;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
  */
 @NoConventionMapping
+@ParallelizableTask
 public class DefaultTask extends AbstractTask {
 }

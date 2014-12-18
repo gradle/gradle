@@ -17,7 +17,9 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -80,6 +82,7 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "merges report with duplicated classes and methods"() {
         given:
         buildFile << """
@@ -176,6 +179,7 @@ public class SubClassTests extends SuperClassTests {
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-2821")
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "test report task can handle test tasks that did not run tests"() {
         given:
         buildScript """
@@ -229,6 +233,7 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "test report task is skipped when there are no results"() {
         given:
         buildScript """
@@ -249,6 +254,7 @@ public class SubClassTests extends SuperClassTests {
     }
 
     @Unroll
+    @IgnoreIf({GradleContextualExecuter.parallel})
     "#type report files are considered outputs"() {
         given:
         buildScript """
@@ -286,6 +292,7 @@ public class SubClassTests extends SuperClassTests {
         "html" | "build/reports/tests"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "results or reports are linked to in error output"() {
         given:
         buildScript """
@@ -323,7 +330,7 @@ public class SubClassTests extends SuperClassTests {
         !errorOutput.contains("See the")
     }
 
-
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "output per test case flag invalidates outputs"() {
         when:
         buildScript """

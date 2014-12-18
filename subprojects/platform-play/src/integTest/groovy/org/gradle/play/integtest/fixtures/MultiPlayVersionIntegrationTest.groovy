@@ -20,13 +20,11 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 @TargetCoverage({PlayCoverage.DEFAULT})
-abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSpec{
+abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
-    def setup(){
+    def setup() {
         buildFile <<"""
-        plugins {
-            id 'play-application'
-        }
+        ${pluginsBlock}
 
         model {
             components {
@@ -40,13 +38,19 @@ abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSp
             jcenter()
             maven{
                 name = "typesafe-maven-release"
-                url = "http://repo.typesafe.com/typesafe/maven-releases"
+                url = "https://repo.typesafe.com/typesafe/maven-releases"
             }
         }
 """
     }
 
-
+    def getPluginsBlock() {
+        return """
+            plugins {
+                id 'play'
+            }
+        """
+    }
 
 
     JarTestFixture jar(String fileName) {

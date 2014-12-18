@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
@@ -115,6 +116,7 @@ import java.util.*;
  * </pre>
 
  */
+@ParallelizableTask
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
@@ -167,6 +169,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @Inject
     protected ActorFactory getActorFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ClassLoaderCache getClassLoaderCache() {
         throw new UnsupportedOperationException();
     }
 
@@ -890,7 +897,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, filter, getClassLoaderCache()), testFrameworkConfigure);
     }
 
     /**
@@ -907,7 +914,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator()), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
     }
 
     /**

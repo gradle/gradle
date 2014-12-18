@@ -21,8 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
-import java.util.Collections;
-
 /**
  * A plugin for projects wishing to build native binary components from C++ sources.
  *
@@ -33,7 +31,7 @@ import java.util.Collections;
 @Incubating
 public class CppPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
-        project.apply(Collections.singletonMap("plugin", CppLangPlugin.class));
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(CppLangPlugin.class);
     }
 }

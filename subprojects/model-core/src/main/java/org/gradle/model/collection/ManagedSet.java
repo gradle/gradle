@@ -17,9 +17,11 @@
 package org.gradle.model.collection;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 import java.util.Set;
 
+@Incubating
 public interface ManagedSet<T> extends Set<T> {
     void create(Action<? super T> action);
 }

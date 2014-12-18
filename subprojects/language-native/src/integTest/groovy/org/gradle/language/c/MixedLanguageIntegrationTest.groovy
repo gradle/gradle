@@ -17,11 +17,11 @@
 package org.gradle.language.c
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 
-class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class MixedLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(toolChain)
 

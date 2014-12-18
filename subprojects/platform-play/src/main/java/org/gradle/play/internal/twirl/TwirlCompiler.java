@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 /**
  * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
- * See spec.versions for individual methods
+ * See spec.versions for individual methods.
  */
 public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Serializable {
 
@@ -51,6 +51,4 @@ public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Seria
 
         return new TwirlCompilerWorkResult(outputFiles);
     }
-
-
 }

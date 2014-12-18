@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class CachingClassLoadersPerformanceTest extends AbstractPerformanceTest {
+class CachingClassLoadersPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Project '#testProject' build")
     def "build"() {

@@ -52,8 +52,8 @@ class ModuleLibrary implements Dependency {
     def ModuleLibrary(Collection<Path> classes, Collection<Path> javadoc, Collection<Path> sources, Collection<JarDirectory> jarDirectories, String scope) {
         this.classes = classes as Set;
         this.jarDirectories = jarDirectories as Set;
-        this.javadoc = javadoc as Set;
-        this.sources = sources as Set;
+        this.javadoc = javadoc as LinkedHashSet;
+        this.sources = sources as LinkedHashSet;
         this.scope = scope
         this.exported = !scope || scope == 'COMPILE' || scope == 'RUNTIME'
     }

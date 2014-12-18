@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.instance.strategy;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.DefaultManagedSet;
 import org.gradle.model.internal.manage.instance.ModelInstantiator;
@@ -27,26 +28,31 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ManagedSetInstantiatorStrategy implements ModelInstantiatorStrategy {
 
-    public <T> T newInstance(ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator instantiator) {
+    private final Instantiator instantiator;
+
+    public ManagedSetInstantiatorStrategy(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
+
+    public <T> T newInstance(ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator) {
         ModelType<T> type = schema.getType();
         if (type.getRawClass().equals(ManagedSet.class)) {
             ModelType<?> elementType = type.getTypeVariables().get(0);
             ModelSchema<?> elementTypeSchema = schemaStore.getSchema(elementType);
-            return toSet(elementTypeSchema, instantiator);
+            return toSet(elementTypeSchema, modelInstantiator);
         }
 
         return null;
 
     }
 
-    private <T, E> T toSet(final ModelSchema<E> elementTypeSchema, final ModelInstantiator instantiator) {
-        ManagedSet<E> set = new DefaultManagedSet<E>(new Factory<E>() {
+    private <T, E> T toSet(final ModelSchema<E> elementTypeSchema, final ModelInstantiator modelInstantiator) {
+        Factory<E> modelFactory = new Factory<E>() {
             public E create() {
-                return instantiator.newInstance(elementTypeSchema);
+                return modelInstantiator.newInstance(elementTypeSchema);
             }
-        });
-
-        return Cast.uncheckedCast(set);
+        };
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultManagedSet.class, modelFactory));
     }
 
 }

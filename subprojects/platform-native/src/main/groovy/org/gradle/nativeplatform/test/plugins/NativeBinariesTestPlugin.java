@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
@@ -31,14 +32,13 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.TestSuiteContainer;
-import org.gradle.nativeplatform.test.internal.DefaultTestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.internal.test.DefaultTestSuiteContainer;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
@@ -46,7 +46,7 @@ import java.util.Collections;
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
+        project.getPluginManager().apply(NativeComponentPlugin.class);
     }
 
     /**
@@ -90,6 +90,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
 
                 testBinary.getTasks().add(runTask);
+
+                tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(runTask);
             }
         }
     }

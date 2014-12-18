@@ -18,20 +18,20 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import org.gradle.api.BuildCancelledException;
-import org.gradle.api.CircularReferenceException;
-import org.gradle.api.Task;
-import org.gradle.api.Transformer;
+import com.google.common.base.StandardSystemProperty;
+import com.google.common.collect.*;
+import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Tuple;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
@@ -39,7 +39,10 @@ import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.TextUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
@@ -50,7 +53,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
  * methods.
  */
-class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+
+    public static final String INTRA_PROJECT_TOGGLE = "org.gradle.parallel.intra";
+
+    private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
+
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
@@ -62,11 +70,26 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
-    private final List<String> runningProjects = new ArrayList<String>();
+    private final Multiset<String> projectsWithRunningTasks = HashMultiset.create();
+    private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
+    private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
+    private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
+    private final Map<Task, Boolean> isParallelSafeCache = Maps.newIdentityHashMap();
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
+    private final boolean intraProjectParallelization;
+
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
         this.cancellationToken = cancellationToken;
+        this.intraProjectParallelization = intraProjectParallelization;
+
+        if (intraProjectParallelization) {
+            LOGGER.info("intra project task parallelization is enabled");
+        }
+    }
+
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
+        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -399,7 +422,11 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             entryTasks.clear();
             executionPlan.clear();
             failures.clear();
-            runningProjects.clear();
+            projectsWithRunningTasks.clear();
+            projectsWithRunningNonParallelizableTasks.clear();
+            canonicalizedOutputCache.clear();
+            isParallelSafeCache.clear();
+            runningTasks.clear();
         } finally {
             lock.unlock();
         }
@@ -430,7 +457,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 boolean allTasksComplete = true;
                 for (TaskInfo taskInfo : executionPlan.values()) {
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                         nextMatching = taskInfo;
                         break;
                     }
@@ -447,7 +474,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 } else {
                     if (nextMatching.allDependenciesSuccessful()) {
                         nextMatching.startExecution();
-                        runningProjects.add(nextMatching.getTask().getProject().getPath());
+                        recordTaskStarted(nextMatching);
                         return nextMatching;
                     } else {
                         nextMatching.skipExecution();
@@ -460,6 +487,136 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
+    private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.getTask();
+        String projectPath = task.getProject().getPath();
+
+        if (isParallelizable(task)) {
+            if (projectsWithRunningNonParallelizableTasks.contains(projectPath)) {
+                return false;
+            }
+        } else {
+            if (projectsWithRunningTasks.contains(projectPath)) {
+                return false;
+            }
+        }
+
+        Tuple<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
+        if (overlap == null) {
+            return true;
+        } else {
+            LOGGER.info("Cannot execute task " + task.getPath() + " in parallel with task " + overlap.left.getPath() + " due to overlapping output: " + overlap.right);
+        }
+
+        return false;
+    }
+
+    private Set<String> canonicalizedOutputPaths(TaskInternal task) {
+        Set<String> paths = canonicalizedOutputCache.get(task);
+        if (paths == null) {
+            paths = Sets.newHashSet(Iterables.transform(task.getOutputs().getFiles(), new Function<File, String>() {
+                @Override
+                public String apply(File file) {
+                    String path;
+                    try {
+                        path = file.getCanonicalPath();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                    return path;
+                }
+            }));
+            canonicalizedOutputCache.put(task, paths);
+        }
+
+        return paths;
+    }
+
+    @Nullable
+    private Tuple<TaskInternal, String> firstTaskWithOverlappingOutput(TaskInternal candidateTask) {
+        if (runningTasks.isEmpty()) {
+            return null;
+        }
+
+        for (String candidateTaskOutputPath : canonicalizedOutputPaths(candidateTask)) {
+            for (TaskInternal runningTask : runningTasks) {
+                for (String runningTaskOutputPath : canonicalizedOutputPaths(runningTask)) {
+                    if (pathsOverlap(candidateTaskOutputPath, runningTaskOutputPath)) {
+                        return Tuple.of(runningTask, TextUtil.shorterOf(candidateTaskOutputPath, runningTaskOutputPath));
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    private boolean pathsOverlap(String firstPath, String secondPath) {
+        if (firstPath.equals(secondPath)) {
+            return true;
+        }
+
+        String shorter;
+        String longer;
+        if (firstPath.length() > secondPath.length()) {
+            shorter = secondPath;
+            longer = firstPath;
+        } else {
+            shorter = firstPath;
+            longer = secondPath;
+        }
+        return longer.startsWith(shorter + StandardSystemProperty.FILE_SEPARATOR.value());
+    }
+
+    boolean isParallelizable(TaskInternal task) {
+        if (intraProjectParallelization) {
+            Boolean safe = isParallelSafeCache.get(task);
+            if (safe == null) {
+                safe = detectIsParallelizable(task);
+                isParallelSafeCache.put(task, safe);
+            }
+
+            return safe;
+        }
+
+        return false;
+    }
+
+    private boolean detectIsParallelizable(TaskInternal task) {
+        if (task.getClass().isAnnotationPresent(ParallelizableTask.class)) {
+            if (task.isHasCustomActions()) {
+                LOGGER.info("Unable to parallelize task " + task.getPath() + " due to presence of custom actions (e.g. doFirst()/doLast())");
+            } else {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void recordTaskStarted(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.getTask();
+        String projectPath = task.getProject().getPath();
+        if (!isParallelizable(task)) {
+            projectsWithRunningNonParallelizableTasks.add(projectPath);
+        }
+        projectsWithRunningTasks.add(projectPath);
+        runningTasks.add(task);
+    }
+
+    private void recordTaskCompleted(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.getTask();
+        String projectPath = task.getProject().getPath();
+        if (!isParallelizable(task)) {
+            projectsWithRunningNonParallelizableTasks.remove(projectPath);
+        }
+        projectsWithRunningTasks.remove(projectPath);
+        canonicalizedOutputCache.remove(task);
+        isParallelSafeCache.remove(task);
+        runningTasks.remove(task);
+    }
+
     public void taskComplete(TaskInfo taskInfo) {
         lock.lock();
         try {
@@ -469,7 +626,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
 
             taskInfo.finishExecution();
-            runningProjects.remove(taskInfo.getTask().getProject().getPath());
+            recordTaskCompleted(taskInfo);
             condition.signalAll();
         } finally {
             lock.unlock();

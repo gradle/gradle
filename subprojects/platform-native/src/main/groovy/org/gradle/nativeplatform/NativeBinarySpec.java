@@ -19,10 +19,8 @@ package org.gradle.nativeplatform;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryTasksCollection;
 
 import java.util.Collection;
 
@@ -31,16 +29,6 @@ import java.util.Collection;
  */
 @Incubating @HasInternalProtocol
 public interface NativeBinarySpec extends BinarySpec {
-    /**
-     * Provides access to key tasks used for building the binary.
-     */
-    public interface NativeBinaryTasks extends BinaryTasksCollection {
-        /**
-         * The task that builds the binary out of object files: either the link task or create static library task as appropriate.
-         */
-        ObjectFilesToBinary getCreateOrLink();
-    }
-
     /**
      * The component that this binary was built from.
      */
@@ -101,9 +89,4 @@ public interface NativeBinarySpec extends BinarySpec {
      * The static archiver settings used for creating this binary.
      */
     Tool getStaticLibArchiver();
-
-    /**
-     * The set of tasks associated with this binary.
-     */
-    NativeBinaryTasks getTasks();
 }

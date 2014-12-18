@@ -29,7 +29,7 @@ import org.gradle.api.reporting.ReportingExtension
 class CompareGradleBuildsPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: ReportingBasePlugin)
+        project.pluginManager.apply(ReportingBasePlugin)
         ReportingExtension reportingExtension = project.extensions.findByType(ReportingExtension)
 
         project.tasks.withType(CompareGradleBuilds) { CompareGradleBuilds task ->

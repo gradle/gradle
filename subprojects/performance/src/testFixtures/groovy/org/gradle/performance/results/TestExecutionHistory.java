@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,66 +18,16 @@ package org.gradle.performance.results;
 
 import org.gradle.performance.fixture.PerformanceResults;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class TestExecutionHistory {
-    private final String name;
-    private final List<String> versions;
-    private final List<String> branches;
-    private final List<PerformanceResults> newestFirst;
-    private List<PerformanceResults> oldestFirst;
-    private List<String> knownVersions;
+public interface TestExecutionHistory {
+    String getId();
 
-    public TestExecutionHistory(String name, List<String> versions, List<String> branches, List<PerformanceResults> newestFirst) {
-        this.name = name;
-        this.versions = versions;
-        this.branches = branches;
-        this.newestFirst = newestFirst;
-    }
+    String getName();
 
-    public String getId() {
-        return name.replaceAll("\\s+", "-");
-    }
+    List<PerformanceResults> getPerformanceResults();
 
-    public String getName() {
-        return name;
-    }
+    int getPerExecutionOperationsCount();
 
-    public List<String> getBaselineVersions() {
-        return versions;
-    }
-
-    public List<String> getBranches() {
-        return branches;
-    }
-
-    public List<String> getKnownVersions() {
-        if (knownVersions == null) {
-            ArrayList<String> result = new ArrayList<String>();
-            result.addAll(versions);
-            result.addAll(branches);
-            knownVersions = result;
-        }
-        return knownVersions;
-    }
-
-    /**
-     * Returns results from most recent to least recent.
-     */
-    public List<PerformanceResults> getResults() {
-        return newestFirst;
-    }
-
-    /**
-     * Returns results from least recent to most recent.
-     */
-    public List<PerformanceResults> getResultsOldestFirst() {
-        if (oldestFirst == null) {
-            oldestFirst = new ArrayList<PerformanceResults>(newestFirst);
-            Collections.reverse(oldestFirst);
-        }
-        return oldestFirst;
-    }
+    List<String> getOperationLabels();
 }

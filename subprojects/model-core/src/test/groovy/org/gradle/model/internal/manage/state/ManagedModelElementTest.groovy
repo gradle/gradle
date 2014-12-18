@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.state
 
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.type.ModelType
@@ -31,7 +32,7 @@ import java.beans.Introspector
 class ManagedModelElementTest extends Specification {
 
     def schemas = new DefaultModelSchemaStore()
-    def instantiator = new StrategyBackedModelInstantiator(schemas, new ManagedProxyFactory())
+    def instantiator = new StrategyBackedModelInstantiator(schemas, new ManagedProxyFactory(), new DirectInstantiator())
 
     def <T> ManagedModelElement<T> createElement(Class<T> elementClass) {
         new ManagedModelElement<T>(schemas.getSchema(ModelType.of(elementClass)), schemas, instantiator)

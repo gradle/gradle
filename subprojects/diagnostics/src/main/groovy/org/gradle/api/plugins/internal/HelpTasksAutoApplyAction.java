@@ -18,11 +18,9 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
-import java.util.Collections;
-
 //This one should go away once we complete the auto-apply plugins
 public class HelpTasksAutoApplyAction implements ProjectConfigureAction {
     public void execute(ProjectInternal project) {
-        project.apply(Collections.singletonMap("plugin", "help-tasks"));
+        project.getPluginManager().apply("org.gradle.help-tasks");
     }
 }

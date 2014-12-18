@@ -61,7 +61,7 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
 
         assertEquals('Gradle test', testngOptions.testName)
 
-        assertEquals('skip', testngOptions.configFailurePolicy)
+        assertEquals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY, testngOptions.configFailurePolicy)
     }
 
     @Test public void jdk14SourceCompatibilityAnnotationsDefaulting()

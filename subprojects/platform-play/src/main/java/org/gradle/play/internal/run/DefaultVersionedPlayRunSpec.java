@@ -17,6 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.tasks.compile.BaseForkOptions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -73,15 +74,29 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
         return getDocHandlerFactoryClass(classLoader).getMethod("fromJar", JarFile.class, String.class);
     }
 
-    public Object getBuildDocHandler(ClassLoader docsClassLoader, JarFile docJar) throws NoSuchMethodException, ClassNotFoundException, IOException, InvocationTargetException, IllegalAccessException {
-        return getDocHandlerFactoryMethod(docsClassLoader).invoke(null, docJar, "play/docs/content");
+    public Object getBuildDocHandler(ClassLoader docsClassLoader) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
+        try {
+            return getDocHandlerFactoryMethod(docsClassLoader).invoke(null, getDocJar(), "play/docs/content");
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.unwrapAndRethrow(e);
+        }
     }
+
+    private JarFile getDocJar() throws IOException {
+        File docJarFile = null;
+        for (File file : getClasspath()) {
+            if (file.getName().startsWith("play-docs")) {
+                docJarFile = file;
+                break;
+            }
+        }
+        return new JarFile(docJarFile);
+    }
+
 
     public ScalaMethod getNettyServerDevHttpMethod(ClassLoader classLoader, ClassLoader docsClassLoader) throws ClassNotFoundException {
         return ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
     }
-
-
 
     public Iterable<String> getSharedPackages() {
         return Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");

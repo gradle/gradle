@@ -46,7 +46,6 @@ import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -74,7 +73,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", PublishingPlugin.class));
+        project.getPluginManager().apply(PublishingPlugin.class);
 
         // Can't move this to rules yet, because it has to happen before user deferred configurable actions
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {

@@ -50,6 +50,9 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 
 import java.util.List;
 
@@ -122,7 +125,7 @@ public class GlobalScopeServices {
     ListenerManager createListenerManager() {
         return new DefaultListenerManager();
     }
-   
+
     ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
     }
@@ -175,6 +178,14 @@ public class GlobalScopeServices {
 
     ClassLoaderCacheFactory createClassLoaderCacheFactory() {
         return new ClassLoaderCacheFactory();
+    }
+
+    protected ModelSchemaStore createModelSchemaStore() {
+        return new DefaultModelSchemaStore();
+    }
+
+    protected ModelRuleSourceDetector createModelRuleSourceDetector() {
+        return new ModelRuleSourceDetector();
     }
 
 }

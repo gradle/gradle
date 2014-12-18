@@ -15,11 +15,14 @@
  */
 
 package org.gradle.language.cpp.tasks
-import org.gradle.language.base.internal.compile.Compiler
+
 import org.gradle.api.tasks.WorkResult
+import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -47,9 +50,10 @@ class CppCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "cpp"
-        _ * platform.compatibilityString >> "p"
+        platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
+        platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({it instanceof CppCompileSpec}) >> cppCompiler
+        1 * platformToolChain.newCompiler({ it instanceof CppCompileSpec }) >> cppCompiler
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

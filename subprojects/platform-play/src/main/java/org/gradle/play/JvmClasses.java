@@ -18,9 +18,9 @@ package org.gradle.play;
 
 import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * A set of classes and resources that operate together.
@@ -41,7 +41,7 @@ public interface JvmClasses extends BuildableModelElement {
     /**
      * A set of resource directories for this binary.
      */
-    Set<File> getResourceDirs();
+    FileCollection getResourceDirs();
 
     /**
      * Add a resource directory to this binary.

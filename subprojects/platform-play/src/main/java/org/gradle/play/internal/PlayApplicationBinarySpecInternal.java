@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal;
 
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
@@ -26,9 +26,12 @@ import java.io.File;
 
 public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec, BinarySpecInternal {
     void setTargetPlatform(PlayPlatform platform);
+
     void setToolChain(PlayToolChainInternal toolChain);
+
     PlayToolChainInternal getToolChain();
+
     void setJarFile(File file);
-    void setGeneratedScala(LanguageSourceSet scalaSources);
-    void setTestScala(LanguageSourceSet scalaSources);
+
+    void setGeneratedScala(ScalaLanguageSourceSet scalaSources);
 }

@@ -16,8 +16,11 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.collect.ImmutableSet;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.type.ModelType;
+
+import java.util.Set;
 
 @ThreadSafe
 public class ModelProperty<T> {
@@ -25,19 +28,27 @@ public class ModelProperty<T> {
     private final String name;
     private final ModelType<T> type;
     private final boolean writable;
+    private final Set<ModelType<?>> declaredBy;
+    private final boolean unmanaged;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable) {
+    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
         this.name = name;
         this.type = type;
         this.writable = writable;
+        this.declaredBy = ImmutableSet.copyOf(declaredBy);
+        this.unmanaged = unmanaged;
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable) {
-        return new ModelProperty<T>(type, name, writable);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
+        return new ModelProperty<T>(type, name, writable, declaredBy, unmanaged);
     }
 
     public String getName() {
         return name;
+    }
+
+    public boolean isUnmanaged() {
+        return unmanaged;
     }
 
     public ModelType<T> getType() {
@@ -46,6 +57,10 @@ public class ModelProperty<T> {
 
     public boolean isWritable() {
         return writable;
+    }
+
+    public Set<ModelType<?>> getDeclaredBy() {
+        return declaredBy;
     }
 
     @Override

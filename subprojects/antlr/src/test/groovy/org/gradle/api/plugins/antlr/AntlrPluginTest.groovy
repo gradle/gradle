@@ -25,7 +25,7 @@ class AntlrPluginTest extends Specification {
 
     def addsAntlrPropertiesToEachSourceSet() {
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
 
         then:
         def main = project.sourceSets.main
@@ -44,7 +44,7 @@ class AntlrPluginTest extends Specification {
 
     def addsTaskForEachSourceSet() {
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
 
         then:
         def main = project.tasks.generateGrammarSource
@@ -68,7 +68,7 @@ class AntlrPluginTest extends Specification {
         given:
         def sourceFiles = someSourceFiles()
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
 
@@ -87,7 +87,7 @@ class AntlrPluginTest extends Specification {
         given:
         def sourceFiles = someSourceFiles()
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
         main.setTrace(true)
@@ -110,7 +110,7 @@ class AntlrPluginTest extends Specification {
         given:
         def sourceFiles = someSourceFiles()
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
         main.setArguments(["-a", "-b"])
@@ -124,7 +124,7 @@ class AntlrPluginTest extends Specification {
         given:
         def sourceFiles = someSourceFiles()
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
         main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
@@ -140,7 +140,7 @@ class AntlrPluginTest extends Specification {
         given:
         def sourceFiles = someSourceFiles()
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
         main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
@@ -158,7 +158,7 @@ class AntlrPluginTest extends Specification {
 
     def buildArgumentsAddsAllParameters() {
         when:
-        project.apply plugin: AntlrPlugin
+        project.pluginManager.apply(AntlrPlugin)
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
         main.setArguments(["-test"])

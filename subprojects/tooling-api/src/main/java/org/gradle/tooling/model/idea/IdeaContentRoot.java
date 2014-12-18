@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 
 import java.io.File;
@@ -27,32 +28,38 @@ import java.util.Set;
 public interface IdeaContentRoot {
 
     /**
-     * root directory
+     * The content root directory.
      */
     File getRootDirectory();
 
     /**
-     * source dirs.
+     * The set of source directories.
      */
     DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories();
 
     /**
-     * generated source dirs.
+     * The set of generated source directories. This is a subset of those directories returned by {@link #getSourceDirectories()}.
+     *
+     * @since 2.2
      */
+    @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories();
 
     /**
-     * test dirs.
+     * The set of test source directories.
      */
     DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories();
 
     /**
-     * generated test dirs.
+     * The set of generated test directories. This is a subset of those directories returned by {@link #getTestDirectories()}.
+     *
+     * @since 2.2
      */
+    @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories();
 
     /**
-     * exclude dirs
+     * The set of excluded directories.
      */
     Set<File> getExcludeDirectories();
 }

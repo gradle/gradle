@@ -18,6 +18,8 @@ package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -28,15 +30,16 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
 
     private final ModelType<CollectionBuilder<T>> type;
     private final CollectionBuilder<T> rawInstance;
-    private final CollectionBuilder<T> instance = new Decorator();
+    private final CollectionBuilder<T> instance;
     private final ModelRuleDescriptor ruleDescriptor;
 
     private boolean closed;
 
-    public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
+    public CollectionBuilderModelView(Instantiator instantiator, ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
         this.type = type;
         this.rawInstance = rawInstance;
         this.ruleDescriptor = ruleDescriptor;
+        this.instance = Cast.uncheckedCast(instantiator.newInstance(Decorator.class, this));
     }
 
     public ModelType<CollectionBuilder<T>> getType() {
@@ -51,7 +54,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         closed = true;
     }
 
-    class Decorator implements CollectionBuilder<T> {
+    public class Decorator implements CollectionBuilder<T> {
         public void create(String name) {
             assertNotClosed();
             rawInstance.create(name);

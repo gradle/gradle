@@ -19,28 +19,47 @@ package org.gradle.plugins.ide.internal.resolver.model;
 import org.gradle.api.artifacts.Configuration;
 
 import java.io.File;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class IdeExtendedRepoFileDependency extends IdeRepoFileDependency {
-    private File sourceFile;
-    private File javadocFile;
+    private static final Comparator<File> FILE_COMPARATOR = new FileNameComparator();
+    private final SortedSet<File> sourceFiles = new TreeSet<File>(FILE_COMPARATOR);
+    private final SortedSet<File> javadocFiles = new TreeSet<File>(FILE_COMPARATOR);
 
     public IdeExtendedRepoFileDependency(Configuration declaredConfiguration, File file) {
         super(declaredConfiguration, file);
     }
 
     public File getSourceFile() {
-        return sourceFile;
+        return sourceFiles.isEmpty() ? null : sourceFiles.first();
     }
 
-    public void setSourceFile(File sourceFile) {
-        this.sourceFile = sourceFile;
+    public Set<File> getSourceFiles() {
+        return sourceFiles;
+    }
+
+    public void addSourceFile(File sourceFile) {
+        sourceFiles.add(sourceFile);
     }
 
     public File getJavadocFile() {
-        return javadocFile;
+        return javadocFiles.isEmpty() ? null : javadocFiles.first();
     }
 
-    public void setJavadocFile(File javadocFile) {
-        this.javadocFile = javadocFile;
+    public Set<File> getJavadocFiles() {
+        return javadocFiles;
+    }
+
+    public void addJavadocFile(File javadocFile) {
+        javadocFiles.add(javadocFile);
+    }
+
+    private static class FileNameComparator implements Comparator<File> {
+        public int compare(File o1, File o2) {
+            return o1.getName().compareTo(o2.getName());
+        }
     }
 }

@@ -33,8 +33,7 @@ class EclipseClasspathFixture {
     Node getClasspath() {
         if (classpath == null) {
             TestFile file = projectDir.file('.classpath')
-            println "Using .classpath:"
-            println file.text
+            file.assertExists()
             classpath = new XmlParser().parse(file)
         }
         return classpath
@@ -60,6 +59,16 @@ class EclipseClasspathFixture {
         return getClasspath().classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { it.@path }
     }
 
+    void assertHasLibs(String... jarNames) {
+        assert libs*.jarName == jarNames as List
+    }
+
+    EclipseLibrary lib(String jarName) {
+        def matches = libs.findAll { it.jarName == jarName } + vars.findAll { it.jarName == jarName }
+        assert matches.size() == 1
+        return matches[0]
+    }
+
     List<EclipseLibrary> getLibs() {
         return getClasspath().classpathentry.findAll { it.@kind == 'lib' }.collect { new EclipseLibrary(it) }
     }
@@ -73,6 +82,10 @@ class EclipseClasspathFixture {
 
         EclipseLibrary(Node entry) {
             this.entry = entry
+        }
+
+        String getJarName() {
+            jarPath.split('/').last()
         }
 
         String getJarPath() {
@@ -132,7 +145,23 @@ class EclipseClasspathFixture {
         }
 
         void assertHasNoJavadoc() {
-            assert entry.attributes.size() == 0
+            assert entry.attributes.isEmpty()
+        }
+
+        void assertIsDeployedTo(String path) {
+            assert entry.attributes
+            assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.dependency'
+            assert entry.attributes[0].attribute[0].@value == path
+        }
+
+        void assertIsExcludedFromDeployment() {
+            assert entry.attributes
+            assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.nondependency'
+            assert entry.attributes[0].attribute[0].@value == ''
+        }
+
+        void assertHasNoDeploymentAttributes() {
+            assert entry.attributes.isEmpty()
         }
 
         void assertExported() {

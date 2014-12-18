@@ -27,8 +27,8 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -36,11 +36,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Compiles Windows Resource scripts into .res files.
  */
 @Incubating
+@ParallelizableTask
 public class WindowsResourceCompile extends DefaultTask {
 
     private NativeToolChainInternal toolChain;
@@ -54,6 +56,12 @@ public class WindowsResourceCompile extends DefaultTask {
     public WindowsResourceCompile() {
         includes = getProject().files();
         source = getProject().files();
+        getInputs().property("outputType", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+            }
+        });
     }
 
     @Inject
@@ -75,11 +83,6 @@ public class WindowsResourceCompile extends DefaultTask {
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         WorkResult result = getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec), toolChain).execute(spec);
         setDidWork(result.getDidWork());
-    }
-
-    @Input
-    public String getOutputType() {
-        return toolChain.getOutputType() + ":" + targetPlatform.getCompatibilityString();
     }
 
     /**

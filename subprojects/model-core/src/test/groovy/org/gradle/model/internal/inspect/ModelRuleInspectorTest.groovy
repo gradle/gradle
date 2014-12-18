@@ -16,14 +16,14 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.model.Finalize
-import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.Model
-import org.gradle.model.Mutate
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.*
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
@@ -34,9 +34,11 @@ import spock.lang.Unroll
 
 class ModelRuleInspectorTest extends Specification {
 
+    final static Instantiator UNUSED_INSTANTIATOR = null
+
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers())
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, new DefaultModelSchemaStore()))
     def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {
@@ -197,6 +199,45 @@ class ModelRuleInspectorTest extends Specification {
     def "mutation rule cannot be generic"() {
         when:
         inspector.inspect(GenericMutationRule, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class NonVoidMutationRule {
+        @Mutate
+        String mutate(String thing) {}
+    }
+
+    def "only void is allowed as return type of a mutation rule"() {
+        when:
+        inspector.inspect(NonVoidMutationRule, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class RuleWithEmptyInputPath {
+        @Model
+        String create(@Path("") String thing) {}
+    }
+
+    def "path of rule input cannot be empty"() {
+        when:
+        inspector.inspect(RuleWithEmptyInputPath, registry, dependencies)
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    static class RuleWithInvalidInputPath {
+        @Model
+        String create(@Path("!!!!") String thing) {}
+    }
+
+    def "path of rule input has to be valid"() {
+        when:
+        inspector.inspect(RuleWithInvalidInputPath, registry, dependencies)
 
         then:
         thrown InvalidModelRuleDeclarationException
@@ -394,7 +435,7 @@ ${managedType.name}
 
     static class RuleSourceCreatingManagedWithNonManageableParent {
         @Model
-        void bar(ManagedWithNonManageableParent foo) {
+        void bar(ManagedWithNonManageableParents foo) {
         }
     }
 
@@ -404,14 +445,30 @@ ${managedType.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule $RuleSourceCreatingManagedWithNonManageableParent.name#bar($ManagedWithNonManageableParent.name) is invalid."
+        e.message == "Declaration of model rule $RuleSourceCreatingManagedWithNonManageableParent.name#bar($ManagedWithNonManageableParents.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:
-${ManagedWithNonManageableParent.name}
-  \\--- property 'invalidManaged' ($invalidTypeName)""")
+${ManagedWithNonManageableParents.name}
+  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)""")
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
+    }
+
+    static class HasRuleWithUncheckedCollectionBuilder {
+        @Model
+        static ModelThing modelPath(CollectionBuilder foo) {
+            new ModelThing("foo")
+        }
+    }
+
+    def "error when trying to use collection builder without specifying type param"() {
+        when:
+        inspector.inspect(HasRuleWithUncheckedCollectionBuilder, registry, dependencies)
+
+        then:
+        InvalidModelRuleDeclarationException e = thrown()
+        e.message == "$HasRuleWithUncheckedCollectionBuilder.name#modelPath(org.gradle.model.collection.CollectionBuilder) is not a valid model rule method: raw type org.gradle.model.collection.CollectionBuilder used for parameter 1 (all type parameters must be specified of parameterized type)"
     }
 }

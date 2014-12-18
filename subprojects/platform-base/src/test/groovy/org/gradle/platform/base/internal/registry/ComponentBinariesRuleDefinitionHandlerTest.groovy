@@ -93,7 +93,7 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
         ex.message == "${ruleDescription} is not a valid ComponentBinaries model rule method."
-        ex.cause instanceof InvalidComponentModelException
+        ex.cause instanceof InvalidModelException
         ex.cause.message == expectedMessage
 
         where:

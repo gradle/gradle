@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCompileSpec implements VersionedRoutesCompileSpec{
+public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCompileSpec implements VersionedRoutesCompileSpec {
     private final Iterable<File> sources;
     private final File destinationDir;
     private final List<String> additionalImports = new ArrayList<String>();
@@ -87,7 +87,7 @@ public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCom
     }
 
     public Object getDependencyNotation() {
-        return  String.format("com.typesafe.play:routes-compiler_%s:%s", getScalaVersion(), getPlayVersion());
+        return String.format("com.typesafe.play:routes-compiler_%s:%s", getScalaVersion(), getPlayVersion());
     }
 
     public List<String> getClassLoaderPackages() {

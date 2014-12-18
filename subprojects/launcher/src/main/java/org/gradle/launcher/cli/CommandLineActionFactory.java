@@ -201,7 +201,7 @@ public class CommandLineActionFactory {
             loggingManager.start();
 
             NativeServices.initialize(buildLayout.getGradleUserHomeDir());
-            loggingManager.attachProcessConsole(loggingConfiguration.isColorOutput(), loggingConfiguration.isAnsiConsole());
+            loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
 
             action.execute(executionListener);
         }

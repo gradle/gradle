@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -286,38 +285,6 @@ eclipse {
     }
 
     @Test
-    void createsTasksOnDependantUponProjectsEvenIfTheyDontHaveWarPlugin() {
-        //given
-        def settings = file('settings.gradle')
-        settings << "include 'impl', 'contrib'"
-
-        def build = file('build.gradle')
-        build << """
-project(':impl') {
-  apply plugin: 'java'
-  apply plugin: 'war'
-  apply plugin: 'eclipse-wtp'
-
-  dependencies { compile project(':contrib') }
-}
-
-project(':contrib') {
-  apply plugin: 'java'
-  apply plugin: 'eclipse-wtp'
-}
-"""
-        //when
-        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
-
-        //then
-        assert getComponentFile(project: 'impl').exists()
-        assert getFacetFile(project: 'impl').exists()
-
-        assert getComponentFile(project: 'contrib').exists()
-        assert getFacetFile(project: 'contrib').exists()
-    }
-
-    @Test
     @Issue("GRADLE-1881")
     void "uses eclipse project name for wtp module dependencies"() {
         //given
@@ -348,12 +315,12 @@ project(':contrib') {
         executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
 
         //then
-        //the deploy name is correct:
-        assert getComponentFile(project: 'impl').text.contains('deploy-name="cool-impl"')
-        //the dependent-module name is correct:
-        assert getComponentFile(project: 'impl').text.contains('handle="module:/resource/cool-contrib/cool-contrib"')
-        //the submodule name is correct:
-        assert getComponentFile(project: 'contrib').text.contains('deploy-name="cool-contrib"')
+        def implComponent = wtpComponent('impl')
+        assert implComponent.deployName == 'cool-impl'
+        assert implComponent.project('cool-contrib')
+
+        def contribComponent = wtpComponent('contrib')
+        assert contribComponent.deployName == 'cool-contrib'
     }
 
     @Test
@@ -540,19 +507,15 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then
-        def classpath = getClasspathFile(print: true).text
-        def component = getComponentFile().text
+        def classpath = classpath
+        def component = wtpComponent
 
         //the jar dependency is configured in the WTP component file and in the classpath
-        assert classpath.contains('commons-io')
-        assert component.contains('commons-io')
+        classpath.lib('commons-io-1.4.jar').assertIsExcludedFromDeployment()
+        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
 
-        assert classpath.contains('kind="var" path="MY_LIBS/myFoo.jar"')
-        assert component.contains('myFoo.jar')
-
-        //the jar dependencies are configured as non-dependency in the .classpath
-        classpath.count(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE) == 2
-        classpath.count(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE) == 0
+        classpath.lib('myFoo.jar').assertIsExcludedFromDeployment()
+        component.lib('myFoo.jar').assertDeployedAt('/WEB-INF/lib')
     }
 
     @Test
@@ -586,11 +549,8 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then
-        def classpath = getClasspathFile(print: true).text
-        //component dependency wins:
-        assert classpath.contains(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE)
-        //non-dependency (our default) loses:
-        assert !classpath.contains(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
+        def classpath = classpath
+        classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('WEB-INF/lib')
     }
 
     @Test
@@ -627,14 +587,10 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then
-        def classpath = getClasspathFile(project: 'someLib', print: true).text
+        def classpath = classpath('someLib')
 
-        //contains both entries
-        assert classpath.contains('kind="var" path="MY_LIBS/myFoo.jar"')
-        assert classpath.contains('commons-io')
-
-        //both var and lib entries have the attribute
-        classpath.count('<attribute name="org.eclipse.jst.component.dependency" value="../"/>') == 2
+        classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('../')
+        classpath.lib('myFoo.jar').assertIsDeployedTo('../')
     }
 
     protected def contains(String ... contents) {

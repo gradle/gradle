@@ -46,6 +46,4 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     public PlayToolProvider select(PlayPlatform targetPlatform) {
         return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, targetPlatform);
     }
-
-
 }

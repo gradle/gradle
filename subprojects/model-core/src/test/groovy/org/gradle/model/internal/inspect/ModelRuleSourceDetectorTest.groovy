@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.RuleSource
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
 
 class ModelRuleSourceDetectorTest extends Specification {
 
@@ -48,7 +49,7 @@ class ModelRuleSourceDetectorTest extends Specification {
     @Unroll
     def "find model rule sources - #clazz"() {
         expect:
-        detector.getDeclaredSources(clazz) == expected.toSet()
+        detector.getDeclaredSources(clazz).toList() == expected
 
         where:
         clazz         | expected
@@ -64,9 +65,43 @@ class ModelRuleSourceDetectorTest extends Specification {
         detector.hasModelSources(clazz) == expected
 
         where:
-        clazz         | expected
-        String        | false
-        HasOneSource  | true
-        IsASource     | true
+        clazz        | expected
+        String       | false
+        HasOneSource | true
+        IsASource    | true
     }
+
+    @Unroll
+    def "does not hold strong reference"() {
+        given:
+        def cl = new GroovyClassLoader(getClass().classLoader)
+        addClass(cl, impl)
+
+        expect:
+        detector.cache.size() == 1
+
+        when:
+        cl.clearCache()
+
+        then:
+        new PollingConditions(timeout: 10).eventually {
+            System.gc()
+            detector.cache.cleanUp()
+            detector.cache.size() == 0
+        }
+
+        where:
+        impl << [
+                "class SomeThing {}",
+                "@${RuleSource.name} class SomeThing {}",
+                "class SomeThing { @${RuleSource.name} static class Inner { } }",
+        ]
+    }
+
+    private void addClass(GroovyClassLoader cl, String impl) {
+        def type = cl.parseClass(impl)
+        detector.getDeclaredSources(type)
+        type = null
+    }
+
 }

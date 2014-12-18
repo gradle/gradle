@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.internal
-
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.internal.reflect.DirectInstantiator
@@ -26,7 +25,7 @@ import org.gradle.language.nativeplatform.NativeResourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentSpec
@@ -50,7 +49,6 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     final resolver = Stub(NativeDependencyResolver)
     def sharedLibraryFile = Mock(File)
     def sharedLibraryLinkFile = Mock(File)
-    def tasks = new DefaultSharedLibraryBinarySpec.DefaultNativeBinaryTasks()
 
     def "has useful string representation"() {
         expect:
@@ -130,19 +128,24 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     def "returns null for link and builder when none defined"() {
+        given:
+        def binary = sharedLibrary
+
         expect:
-        tasks.link == null
-        tasks.createOrLink == null
+        binary.tasks.build == null
+        binary.tasks.link == null
     }
 
     def "returns link task when defined"() {
+        given:
+        def binary = sharedLibrary
+
         when:
-        final linkTask = TestUtil.createTask(LinkExecutable)
-        tasks.add(linkTask)
+        final linkTask = TestUtil.createTask(LinkSharedLibrary)
+        binary.tasks.add(linkTask)
 
         then:
-        tasks.link == linkTask
-        tasks.createOrLink == linkTask
+        binary.tasks.link == linkTask
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {

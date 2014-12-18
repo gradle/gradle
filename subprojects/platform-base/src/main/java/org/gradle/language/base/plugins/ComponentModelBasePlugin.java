@@ -25,18 +25,15 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultLanguageRegistry;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.language.base.internal.plugins.CreateSourceTransformTask;
+import org.gradle.language.base.internal.*;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
@@ -48,7 +45,8 @@ import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
+
+import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Base plugin for language support.
@@ -70,14 +68,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
+        project.getPluginManager().apply(LanguageBasePlugin.class);
 
         // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("components", DefaultComponentSpecContainer.class), components)
                         .simpleDescriptor("Project.<init>.components()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(components, ComponentSpec.class))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(instantiator, components, ComponentSpec.class))
                         .build()
         );
     }
@@ -101,12 +99,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             // TODO:DAZ Using live collections here in order to add 'default' construction for components, which should be executed before any user component configuration is applied.
             languageRegistry.all(new Action<LanguageRegistration<?>>() {
                 public void execute(final LanguageRegistration<?> languageRegistration) {
-                    final ComponentSourcesRegistrationAction<?> action = ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver, instantiator);
-                    components.withType(ComponentSpecInternal.class).all(new Action<ComponentSpecInternal>() {
-                        public void execute(ComponentSpecInternal component) {
-                            action.execute(component);
-                        }
-                    });
+                    components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver, instantiator));
                 }
             });
         }
@@ -120,14 +113,32 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageRegistry languageRegistry) {
             for (LanguageRegistration<?> language : languageRegistry) {
-                for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
-                    final CreateSourceTransformTask createRule = new CreateSourceTransformTask(language);
-                    createRule.createCompileTasksForBinary(tasks, binary);
+                for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                    if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
+                        continue;
+                    }
+
+                    final SourceTransformTaskConfig taskConfig = language.getTransformTask();
+                    binary.getSource().withType(language.getSourceSetType(), new Action<LanguageSourceSet>() {
+                        public void execute(LanguageSourceSet languageSourceSet) {
+                            LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
+                            if (sourceSet.getMayHaveSources()) {
+                                String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
+                                Task task = tasks.create(taskName, taskConfig.getTaskType());
+
+                                taskConfig.configureTask(task, binary, sourceSet);
+
+                                task.dependsOn(sourceSet);
+                                binary.getTasks().add(task);
+                            }
+                        }
+                    });
                 }
             }
         }
 
-        @Finalize // This is setting defaults for each component in the container. Should not be finalizing the container.
+        @Finalize
+            // This is setting defaults for each component in the container. Should not be finalizing the container.
         void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs) {
                 for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
@@ -169,7 +180,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             this.fileResolver = fileResolver;
             this.instantiator = instantiator;
         }
-        
+
         public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, FileResolver fileResolver, Instantiator instantiator) {
             return new ComponentSourcesRegistrationAction<U>(registration, fileResolver, instantiator);
         }

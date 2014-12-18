@@ -3,19 +3,12 @@ apply plugin: 'osgi'
 import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
-sourceSets {
-    providerPatch
-}
-
 dependencies {
     compile project(path: ':core', configuration: "publishCompileWithProjectJar")
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
     publishCompile libraries.slf4j_api
-
-    providerPatchCompile(group: 'org.gradle', name: 'gradle-core', version: '1.8')
-    providerPatchCompile libraries.jcip
 
     testFixturesCompile project(':baseServicesGroovy')
     testCompile libraries.groovy
@@ -31,21 +24,6 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':launcher', sourceSet: "integTest")
 
-task patchJar(type: Jar) {
-    dependsOn providerPatchClasses
-    // baseName 'gradle-tooling-api-patch'
-    appendix 'provider-patch'
-    archiveName "${baseName}-${appendix}.${extension}"
-    from fileTree("$buildDir/classes/providerPatch")
-}
-
-task patchResources(type: Copy) {
-    dependsOn patchJar
-    from patchJar.outputs.files
-    into "$generatedResourcesDir/org/gradle/tooling/internal/consumer"
-}
-processResources.dependsOn patchResources
-
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
 
@@ -60,7 +38,7 @@ daemonIntegTest {
 
 task jarjarJar(type: JarJarJar) {
     appendix = "fat"
-    dependsOn jar, providerPatchClasses
+    dependsOn jar
     doFirst {
         from(zipTree(jar.getArchivePath()))
         (configurations.runtime - configurations.publishCompile).each {
@@ -69,7 +47,6 @@ task jarjarJar(type: JarJarJar) {
     }
     exclude "META-INF/**"
     exclude "*classpath.properties"
-    exclude 'org/gradle/tooling/internal/consumer/' + patchJar.archiveName // JarJar corrupts the content
 
     rule('org.gradle.**', '@0')
     rule('org.slf4j.**', '@0')
@@ -94,9 +71,8 @@ jar {
 
 task publishJar(type: Jar) {
     appendix = "bundle"
-    dependsOn jar, jarjarJar, patchJar
+    dependsOn jar, jarjarJar
     from(zipTree(jarjarJar.getArchivePath()), { exclude 'META-INF/MANIFEST.MF'})
-    from(patchJar.outputs.files, { into 'org/gradle/tooling/internal/consumer'})
     manifest = osgiManifest {
         classesDir = sourceSets.main.output.classesDir
         classpath = sourceSets.main.runtimeClasspath

@@ -19,16 +19,16 @@ package org.gradle.model.internal.inspect;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.gradle.util.CollectionUtils.findFirst;
@@ -44,9 +44,9 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
         this.instanceType = instanceType;
         this.returnType = returnType;
     }
-    
+
     public static <T, R> MethodRuleDefinition<R> create(Class<T> source, Method method) {
-        @SuppressWarnings("unchecked") ModelType<R> returnType = (ModelType<R>) ModelType.of(method.getGenericReturnType());
+        ModelType<R> returnType = ModelType.returnType(method);
         return new DefaultMethodRuleDefinition<T, R>(method, ModelType.of(source), returnType);
     }
 
@@ -71,25 +71,33 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
     }
 
     public List<ModelReference<?>> getReferences() {
-        Type[] types = method.getGenericParameterTypes();
         ImmutableList.Builder<ModelReference<?>> inputBindingBuilder = ImmutableList.builder();
-        for (int i = 0; i < types.length; i++) {
-            Type paramType = types[i];
+        for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
             Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
-            inputBindingBuilder.add(reference(paramType, paramAnnotations, i));
+            inputBindingBuilder.add(reference(paramAnnotations, i));
         }
         return inputBindingBuilder.build();
     }
 
-    private ModelReference<?> reference(Type type, Annotation[] annotations, int i) {
+    private ModelReference<?> reference(Annotation[] annotations, int i) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);
             }
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
-        ModelType<?> cast = ModelType.of(type);
-        return ModelReference.of(path == null ? null : ModelPath.path(path), cast, String.format("parameter %s", i + 1));
+        ModelType<?> cast = ModelType.paramType(method, i);
+        return ModelReference.of(path == null ? null : validPath(path), cast, String.format("parameter %s", i + 1));
+    }
+
+    private ModelPath validPath(String path) {
+        try {
+            return ModelPath.validatedPath(path);
+        } catch (ModelPath.InvalidPathException e) {
+            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
+        } catch (ModelPath.InvalidNameException e) {
+            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
+        }
     }
 
 }

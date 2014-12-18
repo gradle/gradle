@@ -21,14 +21,16 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.NativeResourceSet;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
 public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements SharedLibraryBinary, SharedLibraryBinarySpecInternal {
-    private final SharedLibraryBinarySpec.NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
@@ -60,17 +62,22 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return new SharedLibraryRuntimeOutputs();
     }
 
-    public SharedLibraryBinarySpec.NativeBinaryTasks getTasks() {
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getLink();
+    }
+
+    public SharedLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    public static class DefaultNativeBinaryTasks extends AbstractNativeLibraryBinarySpec.DefaultNativeBinaryTasks implements SharedLibraryBinarySpec.NativeBinaryTasks {
-        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements SharedLibraryBinarySpec.TasksCollection {
+        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }
 
-        public AbstractLinkTask getLink() {
-            return findSingleTaskWithType(AbstractLinkTask.class);
+        public LinkSharedLibrary getLink() {
+            return findSingleTaskWithType(LinkSharedLibrary.class);
         }
     }
 

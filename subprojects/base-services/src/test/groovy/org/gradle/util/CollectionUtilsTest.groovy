@@ -15,6 +15,7 @@
  */
 package org.gradle.util
 
+import com.google.common.base.Equivalence
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.internal.ClosureBackedAction
@@ -342,6 +343,12 @@ class CollectionUtilsTest extends Specification {
         groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
     }
 
+    def "dedup"() {
+        expect:
+        dedup([1, 2, 3, 2], Equivalence.equals()) == [1, 2, 3]
+        dedup([], Equivalence.equals()) == []
+    }
+
     def unpack() {
         expect:
         unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]
@@ -352,7 +359,7 @@ class CollectionUtilsTest extends Specification {
         expect:
         nonEmptyOrNull([1, 2, 3]) == [1, 2, 3]
         nonEmptyOrNull([]) == null
-        }
+    }
 
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)

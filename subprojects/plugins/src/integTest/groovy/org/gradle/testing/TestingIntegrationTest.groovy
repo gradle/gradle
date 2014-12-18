@@ -18,9 +18,11 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -30,6 +32,7 @@ import spock.lang.Unroll
 class TestingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "test interrupting its own thread does not kill test execution"() {
         given:
         buildFile << """
@@ -302,6 +305,57 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         result.testClass("TestCase").with {
             assertTestFailed("test", Matchers.containsString("java.lang.VerifyError"))
             assertTestFailed("test", Matchers.containsString("\$EmptyImmutableCollection"))
+        }
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3157")
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "test class detection works when '-parameters' compiler option is used (JEP 118)"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                testCompile 'junit:junit:4.11'
+            }
+            tasks.withType(JavaCompile) {
+                options.with {
+                    compilerArgs << '-parameters'
+                }
+            }
+        """
+
+        and:
+        file("src/test/java/TestHelper.java") << """
+            public class TestHelper {
+                public void helperMethod(String foo, int bar) {
+                    // this method shouldn't cause failure due to API version check
+                    // in org.objectweb.asm.MethodVisitor#visitParameter
+                }
+            }
+        """
+
+        and:
+        file("src/test/java/TestCase.java") << """
+            import org.junit.Test;
+            import static org.junit.Assert.assertTrue;
+            public class TestCase {
+                @Test
+                public void test() {
+                    assertTrue(Double.valueOf(System.getProperty("java.specification.version")) >= 1.8);
+                }
+            }
+        """
+
+        then:
+        run "test"
+
+        and:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("TestCase").with {
+            assertTestCount(1, 0, 0)
         }
     }
 }

@@ -33,8 +33,6 @@ import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
-import java.util.Collections;
-
 /**
  * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
  */
@@ -42,7 +40,7 @@ import java.util.Collections;
 public class ClangCompilerPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeComponentPlugin.class));
+        project.getPluginManager().apply(NativeComponentPlugin.class);
     }
 
     /**

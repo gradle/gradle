@@ -16,84 +16,11 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.JvmBinarySpec;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.reporting.ReportRenderer;
 
-class BinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
-    private final FileResolver fileResolver;
-
-    BinaryRenderer(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
-
+public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
     @Override
-    public void render(BinarySpec binary, TextReportBuilder builder) {
-        StyledTextOutput textOutput = builder.getOutput();
-
-        textOutput.append(StringUtils.capitalize(binary.getDisplayName()));
-        if (!binary.isBuildable()) {
-            textOutput.append(" (not buildable)");
-        }
-        textOutput.println();
-
-        textOutput.formatln("    build using task: %s", binary.getBuildTask().getPath());
-
-        if (binary instanceof NativeBinarySpec) {
-            NativeBinarySpec nativeBinary = (NativeBinarySpec) binary;
-            textOutput.formatln("    platform: %s", nativeBinary.getTargetPlatform().getName());
-            textOutput.formatln("    build type: %s", nativeBinary.getBuildType().getName());
-            textOutput.formatln("    flavor: %s", nativeBinary.getFlavor().getName());
-            textOutput.formatln("    tool chain: %s", nativeBinary.getToolChain().getDisplayName());
-            if (binary instanceof NativeExecutableBinarySpec) {
-                NativeExecutableBinarySpec executableBinary = (NativeExecutableBinarySpec) binary;
-                textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
-            }
-            if (binary instanceof NativeTestSuiteBinarySpec) {
-                NativeTestSuiteBinarySpec executableBinary = (NativeTestSuiteBinarySpec) binary;
-                textOutput.formatln("    executable file: %s", fileResolver.resolveAsRelativePath(executableBinary.getExecutableFile()));
-            }
-            if (binary instanceof SharedLibraryBinarySpec) {
-                SharedLibraryBinarySpec libraryBinary = (SharedLibraryBinarySpec) binary;
-                textOutput.formatln("    shared library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getSharedLibraryFile()));
-            }
-            if (binary instanceof StaticLibraryBinarySpec) {
-                StaticLibraryBinarySpec libraryBinary = (StaticLibraryBinarySpec) binary;
-                textOutput.formatln("    static library file: %s", fileResolver.resolveAsRelativePath(libraryBinary.getStaticLibraryFile()));
-            }
-        }
-
-        if (binary instanceof JvmBinarySpec) {
-            JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
-            textOutput.formatln("    platform: %s", jvmBinary.getTargetPlatform().getName());
-            textOutput.formatln("    tool chain: %s", jvmBinary.getToolChain().getDisplayName());
-            if (binary instanceof JarBinarySpec) {
-                JarBinarySpec jarBinary = (JarBinarySpec) binary;
-                textOutput.formatln("    Jar file: %s", fileResolver.resolveAsRelativePath(jarBinary.getJarFile()));
-            }
-            if (binary instanceof ClassDirectoryBinarySpec) {
-                ClassDirectoryBinarySpec classDirectoryBinary = (ClassDirectoryBinarySpec) binary;
-                textOutput.formatln("    classes dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getClassesDir()));
-                textOutput.formatln("    resources dir: %s", fileResolver.resolveAsRelativePath(classDirectoryBinary.getResourcesDir()));
-            }
-        }
-
-        if (binary instanceof PlayApplicationBinarySpec) {
-            PlayApplicationBinarySpec playBinary = (PlayApplicationBinarySpec) binary;
-            textOutput.formatln("    platform: %s", playBinary.getTargetPlatform().getName());
-            textOutput.formatln("    tool chain: %s", playBinary.getToolChain().getDisplayName());
-        }
+    public Class<BinarySpec> getTargetType() {
+        return BinarySpec.class;
     }
 }

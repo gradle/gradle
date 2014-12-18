@@ -42,7 +42,7 @@ import java.util.Map;
 public class JvmResourcesPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

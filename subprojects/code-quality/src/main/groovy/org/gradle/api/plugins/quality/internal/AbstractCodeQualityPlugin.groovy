@@ -118,7 +118,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
     private void configureCheckTask() {
         project.plugins.withType(basePlugin) {
-            project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName(taskBaseName, null) }}
+            project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName(taskBaseName, null) } }
         }
     }
 }

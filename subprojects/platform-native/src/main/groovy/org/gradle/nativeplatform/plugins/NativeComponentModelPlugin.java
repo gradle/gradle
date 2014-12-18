@@ -49,7 +49,6 @@ import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -58,7 +57,7 @@ import java.util.Collections;
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**
@@ -180,7 +179,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize // This should be @Mutate for each component in a container, rather than finalizing the container itself
+        @Finalize
+            // This should be @Mutate for each component in a container, rather than finalizing the container itself
         void configureGeneratedSourceSets(ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs) {
                 for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {

@@ -49,6 +49,7 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
                 }
             } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
+                //TODO SF Luke prefers keeping a list instead of merging arrays
                 combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
             }
             //else an empty folder - a legit situation

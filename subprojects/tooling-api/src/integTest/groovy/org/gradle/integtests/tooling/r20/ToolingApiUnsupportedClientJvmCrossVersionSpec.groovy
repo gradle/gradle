@@ -71,7 +71,7 @@ public class TestClient {
     }
 }
 """
-        targetDist.executer(temporaryFolder).inDirectory(projectDir).withTasks("installDist").run()
+        targetDist.executer(temporaryFolder).inDirectory(projectDir).withTasks("installDist").requireGradleHome().run()
     }
 
     @TargetGradleVersion("current")

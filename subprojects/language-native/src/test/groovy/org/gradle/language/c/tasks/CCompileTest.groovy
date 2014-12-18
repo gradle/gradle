@@ -17,7 +17,9 @@
 package org.gradle.language.c.tasks
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
@@ -48,7 +50,8 @@ class CCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "c"
-        _ * platform.compatibilityString >> "p"
+        platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
+        platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({it instanceof CCompileSpec}) >> cCompiler
         1 * cCompiler.execute({ CCompileSpec spec ->

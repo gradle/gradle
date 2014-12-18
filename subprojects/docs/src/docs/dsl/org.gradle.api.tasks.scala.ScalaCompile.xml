@@ -12,18 +12,6 @@
                 <td>scalaClasspath</td>
                 <td><literal>scala-compiler</literal> dependency matching the <literal>scala-library</literal> version found on <literal>classpath</literal></td>
             </tr>
-            <tr>
-                <td>options</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>scalaCompileOptions</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>source</td>
-                <td><literal><replaceable>sourceSet</replaceable>.scala</literal></td>
-            </tr>
         </table>
     </section>
     <section>

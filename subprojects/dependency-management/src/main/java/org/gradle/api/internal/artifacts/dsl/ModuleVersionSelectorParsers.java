@@ -28,6 +28,11 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 public class ModuleVersionSelectorParsers {
 
+    private static final NotationParserBuilder<ModuleVersionSelector> BUILDER = NotationParserBuilder
+            .toType(ModuleVersionSelector.class)
+            .fromCharSequence(new StringParser())
+            .parser(new MapParser());
+
     public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser() {
         return builder().toFlatteningComposite();
     }
@@ -37,10 +42,7 @@ public class ModuleVersionSelectorParsers {
     }
 
     private static NotationParserBuilder<ModuleVersionSelector> builder() {
-        return NotationParserBuilder
-                .toType(ModuleVersionSelector.class)
-                .fromCharSequence(new StringParser())
-                .parser(new MapParser());
+        return BUILDER;
     }
 
     static class MapParser extends MapNotationParser<ModuleVersionSelector> {

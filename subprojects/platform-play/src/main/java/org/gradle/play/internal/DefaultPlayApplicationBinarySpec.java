@@ -16,25 +16,26 @@
 
 package org.gradle.play.internal;
 
-import com.google.common.collect.Sets;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
+import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
-    private LanguageSourceSet generatedScala;
-    private LanguageSourceSet testScala;
+    private final PublicAssets assets = new DefaultPublicAssets();
+    private ScalaLanguageSourceSet generatedScala;
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
-    private JvmClasses testClasses = new DefaultJvmClasses();
 
     @Override
     protected String getTypeName() {
@@ -69,28 +70,20 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return classesDir;
     }
 
-    public JvmClasses getTestClasses() {
-        return testClasses;
+    public PublicAssets getAssets() {
+        return assets;
     }
 
-    public LanguageSourceSet getGeneratedScala() {
+    public ScalaLanguageSourceSet getGeneratedScala() {
         return generatedScala;
     }
 
-    public LanguageSourceSet getTestScala() {
-        return testScala;
-    }
-
-    public void setGeneratedScala(LanguageSourceSet scalaSources) {
+    public void setGeneratedScala(ScalaLanguageSourceSet scalaSources) {
         this.generatedScala = scalaSources;
     }
 
-    public void setTestScala(LanguageSourceSet scalaSources) {
-        this.testScala = scalaSources;
-    }
-
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
-        private final Set<File> resourceDirs = Sets.newHashSet();
+        private FileCollection resourceDirs = new UnionFileCollection();
         private File classesDir;
 
         public File getClassesDir() {
@@ -101,12 +94,24 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
             this.classesDir = classesDir;
         }
 
-        public Set<File> getResourceDirs() {
-            return Sets.newHashSet(resourceDirs);
+        public FileCollection getResourceDirs() {
+            return resourceDirs;
         }
 
         public void addResourceDir(File resourceDir) {
-            resourceDirs.add(resourceDir);
+            resourceDirs.add(new SimpleFileCollection(resourceDir));
+        }
+    }
+
+    private static class DefaultPublicAssets extends AbstractBuildableModelElement implements PublicAssets {
+        private FileCollection resourceDirs = new UnionFileCollection();
+
+        public FileCollection getAssetDirs() {
+            return resourceDirs;
+        }
+
+        public void addAssetDir(File resourceDir) {
+            resourceDirs.add(new SimpleFileCollection(resourceDir));
         }
     }
 }

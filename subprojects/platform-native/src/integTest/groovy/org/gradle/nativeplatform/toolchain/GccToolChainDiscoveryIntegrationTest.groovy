@@ -16,11 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.hamcrest.Matchers
+import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 
@@ -109,7 +111,7 @@ model {
     }
 }
 """
-        fails "mainExecutable"
+        fails "compileMainExecutableMainC"
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
@@ -117,6 +119,7 @@ model {
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find C compiler 'does-not-exist'"))
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "fails when required language tool is not available but other language tools are available"() {
         when:
         buildFile << """
@@ -130,7 +133,7 @@ model {
     }
 }
 """
-        fails "mainExecutable"
+        fails "compileMainExecutableMainC"
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")

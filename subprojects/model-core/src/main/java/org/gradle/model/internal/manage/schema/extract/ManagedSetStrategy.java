@@ -21,8 +21,9 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;

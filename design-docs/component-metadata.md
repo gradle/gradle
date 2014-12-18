@@ -1,49 +1,6 @@
 
 # Feature: Component selection rules
 
-## Story: Add Java API for component metadata rules
-
-This story adds '@Mutate' rule definitions to `ComponentMetadataHandler` and component metadata rules, and adds an API
-consistent with component selection rules.
-
-- Deprecate and replace `ComponentMetadataHandler.eachComponent` methods with `.all()` equivalents
-- Add `ComponentMetadataHandler.all(Object)` that takes a rule source instance
-- Add `ComponentMetadataHandler.withModule()` methods to target a rule at a particular module.
-
-### User visible changes
-
-    interface ComponentMetadataHandler {
-        all(Action<? super ComponentMetadataDetails>)
-        all(Closure)
-        all(Object ruleSource)
-        withModule(Action<? super ComponentMetadataDetails>)
-        withModule(Closure)
-        withModule(Object ruleSource)
-    }
-
-    class MyCustomRule {
-        @Mutate
-        void whatever(ComponentMetadataDetails metadata) { ... }
-    }
-
-    class MyIvyRule {
-        @Mutate
-        void whatever(ComponentMetadataDetails metadata, IvyModuleDescriptor ivyDescriptor) { ... }
-    }
-
-### Implementation
-
-- Change `DefaultComponentMetadataHandler` so that it adapts `Action` and `Closure` inputs to `RuleAction` for execution
-- Add new method `ComponentMetadataHandler.all(Object)`
-- Deprecate `ComponentMetadataHandler.eachComponent()` methods, replacing them with `ComponentMetadataHandler.all()`
-    - Update samples, Userguide, release notes etc.
-
-### Open issues
-
-- `@Mutate` is not documented or included in default imports.
-- Rules that accept a closure should allow no args, as the subject is made available as the delegate.
-- Rules that accept a closure should allow the first arg to be untyped.
-
 ## Story: Build reports reasons for failure to resolve due to custom component selection rules
 
 To make it easy to diagnose why no components match a particular version selector, this story adds context to the existing

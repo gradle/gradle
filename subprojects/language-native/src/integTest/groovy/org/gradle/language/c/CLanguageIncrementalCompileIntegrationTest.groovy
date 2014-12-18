@@ -15,12 +15,12 @@
  */
 package org.gradle.language.c
 
-import org.gradle.language.AbstractLanguageIncrementalCompileIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import spock.lang.Issue
 
-class CLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {
+class CLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new CHelloWorldApp()

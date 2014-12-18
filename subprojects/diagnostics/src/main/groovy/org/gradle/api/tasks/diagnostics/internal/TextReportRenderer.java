@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.initialization.BuildClientMetaData;
@@ -34,9 +35,14 @@ import java.io.IOException;
  */
 public class TextReportRenderer implements ReportRenderer {
     private BuildClientMetaData clientMetaData;
+    private FileResolver fileResolver;
     private StyledTextOutput textOutput;
     private TextReportBuilder builder;
     private boolean close;
+
+    public void setFileResolver(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
 
     public void setClientMetaData(BuildClientMetaData clientMetaData) {
         this.clientMetaData = clientMetaData;
@@ -78,7 +84,7 @@ public class TextReportRenderer implements ReportRenderer {
 
     private void setWriter(StyledTextOutput styledTextOutput, boolean close) {
         this.textOutput = styledTextOutput;
-        this.builder = new DefaultTextReportBuilder(textOutput);
+        this.builder = new DefaultTextReportBuilder(textOutput, fileResolver);
         this.close = close;
     }
 

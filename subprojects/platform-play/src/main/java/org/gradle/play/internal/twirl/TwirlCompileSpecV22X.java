@@ -77,6 +77,7 @@ public class TwirlCompileSpecV22X extends DefaultVersionedTwirlCompileSpec imple
     public List<String> getClassLoaderPackages() {
         return Arrays.asList("play.templates");
     }
+
     public Object getDependencyNotation() {
         return String.format("com.typesafe.play:templates-compiler_%s:%s", scalaVersion, twirlVersion);
     }

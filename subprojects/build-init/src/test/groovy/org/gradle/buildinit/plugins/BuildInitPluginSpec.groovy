@@ -44,7 +44,7 @@ class BuildInitPluginSpec extends Specification {
         buildFile << '// an empty build'
         project = TestUtil.builder().withProjectDir(projectDir).build()
         when:
-        project.pluginManager.apply BuildInitPlugin
+        project.pluginManager.apply(BuildInitPlugin)
 
         then:
         project.init != null

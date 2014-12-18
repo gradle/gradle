@@ -16,6 +16,7 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LoggingOutput;
+import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
 
@@ -31,7 +32,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
      *
      * <p>Removes standard output and/or error as a side-effect.
      */
-    void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole);
+    void attachProcessConsole(ConsoleOutput consoleOutput);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings

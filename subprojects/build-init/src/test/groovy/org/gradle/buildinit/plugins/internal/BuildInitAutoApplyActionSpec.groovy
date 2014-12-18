@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.plugins.PluginManager
+import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.test.fixtures.file.TestFile
@@ -30,13 +30,13 @@ class BuildInitAutoApplyActionSpec extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     TestFile buildFile
     ProjectInternal projectInternal
-    PluginManager pluginManager
+    DefaultPluginManager pluginManager
     TaskContainerInternal taskContainerInternal
 
     public void setup() {
         projectInternal = Mock(ProjectInternal)
         taskContainerInternal = Mock(TaskContainerInternal)
-        pluginManager = Mock(PluginManager)
+        pluginManager = Mock(DefaultPluginManager)
         _ * projectInternal.getTasks() >> taskContainerInternal
 
     }

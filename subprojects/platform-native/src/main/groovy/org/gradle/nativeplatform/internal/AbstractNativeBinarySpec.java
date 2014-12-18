@@ -16,20 +16,19 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -102,11 +101,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return staticLibArchiver;
     }
 
-    public abstract NativeBinaryTasks getTasks();
-
-    public NativeBinaryTasks getNativeBinaryTasks() {
-        return getTasks();
-    }
+    public abstract BinaryTasksCollection getTasks();
 
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
@@ -154,14 +149,10 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         this.resolver = resolver;
     }
 
-    public static class DefaultNativeBinaryTasks extends DefaultBinaryTasksCollection implements NativeBinaryTasks {
-        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
-            super(binary);
-        }
-
-        public ObjectFilesToBinary getCreateOrLink() {
-            ObjectFilesToBinary link = findSingleTaskWithType(AbstractLinkTask.class);
-            return link == null ? findSingleTaskWithType(CreateStaticLibrary.class) : link;
-        }
+    public void binaryInputs(FileCollection files) {
+        // TODO - should split this up, so that the inputs are attached to an object that represents the binary, which is then later used to configure the link/assemble tasks
+        getCreateOrLink().source(files);
     }
+
+    protected abstract ObjectFilesToBinary getCreateOrLink();
 }

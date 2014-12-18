@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.language.c
-import org.gradle.language.AbstractLanguageIntegrationTest
+import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import spock.lang.Issue
 import spock.lang.Unroll
 // TODO:DAZ Some of these tests should apply to all single-language integration tests
-class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
 

@@ -2,10 +2,13 @@ dependencies {
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")
-    compile project(":scala")
+    compile project(":languageScala")
+    compile project(":javascript")
+    compile project(":diagnostics")
 }
 
 useClassycle()
 strictCompile()
 
 useTestFixtures()
+useTestFixtures(project: ":platformBase")

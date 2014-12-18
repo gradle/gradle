@@ -41,8 +41,6 @@ import org.gradle.nativeplatform.internal.resolve.ProjectLocator;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.platform.base.BinaryContainer;
 
-import java.util.Collections;
-
 
 /**
  * A plugin for creating a Visual Studio solution for a gradle project.
@@ -51,7 +49,7 @@ import java.util.Collections;
 public class VisualStudioPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeComponentModelPlugin.class));
+        project.getPluginManager().apply(NativeComponentModelPlugin.class);
     }
 
     /**

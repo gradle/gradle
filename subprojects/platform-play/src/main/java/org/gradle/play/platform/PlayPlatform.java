@@ -16,19 +16,26 @@
 
 package org.gradle.play.platform;
 
-import org.gradle.api.JavaVersion;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.language.scala.ScalaPlatform;
+import org.gradle.model.Unmanaged;
 import org.gradle.platform.base.Platform;
 
 /**
  * Defines and configures a Play Framework environment including versions of Play, Scala and Java.
- * */
+ */
 public interface PlayPlatform extends Platform {
 
     public String getPlayVersion();
 
-    public String getScalaVersion();
+    /**
+     * Should be managed at one point
+     */
+    @Unmanaged
+    public ScalaPlatform getScalaPlatform();
 
     public String getTwirlVersion();
 
-    public JavaVersion getJavaVersion();
+    @Unmanaged
+    public JavaPlatform getJavaPlatform();
 }

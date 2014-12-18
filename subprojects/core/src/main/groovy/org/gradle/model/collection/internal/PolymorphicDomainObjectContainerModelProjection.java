@@ -19,29 +19,32 @@ package org.gradle.model.collection.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.Namer;
 import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.CollectionBuilderModelView;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelProjection;
-import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
+    private final Instantiator instantiator;
     private final C container;
     private final Class<M> itemType;
 
-    public PolymorphicDomainObjectContainerModelProjection(C container, Class<M> itemType) {
+    public PolymorphicDomainObjectContainerModelProjection(Instantiator instantiator, C container, Class<M> itemType) {
+        this.instantiator = instantiator;
         this.container = container;
         this.itemType = itemType;
     }
@@ -74,11 +77,11 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, ModelNode node, Class<S> itemType, C container) {
-        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new Instantiator<S>(itemType, container), sourceDescriptor, node);
+        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new EntityInstantiator<S>(itemType, container), sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, ModelType.of(itemType)).build();
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(instantiator, viewType, builder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
@@ -113,13 +116,13 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return sb.toString();
     }
 
-    static class Instantiator<I> implements NamedEntityInstantiator<I> {
+    static class EntityInstantiator<I> implements NamedEntityInstantiator<I> {
 
         private final Class<I> defaultType;
         private final ModelType<I> itemType;
         private final PolymorphicDomainObjectContainer<? super I> container;
 
-        Instantiator(Class<I> defaultType, PolymorphicDomainObjectContainer<? super I> container) {
+        EntityInstantiator(Class<I> defaultType, PolymorphicDomainObjectContainer<? super I> container) {
             this.defaultType = defaultType;
             this.itemType = ModelType.of(defaultType);
             this.container = container;
@@ -136,5 +139,61 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         public <S extends I> S create(String name, Class<S> type) {
             return container.create(name, type);
         }
+    }
+
+    public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> void bridgeNamedDomainObjectCollection(
+            final ModelRegistry modelRegistry, Instantiator instantiator,
+            final ModelType<C> containerType,
+            final ModelType<P> publicType,
+            final ModelType<I> itemType,
+            final ModelPath modelPath,
+            final C container,
+            final Namer<I> namer,
+            final String descriptor,
+            final Transformer<String, String> itemDescriptorGenerator
+    ) {
+        modelRegistry.create(
+                ModelCreators.of(
+                        ModelReference.of(modelPath, containerType),
+                        new Transformer<Action<? super ModelNode>, Inputs>() {
+                            public Action<? super ModelNode> transform(Inputs inputs) {
+                                return new Action<ModelNode>() {
+                                    public void execute(final ModelNode modelNode) {
+                                        modelNode.setPrivateData(containerType, container);
+                                        container.all(new Action<I>() {
+                                            public void execute(final I item) {
+                                                final String name = namer.determineName(item);
+
+                                                if (!modelNode.getLinks().containsKey(name)) {
+                                                    UnmanagedModelProjection<I> projection = new UnmanagedModelProjection<I>(ModelType.typeOf(item), true, true);
+                                                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(projection);
+
+                                                    modelNode.addLink(
+                                                            name,
+                                                            new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),
+                                                            new ProjectionBackedModelPromise(projections),
+                                                            new ProjectionBackedModelAdapter(projections)
+                                                    ).setPrivateData(ModelType.typeOf(item), item);
+                                                }
+                                            }
+                                        });
+                                    }
+                                };
+                            }
+                        }
+                )
+                        .simpleDescriptor(descriptor)
+                        .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<C, I>(instantiator, container, itemType.getConcreteClass()))
+                        .build()
+        );
+
+
+        container.whenObjectRemoved(new Action<I>() {
+            public void execute(I item) {
+                ModelPath path = modelPath.child(namer.determineName(item));
+                modelRegistry.remove(path);
+            }
+        });
     }
 }

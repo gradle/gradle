@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.logging.ConsoleOutput;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
@@ -158,8 +159,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public void removeAllOutputEventListeners() { loggingOutput.removeAllOutputEventListeners(); }
 
-    public void attachProcessConsole(boolean colorOutput, boolean useAnsiConsole) {
-        loggingOutput.attachProcessConsole(colorOutput, useAnsiConsole);
+    public void attachProcessConsole(ConsoleOutput consoleOutput) {
+        loggingOutput.attachProcessConsole(consoleOutput);
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {

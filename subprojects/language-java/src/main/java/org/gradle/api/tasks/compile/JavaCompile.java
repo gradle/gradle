@@ -30,10 +30,7 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
@@ -60,6 +57,7 @@ import java.io.File;
  *     }
  * </pre>
  */
+@ParallelizableTask
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();

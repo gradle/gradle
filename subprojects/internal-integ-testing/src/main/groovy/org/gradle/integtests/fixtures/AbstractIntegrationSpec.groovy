@@ -111,6 +111,11 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         executer
     }
 
+    protected GradleExecuter requireGradleHome() {
+        executer.requireGradleHome()
+        executer
+    }
+
     /**
      * Synonym for succeeds()
      */
@@ -154,6 +159,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
     
     protected void executedAndNotSkipped(String... tasks) {
+        if (GradleContextualExecuter.parallel) {
+            return
+        }
         tasks.each {
             assert it in executedTasks
             assert !skippedTasks.contains(it)
@@ -161,6 +169,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected void skipped(String... tasks) {
+        if (GradleContextualExecuter.parallel) {
+            return
+        }
         tasks.each {
             assert it in executedTasks
             assert skippedTasks.contains(it)

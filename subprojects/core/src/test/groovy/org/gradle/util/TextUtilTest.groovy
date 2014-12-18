@@ -85,4 +85,13 @@ class TextUtilTest extends Specification {
         "abc\ndef\nghi"     | " "    | " abc\n def\n ghi"
         "abc\n\t\n   \nghi" | "X"    | "Xabc\n\t\n   \nXghi"
     }
+
+    def shorterOf() {
+        expect:
+        TextUtil.shorterOf("a", "b") == "a"
+        TextUtil.shorterOf("aa", "b") == "b"
+        TextUtil.shorterOf("a", "bb") == "a"
+        TextUtil.shorterOf("", "bb") == ""
+        TextUtil.shorterOf("", "") == ""
+    }
 }

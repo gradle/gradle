@@ -23,35 +23,12 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         return "ideaModule"
     }
 
-    void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
-        def iml = parseFile("root.iml")
-
-        assert iml.component.orderEntry.library.CLASSES.root.size() == 1
-
-        def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[0].text()
-        assert sourcesUrl.endsWith("/module-1.0-${sourcesClassifier}.jar!/")
-
-        def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
-        assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
-
-    }
-
-    void ideFileContainsArtifactsWithSourceEntries(Map<String, Map<String, String>> artifactSources) {
-        def iml = parseFile("root.iml")
-
-
-        assert iml.component.orderEntry.library.CLASSES.root.size() == artifactSources.size()
-
-        artifactSources.eachWithIndex {expectedModuleFileName, expectedAuxiliaryFileNames, index ->
-            def moduleUrl = iml.component.orderEntry.library.CLASSES.root.@url[index].text()
-            assert moduleUrl.endsWith("/$expectedModuleFileName!/")
-
-            def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[index].text()
-            assert sourcesUrl.endsWith("/${expectedAuxiliaryFileNames["sources"]}!/")
-
-            def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[index].text()
-            assert javadocUrl.endsWith("/${expectedAuxiliaryFileNames["javadoc"]}!/")
-        }
+    void ideFileContainsEntry(String jar, List<String> sources, List<String> javadocs) {
+        IdeaModuleFixture iml =  parseIml("root.iml")
+        def libraryEntry = iml.dependencies.libraries.find { it.jarName == jar }
+        assert libraryEntry != null : "entry for jar ${jar} not found"
+        libraryEntry.assertHasSource(sources)
+        libraryEntry.assertHasJavadoc(javadocs)
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
@@ -59,7 +36,6 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         iml.dependencies.libraries.size() == 1
         iml.dependencies.libraries[0].assertHasNoJavadoc()
         iml.dependencies.libraries[0].assertHasNoSource()
-
     }
 
     @Override
@@ -71,14 +47,5 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     @Override
     void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact) {
         httpArtifact.expectGet()
-    }
-
-    void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
-        IdeaModuleFixture iml =  parseIml("root.iml")
-        iml.dependencies.libraries.each{ IdeaModuleFixture.ImlLibrary library ->
-            library.assertHasSource("/module-1.0-${sourcesClassifier}.jar")
-            library.assertHasJavadoc("/module-1.0-${javadocClassifier}.jar")
-
-        }
     }
 }

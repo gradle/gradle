@@ -69,6 +69,7 @@ import java.util.List;
  * }
  * </pre>
  */
+@ParallelizableTask
 public class Javadoc extends SourceTask {
     private File destinationDir;
 

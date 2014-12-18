@@ -24,6 +24,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.*
 import static org.hamcrest.Matchers.instanceOf
 
 class LifecycleBasePluginTest extends Specification {
@@ -34,14 +35,26 @@ class LifecycleBasePluginTest extends Specification {
         project.pluginManager.apply(LifecycleBasePlugin)
 
         then:
-        def clean = project.tasks[LifecycleBasePlugin.CLEAN_TASK_NAME]
+        def clean = project.tasks[CLEAN_TASK_NAME]
         clean instanceOf(Delete)
         clean dependsOn()
         clean.targetFiles.files == [project.buildDir] as Set
 
         and:
-        def assemble = project.tasks[LifecycleBasePlugin.ASSEMBLE_TASK_NAME]
+        def assemble = project.tasks[ASSEMBLE_TASK_NAME]
+        assemble.group == BUILD_GROUP
         assemble instanceOf(DefaultTask)
+
+        and:
+        def check = project.tasks[CHECK_TASK_NAME]
+        check.group == VERIFICATION_GROUP
+        check instanceOf(DefaultTask)
+
+        and:
+        def build = project.tasks[BUILD_TASK_NAME]
+        build.group == LifecycleBasePlugin.BUILD_GROUP
+        build dependsOn(ASSEMBLE_TASK_NAME, CHECK_TASK_NAME)
+        check instanceOf(DefaultTask)
     }
 
     public void addsACleanRule() {

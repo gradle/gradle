@@ -136,6 +136,7 @@ public interface ComponentMetadataHandler {
      *
      * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
      */
+    @Deprecated
      void eachComponent(Action<? super ComponentMetadataDetails> rule);
 
      /**
@@ -143,5 +144,6 @@ public interface ComponentMetadataHandler {
       *
       * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
       */
+     @Deprecated
      void eachComponent(Closure<?> rule);
 }

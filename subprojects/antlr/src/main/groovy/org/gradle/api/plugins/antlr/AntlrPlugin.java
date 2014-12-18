@@ -32,7 +32,6 @@ import org.gradle.api.tasks.SourceSet;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
@@ -50,7 +49,7 @@ public class AntlrPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", JavaPlugin.class));
+        project.getPluginManager().apply(JavaPlugin.class);
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.

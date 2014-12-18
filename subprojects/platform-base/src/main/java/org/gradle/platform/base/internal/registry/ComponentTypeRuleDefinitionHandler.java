@@ -26,15 +26,33 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
+import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.RuleSourceDependencies;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
-public class ComponentTypeRuleDefinitionHandler extends ComponentModelRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
+public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
+
+    private Instantiator instantiator;
 
     public ComponentTypeRuleDefinitionHandler(final Instantiator instantiator) {
-        super("component", ComponentType.class, ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultComponentTypeBuilder.class), new RegistrationAction(instantiator));
+        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultComponentTypeBuilder.class));
+        this.instantiator = instantiator;
+    }
+
+    @Override
+    <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+        ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
+        dependencies.add(ComponentModelBasePlugin.class);
+        if (implementation != null) {
+            ModelMutator<?> mutator = new RegisterTypeRule<ComponentSpec, BaseComponentSpec>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator));
+            modelRegistry.mutate(mutator);
+        }
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {

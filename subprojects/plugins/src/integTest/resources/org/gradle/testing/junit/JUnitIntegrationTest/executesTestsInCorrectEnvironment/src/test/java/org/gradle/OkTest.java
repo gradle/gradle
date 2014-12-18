@@ -14,24 +14,6 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.*;
 
 public class OkTest {
-    static {
-        System.out.println("class loaded");
-    }
-
-    public OkTest() {
-        System.out.println("test constructed");
-    }
-
-    @org.junit.BeforeClass public static void init() {
-        System.out.println("before class out");
-        System.err.println("before class err");
-    }
-
-    @org.junit.AfterClass public static void end() {
-        System.out.println("after class out");
-        System.err.println("after class err");
-    }
-
     @org.junit.Test
     public void ok() throws Exception {
         // check versions of dependencies
@@ -71,14 +53,6 @@ public class OkTest {
         assertEquals("Test worker", Thread.currentThread().getName());
         assertNull(System.getSecurityManager());
 
-        // check stdout and stderr and logging
-        System.out.println("This is test stdout");
-        System.out.println("non-asci char: ż");
-        System.out.print("no EOL");
-        System.out.println();
-        System.err.println("This is test stderr");
-        Logger.getLogger("test-logger").warning("this is a warning");
-
         final PrintStream out = System.out;
         // logging from a shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -88,17 +62,6 @@ public class OkTest {
                 Logger.getLogger("test-logger").info("info from a shutdown hook.");
             }
         });
-
-        // logging from another thread
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                System.out.println("stdout from another thread");
-                Logger.getLogger("test-logger").info("info from another thread.");
-            }
-        };
-        thread.start();
-        thread.join();
     }
 
     private List<URL> buildActualClassPath() {
@@ -117,7 +80,5 @@ public class OkTest {
 
     @org.junit.Test
     public void anotherOk() {
-        System.out.println("sys out from another test method");
-        System.err.println("sys err from another test method");
     }
 }

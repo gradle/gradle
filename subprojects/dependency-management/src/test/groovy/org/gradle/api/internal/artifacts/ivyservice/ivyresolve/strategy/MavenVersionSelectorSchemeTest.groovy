@@ -19,42 +19,44 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import spock.lang.Specification
 
 class MavenVersionSelectorSchemeTest extends Specification {
-    def defaultMatcher = Mock(VersionSelectorScheme)
+    def defaultMatcher = new DefaultVersionSelectorScheme()
     def mapper = new MavenVersionSelectorScheme(defaultMatcher)
-    def selector = Mock(VersionSelector)
 
     def "translates to maven syntax"() {
-        when:
-        1 * defaultMatcher.renderSelector(selector) >> input
+        given:
+        def selector = defaultMatcher.parseSelector(input)
 
-        then:
+        expect:
         mapper.renderSelector(selector) == output
 
         where:
         input                | output
+        "]2,3]"              | "(2,3]"
+        "[2,3["              | "[2,3)"
+        "]2,3["              | "(2,3)"
         "1.0"                | "1.0"
-        "1+"                 | "[1,2)"
-        "1.+"                | "[1,2)"
-        "1.5.+"              | "[1.5,1.6)"
-        "1.5+"               | "[1.5,1.6)"
-        "1.100+"             | "[1.100,1.101)"
-        "10.1+"              | "[10.1,10.2)"
-        "+"                  | "LATEST"
+        "[1.0]"              | "[1.0]"
+        "+"                  | "+"
         "latest.integration" | "LATEST"
         "latest.release"     | "RELEASE"
+        "1+"                 | "1+"
+        "1.+"                | "1.+"
+        "1.5+"               | "1.5+"
+        "1.100+"             | "1.100+"
+        "10.1+"              | "10.1+"
+
     }
 
     def "translates from maven syntax"() {
-        when:
-        1 * defaultMatcher.parseSelector(output) >> selector
-
-        then:
-        mapper.parseSelector(input) == selector
+        expect:
+        def selector = mapper.parseSelector(input)
+        defaultMatcher.renderSelector(selector) == output
 
         where:
         output               | input
         "1.0"                | "1.0"
         "[1,2)"              | "[1,2)"
+        "(1,2)"              | "(1,2)"
         "[1.5,1.6)"          | "[1.5,1.6)"
         "1.5+"               | "1.5+"
         "+"                  | "+"

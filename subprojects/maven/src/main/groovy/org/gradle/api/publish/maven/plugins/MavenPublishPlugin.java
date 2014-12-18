@@ -47,7 +47,6 @@ import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -77,7 +76,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", PublishingPlugin.class));
+        project.getPluginManager().apply(PublishingPlugin.class);
 
         final TaskContainer tasks = project.getTasks();
         final Task publishLocalLifecycleTask = tasks.create(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);

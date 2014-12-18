@@ -16,18 +16,12 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executor;
 
 class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
@@ -56,22 +50,11 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     }
 
     private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener, Executor executor) {
-        List<Project> projects = getAllProjects(taskExecutionPlan);
-        int numExecutors = Math.min(executorCount, projects.size());
+        LOGGER.info("Using {} parallel executor threads", executorCount);
 
-        LOGGER.info("Using {} parallel executor threads", numExecutors);
-
-        for (int i = 1; i < numExecutors; i++) {
+        for (int i = 1; i < executorCount; i++) {
             Runnable worker = taskWorker(taskExecutionPlan, taskListener);
             executor.execute(worker);
         }
-    }
-
-    private List<Project> getAllProjects(TaskExecutionPlan taskExecutionPlan) {
-        final Set<Project> uniqueProjects = new LinkedHashSet<Project>();
-        for (Task task : taskExecutionPlan.getTasks()) {
-            uniqueProjects.add(task.getProject());
-        }
-        return new ArrayList<Project>(uniqueProjects);
     }
 }

@@ -46,67 +46,33 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
+        module.artifact(classifier: "api")
         module.artifact(classifier: "sources")
         module.artifact(classifier: "javadoc")
         module.publish()
         module.allowAll()
 
-        when:
-        useMavenRepo(repo)
-        succeeds ideTask
-
-        then:
-        ideFileContainsSourcesAndJavadocEntry()
-
-        when:
-        server.resetExpectations()
-        succeeds ideTask
-
-        then:
-        ideFileContainsSourcesAndJavadocEntry()
-    }
-
-    def "sources and javadoc jars for multiple maven artifacts from maven repositories are resolved, attached and cached"() {
-        def repo = mavenHttpRepo
-        def module = repo.module("some", "module", "1.0")
-        def api = module.artifact(classifier: "api")
-        def tests = module.artifact(classifier:"tests")
-        def sources = module.artifact(classifier:"sources")
-        def javadoc = module.artifact(classifier:"javadoc")
-        module.publish()
-
-        when:
-        useMavenRepo(repo)
-
-        and:
         buildFile << """
 dependencies {
     compile 'some:module:1.0:api'
-    testCompile 'some:module:1.0:tests'
-}"""
+}
+"""
 
-        and:
-        module.pom.expectGet()
-        module.artifact.expectGet()
-        api.expectGet()
-        tests.expectGet()
-        javadoc.expectGet()
-        javadoc.expectHead()
-        sources.expectGet()
-        sources.expectHead()
-
-        then:
+        when:
+        useMavenRepo(repo)
         succeeds ideTask
 
-        and:
-        ideFileContainsSourcesAndJavadocEntryForEachLib()
+        then:
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
+        ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
 
         when:
         server.resetExpectations()
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntryForEachLib()
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
+        ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
     def "ignores missing sources and javadoc jars in maven repositories"() {
@@ -174,24 +140,64 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
 
         when:
         server.resetExpectations()
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
     }
 
-    def "sources and javadoc jars from ivy repositories are resolved, attached and cached when there are multiple artifacts"() {
+    def "all sources and javadoc jars resolved from ivy repo are attached to all artifacts for module"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        addCompleteConfigurations(module)
+
+        module.configuration("api")
+        module.configuration("tests")
+        module.artifact(type: "api", classifier: "api", ext: "jar", conf: "api")
+        module.artifact(type: "tests", classifier: "tests", ext: "jar", conf: "tests")
+        module.artifact(name: "other-source", type: "source", ext: "jar", conf: "sources")
+        module.artifact(name: "other-javadoc", type: "javadoc", ext: "jar", conf: "javadoc")
+
+        module.publish()
+        module.allowAll()
+
+        when:
+        useIvyRepo(repo)
+        buildFile << """
+dependencies {
+    compile 'some:module:1.0:api'
+    testCompile 'some:module:1.0:tests'
+}"""
+
+        succeeds ideTask
+
+        then:
+        def sources = ["module-1.0-my-sources.jar", "other-source-1.0.jar"]
+        def javadoc = ["module-1.0-my-javadoc.jar", "other-javadoc-1.0.jar"]
+        ideFileContainsEntry("module-1.0.jar", sources, javadoc)
+        ideFileContainsEntry("module-1.0-api.jar", sources, javadoc)
+        ideFileContainsEntry("module-1.0-tests.jar", sources, javadoc)
+    }
+
+    def "all sources jars from ivy repositories are attached when there are multiple unclassified artifacts"() {
         def repo = ivyHttpRepo
 
         def version = "1.0"
         def module = repo.module("some", "module", version)
 
-        def artifactNames = ["foo", "foo-api", "foo-core", "foo-core-api"]
-        addCompleteMultiArtifactConfiguration(module, artifactNames)
+        module.configuration("default")
+        module.configuration("sources")
+        module.configuration("javadoc")
+        module.artifact(name: "foo", type: "jar", ext: "jar", conf: "default")
+        module.artifact(name: "foo-sources", type: "jar", ext: "jar", conf: "sources")
+        module.artifact(name: "foo-javadoc", type: "jar", ext: "jar", conf: "javadoc")
+        module.artifact(name: "foo-api", type: "jar", ext: "jar", conf: "default")
+        module.artifact(name: "foo-api-sources", type: "jar", ext: "jar", conf: "sources")
+        module.artifact(name: "foo-api-javadoc", type: "jar", ext: "jar", conf: "javadoc")
         module.publish()
         module.allowAll()
 
@@ -200,49 +206,8 @@ dependencies {
         succeeds ideTask
 
         then:
-        def moduleSources = [:]
-        artifactNames.each { name ->
-            moduleSources["$name-${version}.jar"] = ["sources" : "$name-sources-${version}.jar", "javadoc" : "$name-javadoc-${version}.jar"]
-        }
-        ideFileContainsArtifactsWithSourceEntries(moduleSources)
-
-        when:
-        server.resetExpectations()
-        succeeds ideTask
-
-        then:
-        ideFileContainsArtifactsWithSourceEntries(moduleSources)
-    }
-
-    def "sources and javadoc jars from ivy repositories are resolved, attached and cached when there are multiple artifacts and a classifier is specified"() {
-        def repo = ivyHttpRepo
-
-        def version = "1.0"
-        def module = repo.module("some", "module", version)
-
-        def artifactNames = ["foo", "foo-api", "foo-core", "foo-core-api"]
-        addCompleteMultiArtifactConfigurationWithClassifiers(module, artifactNames)
-
-        module.publish()
-        module.allowAll()
-
-        when:
-        useIvyRepo(repo)
-        succeeds ideTask
-
-        then:
-        def moduleSources = [:]
-        artifactNames.each { name ->
-            moduleSources["$name-${version}.jar"] = ["sources" : "$name-${version}-my-sources.jar", "javadoc" : "$name-${version}-my-javadoc.jar"]
-        }
-        ideFileContainsArtifactsWithSourceEntries(moduleSources)
-
-        when:
-        server.resetExpectations()
-        succeeds ideTask
-
-        then:
-        ideFileContainsArtifactsWithSourceEntries(moduleSources)
+        ideFileContainsEntry("foo-1.0.jar", ["foo-api-sources-1.0.jar", "foo-sources-1.0.jar"], ["foo-api-javadoc-1.0.jar", "foo-javadoc-1.0.jar"])
+        ideFileContainsEntry("foo-api-1.0.jar", ["foo-api-sources-1.0.jar", "foo-sources-1.0.jar"], ["foo-api-javadoc-1.0.jar", "foo-javadoc-1.0.jar"])
     }
 
     def "ignores missing sources and javadoc jars in ivy repositories"() {
@@ -302,33 +267,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
-    }
-
-    def "sources and javadoc jars resolved from ivy repo are attached to all artifacts with same base name"() {
-        def repo = ivyHttpRepo
-        def module = repo.module("some", "module", "1.0")
-        addCompleteConfigurations(module)
-        module.configuration("api")
-        module.configuration("tests")
-        module.artifact(type: "api", classifier: "api", ext: "jar", conf: "api")
-        module.artifact(type: "tests", classifier: "tests", ext: "jar", conf: "tests")
-
-        module.publish()
-        module.allowAll()
-
-        when:
-        useIvyRepo(repo)
-        buildFile << """
-dependencies {
-    compile 'some:module:1.0:api'
-    testCompile 'some:module:1.0:tests'
-}"""
-
-        succeeds ideTask
-
-        then:
-        ideFileContainsSourcesAndJavadocEntryForEachLib("my-sources", "my-javadoc")
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
 
@@ -342,7 +281,7 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsSourcesAndJavadocEntry()
+        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
     private useIvyRepo(def repo) {
@@ -353,41 +292,6 @@ dependencies {
         buildFile << """repositories { maven { url "$repo.uri" } }"""
     }
 
-    private static void addCompleteMultiArtifactConfigurationWithClassifiers(IvyHttpModule module, List<String> artifactNames) {
-        module.configuration("default")
-        module.configuration("sources")
-        module.configuration("javadoc")
-
-        artifactNames.each { name ->
-            module.artifact(name: name, type: "jar", ext: "jar", conf: "default")
-        }
-
-        artifactNames.each { name ->
-            module.artifact(name: name, classifier: "my-sources", type: "jar", ext: "jar", conf: "sources")
-        }
-
-        artifactNames.each { name ->
-            module.artifact(name: name, classifier: "my-javadoc", type: "jar", ext: "jar", conf: "javadoc")
-        }
-    }
-
-    private static void addCompleteMultiArtifactConfiguration(IvyHttpModule module, List<String> artifactNames) {
-        module.configuration("default")
-        module.configuration("sources")
-        module.configuration("javadoc")
-
-        artifactNames.each { name ->
-            module.artifact(name: name, type: "jar", ext: "jar", conf: "default")
-        }
-
-        artifactNames.each { name ->
-            module.artifact(name: "$name-sources", type: "jar", ext: "jar", conf: "sources")
-        }
-
-        artifactNames.each { name ->
-            module.artifact(name: "$name-javadoc", type: "jar", ext: "jar", conf: "javadoc")
-        }
-    }
 
     private static void addCompleteConfigurations(IvyHttpModule module) {
         module.configuration("default")
@@ -437,11 +341,11 @@ task resolve << {
 
     abstract String getIdeTask()
 
-    abstract void ideFileContainsSourcesAndJavadocEntry()
-    abstract void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier, String javadocClassifier)
+    void ideFileContainsEntry(String jar, String sources, String javadoc) {
+        ideFileContainsEntry(jar, [sources], [javadoc])
+    }
+    abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
-    abstract void ideFileContainsArtifactsWithSourceEntries(Map<String, Map<String, String>> artifactSources)
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
-    abstract void ideFileContainsSourcesAndJavadocEntryForEachLib(String sourcesClassifier, String javadocClassifier)
 }

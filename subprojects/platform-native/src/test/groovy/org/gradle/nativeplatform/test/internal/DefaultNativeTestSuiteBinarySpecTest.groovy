@@ -16,18 +16,19 @@
 
 package org.gradle.nativeplatform.test.internal
 
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
-    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultNativeBinaryTasks()
+    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection()
 
-    def "returns null for link, builder and run when none defined"() {
+    def "returns null for link, install and run when none defined"() {
         expect:
         tasks.link == null
-        tasks.createOrLink == null
+        tasks.install == null
         tasks.run == null
     }
 
@@ -38,7 +39,18 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
         then:
         tasks.link == linkTask
-        tasks.createOrLink == linkTask
+        tasks.install == null
+        tasks.run == null
+    }
+
+    def "returns install task when defined"() {
+        when:
+        final installTask = TestUtil.createTask(InstallExecutable)
+        tasks.add(installTask)
+
+        then:
+        tasks.link == null
+        tasks.install == installTask
         tasks.run == null
     }
 
@@ -49,7 +61,7 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
         then:
         tasks.link == null
-        tasks.createOrLink == null
+        tasks.install == null
         tasks.run == runTask
     }
 }

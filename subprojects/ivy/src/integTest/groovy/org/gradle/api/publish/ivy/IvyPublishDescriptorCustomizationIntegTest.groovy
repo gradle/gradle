@@ -16,6 +16,9 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
+
 import javax.xml.namespace.QName
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 
@@ -48,6 +51,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         """
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can customize descriptor xml during publication"() {
         when:
         succeeds 'publish'

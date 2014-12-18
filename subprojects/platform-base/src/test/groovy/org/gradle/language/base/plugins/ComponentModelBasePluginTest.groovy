@@ -41,14 +41,14 @@ class ComponentModelBasePluginTest extends Specification {
 
     def "adds componentSpecs extension"() {
         when:
-        project.apply(plugin: ComponentModelBasePlugin)
+        project.pluginManager.apply(ComponentModelBasePlugin)
         then:
         project.componentSpecs != null
     }
 
     def "adds componentSpecs model"() {
         when:
-        project.apply(plugin: ComponentModelBasePlugin)
+        project.pluginManager.apply(ComponentModelBasePlugin)
         then:
         project.modelRegistry.get(ModelPath.path("components")) != null
     }
@@ -66,7 +66,7 @@ class ComponentModelBasePluginTest extends Specification {
         _ * componentSpecInternal.source >> WrapUtil.toDomainObjectSet(LanguageSourceSet)
 
         when:
-        project.apply(plugin: ComponentModelBasePlugin)
+        project.pluginManager.apply(ComponentModelBasePlugin)
         project.model {
             languages {
                 add(new TestLanguageRegistration())

@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -35,7 +36,7 @@ import spock.lang.Specification
 class DefaultNativeExecutableBinarySpecTest extends Specification {
     def instantiator = new DirectInstantiator()
     def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
-    def tasks = new DefaultNativeExecutableBinarySpec.DefaultNativeBinaryTasks()
+    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection()
 
     def "has useful string representation"() {
         given:
@@ -48,10 +49,10 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
         binary.toString() == "executable 'bigOne:executable'"
     }
 
-    def "returns null for link and builder when none defined"() {
+    def "returns null for link and install when none defined"() {
         expect:
         tasks.link == null
-        tasks.createOrLink == null
+        tasks.install == null
     }
 
     def "returns link task when defined"() {
@@ -61,6 +62,14 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
         then:
         tasks.link == linkTask
-        tasks.createOrLink == linkTask
+    }
+
+    def "returns install task when defined"() {
+        when:
+        final install = TestUtil.createTask(InstallExecutable)
+        tasks.add(install)
+
+        then:
+        tasks.install == install
     }
 }

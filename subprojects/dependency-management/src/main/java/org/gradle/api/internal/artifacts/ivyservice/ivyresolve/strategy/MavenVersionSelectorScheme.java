@@ -16,22 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
-    private static final String FIXED_PREFIX = "([\\d\\.]*)";
-    private static final String DYN_VERSION_NUMBER = "(\\d+)";
-    public static final String PLUS_OPER = "[\\.]?\\+";
-    private static final String PLUS_NOTATION_PATTERN = FIXED_PREFIX + DYN_VERSION_NUMBER + PLUS_OPER;
-    private static final String PLUS = "+";
     public static final String LATEST = "LATEST";
     public static final String RELEASE = "RELEASE";
     private static final String LATEST_INTEGRATION = "latest.integration";
     private static final String LATEST_RELEASE = "latest.release";
-
-    public final Pattern plusNotationPattern = Pattern.compile(PLUS_NOTATION_PATTERN);
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
 
@@ -40,7 +30,13 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
     }
 
     public VersionSelector parseSelector(String selectorString) {
-        return defaultVersionSelectorScheme.parseSelector(fromMavenSyntax(selectorString));
+        if (selectorString.equals(RELEASE)) {
+            return new LatestVersionSelector(LATEST_RELEASE);
+        } else if (selectorString.equals(LATEST)) {
+            return new LatestVersionSelector(LATEST_INTEGRATION);
+        } else {
+            return defaultVersionSelectorScheme.parseSelector(selectorString);
+        }
     }
 
     public String renderSelector(VersionSelector selector) {
@@ -49,32 +45,18 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
     // TODO:DAZ VersionSelector should be more descriptive, so it can be directly translated
     private String toMavenSyntax(String version) {
-        Matcher plusNotationMatcher = plusNotationPattern.matcher(version);
-        if (version.equals(PLUS) || version.equals(LATEST_INTEGRATION)) {
+        if (version.equals(LATEST_INTEGRATION)) {
             return LATEST;
         }
         if (version.equals(LATEST_RELEASE)) {
             return RELEASE;
         }
-        if (plusNotationMatcher.matches()) {
-            String prefix = plusNotationMatcher.group(1);
-            int dynVersionPart = Integer.parseInt(plusNotationMatcher.group(2));
-            if (prefix != null) {
-                return String.format("[%s%s,%s%s)", prefix, dynVersionPart, prefix, dynVersionPart + 1);
-            } else {
-                return String.format("[%s,%s)", dynVersionPart, dynVersionPart + 1);
-            }
+        if (version.startsWith("]")) {
+            version = '(' + version.substring(1);
+        }
+        if (version.endsWith("[")) {
+            version = version.substring(0, version.length() - 1) + ')';
         }
         return version;
-    }
-
-    private String fromMavenSyntax(String version) {
-        if (version.equals(RELEASE)) {
-            return LATEST_RELEASE;
-        } else if (version.equals(LATEST)) {
-            return LATEST_INTEGRATION;
-        } else {
-            return version;
-        }
     }
 }

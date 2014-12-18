@@ -67,7 +67,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
     def "configuration tasks are binary tasks"() {
         given:
-        def tasks = Mock(NativeExecutableBinarySpec.NativeBinaryTasks)
+        def tasks = Mock(NativeExecutableBinarySpec.TasksCollection)
         def lifecycleTask = Mock(Task)
         when:
         exeBinary.tasks >> tasks

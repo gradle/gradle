@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import com.google.common.cache.CacheBuilder
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -27,8 +26,10 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def backingCache = CacheBuilder.newBuilder().build()
-    def cache = new DefaultClassLoaderCache(backingCache)
+    def storage = [:]
+    def cache = new DefaultClassLoaderCache(storage)
+    def id1 = new ClassLoaderId() {}
+    def id2 = new ClassLoaderId() {}
 
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
@@ -44,37 +45,60 @@ class DefaultClassLoaderCacheTest extends Specification {
         new URLClassLoader(classPath.asURLArray)
     }
 
-    def "class loaders are reused"() {
+    def "class loaders are reused when parent and class path are the same"() {
         expect:
         def root = classLoader(classPath("root"))
-        cache.get(root, classPath("c1"), null).is cache.get(root, classPath("c1"), null)
+        cache.get(id1, classPath("c1"), root, null) == cache.get(id1, classPath("c1"), root, null)
+        cache.get(id1, classPath("c1"), root, null) != cache.get(id1, classPath("c1", "c2"), root, null)
+    }
+
+    def "class loaders with different ids are reused"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        cache.get(id1, classPath("c1"), root, null).is cache.get(id2, classPath("c1"), root, null)
     }
 
     def "parents are respected"() {
         expect:
         def root1 = classLoader(classPath("root1"))
         def root2 = classLoader(classPath("root2"))
-        cache.get(root1, classPath("c1"), null) != cache.get(root2, classPath("c1"), null)
+        cache.get(id1, classPath("c1"), root1, null) != cache.get(id2, classPath("c1"), root2, null)
+    }
+
+    def "null parents are respected"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        cache.get(id1, classPath("c1"), null, null) == cache.get(id1, classPath("c1"), null, null)
+        cache.get(id1, classPath("c1"), null, null) != cache.get(id1, classPath("c1"), root, null)
     }
 
     def "filters are respected"() {
-        expect:
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
         def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [])
-        cache.get(root, classPath("c1"), f1).is(cache.get(root, classPath("c1"), f1))
-        !cache.get(root, classPath("c1"), f1).is(cache.get(root, classPath("c1"), f2))
-        backingCache.size() == 3
+
+        expect:
+        cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
+        !cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f2))
+        storage.size() == 2
     }
 
     def "non filtered classloaders are reused"() {
         expect:
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
-        cache.get(root, classPath("c1"), f1)
-        backingCache.size() == 2
-        cache.get(root, classPath("c1"), null)
-        backingCache.size() == 2
+        cache.get(id1, classPath("c1"), root, f1)
+        storage.size() == 2
+        cache.get(id1, classPath("c1"), root, null)
+        storage.size() == 2
     }
 
+    def "removes stale classloader"() {
+        def root = classLoader(classPath("root"))
+        cache.get(id1, classPath("c1"), root, null)
+        def c2 = cache.get(id1, classPath("c2"), root, null)
+        expect:
+        storage.size() == 1
+        c2.is cache.get(id1, classPath("c2"), root, null)
+    }
 }

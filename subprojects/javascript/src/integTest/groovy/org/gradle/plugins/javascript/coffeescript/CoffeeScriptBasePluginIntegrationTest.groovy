@@ -19,6 +19,8 @@
 package org.gradle.plugins.javascript.coffeescript
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.*
 import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptBasePluginTestFixtures.*
@@ -53,6 +55,7 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         js.text.contains("CoffeeScript Compiler")
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "can compile coffeescript"() {
         given:
         file("src/main/coffeescript/dir1/thing1.coffee") << "number = 1"

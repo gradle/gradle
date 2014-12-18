@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+
 public class UnderDevelopmentGradleDistribution extends DefaultGradleDistribution {
 
     public UnderDevelopmentGradleDistribution() {
@@ -30,5 +32,9 @@ public class UnderDevelopmentGradleDistribution extends DefaultGradleDistributio
         );
     }
 
+    @Override
+    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
+        return new GradleContextualExecuter(this, testDirectoryProvider);
+    }
 }
 

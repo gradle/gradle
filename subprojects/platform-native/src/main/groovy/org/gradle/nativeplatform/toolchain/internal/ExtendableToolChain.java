@@ -62,4 +62,5 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
     protected File resolve(Object path) {
         return fileResolver.resolve(path);
     }
+
 }

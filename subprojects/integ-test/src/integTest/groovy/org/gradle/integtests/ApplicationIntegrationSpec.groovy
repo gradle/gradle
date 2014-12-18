@@ -16,9 +16,11 @@
 package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.startsWith
@@ -389,6 +391,7 @@ class Main {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "distribution file producing tasks are run automatically"() {
         when:
         buildFile << """

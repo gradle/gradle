@@ -23,11 +23,13 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-abstract class AbstractLanguagePluginSpec extends Specification{
+abstract class AbstractLanguagePluginSpec extends Specification {
     final def project = TestUtil.createRootProject()
 
     abstract def getPluginClass()
+
     abstract def getLanguageSourceSet()
+
     abstract String getLanguageId()
 
     @Unroll

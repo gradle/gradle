@@ -17,9 +17,9 @@
 package org.gradle.language.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.nativeplatform.fixtures.app.TestComponent
+import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateCppBaseNamesTestApp extends TestComponent {
+class DuplicateCppBaseNamesTestApp extends TestNativeComponent {
 
     def plugins = ["cpp"]
 

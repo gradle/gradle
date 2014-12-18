@@ -105,6 +105,14 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return path(path + SEPARATOR + child);
     }
 
+    public boolean isTopLevel() {
+        return getRootParent() == null;
+    }
+
+    public ModelPath getRootParent() {
+        return components.size() == 1 ? null : ModelPath.path(components.get(0));
+    }
+
     public ModelPath getParent() {
         int lastIndex = path.lastIndexOf(SEPARATOR);
         if (lastIndex == -1) {

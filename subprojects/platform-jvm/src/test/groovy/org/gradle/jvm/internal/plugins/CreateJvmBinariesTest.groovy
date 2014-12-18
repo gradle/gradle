@@ -17,7 +17,6 @@
 package org.gradle.jvm.internal.plugins
 
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -63,7 +62,6 @@ class CreateJvmBinariesTest extends Specification {
         def namingScheme = Mock(BinaryNamingScheme)
         def jvmExtension = Mock(JvmComponentExtension)
         def platform = new DefaultJavaPlatform("test")
-        platform.setTargetCompatibility(JavaVersion.current())
         def source1 = sourceSet("ss1")
         def source2 = sourceSet("ss2")
 
@@ -72,7 +70,7 @@ class CreateJvmBinariesTest extends Specification {
         rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
 
         then:
-        1 * platforms.chooseFromTargets(JavaPlatform, _) >> [ platform ]
+        1 * platforms.chooseFromTargets(JavaPlatform, _) >> [platform]
         1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder

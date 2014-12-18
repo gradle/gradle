@@ -142,7 +142,7 @@ public class RoutesCompile extends SourceTask {
     }
 
     public BaseForkOptions getForkOptions() {
-        if(forkOptions == null){
+        if (forkOptions == null) {
             forkOptions = new BaseForkOptions();
         }
         return forkOptions;

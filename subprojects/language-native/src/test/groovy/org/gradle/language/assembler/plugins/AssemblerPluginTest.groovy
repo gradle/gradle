@@ -16,6 +16,7 @@
 
 package org.gradle.language.assembler.plugins
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
@@ -31,7 +32,7 @@ class AssemblerPluginTest extends Specification {
     def "creates asm source set with conventional locations for components"() {
         when:
         dsl {
-            apply plugin: AssemblerPlugin
+            pluginManager.apply AssemblerPlugin
             model {
                 components {
                     exe(NativeExecutableSpec)
@@ -52,7 +53,7 @@ class AssemblerPluginTest extends Specification {
     def "can configure source set locations"() {
         given:
         dsl {
-            apply plugin: AssemblerPlugin
+            pluginManager.apply AssemblerPlugin
             model {
                 components {
                     exe(NativeExecutableSpec) {
@@ -77,7 +78,7 @@ class AssemblerPluginTest extends Specification {
         touch("src/test/asm/dummy.s")
         touch("src/test/anotherOne/dummy.s")
         dsl {
-            apply plugin: AssemblerPlugin
+            pluginManager.apply AssemblerPlugin
 
             model {
                 components {
@@ -115,7 +116,7 @@ class AssemblerPluginTest extends Specification {
         touch("src/test/asm/dummy.s")
         touch("src/test/anotherOne/dummy.s")
         dsl {
-            apply plugin: AssemblerPlugin
+            pluginManager.apply AssemblerPlugin
             model {
                 components {
                     test(NativeLibrarySpec) {
@@ -162,7 +163,7 @@ class AssemblerPluginTest extends Specification {
         GFileUtils.touch(project.file(filePath))
     }
 
-    def dsl(Closure closure) {
+    def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
         project.evaluate()

@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class CleanBuildPerformanceTest extends AbstractPerformanceTest {
+class CleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' clean build")
     def "clean build"() {
         given:

@@ -44,17 +44,20 @@ class DaemonStatusTest extends Specification {
         when:
         System.setProperty(EXPIRE_AT_PROPERTY, threshold.toString())
         stats.getCurrentPerformance() >> perf
+        stats.getMemoryUsed() >> mem
 
         then:
         status.isDaemonTired(stats) >> tired
 
         where:
-        threshold | perf | tired
-        90        | 89   | true
-        90        | 90   | true
-        90        | 91   | false
-        0         | 0    | false
-        0         | 1    | false
-        100       | 100  | true
+        threshold | perf | mem   | tired
+        90        | 89   | 100   | true
+        90        | 90   | 90    | true
+        90        | 91   | 100   | false
+        0         | 0    | 100   | false
+        0         | 1    | 100   | false
+        100       | 100  | 100   | true
+        100       | 100  | 60    | false
+        75        | 80   | 0     | false
     }
 }

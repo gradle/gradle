@@ -34,6 +34,18 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
     }
 
+    def "cunit components"() {
+        given:
+        sample cunit
+
+        when:
+        succeeds "components"
+
+        then:
+        output.contains "C unit exe 'operatorsTest:failing:cUnitExe'"
+        output.contains "C unit exe 'operatorsTest:passing:cUnitExe'"
+    }
+
     def "cunit"() {
         given:
         // CUnit prebuilt library only works for VS2010 on windows

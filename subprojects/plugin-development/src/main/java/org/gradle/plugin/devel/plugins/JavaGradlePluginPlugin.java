@@ -47,7 +47,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
 
     public void apply(Project project) {
-        project.apply(Collections.singletonMap("plugin", JavaPlugin.class));
+        project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
     }
@@ -67,7 +67,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
-        jarTask.doLast(pluginValidationAction);
+        jarTask.appendParallelSafeAction(pluginValidationAction);
     }
 
     /**

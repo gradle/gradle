@@ -22,10 +22,12 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -40,12 +42,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, with one change: we do NOT attempt to retrieve source and javadoc artifacts when parsing the POM. This cuts the
- * number of remote call in half to resolve a module.
+ * This based on a copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, but now heavily refactored.
  */
 public final class GradlePomModuleDescriptorParser extends AbstractModuleDescriptorParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
     private static final String DEPENDENCY_IMPORT_SCOPE = "import";
+    private final VersionSelectorScheme gradleVersionSelectorScheme;
+    private final VersionSelectorScheme mavenVersionSelectorScheme;
+
+    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme) {
+        this.gradleVersionSelectorScheme = gradleVersionSelectorScheme;
+        mavenVersionSelectorScheme = new MavenVersionSelectorScheme(gradleVersionSelectorScheme);
+    }
 
     @Override
     protected String getTypeName() {
@@ -58,7 +66,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
     protected MutableModuleComponentResolveMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
         PomReader pomReader = new PomReader(resource);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
@@ -203,7 +211,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleVersionIdentifier parentId) throws IOException, SAXException {
         LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId, ArtifactType.MAVEN_POM);
         PomReader pomReader = new PomReader(localResource);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
     }

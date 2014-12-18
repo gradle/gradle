@@ -17,6 +17,8 @@
 package org.gradle.api.plugins.osgi
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
@@ -54,6 +56,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2237")
+    @IgnoreIf({GradleContextualExecuter.parallel})
     def "jar task remains incremental"() {
         given:
         // Unsure why, but this problem doesn't show if we don't wait a little bit

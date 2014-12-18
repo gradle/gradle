@@ -167,8 +167,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new DelayedConfigurationActions()
         );
-        Action<? super ProjectInternal> projectFinalizer = Actions.composite(new TaskModelRealizingConfigurationAction(),
-                new ModelRegistryValidatingConfigurationAction());
+        Action<? super ProjectInternal> projectFinalizer = Actions.composite(new ModelRegistryValidatingConfigurationAction(), new TaskModelRealizingConfigurationAction());
         return new LifecycleProjectEvaluator(withActionsEvaluator, projectFinalizer);
     }
 
@@ -321,10 +320,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ComponentTypeRegistry createComponentTypeRegistry() {
         return new DefaultComponentTypeRegistry();
-    }
-
-    protected ModelRuleSourceDetector createModelRuleSourceDetector() {
-        return new ModelRuleSourceDetector();
     }
 
     protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {

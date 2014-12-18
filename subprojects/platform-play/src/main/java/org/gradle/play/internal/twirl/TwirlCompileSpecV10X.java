@@ -31,7 +31,6 @@ public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec imple
     private final String scalaVersion;
     private final String twirlVersion;
     private String codec = "UTF-8";
-
     private boolean inclusiveDots;
     private boolean useOldParser;
 
@@ -48,25 +47,9 @@ public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec imple
     protected String defaultScalaAdditionalImports(String format) {
         return String.format("import models._;import controllers._;import play.api.i18n._;import play.api.mvc._;import play.api.data._;import views.%s._;", "html");
     }
+
     protected String defaultJavaAdditionalImports(String format) {
         return String.format("import models._;import controllers._;import java.lang._;import java.util._;import scala.collection.JavaConversions._;import scala.collection.JavaConverters._;import play.api.i18n._;import play.core.j.PlayMagicForJava._;import play.mvc._;import play.data._;import play.api.data.Field;import play.mvc.Http.Context.Implicit._;import views.%s._;", "html");
-    }
-
-
-    public boolean isUseOldParser() {
-        return useOldParser;
-    }
-
-    public boolean isInclusiveDots() {
-        return inclusiveDots;
-    }
-
-    public String getCodec() {
-        return codec;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
     }
 
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
@@ -92,15 +75,15 @@ public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec imple
                 getDestinationDir(),
                 getFormatterType(),
                 getAdditionalImports(),
-                ScalaCodecMapper.create(cl, getCodec()),
-                isInclusiveDots(),
-                isUseOldParser()
+                ScalaCodecMapper.create(cl, codec),
+                inclusiveDots,
+                useOldParser
         };
     }
 
     public List<String> getClassLoaderPackages() {
         return Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
-    };
+    }
 
     public Object getDependencyNotation() {
         return String.format("com.typesafe.play:twirl-compiler_%s:%s", scalaVersion, twirlVersion);

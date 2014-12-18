@@ -18,60 +18,45 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.util.SingleMessageLogger;
-
-import java.util.Collection;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
     private final PluginRegistry pluginRegistry;
-    private final Instantiator instantiator;
-    private final PluginApplicator applicator;
-    private final PluginManager pluginManager;
+    private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManager pluginManager, Instantiator instantiator, PluginApplicator applicator) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
-        this.instantiator = instantiator;
-        this.applicator = applicator;
 
         // Need this to make withId() work when someone does project.plugins.add(new SomePlugin());
         whenObjectAdded(new Action<Plugin>() {
             public void execute(Plugin plugin) {
-                pluginManager.addPluginDirect(plugin.getClass());
+                pluginManager.addImperativePlugin(null, plugin.getClass());
             }
         });
     }
 
     public Plugin apply(String id) {
-        SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(String)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
         PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(id);
         if (potentialPlugin == null) {
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
 
-        Class<? extends Plugin<?>> pluginClass = potentialPlugin.asImperativeClass();
-
-        if (pluginClass == null) {
+        if (!potentialPlugin.isImperative()) {
             throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return addPluginInternal(potentialPlugin.getPluginId().toString(), pluginClass);
+            return pluginManager.addImperativePlugin(potentialPlugin.getPluginId().toString(), potentialPlugin.asClass());
         }
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
-        SingleMessageLogger.nagUserOfReplacedMethod("PluginContainer.apply(Class)", "PluginAware.apply(Map) or PluginAware.apply(Closure)");
-        return addPluginInternal(null, type);
+        return pluginManager.addImperativePlugin(null, type);
     }
 
     public boolean hasPlugin(String id) {
@@ -83,7 +68,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     private Plugin doFindPlugin(String id) {
-        for (final PluginManager.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
+        for (final DefaultPluginManager.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
             Plugin plugin = Iterables.find(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());
@@ -99,7 +84,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin findPlugin(String id) {
-        String qualified = PluginManager.maybeQualify(id);
+        String qualified = DefaultPluginManager.maybeQualify(id);
         if (qualified != null) {
             Plugin plugin = doFindPlugin(qualified);
             if (plugin != null) {
@@ -122,30 +107,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             }
         }
         return null;
-    }
-
-    private <P extends Plugin<?>> P addPluginInternal(@Nullable String pluginId, Class<P> type) {
-        try {
-            P existing = findPlugin(type);
-            if (existing == null) {
-                P plugin = providePlugin(type);
-                PotentialPlugin potentialPlugin = pluginRegistry.inspect(plugin.getClass());
-                if (potentialPlugin.hasRules()) {
-                    applicator.applyImperativeRulesHybrid(pluginId, plugin);
-                } else {
-                    applicator.applyImperative(pluginId, plugin);
-                }
-
-                doAdd(plugin);
-                return plugin;
-            } else {
-                return existing;
-            }
-        } catch (PluginApplicationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PluginApplicationException(pluginId == null ? "class '" + type.getName() + "'" : "id '" + pluginId + "'", e);
-        }
     }
 
     public Plugin getPlugin(String id) {
@@ -173,8 +134,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public void withId(final String pluginId, final Action<? super Plugin> action) {
-        Action<PluginManager.PluginWithId> wrappedAction = new Action<PluginManager.PluginWithId>() {
-            public void execute(final PluginManager.PluginWithId pluginWithId) {
+        Action<DefaultPluginManager.PluginWithId> wrappedAction = new Action<DefaultPluginManager.PluginWithId>() {
+            public void execute(final DefaultPluginManager.PluginWithId pluginWithId) {
                 matching(new Spec<Plugin>() {
                     public boolean isSatisfiedBy(Plugin element) {
                         return pluginWithId.clazz.equals(element.getClass());
@@ -183,20 +144,12 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             }
         };
 
-        String qualified = PluginManager.maybeQualify(pluginId);
+        String qualified = DefaultPluginManager.maybeQualify(pluginId);
         if (qualified != null) {
             pluginManager.pluginsForId(qualified).all(wrappedAction);
         }
 
         pluginManager.pluginsForId(pluginId).all(wrappedAction);
-    }
-
-    private <T extends Plugin<?>> T providePlugin(Class<T> type) {
-        try {
-            return instantiator.newInstance(type);
-        } catch (ObjectInstantiationException e) {
-            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", type.getSimpleName()), e.getCause());
-        }
     }
 
     @Override
@@ -209,43 +162,4 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         return super.withType(type);
     }
 
-    private boolean doAdd(Plugin toAdd) {
-        return super.add(toAdd);
-    }
-
-    @Override
-    public boolean add(Plugin toAdd) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.add(Plugin)");
-        return doAdd(toAdd);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends Plugin> c) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.addAll(Collection<? extends Plugin>)");
-        return super.addAll(c);
-    }
-
-    @Override
-    public void clear() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.clear()");
-        super.clear();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.remove(Object)");
-        return super.remove(o);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.removeAll(Collection<?>)");
-        return super.removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> target) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("PluginContainer.retainAll(Collection<?>)");
-        return super.retainAll(target);
-    }
 }

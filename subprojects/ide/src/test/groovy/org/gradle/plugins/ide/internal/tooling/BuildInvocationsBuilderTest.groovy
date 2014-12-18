@@ -33,12 +33,20 @@ class BuildInvocationsBuilderTest extends Specification {
     @Shared def child1b = TestUtil.builder().withName("child1b").withParent(child1).build()
 
     def setupSpec() {
+        // t1 tasks
         def child1aT1 = child1a.tasks.create('t1', DefaultTask)
         child1aT1.group = 'build'
-        child1b.tasks.create('t1', DefaultTask)
+        child1aT1.description = 't1 in subproject 1a'
+        def child1bT1 = child1b.tasks.create('t1', DefaultTask)
+        child1bT1.description = 't1 in subproject 1b'
+
+        // t2 tasks
         def child1bT2 = child1b.tasks.create('t2', DefaultTask)
         child1bT2.group = 'build'
-        child1.tasks.create('t2', DefaultTask)
+        child1bT2.description = 't2 description'
+        def child1T1 = child1.tasks.create('t2', DefaultTask)
+        child1T1.description = 't2 description'
+
         project.tasks.create('t3', DefaultTask)
     }
 
@@ -81,5 +89,22 @@ class BuildInvocationsBuilderTest extends Specification {
             it.name == 't1' && it.description.startsWith("t1")
         }
         model.taskSelectors*.name as Set == ['t1', 't2', 't3'] as Set
+    }
+
+    def "selector description inferred in model"() {
+        when:
+        def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", project, true)
+
+        then:
+        model.taskSelectors.find { LaunchableGradleTaskSelector it ->
+            it.name == 't2'
+        }.every { LaunchableGradleTaskSelector it ->
+            it.description == 't2 description'
+        }
+        model.taskSelectors.find { LaunchableGradleTaskSelector it ->
+            it.name == 't1'
+        }.every { LaunchableGradleTaskSelector it ->
+            it.description in ['t1 in subproject 1a', 't1 in subproject 1b']
+        }
     }
 }

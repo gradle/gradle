@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -65,4 +66,10 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * The getTemporaryDir() method creates the directory which can be problematic. Use this to delay that creation.
      */
     Factory<File> getTemporaryDirFactory();
+
+    void prependParallelSafeAction(Action<? super Task> action);
+
+    void appendParallelSafeAction(Action<? super Task> action);
+
+    boolean isHasCustomActions();
 }

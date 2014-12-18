@@ -15,14 +15,13 @@
  */
 
 package org.gradle.play.plugins
-
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-class PlayApplicationPluginIntegrationTest extends WellBehavedPluginTest {
+class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -40,7 +39,7 @@ class PlayApplicationPluginIntegrationTest extends WellBehavedPluginTest {
             jcenter()
             maven{
                 name = "typesafe-maven-release"
-                url = "http://repo.typesafe.com/typesafe/maven-releases"
+                url = "https://repo.typesafe.com/typesafe/maven-releases"
             }
         }
 """
@@ -62,7 +61,7 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: PlayPlatform2.3.5
+        platform: PlayPlatform2.3.7
         tool chain: Default Play Toolchain"""))
     }
 
@@ -92,7 +91,7 @@ Binaries
         skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        jar("build/jars/play/playBinary.jar").hasDescendants()
+        jar("build/playBinary/lib/play.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {

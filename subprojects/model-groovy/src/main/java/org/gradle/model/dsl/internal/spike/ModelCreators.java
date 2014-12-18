@@ -30,7 +30,7 @@ public class ModelCreators {
         return new ModelCreator(ImmutableSet.<String>of(), Transformers.constant(object));
     }
 
-    public static ModelCreator resultOf(final Closure creatorClosure, Set<String> modelPaths) {
+    public static ModelCreator resultOf(final Closure<?> creatorClosure, Set<String> modelPaths) {
         Transformer<Object, Map<String, Object>> closureBackedCreator = new Transformer<Object, Map<String, Object>>() {
             public Object transform(Map<String, Object> inputs) {
                 return creatorClosure.call(inputs);
@@ -40,7 +40,7 @@ public class ModelCreators {
         return new ModelCreator(modelPaths, closureBackedCreator);
     }
 
-    public static ModelCreator resultOf(final Closure creatorClosure) {
+    public static ModelCreator resultOf(final Closure<?> creatorClosure) {
         return resultOf(creatorClosure, ImmutableSet.<String>of());
     }
 }

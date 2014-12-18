@@ -17,9 +17,11 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.Managed
+import org.gradle.model.Unmanaged
 import org.gradle.model.collection.ManagedSet
-import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.manage.schema.ModelSchema
+import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -375,13 +377,20 @@ class ModelSchemaExtractorTest extends Specification {
         void setValue(String value)
     }
 
+    static interface SingleFloatValueProperty {
+        Float getValue()
+
+        void setValue(Float value)
+    }
+
     @Managed
-    static interface ConflictingPropertiesInParents extends SingleIntegerValueProperty, SingleStringValueProperty {
+    static interface ConflictingPropertiesInParents extends SingleIntegerValueProperty, SingleStringValueProperty, SingleFloatValueProperty {
     }
 
     def "conflicting properties of super types are detected"() {
         given:
         def invalidMethods = [
+                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float),
                 MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer),
                 MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String),
         ]
@@ -437,10 +446,39 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "type argument of a managed set has to be specified"() {
         given:
-        def type = new ModelType<ManagedSet>() {}
+        def type = ModelType.returnType(TypeHolder.getDeclaredMethod("noParam"))
 
         expect:
         fail type, "type parameter of $ManagedSet.name has to be specified"
+    }
+
+    static interface TypeHolder {
+        ManagedSet noParam();
+    }
+
+    @Managed
+    interface Thing {}
+
+    @Managed
+    interface SpecialThing extends Thing {}
+
+    interface SimpleModel {
+        Thing getThing()
+    }
+
+    @Managed
+    interface SpecialModel extends SimpleModel {
+        SpecialThing getThing()
+
+        void setThing(SpecialThing thing)
+    }
+
+    def "a subclass may specialize a property type"() {
+        when:
+        def properties = extract(SpecialModel).properties.values()
+
+        then:
+        properties*.type == [ModelType.of(SpecialThing)]
     }
 
     @Unroll
@@ -533,8 +571,67 @@ $type
         extract(MyEnum).properties.isEmpty()
     }
 
+    @Managed
+    static interface HasUnmanagedOnManaged {
+        @Unmanaged
+        MyEnum getMyEnum();
+
+        void setMyEnum(MyEnum myEnum)
+    }
+
+    def "cannot annotate managed type property with unmanaged"() {
+        expect:
+        fail HasUnmanagedOnManaged, Pattern.quote("property 'myEnum' is marked as @Unmanaged, but is of @Managed type")
+    }
+
+    @Managed
+    static interface MissingUnmanaged {
+        InputStream getThing();
+
+        void setThing(InputStream inputStream);
+    }
+
+    def "unamanaged types must be annotated with unmanaged"() {
+        expect:
+        fail MissingUnmanaged, Pattern.quote("it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)")
+    }
+
+    @Managed
+    static interface ExtendsMissingUnmanaged {
+        @Unmanaged
+        InputStream getThing();
+
+        void setThing(InputStream inputStream);
+    }
+
     private void fail(extractType, String msgPattern) {
         fail(extractType, extractType, msgPattern)
+    }
+
+    def "subtype can declare property unmanaged"() {
+        expect:
+        extract(ExtendsMissingUnmanaged).properties.get("thing").type.rawClass == InputStream
+    }
+
+    @Managed
+    static interface NoSetterForUnmanaged {
+        @Unmanaged
+        InputStream getThing();
+    }
+
+    def "must have setter for unmanaged"() {
+        expect:
+        fail NoSetterForUnmanaged, Pattern.quote("unmanaged property 'thing' cannot be read only, unmanaged properties must have setters")
+    }
+
+    @Managed
+    static interface AddsSetterToNoSetterForUnmanaged extends NoSetterForUnmanaged {
+        void setThing(InputStream inputStream);
+    }
+
+    def "subtype can add unmanaged setter"() {
+        expect:
+        extract(AddsSetterToNoSetterForUnmanaged).properties.get("thing").type.rawClass == InputStream
     }
 
     private void fail(extractType, errorType, String msgPattern) {

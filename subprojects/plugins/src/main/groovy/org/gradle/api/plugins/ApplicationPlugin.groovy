@@ -46,8 +46,8 @@ class ApplicationPlugin implements Plugin<Project> {
 
     void apply(final Project project) {
         this.project = project
-        project.apply(type: JavaPlugin)
-        project.apply(type: DistributionPlugin)
+        project.pluginManager.apply(JavaPlugin)
+        project.pluginManager.apply(DistributionPlugin)
 
         addPluginConvention()
         addRunTask()

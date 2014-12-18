@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
@@ -69,6 +70,6 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, new DefaultTestFilter(), instantiator)
+        new TestNGTestFramework(testTask, new DefaultTestFilter(), instantiator, Stub(ClassLoaderCache))
     }
 }

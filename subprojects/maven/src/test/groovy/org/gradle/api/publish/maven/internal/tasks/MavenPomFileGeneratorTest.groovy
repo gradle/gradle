@@ -214,12 +214,12 @@ class MavenPomFileGeneratorTest extends Specification {
         then:
         dependency1.artifacts >> new HashSet<DependencyArtifact>()
         dependency1.groupId >> "dep-group"
-        dependency1.version >> "1+"
+        dependency1.version >> "latest.release"
         dependency1.excludeRules >> []
 
         dependency2.artifacts >> new HashSet<DependencyArtifact>()
         dependency2.groupId >> "dep-group"
-        dependency2.version >> "1.100.+"
+        dependency2.version >> "latest.integration"
         dependency2.excludeRules >> []
 
         and:
@@ -227,12 +227,12 @@ class MavenPomFileGeneratorTest extends Specification {
             dependencies.dependency.size() == 2
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
-                version == "[1,2)"
+                version == "RELEASE"
                 scope == "runtime"
             }
             with (dependencies[0].dependency[1]) {
                 groupId == "dep-group"
-                version == "[1.100,1.101)"
+                version == "LATEST"
                 scope == "runtime"
             }
         }

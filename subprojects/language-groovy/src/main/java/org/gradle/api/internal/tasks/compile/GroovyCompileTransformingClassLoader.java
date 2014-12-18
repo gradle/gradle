@@ -56,7 +56,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
         private boolean found;
 
         private AnnotationDetector() {
-            super(Opcodes.ASM4);
+            super(Opcodes.ASM5);
         }
 
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
@@ -69,7 +69,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
 
     private static class TransformingAdapter extends ClassVisitor {
         public TransformingAdapter(ClassWriter classWriter) {
-            super(Opcodes.ASM4, classWriter);
+            super(Opcodes.ASM5, classWriter);
         }
 
         @Override
@@ -84,12 +84,12 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
             private final List<String> names = new ArrayList<String>();
 
             public AnnotationTransformingVisitor(AnnotationVisitor annotationVisitor) {
-                super(Opcodes.ASM4, annotationVisitor);
+                super(Opcodes.ASM5, annotationVisitor);
             }
 
             public AnnotationVisitor visitArray(String name) {
                 if (name.equals("classes")) {
-                    return new AnnotationVisitor(Opcodes.ASM4){
+                    return new AnnotationVisitor(Opcodes.ASM5){
                         @Override
                         public void visit(String name, Object value) {
                             Type type = (Type) value;
@@ -97,7 +97,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
                         }
                     };
                 } else if (name.equals("value")) {
-                    return new AnnotationVisitor(Opcodes.ASM4) {
+                    return new AnnotationVisitor(Opcodes.ASM5) {
                         @Override
                         public void visit(String name, Object value) {
                             String type = (String) value;

@@ -36,9 +36,10 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
@@ -54,7 +55,6 @@ import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
@@ -63,8 +63,8 @@ import java.util.Collections;
 public class CUnitPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", NativeBinariesTestPlugin.class));
-        project.apply(Collections.singletonMap("plugin", CLangPlugin.class));
+        project.getPluginManager().apply(NativeBinariesTestPlugin.class);
+        project.getPluginManager().apply(CLangPlugin.class);
     }
 
     /**
@@ -150,6 +150,11 @@ public class CUnitPlugin implements Plugin<Project> {
         public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
                 for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getNativeBinaries()) {
+
+                    if (testedBinary instanceof SharedLibraryBinary) {
+                        // TODO:DAZ For now, we only create test suites for static library variants
+                        continue;
+                    }
 
                     DefaultCUnitTestSuiteBinary testBinary = createTestBinary(serviceRegistry, cUnitTestSuite, testedBinary);
 

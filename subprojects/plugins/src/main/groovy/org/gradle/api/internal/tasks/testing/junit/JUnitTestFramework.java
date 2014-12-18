@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -25,26 +27,25 @@ import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManage
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.Serializable;
-import java.net.URLClassLoader;
 
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
-    private JUnitDetector detector;
-    private final Test testTask;
-    private DefaultTestFilter filter;
+    private final JUnitDetector detector;
+    private final DefaultTestFilter filter;
+    private final TestClassLoaderFactory classLoaderFactory;
 
-    public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
-        this.testTask = testTask;
+    public JUnitTestFramework(Test testTask, DefaultTestFilter filter, ClassLoaderCache classLoaderCache) {
         this.filter = filter;
         options = new JUnitOptions();
         detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
@@ -78,8 +79,8 @@ public class JUnitTestFramework implements TestFramework {
         }
     }
 
-    private URLClassLoader getTestClassLoader() {
-        return new URLClassLoader(new DefaultClassPath(testTask.getClasspath()).getAsURLArray(), null);
+    private ClassLoader getTestClassLoader() {
+        return classLoaderFactory.create();
     }
 
     private void filteringNotSupported() {
@@ -116,7 +117,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class));
+            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(TimeProvider.class));
         }
     }
 }

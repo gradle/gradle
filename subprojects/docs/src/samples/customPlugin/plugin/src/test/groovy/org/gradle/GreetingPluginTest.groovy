@@ -10,7 +10,7 @@ class GreetingPluginTest {
     @Test
     public void greeterPluginAddsGreetingTaskToProject() {
         Project project = ProjectBuilder.builder().build()
-        project.apply plugin: 'org.samples.greeting'
+        project.pluginManager.apply 'org.samples.greeting'
 
         assertTrue(project.tasks.hello instanceof GreetingTask)
     }

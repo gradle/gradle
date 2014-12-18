@@ -30,7 +30,7 @@ public class ModelRegistryDslHelper {
         this.registry = registry;
     }
 
-    void addCreator(String path, final Closure creatorClosure, List<String> inputPaths) {
+    void addCreator(String path, final Closure<?> creatorClosure, List<String> inputPaths) {
         registry.create(ModelPath.path(path), ModelCreators.resultOf(creatorClosure, ImmutableSet.<String>builder().addAll(inputPaths).build()));
     }
 }

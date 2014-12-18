@@ -18,13 +18,15 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.nativeplatform.NativeExecutableBinary;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 import java.io.File;
 
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
-    private final NativeExecutableBinarySpec.NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
     private File executableFile;
 
     public File getExecutableFile() {
@@ -39,17 +41,22 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return getExecutableFile();
     }
 
-    public NativeExecutableBinarySpec.NativeBinaryTasks getTasks() {
+    @Override
+    protected ObjectFilesToBinary getCreateOrLink() {
+        return tasks.getLink();
+    }
+
+    public NativeExecutableBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    public static class DefaultNativeBinaryTasks extends AbstractNativeBinarySpec.DefaultNativeBinaryTasks implements NativeExecutableBinarySpec.NativeBinaryTasks {
-        public DefaultNativeBinaryTasks(NativeBinarySpecInternal binary) {
+    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements NativeExecutableBinarySpec.TasksCollection {
+        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
             super(binary);
         }
 
-        public AbstractLinkTask getLink() {
-            return findSingleTaskWithType(AbstractLinkTask.class);
+        public LinkExecutable getLink() {
+            return findSingleTaskWithType(LinkExecutable.class);
         }
 
         public InstallExecutable getInstall() {

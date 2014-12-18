@@ -105,8 +105,8 @@ class EclipsePluginTest extends Specification {
         eclipsePlugin.apply(project)
 
         then:
-        eclipsePlugin.model.classpath
-        eclipsePlugin.model.classpath.defaultOutputDir
+        project.eclipse.classpath
+        project.eclipse.classpath.defaultOutputDir
     }
 
     def "configures internal class folders"() {

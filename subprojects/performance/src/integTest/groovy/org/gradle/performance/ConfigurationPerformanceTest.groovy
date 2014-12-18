@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class ConfigurationPerformanceTest extends AbstractPerformanceTest {
+class ConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' configuration")
     def "configuration"() {
         given:

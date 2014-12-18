@@ -32,7 +32,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinarySpec;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -42,7 +41,7 @@ import java.util.Map;
 public class WindowsResourceScriptPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
-        project.apply(Collections.singletonMap("plugin", ComponentModelBasePlugin.class));
+        project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     /**

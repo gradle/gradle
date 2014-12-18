@@ -16,6 +16,7 @@
 package org.gradle.language.objectivecpp.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -24,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
  * Compiles Objective-C++ source files into object files.
  */
 @Incubating
+@ParallelizableTask
 public class ObjectiveCppCompile extends AbstractNativeCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {

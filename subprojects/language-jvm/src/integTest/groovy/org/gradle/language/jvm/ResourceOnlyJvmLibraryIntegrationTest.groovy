@@ -32,7 +32,7 @@ model {
     }
 }
 
-task check << {
+task validate << {
     def myLib = componentSpecs.myLib
     assert myLib instanceof JvmLibrarySpec
 
@@ -48,7 +48,7 @@ task check << {
 """
 
         expect:
-        run 'check'
+        run 'validate'
     }
 
     def "can build a library containing resources only"() {

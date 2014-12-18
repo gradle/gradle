@@ -17,8 +17,9 @@ package org.gradle.api.internal.tasks.scala
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.scala.ScalaCompileOptions
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.GUtil
 import org.gradle.util.VersionNumber
 import org.slf4j.Logger
@@ -30,27 +31,23 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
+    private Iterable<File> scalaClasspath
 
-    def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
+    def AntScalaCompiler(IsolatedAntBuilder antBuilder, Iterable<File> scalaClasspath) {
+        this.scalaClasspath = scalaClasspath
         this.antBuilder = antBuilder
         this.bootclasspathFiles = []
         this.extensionDirs = []
     }
 
-    def AntScalaCompiler(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
-        this.antBuilder = antBuilder
-        this.bootclasspathFiles = bootclasspathFiles
-        this.extensionDirs = extensionDirs
-    }
-
     WorkResult execute(ScalaCompileSpec spec) {
         def destinationDir = spec.destinationDir
-        def scalaCompileOptions = spec.scalaCompileOptions
+        ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions as ScalaCompileOptions
 
         def backend = chooseBackend(spec)
         def options = [destDir: destinationDir, target: backend] + scalaCompileOptions.optionMap()
         if (scalaCompileOptions.fork) {
-            options.compilerPath = GUtil.asPath(spec.scalaClasspath)
+            options.compilerPath = GUtil.asPath(scalaClasspath)
         }
         def taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
         def compileClasspath = spec.classpath
@@ -58,7 +55,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         LOGGER.info("Compiling with Ant scalac task.")
         LOGGER.debug("Ant scalac task options: {}", options)
 
-        antBuilder.withClasspath(spec.scalaClasspath).execute { ant ->
+        antBuilder.withClasspath(scalaClasspath).execute { ant ->
             taskdef(resource: 'scala/tools/ant/antlib.xml')
 
             "${taskName}"(options) {
@@ -92,7 +89,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
 
     private String chooseBackend(ScalaCompileSpec spec) {
         def maxSupported
-        def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
+        def scalaVersion = sniffScalaVersion(scalaClasspath)
         if (scalaVersion >= VersionNumber.parse("2.10.0-M5")) {
             maxSupported = VersionNumber.parse("1.7")
         } else {
