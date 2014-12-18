@@ -45,7 +45,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     protected AbstractFileResolver(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
-        this.fileNotationParser = FileOrUriNotationConverter.create(fileSystem);
+        this.fileNotationParser = FileOrUriNotationConverter.parser(fileSystem);
     }
 
     public FileSystem getFileSystem() {

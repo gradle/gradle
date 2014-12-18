@@ -35,7 +35,7 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
         candidateFormats.add("A Callable that returns any supported value.");
     }
 
-    public static NotationParser<Object, String> create() {
+    public static NotationParser<Object, String> parser() {
         return NotationParserBuilder
                 .toType(String.class)
                 .noImplicitConverters()

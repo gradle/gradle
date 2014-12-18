@@ -35,7 +35,7 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
         candidateFormats.add("Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.");
     }
 
-    public static NotationParser<Object, Spec<DependencyResult>> create() {
+    public static NotationParser<Object, Spec<DependencyResult>> parser() {
         return NotationParserBuilder
                 .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")

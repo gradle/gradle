@@ -115,7 +115,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      */
     @Option(option = "dependency", description = "Shows the details of given dependency.")
     public void setDependencySpec(Object dependencyInsightNotation) {
-        def parser = DependencyResultSpecNotationConverter.create()
+        def parser = DependencyResultSpecNotationConverter.parser()
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation)
     }
 

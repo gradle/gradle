@@ -132,26 +132,4 @@ public class NotationParserBuilder<T> {
 
         return new NotationConverterToNotationParserAdapter<Object, T>(new CompositeNotationConverter<Object, T>(composites));
     }
-
-    private static class NotationParserToNotationConverterAdapter<N, T> implements NotationConverter<N, T> {
-        private final NotationParser<N, ? extends T> parser;
-
-        private NotationParserToNotationConverterAdapter(NotationParser<N, ? extends T> parser) {
-            this.parser = parser;
-        }
-
-        public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
-            T t;
-            try {
-                t = parser.parseNotation(notation);
-            } catch (UnsupportedNotationException e) {
-                return;
-            }
-            result.converted(t);
-        }
-
-        public void describe(Collection<String> candidateFormats) {
-            parser.describe(candidateFormats);
-        }
-    }
 }

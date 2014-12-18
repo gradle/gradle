@@ -38,7 +38,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         this.fileSystem = fileSystem;
     }
 
-    public static NotationParser<Object, Object> create(FileSystem fileSystem) {
+    public static NotationParser<Object, Object> parser(FileSystem fileSystem) {
         return NotationParserBuilder
                 .toType(Object.class)
                 .typeDisplayName("a File or URI")
