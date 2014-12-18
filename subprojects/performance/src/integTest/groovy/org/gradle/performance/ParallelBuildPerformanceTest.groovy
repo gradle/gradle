@@ -24,8 +24,8 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         given:
         runner.testId = "parallel builds"
         runner.buildSpecifications = [
-                new BuildSpecification(projectName: "multi", displayName: "serial", tasksToRun: ["clean", "build"] as String[]),
-                new BuildSpecification(projectName: "multi", displayName: "parallel", tasksToRun: ["clean", "build"] as String[], args: ["--parallel-threads=2"])
+                BuildSpecification.forProject("multi").displayName("serial").tasksToRun("clean", "build").build(),
+                BuildSpecification.forProject("multi").displayName("parallel").tasksToRun("clean", "build").args("--parallel-threads=2").build()
         ]
 
         when:

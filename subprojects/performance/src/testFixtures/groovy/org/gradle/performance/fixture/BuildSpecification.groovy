@@ -20,13 +20,57 @@ import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode
 class BuildSpecification {
-    String projectName
-    String displayName
-    String[] tasksToRun = new String[0]
-    String[] args = new String[0]
-    String[] gradleOpts = new String[0]
+    final String projectName
+    final String displayName
+    final String[] tasksToRun
+    final String[] args
+    final String[] gradleOpts
+
+    BuildSpecification(String projectName, String displayName, String[] tasksToRun, String[] args, String[] gradleOpts) {
+        this.projectName = projectName
+        this.displayName = displayName
+        this.tasksToRun = tasksToRun
+        this.args = args
+        this.gradleOpts = gradleOpts
+    }
 
     String getDisplayName() {
         displayName ?: projectName
+    }
+
+    static Builder forProject(String projectName) {
+        new Builder(projectName)
+    }
+
+    static class Builder {
+        private final String projectName
+        private String displayName
+        private String[] tasksToRun
+        private String[] args
+        private String[] gradleOpts
+
+        Builder(String projectName) {
+            this.projectName = projectName
+        }
+
+        Builder displayName(String displayName) {
+            this.displayName = displayName
+        }
+
+        Builder tasksToRun(String[] tasksToRun) {
+            this.tasksToRun = tasksToRun
+        }
+
+        Builder args(String[] args) {
+            this.args = args
+        }
+
+        Builder gradleOpts(String[] gradleOpts) {
+            this.gradleOpts = gradleOpts
+        }
+
+        BuildSpecification build() {
+            new BuildSpecification(projectName, displayName, tasksToRun ?: new String[0], args ?: new String[0], gradleOpts ?: new String[0])
+        }
     }
 }

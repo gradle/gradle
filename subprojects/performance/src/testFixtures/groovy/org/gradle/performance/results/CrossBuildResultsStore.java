@@ -148,11 +148,11 @@ public class CrossBuildResultsStore implements ResultsStore, CrossBuildDataRepor
                         operationsForExecution.setLong(1, id);
                         ResultSet builds = operationsForExecution.executeQuery();
                         while (builds.next()) {
-                            BuildSpecification specification = new BuildSpecification();
-                            specification.setProjectName(builds.getString(1));
-                            specification.setDisplayName(builds.getString(2));
-                            specification.setTasksToRun(toArray(builds.getObject(3)));
-                            specification.setArgs(toArray(builds.getObject(4)));
+                            BuildSpecification specification = BuildSpecification.forProject(builds.getString(1))
+                                    .displayName(builds.getString(2))
+                                    .tasksToRun(toArray(builds.getObject(3)))
+                                    .args(toArray(builds.getObject(4)))
+                                    .build();
 
                             MeasuredOperation operation = new MeasuredOperation();
                             operation.setExecutionTime(Duration.millis(builds.getBigDecimal(5)));
