@@ -132,6 +132,48 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - ~~Can use `AppliedPlugins` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project~~
 - ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
 
+## Rules are extracted from plugins once and cached globally
+
+Currently, when applying rule based plugins we go reflecting on the plugin and immediately applying rules that we find.
+This means that in a 1000 project multi project build where every project uses the Java plugin we do the reflection 1000 times unnecessarily.
+Instead, we should separate the reflection/rule extraction and application (i.e. pushing the rules into the model registry) so that we can cache the reflection.
+
+This involves changing `ModelRuleInspector#inspect` to return a data structure that represents the discovered rules, instead of taking a `ModelRegistry`.
+The returned data structure can then contain rules in an applicable fashion that can be reused.
+A (threadsafe) caching layer can be wrapped over this so that we only inspect a plugin class once.
+Care needs to be taken with the caching to facilitate classes being garbage collected.
+
+Invalid plugins do not need to be cached (i.e. it can be assumed that an invalid plugin is a fatal event).
+
+The `ModelRuleInspector` should be available as a globally scoped service.
+
+See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing reclaimability of classes.
+
+
+### Test Coverage
+
+- Rule based plugin can be applied to multiple projects with identical results, and rules are extracted only once
+- Cache must not prevent classes from being garbage collected
+- Rules extracted from core plugins are reused across builds when using the daemon
+- Rules extracted from user plugins are reused across builds when using the daemon and classloader caching
+
+## Rule source plugins are instantiated eagerly and once per JVM
+
+Rules in rule source plugins can be instance scoped.
+This requires an instance for dispatch to the method rule.
+Currently, a new instance is created for each rule invocation.
+This creates extra objects, and also defers instantiation problems with rule source plugins (e.g. default constructor throws an exception).
+
+We should create one instance for the life of the JVM, and instantiate when extracting rules from the plugin as part of the class level validations.
+
+Note: It _might_ make sense to converge all the class based caches we have around rule infrastructure at this stage.
+
+### Test Coverage
+
+- Rule source plugin throwing exception in default constructor fails plugin _application_
+- Rule source plugin is instantiated once (impl idea: default constructor could update some static level counter)
+- Rule source class is not prevented from being garbage collected
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
@@ -195,10 +237,7 @@ These should be rationalised and ideally replaced with model rules.
 
 - Defer creating task instances until absolutely necessary
 - Cache/reuse model elements, avoiding need to run configuration on every build
-- Extract rules from plugins once per build (and possibly cache) instead of repeating for each project (add caching around `ModelRuleInspector` & `ModelRuleSourceDetector` and make build scoped)
 - Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
-- Instance of rule source type is shared across entire build
-- Class based caches (e.g. `ModelRuleSourceDetector`) should not prevent classes from being GC'd.
 
 ## DSL
 
