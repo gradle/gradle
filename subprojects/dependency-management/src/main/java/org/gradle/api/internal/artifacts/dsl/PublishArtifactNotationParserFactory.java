@@ -22,11 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -44,17 +40,17 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     }
 
     public NotationParser<Object, PublishArtifact> create() {
-        FileNotationParser fileParser = new FileNotationParser();
+        FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder
                 .toType(PublishArtifact.class)
-                .parser(new ArchiveTaskNotationParser())
-                .parser(new FileMapNotationParser(fileParser))
-                .parser(fileParser)
+                .converter(new ArchiveTaskNotationConverter())
+                .converter(new FileMapNotationConverter(fileConverter))
+                .converter(fileConverter)
                 .toComposite();
     }
 
-    private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, PublishArtifact> {
-        private ArchiveTaskNotationParser() {
+    private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, PublishArtifact> {
+        private ArchiveTaskNotationConverter() {
             super(AbstractArchiveTask.class);
         }
 
@@ -69,20 +65,20 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
     }
 
-    private class FileMapNotationParser extends MapNotationParser<PublishArtifact> {
-        private final FileNotationParser fileParser;
+    private class FileMapNotationConverter extends MapNotationConverter<PublishArtifact> {
+        private final FileNotationConverter fileConverter;
 
-        private FileMapNotationParser(FileNotationParser fileParser) {
-            this.fileParser = fileParser;
+        private FileMapNotationConverter(FileNotationConverter fileConverter) {
+            this.fileConverter = fileConverter;
         }
 
         protected PublishArtifact parseMap(@MapKey("file") File file) {
-            return fileParser.parseType(file);
+            return fileConverter.parseType(file);
         }
     }
 
-    private class FileNotationParser extends TypedNotationParser<File, PublishArtifact> {
-        private FileNotationParser() {
+    private class FileNotationConverter extends TypedNotationConverter<File, PublishArtifact> {
+        private FileNotationConverter() {
             super(File.class);
         }
 

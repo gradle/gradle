@@ -16,10 +16,7 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.TypeInfo;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
@@ -32,13 +29,13 @@ public class SourceSetNotationParser {
     public static NotationParser<Object, Set<LanguageSourceSet>> parser() {
         return NotationParserBuilder
                 .toType(new TypeInfo<Set<LanguageSourceSet>>(Set.class))
-                .parser(new FunctionalSourceSetConverter())
-                .parser(new SingleLanguageSourceSetConverter())
-                .parser(new LanguageSourceSetCollectionConverter())
+                .converter(new FunctionalSourceSetConverter())
+                .converter(new SingleLanguageSourceSetConverter())
+                .converter(new LanguageSourceSetCollectionConverter())
                 .toComposite();
     }
 
-    private static class FunctionalSourceSetConverter extends TypedNotationParser<FunctionalSourceSet, Set<LanguageSourceSet>> {
+    private static class FunctionalSourceSetConverter extends TypedNotationConverter<FunctionalSourceSet, Set<LanguageSourceSet>> {
         private FunctionalSourceSetConverter() {
             super(FunctionalSourceSet.class);
         }
@@ -49,7 +46,7 @@ public class SourceSetNotationParser {
         }
     }
 
-    private static class SingleLanguageSourceSetConverter extends TypedNotationParser<LanguageSourceSet, Set<LanguageSourceSet>> {
+    private static class SingleLanguageSourceSetConverter extends TypedNotationConverter<LanguageSourceSet, Set<LanguageSourceSet>> {
         private SingleLanguageSourceSetConverter() {
             super(LanguageSourceSet.class);
         }
@@ -60,7 +57,7 @@ public class SourceSetNotationParser {
         }
     }
 
-    private static class LanguageSourceSetCollectionConverter extends TypedNotationParser<Collection<LanguageSourceSet>, Set<LanguageSourceSet>> {
+    private static class LanguageSourceSetCollectionConverter extends TypedNotationConverter<Collection<LanguageSourceSet>, Set<LanguageSourceSet>> {
         private LanguageSourceSetCollectionConverter() {
             super(new TypeInfo<Collection<LanguageSourceSet>>(Collection.class));
         }

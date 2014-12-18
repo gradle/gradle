@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 import java.awt.*
 
-public class PublishArtifactNotationParserFactoryTest extends Specification {
+public class PublishArtifactNotationConverterFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider)

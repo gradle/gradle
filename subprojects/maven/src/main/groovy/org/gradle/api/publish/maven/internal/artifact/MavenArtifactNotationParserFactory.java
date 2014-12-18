@@ -38,30 +38,30 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     }
 
     public NotationParser<Object, MavenArtifact> create() {
-        FileNotationParser fileNotationParser = new FileNotationParser(fileResolver);
-        ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
-        PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
+        FileNotationConverter fileNotationConverter = new FileNotationConverter(fileResolver);
+        ArchiveTaskNotationConverter archiveTaskNotationConverter = new ArchiveTaskNotationConverter();
+        PublishArtifactNotationConverter publishArtifactNotationConverter = new PublishArtifactNotationConverter();
 
         NotationParser<Object, MavenArtifact> sourceNotationParser = NotationParserBuilder
                 .toType(MavenArtifact.class)
-                .fromType(AbstractArchiveTask.class, archiveTaskNotationParser)
-                .fromType(PublishArtifact.class, publishArtifactNotationParser)
-                .converter(fileNotationParser)
+                .fromType(AbstractArchiveTask.class, archiveTaskNotationConverter)
+                .fromType(PublishArtifact.class, publishArtifactNotationConverter)
+                .converter(fileNotationConverter)
                 .toComposite();
 
-        MavenArtifactMapNotationParser mavenArtifactMapNotationParser = new MavenArtifactMapNotationParser(sourceNotationParser);
+        MavenArtifactMapNotationConverter mavenArtifactMapNotationConverter = new MavenArtifactMapNotationConverter(sourceNotationParser);
 
         NotationParserBuilder<MavenArtifact> parserBuilder = NotationParserBuilder
                 .toType(MavenArtifact.class)
-                .fromType(AbstractArchiveTask.class, archiveTaskNotationParser)
-                .fromType(PublishArtifact.class, publishArtifactNotationParser)
-                .parser(mavenArtifactMapNotationParser)
-                .converter(fileNotationParser);
+                .fromType(AbstractArchiveTask.class, archiveTaskNotationConverter)
+                .fromType(PublishArtifact.class, publishArtifactNotationConverter)
+                .converter(mavenArtifactMapNotationConverter)
+                .converter(fileNotationConverter);
 
         return parserBuilder.toComposite();
     }
 
-    private class ArchiveTaskNotationParser implements NotationConverter<AbstractArchiveTask, MavenArtifact> {
+    private class ArchiveTaskNotationConverter implements NotationConverter<AbstractArchiveTask, MavenArtifact> {
         public void convert(AbstractArchiveTask archiveTask, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             DefaultMavenArtifact artifact = instantiator.newInstance(
                     DefaultMavenArtifact.class,
@@ -75,7 +75,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
     }
 
-    private class PublishArtifactNotationParser implements NotationConverter<PublishArtifact, MavenArtifact> {
+    private class PublishArtifactNotationConverter implements NotationConverter<PublishArtifact, MavenArtifact> {
         public void convert(PublishArtifact publishArtifact, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             DefaultMavenArtifact artifact = instantiator.newInstance(
                     DefaultMavenArtifact.class,
@@ -89,10 +89,10 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
     }
 
-    private class FileNotationParser implements NotationConverter<Object, MavenArtifact> {
+    private class FileNotationConverter implements NotationConverter<Object, MavenArtifact> {
         private final NotationParser<Object, File> fileResolverNotationParser;
 
-        private FileNotationParser(FileResolver fileResolver) {
+        private FileNotationConverter(FileResolver fileResolver) {
             this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
@@ -111,10 +111,10 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
     }
 
-    private class MavenArtifactMapNotationParser extends MapNotationParser<MavenArtifact> {
+    private class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
         private final NotationParser<Object, MavenArtifact> sourceNotationParser;
 
-        private MavenArtifactMapNotationParser(NotationParser<Object, MavenArtifact> sourceNotationParser) {
+        private MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {
             this.sourceNotationParser = sourceNotationParser;
         }
 

@@ -28,12 +28,12 @@ class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
         return NotationParserBuilder
                 .toType(NativeLibraryRequirement.class)
-                .parser(new LibraryConverter())
-                .parser(new NativeLibraryRequirementMapNotationParser())
+                .converter(new LibraryConverter())
+                .converter(new NativeLibraryRequirementMapNotationConverter())
                 .toComposite();
     }
 
-    private static class LibraryConverter extends TypedNotationParser<NativeLibrarySpec, NativeLibraryRequirement> {
+    private static class LibraryConverter extends TypedNotationConverter<NativeLibrarySpec, NativeLibraryRequirement> {
         private LibraryConverter() {
             super(NativeLibrarySpec.class);
         }
@@ -44,7 +44,7 @@ class NativeDependencyNotationParser {
         }
     }
 
-    private static class NativeLibraryRequirementMapNotationParser extends MapNotationParser<NativeLibraryRequirement> {
+    private static class NativeLibraryRequirementMapNotationConverter extends MapNotationConverter<NativeLibraryRequirement> {
 
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Map with mandatory 'library' and optional 'project' and 'linkage' keys, e.g. [project: ':someProj', library: 'mylib', linkage: 'static']");

@@ -20,7 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationParser;
+import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
@@ -87,7 +87,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
     private static NotationParser<Object, ModuleIdentifier> parser() {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .parser(new ModuleIdentiferNotationParser())
+                .converter(new ModuleIdentiferNotationConverter())
                 .toComposite();
     }
 }

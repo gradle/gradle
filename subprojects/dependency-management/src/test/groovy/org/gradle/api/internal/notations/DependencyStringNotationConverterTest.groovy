@@ -24,8 +24,8 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import spock.lang.Specification
 
-public class DependencyStringNotationParserTest extends Specification {
-    def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultExternalModuleDependency.class);
+public class DependencyStringNotationConverterTest extends Specification {
+    def parser = new DependencyStringNotationConverter(new DirectInstantiator(), DefaultExternalModuleDependency.class);
 
     def "with artifact"() {
         when:
@@ -138,7 +138,7 @@ public class DependencyStringNotationParserTest extends Specification {
     }
 
     def "can create client module"() {
-        def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
+        def parser = new DependencyStringNotationConverter(new DirectInstantiator(), DefaultClientModule);
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10')
@@ -154,7 +154,7 @@ public class DependencyStringNotationParserTest extends Specification {
     }
 
     def "client module ignores the artifact only notation"() {
-        def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
+        def parser = new DependencyStringNotationConverter(new DirectInstantiator(), DefaultClientModule);
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10@jar')

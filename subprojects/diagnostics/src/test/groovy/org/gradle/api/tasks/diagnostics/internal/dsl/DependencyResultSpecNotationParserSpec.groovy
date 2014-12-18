@@ -27,7 +27,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyResultSpecNotationParserSpec extends Specification {
 
-    NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationParser.create()
+    NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationConverter.create()
 
     def "accepts closures"() {
         given:

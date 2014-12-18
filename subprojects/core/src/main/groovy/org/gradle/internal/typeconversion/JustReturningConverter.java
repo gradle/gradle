@@ -13,37 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.typeconversion;
 
+import java.util.Collection;
 
-import spock.lang.Specification
+public class JustReturningConverter<N, T> implements NotationConverter<N, T> {
 
-public class TypedNotationParserTest extends Specification {
+    private final Class<? extends T> passThroughType;
 
-    def parser = new DummyParser();
-
-    def "parses object of source type"(){
-        expect:
-        parser.parseNotation("100") == 100
+    public JustReturningConverter(Class<? extends T> passThroughType) {
+        this.passThroughType = passThroughType;
     }
 
-    def "throws meaningful exception on parse attempt"(){
-        when:
-        parser.parseNotation(new Object())
-
-        then:
-        thrown(UnsupportedNotationException)
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add(String.format("Instances of %s.", passThroughType.getSimpleName()));
     }
 
-    class DummyParser extends TypedNotationParser<String, Integer> {
-
-        DummyParser() {
-            super(String.class)
-        }
-
-        Integer parseType(String notation) {
-            return Integer.valueOf(notation);
+    @Override
+    public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
+        if (passThroughType.isInstance(notation)) {
+            result.converted(passThroughType.cast(notation));
         }
     }
 }

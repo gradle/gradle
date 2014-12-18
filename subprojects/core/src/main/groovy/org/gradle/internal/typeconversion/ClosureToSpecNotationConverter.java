@@ -22,10 +22,10 @@ import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 
-public class ClosureToSpecNotationParser<T> implements NotationConverter<Closure, Spec<T>> {
+public class ClosureToSpecNotationConverter<T> implements NotationConverter<Closure, Spec<T>> {
     private final Class<T> type;
 
-    public ClosureToSpecNotationParser(Class<T> type) {
+    public ClosureToSpecNotationConverter(Class<T> type) {
         this.type = type;
     }
 

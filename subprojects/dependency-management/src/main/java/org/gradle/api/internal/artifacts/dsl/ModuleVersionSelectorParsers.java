@@ -30,8 +30,8 @@ public class ModuleVersionSelectorParsers {
 
     private static final NotationParserBuilder<ModuleVersionSelector> BUILDER = NotationParserBuilder
             .toType(ModuleVersionSelector.class)
-            .fromCharSequence(new StringParser())
-            .parser(new MapParser());
+            .fromCharSequence(new StringConverter())
+            .converter(new MapConverter());
 
     public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser() {
         return builder().toFlatteningComposite();
@@ -45,7 +45,7 @@ public class ModuleVersionSelectorParsers {
         return BUILDER;
     }
 
-    static class MapParser extends MapNotationParser<ModuleVersionSelector> {
+    static class MapConverter extends MapNotationConverter<ModuleVersionSelector> {
         @Override
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
@@ -56,7 +56,7 @@ public class ModuleVersionSelectorParsers {
         }
     }
 
-    static class StringParser implements NotationConverter<String, ModuleVersionSelector> {
+    static class StringConverter implements NotationConverter<String, ModuleVersionSelector> {
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
         }

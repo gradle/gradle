@@ -19,8 +19,8 @@ package org.gradle.internal.typeconversion
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
-class ClosureToSpecNotationParserTest extends Specification {
-    private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser(String)
+class ClosureToSpecNotationConverterTest extends Specification {
+    private ClosureToSpecNotationConverter converter = new ClosureToSpecNotationConverter(String)
 
     def "converts closures"() {
         given:
@@ -33,6 +33,6 @@ class ClosureToSpecNotationParserTest extends Specification {
     }
 
     def parse(def value) {
-        return NotationParserBuilder.toType(Spec).fromType(Closure, parser).toComposite().parseNotation(value)
+        return NotationParserBuilder.toType(Spec).fromType(Closure, converter).toComposite().parseNotation(value)
     }
 }

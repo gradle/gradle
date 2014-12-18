@@ -18,8 +18,7 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.api.tasks.Optional;
 
 import java.util.Collection;
@@ -32,17 +31,17 @@ public class ProjectDependencyFactory {
         this.factory = factory;
     }
 
-    public ProjectDependency createFromMap(ProjectFinder projectFinder,
-                                           Map<? extends String, ? extends Object> map) {
-        return new ProjectDependencyMapNotationParser(projectFinder, factory).parseNotation(map);
+    public ProjectDependency createFromMap(ProjectFinder projectFinder, Map<? extends String, ?> map) {
+        return NotationParserBuilder.toType(ProjectDependency.class)
+                .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
     }
 
-    static class ProjectDependencyMapNotationParser extends MapNotationParser<ProjectDependency> {
+    static class ProjectDependencyMapNotationConverter extends MapNotationConverter<ProjectDependency> {
 
         private final ProjectFinder projectFinder;
         private final DefaultProjectDependencyFactory factory;
 
-        public ProjectDependencyMapNotationParser(ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
+        public ProjectDependencyMapNotationConverter(ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
             this.projectFinder = projectFinder;
             this.factory = factory;
         }

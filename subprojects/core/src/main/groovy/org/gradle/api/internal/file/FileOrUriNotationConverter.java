@@ -28,13 +28,13 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FileOrUriNotationParser implements NotationConverter<Object, Object> {
+public class FileOrUriNotationConverter implements NotationConverter<Object, Object> {
 
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
     private final FileSystem fileSystem;
 
-    public FileOrUriNotationParser(FileSystem fileSystem) {
+    public FileOrUriNotationConverter(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
     }
 
@@ -42,7 +42,7 @@ public class FileOrUriNotationParser implements NotationConverter<Object, Object
         return NotationParserBuilder
                 .toType(Object.class)
                 .typeDisplayName("a File or URI")
-                .converter(new FileOrUriNotationParser(fileSystem))
+                .converter(new FileOrUriNotationConverter(fileSystem))
                 .toComposite();
     }
 

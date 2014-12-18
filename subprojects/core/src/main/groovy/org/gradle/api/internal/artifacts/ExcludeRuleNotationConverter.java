@@ -20,11 +20,20 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
+import org.gradle.internal.typeconversion.MapNotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Collection;
 
-public class ExcludeRuleNotationParser extends MapNotationParser<ExcludeRule> {
+public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRule> {
+
+    private static final NotationParser<Object, ExcludeRule> PARSER =
+            NotationParserBuilder.toType(ExcludeRule.class).converter(new ExcludeRuleNotationConverter()).toComposite();
+
+    public static NotationParser<Object, ExcludeRule> parser() {
+        return PARSER;
+    }
 
     @Override
     public void describe(Collection<String> candidateFormats) {

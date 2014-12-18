@@ -44,6 +44,7 @@ import java.util.*;
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal {
+
     private final String path;
     private final String name;
 
@@ -303,7 +304,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         validateMutation();
-        excludeRules.add(new ExcludeRuleNotationParser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
+        excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
 

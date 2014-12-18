@@ -23,7 +23,7 @@ import org.gradle.internal.typeconversion.*;
 
 import java.util.Collection;
 
-public class DependencyResultSpecNotationParser implements NotationConverter<String, Spec<DependencyResult>> {
+public class DependencyResultSpecNotationConverter implements NotationConverter<String, Spec<DependencyResult>> {
     public void convert(String notation, NotationConvertResult<? super Spec<DependencyResult>> result) throws TypeConversionException {
         final String stringNotation = notation.trim();
         if (stringNotation.length() > 0) {
@@ -39,8 +39,8 @@ public class DependencyResultSpecNotationParser implements NotationConverter<Str
         return NotationParserBuilder
                 .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
-                .fromType(Closure.class, new ClosureToSpecNotationParser<DependencyResult>(DependencyResult.class))
-                .fromCharSequence(new DependencyResultSpecNotationParser())
+                .fromType(Closure.class, new ClosureToSpecNotationConverter<DependencyResult>(DependencyResult.class))
+                .fromCharSequence(new DependencyResultSpecNotationConverter())
                 .toComposite();
     }
 }

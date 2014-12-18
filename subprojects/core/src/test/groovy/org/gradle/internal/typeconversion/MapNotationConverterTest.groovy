@@ -19,8 +19,8 @@ import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Optional
 
-class MapNotationParserTest extends Specification {
-    final DummyParser parser = new DummyParser()
+class MapNotationConverterTest extends Specification {
+    final NotationParser parser = new NotationConverterToNotationParserAdapter<>(new DummyConverter())
     
     def "parses map with required keys"() {
         expect:
@@ -94,7 +94,7 @@ class MapNotationParserTest extends Specification {
         thrown(UnsupportedNotationException)
     }
     
-    static class DummyParser extends MapNotationParser<TargetObject> {
+    static class DummyConverter extends MapNotationConverter<TargetObject> {
         protected TargetObject parseMap(@MapKey('name') String name,
                                         @MapKey('version') String version,
                                         @Optional @MapKey('optional') optional) {

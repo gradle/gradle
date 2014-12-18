@@ -29,14 +29,14 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import java.io.File;
 import java.util.Collection;
 
-public class DependencyClassPathNotationParser implements NotationConverter<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
+public class DependencyClassPathNotationConverter implements NotationConverter<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
 
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
-    public DependencyClassPathNotationParser(Instantiator instantiator, ClassPathRegistry classPathRegistry,
-                                             FileResolver fileResolver) {
+    public DependencyClassPathNotationConverter(Instantiator instantiator, ClassPathRegistry classPathRegistry,
+                                                FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
