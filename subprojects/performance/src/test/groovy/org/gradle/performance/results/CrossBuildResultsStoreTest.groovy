@@ -32,12 +32,12 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
     def "persists reports"() {
         given:
         def results1 = crossBuildResults(testId: "test1")
-        def buildResults1 = results1.buildResult(new BuildSpecification(
-                projectName: "simple",
-                displayName: "simple display",
-                tasksToRun: ["build"] as String[],
-                args: ["-i"] as String[]
-        ))
+        def buildResults1 = results1.buildResult(BuildSpecification.forProject("simple")
+                .displayName("simple display")
+                .tasksToRun("build")
+                .args("-i")
+                .build()
+        )
         buildResults1 << operation(executionTime: minutes(12),
                 totalMemoryUsed: kbytes(12.33),
                 totalHeapUsage: kbytes(5612.45),
@@ -45,23 +45,18 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                 maxUncollectedHeap: kbytes(45.22),
                 maxCommittedHeap: kbytes(200)
         )
-        def buildResults2 = results1.buildResult(new BuildSpecification(
-                projectName: "complex",
-                displayName: "",
-                tasksToRun: [] as String[],
-                args: [] as String[]
-        ))
+        def buildResults2 = results1.buildResult(BuildSpecification.forProject("complex").build())
         buildResults2 << operation()
         buildResults2 << operation()
 
         and:
         def results2 = crossBuildResults(testId: "test2")
-        results2.buildResult(new BuildSpecification(
-                projectName: "simple",
-                displayName: "simple display",
-                tasksToRun: ["build"],
-                args: ["-i"],
-        ))
+        results2.buildResult(BuildSpecification.forProject("simple")
+                .displayName("simple display")
+                .tasksToRun("build")
+                .args("-i")
+                .build()
+        )
 
         when:
         def writeStore = new CrossBuildResultsStore(dbFile)
@@ -87,22 +82,16 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         and:
         def firstSpecification = history.buildSpecifications[0]
-        firstSpecification == new BuildSpecification(
-                projectName: "complex",
-                displayName: "complex",
-                tasksToRun: [] as String[],
-                args: [] as String[]
-        )
+        firstSpecification == BuildSpecification.forProject("complex").displayName("complex").build()
         history.results.first().buildResult(firstSpecification).size() == 2
 
         and:
         def secondSpecification = history.buildSpecifications[1]
-        secondSpecification == new BuildSpecification(
-                projectName: "simple",
-                displayName: "simple display",
-                tasksToRun: ["build"] as String[],
-                args: ["-i"] as String[]
-        )
+        secondSpecification == BuildSpecification.forProject("simple")
+                .displayName("simple display")
+                .tasksToRun("build")
+                .args("-i")
+                .build()
         def crossBuildPerformanceResults = history.results.first()
         crossBuildPerformanceResults.testId == "test1"
         crossBuildPerformanceResults.jvm == "java 7"

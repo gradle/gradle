@@ -55,18 +55,22 @@ class BuildSpecification implements BuildParametersSpecification {
 
         Builder displayName(String displayName) {
             this.displayName = displayName
+            this
         }
 
         Builder tasksToRun(String[] tasksToRun) {
             this.tasksToRun = tasksToRun
+            this
         }
 
         Builder args(String[] args) {
             this.args = args
+            this
         }
 
         Builder gradleOpts(String[] gradleOpts) {
             this.gradleOpts = gradleOpts
+            this
         }
 
         BuildSpecification build() {
