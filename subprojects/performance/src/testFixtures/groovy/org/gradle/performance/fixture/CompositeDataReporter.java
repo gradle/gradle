@@ -20,11 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CompositeDataReporter implements CrossVersionDataReporter {
-    private final List<CrossVersionDataReporter> reporters;
+public class CompositeDataReporter implements DataReporter<CrossVersionPerformanceResults> {
+    private final List<DataReporter<CrossVersionPerformanceResults>> reporters;
     private final Set<String> testIds = new HashSet<String>();
 
-    public CompositeDataReporter(List<CrossVersionDataReporter> reporters) {
+    public CompositeDataReporter(List<DataReporter<CrossVersionPerformanceResults>> reporters) {
         this.reporters = reporters;
     }
 
@@ -32,7 +32,7 @@ public class CompositeDataReporter implements CrossVersionDataReporter {
         if (!testIds.add(results.getTestId())) {
             throw new IllegalArgumentException(String.format("Multiple performance test executions with id '%s' found.", results.getTestId()));
         }
-        for (CrossVersionDataReporter reporter : reporters) {
+        for (DataReporter<CrossVersionPerformanceResults> reporter : reporters) {
             reporter.report(results);
         }
     }

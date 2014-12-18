@@ -25,7 +25,7 @@ import org.gradle.util.GradleVersion
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     final timer = Mock(OperationTimer)
-    final reporter = Mock(CrossVersionDataReporter)
+    final reporter = Mock(DataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
     final dataCollector = Stub(DataCollector)
     final currentGradle = Stub(GradleDistribution)

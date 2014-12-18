@@ -16,7 +16,7 @@
 
 package org.gradle.performance.fixture
 
-class TextFileDataReporter implements CrossVersionDataReporter {
+class TextFileDataReporter implements DataReporter<CrossVersionPerformanceResults> {
     private final File outputFile
 
     TextFileDataReporter(File outputFile) {

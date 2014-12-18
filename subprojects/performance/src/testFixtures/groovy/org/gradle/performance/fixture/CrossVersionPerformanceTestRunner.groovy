@@ -32,7 +32,7 @@ public class CrossVersionPerformanceTestRunner {
     TestDirectoryProvider testDirectoryProvider
     GradleDistribution current
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    CrossVersionDataReporter reporter
+    DataReporter<CrossVersionPerformanceResults> reporter
     OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
 

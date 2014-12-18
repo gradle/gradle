@@ -44,7 +44,7 @@ class CrossBuildPerformanceTestRunner {
             gcCollector)
 
     CrossBuildPerformanceResults results
-    CrossBuildDataReporter reporter
+    DataReporter<CrossBuildPerformanceResults> reporter
 
     CrossBuildPerformanceResults run() {
         assert !buildSpecifications.empty
