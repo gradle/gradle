@@ -79,6 +79,7 @@ We would like to thank the following community members for making contributions 
 
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
 * [Victor Bronstein](https://github.com/victorbr) - Convert NotationParser implementations to NotationConverter
+* [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
