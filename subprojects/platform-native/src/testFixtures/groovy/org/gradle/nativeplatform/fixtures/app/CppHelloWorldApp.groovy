@@ -121,8 +121,8 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
 
-    TestComponent getGoogleTestTests() {
-        return new TestComponent() {
+    TestNativeComponent getGoogleTestTests() {
+        return new TestNativeComponent() {
             List<SourceFile> sourceFiles = [
                     sourceFile("cpp", "test.cpp", """
 #include "gtest/gtest.h"

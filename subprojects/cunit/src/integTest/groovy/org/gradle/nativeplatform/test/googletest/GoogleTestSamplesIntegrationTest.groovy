@@ -36,8 +36,8 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     def "googleTest"() {
         given:
-        // GoogleTest prebuilt library only works for VS2010 on windows
-        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
+        // GoogleTest sample only works out of the box with VS2013 on windows
+        if (OperatingSystem.current().windows && !isVisualCpp2013()) {
             return
         }
 
@@ -74,8 +74,8 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         failingResults.checkTestCases(2, 1, 1)
     }
 
-    private static boolean isVisualCpp2010() {
-        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
+    private static boolean isVisualCpp2013() {
+        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "12")
     }
 
 }
