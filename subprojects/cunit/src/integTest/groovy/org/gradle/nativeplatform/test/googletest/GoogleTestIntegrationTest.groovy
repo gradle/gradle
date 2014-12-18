@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.googletest
-
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -102,8 +101,6 @@ tasks.withType(RunTestExecutable) {
             switch (vcVersion.major) {
                 case "12":
                     return "vs2013"
-                case "10":
-                    return "vs2010"
             }
         }
         throw new IllegalStateException("No googletest binary available for ${toolChain.displayName}")
