@@ -40,6 +40,7 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
+import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpecIdentifier;
@@ -147,6 +148,12 @@ public class GoogleTestPlugin implements Plugin<Project> {
             testBinary.setExecutableFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
 
             ((ExtensionAware) testBinary).getExtensions().create("cppCompiler", DefaultPreprocessingTool.class);
+
+            // TODO:DAZ Not sure if this should be here...
+            // Need "-pthread" when linking to Gcc
+            if (testBinary.getToolChain() instanceof Gcc) {
+                testBinary.getLinker().args("-pthread");
+            }
         }
     }
 }
