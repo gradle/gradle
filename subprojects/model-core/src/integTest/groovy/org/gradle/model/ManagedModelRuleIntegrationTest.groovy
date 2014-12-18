@@ -22,6 +22,10 @@ import org.gradle.util.Matchers
 
 class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
+
     def "rule can provide a managed model element"() {
         when:
         buildScript '''
@@ -272,9 +276,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot assign a non-managed instance to a property of a managed type"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -515,9 +516,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "rule can create a managed collection of managed model elements"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -566,9 +564,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "managed model type has property of collection of managed types"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -620,9 +615,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "managed model type can reference a collection of managed types"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -702,9 +694,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use enums in managed model elements"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -754,9 +743,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "rule can target structured property of managed element"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -808,9 +794,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "rule can target structured property of managed element as subject"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -865,9 +848,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "rule can target simple property of managed element"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -914,9 +894,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "mutation rule can target property of managed element"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -1205,9 +1182,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "unmanaged property of managed can be targeted by rules"() {
-        given:
-        EnableModelDsl.enable(executer)
-
         when:
         buildScript '''
             import org.gradle.model.*
@@ -1266,4 +1240,123 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains("fromScript: foo")
     }
 
+    def "mutating managed inputs of a rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void person(Person person) {
+                }
+
+                @Model
+                String name(Person person) {
+                    person.name = "bar"
+                }
+
+                @Mutate
+                void addDependencyOnName(CollectionBuilder<Task> tasks, String name) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#name(Person)")
+        failure.assertHasCause("Object created at path 'person' viewed as 'Person' is not mutable!")
+    }
+
+    def "mutating managed inputs of a dsl rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void person(Person person) {
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                    $("person").name = "foo"
+                }
+            }
+        '''
+
+        then:
+        fails "printName"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
+        failure.assertHasCause("Object created at path 'person' viewed as 'Person' is not mutable!")
+    }
+
+    def "mutating managed objects outside of a creation rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+            }
+
+            class Group {
+                List<Person> people = []
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                Group group() {
+                    new Group()
+                }
+
+                @Model
+                void person(Person person, Group group) {
+                    group.people << person
+                }
+
+                @Mutate
+                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person, Group group) {
+                    group.people.first().name = "foo"
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
+        failure.assertHasCause("Object created at path 'person' cannot be mutated anymore!")
+    }
 }

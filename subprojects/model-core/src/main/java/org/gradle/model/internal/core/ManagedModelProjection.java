@@ -79,10 +79,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 public <T> void set(ModelType<T> propertyType, String name, T value) {
                     if (!writable) {
-                        throw new IllegalStateException("object is not mutable!");
+                        throw new IllegalStateException(String.format("Object created at path '%s' viewed as '%s' is not mutable!", modelNode.getPath(), getType()));
                     }
                     if (closed) {
-                        throw new IllegalStateException("no more mutation!");
+                        throw new IllegalStateException(String.format("Object created at path '%s' cannot be mutated anymore!", modelNode.getPath()));
                     }
 
                     ModelSchema<T> schema = schemaStore.getSchema(propertyType);
