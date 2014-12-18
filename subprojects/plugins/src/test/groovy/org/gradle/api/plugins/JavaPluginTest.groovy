@@ -17,12 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.FileCollectionMatchers
+import org.gradle.api.internal.component.BuildableJavaComponent
+import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.internal.java.JavaLibrary
-import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
@@ -44,16 +44,18 @@ import static org.junit.Assert.*
 class JavaPluginTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final Project project = TestUtil.createRootProject()
-    private final JavaPlugin javaPlugin = new JavaPlugin()
+    private final def project = TestUtil.createRootProject()
+    private final def javaPlugin = new JavaPlugin()
 
     @Test public void appliesBasePluginsAndAddsConventionObject() {
         javaPlugin.apply(project)
 
-        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
-        assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
-        assertThat(project.convention.plugins.embeddedJavaProject.buildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
-        assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, notNullValue())
+        def component = project.services.get(ComponentRegistry).mainComponent
+        assertThat(component, instanceOf(BuildableJavaComponent))
+        assertThat(component.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
+        assertThat(component.buildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
+        assertThat(component.runtimeClasspath, notNullValue())
+        assertThat(component.compileDependencies, equalTo(project.configurations.compile))
     }
 
     @Test public void addsConfigurationsToTheProject() {

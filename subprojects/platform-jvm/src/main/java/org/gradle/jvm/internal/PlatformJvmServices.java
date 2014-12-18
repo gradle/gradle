@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.jvm.internal;
 
-import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
-public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<SharedLibraryBinarySpec> {
-    @Override
-    public Class<SharedLibraryBinarySpec> getTargetType() {
-        return SharedLibraryBinarySpec.class;
+public class PlatformJvmServices implements PluginServiceRegistry {
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.add(JarBinaryRenderer.class);
     }
 
-    @Override
-    protected void renderOutputs(SharedLibraryBinarySpec binary, TextReportBuilder builder) {
-        builder.item("shared library file", binary.getSharedLibraryFile());
+    public void registerBuildServices(ServiceRegistration registration) {
+    }
+
+    public void registerProjectServices(ServiceRegistration registration) {
     }
 }

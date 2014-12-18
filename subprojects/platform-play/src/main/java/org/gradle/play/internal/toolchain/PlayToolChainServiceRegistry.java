@@ -27,11 +27,7 @@ import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            PlayApplicationBinaryRenderer createBinaryRenderer() {
-                return new PlayApplicationBinaryRenderer();
-            }
-        });
+        registration.add(PlayApplicationBinaryRenderer.class);
     }
 
     public void registerBuildServices(ServiceRegistration registration) {

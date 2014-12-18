@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 
-public class NativeExecutableBinaryRenderer extends AbstractNativeBinaryRenderer<NativeExecutableBinarySpec> {
+public class StaticLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<StaticLibraryBinarySpec> {
     @Override
-    public Class<NativeExecutableBinarySpec> getTargetType() {
-        return NativeExecutableBinarySpec.class;
+    public Class<StaticLibraryBinarySpec> getTargetType() {
+        return StaticLibraryBinarySpec.class;
     }
 
     @Override
-    protected void renderTasks(NativeExecutableBinarySpec binary, TextReportBuilder builder) {
-        builder.item("install using task", binary.getTasks().getInstall().getPath());
-    }
-
-    @Override
-    protected void renderOutputs(NativeExecutableBinarySpec binary, TextReportBuilder builder) {
-        builder.item("executable file", binary.getExecutableFile());
+    protected void renderOutputs(StaticLibraryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("static library file", binary.getStaticLibraryFile());
     }
 }

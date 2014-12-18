@@ -19,11 +19,16 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.component.ComponentRegistry;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;
 import org.gradle.api.tasks.diagnostics.*;
 import org.gradle.configuration.Help;
+
+import java.util.concurrent.Callable;
 
 /**
  * Adds various reporting tasks that provide information about the project.
@@ -101,10 +106,10 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
                         task.setDescription("Displays the insight into a specific dependency in " + project + ".");
                         task.setGroup(HELP_GROUP);
                         task.setImpliesSubProjects(true);
-
-                        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
-                            public void execute(JavaPlugin javaPlugin) {
-                                task.setConfiguration(project.getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME));
+                        new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
+                            public Object call() {
+                                BuildableJavaComponent javaProject = project.getServices().get(ComponentRegistry.class).getMainComponent();
+                                return javaProject == null ? null : javaProject.getCompileDependencies();
                             }
                         });
                     }

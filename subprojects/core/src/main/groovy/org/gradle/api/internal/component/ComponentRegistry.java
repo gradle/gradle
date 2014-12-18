@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-/*
- * The model management core.
+package org.gradle.api.internal.component;
+
+/**
+ * TODO - merge this and the component container
  */
-apply plugin: "groovy"
+public class ComponentRegistry {
+    private BuildableJavaComponent mainComponent;
 
-dependencies {
-    compile libraries.slf4j_api
-    compile project(':baseServicesGroovy')
-    compile libraries.commons_lang
-    compile libraries.jcip
+    public BuildableJavaComponent getMainComponent() {
+        return mainComponent;
+    }
 
-    testCompile libraries.groovy
-
-    integTestCompile project(":core")
-    integTestRuntime project(':plugins')
-
-    testFixturesCompile project(":internalTesting")
-    testFixturesCompile project(":core")
+    public void setMainComponent(BuildableJavaComponent mainComponent) {
+        this.mainComponent = mainComponent;
+    }
 }
-
-useTestFixtures()
-useClassycle()
-strictCompile()

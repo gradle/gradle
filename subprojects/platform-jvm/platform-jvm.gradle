@@ -1,10 +1,17 @@
 dependencies {
     compile project(":platformBase")
     compile project(":core")
+    compile project(":diagnostics")
 
     testCompile libraries.groovy
+
+    // To pick up JavaToolChainInternal implementation
+    // TODO - get rid of cycle
+    integTestRuntime project(':languageJava')
 }
 
 useTestFixtures()
+useTestFixtures(project: ':diagnostics')
+
 useClassycle()
 strictCompile()

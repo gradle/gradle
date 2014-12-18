@@ -19,6 +19,7 @@ dependencies {
     compile libraries.commons_io
     compile project(':core')
     compile project(":platformBase")
+    compile project(":diagnostics")
 
     integTestRuntime project(":maven")
     // Required to test visual studio project file generation for generated sources
@@ -32,6 +33,7 @@ useTestFixtures(project: ":messaging")
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":modelCore")
+useTestFixtures(project: ":diagnostics")
 
 strictCompile()
 useClassycle(exclude: ["org/gradle/nativeplatform/plugins/**",

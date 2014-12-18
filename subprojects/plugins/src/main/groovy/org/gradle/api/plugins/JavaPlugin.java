@@ -25,9 +25,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.component.BuildableJavaComponent;
+import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
@@ -43,7 +44,7 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
-public class JavaPlugin implements Plugin<Project> {
+public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
     public static final String CLASSES_TASK_NAME = "classes";
     public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
@@ -59,7 +60,7 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
-    public void apply(Project project) {
+    public void apply(ProjectInternal project) {
         project.apply(new Action<ObjectConfigurationAction>() {
             public void execute(ObjectConfigurationAction objectConfigurationAction) {
                 objectConfigurationAction.plugin(JavaBasePlugin.class);
@@ -67,7 +68,7 @@ public class JavaPlugin implements Plugin<Project> {
         });
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));
+        project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
 
         configureSourceSets(javaConvention);
         configureConfigurations(project);
@@ -179,10 +180,10 @@ public class JavaPlugin implements Plugin<Project> {
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
 
-    private static class EmbeddableJavaProjectImpl implements EmbeddableJavaProject {
+    private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
         private final JavaPluginConvention convention;
 
-        public EmbeddableJavaProjectImpl(JavaPluginConvention convention) {
+        public BuildableJavaComponentImpl(JavaPluginConvention convention) {
             this.convention = convention;
         }
 
@@ -199,6 +200,10 @@ public class JavaPlugin implements Plugin<Project> {
             ProjectInternal project = convention.getProject();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
             return runtimeClasspath.minus(gradleApi);
+        }
+
+        public Configuration getCompileDependencies() {
+            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
         }
     }
 }

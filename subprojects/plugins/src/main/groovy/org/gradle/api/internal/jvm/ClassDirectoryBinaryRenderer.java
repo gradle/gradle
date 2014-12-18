@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.api.internal.jvm;
 
+import org.gradle.jvm.internal.AbstractJvmBinaryRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 
-public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
+public class ClassDirectoryBinaryRenderer extends AbstractJvmBinaryRenderer<ClassDirectoryBinarySpec> {
     @Override
-    public Class<NativeTestSuiteBinarySpec> getTargetType() {
-        return NativeTestSuiteBinarySpec.class;
+    public Class<ClassDirectoryBinarySpec> getTargetType() {
+        return ClassDirectoryBinarySpec.class;
     }
 
     @Override
-    protected void renderTasks(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
-        builder.item("run using task", binary.getTasks().getRun().getPath());
-    }
-
-    @Override
-    protected void renderOutputs(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
-        builder.item("executable file", binary.getExecutableFile());
+    protected void renderOutputs(ClassDirectoryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("classes dir", binary.getClassesDir());
+        builder.item("resources dir", binary.getResourcesDir());
     }
 }

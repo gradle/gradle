@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -178,5 +179,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    protected ComponentRegistry createComponentRegistry() {
+        return new ComponentRegistry();
     }
 }

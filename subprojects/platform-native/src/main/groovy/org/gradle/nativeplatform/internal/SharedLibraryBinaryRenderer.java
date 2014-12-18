@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.components.internal;
+package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 
-public class ClassDirectoryBinaryRenderer extends AbstractJvmBinaryRenderer<ClassDirectoryBinarySpec> {
+public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<SharedLibraryBinarySpec> {
     @Override
-    public Class<ClassDirectoryBinarySpec> getTargetType() {
-        return ClassDirectoryBinarySpec.class;
+    public Class<SharedLibraryBinarySpec> getTargetType() {
+        return SharedLibraryBinarySpec.class;
     }
 
     @Override
-    protected void renderOutputs(ClassDirectoryBinarySpec binary, TextReportBuilder builder) {
-        builder.item("classes dir", binary.getClassesDir());
-        builder.item("resources dir", binary.getResourcesDir());
+    protected void renderOutputs(SharedLibraryBinarySpec binary, TextReportBuilder builder) {
+        builder.item("shared library file", binary.getSharedLibraryFile());
     }
 }

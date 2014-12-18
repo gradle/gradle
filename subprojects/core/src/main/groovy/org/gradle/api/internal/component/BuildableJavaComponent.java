@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.plugins;
+package org.gradle.api.internal.component;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 
 import java.util.Collection;
 
 /**
- * Meta-info about a Java project which can be embedded in the build.
+ * Meta-info about a Java component.
+ *
+ * TODO - this is some legacy stuff, to be merged into other component interfaces
  */
-public interface EmbeddableJavaProject {
+public interface BuildableJavaComponent {
     Collection<String> getRebuildTasks();
 
     Collection<String> getBuildTasks();
 
     FileCollection getRuntimeClasspath();
+
+    Configuration getCompileDependencies();
 }

@@ -218,7 +218,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 sourceSet.srcDir(value);
             }
         }
-
     }
 
     private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {

@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.jvm.ClassDirectoryBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.cache.*;
+import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.cache.CacheRepository;
@@ -29,6 +31,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class CompileServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
+        registration.add(ClassDirectoryBinaryRenderer.class);
     }
 
     public void registerBuildServices(ServiceRegistration registration) {

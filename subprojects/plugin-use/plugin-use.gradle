@@ -20,6 +20,8 @@ dependencies {
     compile project(":resourcesHttp")
     compile libraries.gson
 
+    integTestRuntime project(':plugins')
+
     testFixturesCompile project(":internalIntegTesting")
 }
 
