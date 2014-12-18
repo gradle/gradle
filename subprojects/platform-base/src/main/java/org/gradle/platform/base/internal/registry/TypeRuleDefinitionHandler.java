@@ -54,11 +54,8 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
     public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
-
             TypeBuilderInternal<T> builder = typeBuilderFactory.create();
             ruleDefinition.getRuleInvoker().invoke(builder);
-
-
             doRegister(ruleDefinition, modelRegistry, dependencies, type, builder);
         } catch (InvalidModelException e) {
             invalidModelRule(ruleDefinition, e);

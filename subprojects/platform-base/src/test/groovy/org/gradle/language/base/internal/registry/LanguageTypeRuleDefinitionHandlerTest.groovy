@@ -17,6 +17,9 @@
 package org.gradle.language.base.internal.registry
 
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.AbstractLanguageSourceSet
+import org.gradle.language.base.plugins.ComponentModelBasePlugin
+import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -57,12 +60,38 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         ex.cause.message == expectedMessage
 
         where:
-        methodName               | expectedMessage                                                                                           | descr
-        "returnValue"            | "Method annotated with @LanguageType must not have a return value."                                       | "non void method"
-        "noParams"               | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'." | "no LanguageTypeBuilder subject"
-        "wrongSubject"           | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'." | "wrong rule subject type"
-        "rawLanguageTypeBuilder" | "Parameter of type 'org.gradle.platform.base.LanguageTypeBuilder' must declare a type parameter."         | "non typed CollectionBuilder parameter"
+        methodName                          | expectedMessage                                                                                                              | descr
+        "returnValue"                       | "Method annotated with @LanguageType must not have a return value."                                                          | "non void method"
+        "noParams"                          | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'."                    | "no LanguageTypeBuilder subject"
+        "wrongSubject"                      | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'."                    | "wrong rule subject type"
+        "rawLanguageTypeBuilder"            | "Parameter of type 'org.gradle.platform.base.LanguageTypeBuilder' must declare a type parameter."                            | "non typed CollectionBuilder parameter"
+        "wildcardLanguageTypeBuilder"       | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                     | "wild card CollectionBuilder parameter"
+        "notImplementingLibraryType"        | "Language implementation '${NotImplementingCustomLanguageSourceSet.name}' must implement '${CustomLanguageSourceSet.name}'." | "implementation not implementing type class"
+        "wrongSubType"                      | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."                         | "implementation not extending BaseComponentSpec"
+        "notExtendingBaseLanguageSourceSet" | "Language implementation '${NotExtendingBaseLanguageSourceSet.name}' must extend '${BaseLanguageSourceSet.name}'."           | "implementation not extending ${BaseLanguageSourceSet.name}"
+        "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."           | "implementation with not public default constructor"
     }
+
+
+    def "does not create language type rule when implementation not set"() {
+        when:
+        ruleHandler.register(ruleDefinitionForMethod("noImplementationTypeRule"), modelRegistry, ruleDependencies)
+
+        then:
+        0 * modelRegistry.mutate(_)
+    }
+
+    def "applies ComponentModelBasePlugin and creates language type rule"() {
+        when:
+        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+
+        then:
+        1 * ruleDependencies.add(ComponentModelBasePlugin)
+
+        and:
+        1 * modelRegistry.mutate(_)
+    }
+
 
     def ruleDefinitionForMethod(String methodName) {
         for (Method candidate : Rules.class.getDeclaredMethods()) {
@@ -81,6 +110,20 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
+    static class ImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
+    }
+
+    static class ImplementationWithNoPublicConstructor extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
+        public ImplementationWithNoPublicConstructor(String someString) {}
+    }
+
+    class NotImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet {}
+
+    class NotExtendingBaseLanguageSourceSet extends AbstractLanguageSourceSet {
+        NotExtendingBaseLanguageSourceSet() {
+            super("testName", "testParent", "testType", null)
+        }
+    }
 
     static class Rules {
 
@@ -100,10 +143,39 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         void rawLanguageTypeBuilder(LanguageTypeBuilder builder) {
         }
 
-
         @LanguageType
-        String registerLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        void wildcardLanguageTypeBuilder(LanguageTypeBuilder<?> builder) {
         }
 
+
+        @LanguageType
+        void wrongSubType(LanguageTypeBuilder<String> languageBuilder) {
+        }
+
+        @LanguageType
+        void notExtendingBaseLanguageSourceSet(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.defaultImplementation(NotExtendingBaseLanguageSourceSet)
+        }
+
+        @LanguageType
+        void notImplementingLibraryType(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.defaultImplementation(NotImplementingCustomLanguageSourceSet)
+        }
+
+        @LanguageType
+        void noImplementationTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        }
+
+        @LanguageType
+        void noPublicCtorImplementation(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
+
+        }
+
+
+        @LanguageType
+        void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
+        }
     }
 }
