@@ -19,8 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.internal.file.BaseDirFileResolver;
-import org.gradle.internal.nativeintegration.services.FileSystems;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -36,15 +35,15 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 
-import java.io.File;
-
 public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
 
     private Instantiator instantiator;
+    private FileResolver fileResolver;
 
-    public LanguageTypeRuleDefinitionHandler(final Instantiator instantiator) {
+    public LanguageTypeRuleDefinitionHandler(final Instantiator instantiator, FileResolver fileResolver) {
         super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class));
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -52,7 +51,7 @@ public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler
         ModelType<? extends BaseLanguageSourceSet> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelMutator<?> mutator = new RegisterTypeRule<LanguageSourceSet, BaseLanguageSourceSet>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator));
+            ModelMutator<?> mutator = new RegisterTypeRule<LanguageSourceSet, BaseLanguageSourceSet>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator, fileResolver));
             modelRegistry.mutate(mutator);
         }
     }
@@ -72,21 +71,21 @@ public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler
 
     private static class RegistrationAction implements Action<RegistrationContext<LanguageSourceSet, BaseLanguageSourceSet>> {
         private final Instantiator instantiator;
+        private final FileResolver fileResolver;
 
-        public RegistrationAction(Instantiator instantiator) {
+        public RegistrationAction(Instantiator instantiator, FileResolver fileResolver) {
             this.instantiator = instantiator;
+            this.fileResolver = fileResolver;
         }
 
         @Override
         public void execute(RegistrationContext<LanguageSourceSet, BaseLanguageSourceSet> context) {
             ComponentSpecContainer componentSpecs = context.getExtensions().getByType(ComponentSpecContainer.class);
-
-            doRegister(componentSpecs, context.getProjectIdentifier().getProjectDir(), context.getType(), context.getImplementation());
+            doRegister(componentSpecs, context.getType(), context.getImplementation());
         }
 
-        private <T extends LanguageSourceSet, U extends BaseLanguageSourceSet> void doRegister(ComponentSpecContainer componentSpecs, final File projectDir, final ModelType<T> type, final ModelType<U> implementation) {
+        private <T extends LanguageSourceSet, U extends BaseLanguageSourceSet> void doRegister(ComponentSpecContainer componentSpecs, final ModelType<T> type, final ModelType<U> implementation) {
             NamedDomainObjectSet<ComponentSpecInternal> componentSpecsInternals = componentSpecs.withType(ComponentSpecInternal.class);
-            final BaseDirFileResolver fileResolver = new BaseDirFileResolver(FileSystems.getDefault(), projectDir);
             // TODO Rene: we should have an implicit rule dependency on componentSpecs instead of using .all here
             componentSpecsInternals.all(new Action<ComponentSpecInternal>() {
                 @Override

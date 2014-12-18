@@ -16,6 +16,8 @@
 
 package org.gradle.language.base.internal.registry
 
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractLanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
@@ -36,7 +38,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
     def ruleDependencies = Mock(RuleSourceDependencies)
     Class<?> ruleClass = Rules
 
-    LanguageTypeRuleDefinitionHandler ruleHandler = new LanguageTypeRuleDefinitionHandler()
+    LanguageTypeRuleDefinitionHandler ruleHandler = new LanguageTypeRuleDefinitionHandler(Mock(Instantiator), Mock(FileResolver))
 
     @Override
     Class<? extends Annotation> getAnnotation() {
