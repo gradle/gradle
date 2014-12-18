@@ -174,6 +174,18 @@ Note: It _might_ make sense to converge all the class based caches we have aroun
 - Rule source plugin is instantiated once (impl idea: default constructor could update some static level counter)
 - Rule source class is not prevented from being garbage collected
 
+## Mutation rules are always executed in a reliable order
+
+This story strengthens the ordering semantics of mutation rules.
+
+Currently, mutation rules are executed in the order in which they fully bind.
+This can cause a change in the inputs to a rule to change when the rule is run in surprising ways.
+We should always guarantee that rules are executed in discovery order, not binding order.
+
+Rules are discovered through the application of plugins, and execution of build scripts.
+We can use the order of plugin application, and rules in build scripts.
+Within a plugin, rules can be ordered in some deterministic way (e.g. sort rules by signature).
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
