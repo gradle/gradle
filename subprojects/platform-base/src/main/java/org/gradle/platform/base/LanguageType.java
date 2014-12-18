@@ -24,8 +24,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that a custom {@link org.gradle.platform.base.BinarySpec} type.
- *
  * The following example demonstrates how to register a custom language type using a plugin with a
  * {@link LanguageType} annotation.
  *

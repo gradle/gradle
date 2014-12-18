@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
-
-import org.gradle.api.Incubating;
-import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * Allows a plugin to register a custom language.
- * @param <T> The custom language sourceset type.
+ * General purpose types for language sources support.
  */
 @Incubating
-public interface LanguageTypeBuilder<T extends LanguageSourceSet> extends TypeBuilder<T> {
-    void setLanguageName(String languageName);
-}
+package org.gradle.language.base.sources;
+
+import org.gradle.api.Incubating;
