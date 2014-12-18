@@ -16,7 +16,6 @@
 
 
 package org.gradle.nativeplatform.test.googletest
-
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -25,9 +24,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
 class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample googleTest = sample(temporaryFolder, 'google-test')

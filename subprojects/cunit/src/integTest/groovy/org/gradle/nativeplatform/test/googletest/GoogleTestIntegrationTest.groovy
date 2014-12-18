@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.googletest
+
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -24,11 +25,9 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@Ignore
 @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -42,16 +41,10 @@ apply plugin: "google-test"
 model {
     repositories {
         libs(PrebuiltLibraries) {
-            "googleTest-core" {
+            googleTest {
                 headers.srcDir "${prebuiltPath}/googleTest/1.7.0/include"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("${prebuiltPath}/googleTest/1.7.0/lib/${googleTestPlatform}/${googleTestCoreLibName}")
-                }
-            }
-            "googleTest-entryPoint" {
-                headers.srcDir "${prebuiltPath}/googleTest/1.7.0/include"
-                binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("${prebuiltPath}/googleTest/1.7.0/lib/${googleTestPlatform}/${googleTestEntryPointLibName}")
+                    staticLibraryFile = file("${prebuiltPath}/googleTest/1.7.0/lib/${googleTestPlatform}/${googleTestLib}")
                 }
             }
         }
@@ -76,8 +69,7 @@ model {
     }
 }
 binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest-core", linkage: "static"
-    lib library: "googleTest-entryPoint", linkage: "static"
+    lib library: "googleTest", linkage: "static"
 }
 
 tasks.withType(RunTestExecutable) {
@@ -104,16 +96,15 @@ tasks.withType(RunTestExecutable) {
             switch (vcVersion.major) {
                 case "12":
                     return "vs2013"
+                case "10":
+                    return "vs2010"
             }
         }
         throw new IllegalStateException("No googletest binary available for ${toolChain.displayName}")
     }
 
-    private def getGoogleTestCoreLibName() {
-        return OperatingSystem.current().getStaticLibraryName("gtest-core")
-    }
-    private def getGoogleTestEntryPointLibName() {
-        return OperatingSystem.current().getStaticLibraryName("gtest-entryPoint")
+    private def getGoogleTestLib() {
+        return OperatingSystem.current().getStaticLibraryName("gtest")
     }
 
     def "can build and run googleTest test suite"() {
@@ -149,8 +140,7 @@ model {
     testSuites {
         helloTest {
             binaries.all {
-                lib library: "googleTest-core", linkage: "static"
-                lib library: "googleTest-entryPoint", linkage: "static"
+                lib library: "googleTest", linkage: "static"
             }
         }
     }
@@ -269,8 +259,7 @@ model {
     }
 }
 binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest-core", linkage: "static"
-    lib library: "googleTest-entryPoint", linkage: "static"
+    lib library: "googleTest", linkage: "static"
 }
 """
 

@@ -137,6 +137,11 @@ TEST(HelloTest, test_sum) {
   ASSERT_TRUE(sum(2, 2) == 4);
 #endif
 }
+
+int main(int argc, char **argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
                     """),
             ]
             List<SourceFile> headerFiles = [
