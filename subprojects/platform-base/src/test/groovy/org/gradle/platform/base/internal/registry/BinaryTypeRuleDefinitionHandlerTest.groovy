@@ -16,24 +16,19 @@
 
 package org.gradle.platform.base.internal.registry
 
-import org.gradle.api.initialization.Settings
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
-import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
-import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.Method
 
 class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
@@ -46,6 +41,8 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
     Class<? extends Annotation> getAnnotation() {
         return BinaryType
     }
+
+    Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
         when:
@@ -67,15 +64,6 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
         and:
         0 * modelRegistry._
-    }
-
-    def ruleDefinitionForMethod(String methodName) {
-        for (Method candidate : Rules.class.getDeclaredMethods()) {
-            if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(Rules.class, candidate)
-            }
-        }
-        throw new IllegalArgumentException("Not a test method name")
     }
 
     @Unroll
@@ -106,24 +94,6 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         "notImplementingBinaryType"        | "Binary implementation '${NotImplementingCustomBinary.name}' must implement '${SomeBinarySpec.name}'."                 | "implementation not implementing type class"
         "notExtendingDefaultSampleLibrary" | "Binary implementation '${NotExtendingBaseBinarySpec.name}' must extend '${BaseBinarySpec.name}'."                     | "implementation not extending BaseBinarySpec"
         "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."                           | "implementation with no public default constructor"
-    }
-
-    def getStringDescription(MethodRuleDefinition ruleDefinition) {
-        def builder = new StringBuilder()
-        ruleDefinition.descriptor.describeTo(builder)
-        builder.toString()
-    }
-
-    def aProjectPlugin() {
-        ruleDependencies = ProjectBuilder.builder().build()
-        _ * pluginApplication.target >> ruleDependencies
-    }
-
-    def aSettingsPlugin(def plugin) {
-        Settings settings = Mock(Settings)
-        _ * pluginApplication.target >> settings
-        _ * pluginApplication.plugin >> plugin
-        ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
     interface SomeBinarySpec extends BinarySpec {}

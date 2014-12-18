@@ -16,20 +16,16 @@
 
 package org.gradle.platform.base.internal.registry
 
-import org.gradle.api.initialization.Settings
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
-import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.Method
 
 class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
@@ -43,6 +39,8 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
     Class<? extends Annotation> getAnnotation() {
         return ComponentBinaries
     }
+
+    Class<?> ruleClass = Rules
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
@@ -73,15 +71,6 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         1 * modelRegistry.mutate(_)
     }
 
-    def ruleDefinitionForMethod(String methodName) {
-        for (Method candidate : Rules.class.getDeclaredMethods()) {
-            if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(Rules.class, candidate)
-            }
-        }
-        throw new IllegalArgumentException("Not a test method name")
-    }
-
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
@@ -106,24 +95,6 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         "rawCollectionBuilder"    | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'BinarySpec'."                                                 | "non typed CollectionBuilder parameter"
     }
 
-    def getStringDescription(MethodRuleDefinition ruleDefinition) {
-        def builder = new StringBuilder()
-        ruleDefinition.descriptor.describeTo(builder)
-        builder.toString()
-    }
-
-    def aProjectPlugin() {
-        ruleDependencies = ProjectBuilder.builder().build()
-        _ * pluginApplication.target >> ruleDependencies
-    }
-
-    def aSettingsPlugin(def plugin) {
-        Settings settings = Mock(Settings)
-        _ * pluginApplication.target >> settings
-        _ * pluginApplication.plugin >> plugin
-        ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
-    }
-
     interface SomeBinarySpec extends BinarySpec {}
 
     interface SomeLibrary extends ComponentSpec {}
@@ -131,7 +102,6 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
     interface RawLibrary extends ComponentSpec {}
 
     interface SomeBinarySubType extends SomeBinarySpec {}
-
 
     static class Rules {
         @ComponentBinaries

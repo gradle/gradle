@@ -23,8 +23,6 @@ import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
-import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
@@ -32,11 +30,11 @@ import org.gradle.platform.base.internal.registry.LanguageTypeRuleDefinitionHand
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.Method
 
 class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
     def ruleDependencies = Mock(RuleSourceDependencies)
+    Class<?> ruleClass = Rules
 
     LanguageTypeRuleDefinitionHandler ruleHandler = new LanguageTypeRuleDefinitionHandler()
 
@@ -44,6 +42,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
     Class<? extends Annotation> getAnnotation() {
         return LanguageType
     }
+
 
     @Unroll
     def "decent error message for #descr"() {
@@ -90,22 +89,6 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
 
         and:
         1 * modelRegistry.mutate(_)
-    }
-
-
-    def ruleDefinitionForMethod(String methodName) {
-        for (Method candidate : Rules.class.getDeclaredMethods()) {
-            if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(Rules.class, candidate)
-            }
-        }
-        throw new IllegalArgumentException("Not a test method name")
-    }
-
-    def getStringDescription(MethodRuleDefinition ruleDefinition) {
-        def builder = new StringBuilder()
-        ruleDefinition.descriptor.describeTo(builder)
-        builder.toString()
     }
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}

@@ -15,22 +15,18 @@
  */
 
 package org.gradle.platform.base.internal.registry
+
 import org.gradle.api.Task
-import org.gradle.api.initialization.Settings
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
-import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidModelException
-import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.Method
 
 class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
@@ -43,14 +39,7 @@ class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinit
         return BinaryTasks
     }
 
-    def ruleDefinitionForMethod(String methodName) {
-        for (Method candidate : Rules.class.getDeclaredMethods()) {
-            if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(Rules.class, candidate)
-            }
-        }
-        throw new IllegalArgumentException("Not a test method name")
-    }
+    Class<?> ruleClass = Rules.class
 
     @Unroll
     def "decent error message for #descr"() {
@@ -67,12 +56,12 @@ class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinit
         ex.cause.message == expectedMessage
 
         where:
-        methodName               | expectedMessage                                                                                             | descr
-        "returnValue"            | "Method annotated with @BinaryTasks must not have a return value."                                                           | "non void method"
-        "noParams"               | "Method annotated with @BinaryTasks must have a parameter of type '${CollectionBuilder.name}'."                              | "no CollectionBuilder subject"
-        "wrongSubject"           | "Method annotated with @BinaryTasks first parameter must be of type '${CollectionBuilder.name}'."                            | "wrong rule subject type"
-        "noBinaryParameter"      | "Method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec."  | "no component spec parameter"
-        "rawCollectionBuilder"   | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."                     | "non typed CollectionBuilder parameter"
+        methodName             | expectedMessage                                                                                                             | descr
+        "returnValue"          | "Method annotated with @BinaryTasks must not have a return value."                                                          | "non void method"
+        "noParams"             | "Method annotated with @BinaryTasks must have a parameter of type '${CollectionBuilder.name}'."                             | "no CollectionBuilder subject"
+        "wrongSubject"         | "Method annotated with @BinaryTasks first parameter must be of type '${CollectionBuilder.name}'."                           | "wrong rule subject type"
+        "noBinaryParameter"    | "Method annotated with @BinaryTasks must have one parameter extending BinarySpec. Found no parameter extending BinarySpec." | "no component spec parameter"
+        "rawCollectionBuilder" | "Parameter of type 'CollectionBuilder' must declare a type parameter extending 'Task'."                                     | "non typed CollectionBuilder parameter"
     }
 
     @Unroll
@@ -87,26 +76,8 @@ class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinit
         1 * modelRegistry.mutate(_)
 
         where:
-        ruleName          |  descr
-        "validTypeRule"   |  "for plain sample binary"
-    }
-
-    def getStringDescription(MethodRuleDefinition ruleDefinition) {
-        def builder = new StringBuilder()
-        ruleDefinition.descriptor.describeTo(builder)
-        builder.toString()
-    }
-
-    def aProjectPlugin() {
-        ruleDependencies = ProjectBuilder.builder().build()
-        _ * pluginApplication.target >> ruleDependencies
-    }
-
-    def aSettingsPlugin(def plugin) {
-        Settings settings = Mock(Settings)
-        _ * pluginApplication.target >> settings
-        _ * pluginApplication.plugin >> plugin
-        ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
+        ruleName        | descr
+        "validTypeRule" | "for plain sample binary"
     }
 
     interface SomeBinary extends BinarySpec {}

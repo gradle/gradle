@@ -15,12 +15,15 @@
  */
 
 package org.gradle.platform.base.internal.registry
+
+import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
+import java.lang.reflect.Method
 
 public abstract class AbstractAnnotationRuleDefinitionHandlerTest extends Specification{
     def ruleDefinition = Mock(MethodRuleDefinition)
@@ -29,6 +32,7 @@ public abstract class AbstractAnnotationRuleDefinitionHandlerTest extends Specif
     protected abstract AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler getRuleHandler();
 
     abstract Class<? extends Annotation> getAnnotation();
+    abstract Class<?> getRuleClass();
 
     @Unroll
     def "handles methods annotated with @#annotationName"() {
@@ -48,4 +52,18 @@ public abstract class AbstractAnnotationRuleDefinitionHandlerTest extends Specif
         annotationName << [annotation.getSimpleName()]
     }
 
+    def ruleDefinitionForMethod(String methodName) {
+        for (Method candidate : ruleClass.getDeclaredMethods()) {
+            if (candidate.getName().equals(methodName)) {
+                return DefaultMethodRuleDefinition.create(ruleClass, candidate)
+            }
+        }
+        throw new IllegalArgumentException("Not a test method name")
+    }
+
+    def getStringDescription(MethodRuleDefinition ruleDefinition) {
+        def builder = new StringBuilder()
+        ruleDefinition.descriptor.describeTo(builder)
+        builder.toString()
+    }
 }

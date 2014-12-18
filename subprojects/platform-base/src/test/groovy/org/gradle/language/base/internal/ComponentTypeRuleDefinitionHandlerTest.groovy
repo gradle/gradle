@@ -16,12 +16,10 @@
 
 package org.gradle.language.base.internal
 
-import org.gradle.api.initialization.Settings
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.model.internal.registry.ModelRegistry
@@ -29,11 +27,8 @@ import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
 import org.gradle.platform.base.internal.registry.ComponentTypeRuleDefinitionHandler
-import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Unroll
-
 import java.lang.annotation.Annotation
-import java.lang.reflect.Method
+import spock.lang.Unroll
 
 class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
     Instantiator instantiator = new DirectInstantiator()
@@ -45,6 +40,8 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
 
     @Override
     Class<? extends Annotation> getAnnotation() { return ComponentType }
+
+    Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
         when:
@@ -66,15 +63,6 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
 
         and:
         0 * modelRegistry._
-    }
-
-    def ruleDefinitionForMethod(String methodName) {
-        for (Method candidate : Rules.class.getDeclaredMethods()) {
-            if (candidate.getName().equals(methodName)) {
-                return DefaultMethodRuleDefinition.create(Rules.class, candidate)
-            }
-        }
-        throw new IllegalArgumentException("Not a test method name")
     }
 
     @Unroll
@@ -106,24 +94,6 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
         "notImplementingLibraryType"       | "Component implementation '${NotImplementingCustomComponent.name}' must implement '${SomeComponentSpec.name}'."         | "implementation not implementing type class"
         "notExtendingDefaultSampleLibrary" | "Component implementation '${NotExtendingBaseComponentSpec.name}' must extend '${BaseComponentSpec.name}'."             | "implementation not extending BaseComponentSpec"
         "noDefaultConstructor"             | "Component implementation '${NoDefaultConstructor.name}' must have public default constructor."                         | "implementation with no public default constructor"
-    }
-
-    def getStringDescription(MethodRuleDefinition ruleDefinition) {
-        def builder = new StringBuilder()
-        ruleDefinition.descriptor.describeTo(builder)
-        builder.toString()
-    }
-
-    def aProjectPlugin() {
-        ruleDependencies = ProjectBuilder.builder().build()
-        _ * pluginApplication.target >> ruleDependencies
-    }
-
-    def aSettingsPlugin(def plugin) {
-        Settings settings = Mock(Settings)
-        _ * pluginApplication.target >> settings
-        _ * pluginApplication.plugin >> plugin
-        ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
     }
 
     interface SomeComponentSpec extends ComponentSpec {}
