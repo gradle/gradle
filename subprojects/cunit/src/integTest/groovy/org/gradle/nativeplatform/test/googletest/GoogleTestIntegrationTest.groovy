@@ -13,37 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.test.cunit
-
+package org.gradle.nativeplatform.test.googletest
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
+class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltPath = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs").path
-    def app = new CHelloWorldApp()
+    def prebuiltPath = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").assertIsDir().path
+    def app = new CppHelloWorldApp()
 
     def setup() {
         buildFile << """
-apply plugin: "cunit"
+apply plugin: "google-test"
 
 model {
     repositories {
         libs(PrebuiltLibraries) {
-            cunit {
-                headers.srcDir "${prebuiltPath}/cunit/2.1-2/include"
+            "googleTest-core" {
+                headers.srcDir "${prebuiltPath}/googleTest/1.7.0/include"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("${prebuiltPath}/cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}")
+                    staticLibraryFile = file("${prebuiltPath}/googleTest/1.7.0/lib/${googleTestPlatform}/${googleTestCoreLibName}")
+                }
+            }
+            "googleTest-entryPoint" {
+                headers.srcDir "${prebuiltPath}/googleTest/1.7.0/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("${prebuiltPath}/googleTest/1.7.0/lib/${googleTestPlatform}/${googleTestEntryPointLibName}")
                 }
             }
         }
@@ -67,13 +72,18 @@ model {
         }
     }
 }
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    lib library: "cunit", linkage: "static"
+binaries.withType(GoogleTestTestSuiteBinarySpec) {
+    lib library: "googleTest-core", linkage: "static"
+    lib library: "googleTest-entryPoint", linkage: "static"
+}
+
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
 }
 """
     }
 
-    private def getCunitPlatform() {
+    private def getGoogleTestPlatform() {
         if (OperatingSystem.current().isMacOsX()) {
             return "osx"
         }
@@ -91,36 +101,35 @@ binaries.withType(CUnitTestSuiteBinarySpec) {
             switch (vcVersion.major) {
                 case "12":
                     return "vs2013"
-                case "10":
-                    return "vs2010"
             }
         }
-        throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")
+        throw new IllegalStateException("No googletest binary available for ${toolChain.displayName}")
     }
 
-    private def getCunitLibName() {
-        return OperatingSystem.current().getStaticLibraryName("cunit")
+    private def getGoogleTestCoreLibName() {
+        return OperatingSystem.current().getStaticLibraryName("gtest-core")
+    }
+    private def getGoogleTestEntryPointLibName() {
+        return OperatingSystem.current().getStaticLibraryName("gtest-entryPoint")
     }
 
-    def "can build and run cunit test suite"() {
+    def "can build and run googleTest test suite"() {
         given:
         useConventionalSourceLocations()
         useStandardConfig()
 
         when:
-        run "check"
+        run "runHelloTestGoogleTestExe"
 
         then:
-        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
-                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
+                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
-        testResults.suiteNames == ['hello test']
-        testResults.suites['hello test'].passingTests == ['test_sum']
-        testResults.suites['hello test'].failingTests == []
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        testResults.suiteNames == ['HelloTest']
+        testResults.suites['HelloTest'].passingTests == ['test_sum']
+        testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
-        testResults.checkAssertions(3, 3, 0)
     }
 
     def "can configure via testSuite component"() {
@@ -137,53 +146,56 @@ model {
     testSuites {
         helloTest {
             binaries.all {
-                lib library: "cunit", linkage: "static"
+                lib library: "googleTest-core", linkage: "static"
+                lib library: "googleTest-entryPoint", linkage: "static"
             }
         }
     }
 }
+
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
 """
 
         when:
-        run "check"
+        run "runHelloTestGoogleTestExe"
 
         then:
-        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
-                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
+                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
-        testResults.suiteNames == ['hello test']
-        testResults.suites['hello test'].passingTests == ['test_sum']
-        testResults.suites['hello test'].failingTests == []
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        testResults.suiteNames == ['HelloTest']
+        testResults.suites['HelloTest'].passingTests == ['test_sum']
+        testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
-        testResults.checkAssertions(3, 3, 0)
     }
 
-    def "can supply cCompiler macro to cunit sources"() {
+    def "can supply cppCompiler macro to googleTest sources"() {
         given:
         useConventionalSourceLocations()
         useStandardConfig()
 
         when:
         buildFile << """
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    cCompiler.define "ONE_TEST"
+binaries.withType(GoogleTestTestSuiteBinarySpec) {
+    cppCompiler.define "ONE_TEST"
 }
 """
         and:
-        run "runHelloTestCUnitExe"
+        run "runHelloTestGoogleTestExe"
 
         then:
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
-        testResults.checkAssertions(1, 1, 0)
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        testResults.checkTestCases(1, 1, 0)
     }
 
-    def "can configure location of cunit test sources"() {
+    def "can configure location of googleTest test sources"() {
         given:
         useStandardConfig()
         app.library.writeSources(file("src/hello"))
-        app.cunitTests.writeSources(file("src/alternateHelloTest"))
+        app.googleTestTests.writeSources(file("src/alternateHelloTest"))
 
         when:
         buildFile << """
@@ -192,8 +204,8 @@ model {
         helloTest {
             sources {
                 // TODO:DAZ Should not need type here (source set should already be created)
-                c(CSourceSet) {
-                    source.srcDir "src/alternateHelloTest/c"
+                cpp(CppSourceSet) {
+                    source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
         }
@@ -202,14 +214,13 @@ model {
 """
 
         then:
-        succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        succeeds "runHelloTestGoogleTestExe"
     }
 
-    def "can configure location of cunit test sources before component is declared"() {
+    def "can configure location of googleTest test sources before component is declared"() {
         given:
         app.library.writeSources(file("src/hello"))
-        app.cunitTests.writeSources(file("src/alternateHelloTest"))
+        app.googleTestTests.writeSources(file("src/alternateHelloTest"))
 
         when:
         buildFile << """
@@ -218,8 +229,8 @@ model {
         helloTest {
             sources {
                 // TODO:DAZ Should not need type here (source set should already be created)
-                c(CSourceSet) {
-                    source.srcDir "src/alternateHelloTest/c"
+                cpp(CppSourceSet) {
+                    source.srcDir "src/alternateHelloTest/cpp"
                 }
             }
         }
@@ -229,14 +240,13 @@ model {
         useStandardConfig()
 
         then:
-        succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        succeeds "runHelloTestGoogleTestExe"
     }
 
     def "variant-dependent sources are included in test binary"() {
         given:
         app.library.headerFiles*.writeToDir(file("src/hello"))
-        app.cunitTests.writeSources(file("src/helloTest"))
+        app.googleTestTests.writeSources(file("src/helloTest"))
         app.library.sourceFiles*.writeToDir(file("src/variant"))
 
         when:
@@ -247,29 +257,29 @@ model {
             targetPlatform "x86"
             binaries.all {
                 sources {
-                    variant(CSourceSet) {
-                        source.srcDir "src/variant/c"
+                    variant(CppSourceSet) {
+                        source.srcDir "src/variant/cpp"
                     }
                 }
             }
         }
     }
 }
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    lib library: "cunit", linkage: "static"
+binaries.withType(GoogleTestTestSuiteBinarySpec) {
+    lib library: "googleTest-core", linkage: "static"
+    lib library: "googleTest-entryPoint", linkage: "static"
 }
 """
 
         then:
-        succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        succeeds "runHelloTestGoogleTestExe"
     }
 
     def "can configure variant-dependent test sources"() {
         given:
         useStandardConfig()
         app.library.writeSources(file("src/hello"))
-        app.cunitTests.writeSources(file("src/variantTest"))
+        app.googleTestTests.writeSources(file("src/variantTest"))
 
         when:
         buildFile << """
@@ -278,10 +288,9 @@ model {
         helloTest {
             binaries.all {
                 sources {
-                    variant(CSourceSet) {
-                        source.srcDir "src/variantTest/c"
-                        lib sources.c
-                        lib sources.cunitLauncher
+                    variant(CppSourceSet) {
+                        source.srcDir "src/variantTest/cpp"
+                        lib sources.cpp
                     }
                 }
             }
@@ -291,47 +300,42 @@ model {
 """
 
         then:
-        succeeds "check"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        succeeds "runHelloTestGoogleTestExe"
     }
 
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
         useConventionalSourceLocations()
-        run "runHelloTestCUnitExe"
+        run "runHelloTestGoogleTestExe"
 
         when:
-        run "runHelloTestCUnitExe"
+        run "runHelloTestGoogleTestExe"
 
         then:
-        skipped ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+        skipped ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
-    def "can build and run cunit failing test suite"() {
+    def "can build and run googleTest failing test suite"() {
         when:
         useStandardConfig()
         useFailingTestSources()
-        fails "runHelloTestCUnitExe"
+        fails "runHelloTestGoogleTestExe"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe'.")
+        failure.assertHasDescription("Execution failed for task ':runHelloTestGoogleTestExe'.")
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:
-        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
-                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        output.contains """
-There were test failures:
-"""
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
+                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+        output.contains "[  FAILED  ]"
         and:
-        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
-        testResults.suiteNames == ['hello test']
-        testResults.suites['hello test'].passingTests == []
-        testResults.suites['hello test'].failingTests == ['test_sum']
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        testResults.suiteNames == ['HelloTest']
+        testResults.suites['HelloTest'].passingTests == []
+        testResults.suites['HelloTest'].failingTests == ['test_sum']
         testResults.checkTestCases(1, 0, 1)
-        testResults.checkAssertions(3, 1, 2)
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "build does not break for failing tests if ignoreFailures is true"() {
@@ -343,33 +347,30 @@ tasks.withType(RunTestExecutable) {
     it.ignoreFailures = true
 }
 """
-        succeeds "runHelloTestCUnitExe"
+        succeeds "runHelloTestGoogleTestExe"
 
         then:
-        output.contains """
-There were test failures:
-"""
+        output.contains "[  FAILED  ] "
         output.contains "There were failing tests. See the results at: "
 
         and:
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        file("build/test-results/helloTestGoogleTestExe/test_detail.xml").assertExists()
     }
 
     def "test suite not skipped after failing run"() {
         given:
         useStandardConfig()
         useFailingTestSources()
-        fails "runHelloTestCUnitExe"
+        fails "runHelloTestGoogleTestExe"
 
         when:
-        fails "runHelloTestCUnitExe"
+        fails "runHelloTestGoogleTestExe"
 
         then:
-        executedAndNotSkipped ":runHelloTestCUnitExe"
+        executedAndNotSkipped ":runHelloTestGoogleTestExe"
     }
 
-    def "creates visual studio solution and project for cunit test suite"() {
+    def "creates visual studio solution and project for googleTest test suite"() {
         given:
         useStandardConfig()
         useConventionalSourceLocations()
@@ -386,29 +387,27 @@ There were test failures:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
                 "build.gradle",
-                "build/src/helloTest/cunitLauncher/c/gradle_cunit_main.c",
-                "src/helloTest/c/test.c",
-                "src/hello/c/hello.c",
-                "src/hello/c/sum.c"
+                "src/helloTest/cpp/test.cpp",
+                "src/hello/cpp/hello.cpp",
+                "src/hello/cpp/sum.cpp"
         ] as Set
         projectFile.headerFiles == [
-                "build/src/helloTest/cunitLauncher/headers/gradle_cunit_register.h",
                 "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "src/helloTest/headers;build/src/helloTest/cunitLauncher/headers;src/hello/headers;${prebuiltPath}/cunit/2.1-2/include"
+            includePath == "src/helloTest/headers;src/hello/headers;${prebuiltPath}/googleTest/1.7.0/include"
         }
     }
 
     private useConventionalSourceLocations() {
         app.library.writeSources(file("src/hello"))
-        app.cunitTests.writeSources(file("src/helloTest"))
+        app.googleTestTests.writeSources(file("src/helloTest"))
     }
 
     private useFailingTestSources() {
         useConventionalSourceLocations()
-        file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
+        file("src/hello/cpp/sum.cpp").text = file("src/hello/cpp/sum.cpp").text.replace("return a + b;", "return 2;")
     }
 
     @Override

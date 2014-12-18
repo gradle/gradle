@@ -168,7 +168,8 @@ task samples(type: ExtractSnippetsTask) {
 
     // Resources that should not be filtered
     exclude 'userguide/tutorial/antLoadfileResources/**'
-    exclude 'native-binaries/cunit/lib/**'
+    exclude 'native-binaries/cunit/libs/**'
+    exclude 'native-binaries/google-test/libs/**'
 
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
@@ -177,7 +178,8 @@ task samples(type: ExtractSnippetsTask) {
             from samplesSrcDir
             into samplesDir
             include 'userguide/tutorial/antLoadfileResources/**'
-            include 'native-binaries/cunit/lib/**'
+            include 'native-binaries/cunit/libs/**'
+            include 'native-binaries/google-test/libs/**'
         }
     }
 }
