@@ -119,11 +119,10 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     public TestLogging setShowStandardStreams(boolean flag) {
-        boolean showingStandardStreams = getShowStandardStreams();
-        if (showingStandardStreams && !flag) {
-            events.removeAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
-        } else if (!showingStandardStreams && flag) {
+        if (flag) {
             events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        } else {
+            events.removeAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
         }
         return this;
     }

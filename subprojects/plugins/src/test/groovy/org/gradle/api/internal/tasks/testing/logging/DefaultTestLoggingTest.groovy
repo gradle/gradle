@@ -18,8 +18,9 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import spock.lang.Specification
 
-import static org.gradle.api.tasks.testing.logging.TestStackTraceFilter.*
 import static org.gradle.api.tasks.testing.logging.TestLogEvent.*
+import static org.gradle.api.tasks.testing.logging.TestStackTraceFilter.GROOVY
+import static org.gradle.api.tasks.testing.logging.TestStackTraceFilter.TRUNCATE
 
 class DefaultTestLoggingTest extends Specification {
     private logging = new DefaultTestLogging()
@@ -64,19 +65,19 @@ class DefaultTestLoggingTest extends Specification {
         logging.stackTraceFilters == [TRUNCATE, GROOVY] as Set
     }
 
-    def "allows standardStreams to be turned off"() {
+    def "allows standardStreams to be turned on and off"() {
         when:
-        logging.showStandardStreams = false
+        logging.setShowStandardStreams(true)
 
         then:
-        logging.showStandardStreams == false
-    }
+        logging.showStandardStreams
+        logging.events == [STANDARD_OUT, STANDARD_ERROR] as Set
 
-    def "allows standardStreams to be turned on"() {
         when:
-        logging.showStandardStreams = true
+        logging.setShowStandardStreams(false)
 
         then:
-        logging.showStandardStreams == true
+        !logging.showStandardStreams
+        logging.events == [] as Set
     }
 }
