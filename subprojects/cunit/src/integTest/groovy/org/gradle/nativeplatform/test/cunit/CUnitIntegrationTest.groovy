@@ -24,13 +24,14 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltPath = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs").path
+    def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs").path)
     def app = new CHelloWorldApp()
 
     def setup() {

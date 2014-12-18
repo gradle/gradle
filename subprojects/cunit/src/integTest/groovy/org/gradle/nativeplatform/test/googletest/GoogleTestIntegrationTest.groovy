@@ -23,13 +23,16 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
+@Ignore
 @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltPath = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").assertIsDir().path
+    def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").path)
     def app = new CppHelloWorldApp()
 
     def setup() {
