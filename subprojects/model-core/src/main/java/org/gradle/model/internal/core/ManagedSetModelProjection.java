@@ -63,6 +63,8 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
                         if (closed) {
                             throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' used as subject of rule '%s' after the rule has completed", modelNode.getPath(), getType(), ruleDescriptor));
                         }
+                    } else if (writable && !closed && DefaultManagedSet.READ_METHOD_NAMES.contains(method.getName())) {
+                        throw new IllegalStateException(String.format("Cannot read contents of element '%s' of type '%s' while it's mutable", modelNode.getPath(), getType(), ruleDescriptor));
                     }
                     return method.invoke(modelNode.getPrivateData(getType()), args);
                 }

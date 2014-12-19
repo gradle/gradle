@@ -1589,4 +1589,74 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
         failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' as it is an input to rule 'model.tasks @ build file")
     }
+
+    def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void people(ManagedSet<Person> people) {
+                    people.size()
+                }
+
+                @Mutate
+                void addDependencyOnPeople(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
+        failure.assertHasCause("Cannot read contents of element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' while it's mutable")
+    }
+
+    def "read methods of ManagedSet throw exceptions when used in a mutation rule"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void people(ManagedSet<Person> people) {
+                }
+
+                @Mutate
+                void readPeople(ManagedSet<Person> people) {
+                    people.toList()
+                }
+
+                @Mutate
+                void addDependencyOnPeople(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
+        failure.assertHasCause("Cannot read contents of element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' while it's mutable")
+    }
 }
