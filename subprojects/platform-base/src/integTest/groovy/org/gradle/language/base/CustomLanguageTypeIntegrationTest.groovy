@@ -17,55 +17,86 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
+import spock.lang.Ignore
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class CustomLanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
-    def "plugin declares custom language type"() {
-        when:
+    def setup() {
         buildFile << """
-import org.gradle.model.*
-import org.gradle.model.collection.*
-
-interface SampleComponent extends ComponentSpec {}
-class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+        interface CustomLanguageSourceSet extends LanguageSourceSet {}
+        class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
 
 
-interface CustomLanguageSourceSet extends LanguageSourceSet {}
-class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
-
-@RuleSource
-class CustomLanguagePlugin {
-
-    @ComponentType
-    void register(ComponentTypeBuilder<SampleComponent> builder) {
-        builder.defaultImplementation(DefaultSampleComponent)
+        @RuleSource
+        class CustomLanguagePlugin {
+            @LanguageType
+            void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
+                builder.setLanguageName("custom")
+                builder.defaultImplementation(DefaultCustomLanguageSourceSet)
+            }
+        }
+        apply plugin:CustomLanguagePlugin
+"""
     }
 
-    @Mutate
-    void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
-        componentSpecs.create("main")
-    }
-
-    @LanguageType
-    void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-        builder.setLanguageName("custom")
-        builder.defaultImplementation(DefaultCustomLanguageSourceSet)
-    }
-
-}
-
-apply plugin:CustomLanguagePlugin
-
+    def "registers language in languageRegistry"(){
+        given:
+        EnableModelDsl.enable(executer)
+        buildFile << """
 model {
-    components {
-        main {
-            sources {
-                custom(CustomLanguageSourceSet)
+    tasks {
+        create("printLanguages") {
+            it.doLast {
+                 def languages = \$("languages")*.name.sort().join(", ")
+                 println "registered languages: \$languages"
             }
         }
     }
 }
+        """
+        when:
+        succeeds "printLanguages"
+        then:
+        output.contains("registered languages: custom")
+    }
+
+    @Ignore("rework LanguageRegistration to use factory instead first")
+    def "can add custom language sourceSet to component"() {
+        when:
+        buildFile << """
+        import org.gradle.model.*
+        import org.gradle.model.collection.*
+
+        interface SampleComponent extends ComponentSpec {}
+        class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+
+        @RuleSource
+        class CustomComponentPlugin{
+            @ComponentType
+            void register(ComponentTypeBuilder<SampleComponent> builder) {
+                builder.defaultImplementation(DefaultSampleComponent)
+            }
+
+            @Mutate
+            void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                componentSpecs.create("main")
+            }
+        }
+
+
+        model {
+            components {
+                main {
+                    sources {
+                        custom(CustomLanguageSourceSet)
+                    }
+                }
+            }
+        }
 
 """
         then:

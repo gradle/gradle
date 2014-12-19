@@ -32,6 +32,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
 

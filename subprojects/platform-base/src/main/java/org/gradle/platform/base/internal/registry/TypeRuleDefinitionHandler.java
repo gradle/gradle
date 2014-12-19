@@ -30,6 +30,7 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 import org.gradle.platform.base.internal.rules.RuleContext;
 
 import java.lang.annotation.Annotation;

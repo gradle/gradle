@@ -35,6 +35,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
 

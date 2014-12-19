@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.registry;
+package org.gradle.platform.base.internal.builder;
 
 import org.gradle.platform.base.TypeBuilder;
 

@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal.registry;
 
 import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
