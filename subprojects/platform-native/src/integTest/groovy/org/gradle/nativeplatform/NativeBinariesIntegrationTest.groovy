@@ -270,4 +270,39 @@ binaries.withType(StaticLibraryBinarySpec) {
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
         failure.assertHasCause("Static library archiver failed; see the error output for details.")
     }
+
+    def "installed executable receives command-line parameters"() {
+        buildFile << """
+apply plugin: 'c'
+
+model {
+    components {
+        echo(NativeExecutableSpec)
+    }
+}
+"""
+        file("src/echo/c/main.c") << """
+// Simple hello world app
+#include <stdio.h>
+
+// Print the command line args
+int main (int argc, char *argv[]) {
+    int i;
+
+    for (i = 1; i < argc; i++) {
+        printf("[%s] ", argv[i]);
+    }
+    printf("\\n");
+    return 0;
+}
+"""
+
+        when:
+        succeeds "installEchoExecutable"
+
+        then:
+        def installation = installation("build/install/echoExecutable")
+        installation.exec().out == "\n"
+        installation.exec("foo", "bar").out == "[foo] [bar] \n"
+    }
 }

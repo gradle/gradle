@@ -132,7 +132,7 @@ public class InstallExecutable extends DefaultTask {
 @echo off
 SETLOCAL
 $toolChainPath
-CALL "%~dp0lib\\${executable.name}"
+CALL "%~dp0lib\\${executable.name}" %*
 EXIT /B %ERRORLEVEL%
 
 ENDLOCAL
