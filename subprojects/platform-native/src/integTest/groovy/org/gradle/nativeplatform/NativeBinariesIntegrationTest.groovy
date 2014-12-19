@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
@@ -83,48 +80,6 @@ binaries.all { binary ->
         executable("build/binaries/mainExecutable/debug/main").assertExists()
         executable("build/binaries/mainExecutable/optimised/main").assertDoesNotExist()
         executable("build/binaries/mainExecutable/release/main").assertExists()
-    }
-
-    // Test for temporary backward-compatibility layer for native binaries. Plan is to deprecate in 2.1 and remove in 2.2.
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "can define native binaries using 1.12 compatible api"() {
-        given:
-        helloWorldApp.library.writeSources(file("src/hello"))
-        helloWorldApp.executable.writeSources(file("src/main"))
-
-        and:
-        buildFile << """
-apply plugin: 'cpp'
-apply plugin: 'c'
-
-model {
-    components {
-        main(NativeExecutableSpec) {
-            sources {
-                cpp.lib library: "hello"
-            }
-        }
-        hello(NativeLibrarySpec)
-    }
-}
-
-task buildAllExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
-        it.buildable
-    }
-}
-"""
-        when:
-        succeeds "buildAllExecutables"
-
-        then:
-        executable("build/binaries/mainExecutable/main").assertExists()
-
-        when:
-        succeeds "installMainExecutable"
-
-        then:
-        installation("build/install/mainExecutable").exec().out == helloWorldApp.englishOutput
     }
 
     def "assemble executable from component with multiple language source sets"() {
