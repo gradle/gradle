@@ -150,8 +150,9 @@ public class GoogleTestPlugin implements Plugin<Project> {
             ((ExtensionAware) testBinary).getExtensions().create("cppCompiler", DefaultPreprocessingTool.class);
 
             // TODO:DAZ Not sure if this should be here...
-            // Need "-pthread" when linking to Gcc
-            if (testBinary.getToolChain() instanceof Gcc) {
+            // Need "-pthread" when linking to GoogleTest with Gcc on Linux
+            if (testBinary.getToolChain() instanceof Gcc
+                    && testBinary.getTargetPlatform().getOperatingSystem().isLinux()) {
                 testBinary.getLinker().args("-pthread");
             }
         }

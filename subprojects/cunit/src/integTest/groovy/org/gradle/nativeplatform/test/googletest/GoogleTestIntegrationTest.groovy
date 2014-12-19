@@ -28,7 +28,7 @@ import org.gradle.util.TextUtil
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").path)
