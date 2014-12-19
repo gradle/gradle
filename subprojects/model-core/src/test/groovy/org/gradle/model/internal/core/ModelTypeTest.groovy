@@ -112,4 +112,11 @@ class ModelTypeTest extends Specification {
         new ModelType<List<List<List<?>>>>() {}.hasWildcardTypeVariables
         new ModelType<List<List<? super List<String>>>>() {}.hasWildcardTypeVariables
     }
+
+    def "is raw of param type"() {
+        expect:
+        !new ModelType<List<?>>() {}.rawClassOfParameterizedType
+        !new ModelType<List<String>>() {}.rawClassOfParameterizedType
+        new ModelType<List>() {}.rawClassOfParameterizedType
+    }
 }

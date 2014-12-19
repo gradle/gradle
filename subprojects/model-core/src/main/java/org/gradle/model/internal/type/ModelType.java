@@ -89,6 +89,12 @@ public abstract class ModelType<T> {
         return Cast.uncheckedCast(getRawClass());
     }
 
+    public boolean isRawClassOfParameterizedType() {
+        Type type = getType();
+        return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
+    }
+
+
     public Type getType() {
         return wrapper.unwrap();
     }

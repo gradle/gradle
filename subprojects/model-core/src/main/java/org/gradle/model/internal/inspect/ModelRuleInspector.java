@@ -23,6 +23,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
@@ -155,27 +156,22 @@ public class ModelRuleInspector {
                 throw invalid(source, "field " + field.getName() + " is not static final");
             }
         }
-
     }
 
     private void validate(Method ruleMethod) {
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
-        Type returnType = ruleMethod.getGenericReturnType();
-        if (isRawInstanceOfParameterizedType(returnType)) {
-            throw invalid(ruleMethod, "raw type " + ((Class) returnType).getName() + " used for return type (all type parameters must be specified of parameterized type)");
+        ModelType<?> returnType = ModelType.returnType(ruleMethod);
+        if (returnType.isRawClassOfParameterizedType()) {
+            throw invalid(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
         }
 
         int i = 0;
         for (Type type : ruleMethod.getGenericParameterTypes()) {
             ++i;
-            if (isRawInstanceOfParameterizedType(type)) {
-                throw invalid(ruleMethod, "raw type " + ((Class) type).getName() + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+            if (ModelType.of(type).isRawClassOfParameterizedType()) {
+                throw invalid(ruleMethod, "raw type " + type + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
         }
-    }
-
-    private boolean isRawInstanceOfParameterizedType(Type type) {
-        return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
     }
 
 }
