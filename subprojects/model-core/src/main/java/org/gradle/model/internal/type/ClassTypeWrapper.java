@@ -17,7 +17,6 @@
 package org.gradle.model.internal.type;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Type;
 
 class ClassTypeWrapper implements TypeWrapper {
     private final WeakReference<Class<?>> reference;
@@ -27,7 +26,12 @@ class ClassTypeWrapper implements TypeWrapper {
     }
 
     @Override
-    public Type unwrap() {
+    public Class<?> unwrap() {
         return reference.get();
+    }
+
+    @Override
+    public String getRepresentation() {
+        return unwrap().getName();
     }
 }

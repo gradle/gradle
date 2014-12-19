@@ -98,4 +98,8 @@ class WildcardTypeImpl implements WildcardType, TypeWrapper {
         return sb.toString();
     }
 
+    @Override
+    public String getRepresentation() {
+        return toString();
+    }
 }

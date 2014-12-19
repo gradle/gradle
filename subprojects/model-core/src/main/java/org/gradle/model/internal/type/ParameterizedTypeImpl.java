@@ -128,4 +128,8 @@ class ParameterizedTypeImpl implements ParameterizedType, TypeWrapper {
         return sb.toString();
     }
 
+    @Override
+    public String getRepresentation() {
+        return toString();
+    }
 }

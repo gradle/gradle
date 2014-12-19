@@ -224,7 +224,7 @@ public abstract class ModelType<T> {
     }
 
     public String toString() {
-        return getTypeToken().toString();
+        return wrapper.getRepresentation();
     }
 
     @Override

@@ -25,4 +25,9 @@ class NullTypeWrapper implements TypeWrapper {
     public Type unwrap() {
         return null;
     }
+
+    @Override
+    public String getRepresentation() {
+        return "null";
+    }
 }

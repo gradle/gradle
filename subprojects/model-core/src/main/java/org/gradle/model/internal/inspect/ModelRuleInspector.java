@@ -168,8 +168,9 @@ public class ModelRuleInspector {
         int i = 0;
         for (Type type : ruleMethod.getGenericParameterTypes()) {
             ++i;
-            if (ModelType.of(type).isRawClassOfParameterizedType()) {
-                throw invalid(ruleMethod, "raw type " + type + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+            ModelType<?> modelType = ModelType.of(type);
+            if (modelType.isRawClassOfParameterizedType()) {
+                throw invalid(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
         }
     }

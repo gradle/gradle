@@ -225,6 +225,8 @@ These should be rationalised and ideally replaced with model rules.
 - `CollectionBuilder` is not part of public API
 - `@RuleSource` is not documented, nor is the concept of a rule based plugin (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
 - Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
+- `ModelRuleDescriptor` values extracted from methods should be more concise (e.g. use simple class names)
+- `ModelRuleDescriptor` values extracted from scripts should be more concise (e.g. use root dir relative path to script)
 
 ## Tasks
 
@@ -250,6 +252,7 @@ These should be rationalised and ideally replaced with model rules.
 - Defer creating task instances until absolutely necessary
 - Cache/reuse model elements, avoiding need to run configuration on every build
 - Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
+- Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
 
 ## DSL
 
