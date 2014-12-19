@@ -146,9 +146,12 @@ project(":") {
                     ignoreExitValue = true
                 }
                 if (result.exitValue != 0) {
-                    throw new GradleException("""Failed to kill daemon process $pid.
+                    String out = killOutput.toString()
+                    if (!out.contains('No such process')) {
+                        throw new GradleException("""Failed to kill daemon process $pid.
 Output: ${killOutput}
 """)
+                    }
                 }
             }
         }
