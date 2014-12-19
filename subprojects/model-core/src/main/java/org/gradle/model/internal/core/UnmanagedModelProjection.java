@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
@@ -27,7 +28,7 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     }
 
     @Override
-    protected ModelView<M> toView(ModelNode modelNode, boolean writable) {
+    protected ModelView<M> toView(ModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
         M instance = modelNode.getPrivateData(getType());
         return InstanceModelView.of(getType(), instance);
     }

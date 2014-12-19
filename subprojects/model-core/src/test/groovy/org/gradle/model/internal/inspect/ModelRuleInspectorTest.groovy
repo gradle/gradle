@@ -152,7 +152,7 @@ class ModelRuleInspectorTest extends Specification {
         when:
         inspector.inspect(ConcreteGenericModelType, registry, dependencies)
         def node = registry.node(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node).type
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -170,7 +170,7 @@ class ModelRuleInspectorTest extends Specification {
         when:
         inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry, dependencies)
         def node = registry.node(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node).type
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -276,7 +276,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def node = registry.node(path)
-        node.adapter.asReadOnly(type, node).instance.sort() == ["1", "2"]
+        node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules {
@@ -311,7 +311,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def node = registry.node(path)
-        node.adapter.asReadOnly(type, node).instance == ["1", "2"]
+        node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {

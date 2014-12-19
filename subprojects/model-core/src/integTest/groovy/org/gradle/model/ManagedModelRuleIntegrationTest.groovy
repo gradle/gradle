@@ -1276,7 +1276,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#name(Person)")
-        failure.assertHasCause("Object created at path 'person' viewed as 'Person' is not mutable!")
+        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' as it is an input to rule 'RulePlugin#name(Person)")
     }
 
     def "mutating managed inputs of a dsl rule is not allowed"() {
@@ -1312,7 +1312,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Object created at path 'person' viewed as 'Person' is not mutable!")
+        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' as it is an input to rule 'model.tasks @ build file")
     }
 
     def "mutating managed objects outside of a creation rule is not allowed"() {
@@ -1357,6 +1357,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Object created at path 'person' cannot be mutated anymore!")
+        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' used as subject of rule 'RulePlugin#person(Person, Group)' after the rule has completed")
     }
 }

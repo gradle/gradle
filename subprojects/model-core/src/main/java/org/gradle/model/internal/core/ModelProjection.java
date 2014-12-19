@@ -25,9 +25,9 @@ public interface ModelProjection {
 
     <T> boolean canBeViewedAsReadOnly(ModelType<T> type);
 
-    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode modelNode);
+    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelNode modelNode, ModelRuleDescriptor ruleDescriptor, Inputs inputs);
 
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode);
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode, ModelRuleDescriptor ruleDescriptor);
 
     Iterable<String> getWritableTypeDescriptions();
 

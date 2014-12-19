@@ -61,7 +61,7 @@ public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>
     public Action<ModelNode> transform(final Inputs inputs) {
         return new Action<ModelNode>() {
             public void execute(ModelNode modelNode) {
-                ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(modelSchema.getType(), descriptor, inputs, modelNode);
+                ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(modelSchema.getType(), modelNode, descriptor, inputs);
                 if (modelView == null) {
                     throw new IllegalStateException("Couldn't produce managed node as schema type");
                 }

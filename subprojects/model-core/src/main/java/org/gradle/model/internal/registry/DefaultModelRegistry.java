@@ -34,7 +34,10 @@ import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
@@ -191,7 +194,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (node == null) {
             return null;
         } else {
-            return assertView(node, type, msg).getInstance();
+            return assertView(node, type, null, msg).getInstance();
         }
     }
 
@@ -364,9 +367,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNode node, ModelType<T> targetType, String msg, Object... msgArgs) {
+    private <T> ModelView<? extends T> assertView(ModelNode node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asReadOnly(targetType, node);
+        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -377,7 +380,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNode node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), sourceDescriptor, inputs, node);
+        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
@@ -389,7 +392,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private ModelNode doCreate(BoundModelCreator boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
         ModelPath path = creator.getPath();
-        Inputs inputs = toInputs(boundCreator.getInputs());
+        Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
         ModelCreationContext creationContext;
         try {
@@ -412,7 +415,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void fireMutation(ModelNode node, BoundModelMutator<T> boundMutator) {
-        Inputs inputs = toInputs(boundMutator.getInputs());
+        Inputs inputs = toInputs(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
         ModelMutator<T> mutator = boundMutator.getMutator();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
@@ -426,19 +429,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private Inputs toInputs(Iterable<? extends ModelBinding<?>> bindings) {
+    private Inputs toInputs(Iterable<? extends ModelBinding<?>> bindings, ModelRuleDescriptor ruleDescriptor) {
         ImmutableList.Builder<ModelRuleInput<?>> builder = ImmutableList.builder();
         for (ModelBinding<?> binding : bindings) {
-            ModelRuleInput<?> input = toInput(binding);
+            ModelRuleInput<?> input = toInput(binding, ruleDescriptor);
             builder.add(input);
         }
         return new DefaultInputs(builder.build());
     }
 
-    private <T> ModelRuleInput<T> toInput(ModelBinding<T> binding) {
+    private <T> ModelRuleInput<T> toInput(ModelBinding<T> binding, ModelRuleDescriptor ruleDescriptor) {
         ModelPath path = binding.getPath();
         ModelNode element = node(path);
-        ModelView<? extends T> view = assertView(element, binding.getReference().getType(), "toInputs");
+        ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
         return ModelRuleInput.of(binding, view);
     }
 

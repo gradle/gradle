@@ -29,9 +29,9 @@ public class ProjectionBackedModelAdapter implements ModelAdapter {
     }
 
     @Nullable
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode node) {
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asReadOnly(type, node);
+            ModelView<? extends T> view = projection.asReadOnly(type, node, ruleDescriptor);
             if (view != null) {
                 return view;
             }
@@ -40,9 +40,9 @@ public class ProjectionBackedModelAdapter implements ModelAdapter {
     }
 
     @Nullable
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode node) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asWritable(type, sourceDescriptor, inputs, node);
+            ModelView<? extends T> view = projection.asWritable(type, node, ruleDescriptor, inputs);
             if (view != null) {
                 return view;
             }

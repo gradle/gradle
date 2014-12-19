@@ -149,7 +149,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
                     T instance = instantiator.newInstance(schema);
                     modelNode.setPrivateData(schema.getType(), instance);
 
-                    ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(schema.getType(), descriptor, inputs, modelNode);
+                    ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(schema.getType(), modelNode, descriptor, inputs);
                     if (modelView == null) {
                         throw new IllegalStateException("Couldn't produce managed node as schema type");
                     }

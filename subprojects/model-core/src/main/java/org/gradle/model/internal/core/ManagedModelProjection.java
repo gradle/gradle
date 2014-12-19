@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
@@ -38,7 +39,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     }
 
     @Override
-    protected ModelView<M> toView(final ModelNode modelNode, final boolean writable) {
+    protected ModelView<M> toView(final ModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         return new ModelView<M>() {
 
             private boolean closed;
@@ -67,10 +68,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         ModelAdapter adapter = propertyNode.getAdapter();
                         if (writable) {
                             //noinspection ConstantConditions
-                            return adapter.asWritable(modelType, null, null, propertyNode).getInstance();
+                            return adapter.asWritable(modelType, propertyNode, ruleDescriptor, null).getInstance();
                         } else {
                             //noinspection ConstantConditions
-                            return adapter.asReadOnly(modelType, propertyNode).getInstance();
+                            return adapter.asReadOnly(modelType, propertyNode, ruleDescriptor).getInstance();
                         }
                     } else {
                         return propertyNode.getPrivateData(modelType);
@@ -79,10 +80,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 public <T> void set(ModelType<T> propertyType, String name, T value) {
                     if (!writable) {
-                        throw new IllegalStateException(String.format("Object created at path '%s' viewed as '%s' is not mutable!", modelNode.getPath(), getType()));
+                        throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' as it is an input to rule '%s'", modelNode.getPath(), getType(), ruleDescriptor));
                     }
                     if (closed) {
-                        throw new IllegalStateException(String.format("Object created at path '%s' cannot be mutated anymore!", modelNode.getPath()));
+                        throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' used as subject of rule '%s' after the rule has completed", modelNode.getPath(), getType(), ruleDescriptor));
                     }
 
                     ModelSchema<T> schema = schemaStore.getSchema(propertyType);

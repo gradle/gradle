@@ -80,7 +80,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
         then:
         def childNode = registry.node(containerPath.child("foo"))
-        childNode.adapter.asReadOnly(type, childNode).instance.name == "foo"
+        childNode.adapter.asReadOnly(type, childNode, null).instance.name == "foo"
         container.getByName("foo")
     }
 

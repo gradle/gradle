@@ -32,15 +32,15 @@ class InstanceModelCreatorTest extends Specification {
         def adapter = node.adapter
 
         then:
-        adapter.asReadOnly(ModelType.of(List), node) == null
-        adapter.asReadOnly(ModelType.of(String), node).instance.is(string)
-        adapter.asReadOnly(ModelType.of(CharSequence), node).instance.is(string)
+        adapter.asReadOnly(ModelType.of(List), node, null) == null
+        adapter.asReadOnly(ModelType.of(String), node, null).instance.is(string)
+        adapter.asReadOnly(ModelType.of(CharSequence), node, null).instance.is(string)
         asWritable(node, List) == null
         asWritable(node, String).instance.is(string)
         asWritable(node, CharSequence).instance.is(string)
     }
 
     private static <T> ModelView<T> asWritable(ModelNode node, Class<T> type) {
-        node.adapter.asWritable(ModelType.of(type), null, null, node)
+        node.adapter.asWritable(ModelType.of(type), node, null, null)
     }
 }

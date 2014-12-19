@@ -88,13 +88,13 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
 
     def "can view as read types"() {
         expect:
-        adapter.asReadOnly(containerModelType, node).instance.is(container)
-        adapter.asReadOnly(builderType, node) == null // only a writable type
+        adapter.asReadOnly(containerModelType, node, null).instance.is(container)
+        adapter.asReadOnly(builderType, node, null) == null // only a writable type
     }
 
     def "can view as write types"() {
         expect:
-        adapter.asWritable(containerModelType, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), node).instance.is(container)
+        adapter.asWritable(containerModelType, node, new SimpleModelRuleDescriptor("write"), new DefaultInputs([])).instance.is(container)
         asBuilder().instance instanceof CollectionBuilder
         asSubBuilder().instance instanceof CollectionBuilder
     }
@@ -160,10 +160,10 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
     }
 
     def ModelView<? extends CollectionBuilder<SpecialNamedThing>> asSubBuilder() {
-        adapter.asWritable(subBuilderType, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), node)
+        adapter.asWritable(subBuilderType, node, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]))
     }
 
     def ModelView<? extends CollectionBuilder<NamedThing>> asBuilder() {
-        adapter.asWritable(builderType, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]), node)
+        adapter.asWritable(builderType, node, new SimpleModelRuleDescriptor("write"), new DefaultInputs([]))
     }
 }

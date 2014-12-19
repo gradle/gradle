@@ -62,14 +62,14 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return false;
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode node) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, ModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
         if (canBeViewedAsWritable(targetType)) {
             ModelType<?> targetItemType = targetType.getTypeVariables().get(0);
             if (targetItemType.getRawClass().isAssignableFrom(itemType)) { // item type is super of base
-                return toView(sourceDescriptor, node, itemType, container);
+                return toView(ruleDescriptor, node, itemType, container);
             } else { // item type is sub type
                 Class<? extends M> subType = targetItemType.getRawClass().asSubclass(itemType);
-                return toView(sourceDescriptor, node, subType, container);
+                return toView(ruleDescriptor, node, subType, container);
             }
         } else {
             return null;
@@ -86,7 +86,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return cast;
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode) {
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         return null;
     }
 

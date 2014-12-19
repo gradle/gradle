@@ -49,23 +49,24 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, Inputs inputs, ModelNode modelNode) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelNode modelNode, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
         if (canBeViewedAsWritable(type)) {
-            return Cast.uncheckedCast(toView(modelNode, true));
+            return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, true));
         } else {
             return null;
         }
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode) {
+
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAsReadOnly(type)) {
-            return Cast.uncheckedCast(toView(modelNode, false));
+            return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, false));
         } else {
             return null;
         }
     }
 
-    protected abstract ModelView<M> toView(ModelNode modelNode, boolean writable);
+    protected abstract ModelView<M> toView(ModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable);
 
     public Iterable<String> getWritableTypeDescriptions() {
         if (canBeViewedAsWritable) {
