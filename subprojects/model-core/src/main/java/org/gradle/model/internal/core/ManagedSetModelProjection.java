@@ -44,7 +44,7 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
             @Override
             public M getInstance() {
                 Class<M> clazz = getType().getConcreteClass(); // safe because we know schema must be of a concrete type
-                Object view = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz, ManagedInstance.class}, new ManagedSetViewInvocationHandler());
+                Object view = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz, ManagedInstance.class}, new ManagedSetViewInvocationHandler());
                 return Cast.uncheckedCast(view);
             }
 
