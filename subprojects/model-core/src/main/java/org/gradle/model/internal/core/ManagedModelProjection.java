@@ -67,8 +67,13 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the viewq
                         ModelAdapter adapter = propertyNode.getAdapter();
                         if (writable) {
+                            ModelView<? extends T> modelView = adapter.asWritable(modelType, propertyNode, ruleDescriptor, null);
+                            if (closed) {
+                                //noinspection ConstantConditions
+                                modelView.close();
+                            }
                             //noinspection ConstantConditions
-                            return adapter.asWritable(modelType, propertyNode, ruleDescriptor, null).getInstance();
+                            return modelView.getInstance();
                         } else {
                             //noinspection ConstantConditions
                             return adapter.asReadOnly(modelType, propertyNode, ruleDescriptor).getInstance();

@@ -1279,6 +1279,46 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' as it is an input to rule 'RulePlugin#name(Person)")
     }
 
+    def "mutating composite managed inputs of a rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Pet {
+                String getName()
+                void setName(String name)
+            }
+
+            @Managed
+            interface Person {
+                Pet getPet()
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void person(Person person) {
+                }
+
+                @Mutate
+                void tryToModifyCompositeSubjectOfAnotherRule(CollectionBuilder<Task> tasks, Person person) {
+                    person.pet.name = "foo"
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyCompositeSubjectOfAnotherRule")
+        failure.assertHasCause("Cannot mutate model element 'person.pet' of type 'Pet' as it is an input to rule 'RulePlugin#tryToModifyCompositeSubjectOfAnotherRule(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, Person)'")
+    }
+
     def "mutating managed inputs of a dsl rule is not allowed"() {
         when:
         buildScript '''
@@ -1327,25 +1367,20 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
                 void setName(String name)
             }
 
-            class Group {
-                List<Person> people = []
+            class Holder {
+                static Person person
             }
 
             @RuleSource
             class RulePlugin {
                 @Model
-                Group group() {
-                    new Group()
-                }
-
-                @Model
-                void person(Person person, Group group) {
-                    group.people << person
+                void person(Person person) {
+                    Holder.person = person
                 }
 
                 @Mutate
-                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person, Group group) {
-                    group.people.first().name = "foo"
+                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
+                    Holder.person.name = "foo"
                 }
             }
 
@@ -1357,6 +1392,97 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' used as subject of rule 'RulePlugin#person(Person, Group)' after the rule has completed")
+        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' used as subject of rule 'RulePlugin#person(Person)' after the rule has completed")
+    }
+
+    def "mutating composite managed objects outside of a creation rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Pet {
+                String getName()
+                void setName(String name)
+            }
+
+            @Managed
+            interface Person {
+                Pet getPet()
+            }
+
+            class Holder {
+                static Person person
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void person(Person person) {
+                    Holder.person = person
+                }
+
+                @Mutate
+                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
+                    Holder.person.pet.name = "foo"
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
+        failure.assertHasCause("Cannot mutate model element 'person.pet' of type 'Pet' used as subject of rule 'RulePlugin#person(Person)' after the rule has completed")
+    }
+
+    def "mutating managed objects referenced by another managed object outside of a creation rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Pet {
+                String getName()
+                void setName(String name)
+            }
+
+            @Managed
+            interface Person {
+                Pet getPet()
+                void setPet(Pet pet)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void pet(Pet pet) {
+                }
+
+                @Model
+                void person(Person person, Pet pet) {
+                    person.pet = pet
+                }
+
+                @Mutate
+                void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
+                    person.pet.name = "foo"
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
+        failure.assertHasCause("Cannot mutate model element 'pet' of type 'Pet' as it is an input to rule 'RulePlugin#person(Person, Pet)'")
     }
 }
