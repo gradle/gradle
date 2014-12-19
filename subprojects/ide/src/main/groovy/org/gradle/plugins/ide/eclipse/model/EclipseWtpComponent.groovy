@@ -202,7 +202,7 @@ class EclipseWtpComponent {
      * @param args A map that must contain a 'name' and 'value' key with corresponding values.
      */
     void property(Map<String, String> args) {
-        properties.add(new WbProperty(args.name, args.value))
+        properties = getProperties() + new WbProperty(args.name, args.value)
     }
 
    /**
