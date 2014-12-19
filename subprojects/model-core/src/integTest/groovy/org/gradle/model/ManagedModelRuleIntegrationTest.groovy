@@ -1348,7 +1348,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
-        fails "printName"
+        fails "tasks"
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
@@ -1484,5 +1484,109 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
         failure.assertHasCause("Cannot mutate model element 'pet' of type 'Pet' as it is an input to rule 'RulePlugin#person(Person, Pet)'")
+    }
+
+    def "mutating a managed set that is an input of a rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void people(ManagedSet<Person> people) {}
+
+                @Mutate
+                void tryToMutateInputManagedSet(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                    people.create {}
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet")
+        failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' as it is an input to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
+    }
+
+    def "mutating a managed set outside of a creation rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+            }
+
+            class Holder {
+                static ManagedSet<Person> people
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void people(ManagedSet<Person> people) {
+                    Holder.people = people
+                }
+
+                @Mutate
+                void tryToMutateManagedSetOutsideOfCreationRule(CollectionBuilder<Task> tasks, ManagedSet<Person> people) {
+                    Holder.people.create {}
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateManagedSetOutsideOfCreationRule")
+        failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' used as subject of rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)' after the rule has completed")
+    }
+
+    def "mutating managed set which is an input of a dsl rule is not allowed"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void people(ManagedSet<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                    $("people").create {}
+                }
+            }
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
+        failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' as it is an input to rule 'model.tasks @ build file")
     }
 }

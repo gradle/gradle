@@ -96,7 +96,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
 
         if (managedType.getConcreteClass().equals(ManagedSet.class)) {
             transformer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
-            projection = new UnmanagedModelProjection<T>(managedType, true, true);
+            projection = new ManagedSetModelProjection<T>(managedType);
 
         } else {
             return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new BiAction<ModelView<? extends T>, Inputs>() {
@@ -155,7 +155,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
                     }
 
                     Object[] args = new Object[inputs.size() + 1];
-                    args[0] = instance;
+                    args[0] = modelView.getInstance();
                     for (int i = 0; i < inputs.size(); i++) {
                         args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
                     }
