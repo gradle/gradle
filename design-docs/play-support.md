@@ -373,6 +373,23 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 - Build distribution image and zips, as per `play stage` and `play dist`
 - Integrate with the distribution plugin.
 
+#### Test cases
+- Public assets are packaged in a separate jar with a classifier of "assets".
+- Distribution zip contains:
+    - all content under a directory named "<play-application-name>-<version>"
+    - jar and assets jar in "lib".
+    - all runtime libraries in "lib".
+    - application script and batch file in "bin".
+    - application.conf and secondary routes files in "conf".
+    - any README file provided in conventional location "${projectDir}/README"
+- application script and batch file will successfully run play:
+    - can access a public asset
+    - can access a custom route
+    
+#### Open Issues
+- A Play distribution zip, by default, contains a shared/docs directory with the scaladocs for the application.  We'll need 
+a scaladoc task wired in to duplicate this functionality.
+    
 ### Implementation
 
 Play plugin:
