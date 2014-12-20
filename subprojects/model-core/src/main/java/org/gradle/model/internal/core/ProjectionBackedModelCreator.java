@@ -54,7 +54,6 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return new ProjectionBackedModelPromise(projections);
     }
 
-
     public ModelCreationContext create(Inputs inputs) {
         return new ModelCreationContext(new ProjectionBackedModelAdapter(projections), initializer.transform(inputs));
     }
