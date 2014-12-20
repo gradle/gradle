@@ -19,12 +19,7 @@ package org.gradle.language.base.internal.registry;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.TransformationFileType;
-
-import java.util.Map;
 
 public class RuleBasedLanguageRegistration<T extends BaseLanguageSourceSet> implements LanguageRegistration<T> {
 
@@ -50,26 +45,6 @@ public class RuleBasedLanguageRegistration<T extends BaseLanguageSourceSet> impl
     @Override
     public Class<T> getSourceSetType() {
         return sourceSetType;
-    }
-
-    @Override
-    public Map<String, Class<?>> getBinaryTools() {
-        return null;
-    }
-
-    @Override
-    public Class<? extends TransformationFileType> getOutputType() {
-        return null;
-    }
-
-    @Override
-    public SourceTransformTaskConfig getTransformTask() {
-        return null;
-    }
-
-    @Override
-    public boolean applyToBinary(BinarySpec binary) {
-        return false;
     }
 
     @Override

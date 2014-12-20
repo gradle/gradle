@@ -24,13 +24,14 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.NativeDependencySet;
+import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
@@ -44,8 +45,12 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class CompileTaskConfig implements SourceTransformTaskConfig {
-    public CompileTaskConfig(LanguageRegistration<? extends LanguageSourceSet> languageRegistration, Class<? extends DefaultTask> taskType) {
-        this.language = languageRegistration;
+
+    private final LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform;
+    private final Class<? extends DefaultTask> taskType;
+
+    public CompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
+        this.languageTransform = languageTransform;
         this.taskType = taskType;
     }
 
@@ -90,7 +95,7 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
         final Project project = task.getProject();
         task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
 
-        for (String toolName : language.getBinaryTools().keySet()) {
+        for (String toolName : languageTransform.getBinaryTools().keySet()) {
             Tool tool = (Tool) ((ExtensionAware) binary).getExtensions().getByName(toolName);
             if (tool instanceof PreprocessingTool) {
                 task.setMacros(((PreprocessingTool) tool).getMacros());
@@ -101,7 +106,4 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
-
-    private final LanguageRegistration<? extends LanguageSourceSet> language;
-    private final Class<? extends DefaultTask> taskType;
 }

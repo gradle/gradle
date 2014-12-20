@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
@@ -53,6 +54,11 @@ public class CppLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new Cpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             languages.add(new Cpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }

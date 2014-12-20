@@ -24,9 +24,10 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
-import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
@@ -38,7 +39,6 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.TransformationFileType;
 
 import java.io.File;
 import java.util.Collections;
@@ -74,9 +74,14 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
             languages.add(new Scala(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
+            languages.add(new Scala(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        }
     }
 
-    private static class Scala extends AbstractLanguageRegistration<ScalaLanguageSourceSet> {
+    private static class Scala extends AbstractLanguageRegistration<ScalaLanguageSourceSet, JvmByteCode> {
         public Scala(Instantiator instantiator, FileResolver fileResolver) {
             super(instantiator, fileResolver);
         }
@@ -97,7 +102,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             return Collections.emptyMap();
         }
 
-        public Class<? extends TransformationFileType> getOutputType() {
+        public Class<JvmByteCode> getOutputType() {
             return JvmByteCode.class;
         }
 

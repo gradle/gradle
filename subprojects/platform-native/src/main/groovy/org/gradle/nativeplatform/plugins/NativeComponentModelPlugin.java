@@ -26,8 +26,8 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.model.*;
@@ -132,14 +132,13 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Migrate to @BinaryType and @ComponentBinaries
         @Mutate
         public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
-                                         LanguageRegistry languages, NativeToolChainRegistryInternal toolChains,
+                                         LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
                                          PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
             Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
-            Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languages);
-            Action<NativeBinarySpec> setDefaultTargetsAction = new ToolSettingNativeBinaryInitializer(languages);
+            Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
             @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();

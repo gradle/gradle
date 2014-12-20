@@ -19,7 +19,7 @@ package org.gradle.language.base.internal.registry;
 import org.gradle.api.DomainObjectSet;
 
 /**
- * A registry of domains.
+ * A registry of languages.
  */
 public interface LanguageRegistry extends DomainObjectSet<LanguageRegistration<?>> {
 }

@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
@@ -54,6 +55,11 @@ public class CLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new C(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             languages.add(new C(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }

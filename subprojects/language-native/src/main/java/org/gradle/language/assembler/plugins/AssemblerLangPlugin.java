@@ -27,6 +27,7 @@ import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
 import org.gradle.model.Mutate;
@@ -53,6 +54,11 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new Assembler(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             languages.add(new Assembler(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }

@@ -25,13 +25,14 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.registry.LanguageRegistration
 import org.gradle.language.base.internal.SourceTransformTaskConfig
+import org.gradle.language.base.internal.registry.LanguageRegistration
+import org.gradle.language.base.internal.registry.LanguageTransform
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.TransformationFileType
-import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.util.TestUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
@@ -71,6 +72,9 @@ class ComponentModelBasePluginTest extends Specification {
             languages {
                 add(new TestLanguageRegistration())
             }
+            languageTransforms {
+                add(new TestLanguageRegistration())
+            }
         }
         project.componentSpecs.add(componentSpecInternal)
         project.evaluate()
@@ -82,7 +86,7 @@ class ComponentModelBasePluginTest extends Specification {
         0 * componentFunctionalSourceSet._
     }
 
-    public static class TestLanguageRegistration implements LanguageRegistration {
+    public static class TestLanguageRegistration implements LanguageRegistration, LanguageTransform {
         @Override
         String getName() {
             return "test"

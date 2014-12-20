@@ -16,23 +16,17 @@
 
 package org.gradle.language.base.internal.registry;
 
+import com.google.common.reflect.TypeToken;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.language.base.LanguageSourceSet;
+public class DefaultLanguageTransformContainer extends DefaultDomainObjectSet<LanguageTransform<?, ?>> implements LanguageTransformContainer {
+    public DefaultLanguageTransformContainer() {
+        super(getLanguageTransformType());
+    }
 
-/**
- * A registered language.
- */
-public interface LanguageRegistration<U extends LanguageSourceSet> {
-    /**
-     * The name.
-     */
-    String getName();
-
-    /**
-     * The interface type of the language source set.
-     */
-    Class<U> getSourceSetType();
-
-    NamedDomainObjectFactory<? extends U> getSourceSetFactory(String parentName);
+    private static Class<LanguageTransform<?, ?>> getLanguageTransformType() {
+        @SuppressWarnings("unchecked")
+        Class<LanguageTransform<?, ?>> rawType = (Class<LanguageTransform<?, ?>>) new TypeToken<LanguageTransform<?, ?>>() {}.getRawType();
+        return rawType;
+    }
 }

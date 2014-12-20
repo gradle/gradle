@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
@@ -53,6 +54,11 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new ObjectiveC(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        }
+
+        @Mutate
+        void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             languages.add(new ObjectiveC(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }

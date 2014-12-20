@@ -20,8 +20,9 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.platform.base.TransformationFileType;
 
-abstract public class AbstractLanguageRegistration<U extends LanguageSourceSet> implements LanguageRegistration<U> {
+abstract public class AbstractLanguageRegistration<U extends LanguageSourceSet, V extends TransformationFileType> implements LanguageRegistration<U>, LanguageTransform<U, V> {
 
     private Instantiator instantiator;
     private FileResolver fileResolver;

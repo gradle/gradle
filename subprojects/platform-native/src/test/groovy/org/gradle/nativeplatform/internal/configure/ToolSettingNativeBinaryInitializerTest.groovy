@@ -17,17 +17,17 @@
 package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.language.base.internal.registry.DefaultLanguageRegistry
-import org.gradle.language.base.internal.registry.LanguageRegistration
+import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer
+import org.gradle.language.base.internal.registry.LanguageTransform
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.internal.DefaultTool
 import spock.lang.Specification
 
 class ToolSettingNativeBinaryInitializerTest extends Specification {
     def binary = Mock(ExtensionAwareNativeBinary)
-    def languageRegistry = new DefaultLanguageRegistry()
-    def language = Mock(LanguageRegistration)
-    def initializer = new ToolSettingNativeBinaryInitializer(languageRegistry)
+    def languageTransforms = new DefaultLanguageTransformContainer()
+    def language = Mock(LanguageTransform)
+    def initializer = new ToolSettingNativeBinaryInitializer(languageTransforms)
 
     def "does nothing with no languages"() {
 
@@ -40,7 +40,7 @@ class ToolSettingNativeBinaryInitializerTest extends Specification {
 
     def "does nothing when language has not tools registered"() {
         when:
-        languageRegistry.add(language)
+        languageTransforms.add(language)
 
         language.binaryTools >> [:]
 
@@ -54,7 +54,7 @@ class ToolSettingNativeBinaryInitializerTest extends Specification {
     def "adds extension for each tool"() {
         def extensions = Mock(ExtensionContainer)
         when:
-        languageRegistry.add(language)
+        languageTransforms.add(language)
         language.binaryTools >> [tool: DefaultTool, other: String]
 
         and:
