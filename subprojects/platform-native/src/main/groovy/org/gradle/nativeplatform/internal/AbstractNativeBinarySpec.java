@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
@@ -100,8 +99,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     public Tool getStaticLibArchiver() {
         return staticLibArchiver;
     }
-
-    public abstract BinaryTasksCollection getTasks();
 
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
