@@ -103,7 +103,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             languageRegistry.all(new Action<LanguageRegistration<?>>() {
                 public void execute(final LanguageRegistration<?> languageRegistration) {
                     //TODO change languageRegistration to provide factory method to create source implementation instead
-                        components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver));
+                        components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration));
                 }
             });
         }
@@ -176,26 +176,23 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
     private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
         private final LanguageRegistration<U> languageRegistration;
-        private final FileResolver fileResolver;
 
-        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration, FileResolver fileResolver) {
+        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration) {
             this.languageRegistration = registration;
-            this.fileResolver = fileResolver;
         }
 
-        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, FileResolver fileResolver) {
-            return new ComponentSourcesRegistrationAction<U>(registration, fileResolver);
+        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration) {
+            return new ComponentSourcesRegistrationAction<U>(registration);
         }
 
         public void execute(ComponentSpecInternal componentSpecInternal) {
-            registerLanguageSourceSetFactory(componentSpecInternal, fileResolver);
+            registerLanguageSourceSetFactory(componentSpecInternal);
             createDefaultSourceSetForComponents(componentSpecInternal);
         }
 
-        void registerLanguageSourceSetFactory(final ComponentSpecInternal component,
-                                              final FileResolver fileResolver) {
+        void registerLanguageSourceSetFactory(final ComponentSpecInternal component) {
             final FunctionalSourceSet functionalSourceSet = component.getSources();
-            NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(functionalSourceSet.getName(), fileResolver);
+            NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(functionalSourceSet.getName());
             functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
         }
 

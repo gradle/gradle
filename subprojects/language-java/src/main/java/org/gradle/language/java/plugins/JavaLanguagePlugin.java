@@ -17,6 +17,7 @@
 package org.gradle.language.java.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
@@ -58,13 +59,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Java(serviceRegistry.get(Instantiator.class)));
+            languages.add(new Java(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class Java extends AbstractLanguageRegistration<JavaSourceSet> {
-        public Java(Instantiator instantiator) {
-            super(instantiator);
+        public Java(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {

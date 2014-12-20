@@ -17,6 +17,7 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
@@ -55,14 +56,14 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new JvmResources(serviceRegistry.get(Instantiator.class)));
+            languages.add(new JvmResources(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class JvmResources extends AbstractLanguageRegistration<JvmResourceSet> {
 
-        public JvmResources(Instantiator instantiator) {
-            super(instantiator);
+        public JvmResources(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {

@@ -17,6 +17,7 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
@@ -71,13 +72,13 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Scala(serviceRegistry.get(Instantiator.class)));
+            languages.add(new Scala(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class Scala extends AbstractLanguageRegistration<ScalaLanguageSourceSet> {
-        public Scala(Instantiator instantiator) {
-            super(instantiator);
+        public Scala(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {

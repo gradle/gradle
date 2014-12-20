@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
 import org.gradle.nativeplatform.ObjectFile;
@@ -26,8 +27,8 @@ import org.gradle.platform.base.BinarySpec;
 
 public abstract class NativeLanguageRegistration<U extends LanguageSourceSet> extends AbstractLanguageRegistration<U> {
 
-    public NativeLanguageRegistration(Instantiator instantiator) {
-        super(instantiator);
+    public NativeLanguageRegistration(Instantiator instantiator, FileResolver fileResolver) {
+        super(instantiator, fileResolver);
     }
 
     public boolean applyToBinary(BinarySpec binary) {

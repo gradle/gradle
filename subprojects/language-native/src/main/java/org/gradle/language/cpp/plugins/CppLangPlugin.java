@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -52,13 +53,13 @@ public class CppLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Cpp(serviceRegistry.get(Instantiator.class)));
+            languages.add(new Cpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class Cpp extends NativeLanguageRegistration<CppSourceSet> {
-        public Cpp(Instantiator instantiator) {
-            super(instantiator);
+        public Cpp(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {
@@ -69,7 +70,7 @@ public class CppLangPlugin implements Plugin<Project> {
             return CppSourceSet.class;
         }
 
-        public Class<? extends CppSourceSet> getSourceSetImplementation() {
+        protected Class<? extends CppSourceSet> getSourceSetImplementation() {
             return DefaultCppSourceSet.class;
         }
 

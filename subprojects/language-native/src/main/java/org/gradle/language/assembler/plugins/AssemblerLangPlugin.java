@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.assembler.AssemblerSourceSet;
@@ -52,13 +53,13 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Assembler(serviceRegistry.get(Instantiator.class)));
+            languages.add(new Assembler(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class Assembler extends NativeLanguageRegistration<AssemblerSourceSet> {
-        public Assembler(Instantiator instantiator) {
-            super(instantiator);
+        public Assembler(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {
@@ -69,7 +70,7 @@ public class AssemblerLangPlugin implements Plugin<Project> {
             return AssemblerSourceSet.class;
         }
 
-        public Class<? extends AssemblerSourceSet> getSourceSetImplementation() {
+        protected Class<? extends AssemblerSourceSet> getSourceSetImplementation() {
             return DefaultAssemblerSourceSet.class;
         }
 

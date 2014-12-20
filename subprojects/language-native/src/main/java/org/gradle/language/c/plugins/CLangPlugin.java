@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -53,13 +54,13 @@ public class CLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new C(serviceRegistry.get(Instantiator.class)));
+            languages.add(new C(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class C extends NativeLanguageRegistration<CSourceSet> {
-        public C(Instantiator instantiator) {
-            super(instantiator);
+        public C(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {
@@ -70,7 +71,7 @@ public class CLangPlugin implements Plugin<Project> {
             return CSourceSet.class;
         }
 
-        public Class<? extends CSourceSet> getSourceSetImplementation() {
+        protected Class<? extends CSourceSet> getSourceSetImplementation() {
             return DefaultCSourceSet.class;
         }
 

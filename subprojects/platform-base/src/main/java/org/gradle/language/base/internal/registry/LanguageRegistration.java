@@ -18,7 +18,6 @@ package org.gradle.language.base.internal.registry;
 
 
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
@@ -41,11 +40,6 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     Class<U> getSourceSetType();
 
     /**
-     * The implementation type of the language source set.
-     */
-    Class<? extends U> getSourceSetImplementation();
-
-    /**
      * The tool extensions that should be added to any binary with these language sources.
      */
     Map<String, Class<?>> getBinaryTools();
@@ -63,5 +57,5 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     // TODO:DAZ This should be declarative, not imperative
     boolean applyToBinary(BinarySpec binary);
 
-    NamedDomainObjectFactory<? extends U> getSourceSetFactory(String parentName, FileResolver fileResolver);
+    NamedDomainObjectFactory<? extends U> getSourceSetFactory(String parentName);
 }

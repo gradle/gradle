@@ -24,13 +24,15 @@ import org.gradle.language.base.LanguageSourceSet;
 abstract public class AbstractLanguageRegistration<U extends LanguageSourceSet> implements LanguageRegistration<U> {
 
     private Instantiator instantiator;
+    private FileResolver fileResolver;
 
-    public AbstractLanguageRegistration(Instantiator instantiator){
+    public AbstractLanguageRegistration(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     @Override
-    public NamedDomainObjectFactory<? extends U> getSourceSetFactory(final String parentName, final FileResolver fileResolver) {
+    public NamedDomainObjectFactory<? extends U> getSourceSetFactory(final String parentName) {
         return new NamedDomainObjectFactory<U>() {
             @Override
             public U create(String name) {
@@ -38,4 +40,6 @@ abstract public class AbstractLanguageRegistration<U extends LanguageSourceSet> 
             }
         };
     }
+
+    abstract protected Class<? extends U> getSourceSetImplementation();
 }

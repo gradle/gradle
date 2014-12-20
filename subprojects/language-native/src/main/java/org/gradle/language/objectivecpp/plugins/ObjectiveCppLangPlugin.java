@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -52,13 +53,13 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     static class Rules {
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new ObjectiveCpp(serviceRegistry.get(Instantiator.class)));
+            languages.add(new ObjectiveCpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
         }
     }
 
     private static class ObjectiveCpp extends NativeLanguageRegistration<ObjectiveCppSourceSet> {
-        public ObjectiveCpp(Instantiator instantiator) {
-            super(instantiator);
+        public ObjectiveCpp(Instantiator instantiator, FileResolver fileResolver) {
+            super(instantiator, fileResolver);
         }
 
         public String getName() {

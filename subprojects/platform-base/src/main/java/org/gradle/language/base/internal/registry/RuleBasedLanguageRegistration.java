@@ -32,12 +32,14 @@ public class RuleBasedLanguageRegistration<T extends BaseLanguageSourceSet> impl
     private final Class<T> sourceSetType;
     private final Class<? extends T> sourceSetImplementation;
     private Instantiator instantiator;
+    private FileResolver fileResolver;
 
-    public RuleBasedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation, Instantiator instantiator) {
+    public RuleBasedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation, Instantiator instantiator, FileResolver fileResolver) {
         this.name = name;
         this.sourceSetType = sourceSetType;
         this.sourceSetImplementation = sourceSetImplementation;
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -48,11 +50,6 @@ public class RuleBasedLanguageRegistration<T extends BaseLanguageSourceSet> impl
     @Override
     public Class<T> getSourceSetType() {
         return sourceSetType;
-    }
-
-    @Override
-    public Class<? extends T> getSourceSetImplementation() {
-        return sourceSetImplementation;
     }
 
     @Override
@@ -76,8 +73,8 @@ public class RuleBasedLanguageRegistration<T extends BaseLanguageSourceSet> impl
     }
 
     @Override
-    public NamedDomainObjectFactory<? extends T> getSourceSetFactory(final String parentName, final FileResolver fileResolver) {
-        return new NamedDomainObjectFactory<T>(){
+    public NamedDomainObjectFactory<? extends T> getSourceSetFactory(final String parentName) {
+        return new NamedDomainObjectFactory<T>() {
             @Override
             public T create(String name) {
                 return BaseLanguageSourceSet.create(sourceSetImplementation, name, parentName, fileResolver, instantiator);

@@ -94,11 +94,6 @@ class ComponentModelBasePluginTest extends Specification {
         }
 
         @Override
-        Class getSourceSetImplementation() {
-            return TestSourceImplementation.class
-        }
-
-        @Override
         Map<String, Class<?>> getBinaryTools() {
             return null
         }
@@ -119,7 +114,7 @@ class ComponentModelBasePluginTest extends Specification {
         }
 
         @Override
-        public NamedDomainObjectFactory getSourceSetFactory(String parentName, FileResolver fileResolver) {
+        public NamedDomainObjectFactory getSourceSetFactory(String parentName) {
             return new NamedDomainObjectFactory() {
                 @Override
                 Object create(String name) {

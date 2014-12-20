@@ -19,6 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -139,12 +140,12 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         }
     }
 
-    private static class RegistrationAction<T extends LanguageSourceSet, U extends BaseLanguageSourceSet> implements Action<RegistrationContext<T , U>> {
+    private static class RegistrationAction<T extends LanguageSourceSet, U extends BaseLanguageSourceSet> implements Action<RegistrationContext<T, U>> {
         @Override
         @SuppressWarnings({"rawtypes", "unchecked"})
         public void execute(final RegistrationContext<T, U> context) {
             LanguageRegistry languageRegistry = context.getLanguageRegistry();
-            languageRegistry.add(new RuleBasedLanguageRegistration(context.languageName, context.type.getConcreteClass(), context.implementation.getConcreteClass(), context.getInstantiator()));
+            languageRegistry.add(new RuleBasedLanguageRegistration(context.languageName, context.type.getConcreteClass(), context.implementation.getConcreteClass(), context.getInstantiator(), context.fileResolver));
         }
     }
 
@@ -153,13 +154,15 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         private final ModelType<? extends U> implementation;
         private final LanguageRegistry languageRegistry;
         private final Instantiator instantiator;
+        private final FileResolver fileResolver;
         private final String languageName;
 
-        public RegistrationContext(ModelType<? extends T> type, ModelType<? extends U> implementation, LanguageRegistry languageRegistry, Instantiator instantiator, String languageName) {
+        public RegistrationContext(ModelType<? extends T> type, ModelType<? extends U> implementation, LanguageRegistry languageRegistry, Instantiator instantiator, FileResolver fileResolver, String languageName) {
             this.type = type;
             this.implementation = implementation;
             this.languageRegistry = languageRegistry;
             this.instantiator = instantiator;
+            this.fileResolver = fileResolver;
             this.languageName = languageName;
         }
 
@@ -177,6 +180,10 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
 
         public Instantiator getInstantiator() {
             return instantiator;
+        }
+
+        public FileResolver getFileResolver() {
+            return fileResolver;
         }
     }
 
@@ -217,7 +224,8 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
                 public void run() {
                     ServiceRegistry serviceRegistry = inputs.get(0, ModelType.of(ServiceRegistry.class)).getInstance();
                     Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-                    RegistrationContext<T, U> context = new RegistrationContext<T, U>(type, implementation, languageRegistry, instantiator, languageName);
+                    FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+                    RegistrationContext<T, U> context = new RegistrationContext<T, U>(type, implementation, languageRegistry, instantiator, fileResolver, languageName);
                     registerAction.execute(context);
                 }
             });
