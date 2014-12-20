@@ -26,6 +26,9 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.*;
+import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
@@ -100,7 +103,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             languageRegistry.all(new Action<LanguageRegistration<?>>() {
                 public void execute(final LanguageRegistration<?> languageRegistration) {
                     //TODO change languageRegistration to provide factory method to create source implementation instead
-                        components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver, instantiator));
+                        components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, fileResolver));
                 }
             });
         }
@@ -174,33 +177,26 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
         private final LanguageRegistration<U> languageRegistration;
         private final FileResolver fileResolver;
-        private final Instantiator instantiator;
 
-        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration, FileResolver fileResolver, Instantiator instantiator) {
+        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration, FileResolver fileResolver) {
             this.languageRegistration = registration;
             this.fileResolver = fileResolver;
-            this.instantiator = instantiator;
         }
 
-        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, FileResolver fileResolver, Instantiator instantiator) {
-            return new ComponentSourcesRegistrationAction<U>(registration, fileResolver, instantiator);
+        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, FileResolver fileResolver) {
+            return new ComponentSourcesRegistrationAction<U>(registration, fileResolver);
         }
 
         public void execute(ComponentSpecInternal componentSpecInternal) {
-            registerLanguageSourceSetFactory(componentSpecInternal, fileResolver, instantiator);
+            registerLanguageSourceSetFactory(componentSpecInternal, fileResolver);
             createDefaultSourceSetForComponents(componentSpecInternal);
         }
 
         void registerLanguageSourceSetFactory(final ComponentSpecInternal component,
-                                              final FileResolver fileResolver, final Instantiator instantiator) {
+                                              final FileResolver fileResolver) {
             final FunctionalSourceSet functionalSourceSet = component.getSources();
-            NamedDomainObjectFactory<U> namedDomainObjectFactory = new NamedDomainObjectFactory<U>() {
-                public U create(String name) {
-                    Class<? extends U> sourceSetImplementation = languageRegistration.getSourceSetImplementation();
-                    return instantiator.newInstance(sourceSetImplementation, name, functionalSourceSet.getName(), fileResolver);
-                }
-            };
-            functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), namedDomainObjectFactory);
+            NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(functionalSourceSet.getName(), fileResolver);
+            functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
         }
 
         void createDefaultSourceSetForComponents(final ComponentSpecInternal component) {

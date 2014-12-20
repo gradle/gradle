@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.language.base.internal.registry;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.DefaultDomainObjectSet;

@@ -19,10 +19,12 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
@@ -49,12 +51,16 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new Assembler());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new Assembler(serviceRegistry.get(Instantiator.class)));
         }
     }
 
     private static class Assembler extends NativeLanguageRegistration<AssemblerSourceSet> {
+        public Assembler(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "asm";
         }

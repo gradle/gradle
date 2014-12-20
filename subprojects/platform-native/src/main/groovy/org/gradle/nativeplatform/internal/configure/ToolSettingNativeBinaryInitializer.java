@@ -18,8 +18,8 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.nativeplatform.NativeBinarySpec;
 
 import java.util.Map;

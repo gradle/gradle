@@ -26,7 +26,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;

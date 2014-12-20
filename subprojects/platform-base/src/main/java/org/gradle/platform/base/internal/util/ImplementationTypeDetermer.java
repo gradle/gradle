@@ -57,37 +57,5 @@ public class ImplementationTypeDetermer<T, U extends T> {
 
         return asSubclass;
     }
-//
-//    protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition) {
-//        if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
-//            throw new InvalidModelException(String.format("Method %s must not have a return value.", getDescription()));
-//        }
-//    }
-
-//    protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition, ) {
-//        assertIsVoidMethod(ruleDefinition);
-//        if (ruleDefinition.getReferences().size() != 1) {
-//            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
-//        }
-//        ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
-//        if (!builderInterface.isAssignableFrom(builder)) {
-//            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
-//        }
-//        if (builder.getTypeVariables().size() != 1) {
-//            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
-//        }
-//        ModelType<?> subType = builder.getTypeVariables().get(0);
-//
-//        if (subType.isWildcard()) {
-//            throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
-//        }
-//
-//        ModelType<? extends T> asSubclass = baseInterface.asSubclass(subType);
-//        if (asSubclass == null) {
-//            throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
-//        }
-//
-//        return asSubclass;
-//    }
 }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -35,8 +34,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class ProjectScopeServices {
-        MethodRuleDefinitionHandler createLanguageTypePluginInspector(Instantiator instantiator, FileResolver fileResolver) {
-            return new LanguageTypeRuleDefinitionHandler(instantiator, fileResolver);
+        MethodRuleDefinitionHandler createLanguageTypePluginInspector() {
+            return new LanguageTypeRuleDefinitionHandler();
         }
 
         MethodRuleDefinitionHandler createComponentModelPluginInspector(Instantiator instantiator) {

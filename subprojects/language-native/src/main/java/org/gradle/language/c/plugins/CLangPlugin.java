@@ -19,7 +19,9 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.c.CSourceSet;
@@ -50,12 +52,16 @@ public class CLangPlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new C());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new C(serviceRegistry.get(Instantiator.class)));
         }
     }
 
     private static class C extends NativeLanguageRegistration<CSourceSet> {
+        public C(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "c";
         }

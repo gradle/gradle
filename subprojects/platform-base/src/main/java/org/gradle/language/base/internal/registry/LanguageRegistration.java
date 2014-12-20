@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.language.base.internal.registry;
 
 
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
@@ -60,4 +63,5 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     // TODO:DAZ This should be declarative, not imperative
     boolean applyToBinary(BinarySpec binary);
 
+    NamedDomainObjectFactory<? extends U> getSourceSetFactory(String parentName, FileResolver fileResolver);
 }

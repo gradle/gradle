@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.language.base.internal.DefaultLanguageRegistry
-import org.gradle.language.base.internal.LanguageRegistration
+import org.gradle.language.base.internal.registry.DefaultLanguageRegistry
+import org.gradle.language.base.internal.registry.LanguageRegistration
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.internal.DefaultTool
 import spock.lang.Specification

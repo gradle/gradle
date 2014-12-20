@@ -16,15 +16,14 @@
 
 package org.gradle.language.java.plugins;
 
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
@@ -58,12 +57,16 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new Java());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new Java(serviceRegistry.get(Instantiator.class)));
         }
     }
 
-    private static class Java implements LanguageRegistration<JavaSourceSet> {
+    private static class Java extends AbstractLanguageRegistration<JavaSourceSet> {
+        public Java(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "java";
         }

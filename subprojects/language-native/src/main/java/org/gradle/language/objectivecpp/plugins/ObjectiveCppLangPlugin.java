@@ -19,7 +19,9 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
@@ -49,12 +51,16 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new ObjectiveCpp());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new ObjectiveCpp(serviceRegistry.get(Instantiator.class)));
         }
     }
 
     private static class ObjectiveCpp extends NativeLanguageRegistration<ObjectiveCppSourceSet> {
+        public ObjectiveCpp(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "objcpp";
         }

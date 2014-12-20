@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.LanguageRegistration
+import org.gradle.language.base.internal.registry.LanguageRegistration
 import org.gradle.language.base.internal.SourceTransformTaskConfig
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.platform.base.BinarySpec
@@ -78,6 +78,7 @@ class ComponentModelBasePluginTest extends Specification {
         then:
         1 * componentFunctionalSourceSet.registerFactory(TestSourceSet, _ as NamedDomainObjectFactory)
         1 * componentFunctionalSourceSet.maybeCreate("test", TestSourceSet)
+        1 * componentFunctionalSourceSet.getName() >> "testFunctionalSourceSet"
         0 * componentFunctionalSourceSet._
     }
 
@@ -115,6 +116,16 @@ class ComponentModelBasePluginTest extends Specification {
         @Override
         boolean applyToBinary(BinarySpec binary) {
             return false
+        }
+
+        @Override
+        public NamedDomainObjectFactory getSourceSetFactory(String parentName, FileResolver fileResolver) {
+            return new NamedDomainObjectFactory() {
+                @Override
+                Object create(String name) {
+                    new TestSourceImplementation(name, parentName, fileResolver)
+                }
+            }
         }
     }
 

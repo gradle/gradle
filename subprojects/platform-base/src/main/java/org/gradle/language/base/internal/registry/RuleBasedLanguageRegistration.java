@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.language.base.internal.registry;
 
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.TransformationFileType;
 
 import java.util.Map;
 
-/**
- * some javadoc
- */
-public class RuleBasedLanguageRegistration<T extends LanguageSourceSet> implements LanguageRegistration<T> {
+public class RuleBasedLanguageRegistration<T extends BaseLanguageSourceSet> implements LanguageRegistration<T> {
 
     private final String name;
     private final Class<T> sourceSetType;
     private final Class<? extends T> sourceSetImplementation;
+    private Instantiator instantiator;
 
-    public RuleBasedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation) {
+    public RuleBasedLanguageRegistration(String name, Class<T> sourceSetType, Class<? extends T> sourceSetImplementation, Instantiator instantiator) {
         this.name = name;
         this.sourceSetType = sourceSetType;
         this.sourceSetImplementation = sourceSetImplementation;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -70,5 +73,15 @@ public class RuleBasedLanguageRegistration<T extends LanguageSourceSet> implemen
     @Override
     public boolean applyToBinary(BinarySpec binary) {
         return false;
+    }
+
+    @Override
+    public NamedDomainObjectFactory<? extends T> getSourceSetFactory(final String parentName, final FileResolver fileResolver) {
+        return new NamedDomainObjectFactory<T>(){
+            @Override
+            public T create(String name) {
+                return BaseLanguageSourceSet.create(sourceSetImplementation, name, parentName, fileResolver, instantiator);
+            }
+        };
     }
 }

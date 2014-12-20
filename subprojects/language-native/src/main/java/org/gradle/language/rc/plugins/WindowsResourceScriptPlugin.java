@@ -19,7 +19,9 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
@@ -51,12 +53,16 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new WindowsResources());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new WindowsResources(serviceRegistry.get(Instantiator.class)));
         }
     }
 
     private static class WindowsResources extends NativeLanguageRegistration<WindowsResourceSet> {
+        public WindowsResources(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "rc";
         }

@@ -24,7 +24,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.PreprocessingTool;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.nativeplatform.DependentSourceSet;

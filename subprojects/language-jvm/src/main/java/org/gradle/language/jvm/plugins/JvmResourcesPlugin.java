@@ -17,10 +17,12 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
@@ -52,12 +54,17 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     @RuleSource
     static class Rules {
         @Mutate
-        void registerLanguage(LanguageRegistry languages) {
-            languages.add(new JvmResources());
+        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
+            languages.add(new JvmResources(serviceRegistry.get(Instantiator.class)));
         }
     }
 
-    private static class JvmResources implements LanguageRegistration<JvmResourceSet> {
+    private static class JvmResources extends AbstractLanguageRegistration<JvmResourceSet> {
+
+        public JvmResources(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "resources";
         }
@@ -98,10 +105,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 }
             };
         }
-
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof JvmBinarySpec;
         }
     }
-
 }

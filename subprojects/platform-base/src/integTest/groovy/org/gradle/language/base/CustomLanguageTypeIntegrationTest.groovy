@@ -18,7 +18,6 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -63,7 +62,6 @@ model {
         output.contains("registered languages: custom")
     }
 
-    @Ignore("rework LanguageRegistration to use factory instead first")
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
@@ -86,6 +84,8 @@ model {
                 componentSpecs.create("main")
             }
         }
+
+        apply plugin:CustomComponentPlugin
 
 
         model {

@@ -19,22 +19,18 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageRegistry;
-import org.gradle.language.base.internal.RuleBasedLanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
+import org.gradle.language.base.internal.registry.RuleBasedLanguageRegistration;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
@@ -54,28 +50,22 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
     private final String modelName;
     private final ModelType<LanguageSourceSet> baseInterface;
     private final Factory<? extends LanguageTypeBuilderInternal<LanguageSourceSet>> typeBuilderFactory;
-    private final ModelType<BaseLanguageSourceSet> baseImplementation;
-    private Instantiator instantiator;
-    private FileResolver fileResolver;
 
     public ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet> implementationTypeDetermer = new ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet>("language", BaseLanguageSourceSet.class);
 
-    public LanguageTypeRuleDefinitionHandler(final Instantiator instantiator, FileResolver fileResolver) {
-        this.instantiator = instantiator;
-        this.fileResolver = fileResolver;
+    public LanguageTypeRuleDefinitionHandler() {
         this.modelName = "language";
         this.typeBuilderFactory = JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class);
         this.baseInterface = ModelType.of(LanguageSourceSet.class);
-        this.baseImplementation = ModelType.of(BaseLanguageSourceSet.class);
 
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, LanguageTypeBuilderInternal<? extends LanguageSourceSet> builder) {
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelMutator<?> mutator = new RegisterTypeRule<LanguageSourceSet, BaseLanguageSourceSet>(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor(), new RegistrationAction(instantiator, fileResolver));
+            ModelMutator<?> mutator = new RegisterTypeRule<LanguageSourceSet, BaseLanguageSourceSet>(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor(), new RegistrationAction());
             modelRegistry.mutate(mutator);
         }
     }
@@ -149,20 +139,12 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         }
     }
 
-    private static class RegistrationAction implements Action<RegistrationContext<LanguageSourceSet, BaseLanguageSourceSet>> {
-        private final Instantiator instantiator;
-        private final FileResolver fileResolver;
-
-        public RegistrationAction(Instantiator instantiator, FileResolver fileResolver) {
-            this.instantiator = instantiator;
-            this.fileResolver = fileResolver;
-        }
-
+    private static class RegistrationAction<T extends LanguageSourceSet, U extends BaseLanguageSourceSet> implements Action<RegistrationContext<T , U>> {
         @Override
         @SuppressWarnings({"rawtypes", "unchecked"})
-        public void execute(RegistrationContext<LanguageSourceSet, BaseLanguageSourceSet> context) {
+        public void execute(final RegistrationContext<T, U> context) {
             LanguageRegistry languageRegistry = context.getLanguageRegistry();
-            languageRegistry.add(new RuleBasedLanguageRegistration(context.languageName, context.type.getConcreteClass(), context.implementation.getConcreteClass()));
+            languageRegistry.add(new RuleBasedLanguageRegistration(context.languageName, context.type.getConcreteClass(), context.implementation.getConcreteClass(), context.getInstantiator()));
         }
     }
 
@@ -170,12 +152,14 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         private final ModelType<? extends T> type;
         private final ModelType<? extends U> implementation;
         private final LanguageRegistry languageRegistry;
+        private final Instantiator instantiator;
         private final String languageName;
 
-        public RegistrationContext(ModelType<? extends T> type, ModelType<? extends U> implementation, LanguageRegistry languageRegistry, String languageName) {
+        public RegistrationContext(ModelType<? extends T> type, ModelType<? extends U> implementation, LanguageRegistry languageRegistry, Instantiator instantiator, String languageName) {
             this.type = type;
             this.implementation = implementation;
             this.languageRegistry = languageRegistry;
+            this.instantiator = instantiator;
             this.languageName = languageName;
         }
 
@@ -189,6 +173,10 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
 
         public LanguageRegistry getLanguageRegistry() {
             return languageRegistry;
+        }
+
+        public Instantiator getInstantiator() {
+            return instantiator;
         }
     }
 
@@ -209,7 +197,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
             this.registerAction = registerAction;
 
             subject = ModelReference.of(LanguageRegistry.class);
-            inputs = ImmutableList.<ModelReference<?>>of(ModelReference.of(ProjectIdentifier.class));
+            inputs = ImmutableList.<ModelReference<?>>of(ModelReference.of(ServiceRegistry.class));
         }
 
         public ModelReference<LanguageRegistry> getSubject() {
@@ -227,7 +215,9 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         public final void mutate(ModelNode modelNode, final LanguageRegistry languageRegistry, final Inputs inputs) {
             RuleContext.inContext(getDescriptor(), new Runnable() {
                 public void run() {
-                    RegistrationContext<T, U> context = new RegistrationContext<T, U>(type, implementation, languageRegistry, languageName);
+                    ServiceRegistry serviceRegistry = inputs.get(0, ModelType.of(ServiceRegistry.class)).getInstance();
+                    Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+                    RegistrationContext<T, U> context = new RegistrationContext<T, U>(type, implementation, languageRegistry, instantiator, languageName);
                     registerAction.execute(context);
                 }
             });

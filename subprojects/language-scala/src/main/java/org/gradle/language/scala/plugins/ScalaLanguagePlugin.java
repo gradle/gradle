@@ -17,13 +17,14 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.*;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageRegistration;
-import org.gradle.language.base.internal.LanguageRegistry;
+import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
@@ -70,11 +71,15 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
         @Mutate
         void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Scala());
+            languages.add(new Scala(serviceRegistry.get(Instantiator.class)));
         }
     }
 
-    private static class Scala implements LanguageRegistration<ScalaLanguageSourceSet> {
+    private static class Scala extends AbstractLanguageRegistration<ScalaLanguageSourceSet> {
+        public Scala(Instantiator instantiator) {
+            super(instantiator);
+        }
+
         public String getName() {
             return "scala";
         }
