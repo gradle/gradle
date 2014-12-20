@@ -39,7 +39,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     }
 
     @Override
-    protected ModelView<M> toView(final ModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
+    protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         return new ModelView<M>() {
 
             private boolean closed;
@@ -60,14 +60,13 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             // TODO we are relying on the creator having established these links, we should be checking
             class State implements ModelElementState {
                 public <T> T get(ModelType<T> modelType, String name) {
-                    ModelNode propertyNode = modelNode.getLinks().get(name);
+                    MutableModelNode propertyNode = modelNode.getLink(name);
                     ModelProperty<?> property = schema.getProperties().get(name);
 
                     if (!property.isWritable()) {
                         // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the viewq
-                        ModelAdapter adapter = propertyNode.getAdapter();
                         if (writable) {
-                            ModelView<? extends T> modelView = adapter.asWritable(modelType, propertyNode, ruleDescriptor, null);
+                            ModelView<? extends T> modelView = propertyNode.asWritable(modelType, ruleDescriptor, null);
                             if (closed) {
                                 //noinspection ConstantConditions
                                 modelView.close();
@@ -76,7 +75,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                             return modelView.getInstance();
                         } else {
                             //noinspection ConstantConditions
-                            return adapter.asReadOnly(modelType, propertyNode, ruleDescriptor).getInstance();
+                            return propertyNode.asReadOnly(modelType, ruleDescriptor).getInstance();
                         }
                     } else {
                         return propertyNode.getPrivateData(modelType);
@@ -96,7 +95,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     if (schema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {
                         throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                     }
-                    modelNode.getLinks().get(name).setPrivateData(propertyType, value);
+                    modelNode.getLink(name).setPrivateData(propertyType, value);
                 }
             }
         };

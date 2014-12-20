@@ -21,14 +21,22 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 public interface MutableModelNode {
-    ModelAdapter getAdapter();
+    ModelPath getPath();
 
     @Nullable
     <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
 
+    @Nullable
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
+
     MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
+
+    @Nullable
+    MutableModelNode getLink(String name);
 
     boolean hasLink(String name);
 
     <T> void setPrivateData(ModelType<T> type, T object);
+
+    <T> T getPrivateData(ModelType<T> type);
 }

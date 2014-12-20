@@ -23,9 +23,9 @@ import org.gradle.model.internal.type.ModelType;
 public interface ModelAdapter {
 
     @Nullable
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor);
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     @Nullable
-    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelNode node, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
+    <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
 
 }

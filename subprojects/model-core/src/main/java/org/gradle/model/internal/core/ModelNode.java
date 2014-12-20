@@ -67,8 +67,18 @@ public class ModelNode implements ModelCreation, MutableModelNode {
         return adapter.asWritable(type, this, ruleDescriptor, inputs);
     }
 
+    @Nullable
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        return adapter.asReadOnly(type, this, ruleDescriptor);
+    }
+
     public boolean hasLink(String name) {
         return links.containsKey(name);
+    }
+
+    @Nullable
+    public MutableModelNode getLink(String name) {
+        return links.get(name);
     }
 
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {

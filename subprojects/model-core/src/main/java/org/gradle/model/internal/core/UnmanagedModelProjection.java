@@ -28,7 +28,7 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     }
 
     @Override
-    protected ModelView<M> toView(ModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+    protected ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
         M instance = modelNode.getPrivateData(getType());
         return InstanceModelView.of(getType(), instance);
     }

@@ -32,7 +32,7 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
     }
 
     @Override
-    protected ModelView<M> toView(final ModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
+    protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         return new ModelView<M>() {
             public boolean closed;
 

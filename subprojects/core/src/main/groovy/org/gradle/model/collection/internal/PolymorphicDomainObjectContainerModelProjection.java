@@ -62,7 +62,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return false;
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, ModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
         if (canBeViewedAsWritable(targetType)) {
             ModelType<?> targetItemType = targetType.getTypeVariables().get(0);
             if (targetItemType.getRawClass().isAssignableFrom(itemType)) { // item type is super of base
@@ -76,7 +76,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         }
     }
 
-    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, ModelNode node, Class<S> itemType, C container) {
+    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemType, C container) {
         CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new EntityInstantiator<S>(itemType, container), sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
@@ -86,7 +86,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return cast;
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         return null;
     }
 
