@@ -41,14 +41,15 @@ public class ModelGraph {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
-        ModelNode node = new ModelNode(this, ModelPath.path(name), descriptor, promise, adapter);
+        ModelPath path = ModelPath.path(name);
+        ModelNode node = new ModelNode(this, path, descriptor, promise, adapter);
         ModelNode previous = entryNodes.put(name, node);
         if (previous != null) {
             // TODO more context here
             throw new IllegalStateException("attempt to replace node link: " + name);
         }
 
-        flattened.put(ModelPath.path(name), node);
+        flattened.put(path, node);
         return node;
     }
 
