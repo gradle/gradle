@@ -503,7 +503,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         private boolean isTypeCompatible(ModelPromise promise) {
-            return writable ? promise.asWritable(reference.getType()) : promise.asReadOnly(reference.getType());
+            return writable ? promise.canBeViewedAsWritable(reference.getType()) : promise.canBeViewedAsReadOnly(reference.getType());
         }
     }
 

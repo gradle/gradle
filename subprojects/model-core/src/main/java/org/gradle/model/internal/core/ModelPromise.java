@@ -20,8 +20,8 @@ import org.gradle.model.internal.type.ModelType;
 
 public interface ModelPromise {
 
-    <T> boolean asWritable(ModelType<T> type);
-    <T> boolean asReadOnly(ModelType<T> type);
+    <T> boolean canBeViewedAsWritable(ModelType<T> type);
+    <T> boolean canBeViewedAsReadOnly(ModelType<T> type);
 
     // These methods return strings rather than types because it may be more complicated than what is able to be expressed via a ModelType.
     // Also, we don't want to encourage compatibility checking occurring by looping through such types as we have more options for optimising the compatibility check internally.

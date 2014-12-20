@@ -102,10 +102,10 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(ParameterizedModel, registry, dependencies)
 
         then:
-        registry.node(ModelPath.path("strings")).promise.asReadOnly(new ModelType<List<String>>() {})
-        registry.node(ModelPath.path("superStrings")).promise.asReadOnly(new ModelType<List<? super String>>() {})
-        registry.node(ModelPath.path("extendsStrings")).promise.asReadOnly(new ModelType<List<? extends String>>() {})
-        registry.node(ModelPath.path("wildcard")).promise.asReadOnly(new ModelType<List<?>>() {})
+        registry.node(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
+        registry.node(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
+        registry.node(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
+        registry.node(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
     }
 
     static class HasGenericModelRule {

@@ -29,7 +29,7 @@ public class ProjectionBackedModelPromise implements ModelPromise {
         this.projections = projections;
     }
 
-    public <B> boolean asWritable(final ModelType<B> type) {
+    public <B> boolean canBeViewedAsWritable(final ModelType<B> type) {
         return CollectionUtils.any(projections, new Spec<ModelProjection>() {
             public boolean isSatisfiedBy(ModelProjection projection) {
                 return projection.canBeViewedAsWritable(type);
@@ -37,7 +37,7 @@ public class ProjectionBackedModelPromise implements ModelPromise {
         });
     }
 
-    public <B> boolean asReadOnly(final ModelType<B> type) {
+    public <B> boolean canBeViewedAsReadOnly(final ModelType<B> type) {
         return CollectionUtils.any(projections, new Spec<ModelProjection>() {
             public boolean isSatisfiedBy(ModelProjection projection) {
                 return projection.canBeViewedAsReadOnly(type);
