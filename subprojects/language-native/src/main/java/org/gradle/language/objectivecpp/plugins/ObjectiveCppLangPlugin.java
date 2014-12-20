@@ -19,21 +19,20 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
-import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Map;
 
@@ -52,32 +51,21 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new ObjectiveCpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<ObjectiveCppSourceSet> builder) {
+            builder.setLanguageName("objcpp");
+            builder.defaultImplementation(DefaultObjectiveCppSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new ObjectiveCpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new ObjectiveCpp());
         }
     }
 
-    private static class ObjectiveCpp extends NativeLanguageRegistration<ObjectiveCppSourceSet> {
-        public ObjectiveCpp(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "objcpp";
-        }
-
+    private static class ObjectiveCpp extends NativeLanguageTransform<ObjectiveCppSourceSet> {
         public Class<ObjectiveCppSourceSet> getSourceSetType() {
             return ObjectiveCppSourceSet.class;
-        }
-
-        public Class<? extends ObjectiveCppSourceSet> getSourceSetImplementation() {
-            return DefaultObjectiveCppSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {

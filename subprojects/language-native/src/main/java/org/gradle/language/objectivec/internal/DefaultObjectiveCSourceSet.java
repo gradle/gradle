@@ -16,16 +16,8 @@
 
 package org.gradle.language.objectivec.internal;
 
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 
-import javax.inject.Inject;
-
 public class DefaultObjectiveCSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCSourceSet {
-    @Inject
-    public DefaultObjectiveCSourceSet(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, fileResolver, "Objective-C source", new DefaultSourceDirectorySet("source", fileResolver));
-    }
 }

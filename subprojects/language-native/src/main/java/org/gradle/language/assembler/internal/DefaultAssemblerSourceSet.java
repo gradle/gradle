@@ -16,13 +16,8 @@
 
 package org.gradle.language.assembler.internal;
 
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.assembler.AssemblerSourceSet;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 
-public class DefaultAssemblerSourceSet extends AbstractLanguageSourceSet implements AssemblerSourceSet {
-    public DefaultAssemblerSourceSet(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, "assembler source", new DefaultSourceDirectorySet("source", fileResolver));
-    }
+public class DefaultAssemblerSourceSet extends BaseLanguageSourceSet implements AssemblerSourceSet {
 }

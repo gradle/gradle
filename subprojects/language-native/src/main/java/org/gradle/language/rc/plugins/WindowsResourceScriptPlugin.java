@@ -19,15 +19,12 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
-import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
 import org.gradle.language.rc.plugins.internal.WindowsResourcesCompileTaskConfig;
@@ -35,6 +32,8 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Map;
 
@@ -54,32 +53,21 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new WindowsResources(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<WindowsResourceSet> builder) {
+            builder.setLanguageName("rc");
+            builder.defaultImplementation(DefaultWindowsResourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new WindowsResources(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new WindowsResources());
         }
     }
 
-    private static class WindowsResources extends NativeLanguageRegistration<WindowsResourceSet> {
-        public WindowsResources(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "rc";
-        }
-
+    private static class WindowsResources extends NativeLanguageTransform<WindowsResourceSet> {
         public Class<WindowsResourceSet> getSourceSetType() {
             return WindowsResourceSet.class;
-        }
-
-        public Class<? extends WindowsResourceSet> getSourceSetImplementation() {
-            return DefaultWindowsResourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {

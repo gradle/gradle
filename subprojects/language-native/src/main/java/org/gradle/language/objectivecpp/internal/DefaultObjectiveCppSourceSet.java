@@ -16,16 +16,8 @@
 
 package org.gradle.language.objectivecpp.internal;
 
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 
-import javax.inject.Inject;
-
 public class DefaultObjectiveCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCppSourceSet {
-    @Inject
-    public DefaultObjectiveCppSourceSet(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, fileResolver, "Objective-C++ source", new DefaultSourceDirectorySet("source", fileResolver));
-    }
 }

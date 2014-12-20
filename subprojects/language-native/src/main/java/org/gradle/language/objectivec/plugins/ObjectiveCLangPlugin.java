@@ -19,21 +19,20 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
-import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet;
 import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Map;
 
@@ -52,32 +51,21 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new ObjectiveC(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<ObjectiveCSourceSet> builder) {
+            builder.setLanguageName("objc");
+            builder.defaultImplementation(DefaultObjectiveCSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new ObjectiveC(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new ObjectiveC());
         }
     }
 
-    private static class ObjectiveC extends NativeLanguageRegistration<ObjectiveCSourceSet> {
-        public ObjectiveC(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "objc";
-        }
-
+    private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet> {
         public Class<ObjectiveCSourceSet> getSourceSetType() {
             return ObjectiveCSourceSet.class;
-        }
-
-        protected Class<? extends ObjectiveCSourceSet> getSourceSetImplementation() {
-            return DefaultObjectiveCSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {

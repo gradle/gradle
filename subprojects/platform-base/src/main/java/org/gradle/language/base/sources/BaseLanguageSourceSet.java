@@ -39,6 +39,9 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     private boolean generated;
     private Task generatorTask;
 
+    // TODO:DAZ This is only here as a convenience for subclasses to create additional SourceDirectorySets
+    protected FileResolver fileResolver;
+
     public String getName() {
         return name;
     }
@@ -114,6 +117,7 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         this.fullName = info.parentName + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", info.typeName, info.parentName, name);
         this.source = new DefaultSourceDirectorySet("source", info.fileResolver);
+        this.fileResolver = info.fileResolver;
         super.builtBy(source.getBuildDependencies());
     }
 

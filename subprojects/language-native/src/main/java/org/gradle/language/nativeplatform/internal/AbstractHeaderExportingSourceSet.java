@@ -18,22 +18,20 @@ package org.gradle.language.nativeplatform.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.
  */
-public abstract class AbstractHeaderExportingSourceSet extends AbstractLanguageSourceSet
+public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourceSet
         implements HeaderExportingSourceSet, LanguageSourceSet {
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet implicitHeaders;
 
-    public AbstractHeaderExportingSourceSet(String name, String parent, FileResolver fileResolver, String typeName, SourceDirectorySet source) {
-        super(name, parent, typeName, source);
+    public AbstractHeaderExportingSourceSet() {
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", fileResolver);
         this.implicitHeaders = new DefaultSourceDirectorySet("implicit headers", fileResolver);
     }

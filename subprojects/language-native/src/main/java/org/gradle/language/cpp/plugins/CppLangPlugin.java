@@ -19,10 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -31,9 +28,11 @@ import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
-import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Map;
 
@@ -52,32 +51,21 @@ public class CppLangPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Cpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<CppSourceSet> builder) {
+            builder.setLanguageName("cpp");
+            builder.defaultImplementation(DefaultCppSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Cpp(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new Cpp());
         }
     }
 
-    private static class Cpp extends NativeLanguageRegistration<CppSourceSet> {
-        public Cpp(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "cpp";
-        }
-
+    private static class Cpp extends NativeLanguageTransform<CppSourceSet> {
         public Class<CppSourceSet> getSourceSetType() {
             return CppSourceSet.class;
-        }
-
-        protected Class<? extends CppSourceSet> getSourceSetImplementation() {
-            return DefaultCppSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {

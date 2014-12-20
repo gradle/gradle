@@ -24,6 +24,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
@@ -96,7 +97,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
             final FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, suiteName, instantiator, projectSourceSet);
             functionalSourceSet.registerFactory(CppSourceSet.class, new NamedDomainObjectFactory<CppSourceSet>() {
                 public CppSourceSet create(String name) {
-                    return instantiator.newInstance(DefaultCppSourceSet.class, name, suiteName, fileResolver);
+                    return BaseLanguageSourceSet.create(DefaultCppSourceSet.class, name, suiteName, fileResolver, instantiator);
                 }
             });
             return functionalSourceSet;

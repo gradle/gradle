@@ -16,13 +16,8 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 
 public class DefaultCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements CppSourceSet {
-    public DefaultCppSourceSet(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, fileResolver, "C++ source", new DefaultSourceDirectorySet("source", fileResolver));
-    }
 }

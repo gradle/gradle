@@ -19,10 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -31,9 +28,11 @@ import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
-import org.gradle.language.nativeplatform.internal.NativeLanguageRegistration;
+import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Map;
 
@@ -53,32 +52,21 @@ public class CLangPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new C(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<CSourceSet> builder) {
+            builder.setLanguageName("c");
+            builder.defaultImplementation(DefaultCSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new C(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new C());
         }
     }
 
-    private static class C extends NativeLanguageRegistration<CSourceSet> {
-        public C(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "c";
-        }
-
+    private static class C extends NativeLanguageTransform<CSourceSet> {
         public Class<CSourceSet> getSourceSetType() {
             return CSourceSet.class;
-        }
-
-        protected Class<? extends CSourceSet> getSourceSetImplementation() {
-            return DefaultCSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {
