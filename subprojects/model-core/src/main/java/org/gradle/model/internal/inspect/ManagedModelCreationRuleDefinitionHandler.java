@@ -17,8 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -91,11 +89,11 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        Transformer<Action<ModelNode>, Inputs> transformer;
+        BiAction< ModelNode, Inputs> initializer;
         ModelProjection projection;
 
         if (managedType.getConcreteClass().equals(ManagedSet.class)) {
-            transformer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
+            initializer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
             projection = new ManagedSetModelProjection<T>(managedType);
 
         } else {
@@ -112,7 +110,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             });
         }
 
-        return ModelCreators.of(ModelReference.of(modelPath, managedType), transformer)
+        return ModelCreators.of(ModelReference.of(modelPath, managedType), initializer)
                 .withProjection(projection)
                 .descriptor(descriptor)
                 .inputs(inputs)
@@ -128,7 +126,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
     }
 
     // This thing is temporary
-    private static class ManagedModelRuleInvokerInstanceBackedTransformer<T> implements Transformer<Action<ModelNode>, Inputs> {
+    private static class ManagedModelRuleInvokerInstanceBackedTransformer<T> implements BiAction<ModelNode, Inputs> {
         private final ModelSchema<T> schema;
         private final ModelInstantiator instantiator;
         private final ModelRuleInvoker<?> ruleInvoker;
@@ -143,27 +141,22 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             this.inputReferences = inputReferences;
         }
 
-        public Action<ModelNode> transform(final Inputs inputs) {
-            return new Action<ModelNode>() {
-                public void execute(ModelNode modelNode) {
-                    T instance = instantiator.newInstance(schema);
-                    modelNode.setPrivateData(schema.getType(), instance);
+        public void execute(ModelNode modelNode, Inputs inputs) {
+            T instance = instantiator.newInstance(schema);
+            modelNode.setPrivateData(schema.getType(), instance);
 
-                    ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(schema.getType(), modelNode, descriptor, inputs);
-                    if (modelView == null) {
-                        throw new IllegalStateException("Couldn't produce managed node as schema type");
-                    }
+            ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(schema.getType(), modelNode, descriptor, inputs);
+            if (modelView == null) {
+                throw new IllegalStateException("Couldn't produce managed node as schema type");
+            }
 
-                    Object[] args = new Object[inputs.size() + 1];
-                    args[0] = modelView.getInstance();
-                    for (int i = 0; i < inputs.size(); i++) {
-                        args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
-                    }
-                    ruleInvoker.invoke(args);
-                    modelView.close();
-                }
-            };
+            Object[] args = new Object[inputs.size() + 1];
+            args[0] = modelView.getInstance();
+            for (int i = 0; i < inputs.size(); i++) {
+                args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
+            }
+            ruleInvoker.invoke(args);
+            modelView.close();
         }
     }
-
 }

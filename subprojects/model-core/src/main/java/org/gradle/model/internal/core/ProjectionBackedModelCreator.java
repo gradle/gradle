@@ -17,8 +17,7 @@
 package org.gradle.model.internal.core;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
+import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final ModelProjection projection;
     private final ModelRuleDescriptor descriptor;
     private final List<? extends ModelReference<?>> inputs;
-    private final Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer;
+    private final BiAction<? super ModelNode, ? super Inputs> initializer;
     private final ModelPath path;
 
     public ProjectionBackedModelCreator(
@@ -36,7 +35,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
             ModelRuleDescriptor descriptor,
             List<? extends ModelReference<?>> inputs,
             ModelProjection projection,
-            Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer
+            BiAction<? super ModelNode, ? super Inputs> initializer
     ) {
         this.projection = projection;
         this.path = path;
@@ -53,8 +52,12 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return projection;
     }
 
-    public ModelCreationContext create(Inputs inputs) {
-        return new ModelCreationContext(projection, initializer.transform(inputs));
+    public ModelAdapter getAdapter() {
+        return projection;
+    }
+
+    public void create(ModelNode node, Inputs inputs) {
+        initializer.execute(node, inputs);
     }
 
     public List<? extends ModelReference<?>> getInputs() {

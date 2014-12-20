@@ -66,7 +66,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Multimap<ModelPath, BoundModelMutator<?>> finalizers = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedFinalizers = ArrayListMultimap.create();
 
-    // TODO rework this listener mechanism to be more targeted, in that interested parties nominate what they are interested in (e.g. path or type) and use this to only notify relavant listeners
+    // TODO rework this listener mechanism to be more targeted, in that interested parties nominate what they are interested in (e.g. path or type) and use this to only notify relevant listeners
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
@@ -394,20 +394,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelPath path = creator.getPath();
         Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
-        ModelCreationContext creationContext;
-        try {
-            creationContext = creator.create(inputs);
-        } catch (Exception e) {
-            // TODO some representation of state of the inputs
-            throw new ModelRuleExecutionException(creator.getDescriptor(), e);
-        }
-
-        ModelAdapter adapter = creationContext.getAdapter();
+        ModelAdapter adapter = creator.getAdapter();
         ModelNode node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), adapter);
 
         try {
-            creationContext.getInitiatiser().execute(node);
+            creator.create(node, inputs);
         } catch (Exception e) {
+            // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getDescriptor(), e);
         }
 

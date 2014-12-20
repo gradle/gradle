@@ -16,20 +16,12 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
 import java.util.List;
 
 public interface ModelCreator extends ModelCreation {
+    ModelAdapter getAdapter();
 
-    ModelPath getPath();
-
-    ModelPromise getPromise();
-
-    ModelCreationContext create(Inputs inputs);
+    void create(ModelNode node, Inputs inputs);
 
     List<? extends ModelReference<?>> getInputs();
-
-    ModelRuleDescriptor getDescriptor();
-
 }

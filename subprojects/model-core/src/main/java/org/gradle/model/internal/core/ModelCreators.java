@@ -18,11 +18,9 @@ package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
@@ -38,35 +36,30 @@ abstract public class ModelCreators {
     }
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
-        Transformer<? extends Action<ModelNode>, Object> initializer = Transformers.toTransformer(
-                Factories.constant(
-                        new Action<ModelNode>() {
-                            public void execute(ModelNode modelNode) {
-                                modelNode.setPrivateData(modelReference.getType(), factory.create());
-                            }
-                        }
-                )
-        );
+        BiAction<? super ModelNode, ? super Inputs> initializer = new BiAction<ModelNode, Inputs>() {
+            public void execute(ModelNode modelNode, Inputs inputs) {
+                modelNode.setPrivateData(modelReference.getType(), factory.create());
+            }
+        };
 
         return of(modelReference, initializer)
                 .withProjection(new UnmanagedModelProjection<T>(modelReference.getType(), true, true));
     }
 
-    public static Builder of(ModelReference<?> modelReference, Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer) {
+    public static Builder of(ModelReference<?> modelReference, BiAction<? super ModelNode, ? super Inputs> initializer) {
         return new Builder(modelReference, initializer);
     }
 
     @NotThreadSafe
     public static class Builder {
-
-        private final Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer;
+        private final BiAction<? super ModelNode, ? super Inputs> initializer;
         private final ModelReference<?> modelReference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
 
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<? extends ModelReference<?>> inputs = Collections.emptyList();
 
-        private Builder(ModelReference<?> modelReference, Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer) {
+        private Builder(ModelReference<?> modelReference, BiAction<? super ModelNode, ? super Inputs> initializer) {
             this.modelReference = modelReference;
             this.initializer = initializer;
         }

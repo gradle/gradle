@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -30,7 +28,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>, Inputs> {
+public class ManagedModelInitializer<T> implements BiAction<ModelNode, Inputs> {
 
     private final ModelSchema<T> modelSchema;
     private final BiAction<? super ModelView<? extends T>, ? super Inputs> initializer;
@@ -56,52 +54,45 @@ public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>
         this.proxyFactory = proxyFactory;
     }
 
-    public Action<ModelNode> transform(final Inputs inputs) {
-        return new Action<ModelNode>() {
-            public void execute(ModelNode modelNode) {
-                ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(modelSchema.getType(), modelNode, descriptor, inputs);
-                if (modelView == null) {
-                    throw new IllegalStateException("Couldn't produce managed node as schema type");
-                }
+    public void execute(ModelNode modelNode, Inputs inputs) {
+        ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(modelSchema.getType(), modelNode, descriptor, inputs);
+        if (modelView == null) {
+            throw new IllegalStateException("Couldn't produce managed node as schema type");
+        }
 
-                for (ModelProperty<?> property : modelSchema.getProperties().values()) {
-                    addPropertyLink(modelNode, property);
-                }
+        for (ModelProperty<?> property : modelSchema.getProperties().values()) {
+            addPropertyLink(modelNode, property);
+        }
 
-                initializer.execute(modelView, inputs);
+        initializer.execute(modelView, inputs);
 
-                modelView.close();
-            }
-
-            private <P> void addPropertyLink(ModelNode modelNode, ModelProperty<P> property) {
-                // TODO reuse pooled projections
-                ModelType<P> propertyType = property.getType();
-                ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
-
-                ModelNode childNode;
-
-                if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
-                    ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
-                    childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
-
-                    if (!property.isWritable()) {
-                        for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
-                            addPropertyLink(childNode, modelProperty);
-                        }
-                    }
-                } else {
-                    ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-                    childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
-
-                    if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
-                        P instance = modelInstantiator.newInstance(propertySchema);
-                        childNode.setPrivateData(propertyType, instance);
-                    }
-                }
-
-            }
-        };
+        modelView.close();
     }
 
+    private <P> void addPropertyLink(ModelNode modelNode, ModelProperty<P> property) {
+        // TODO reuse pooled projections
+        ModelType<P> propertyType = property.getType();
+        ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
+        ModelNode childNode;
+
+        if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
+            ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
+            childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
+
+            if (!property.isWritable()) {
+                for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
+                    addPropertyLink(childNode, modelProperty);
+                }
+            }
+        } else {
+            ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
+            childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
+
+            if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+                P instance = modelInstantiator.newInstance(propertySchema);
+                childNode.setPrivateData(propertyType, instance);
+            }
+        }
+    }
 }

@@ -24,6 +24,7 @@ import org.gradle.api.Namer;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
@@ -154,38 +155,32 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         modelRegistry.create(
                 ModelCreators.of(
                         ModelReference.of(modelPath, containerType),
-                        new Transformer<Action<? super ModelNode>, Inputs>() {
-                            public Action<? super ModelNode> transform(Inputs inputs) {
-                                return new Action<ModelNode>() {
-                                    public void execute(final ModelNode modelNode) {
-                                        modelNode.setPrivateData(containerType, container);
-                                        container.all(new Action<I>() {
-                                            public void execute(final I item) {
-                                                final String name = namer.determineName(item);
+                        new BiAction<ModelNode, Inputs>() {
+                            public void execute(final ModelNode modelNode, Inputs inputs) {
+                                modelNode.setPrivateData(containerType, container);
+                                container.all(new Action<I>() {
+                                    public void execute(final I item) {
+                                        final String name = namer.determineName(item);
 
-                                                if (!modelNode.getLinks().containsKey(name)) {
-                                                    UnmanagedModelProjection<I> projection = new UnmanagedModelProjection<I>(ModelType.typeOf(item), true, true);
+                                        if (!modelNode.getLinks().containsKey(name)) {
+                                            UnmanagedModelProjection<I> projection = new UnmanagedModelProjection<I>(ModelType.typeOf(item), true, true);
 
-                                                    modelNode.addLink(
-                                                            name,
-                                                            new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),
-                                                            projection,
-                                                            projection
-                                                    ).setPrivateData(ModelType.typeOf(item), item);
-                                                }
-                                            }
-                                        });
+                                            modelNode.addLink(
+                                                    name,
+                                                    new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),
+                                                    projection,
+                                                    projection
+                                            ).setPrivateData(ModelType.typeOf(item), item);
+                                        }
                                     }
-                                };
-                            }
-                        }
+                                });
+                            }}
                 )
                         .simpleDescriptor(descriptor)
                         .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<C, I>(instantiator, container, itemType.getConcreteClass()))
                         .build()
         );
-
 
         container.whenObjectRemoved(new Action<I>() {
             public void execute(I item) {
