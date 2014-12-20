@@ -143,7 +143,7 @@ public class PlayApplicationPlugin {
 
     @ComponentBinaries
     void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
-                        PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
+                        PlatformResolver platforms, final PlayToolChainInternal playToolChainInternal,
                         final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
         for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
             final String binaryName = String.format("%sBinary", componentSpec.getName());
@@ -173,12 +173,12 @@ public class PlayApplicationPlugin {
         }
     }
 
-    private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
+    private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
         String targetPlayVersion = componentSpec.getPlayVersion();
         if (targetPlayVersion == null) {
             targetPlayVersion = DEFAULT_PLAY_VERSION;
         }
-        return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+        return platforms.resolve(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
     }
 
     @BinaryTasks

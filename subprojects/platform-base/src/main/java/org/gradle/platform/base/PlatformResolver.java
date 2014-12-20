@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.PolymorphicDomainObjectContainer;
+
+import java.util.List;
 
 /**
- * A container of {@link Platform}s.
+ * A container of {@link org.gradle.platform.base.Platform}s.
  */
 @Incubating
-public interface PlatformContainer extends PolymorphicDomainObjectContainer<Platform>, ExtensiblePolymorphicDomainObjectContainer<Platform> {
+public interface PlatformResolver {
+    <T extends Platform> List<T> resolve(Class<T> type, List<String> targets);
 }

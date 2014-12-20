@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.PlatformResolver;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 import java.util.*;
@@ -36,14 +36,14 @@ import java.util.*;
 public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final NativeToolChainRegistryInternal toolChainRegistry;
-    private final PlatformContainer platforms;
+    private final PlatformResolver platforms;
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
     public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, NativeToolChainRegistryInternal toolChainRegistry,
-                                          PlatformContainer platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+                                          PlatformResolver platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChainRegistry = toolChainRegistry;
@@ -58,7 +58,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
         if (targetPlatformNames.isEmpty()) {
             targetPlatformNames = Collections.singletonList(NativePlatforms.getDefaultPlatformName());
         }
-        List<NativePlatform> targetPlatforms = platforms.chooseFromTargets(NativePlatform.class, targetPlatformNames);
+        List<NativePlatform> targetPlatforms = platforms.resolve(NativePlatform.class, targetPlatformNames);
 
         for (NativePlatform platform: targetPlatforms) {
             NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChainRegistry.getForPlatform(platform);
