@@ -51,7 +51,7 @@ import java.util.Collections;
 public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
-    private ModelRegistry modelRegistry;
+    private final ModelRegistry modelRegistry;
 
     @Inject
     public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
