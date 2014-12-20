@@ -197,16 +197,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build()
         );
 
-        modelRegistry.create(
-                ModelCreators.unmanagedInstance(ModelReference.of("extensions", ExtensionContainer.class), new Factory<ExtensionContainer>() {
-                    public ExtensionContainer create() {
-                        return getExtensions();
-                    }
-                })
-                        .simpleDescriptor("Project.<init>.extensions()")
-                        .build()
-        );
-
         Instantiator instantiator = getServices().get(Instantiator.class);
 
         PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
@@ -233,6 +223,12 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
+
+        modelRegistry.create(
+                ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
+                        .simpleDescriptor("Project.<init>.extensions()")
+                        .build()
+        );
     }
 
     public ProjectInternal getRootProject() {
