@@ -31,6 +31,9 @@ public interface MutableModelNode {
 
     MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
 
+    // Name is baked into the creator's path
+    void addLink(ModelCreator creator);
+
     @Nullable
     MutableModelNode getLink(String name);
 

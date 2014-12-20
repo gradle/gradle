@@ -81,6 +81,15 @@ public class ModelNode implements ModelCreation, MutableModelNode {
         return links.get(name);
     }
 
+    @Override
+    public void addLink(ModelCreator creator) {
+        // TODO - bust out path from creation action
+        // TODO - need real inputs
+        // TODO - move this into the registry
+        ModelNode modelNode = addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+        creator.create(modelNode, null);
+    }
+
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet

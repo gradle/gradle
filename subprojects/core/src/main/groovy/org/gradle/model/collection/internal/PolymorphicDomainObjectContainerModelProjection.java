@@ -29,7 +29,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -163,14 +162,11 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
                                         final String name = namer.determineName(item);
 
                                         if (!modelNode.hasLink(name)) {
-                                            UnmanagedModelProjection<I> projection = new UnmanagedModelProjection<I>(ModelType.typeOf(item), true, true);
-
+                                            ModelType<I> itemType = ModelType.typeOf(item);
+                                            ModelReference<I> itemReference = ModelReference.of(modelPath.child(name), itemType);
                                             modelNode.addLink(
-                                                    name,
-                                                    new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),
-                                                    projection,
-                                                    projection
-                                            ).setPrivateData(ModelType.typeOf(item), item);
+                                                    ModelCreators.bridgedInstance(itemReference, item)
+                                                            .simpleDescriptor(itemDescriptorGenerator.transform(name)).build());
                                         }
                                     }
                                 });
