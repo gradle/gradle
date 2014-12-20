@@ -18,7 +18,6 @@ package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.internal.Actions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.CollectionBuilder;
@@ -41,7 +40,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     public void create(final String name) {
-        doCreate(name, instantiator.getType(), Actions.doNothing(), new DefaultTypeFactory(name));
+        doCreate(name, instantiator.getType(), new DefaultTypeFactory(name));
     }
 
     public void create(String name, Action<? super T> configAction) {
@@ -49,14 +48,25 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     public <S extends T> void create(String name, Class<S> type) {
-        doCreate(name, ModelType.of(type), Actions.<S>doNothing(), new CustomTypeFactory<S>(name, type));
+        doCreate(name, ModelType.of(type), new CustomTypeFactory<S>(name, type));
     }
 
     public <S extends T> void create(final String name, final Class<S> type, Action<? super S> configAction) {
         doCreate(name, ModelType.of(type), configAction, new CustomTypeFactory<S>(name, type));
     }
 
-    private <S extends T> void doCreate(final String name, ModelType<S> type, Action<? super S> configAction, Factory<? extends S> factory) {
+    private <S extends T> void doCreate(final String name, ModelType<S> type, final Action<? super S> configAction, final Factory<? extends S> factory) {
+        doCreate(name, type, new Factory<S>() {
+            @Override
+            public S create() {
+                S item = factory.create();
+                configAction.execute(item);
+                return item;
+            }
+        });
+    }
+
+    private <S extends T> void doCreate(final String name, ModelType<S> type, Factory<? extends S> factory) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -64,14 +74,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        // TODO reuse pooled projections
-        ModelProjection projection = new UnmanagedModelProjection<S>(type, true, true);
-
-        MutableModelNode childNode = modelNode.addLink(name, descriptor, projection, projection);
-
-        S s = factory.create();
-        configAction.execute(s);
-        childNode.setPrivateData(type, s);
+        modelNode.addLink(ModelCreators.unmanagedInstance(ModelReference.of(modelNode.getPath().child(name), type), factory).descriptor(descriptor).build());
     }
 
     private class CustomTypeFactory<S extends T> implements Factory<S> {
