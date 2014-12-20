@@ -17,6 +17,8 @@ package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
@@ -271,6 +273,7 @@ binaries.withType(StaticLibraryBinarySpec) {
         failure.assertHasCause("Static library archiver failed; see the error output for details.")
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "installed executable receives command-line parameters"() {
         buildFile << """
 apply plugin: 'c'
