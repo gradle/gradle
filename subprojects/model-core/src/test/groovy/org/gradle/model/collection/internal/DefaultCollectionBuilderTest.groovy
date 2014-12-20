@@ -21,8 +21,8 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ActionBackedModelMutator
 import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelMutator
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
@@ -65,12 +65,12 @@ class DefaultCollectionBuilderTest extends Specification {
     }
 
     void mutate(Action<? super CollectionBuilder<NamedThing>> action) {
-        registry.mutate(new ActionBackedModelMutator<CollectionBuilder<NamedThing>>(
-                ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {}),
-                [],
-                new SimpleModelRuleDescriptor("foo"),
-                action
-        ))
+        def mutator = Stub(ModelMutator)
+        mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
+        mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
+        mutator.mutate(_, _, _) >> { action.execute(it[1]) }
+
+        registry.mutate(mutator)
         registry.node(containerPath)
     }
 
