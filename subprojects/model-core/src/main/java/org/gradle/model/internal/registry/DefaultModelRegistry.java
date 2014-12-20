@@ -202,8 +202,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return modelGraph.search(path);
     }
 
-    public ModelNode node(ModelPath path) {
-        return require(path);
+    public MutableModelNode node(ModelPath path) {
+        return new NodeWrapper(require(path));
     }
 
     public void registerListener(ModelCreationListener listener) {
@@ -369,7 +369,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNode node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor);
+        ModelView<? extends T> view = adapter.asReadOnly(targetType, new NodeWrapper(node), descriptor);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -380,7 +380,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNode node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs);
+        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), new NodeWrapper(node), sourceDescriptor, inputs);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
@@ -398,7 +398,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelNode node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), adapter);
 
         try {
-            creator.create(node, inputs);
+            creator.create(new NodeWrapper(node), inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getDescriptor(), e);
@@ -414,7 +414,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
         try {
-            mutator.mutate(node, view.getInstance(), inputs);
+            mutator.mutate(new NodeWrapper(node), view.getInstance(), inputs);
         } catch (Exception e) {
             throw new ModelRuleExecutionException(descriptor, e);
         } finally {
@@ -433,7 +433,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelRuleInput<T> toInput(ModelBinding<T> binding, ModelRuleDescriptor ruleDescriptor) {
         ModelPath path = binding.getPath();
-        ModelNode element = node(path);
+        ModelNode element = require(path);
         ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
         return ModelRuleInput.of(binding, view);
     }
@@ -446,6 +446,74 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (remove) {
                 modelCreationListenerListIterator.remove();
             }
+        }
+    }
+
+    private static class NodeWrapper implements MutableModelNode {
+        private final ModelNode node;
+
+        public NodeWrapper(ModelNode node) {
+            this.node = node;
+        }
+
+        public ModelPromise getPromise() {
+            return node.getPromise();
+        }
+
+        public ModelAdapter getAdapter() {
+            return node.getAdapter();
+        }
+
+        @Override
+        public ModelPath getPath() {
+            return node.getPath();
+        }
+
+        @Nullable
+        @Override
+        public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+            return node.getAdapter().asReadOnly(type, this, ruleDescriptor);
+        }
+
+        @Nullable
+        @Override
+        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
+            return node.getAdapter().asWritable(type, this, ruleDescriptor, inputs);
+        }
+
+        @Nullable
+        @Override
+        public MutableModelNode getLink(String name) {
+            return new NodeWrapper(node.getLink(name));
+        }
+
+        @Override
+        public boolean hasLink(String name) {
+            return node.hasLink(name);
+        }
+
+        @Override
+        public void addLink(ModelCreator creator) {
+            // TODO - bust out path from creation action
+            // TODO - need real inputs
+            // TODO - defer creation until required
+            MutableModelNode modelNode = addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+            creator.create(modelNode, null);
+        }
+
+        @Override
+        public MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+            return new NodeWrapper(node.addLink(name, descriptor, promise, adapter));
+        }
+
+        @Override
+        public <T> T getPrivateData(ModelType<T> type) {
+            return node.getPrivateData(type);
+        }
+
+        @Override
+        public <T> void setPrivateData(ModelType<T> type, T object) {
+            node.setPrivateData(type, object);
         }
     }
 

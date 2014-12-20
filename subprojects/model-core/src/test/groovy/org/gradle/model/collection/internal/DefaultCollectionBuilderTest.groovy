@@ -79,9 +79,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutate { it.create("foo") }
 
         then:
-        def childNode = registry.node(containerPath.child("foo"))
-        childNode.adapter.asReadOnly(type, childNode, null).instance.name == "foo"
-        container.getByName("foo")
+        registry.get(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
     }
 
     @Ignore

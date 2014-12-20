@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.Map;
 
-public class ModelNode implements ModelCreation, MutableModelNode {
+public class ModelNode implements ModelCreation {
 
     private final ModelGraph modelGraph;
     private final ModelPath creationPath;
@@ -62,32 +62,13 @@ public class ModelNode implements ModelCreation, MutableModelNode {
         return adapter;
     }
 
-    @Nullable
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
-        return adapter.asWritable(type, this, ruleDescriptor, inputs);
-    }
-
-    @Nullable
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        return adapter.asReadOnly(type, this, ruleDescriptor);
-    }
-
     public boolean hasLink(String name) {
         return links.containsKey(name);
     }
 
     @Nullable
-    public MutableModelNode getLink(String name) {
+    public ModelNode getLink(String name) {
         return links.get(name);
-    }
-
-    @Override
-    public void addLink(ModelCreator creator) {
-        // TODO - bust out path from creation action
-        // TODO - need real inputs
-        // TODO - move this into the registry
-        ModelNode modelNode = addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
-        creator.create(modelNode, null);
     }
 
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
