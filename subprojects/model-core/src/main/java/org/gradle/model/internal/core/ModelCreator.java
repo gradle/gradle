@@ -21,7 +21,7 @@ import java.util.List;
 public interface ModelCreator extends ModelCreation {
     ModelAdapter getAdapter();
 
-    void create(ModelNode node, Inputs inputs);
+    void create(MutableModelNode node, Inputs inputs);
 
     List<? extends ModelReference<?>> getInputs();
 }

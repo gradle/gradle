@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.Map;
 
-public class ModelNode implements ModelCreation {
+public class ModelNode implements ModelCreation, MutableModelNode {
 
     private final ModelGraph modelGraph;
     private final ModelPath creationPath;
@@ -60,6 +60,15 @@ public class ModelNode implements ModelCreation {
 
     public ModelAdapter getAdapter() {
         return adapter;
+    }
+
+    @Nullable
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
+        return adapter.asWritable(type, this, ruleDescriptor, inputs);
+    }
+
+    public boolean hasLink(String name) {
+        return links.containsKey(name);
     }
 
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {

@@ -36,8 +36,8 @@ abstract public class ModelCreators {
     }
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
-        BiAction<? super ModelNode, ? super Inputs> initializer = new BiAction<ModelNode, Inputs>() {
-            public void execute(ModelNode modelNode, Inputs inputs) {
+        BiAction<? super MutableModelNode, ? super Inputs> initializer = new BiAction<MutableModelNode, Inputs>() {
+            public void execute(MutableModelNode modelNode, Inputs inputs) {
                 modelNode.setPrivateData(modelReference.getType(), factory.create());
             }
         };
@@ -46,20 +46,20 @@ abstract public class ModelCreators {
                 .withProjection(new UnmanagedModelProjection<T>(modelReference.getType(), true, true));
     }
 
-    public static Builder of(ModelReference<?> modelReference, BiAction<? super ModelNode, ? super Inputs> initializer) {
+    public static Builder of(ModelReference<?> modelReference, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
         return new Builder(modelReference, initializer);
     }
 
     @NotThreadSafe
     public static class Builder {
-        private final BiAction<? super ModelNode, ? super Inputs> initializer;
+        private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
         private final ModelReference<?> modelReference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
 
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<? extends ModelReference<?>> inputs = Collections.emptyList();
 
-        private Builder(ModelReference<?> modelReference, BiAction<? super ModelNode, ? super Inputs> initializer) {
+        private Builder(ModelReference<?> modelReference, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
             this.modelReference = modelReference;
             this.initializer = initializer;
         }

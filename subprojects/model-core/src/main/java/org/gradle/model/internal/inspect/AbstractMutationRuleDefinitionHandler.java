@@ -18,9 +18,7 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
@@ -58,7 +56,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         return new MethodModelMutator<T>(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), first, tail);
     }
 
-    private static class MethodModelMutator<T> implements org.gradle.model.internal.core.ModelMutator<T> {
+    private static class MethodModelMutator<T> implements ModelMutator<T> {
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<T> subject;
         private final List<ModelReference<?>> inputs;
@@ -83,7 +81,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
             return inputs;
         }
 
-        public void mutate(ModelNode modelNode, T object, Inputs inputs) {
+        public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
             Object[] args = new Object[1 + this.inputs.size()];
             args[0] = object;
             for (int i = 0; i < inputs.size(); ++i) {

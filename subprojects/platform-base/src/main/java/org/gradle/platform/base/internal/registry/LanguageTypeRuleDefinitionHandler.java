@@ -31,7 +31,10 @@ import org.gradle.language.base.internal.registry.RuleBasedLanguageRegistration;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
@@ -219,7 +222,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
             return descriptor;
         }
 
-        public final void mutate(ModelNode modelNode, final LanguageRegistry languageRegistry, final Inputs inputs) {
+        public final void mutate(MutableModelNode modelNode, final LanguageRegistry languageRegistry, final Inputs inputs) {
             RuleContext.inContext(getDescriptor(), new Runnable() {
                 public void run() {
                     ServiceRegistry serviceRegistry = inputs.get(0, ModelType.of(ServiceRegistry.class)).getInstance();

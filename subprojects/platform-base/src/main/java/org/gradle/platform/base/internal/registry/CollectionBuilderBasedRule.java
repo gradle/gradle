@@ -47,7 +47,6 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelMut
         return this.inputs;
     }
 
-
     public ModelReference<C> getSubject() {
         return subject;
     }
@@ -73,7 +72,6 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelMut
         allInputs.addAll(filteredReferences);
         return allInputs.build();
     }
-
 
     protected void invoke(Inputs inputs, CollectionBuilder<S> collectionBuilder, T baseTypeParameter, Object ignoredInput) {
         Object[] args = new Object[inputs.size() + 1];

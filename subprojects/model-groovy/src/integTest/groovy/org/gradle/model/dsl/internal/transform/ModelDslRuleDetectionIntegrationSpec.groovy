@@ -47,22 +47,20 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
             def type = new ModelType<List<String>>() {}
 
             modelRegistry.create(
-              ModelCreators.of(ModelReference.of(root, type)) {
-                return { node ->
-                    node.setPrivateData(type, [])
-                    def pathParts = [root]
-                    rest.each { p ->
-                      def projection = new UnmanagedModelProjection(type, true, true)
-                      node = node.addLink(
-                        p,
-                        new SimpleModelRuleDescriptor("foo"),
-                        projection,
-                        projection
-                      )
-                      node.setPrivateData(type, [])
-                      pathParts << p
-                    }
-                } as Action
+              ModelCreators.of(ModelReference.of(root, type)) { node, inputs ->
+                node.setPrivateData(type, [])
+                def pathParts = [root]
+                rest.each { p ->
+                  def projection = new UnmanagedModelProjection(type, true, true)
+                  node = node.addLink(
+                    p,
+                    new SimpleModelRuleDescriptor("foo"),
+                    projection,
+                    projection
+                  )
+                  node.setPrivateData(type, [])
+                  pathParts << p
+                }
               }
               .simpleDescriptor("foo")
               .withProjection(new UnmanagedModelProjection(type, true, true))

@@ -155,14 +155,14 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         modelRegistry.create(
                 ModelCreators.of(
                         ModelReference.of(modelPath, containerType),
-                        new BiAction<ModelNode, Inputs>() {
-                            public void execute(final ModelNode modelNode, Inputs inputs) {
+                        new BiAction<MutableModelNode, Inputs>() {
+                            public void execute(final MutableModelNode modelNode, Inputs inputs) {
                                 modelNode.setPrivateData(containerType, container);
                                 container.all(new Action<I>() {
                                     public void execute(final I item) {
                                         final String name = namer.determineName(item);
 
-                                        if (!modelNode.getLinks().containsKey(name)) {
+                                        if (!modelNode.hasLink(name)) {
                                             UnmanagedModelProjection<I> projection = new UnmanagedModelProjection<I>(ModelType.typeOf(item), true, true);
 
                                             modelNode.addLink(
@@ -174,7 +174,8 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
                                         }
                                     }
                                 });
-                            }}
+                            }
+                        }
                 )
                         .simpleDescriptor(descriptor)
                         .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))

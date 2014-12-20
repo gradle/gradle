@@ -46,7 +46,7 @@ class ClosureBackedModelMutator implements ModelMutator<Object> {
         return ModelReference.untyped(modelPath);
     }
 
-    public void mutate(ModelNode modelNode, final Object object, Inputs inputs) {
+    public void mutate(MutableModelNode modelNode, final Object object, Inputs inputs) {
         RuleInputAccessBacking.runWithContext(inputs, new Runnable() {
             public void run() {
                 new ClosureBackedAction<Object>(action).execute(object);

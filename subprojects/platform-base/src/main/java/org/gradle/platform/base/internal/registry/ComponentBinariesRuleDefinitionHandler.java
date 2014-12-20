@@ -76,7 +76,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             this.binaryType = binaryType;
         }
 
-        public void mutate(ModelNode modelNode, final BinaryContainer binaries, final Inputs inputs) {
+        public void mutate(MutableModelNode modelNode, final BinaryContainer binaries, final Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {

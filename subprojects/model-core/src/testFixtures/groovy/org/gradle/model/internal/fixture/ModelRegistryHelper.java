@@ -73,7 +73,7 @@ public class ModelRegistryHelper {
                 return ModelReference.of(modelPath, type);
             }
 
-            public void mutate(ModelNode modelNode, T object, Inputs inputs) {
+            public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
                 configurer.execute(object);
             }
 

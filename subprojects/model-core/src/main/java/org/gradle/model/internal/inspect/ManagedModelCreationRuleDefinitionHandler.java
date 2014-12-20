@@ -89,7 +89,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        BiAction< ModelNode, Inputs> initializer;
+        BiAction<MutableModelNode, Inputs> initializer;
         ModelProjection projection;
 
         if (managedType.getConcreteClass().equals(ManagedSet.class)) {
@@ -126,7 +126,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
     }
 
     // This thing is temporary
-    private static class ManagedModelRuleInvokerInstanceBackedTransformer<T> implements BiAction<ModelNode, Inputs> {
+    private static class ManagedModelRuleInvokerInstanceBackedTransformer<T> implements BiAction<MutableModelNode, Inputs> {
         private final ModelSchema<T> schema;
         private final ModelInstantiator instantiator;
         private final ModelRuleInvoker<?> ruleInvoker;
@@ -141,11 +141,11 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             this.inputReferences = inputReferences;
         }
 
-        public void execute(ModelNode modelNode, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, Inputs inputs) {
             T instance = instantiator.newInstance(schema);
             modelNode.setPrivateData(schema.getType(), instance);
 
-            ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(schema.getType(), modelNode, descriptor, inputs);
+            ModelView<? extends T> modelView = modelNode.asWritable(schema.getType(), descriptor, inputs);
             if (modelView == null) {
                 throw new IllegalStateException("Couldn't produce managed node as schema type");
             }

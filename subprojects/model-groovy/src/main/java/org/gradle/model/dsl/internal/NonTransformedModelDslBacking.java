@@ -63,7 +63,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                 return ModelReference.untyped(modelPath);
             }
 
-            public void mutate(ModelNode modelNode, Object object, Inputs inputs) {
+            public void mutate(MutableModelNode modelNode, Object object, Inputs inputs) {
                 new ClosureBackedAction<Object>(action).execute(object);
             }
 

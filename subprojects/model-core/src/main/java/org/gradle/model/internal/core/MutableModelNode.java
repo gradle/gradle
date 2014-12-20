@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,19 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
+public interface MutableModelNode {
+    ModelAdapter getAdapter();
 
-public interface ModelMutator<T> {
+    @Nullable
+    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
 
-    ModelReference<T> getSubject();
+    MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
 
-    void mutate(MutableModelNode modelNode, T object, Inputs inputs);
+    boolean hasLink(String name);
 
-    List<ModelReference<?>> getInputs();
-
-    ModelRuleDescriptor getDescriptor();
-
+    <T> void setPrivateData(ModelType<T> type, T object);
 }

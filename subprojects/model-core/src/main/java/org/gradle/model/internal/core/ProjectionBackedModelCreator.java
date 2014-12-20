@@ -27,7 +27,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final ModelProjection projection;
     private final ModelRuleDescriptor descriptor;
     private final List<? extends ModelReference<?>> inputs;
-    private final BiAction<? super ModelNode, ? super Inputs> initializer;
+    private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
     private final ModelPath path;
 
     public ProjectionBackedModelCreator(
@@ -35,7 +35,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
             ModelRuleDescriptor descriptor,
             List<? extends ModelReference<?>> inputs,
             ModelProjection projection,
-            BiAction<? super ModelNode, ? super Inputs> initializer
+            BiAction<? super MutableModelNode, ? super Inputs> initializer
     ) {
         this.projection = projection;
         this.path = path;
@@ -56,7 +56,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return projection;
     }
 
-    public void create(ModelNode node, Inputs inputs) {
+    public void create(MutableModelNode node, Inputs inputs) {
         initializer.execute(node, inputs);
     }
 

@@ -32,9 +32,9 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     private final NamedEntityInstantiator<T> instantiator;
     private final ModelRuleDescriptor sourceDescriptor;
-    private final ModelNode modelNode;
+    private final MutableModelNode modelNode;
 
-    public DefaultCollectionBuilder(NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, ModelNode modelNode) {
+    public DefaultCollectionBuilder(NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode) {
         this.instantiator = instantiator;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
@@ -67,7 +67,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         // TODO reuse pooled projections
         ModelProjection projection = new UnmanagedModelProjection<S>(type, true, true);
 
-        ModelNode childNode = modelNode.addLink(name, descriptor, projection, projection);
+        MutableModelNode childNode = modelNode.addLink(name, descriptor, projection, projection);
 
         S s = factory.create();
         configAction.execute(s);

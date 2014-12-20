@@ -39,7 +39,6 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         };
     }
 
-
     public <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         String modelName = determineModelName(ruleDefinition);
 
@@ -47,7 +46,7 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        BiAction< ModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
+        BiAction<MutableModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
         modelRegistry.create(ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
                 .withProjection(new UnmanagedModelProjection<T>(returnType, true, true))
                 .descriptor(descriptor)
@@ -59,7 +58,7 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         return String.format("%s and returning a model element", super.getDescription());
     }
 
-    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<ModelNode, Inputs> {
+    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<MutableModelNode, Inputs> {
 
         private final ModelType<T> type;
         private final ModelRuleDescriptor descriptor;
@@ -73,7 +72,7 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
             this.inputReferences = inputReferences;
         }
 
-        public void execute(ModelNode modelNode, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, Inputs inputs) {
             T instance;
             if (inputs.size() == 0) {
                 instance = ruleInvoker.invoke();

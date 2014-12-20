@@ -81,7 +81,7 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
             this.binaryType = binaryType;
         }
 
-        public void mutate(ModelNode modelNode, TaskContainer container, Inputs inputs) {
+        public void mutate(MutableModelNode modelNode, TaskContainer container, Inputs inputs) {
             BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
             for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);

@@ -28,7 +28,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class ManagedModelInitializer<T> implements BiAction<ModelNode, Inputs> {
+public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
 
     private final ModelSchema<T> modelSchema;
     private final BiAction<? super ModelView<? extends T>, ? super Inputs> initializer;
@@ -54,8 +54,8 @@ public class ManagedModelInitializer<T> implements BiAction<ModelNode, Inputs> {
         this.proxyFactory = proxyFactory;
     }
 
-    public void execute(ModelNode modelNode, Inputs inputs) {
-        ModelView<? extends T> modelView = modelNode.getAdapter().asWritable(modelSchema.getType(), modelNode, descriptor, inputs);
+    public void execute(MutableModelNode modelNode, Inputs inputs) {
+        ModelView<? extends T> modelView = modelNode.asWritable(modelSchema.getType(), descriptor, inputs);
         if (modelView == null) {
             throw new IllegalStateException("Couldn't produce managed node as schema type");
         }
@@ -69,12 +69,12 @@ public class ManagedModelInitializer<T> implements BiAction<ModelNode, Inputs> {
         modelView.close();
     }
 
-    private <P> void addPropertyLink(ModelNode modelNode, ModelProperty<P> property) {
+    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
         // TODO reuse pooled projections
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
-        ModelNode childNode;
+        MutableModelNode childNode;
 
         if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
             ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
