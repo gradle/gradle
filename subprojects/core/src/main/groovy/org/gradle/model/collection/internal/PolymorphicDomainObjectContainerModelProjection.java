@@ -35,7 +35,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
@@ -166,13 +165,12 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
 
                                                 if (!modelNode.getLinks().containsKey(name)) {
                                                     UnmanagedModelProjection<I> projection = new UnmanagedModelProjection<I>(ModelType.typeOf(item), true, true);
-                                                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(projection);
 
                                                     modelNode.addLink(
                                                             name,
                                                             new SimpleModelRuleDescriptor(itemDescriptorGenerator.transform(name)),
-                                                            new ProjectionBackedModelPromise(projections),
-                                                            new ProjectionBackedModelAdapter(projections)
+                                                            projection,
+                                                            projection
                                                     ).setPrivateData(ModelType.typeOf(item), item);
                                                 }
                                             }

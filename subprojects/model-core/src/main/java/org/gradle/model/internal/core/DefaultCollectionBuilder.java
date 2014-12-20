@@ -27,9 +27,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.Set;
-
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
@@ -67,12 +64,10 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        // TODO reuse pooled projections/promises/adapters
-        Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new UnmanagedModelProjection<S>(type, true, true));
-        ModelPromise promise = new ProjectionBackedModelPromise(projections);
-        ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
+        // TODO reuse pooled projections
+        ModelProjection projection = new UnmanagedModelProjection<S>(type, true, true);
 
-        ModelNode childNode = modelNode.addLink(name, descriptor, promise, adapter);
+        ModelNode childNode = modelNode.addLink(name, descriptor, projection, projection);
 
         S s = factory.create();
         configAction.execute(s);

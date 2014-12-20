@@ -56,8 +56,8 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                       node = node.addLink(
                         p,
                         new SimpleModelRuleDescriptor("foo"),
-                        new ProjectionBackedModelPromise([projection]),
-                        new ProjectionBackedModelAdapter([projection])
+                        projection,
+                        projection
                       )
                       node.setPrivateData(type, [])
                       pathParts << p

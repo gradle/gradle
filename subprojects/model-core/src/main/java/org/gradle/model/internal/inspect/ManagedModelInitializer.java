@@ -28,9 +28,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>, Inputs> {
 
@@ -76,17 +74,15 @@ public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>
             }
 
             private <P> void addPropertyLink(ModelNode modelNode, ModelProperty<P> property) {
-                // TODO reuse pooled projections/promises/adapters
+                // TODO reuse pooled projections
                 ModelType<P> propertyType = property.getType();
                 ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
                 ModelNode childNode;
 
                 if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
-                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory));
-                    ModelPromise promise = new ProjectionBackedModelPromise(projections);
-                    ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
-                    childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
+                    ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
+                    childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
 
                     if (!property.isWritable()) {
                         for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
@@ -94,10 +90,8 @@ public class ManagedModelInitializer<T> implements Transformer<Action<ModelNode>
                         }
                     }
                 } else {
-                    Set<ModelProjection> projections = Collections.<ModelProjection>singleton(new UnmanagedModelProjection<P>(propertyType, true, true));
-                    ModelPromise promise = new ProjectionBackedModelPromise(projections);
-                    ModelAdapter adapter = new ProjectionBackedModelAdapter(projections);
-                    childNode = modelNode.addLink(property.getName(), descriptor, promise, adapter);
+                    ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
+                    childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
 
                     if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
                         P instance = modelInstantiator.newInstance(propertySchema);

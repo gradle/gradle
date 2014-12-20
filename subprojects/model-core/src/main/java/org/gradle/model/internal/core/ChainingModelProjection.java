@@ -16,16 +16,17 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
-public class ProjectionBackedModelPromise implements ModelPromise {
-
+public class ChainingModelProjection implements ModelProjection {
     private final Iterable<? extends ModelProjection> projections;
 
-    public ProjectionBackedModelPromise(Iterable<? extends ModelProjection> projections) {
+    public ChainingModelProjection(Iterable<? extends ModelProjection> projections) {
         this.projections = projections;
     }
 
@@ -65,4 +66,25 @@ public class ProjectionBackedModelPromise implements ModelPromise {
         });
     }
 
+    @Nullable
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, ModelNode node, ModelRuleDescriptor ruleDescriptor) {
+        for (ModelProjection projection : projections) {
+            ModelView<? extends T> view = projection.asReadOnly(type, node, ruleDescriptor);
+            if (view != null) {
+                return view;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
+        for (ModelProjection projection : projections) {
+            ModelView<? extends T> view = projection.asWritable(type, node, ruleDescriptor, inputs);
+            if (view != null) {
+                return view;
+            }
+        }
+        return null;
+    }
 }

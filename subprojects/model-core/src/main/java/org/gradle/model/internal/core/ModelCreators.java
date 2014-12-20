@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
@@ -27,6 +26,7 @@ import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -61,7 +61,7 @@ abstract public class ModelCreators {
 
         private final Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer;
         private final ModelReference<?> modelReference;
-        private final ImmutableList.Builder<ModelProjection> projections = ImmutableList.builder();
+        private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
 
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<? extends ModelReference<?>> inputs = Collections.emptyList();
@@ -93,7 +93,8 @@ abstract public class ModelCreators {
         }
 
         public ModelCreator build() {
-            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, inputs, projections.build(), initializer);
+            ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
+            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, inputs, projection, initializer);
         }
     }
 

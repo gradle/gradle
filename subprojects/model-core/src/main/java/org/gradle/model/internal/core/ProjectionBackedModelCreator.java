@@ -25,8 +25,7 @@ import java.util.List;
 
 @ThreadSafe
 public class ProjectionBackedModelCreator implements ModelCreator {
-
-    private final Iterable<ModelProjection> projections;
+    private final ModelProjection projection;
     private final ModelRuleDescriptor descriptor;
     private final List<? extends ModelReference<?>> inputs;
     private final Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer;
@@ -36,10 +35,10 @@ public class ProjectionBackedModelCreator implements ModelCreator {
             ModelPath path,
             ModelRuleDescriptor descriptor,
             List<? extends ModelReference<?>> inputs,
-            Iterable<ModelProjection> projections,
+            ModelProjection projection,
             Transformer<? extends Action<? super ModelNode>, ? super Inputs> initializer
     ) {
-        this.projections = projections;
+        this.projection = projection;
         this.path = path;
         this.descriptor = descriptor;
         this.inputs = inputs;
@@ -51,11 +50,11 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     }
 
     public ModelPromise getPromise() {
-        return new ProjectionBackedModelPromise(projections);
+        return projection;
     }
 
     public ModelCreationContext create(Inputs inputs) {
-        return new ModelCreationContext(new ProjectionBackedModelAdapter(projections), initializer.transform(inputs));
+        return new ModelCreationContext(projection, initializer.transform(inputs));
     }
 
     public List<? extends ModelReference<?>> getInputs() {
