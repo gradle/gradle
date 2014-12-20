@@ -95,26 +95,14 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         if (managedType.getConcreteClass().equals(ManagedSet.class)) {
             initializer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
             projection = new ManagedSetModelProjection<T>(managedType);
-
+            return ModelCreators.of(ModelReference.of(modelPath, managedType), initializer)
+                    .withProjection(projection)
+                    .descriptor(descriptor)
+                    .inputs(inputs)
+                    .build();
         } else {
-            return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new BiAction<ModelView<? extends T>, Inputs>() {
-                public void execute(ModelView<? extends T> modelView, Inputs inputs) {
-                    T instance = modelView.getInstance();
-                    Object[] args = new Object[inputs.size() + 1];
-                    args[0] = instance;
-                    for (int i = 0; i < inputs.size(); i++) {
-                        args[i + 1] = inputs.get(i, inputs.getReferences().get(i).getType()).getInstance();
-                    }
-                    ruleDefinition.getRuleInvoker().invoke(args);
-                }
-            });
+            return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new RuleMethodBackedMutationAction<T>(modelSchema, ruleDefinition.getRuleInvoker(), descriptor, inputs));
         }
-
-        return ModelCreators.of(ModelReference.of(modelPath, managedType), initializer)
-                .withProjection(projection)
-                .descriptor(descriptor)
-                .inputs(inputs)
-                .build();
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition) {
@@ -145,18 +133,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
             T instance = instantiator.newInstance(schema);
             modelNode.setPrivateData(schema.getType(), instance);
 
-            ModelView<? extends T> modelView = modelNode.asWritable(schema.getType(), descriptor, inputs);
-            if (modelView == null) {
-                throw new IllegalStateException("Couldn't produce managed node as schema type");
-            }
-
-            Object[] args = new Object[inputs.size() + 1];
-            args[0] = modelView.getInstance();
-            for (int i = 0; i < inputs.size(); i++) {
-                args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
-            }
-            ruleInvoker.invoke(args);
-            modelView.close();
+            new RuleMethodBackedMutationAction<T>(schema, ruleInvoker, descriptor, inputReferences).execute(modelNode, inputs);
         }
     }
 }

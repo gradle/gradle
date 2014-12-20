@@ -31,13 +31,13 @@ import java.util.List;
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
 
     private final ModelSchema<T> modelSchema;
-    private final BiAction<? super ModelView<? extends T>, ? super Inputs> initializer;
+    private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
     private final ManagedProxyFactory proxyFactory;
     private final ModelSchemaStore schemaStore;
     private final ModelInstantiator modelInstantiator;
     private final ModelRuleDescriptor descriptor;
 
-    public static <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator, ManagedProxyFactory proxyFactory, List<? extends ModelReference<?>> inputs, BiAction<? super ModelView<? extends T>, ? super Inputs> initializer) {
+    public static <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator, ManagedProxyFactory proxyFactory, List<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
         return ModelCreators.of(ModelReference.of(path, schema.getType()), new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, proxyFactory, initializer))
                 .descriptor(descriptor)
                 .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
@@ -45,7 +45,7 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
                 .build();
     }
 
-    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super ModelView<? extends T>, ? super Inputs> initializer) {
+    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
         this.descriptor = descriptor;
         this.modelInstantiator = modelInstantiator;
         this.schemaStore = schemaStore;
@@ -55,18 +55,11 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
     }
 
     public void execute(MutableModelNode modelNode, Inputs inputs) {
-        ModelView<? extends T> modelView = modelNode.asWritable(modelSchema.getType(), descriptor, inputs);
-        if (modelView == null) {
-            throw new IllegalStateException("Couldn't produce managed node as schema type");
-        }
-
         for (ModelProperty<?> property : modelSchema.getProperties().values()) {
             addPropertyLink(modelNode, property);
         }
 
-        initializer.execute(modelView, inputs);
-
-        modelView.close();
+        initializer.execute(modelNode, inputs);
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
