@@ -27,6 +27,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec{
 import org.gradle.model.*
 import org.gradle.model.collection.*
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.Instantiator
 import javax.inject.Inject
 import org.gradle.internal.service.ServiceRegistry
 
@@ -35,21 +36,14 @@ interface OtherSampleBinary extends SampleBinary {}
 
 interface LibrarySourceSet extends LanguageSourceSet {}
 
-class DefaultLibrarySourceSet extends org.gradle.language.base.internal.AbstractLanguageSourceSet implements LibrarySourceSet {
+class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
 
-    public DefaultLibrarySourceSet(String name, FileResolver fileResolver) {
-        super(name, "librarySource", "Library source", new org.gradle.api.internal.file.DefaultSourceDirectorySet("libSource", fileResolver));
-    }
-}
+class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
 
-class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-}
-
-class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {
-}
-
+class OtherSampleBinaryImpl extends BaseBinarySpec implements OtherSampleBinary {}
 
 interface SampleLibrary extends ComponentSpec {}
+
 class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
     class MyBinaryDeclarationModel implements Plugin<Project> {
@@ -67,7 +61,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
                 componentSpecs.create("sampleLib", new Action<SampleLibrary>() {
                     public void execute(SampleLibrary library) {
                         library.sources {
-                            it.add(new DefaultLibrarySourceSet("librarySource", serviceRegistry.get(FileResolver.class)))
+                            it.add(BaseLanguageSourceSet.create(DefaultLibrarySourceSet, "librarySource", "librarySource", serviceRegistry.get(FileResolver), serviceRegistry.get(Instantiator)))
                         }
                     }
                 });
@@ -120,7 +114,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 --------------------------------
 
 Source sets
-    Library source 'librarySource:librarySource'
+    DefaultLibrarySourceSet 'librarySource:librarySource'
         src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
@@ -138,10 +132,10 @@ Binaries
         task checkSourceSets << {
             def sampleBinary = project.binaries.sampleLibBinary
             def othersSampleBinary = project.binaries.sampleLibOtherBinary
-            assert sampleBinary.source[0].getClass() == DefaultLibrarySourceSet
-            assert sampleBinary.source[0].displayName == "Library source 'librarySource:librarySource'"
-            assert othersSampleBinary.source[0].getClass() == DefaultLibrarySourceSet
-            assert othersSampleBinary.source[0].displayName == "Library source 'librarySource:librarySource'"
+            assert sampleBinary.source[0] instanceof DefaultLibrarySourceSet
+            assert sampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'librarySource:librarySource'"
+            assert othersSampleBinary.source[0] instanceof DefaultLibrarySourceSet
+            assert othersSampleBinary.source[0].displayName == "DefaultLibrarySourceSet 'librarySource:librarySource'"
         }
 """
         then:
@@ -221,7 +215,7 @@ DefaultSampleLibrary 'sampleLib'
 --------------------------------
 
 Source sets
-    Library source 'librarySource:librarySource'
+    DefaultLibrarySourceSet 'librarySource:librarySource'
         src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
