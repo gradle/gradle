@@ -19,7 +19,6 @@ import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 
 import java.util.HashSet;

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.java;
 
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 
 public class DefaultJvmResourceSet extends AbstractLanguageSourceSet implements JvmResourceSet {

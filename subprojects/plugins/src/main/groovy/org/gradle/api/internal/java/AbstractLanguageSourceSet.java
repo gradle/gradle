@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.api.internal.java;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;

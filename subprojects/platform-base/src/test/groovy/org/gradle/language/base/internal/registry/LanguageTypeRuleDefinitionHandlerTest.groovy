@@ -16,15 +16,18 @@
 
 package org.gradle.language.base.internal.registry
 
+import org.gradle.api.Action
+import org.gradle.api.Task
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.AbstractLanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
-import org.gradle.platform.base.LanguageType
-import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.InvalidModelException
+import org.gradle.platform.base.LanguageType
+import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
 import org.gradle.platform.base.internal.registry.LanguageTypeRuleDefinitionHandler
 import spock.lang.Unroll
@@ -102,9 +105,30 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
 
     class NotImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet {}
 
-    class NotExtendingBaseLanguageSourceSet extends AbstractLanguageSourceSet {
-        NotExtendingBaseLanguageSourceSet() {
-            super("testName", "testParent", "testType", null)
+    class NotExtendingBaseLanguageSourceSet extends AbstractBuildableModelElement implements CustomLanguageSourceSet {
+        @Override
+        String getDisplayName() {
+            return null
+        }
+
+        @Override
+        SourceDirectorySet getSource() {
+            return null
+        }
+
+        @Override
+        void source(Action<? super SourceDirectorySet> config) {
+
+        }
+
+        @Override
+        void generatedBy(Task generatorTask) {
+
+        }
+
+        @Override
+        String getName() {
+            return null
         }
     }
 
