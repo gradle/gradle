@@ -22,10 +22,12 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
@@ -118,11 +120,13 @@ public class PlayApplicationPlugin {
     }
 
     @Mutate
-    void configureDefaultPlaySources(ComponentSpecContainer components, final FileResolver fileResolver) {
+    void configureDefaultPlaySources(ComponentSpecContainer components, ServiceRegistry serviceRegistry) {
+        final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+        final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
         components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
             public void execute(PlayApplicationSpec playComponent) {
                 // TODO:DAZ Scala source set type should be registered via scala-lang plugin
-                ScalaLanguageSourceSet appSources = new DefaultScalaLanguageSourceSet("appSources", playComponent.getName(), fileResolver);
+                ScalaLanguageSourceSet appSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "appSources", playComponent.getName(), fileResolver, instantiator);
 
                 // Compile scala/java sources under /app\
                 // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
@@ -144,7 +148,10 @@ public class PlayApplicationPlugin {
     @ComponentBinaries
     void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
                         PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
-                        final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
+                        final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
+
+        final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+        final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
         for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
             final String binaryName = String.format("%sBinary", componentSpec.getName());
             final File binaryBuildDir = new File(buildDir, binaryName);
@@ -166,7 +173,7 @@ public class PlayApplicationPlugin {
                     PublicAssets assets = playBinary.getAssets();
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-                    ScalaLanguageSourceSet genSources = new DefaultScalaLanguageSourceSet("genSources", binaryName, fileResolver);
+                    ScalaLanguageSourceSet genSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "genSources", binaryName, fileResolver, instantiator);
                     playBinaryInternal.setGeneratedScala(genSources);
                 }
             });

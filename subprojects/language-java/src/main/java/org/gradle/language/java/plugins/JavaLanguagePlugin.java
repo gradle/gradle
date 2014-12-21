@@ -20,24 +20,23 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.java.internal.DefaultJavaSourceSet;
+import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
 import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.io.File;
 import java.util.Collections;
@@ -60,32 +59,21 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Java(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+            builder.setLanguageName("java");
+            builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Java(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new Java());
         }
     }
 
-    private static class Java extends AbstractLanguageRegistration<JavaSourceSet, JvmByteCode> {
-        public Java(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "java";
-        }
-
+    private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
         public Class<JavaSourceSet> getSourceSetType() {
             return JavaSourceSet.class;
-        }
-
-        public Class<? extends JavaSourceSet> getSourceSetImplementation() {
-            return DefaultJavaSourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {

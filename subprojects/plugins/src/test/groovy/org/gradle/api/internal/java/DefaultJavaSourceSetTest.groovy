@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java.internal
+package org.gradle.api.internal.java
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.jvm.Classpath
 import spock.lang.Specification

@@ -38,9 +38,9 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.java.internal.DefaultJavaSourceSet;
+import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
-import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
+import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.util.WrapUtil;
 

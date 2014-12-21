@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.internal;
+package org.gradle.api.internal.java;
 
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 
-import javax.inject.Inject;
-
 public class DefaultJvmResourceSet extends AbstractLanguageSourceSet implements JvmResourceSet {
-
-    @Inject
-    public DefaultJvmResourceSet(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, "JVM resources", new DefaultSourceDirectorySet("source", fileResolver));
-    }
-
     public DefaultJvmResourceSet(String name, String parent, SourceDirectorySet source) {
         super(name, parent, "JVM resources", source);
     }

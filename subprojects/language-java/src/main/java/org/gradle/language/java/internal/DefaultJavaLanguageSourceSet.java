@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.language.scala.internal;
+package org.gradle.language.java.internal;
 
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.jvm.internal.EmptyClasspath;
-import org.gradle.language.scala.ScalaLanguageSourceSet;
 
-public class DefaultScalaLanguageSourceSet extends BaseLanguageSourceSet implements ScalaLanguageSourceSet {
-
-    private final EmptyClasspath compileClasspath = new EmptyClasspath();
+public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implements JavaSourceSet {
+    private final Classpath compileClasspath = new EmptyClasspath();
 
     @Override
     protected String getTypeName() {
-        return "Scala source";
+        return "Java source";
     }
 
     public Classpath getCompileClasspath() {

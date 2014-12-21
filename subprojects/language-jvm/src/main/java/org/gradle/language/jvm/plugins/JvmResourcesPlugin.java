@@ -17,22 +17,21 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.registry.AbstractLanguageRegistration;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
-import org.gradle.language.jvm.internal.DefaultJvmResourceSet;
+import org.gradle.language.jvm.internal.DefaultJvmResourceLanguageSourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Collections;
 import java.util.Map;
@@ -54,33 +53,21 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     @RuleSource
     static class Rules {
-        @Mutate
-        void registerLanguage(LanguageRegistry languages, ServiceRegistry serviceRegistry) {
-            languages.add(new JvmResources(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+        @LanguageType
+        void registerLanguage(LanguageTypeBuilder<JvmResourceSet> builder) {
+            builder.setLanguageName("resources");
+            builder.defaultImplementation(DefaultJvmResourceLanguageSourceSet.class);
         }
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new JvmResources(serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class)));
+            languages.add(new JvmResources());
         }
     }
 
-    private static class JvmResources extends AbstractLanguageRegistration<JvmResourceSet, org.gradle.jvm.JvmResources> {
-
-        public JvmResources(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver);
-        }
-
-        public String getName() {
-            return "resources";
-        }
-
+    private static class JvmResources implements LanguageTransform<JvmResourceSet, org.gradle.jvm.JvmResources> {
         public Class<JvmResourceSet> getSourceSetType() {
             return JvmResourceSet.class;
-        }
-
-        public Class<? extends JvmResourceSet> getSourceSetImplementation() {
-            return DefaultJvmResourceSet.class;
         }
 
         public Map<String, Class<?>> getBinaryTools() {

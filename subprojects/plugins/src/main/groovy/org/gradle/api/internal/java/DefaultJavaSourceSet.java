@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java.internal;
+package org.gradle.api.internal.java;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.jvm.internal.EmptyClasspath;
 
-import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
     private final Classpath compileClasspath;
-
-    @Inject
-    public DefaultJavaSourceSet(String name, String parent, FileResolver fileResolver) {
-        super(name, parent, "Java source", new DefaultSourceDirectorySet("source", fileResolver));
-        this.compileClasspath = new EmptyClasspath();
-    }
 
     public DefaultJavaSourceSet(String name, String parent, SourceDirectorySet source, Classpath compileClasspath) {
         super(name, parent, "Java source", source);
