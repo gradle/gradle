@@ -15,28 +15,40 @@
  */
 
 package org.gradle.play.plugins
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.javascript.JavaScriptSourceSet
-import org.gradle.play.PlayApplicationBinarySpec
+import org.gradle.platform.base.ComponentSpecContainer
+import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.play.PlayApplicationSpec
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
+
 class PlayJavaScriptPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
+    def "adds javaScript source sets to play components" () {
+        def plugin = new PlayJavaScriptPlugin()
+        def components = Mock(ComponentSpecContainer)
+        def sources = Mock(FunctionalSourceSet)
+        def sourceSet = Mock(JavaScriptSourceSet)
+        def sourceDirSet = Mock(SourceDirectorySet)
 
-    def setup() {
-        project.pluginManager.apply(PlayApplicationPlugin);
-        project.pluginManager.apply(PlayJavaScriptPlugin);
-    }
-
-    def "adds javascript source sets to play components" () {
         when:
-        project.model { components { play(PlayApplicationSpec) } }
-        project.evaluate()
+        def playApp = Stub(PlayAppInternal) {
+            getName() >> "play"
+            getSources() >> sources
+        }
+        _ * components.withType(PlayApplicationSpec) >> toNamedDomainObjectSet(PlayApplicationSpec, playApp)
+
+        and:
+        plugin.createJavascriptSourceSets(components)
 
         then:
-        project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
-            assert spec.getSource().find { it.name == "javaScriptAssets" && it instanceof JavaScriptSourceSet } != null
-        }
+        1 * sources.create("javaScriptAssets", JavaScriptSourceSet) >> sourceSet
+        2 * sourceSet.getSource() >> sourceDirSet
+        1 * sourceDirSet.srcDir("app/assets")
+        1 * sourceDirSet.include("**/*.js")
     }
+
+    interface PlayAppInternal extends PlayApplicationSpec, ComponentSpecInternal {}
 }

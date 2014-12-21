@@ -68,7 +68,7 @@ public class PlayCoffeeScriptPlugin {
     }
 
     @Mutate
-    void createCoffeeScriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
+    void createCoffeeScriptSourceSets(ComponentSpecContainer components) {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
             CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
             coffeeScriptSourceSet.getSource().srcDir("app/assets");

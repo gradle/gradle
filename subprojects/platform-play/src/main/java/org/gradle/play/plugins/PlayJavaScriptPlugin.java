@@ -53,7 +53,7 @@ public class PlayJavaScriptPlugin {
     }
 
     @Mutate
-    void createJavascriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
+    void createJavascriptSourceSets(ComponentSpecContainer components) {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
             JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
             javaScriptSourceSet.getSource().srcDir("app/assets");

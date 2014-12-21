@@ -15,29 +15,40 @@
  */
 
 package org.gradle.play.plugins
-
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet
-import org.gradle.play.PlayApplicationBinarySpec
+import org.gradle.platform.base.ComponentSpecContainer
+import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.play.PlayApplicationSpec
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
+
 class PlayCoffeeScriptPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
-
-    def setup() {
-        project.pluginManager.apply(PlayApplicationPlugin);
-        project.pluginManager.apply(PlayCoffeeScriptPlugin)
-    }
-
     def "adds coffeescript source sets to play components" () {
+        def plugin = new PlayCoffeeScriptPlugin()
+        def components = Mock(ComponentSpecContainer)
+        def sources = Mock(FunctionalSourceSet)
+        def sourceSet = Mock(CoffeeScriptSourceSet)
+        def sourceDirSet = Mock(SourceDirectorySet)
+
         when:
-        project.model { components { play(PlayApplicationSpec) } }
-        project.evaluate()
+        def playApp = Stub(PlayAppInternal) {
+            getName() >> "play"
+            getSources() >> sources
+        }
+        _ * components.withType(PlayApplicationSpec) >> toNamedDomainObjectSet(PlayApplicationSpec, playApp)
+
+        and:
+        plugin.createCoffeeScriptSourceSets(components)
 
         then:
-        project.binaries.withType(PlayApplicationBinarySpec).each { PlayApplicationBinarySpec spec ->
-            assert spec.getSource().find { it.name == "coffeeScriptAssets" && it instanceof CoffeeScriptSourceSet } != null
-        }
+        1 * sources.create("coffeeScriptAssets", CoffeeScriptSourceSet) >> sourceSet
+        2 * sourceSet.getSource() >> sourceDirSet
+        1 * sourceDirSet.srcDir("app/assets")
+        1 * sourceDirSet.include("**/*.coffee")
     }
+
+    interface PlayAppInternal extends PlayApplicationSpec, ComponentSpecInternal {}
 }
