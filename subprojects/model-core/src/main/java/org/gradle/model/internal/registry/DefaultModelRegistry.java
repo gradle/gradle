@@ -33,6 +33,8 @@ import org.gradle.model.internal.report.AmbiguousBindingReporter;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +43,7 @@ import java.util.Map;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
     /*
                 Things we aren't doing and should:
@@ -312,7 +315,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void close(ModelNode node) {
+        if (node.getState() == ModelNode.State.GraphClosed) {
+            return;
+        }
+
         ModelPath path = node.getPath();
+        LOGGER.debug("Closing {}", path);
 
         if (node.getState() == ModelNode.State.Known) {
             BoundModelCreator creator = creators.remove(path);
@@ -329,12 +337,15 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
         if (node.getState() == ModelNode.State.Mutated) {
             fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
-            node.setState(ModelNode.State.Closed);
+            node.setState(ModelNode.State.SelfClosed);
         }
-
-        for (ModelNode child : node.getLinks().values()) {
-            close(child);
+        if (node.getState() == ModelNode.State.SelfClosed) {
+            for (ModelNode child : node.getLinks().values()) {
+                close(child);
+            }
+            node.setState(ModelNode.State.GraphClosed);
         }
+        LOGGER.debug("Finished closing {}", path);
     }
 
     private void fireMutations(ModelNode node, ModelPath path, Iterable<BoundModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
@@ -376,6 +387,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelCreator creator = boundCreator.getCreator();
         Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
+        LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
+
         try {
             creator.create(new NodeWrapper(node), inputs);
         } catch (Exception e) {
@@ -390,6 +403,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         Inputs inputs = toInputs(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
         ModelMutator<T> mutator = boundMutator.getMutator();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
+
+        LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
 
         ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
         try {
@@ -481,8 +496,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelNode node = this.node.addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
             modelGraph.add(node);
             notifyCreationListeners(node);
-            bind(creator);
-            return new NodeWrapper(node);
+            // TODO - don't create eagerly
+//            bind(creator);
+            NodeWrapper child = new NodeWrapper(node);
+            creator.create(child, null);
+            node.setState(ModelNode.State.Created);
+            return child;
         }
 
         @Override

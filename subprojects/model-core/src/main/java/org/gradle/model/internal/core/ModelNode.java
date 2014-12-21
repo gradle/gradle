@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class ModelNode implements ModelCreation {
     public enum State {
-        Known, Created, Mutated, Closed
+        Known, Created, Mutated, SelfClosed, GraphClosed
     }
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
