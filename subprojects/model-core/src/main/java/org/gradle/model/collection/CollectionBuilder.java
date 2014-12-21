@@ -27,17 +27,38 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface CollectionBuilder<T> {
 
-    /*
-        Note: config actions always execute immediately when item is created (i.e. before any other rule).
-
+    /**
+     * Creates an item with the given name and type T
+     *
+     * @param name The name.
      */
-    // TODO - this might not be appropriate in all cases, there might not be a default impl - perhaps can throw UnsupportedOperationException.
+    // TODO - exception when no default type
     void create(String name);
 
+    /**
+     * Creates an item with the given name and type T.
+     *
+     * @param name The name.
+     * @param configAction An action that initialises the item. The action is executed when the item is required.
+     */
+    // TODO - exception when no default type
     void create(String name, Action<? super T> configAction);
 
+    /**
+     * Creates an item with the given name and type.
+     *
+     * @param name The name.
+     */
+    // TODO - exception when type cannot be created
     <S extends T> void create(String name, Class<S> type);
 
+    /**
+     * Creates an item with the given name and type.
+     *
+     * @param name The name.
+     * @param configAction An action that initialises the item. The action is executed when the item is required.
+     */
+    // TODO - exception when type cannot be created
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
 }
