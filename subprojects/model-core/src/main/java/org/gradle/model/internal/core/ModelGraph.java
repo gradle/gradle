@@ -18,7 +18,6 @@ package org.gradle.model.internal.core;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -30,11 +29,6 @@ public class ModelGraph {
 
     private final Map<String, ModelNode> entryNodes = Maps.newTreeMap();
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
-    private final Action<? super ModelNode> onAdd;
-
-    public ModelGraph(Action<? super ModelNode> onAdd) {
-        this.onAdd = onAdd;
-    }
 
     public ModelNode addEntryPoint(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
 
@@ -42,7 +36,7 @@ public class ModelGraph {
         // ModelPath.validateName(name);
 
         ModelPath path = ModelPath.path(name);
-        ModelNode node = new ModelNode(this, path, descriptor, promise, adapter);
+        ModelNode node = new ModelNode(path, descriptor, promise, adapter);
         ModelNode previous = entryNodes.put(name, node);
         if (previous != null) {
             // TODO more context here
@@ -51,6 +45,10 @@ public class ModelGraph {
 
         flattened.put(path, node);
         return node;
+    }
+
+    public void add(ModelNode node) {
+        flattened.put(node.getPath(), node);
     }
 
     public Map<ModelPath, ModelNode> getFlattened() {
@@ -80,11 +78,6 @@ public class ModelGraph {
         }
 
         return new ModelSearchResult(node, path, node, path);
-    }
-
-    void onNewChildNode(ModelNode child) {
-        flattened.put(child.getPath(), child);
-        onAdd.execute(child);
     }
 
     @Nullable

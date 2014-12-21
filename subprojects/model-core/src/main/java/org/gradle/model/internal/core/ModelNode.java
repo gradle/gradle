@@ -26,20 +26,16 @@ import java.util.Collections;
 import java.util.Map;
 
 public class ModelNode implements ModelCreation {
-
-    private final ModelGraph modelGraph;
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
     private final ModelPromise promise;
     private final ModelAdapter adapter;
 
     private final Map<String, ModelNode> links = Maps.newTreeMap();
-
     private Object privateData;
     private ModelType<?> privateDataType;
 
-    public ModelNode(ModelGraph modelGraph, ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        this.modelGraph = modelGraph;
+    public ModelNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
         this.creationPath = creationPath;
         this.descriptor = descriptor;
         this.promise = promise;
@@ -73,10 +69,7 @@ public class ModelNode implements ModelCreation {
 
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
 
-        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
-        // ModelPath.validateName(name);
-
-        ModelNode node = new ModelNode(modelGraph, creationPath.child(name), descriptor, promise, adapter);
+        ModelNode node = new ModelNode(creationPath.child(name), descriptor, promise, adapter);
 
         ModelNode previous = links.put(name, node);
         if (previous != null) {
@@ -88,7 +81,6 @@ public class ModelNode implements ModelCreation {
             );
         }
 
-        modelGraph.onNewChildNode(node);
         return node;
     }
 

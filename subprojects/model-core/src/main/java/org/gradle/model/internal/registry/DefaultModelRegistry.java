@@ -51,14 +51,9 @@ public class DefaultModelRegistry implements ModelRegistry {
                 - Detecting mutation rules registering parent model
                 - Detecting a rule binding the same input twice (maybe that's ok)
                 - Detecting a rule trying to bind the same element to mutate and to read
-
+                - Detecting adding mutation rule during finalization
              */
-    private final ModelGraph modelGraph = new ModelGraph(new Action<ModelNode>() {
-        public void execute(ModelNode modelNode) {
-            notifyCreationListeners(modelNode);
-            creations.add(modelNode);
-        }
-    });
+    private final ModelGraph modelGraph = new ModelGraph();
 
     private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
     private final Multimap<ModelPath, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
@@ -70,8 +65,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
-
-    private BoundModelCreator inCreation;
 
     private List<ModelCreation> creations = Lists.newLinkedList();
 
@@ -326,15 +319,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             return targetNode;
         }
 
-        inCreation = creators.remove(path);
+        BoundModelCreator inCreation = creators.remove(path);
         if (inCreation == null) {
             return null;
         } else {
-            try {
-                return createAndClose(inCreation);
-            } finally {
-                inCreation = null;
-            }
+            return createAndClose(inCreation);
         }
     }
 
@@ -394,8 +383,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelPath path = creator.getPath();
         Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
-        ModelAdapter adapter = creator.getAdapter();
-        ModelNode node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), adapter);
+        ModelNode node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
 
         try {
             creator.create(new NodeWrapper(node), inputs);
@@ -416,6 +404,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         try {
             mutator.mutate(new NodeWrapper(node), view.getInstance(), inputs);
         } catch (Exception e) {
+            // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);
         } finally {
             view.close();
@@ -449,7 +438,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private static class NodeWrapper implements MutableModelNode {
+    private class NodeWrapper implements MutableModelNode {
         private final ModelNode node;
 
         public NodeWrapper(ModelNode node) {
@@ -503,7 +492,14 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            return new NodeWrapper(node.addLink(name, descriptor, promise, adapter));
+            // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
+            // ModelPath.validateName(name);
+
+            ModelNode node = this.node.addLink(name, descriptor, promise, adapter);
+            modelGraph.add(node);
+            notifyCreationListeners(node);
+            creations.add(node);
+            return new NodeWrapper(node);
         }
 
         @Override
