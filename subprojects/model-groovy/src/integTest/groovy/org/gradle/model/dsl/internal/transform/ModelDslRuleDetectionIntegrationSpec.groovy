@@ -41,7 +41,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.model.internal.type.*
             import org.gradle.model.collection.*
 
-            def paths = "$normalisedPath".split("\\\\.")
+            def paths = "$normalisedPath".split("\\\\.") as List
             def root = paths[0]
             def rest = paths.tail()
             def type = new ModelType<List<String>>() {}
@@ -67,8 +67,6 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
               .build()
             )
 
-            modelRegistry.node(ModelPath.path(root))
-
             class MyPlugin {
                 @RuleSource
                 static class Rules {
@@ -89,6 +87,11 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 $path {
                   add "foo"
                 }
+            }
+
+            // TODO - this can be inferred by closing the parent
+            for (int i = 0; i < paths.size(); i++) {
+                modelRegistry.node(ModelPath.path(paths.subList(0, i+1)))
             }
         """
 
