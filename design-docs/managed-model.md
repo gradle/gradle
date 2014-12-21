@@ -602,6 +602,36 @@ The initial target for this functionality will be to replace the `PlatformContai
 6. Push `chooseFromTargets` implementation out to static method
 7. Remove PlatformContainerInternal
 
+### Tasks defined using `CollectionBuilder` are not eagerly created and configured
+
+- Change `DefaultCollectionBuilder` implementation to register a creation rule rather than eagerly instantiating and configuring.
+    - Verify construction and initialisation action is deferred, but happens before mutate rules when target is used as input.
+    - Verify initialisation action happens before `project.tasks.all { }` action.
+
+### Support for managed container of tasks
+
+- Rename `CollectionBuilder` to `ManagedMap`.
+- Add `all(Action<? super T>)` method to `ManagedMap`. Rules fire as @mutate rules
+    - Verify action execution is deferred, but happens when target is used as input.
+- Add DSL support for `all { }` rule.
+- Add `named(String name)` method to `ManagedMap`. Rules fire as @mutate rules
+    - Fails nicely when no such target.
+- Add DSL support for `$name { }` rule.
+- Change `ManagedMap` to extend `Map`.
+- Mix in the DSL conveniences into the managed collections and managed objects, don't reuse the existing decorator.
+- Allow a `ManagedMap` to be added to model space by a `@Model` rule.
+- Synchronisation back to `TaskContainer`, so that `project.tasks.all { }` and `project.tasks { $name { } }` works.
+- Add support for any `PolymorphicDomainObjectContainer`
+
+### Support for managed container of source sets
+
+As above, for `ManagedSet`.
+
+- Change `ManagedSet` implementation to register a creation rule rather than eagerly instantiating and configuring.
+    - Allow model nodes to be identified by something other than a path.
+- Add `all(Action<? super T)` method to `ManagedSet`.
+- Add DSL support for `all { }` rule.
+
 ## Open Questions
 
 - Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
