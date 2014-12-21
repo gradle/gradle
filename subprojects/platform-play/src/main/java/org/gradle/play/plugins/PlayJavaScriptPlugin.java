@@ -17,12 +17,8 @@
 package org.gradle.play.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
@@ -32,6 +28,8 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
@@ -47,26 +45,20 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 @SuppressWarnings("UnusedDeclaration")
 @RuleSource
 public class PlayJavaScriptPlugin {
+
+    @LanguageType
+    void registerCoffeeScript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
+        builder.setLanguageName("javaScript");
+        builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
+    }
+
     @Mutate
     void createJavascriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
-            registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
-
             JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
             javaScriptSourceSet.getSource().srcDir("app/assets");
             javaScriptSourceSet.getSource().include("**/*.js");
         }
-    }
-
-    // TODO:DAZ This should be done via a @LanguageType rule
-    private void registerSourceSetFactory(ComponentSpecInternal playComponent, final Instantiator instantiator, final FileResolver fileResolver) {
-        final FunctionalSourceSet functionalSourceSet = playComponent.getSources();
-        NamedDomainObjectFactory<JavaScriptSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<JavaScriptSourceSet>() {
-            public JavaScriptSourceSet create(String name) {
-                return instantiator.newInstance(DefaultJavaScriptSourceSet.class, name, functionalSourceSet.getName(), fileResolver);
-            }
-        };
-        functionalSourceSet.registerFactory(JavaScriptSourceSet.class, namedDomainObjectFactory);
     }
 
     @BinaryTasks

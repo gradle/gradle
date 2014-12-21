@@ -17,12 +17,14 @@
 package org.gradle.org.gradle.language.javascript.internal
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet
 import spock.lang.Specification
 
 class DefaultJavaScriptSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = new DefaultJavaScriptSourceSet("javascriptX", "playX", Stub(FileResolver))
+        def sourceSet = BaseLanguageSourceSet.create(DefaultJavaScriptSourceSet, "javascriptX", "playX", Stub(FileResolver), new DirectInstantiator())
 
         expect:
         sourceSet.displayName == "JavaScript source 'playX:javascriptX'"

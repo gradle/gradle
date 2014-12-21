@@ -18,12 +18,8 @@ package org.gradle.play.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
@@ -33,6 +29,8 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
@@ -63,26 +61,19 @@ public class PlayCoffeeScriptPlugin {
         return String.format("org.mozilla:rhino:%s", DEFAULT_RHINO_VERSION);
     }
 
+    @LanguageType
+    void registerCoffeeScript(LanguageTypeBuilder<CoffeeScriptSourceSet> builder) {
+        builder.setLanguageName("coffeeScript");
+        builder.defaultImplementation(DefaultCoffeeScriptSourceSet.class);
+    }
+
     @Mutate
     void createCoffeeScriptSourceSets(ComponentSpecContainer components, final ServiceRegistry serviceRegistry) {
         for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
-            registerSourceSetFactory((ComponentSpecInternal) playComponent, serviceRegistry.get(Instantiator.class), serviceRegistry.get(FileResolver.class));
-
             CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
             coffeeScriptSourceSet.getSource().srcDir("app/assets");
             coffeeScriptSourceSet.getSource().include("**/*.coffee");
         }
-    }
-
-    // TODO:DAZ This should be done via a @LanguageType rule
-    private void registerSourceSetFactory(ComponentSpecInternal playComponent, final Instantiator instantiator, final FileResolver fileResolver) {
-        final FunctionalSourceSet functionalSourceSet = playComponent.getSources();
-        NamedDomainObjectFactory<CoffeeScriptSourceSet> namedDomainObjectFactory = new NamedDomainObjectFactory<CoffeeScriptSourceSet>() {
-            public CoffeeScriptSourceSet create(String name) {
-                return instantiator.newInstance(DefaultCoffeeScriptSourceSet.class, name, functionalSourceSet.getName(), fileResolver);
-            }
-        };
-        functionalSourceSet.registerFactory(CoffeeScriptSourceSet.class, namedDomainObjectFactory);
     }
 
     @BinaryTasks

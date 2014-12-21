@@ -17,11 +17,13 @@
 package org.gradle.language.coffeescript.internal
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.sources.BaseLanguageSourceSet
 import spock.lang.Specification
 
 class DefaultCoffeeScriptSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = new DefaultCoffeeScriptSourceSet("coffeeX", "playX", Stub(FileResolver))
+        def sourceSet = BaseLanguageSourceSet.create(DefaultCoffeeScriptSourceSet, "coffeeX", "playX", Stub(FileResolver), new DirectInstantiator())
 
         expect:
         sourceSet.displayName == "CoffeeScript source 'playX:coffeeX'"

@@ -16,16 +16,15 @@
 
 package org.gradle.language.javascript.internal;
 
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 
 /**
  * Default implementation of JavaScriptSourceSet
  */
-public class DefaultJavaScriptSourceSet extends AbstractLanguageSourceSet implements JavaScriptSourceSet {
-    public DefaultJavaScriptSourceSet(String name, String parentName, FileResolver fileResolver) {
-        super(name, parentName, "JavaScript source", new DefaultSourceDirectorySet("source", fileResolver));
+public class DefaultJavaScriptSourceSet extends BaseLanguageSourceSet implements JavaScriptSourceSet {
+    @Override
+    protected String getTypeName() {
+        return "JavaScript source";
     }
 }

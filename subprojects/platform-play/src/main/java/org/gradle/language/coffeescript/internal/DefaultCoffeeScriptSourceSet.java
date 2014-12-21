@@ -16,19 +16,15 @@
 
 package org.gradle.language.coffeescript.internal;
 
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 
 /**
  * Default implementation of CoffeeScriptSourceSet
  */
-public class DefaultCoffeeScriptSourceSet extends AbstractLanguageSourceSet implements CoffeeScriptSourceSet {
-    private LanguageSourceSet outputSourceSet;
-
-    public DefaultCoffeeScriptSourceSet(String name, String parentName, FileResolver fileResolver) {
-        super(name, parentName, "CoffeeScript source", new DefaultSourceDirectorySet("source", fileResolver));
+public class DefaultCoffeeScriptSourceSet extends BaseLanguageSourceSet implements CoffeeScriptSourceSet {
+    @Override
+    protected String getTypeName() {
+        return "CoffeeScript source";
     }
 }
