@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.Map;
 
 public class ModelNode implements ModelCreation {
+    public enum State {
+        Known, Created, Mutated, Closed
+    }
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
     private final ModelPromise promise;
@@ -34,6 +37,7 @@ public class ModelNode implements ModelCreation {
     private final Map<String, ModelNode> links = Maps.newTreeMap();
     private Object privateData;
     private ModelType<?> privateDataType;
+    private State state = State.Known;
 
     public ModelNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
         this.creationPath = creationPath;
@@ -48,6 +52,14 @@ public class ModelNode implements ModelCreation {
 
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     public ModelPromise getPromise() {

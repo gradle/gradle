@@ -66,8 +66,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
-    private List<ModelCreation> creations = Lists.newLinkedList();
-
     private static String toString(ModelRuleDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
         descriptor.describeTo(stringBuilder);
@@ -80,34 +78,32 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        BoundModelCreator existingCreation = creators.get(path);
-
-        if (existingCreation != null) {
-            throw new DuplicateModelException(
-                    String.format(
-                            "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",
-                            toString(creator.getDescriptor()),
-                            path,
-                            toString(existingCreation.getCreator().getDescriptor())
-                    )
-            );
-        }
-
         ModelSearchResult searchResult = modelGraph.search(path);
-        if (searchResult.getTargetNode() != null) {
+        ModelNode node = searchResult.getTargetNode();
+        if (node != null) {
+            if (node.getState() == ModelNode.State.Known) {
+                throw new DuplicateModelException(
+                        String.format(
+                                "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",
+                                toString(creator.getDescriptor()),
+                                path,
+                                toString(node.getDescriptor())
+                        )
+                );
+            }
             throw new DuplicateModelException(
                     String.format(
                             "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",
                             toString(creator.getDescriptor()),
                             path,
-                            toString(searchResult.getTargetNode().getDescriptor())
+                            toString(node.getDescriptor())
                     )
             );
         }
 
-        notifyCreationListeners(creator);
+        node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+        notifyCreationListeners(node);
         bind(creator);
-        creations.add(creator);
     }
 
     public <T> void mutate(ModelMutator<T> mutator) {
@@ -205,7 +201,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         // Copy the creations we know about now because a listener may add creations, causing a CME.
         // This can happen when a listener is listening in order to bind a type-only reference, and the
         // reference binding causing the rule to fully bind and register a new creation.
-        List<ModelCreation> currentCreations = Lists.newArrayList(creations);
+        List<ModelNode> currentCreations = Lists.newArrayList(modelGraph.getFlattened().values());
 
         for (ModelCreation creation : currentCreations) {
             remove = listener.onCreate(creation);
@@ -313,30 +309,34 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNode get(ModelPath path) {
         ModelSearchResult searchResult = modelGraph.search(path);
-        ModelNode targetNode = searchResult.getTargetNode();
-        if (targetNode != null) {
-            close(targetNode);
-            return targetNode;
-        }
-
-        BoundModelCreator inCreation = creators.remove(path);
-        if (inCreation == null) {
+        ModelNode node = searchResult.getTargetNode();
+        if (node == null) {
             return null;
-        } else {
-            return createAndClose(inCreation);
         }
-    }
-
-    private ModelNode createAndClose(BoundModelCreator creation) {
-        ModelNode node = doCreate(creation);
         close(node);
         return node;
     }
 
     private void close(ModelNode node) {
         ModelPath path = node.getPath();
-        fireMutations(node, path, mutators.removeAll(path), usedMutators);
-        fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
+
+        if (node.getState() == ModelNode.State.Known) {
+            BoundModelCreator creator = creators.remove(path);
+            if (creator == null) {
+                // Unbound creator - should give better error message here
+                throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
+            }
+            doCreate(node, creator);
+            node.setState(ModelNode.State.Created);
+        }
+        if (node.getState() == ModelNode.State.Created) {
+            fireMutations(node, path, mutators.removeAll(path), usedMutators);
+            node.setState(ModelNode.State.Mutated);
+        }
+        if (node.getState() == ModelNode.State.Mutated) {
+            fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
+            node.setState(ModelNode.State.Closed);
+        }
 
         for (ModelNode child : node.getLinks().values()) {
             close(child);
@@ -378,12 +378,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelNode doCreate(BoundModelCreator boundCreator) {
+    private ModelNode doCreate(ModelNode node, BoundModelCreator boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
-        ModelPath path = creator.getPath();
         Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
-
-        ModelNode node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
 
         try {
             creator.create(new NodeWrapper(node), inputs);
@@ -498,7 +495,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelNode node = this.node.addLink(name, descriptor, promise, adapter);
             modelGraph.add(node);
             notifyCreationListeners(node);
-            creations.add(node);
+            // TODO - don't create eagerly
+            node.setState(ModelNode.State.Created);
             return new NodeWrapper(node);
         }
 

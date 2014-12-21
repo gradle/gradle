@@ -71,7 +71,7 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
             .withProjection(new PolymorphicDomainObjectContainerModelProjection(new DirectInstantiator(), container, NamedThing))
             .build()
     ModelAdapter adapter
-    ModelNode node
+    MutableModelNode node
     ModelType<ThingContainer> containerModelType = ModelType.of(ThingContainer)
 
     def setup() {

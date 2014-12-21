@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ModelGraph {
-
     private final Map<String, ModelNode> entryNodes = Maps.newTreeMap();
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
 

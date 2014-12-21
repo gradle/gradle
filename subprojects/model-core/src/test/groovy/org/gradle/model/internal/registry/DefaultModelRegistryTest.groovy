@@ -59,7 +59,53 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("foo"), ModelType.untyped())
 
         then:
-        thrown IllegalStateException // TODO - current reports 'unknown element', should instead complain about unknown inputs
+        thrown IllegalStateException // TODO - reports 'unknown element', should instead complain about unknown inputs
+    }
+
+    def "cannot register creator when element already known"() {
+        given:
+        registry.create(creator("foo", String, "value"))
+
+        when:
+        registry.create(creator("foo", Integer, 12))
+
+        then:
+        DuplicateModelException e = thrown()
+        e.message == /Cannot register model creation rule 'create foo as Integer' for path 'foo' as the rule 'create foo as String' is already registered to create a model element at this path/
+    }
+
+    def "cannot register creator when element already closed"() {
+        given:
+        registry.create(creator("foo", String, "value"))
+        registry.get(ModelPath.path("foo"), ModelType.untyped())
+
+        when:
+        registry.create(creator("foo", Integer, 12))
+
+        then:
+        DuplicateModelException e = thrown()
+        e.message == /Cannot register model creation rule 'create foo as Integer' for path 'foo' as the rule 'create foo as String' is already registered (and the model element has been created)/
+    }
+
+    def "rule cannot add link when element already known"() {
+        def mutatorAction = Mock(Action)
+
+        given:
+        registry.create(creator("foo", Integer, 12))
+        registry.mutate(nodeMutator("foo", Integer, mutatorAction))
+        mutatorAction.execute(_) >> { MutableModelNode node ->
+            node.addLink(creator("foo.bar", Integer, 12))
+            node.addLink(creator("foo.bar", Integer, 12))
+        }
+
+        when:
+        registry.get(ModelPath.path("foo"), ModelType.untyped())
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.message == /Exception thrown while executing model rule: mutate foo as Integer/
+        e.cause instanceof DuplicateModelException
+        e.cause.message == /Cannot create 'foo.bar' as it was already created by: create foo.bar as Integer/
     }
 
     def "inputs for creator are bound when inputs already closed"() {
@@ -99,7 +145,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("bar"), ModelType.untyped()) == "[12]"
     }
 
-    def "inputs for creator are bound as inputs defined by some rule"() {
+    def "inputs for creator are bound when inputs later defined by some rule"() {
         def creatorAction = Mock(Transformer)
         def mutatorAction = Mock(Action)
 
@@ -193,7 +239,7 @@ class DefaultModelRegistryTest extends Specification {
                 mutableModelNode.setPrivateData(modelType, initializer.create())
             }
         }).withProjection(new UnmanagedModelProjection(modelType, true, true))
-                .simpleDescriptor(path)
+                .simpleDescriptor("create $path as $type.simpleName")
                 .build()
     }
 
@@ -238,7 +284,7 @@ class DefaultModelRegistryTest extends Specification {
         ModelMutator mutator = Stub(ModelMutator)
         mutator.subject >> ModelReference.of(path, type)
         mutator.inputs >> []
-        mutator.descriptor >> new SimpleModelRuleDescriptor(path)
+        mutator.descriptor >> new SimpleModelRuleDescriptor("mutate $path as $type.simpleName")
         mutator.mutate(_, _, _) >> { node, object, inputs ->
             action.execute(node)
         }
