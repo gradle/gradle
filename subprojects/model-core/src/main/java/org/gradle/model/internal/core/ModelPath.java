@@ -25,7 +25,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,7 +44,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         this.components = PATH_SPLITTER.splitToList(path);
     }
 
-    public ModelPath(Collection<String> parts) {
+    public ModelPath(Iterable<String> parts) {
         this.path = PATH_JOINER.join(parts);
         this.components = ImmutableList.copyOf(parts);
     }
@@ -94,7 +94,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public static ModelPath path(Iterable<String> names) {
-        return path(PATH_JOINER.join(names));
+        return new ModelPath(names);
     }
 
     public static String pathString(Iterable<String> names) {
@@ -102,7 +102,9 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public ModelPath child(String child) {
-        return path(path + SEPARATOR + child);
+        List<String> childComponents = new ArrayList<String>(components);
+        childComponents.add(child);
+        return path(childComponents);
     }
 
     public boolean isTopLevel() {
@@ -114,21 +116,14 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public ModelPath getParent() {
-        int lastIndex = path.lastIndexOf(SEPARATOR);
-        if (lastIndex == -1) {
+        if (components.size() == 1) {
             return null;
-        } else {
-            return path(path.substring(0, lastIndex));
         }
+        return path(components.subList(0, components.size() - 1));
     }
 
     public String getName() {
-        int lastIndex = path.lastIndexOf(SEPARATOR);
-        if (lastIndex == -1) {
-            return path;
-        } else {
-            return path.substring(lastIndex + 1);
-        }
+        return components.get(components.size() - 1);
     }
 
     public boolean isDirectChild(ModelPath other) {
