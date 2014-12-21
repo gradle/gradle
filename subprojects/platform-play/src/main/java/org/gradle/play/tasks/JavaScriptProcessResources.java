@@ -16,10 +16,12 @@
 
 package org.gradle.play.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 /**
  * Task to copy javascript resources
  */
+@Incubating
 public class JavaScriptProcessResources extends ProcessResources {
 }

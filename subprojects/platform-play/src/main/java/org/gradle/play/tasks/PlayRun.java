@@ -44,6 +44,7 @@ import java.io.IOException;
 /**
  * A Task to run a play application.
  */
+@Incubating
 public class PlayRun extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(PlayRun.class);
 

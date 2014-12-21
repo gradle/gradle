@@ -17,6 +17,7 @@
 package org.gradle.play;
 
 import org.gradle.api.BuildableModelElement;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import java.io.File;
 /**
  * A set of public assets added to a binary.
  */
+@Incubating
 public interface PublicAssets extends BuildableModelElement {
     /**
      * A set of asset directories for this binary.

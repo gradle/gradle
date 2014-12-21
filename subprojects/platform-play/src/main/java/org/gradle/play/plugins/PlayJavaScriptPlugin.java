@@ -17,6 +17,7 @@
 package org.gradle.play.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -44,6 +45,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  */
 @SuppressWarnings("UnusedDeclaration")
 @RuleSource
+@Incubating
 public class PlayJavaScriptPlugin {
 
     @LanguageType

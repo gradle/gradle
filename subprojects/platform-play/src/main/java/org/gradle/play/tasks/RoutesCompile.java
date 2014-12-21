@@ -38,6 +38,7 @@ import java.util.List;
 /**
  * Task for compiling routes templates
  */
+@Incubating
 public class RoutesCompile extends SourceTask {
 
     /**

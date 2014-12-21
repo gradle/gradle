@@ -41,6 +41,7 @@ import java.util.Set;
 /**
  * Task for compiling twirl templates
  */
+@Incubating
 public class TwirlCompile extends SourceTask {
 
     /**
