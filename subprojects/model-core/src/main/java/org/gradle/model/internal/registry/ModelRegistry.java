@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRegistrar;
-import org.gradle.model.internal.core.ModelSearchResult;
 import org.gradle.model.internal.type.ModelType;
 
 public interface ModelRegistry extends ModelRegistrar {
@@ -28,8 +27,6 @@ public interface ModelRegistry extends ModelRegistrar {
 
     @Nullable
     <T> T find(ModelPath path, ModelType<T> type);
-
-    ModelSearchResult search(ModelPath path);
 
     void remove(ModelPath path);
 

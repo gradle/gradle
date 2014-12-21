@@ -16,13 +16,11 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 public class ModelGraph {
@@ -54,29 +52,9 @@ public class ModelGraph {
         return Collections.unmodifiableMap(flattened);
     }
 
-    public ModelSearchResult search(ModelPath path) {
-        List<String> reached = Lists.newArrayListWithCapacity(path.getDepth());
-        ModelNode node = null;
-        ModelNode nextNode;
-        for (String pathComponent : path) {
-            if (node == null) {
-                nextNode = entryNodes.get(pathComponent);
-            } else {
-                nextNode = node.getLinks().get(pathComponent);
-            }
-
-            if (nextNode == null) {
-                if (reached.isEmpty()) {
-                    return new ModelSearchResult(null, path, null, null);
-                } else {
-                    return new ModelSearchResult(null, path, node, new ModelPath(reached));
-                }
-            } else {
-                node = nextNode;
-            }
-        }
-
-        return new ModelSearchResult(node, path, node, path);
+    @Nullable
+    public ModelNode find(ModelPath path) {
+        return flattened.get(path);
     }
 
     @Nullable
@@ -84,11 +62,10 @@ public class ModelGraph {
         if (path.isTopLevel()) {
             entryNodes.remove(path.getName());
         } else {
-            ModelSearchResult searchResult = search(path.getParent());
-            if (searchResult.getTargetNode() != null) {
-                searchResult.getTargetNode().removeLink(path.getName());
+            ModelNode parentNode = find(path.getParent());
+            if (parentNode != null) {
+                parentNode.removeLink(path.getName());
             }
-
         }
 
         return flattened.remove(path);

@@ -78,8 +78,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        ModelSearchResult searchResult = modelGraph.search(path);
-        ModelNode node = searchResult.getTargetNode();
+        ModelNode node = modelGraph.find(path);
         if (node != null) {
             if (node.getState() == ModelNode.State.Known) {
                 throw new DuplicateModelException(
@@ -185,10 +184,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         } else {
             return assertView(node, type, null, msg).getInstance();
         }
-    }
-
-    public ModelSearchResult search(ModelPath path) {
-        return modelGraph.search(path);
     }
 
     public MutableModelNode node(ModelPath path) {
@@ -308,8 +303,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNode get(ModelPath path) {
-        ModelSearchResult searchResult = modelGraph.search(path);
-        ModelNode node = searchResult.getTargetNode();
+        ModelNode node = modelGraph.find(path);
         if (node == null) {
             return null;
         }
@@ -479,12 +473,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void addLink(ModelCreator creator) {
+        public MutableModelNode addLink(ModelCreator creator) {
+            // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
+            // ModelPath.validateName(name);
+
             // TODO - bust out path from creation action
-            // TODO - need real inputs
-            // TODO - defer creation until required
-            MutableModelNode modelNode = addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
-            creator.create(modelNode, null);
+            ModelNode node = this.node.addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+            modelGraph.add(node);
+            notifyCreationListeners(node);
+            bind(creator);
+            return new NodeWrapper(node);
         }
 
         @Override
