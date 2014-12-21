@@ -34,7 +34,8 @@ import org.gradle.platform.base.ModelInstantiationException;
 public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private String name;
     private String fullName;
-    private String displayName;
+    private String parentName;
+    private String typeName;
     private SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
@@ -70,8 +71,12 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         return generated || !source.isEmpty();
     }
 
+    protected String getTypeName() {
+        return typeName;
+    }
+
     public String getDisplayName() {
-        return displayName;
+        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
     }
 
     @Override
@@ -114,8 +119,9 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
             throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a LanguageTypeBuilder instead.");
         }
         this.name = info.name;
+        this.parentName = info.parentName;
+        this.typeName = info.typeName;
         this.fullName = info.parentName + StringUtils.capitalize(name);
-        this.displayName = String.format("%s '%s:%s'", info.typeName, info.parentName, name);
         this.source = new DefaultSourceDirectorySet("source", info.fileResolver);
         this.fileResolver = info.fileResolver;
         super.builtBy(source.getBuildDependencies());

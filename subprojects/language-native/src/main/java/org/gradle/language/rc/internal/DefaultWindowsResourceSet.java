@@ -19,4 +19,8 @@ import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingSource
 import org.gradle.language.rc.WindowsResourceSet;
 
 public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements WindowsResourceSet {
+    @Override
+    protected String getTypeName() {
+        return "windows resources";
+    }
 }

@@ -20,4 +20,8 @@ import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 
 public class DefaultAssemblerSourceSet extends BaseLanguageSourceSet implements AssemblerSourceSet {
+    @Override
+    protected String getTypeName() {
+        return "Assembler source";
+    }
 }
