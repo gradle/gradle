@@ -19,11 +19,11 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
+import org.gradle.internal.Factory
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
-import org.gradle.internal.Factory
 
 class DefaultModelRegistryTest extends Specification {
 
@@ -170,12 +170,34 @@ class DefaultModelRegistryTest extends Specification {
         registry.finalize(mutator("foo", Bean, action))
 
         when:
-        registry.get(ModelPath.path("foo"), ModelType.of(Bean)).value == "finalizer"
+        registry.get(ModelPath.path("foo"), ModelType.of(Bean))
 
         then:
         1 * action.execute(_) >> { Bean bean -> bean.value = "creator" }
         1 * action.execute(_) >> { Bean bean -> bean.value = "mutator" }
         1 * action.execute(_) >> { Bean bean -> bean.value = "finalizer" }
+        0 * action._
+
+        when:
+        registry.get(ModelPath.path("foo"), ModelType.of(Bean))
+
+        then:
+        0 * action._
+    }
+
+    def "creator for linked element invoked before element is closed"() {
+        def action = Mock(Action)
+
+        given:
+        registry.create(creator("foo", Bean, new Bean()))
+        registry.mutate(nodeMutator("foo", Bean, action))
+
+        when:
+        registry.get(ModelPath.path("foo"), ModelType.of(Bean))
+
+        then:
+        1 * action.execute(_) >> { MutableModelNode node -> node.addLink(creator("foo.bar", String, "value", action))}
+        1 * action.execute(_)
         0 * action._
     }
 
