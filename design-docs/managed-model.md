@@ -499,7 +499,7 @@ Unmanaged properties must be accompanied by a setter.
 
 Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
 
-### User receives runtime error trying to mutate managed set and elements when used as input and outside of mutation method
+### User receives runtime error trying to mutate managed set when used as input and outside of mutation method
 
     @Managed
     interface Platform {
@@ -525,9 +525,7 @@ Runtime error received when trying to mutate an immutable object should include 
       
       @Mutate void setFather(CollectionBuilder<Task> tasks, Platform platform) {
         Holder.platform.create(…) // ← runtime error
-        Holder.platform.toList()[0].setName(…) // ← runtime error
         platform.create(…) // ← runtime error
-        platform.toList()[0].setName(…) // ← runtime error
       }
     }
 
@@ -664,3 +662,5 @@ As above, for `ManagedSet`.
 
 - Allow some control over generated display name property
 - Semantics of equals/hashCode
+- User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
+    - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element) 
