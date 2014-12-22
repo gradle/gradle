@@ -359,44 +359,6 @@ Unmanaged properties must be accompanied by a setter.
 - ~~Unmanaged property of managed type can be targeted for mutation~~
 - ~~Unmanaged property of managed type can be used as input~~
     
-### Managed model element has “generated” display name indicating identity in model space
-
-    package org.example;
-    
-    @Managed
-    interface Person {
-      String getName(); void setName(String name);
-    }
-    
-    @Managed
-    interface Group {
-      ManagedSet<Person> getPeople();
-    }
-    
-    @RuleSource
-    class Rules {
-      @Model
-      void g1(Group group) {
-        group.getPeople().create(p -> p.setName("p1"));
-        group.getPeople().create(p -> p.setName("p2"));
-      }      
-    }
-    
-    model {
-      tasks {
-        create("verify") {
-          it.doLast { 
-            assert $("group").people*.name.sort() == ["p1", "p2"]
-          }
-        }
-      }
-    }
-    
-#### Notes
-
-- It is an error to define a setter for display name (may relax this in the future)
-- Exact format of error message is unimportant, but it must include the “address” of the object in the model space
-    
 ### ~~Model rule accepts property of managed object as input~~
       
     @Managed
@@ -663,4 +625,5 @@ As above, for `ManagedSet`.
 - Allow some control over generated display name property
 - Semantics of equals/hashCode
 - User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
-    - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element) 
+    - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element)
+- Support getting "address" (creation/canonical path) of a managed object
