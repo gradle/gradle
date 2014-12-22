@@ -16,22 +16,29 @@
 
 package org.gradle.play.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.play.PlayApplicationSpec;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
-    private String playVersion;
+    private final List<String> targetPlatforms = new ArrayList<String>();
 
     @Override
     protected String getTypeName() {
         return "Play Application";
     }
 
-    public String getPlayVersion() {
-        return playVersion;
+    @Override
+    public List<String> getTargetPlatforms() {
+        return Lists.newArrayList(targetPlatforms);
     }
 
-    public void playVersion(String playVersion) {
-        this.playVersion = playVersion;
+    @Override
+    public void targetPlatform(String... targetPlatforms) {
+        Collections.addAll(this.targetPlatforms, targetPlatforms);
     }
 }

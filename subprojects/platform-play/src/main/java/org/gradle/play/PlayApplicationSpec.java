@@ -17,14 +17,11 @@
 package org.gradle.play;
 
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.PlatformAwareComponentSpec;
 
 /**
  * Definition of a play framework software component that is built by Gradle.
  */
 @Incubating
-public interface PlayApplicationSpec extends ComponentSpec {
-    String getPlayVersion();
-
-    void playVersion(String playVersion);
+public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
 }

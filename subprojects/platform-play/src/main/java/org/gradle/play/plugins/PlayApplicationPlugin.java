@@ -48,10 +48,10 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,7 +79,7 @@ public class PlayApplicationPlugin {
     }
 
     private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
-        platform.setName("PlayPlatform" + playVersion);
+        platform.setName("play-" + playVersion);
         platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
         platform.setPlayVersion(playVersion);
         platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
@@ -141,11 +141,20 @@ public class PlayApplicationPlugin {
         }
     }
 
+    @Finalize
+    void failOnMultipleTargetPlatforms(ComponentSpecContainer container) {
+        for (PlayApplicationSpec playApplicationSpec : container.withType(PlayApplicationSpec.class)) {
+            if (playApplicationSpec.getTargetPlatforms().size() > 1) {
+                throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+            }
+        }
+    }
+
     @ComponentBinaries
     void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
                         PlatformResolver platforms, final PlayToolChainInternal playToolChainInternal,
                         final FileResolver fileResolver, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
-        for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
+        for (final PlayPlatform chosenPlatform : resolveTargetPlatforms(componentSpec, platforms)) {
             final String binaryName = String.format("%sBinary", componentSpec.getName());
             final File binaryBuildDir = new File(buildDir, binaryName);
             binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
@@ -173,12 +182,12 @@ public class PlayApplicationPlugin {
         }
     }
 
-    private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
-        String targetPlayVersion = componentSpec.getPlayVersion();
-        if (targetPlayVersion == null) {
-            targetPlayVersion = DEFAULT_PLAY_VERSION;
+    private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
+        List<String> targetPlatforms = componentSpec.getTargetPlatforms();
+        if (targetPlatforms.isEmpty()) {
+            targetPlatforms = Collections.singletonList(String.format("play-%s", DEFAULT_PLAY_VERSION));
         }
-        return platforms.resolve(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+        return platforms.resolve(PlayPlatform.class, targetPlatforms);
     }
 
     @BinaryTasks
