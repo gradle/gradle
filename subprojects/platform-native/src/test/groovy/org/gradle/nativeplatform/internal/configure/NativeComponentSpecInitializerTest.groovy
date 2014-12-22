@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.internal.configure
-
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
@@ -32,6 +31,7 @@ import org.gradle.platform.base.PlatformResolver
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultPlatformRequirement
 import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
@@ -59,7 +59,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, ["platform1"]) >> [ platform ]
+        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -77,7 +77,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, ["platform1"]) >> [ platform ]
+        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [ platform ]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -97,7 +97,7 @@ class NativeComponentSpecInitializerTest extends Specification {
 
 
         then:
-        1 * platforms.resolve(NativePlatform, ["platform1", "platform2"]) >> [ platform, platform2 ]
+        1 * platforms.resolve(NativePlatform, [requirement("platform1"), requirement("platform2")]) >> [ platform, platform2 ]
         then:
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
@@ -125,7 +125,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, ["platform1"]) >> [platform]
+        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -150,7 +150,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, ["platform1"]) >> [platform]
+        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [platform]
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -164,6 +164,10 @@ class NativeComponentSpecInitializerTest extends Specification {
         1 * namingSchemeBuilder.withVariantDimension("flavor2") >> namingSchemeBuilder
         1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, toolProvider, platform, buildType, flavor2)
         0 * _
+    }
+
+    def requirement(String name) {
+        DefaultPlatformRequirement.create(name)
     }
 
     private <T extends Named> T createStub(Class<T> type, def name) {

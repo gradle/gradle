@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal;
+package org.gradle.platform.base.internal;
 
-import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
-import org.gradle.play.PlayApplicationSpec;
-
-public interface PlayApplicationSpecInternal extends PlayApplicationSpec, PlatformAwareComponentSpecInternal {
+public interface PlatformRequirement {
+    String getPlatformName();
 }

@@ -19,6 +19,7 @@ package org.gradle.platform.base.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
@@ -35,7 +36,14 @@ public class DefaultPlatformResolver implements PlatformResolver {
         this.platforms = platforms;
     }
 
-    public <T extends Platform> List<T> resolve(Class<T> type, List<String> targets) {
+    public <T extends Platform> List<T> resolve(Class<T> type, List<PlatformRequirement> requirements) {
+        List<String> targets = CollectionUtils.collect(requirements, new Transformer<String, PlatformRequirement>() {
+            @Override
+            public String transform(PlatformRequirement platformRequirement) {
+                return platformRequirement.getPlatformName();
+            }
+        });
+
         NamedDomainObjectSet<T> allWithType = platforms.withType(type);
 
         List<T> matching = Lists.newArrayList();

@@ -35,6 +35,8 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
@@ -184,9 +186,10 @@ public class PlayApplicationPlugin {
     }
 
     private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
-        List<String> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
+        List<PlatformRequirement> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
-            targetPlatforms = Collections.singletonList(String.format("play-%s", DEFAULT_PLAY_VERSION));
+            String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
+            targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultPlayPlatform));
         }
         return platforms.resolve(PlayPlatform.class, targetPlatforms);
     }

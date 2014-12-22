@@ -30,6 +30,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.PlatformResolver;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
 
 import java.util.*;
 
@@ -54,18 +56,19 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        List<String> targetPlatformNames = targetedComponent.getTargetPlatforms();
-        if (targetPlatformNames.isEmpty()) {
-            targetPlatformNames = Collections.singletonList(NativePlatforms.getDefaultPlatformName());
+        List<PlatformRequirement> targetPlatforms = targetedComponent.getTargetPlatforms();
+        if (targetPlatforms.isEmpty()) {
+            PlatformRequirement requirement = DefaultPlatformRequirement.create(NativePlatforms.getDefaultPlatformName());
+            targetPlatforms = Collections.singletonList(requirement);
         }
-        List<NativePlatform> targetPlatforms = platforms.resolve(NativePlatform.class, targetPlatformNames);
+        List<NativePlatform> resolvedPlatforms = platforms.resolve(NativePlatform.class, targetPlatforms);
 
-        for (NativePlatform platform: targetPlatforms) {
+        for (NativePlatform platform: resolvedPlatforms) {
             NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChainRegistry.getForPlatform(platform);
             PlatformToolProvider toolProvider = toolChain.select((NativePlatformInternal) platform);
 
             BinaryNamingSchemeBuilder builder = namingSchemeBuilder.withComponentName(projectNativeComponent.getName());
-            builder = maybeAddDimension(builder, platform, targetPlatforms);
+            builder = maybeAddDimension(builder, platform, resolvedPlatforms);
             executeForEachBuildType(projectNativeComponent, (NativePlatformInternal) platform, builder, toolChain, toolProvider);
         }
     }

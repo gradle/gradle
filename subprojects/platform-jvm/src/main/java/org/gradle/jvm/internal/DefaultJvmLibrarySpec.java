@@ -21,15 +21,14 @@ import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
-    private final List<String> targets = new ArrayList<String>();
+    private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
 
     public DefaultJvmLibrarySpec() {
         this.languageOutputs.add(JvmResources.class);
@@ -45,11 +44,11 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         return languageOutputs;
     }
 
-    public List<String> getTargetPlatforms() {
-        return Lists.newArrayList(targets);
+    public List<PlatformRequirement> getTargetPlatforms() {
+        return Collections.unmodifiableList(targetPlatforms);
     }
 
     public void targetPlatform(String targetPlatform) {
-        this.targets.add(targetPlatform);
+        this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 }

@@ -43,6 +43,8 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
 
 import java.io.File;
 import java.util.Collections;
@@ -119,12 +121,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final File binariesDir = new File(buildDir, "jars");
             final File classesDir = new File(buildDir, "classes");
 
-            List<String> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
-            if (targetPlatforms.isEmpty()) {
-                // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
-                targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
-            }
-            List<JavaPlatform> selectedPlatforms = platforms.resolve(JavaPlatform.class, targetPlatforms);
+            List<JavaPlatform> selectedPlatforms = resolvePlatforms(jvmLibrary, platforms);
             for (final JavaPlatform platform : selectedPlatforms) {
                 final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
                 final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
@@ -148,6 +145,16 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     }
                 });
             }
+        }
+
+        private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, PlatformResolver platforms) {
+            List<PlatformRequirement> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
+            if (targetPlatforms.isEmpty()) {
+                // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
+                String defaultJavaPlatformName = new DefaultJavaPlatform(JavaVersion.current()).getName();
+                targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultJavaPlatformName));
+            }
+            return platforms.resolve(JavaPlatform.class, targetPlatforms);
         }
 
         @Mutate

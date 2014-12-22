@@ -20,21 +20,23 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
 
 import java.util.*;
 
 public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
 
-    private final Set<String> targetPlatforms = new LinkedHashSet<String>();
+    private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
-    public List<String> getTargetPlatforms() {
-        return Lists.newArrayList(targetPlatforms);
+    public List<PlatformRequirement> getTargetPlatforms() {
+        return Collections.unmodifiableList(targetPlatforms);
     }
 
     public void targetPlatform(String targetPlatform) {
-        targetPlatforms.add(targetPlatform);
+        this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
     public void targetFlavors(String... flavorSelectors) {

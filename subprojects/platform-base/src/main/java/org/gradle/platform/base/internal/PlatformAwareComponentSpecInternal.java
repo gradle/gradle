@@ -31,5 +31,5 @@ public interface PlatformAwareComponentSpecInternal extends PlatformAwareCompone
      *
      * @return the list of targeted platforms, may be empty but never null.
      */
-    List<String> getTargetPlatforms();
+    List<PlatformRequirement> getTargetPlatforms();
 }

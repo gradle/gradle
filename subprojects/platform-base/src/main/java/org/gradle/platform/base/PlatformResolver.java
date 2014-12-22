@@ -17,6 +17,7 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.platform.base.internal.PlatformRequirement;
 
 import java.util.List;
 
@@ -25,5 +26,5 @@ import java.util.List;
  */
 @Incubating
 public interface PlatformResolver {
-    <T extends Platform> List<T> resolve(Class<T> type, List<String> targets);
+    <T extends Platform> List<T> resolve(Class<T> type, List<PlatformRequirement> targets);
 }
