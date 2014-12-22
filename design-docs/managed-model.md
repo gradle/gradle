@@ -497,6 +497,14 @@ Runtime error received when trying to mutate an immutable object should include 
 
 It should not be possible to call any of these methods until the set is realised.
 
+### User sees useful type name in stack trace for managed model type and while debugging (i.e. not JDK proxy class names)
+
+Use class generation tool that allows specifying the name of a generated class, e.g. cglib or asm.
+
+#### Test coverage
+
+- When a runtime error is thrown from implementation of a managed element setter/getter the stack trace contains reference to the name of the managed type.
+
 ### Managed type is implemented as abstract class, with generative getters
 
     @Managed
@@ -615,10 +623,6 @@ As above, for `ManagedSet`.
 
 - Convenience and/or enforcement of “internal to plugin” properties of model elements
 - Extending model elements with new properties
-
-### Diagnostics
-
-- User sees useful type name in stack trace for managed model type and while debugging (i.e. not JDK proxy class names)
 
 ### Misc
 
