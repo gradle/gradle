@@ -87,11 +87,12 @@ Binaries
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(":createPlayBinaryJar", ":playBinary", ":assemble")
+        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":assemble")
         skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:
         jar("build/playBinary/lib/play.jar").hasDescendants()
+        jar("build/playBinary/lib/play-assets.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {

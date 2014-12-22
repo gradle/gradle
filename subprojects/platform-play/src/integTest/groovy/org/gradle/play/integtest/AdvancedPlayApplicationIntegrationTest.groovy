@@ -45,8 +45,8 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
     }
 
     @Override
-    void verifyJar() {
-        super.verifyJar()
+    void verifyJars() {
+        super.verifyJars()
 
         jar("build/playBinary/lib/play.jar").containsDescendants(
                 "views/html/awesome/index.class",
@@ -54,9 +54,12 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
                 "models/DataType.class",
                 "models/ScalaClass.class",
                 "controllers/scala/MixedJava.class",
-                "controllers/jva/PureJava.class",
+                "controllers/jva/PureJava.class"
+        )
+
+        jar("build/playBinary/lib/play-assets.jar").containsDescendants(
                 "public/javascripts/sample.js",
-                "public/javascripts/test.js",
+                "public/javascripts/test.js"
         )
     }
 

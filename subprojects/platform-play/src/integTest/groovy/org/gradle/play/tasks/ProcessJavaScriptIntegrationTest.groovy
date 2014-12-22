@@ -48,9 +48,10 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(
                 ":processPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test.js").exists()
-        jar("build/playBinary/lib/play.jar").containsDescendants(
+        assetsJar.containsDescendants(
                 "public/test.js"
         )
 
@@ -61,18 +62,19 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped(":processPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
 
         // Detects missing output
         when:
         processed("test.js").delete()
-        file("build/playBinary/lib/play.jar").delete()
+        assetsJar.file.delete()
         succeeds "assemble"
 
         then:
         executedAndNotSkipped(
                 ":processPlayBinaryJavaScriptAssets",
-                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test.js").exists()
 
@@ -84,7 +86,7 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(
                 ":processPlayBinaryJavaScriptAssets",
-                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
 
@@ -118,11 +120,12 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
                 ":processPlayBinaryExtraJavaScript",
                 ":processPlayBinaryAnotherJavaScript",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test1.js").exists()
         processed("ExtraJavaScript", "javascripts/test2.js").exists()
         processed("AnotherJavaScript", "a/b/c/test3.js").exists()
-        jar("build/playBinary/lib/play.jar").containsDescendants(
+        assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/javascripts/test2.js",
                 "public/a/b/c/test3.js"
@@ -136,7 +139,12 @@ class ProcessJavaScriptIntegrationTest extends AbstractIntegrationSpec {
                 ":processPlayBinaryExtraJavaScript",
                 ":processPlayBinaryAnotherJavaScript",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
+    }
+
+    JarTestFixture getAssetsJar() {
+        jar("build/playBinary/lib/play-assets.jar")
     }
 
     JarTestFixture jar(String fileName) {

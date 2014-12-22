@@ -54,6 +54,9 @@ public class PlayRun extends ConventionTask {
     @InputFile
     private File applicationJar;
 
+    @InputFile
+    private File assetsJar;
+
     private BaseForkOptions forkOptions;
 
     private PlayApplicationRunnerToken runnerToken;
@@ -77,7 +80,7 @@ public class PlayRun extends ConventionTask {
 
         int httpPort = getHttpPort();
 
-        PlayRunSpec spec = new DefaultPlayRunSpec(getProject().files(applicationJar), getProject().getProjectDir(), getForkOptions(), httpPort);
+        PlayRunSpec spec = new DefaultPlayRunSpec(getProject().files(applicationJar, assetsJar), getProject().getProjectDir(), getForkOptions(), httpPort);
         PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
         PlayApplicationRunner manager = toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
         try {
@@ -137,5 +140,9 @@ public class PlayRun extends ConventionTask {
 
     public void setApplicationJar(File applicationJar) {
         this.applicationJar = applicationJar;
+    }
+
+    public void setAssetsJar(File assetsJar) {
+        this.assetsJar = assetsJar;
     }
 }

@@ -52,11 +52,12 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test.js").exists()
         compareWithoutWhiteSpace processed("test.js").text, expectedJavaScript()
 
-        jar("build/playBinary/lib/play.jar").containsDescendants(
+        assetsJar.containsDescendants(
                 "public/test.js"
         )
     }
@@ -98,6 +99,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
                 ":processPlayBinaryJavaScriptAssets",
                 ":processPlayBinaryExtraJavaScript",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test1.js").exists()
         processed("ExtraCoffeeScript", "xxx/test2.js").exists()
@@ -105,7 +107,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         compareWithoutWhiteSpace processed("test1.js").text, expectedJavaScript()
         compareWithoutWhiteSpace processed("ExtraCoffeeScript", "xxx/test2.js").text, expectedJavaScript()
         compareWithoutWhiteSpace processed("AnotherCoffeeScript", "a/b/c/test3.js").text, expectedJavaScript()
-        jar("build/playBinary/lib/play.jar").containsDescendants(
+        assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/xxx/test2.js",
                 "public/a/b/c/test3.js",
@@ -126,6 +128,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped(":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
 
@@ -142,7 +145,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
-                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
 
@@ -154,14 +157,14 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         when:
         processed("test.js").delete()
         processedJS("test.js").delete()
-        file("build/playBinary/lib/play.jar").delete()
+        assetsJar.file.delete()
         succeeds "assemble"
 
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
-                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test.js").exists()
     }
@@ -175,7 +178,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        jar("build/playBinary/lib/play.jar").containsDescendants(
+        assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/test2.js"
         )
@@ -187,7 +190,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         ! processed("test2.js").exists()
         ! processedJS("test2.js").exists()
-        jar("build/playBinary/lib/play.jar").countFiles("public/test2.js") == 0
+        assetsJar.countFiles("public/test2.js") == 0
     }
 
     def "produces sensible error on compile failure" () {
@@ -201,6 +204,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription "Execution failed for task ':compilePlayBinaryCoffeeScriptAssets'."
         failure.assertHasCause "Failed to compile coffeescript file: test1.coffee"
         failure.assertHasCause "SyntaxError: unexpected if (coffee-script-js-1.8.0.js#10)"
+    }
+
+    JarTestFixture getAssetsJar() {
+        jar("build/playBinary/lib/play-assets.jar")
     }
 
     JarTestFixture jar(String fileName) {

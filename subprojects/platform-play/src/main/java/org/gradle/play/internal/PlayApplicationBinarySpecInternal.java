@@ -33,5 +33,7 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
 
     void setJarFile(File file);
 
+    void setAssetsJarFile(File file);
+
     void setGeneratedScala(ScalaLanguageSourceSet scalaSources);
 }

@@ -36,6 +36,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
+    private File assetsJarFile;
 
     @Override
     protected String getTypeName() {
@@ -64,6 +65,14 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public void setJarFile(File file) {
         this.jarFile = file;
+    }
+
+    public File getAssetsJarFile() {
+        return assetsJarFile;
+    }
+
+    public void setAssetsJarFile(File assetsJarFile) {
+        this.assetsJarFile = assetsJarFile;
     }
 
     public JvmClasses getClasses() {

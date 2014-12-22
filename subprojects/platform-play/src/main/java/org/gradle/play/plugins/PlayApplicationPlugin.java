@@ -163,6 +163,7 @@ public class PlayApplicationPlugin {
                     playBinaryInternal.setToolChain(playToolChainInternal);
 
                     playBinaryInternal.setJarFile(new File(binaryBuildDir, String.format("lib/%s.jar", componentSpec.getName())));
+                    playBinaryInternal.setAssetsJarFile(new File(binaryBuildDir, String.format("lib/%s-assets.jar", componentSpec.getName())));
 
                     JvmClasses classes = playBinary.getClasses();
                     classes.setClassesDir(new File(binaryBuildDir, "classes"));
@@ -265,10 +266,19 @@ public class PlayApplicationPlugin {
                 jar.setArchiveName(binary.getJarFile().getName());
                 jar.from(binary.getClasses().getClassesDir());
                 jar.from(binary.getClasses().getResourceDirs());
+                jar.dependsOn(binary.getClasses());
+            }
+        });
+
+        String assetsJarTaskName = String.format("create%sAssetsJar", StringUtils.capitalize(binary.getName()));
+        tasks.create(assetsJarTaskName, Jar.class, new Action<Jar>() {
+            public void execute(Jar jar) {
+                jar.setDestinationDir(binary.getAssetsJarFile().getParentFile());
+                jar.setArchiveName(binary.getAssetsJarFile().getName());
+                jar.setClassifier("assets");
                 CopySpecInternal newSpec = jar.getRootSpec().addChild();
                 newSpec.from(binary.getAssets().getAssetDirs());
                 newSpec.into("public");
-                jar.dependsOn(binary.getClasses());
                 jar.dependsOn(binary.getAssets());
             }
         });
@@ -284,6 +294,7 @@ public class PlayApplicationPlugin {
                     playRun.setHttpPort(DEFAULT_HTTP_PORT);
                     playRun.setTargetPlatform(binary.getTargetPlatform());
                     playRun.setApplicationJar(binary.getJarFile());
+                    playRun.setAssetsJar(binary.getAssetsJarFile());
                     playRun.dependsOn(binary.getBuildTask());
                 }
             });
