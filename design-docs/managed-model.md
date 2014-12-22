@@ -505,7 +505,26 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 - When a runtime error is thrown from implementation of a managed element setter/getter the stack trace contains reference to the name of the managed type.
 
-### Managed type is implemented as abstract class, with generative getters
+### Managed type is implemented as abstract class
+
+- Types must obey all the same rules as interface based impls
+- No constructors are allowed (as best we can detect)
+- Can not declare any instance scoped fields
+- Subclass should be generated as soon as type is encountered to ensure it can be done
+- Should use same class generation techniques as existing decoration (but no necessarily share impl)
+- Instance should be created as soon as type is encountered to ensure it can be done
+
+#### Test Coverage
+
+- Class based managed type can be used everywhere interface based type can
+- Subclass impl is generated once for each type and reused
+- Subclass cache does not prevent class from being garbage collected
+- Class can implement interfaces (with methods conforming to managed type rules)
+- Class can extend other classes (all classes up to `Object` must conform to the same rules)
+- Constructor can not call any setter methods (at least a runtime error)
+- Class that cannot be instantiated (e.g. default constructor throws)
+
+### Managed type implemented as abstract class can have generative getters
 
     @Managed
     abstract class Person {
@@ -519,23 +538,10 @@ Use class generation tool that allows specifying the name of a generated class, 
         }
     }
     
-- Types must obey all the same rules as interface based impls
-- Only “getter” methods are allowed to be non `abstract`
-- No constructors are allowed (as best we can detect)
-- Can not declare any instance scoped fields
-- Should use same class generation techniques as existing decoration (but no necessarily share impl)
-- Subclass should be generated as soon as type is encountered to ensure it can be done
-- Instance should be created as soon as type is encountered to ensure it can be done
+- Only “getter” methods are allowed to be non `abstract` 
 
 #### Test Coverage
 
-- Class based managed type can be used everywhere interface based type can
-- Subclass impl is generated once for each type and reused
-- Subclass cache does not prevent class from being garbage collected
-- Class can implement interfaces (with methods conforming to managed type rules)
-- Class can extend other classes (all classes up to `Object` must conform to the same rules)
-- Constructor can not call any setter methods (at least a runtime error)
-- Class that cannot be instantiated (e.g. default constructor throws) 
 - Runtime error if provided getter (i.e. non abstract one) calls a setter method
 
 ### Support for polymorphic managed sets
