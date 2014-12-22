@@ -21,7 +21,6 @@ import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.play.PlayApplicationSpec;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
@@ -38,7 +37,7 @@ public class DefaultPlayApplicationSpec extends BaseComponentSpec implements Pla
     }
 
     @Override
-    public void targetPlatform(String... targetPlatforms) {
-        Collections.addAll(this.targetPlatforms, targetPlatforms);
+    public void targetPlatform(String targetPlatform) {
+        this.targetPlatforms.add(targetPlatform);
     }
 }

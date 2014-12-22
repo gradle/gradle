@@ -30,7 +30,7 @@ public interface PlatformAwareComponentSpec extends ComponentSpec{
     List<String> getTargetPlatforms();
 
     /**
-     * Selects the targeted platforms names this component should be built be for.
+     * Specifies a platform that this component should be built be for.
      */
-    public void targetPlatform(String... targets);
+    public void targetPlatform(String targetPlatform);
 }

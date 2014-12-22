@@ -220,7 +220,10 @@ model {
     }
     components {
         main {
-            targetPlatform "x86", "x86_64", "itanium", "arm"
+            targetPlatform "x86"
+            targetPlatform "x86_64"
+            targetPlatform "itanium"
+            targetPlatform "arm"
         }
     }
 }

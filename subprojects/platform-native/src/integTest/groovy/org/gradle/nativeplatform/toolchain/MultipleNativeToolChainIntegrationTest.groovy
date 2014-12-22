@@ -65,7 +65,8 @@ model {
     }
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "i386", "sparc"
+            targetPlatform "i386"
+            targetPlatform "sparc"
         }
     }
 }

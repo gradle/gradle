@@ -48,7 +48,7 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         return Lists.newArrayList(targets);
     }
 
-    public void targetPlatform(String... targets) {
-        Collections.addAll(this.targets, targets);
+    public void targetPlatform(String targetPlatform) {
+        this.targets.add(targetPlatform);
     }
 }

@@ -52,7 +52,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def component = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
 
     def "does not use variant dimension names for single valued dimensions"() {
-        component.targetPlatforms("platform1")
+        component.targetPlatform("platform1")
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, platforms, [buildType], [flavor])
@@ -71,7 +71,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
                 platforms, [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
-        component.targetPlatforms("platform1")
+        component.targetPlatform("platform1")
         component.targetBuildTypes("buildType1")
         component.targetFlavors("flavor1")
         factory.execute(component)
@@ -87,7 +87,8 @@ class NativeComponentSpecInitializerTest extends Specification {
 
     def "includes platform in name for when multiple platforms"() {
         def platform2 = createStub(NativePlatformInternal, "platform2")
-        component.targetPlatform("platform1", "platform2")
+        component.targetPlatform("platform1")
+        component.targetPlatform("platform2")
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
@@ -116,7 +117,7 @@ class NativeComponentSpecInitializerTest extends Specification {
 
     def "includes buildType in name for when multiple buildTypes"() {
         final BuildType buildType2 = createStub(BuildType, "buildType2")
-        component.targetPlatforms("platform1")
+        component.targetPlatform("platform1")
 
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
@@ -141,7 +142,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     }
 
     def "includes flavor in name for when multiple flavors"() {
-        component.targetPlatforms("platform1")
+        component.targetPlatform("platform1")
         final Flavor flavor2 = createStub(Flavor, "flavor2")
         when:
         def factory = new NativeComponentSpecInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
