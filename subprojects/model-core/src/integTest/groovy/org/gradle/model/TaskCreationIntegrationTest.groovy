@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 import spock.lang.Ignore
 
 class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
@@ -170,9 +171,9 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo"
 
         then:
-        output.contains """from rule
+        output.contains TextUtil.toPlatformLineSeparators("""from rule
 from all closure
-"""
+""")
     }
 
     def "can configure dependencies between generated tasks using task name"() {
