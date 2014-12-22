@@ -17,21 +17,13 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-
-import java.util.List;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Defines Platform specific operations for ComponentSpecs
  */
-@Incubating
-public interface PlatformAwareComponentSpec extends ComponentSpec{
-    /**
-     * Get the names of the targeted platforms that this component should be built for.
-     *
-     * @return the list of targeted platforms, may be empty but never null.
-     */
-    List<String> getTargetPlatforms();
-
+@Incubating @HasInternalProtocol
+public interface PlatformAwareComponentSpec extends ComponentSpec {
     /**
      * Specifies a platform that this component should be built be for.
      */

@@ -18,12 +18,11 @@ package org.gradle.play.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.play.PlayApplicationSpec;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpec {
+public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpecInternal {
     private final List<String> targetPlatforms = new ArrayList<String>();
 
     @Override

@@ -42,6 +42,7 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.PlayApplicationSpecInternal;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -143,7 +144,7 @@ public class PlayApplicationPlugin {
 
     @Finalize
     void failOnMultipleTargetPlatforms(ComponentSpecContainer container) {
-        for (PlayApplicationSpec playApplicationSpec : container.withType(PlayApplicationSpec.class)) {
+        for (PlayApplicationSpecInternal playApplicationSpec : container.withType(PlayApplicationSpecInternal.class)) {
             if (playApplicationSpec.getTargetPlatforms().size() > 1) {
                 throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
             }
@@ -183,7 +184,7 @@ public class PlayApplicationPlugin {
     }
 
     private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
-        List<String> targetPlatforms = componentSpec.getTargetPlatforms();
+        List<String> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
             targetPlatforms = Collections.singletonList(String.format("play-%s", DEFAULT_PLAY_VERSION));
         }

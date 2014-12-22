@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.play;
+package org.gradle.platform.base.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
+import java.util.List;
+
 /**
- * Definition of a play framework software component that is built by Gradle.
+ * Defines Platform specific operations for ComponentSpecs
  */
-@Incubating @HasInternalProtocol
-public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
+@Incubating
+public interface PlatformAwareComponentSpecInternal extends PlatformAwareComponentSpec {
+    /**
+     * Get the names of the targeted platforms that this component should be built for.
+     *
+     * @return the list of targeted platforms, may be empty but never null.
+     */
+    List<String> getTargetPlatforms();
 }

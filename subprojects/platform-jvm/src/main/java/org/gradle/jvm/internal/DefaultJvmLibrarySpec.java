@@ -18,15 +18,16 @@ package org.gradle.jvm.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.JvmResources;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpec, ComponentSpecInternal {
+public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<String> targets = new ArrayList<String>();
 

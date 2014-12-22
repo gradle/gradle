@@ -26,6 +26,7 @@ import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JvmLibrarySpecInternal;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -118,7 +119,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             final File binariesDir = new File(buildDir, "jars");
             final File classesDir = new File(buildDir, "classes");
 
-            List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
+            List<String> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
             if (targetPlatforms.isEmpty()) {
                 // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
                 targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
