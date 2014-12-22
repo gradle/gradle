@@ -141,7 +141,8 @@ model {
     }
     components {
         someLib(NativeLibrarySpec) {
-            targetPlatform "i386", "amd64"
+            targetPlatform "i386"
+            targetPlatform "amd64"
         }
     }
 }

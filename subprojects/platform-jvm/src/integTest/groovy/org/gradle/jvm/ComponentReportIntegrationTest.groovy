@@ -75,7 +75,9 @@ Binaries
     model {
         components {
             myLib(JvmLibrarySpec) {
-                targetPlatform "java5", "java6", "java7"
+                targetPlatform "java5"
+                targetPlatform "java6"
+                targetPlatform "java7"
             }
         }
     }
@@ -123,7 +125,9 @@ Binaries
     model {
         components {
             myLib(JvmLibrarySpec) {
-                targetPlatform "java5", "java6", "java9"
+                targetPlatform "java5"
+                targetPlatform "java6"
+                targetPlatform "java9"
             }
         }
     }

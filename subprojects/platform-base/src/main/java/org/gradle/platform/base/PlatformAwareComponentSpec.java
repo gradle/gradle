@@ -16,11 +16,14 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+
 import java.util.List;
 
 /**
  * Defines Platform specific operations for ComponentSpecs
  */
+@Incubating
 public interface PlatformAwareComponentSpec extends ComponentSpec{
     /**
      * Get the names of the targeted platforms that this component should be built for.
