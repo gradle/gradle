@@ -16,14 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.type.ModelType;
-
 public interface NamedEntityInstantiator<T> {
-
-    ModelType<T> getType();
-
-    T create(String name);
-
     <S extends T> S create(String name, Class<S> type);
-
 }

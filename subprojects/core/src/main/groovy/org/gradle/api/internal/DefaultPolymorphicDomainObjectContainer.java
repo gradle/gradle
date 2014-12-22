@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Set;
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
         implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
+    private final NamedEntityInstantiator<T> instantiator = new DefaultNamedEntityInstantiator();
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
@@ -38,6 +40,11 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type));
+    }
+
+    @Override
+    public NamedEntityInstantiator<T> getEntityInstantiator() {
+        return instantiator;
     }
 
     protected T doCreate(String name) {
@@ -105,5 +112,12 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     public Set<? extends Class<? extends T>> getCreateableTypes() {
         return ImmutableSet.copyOf(factories.keySet());
+    }
+
+    private class DefaultNamedEntityInstantiator implements NamedEntityInstantiator<T> {
+        @Override
+        public <S extends T> S create(String name, Class<S> type) {
+            return doCreate(name, type);
+        }
     }
 }

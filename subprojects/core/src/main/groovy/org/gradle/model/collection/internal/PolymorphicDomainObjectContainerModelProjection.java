@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
-import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.internal.BiAction;
@@ -76,7 +75,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemType, C container) {
-        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(new EntityInstantiator<S>(itemType, container), sourceDescriptor, node);
+        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(itemType, container.getEntityInstantiator(), container, sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, ModelType.of(itemType)).build();
@@ -113,31 +112,6 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
             sb.append("]");
         }
         return sb.toString();
-    }
-
-    static class EntityInstantiator<I> implements NamedEntityInstantiator<I> {
-
-        private final Class<I> defaultType;
-        private final ModelType<I> itemType;
-        private final PolymorphicDomainObjectContainer<? super I> container;
-
-        EntityInstantiator(Class<I> defaultType, PolymorphicDomainObjectContainer<? super I> container) {
-            this.defaultType = defaultType;
-            this.itemType = ModelType.of(defaultType);
-            this.container = container;
-        }
-
-        public ModelType<I> getType() {
-            return itemType;
-        }
-
-        public I create(String name) {
-            return container.create(name, defaultType);
-        }
-
-        public <S extends I> S create(String name, Class<S> type) {
-            return container.create(name, type);
-        }
     }
 
     public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> void bridgeNamedDomainObjectCollection(

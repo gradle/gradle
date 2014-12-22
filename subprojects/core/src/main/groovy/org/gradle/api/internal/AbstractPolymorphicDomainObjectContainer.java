@@ -39,10 +39,6 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
     }
 
-    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
-        this(type, instantiator, Named.Namer.forType(type));
-    }
-
     protected abstract <U extends T> U doCreate(String name, Class<U> type);
 
     public <U extends T> U create(String name, Class<U> type) {

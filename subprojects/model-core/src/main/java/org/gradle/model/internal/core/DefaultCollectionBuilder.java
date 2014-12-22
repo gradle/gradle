@@ -26,42 +26,51 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collection;
+
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
-
-    private final NamedEntityInstantiator<T> instantiator;
+    private final Class<T> elementType;
+    private final NamedEntityInstantiator<? super T> instantiator;
+    private final Collection<? super T> target;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
 
-    public DefaultCollectionBuilder(NamedEntityInstantiator<T> instantiator, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode) {
+    public DefaultCollectionBuilder(Class<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode) {
+        this.elementType = elementType;
         this.instantiator = instantiator;
+        this.target = target;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
     }
 
     public void create(final String name) {
-        doCreate(name, instantiator.getType(), new DefaultTypeFactory(name));
+        create(name, elementType);
     }
 
     public void create(String name, Action<? super T> configAction) {
-        doCreate(name, instantiator.getType(), configAction, new DefaultTypeFactory(name));
+        create(name, elementType, configAction);
     }
 
-    public <S extends T> void create(String name, Class<S> type) {
-        doCreate(name, ModelType.of(type), new CustomTypeFactory<S>(name, type));
-    }
-
-    public <S extends T> void create(final String name, final Class<S> type, Action<? super S> configAction) {
-        doCreate(name, ModelType.of(type), configAction, new CustomTypeFactory<S>(name, type));
-    }
-
-    private <S extends T> void doCreate(final String name, ModelType<S> type, final Action<? super S> configAction, final Factory<? extends S> factory) {
-        doCreate(name, type, new Factory<S>() {
+    public <S extends T> void create(final String name, final Class<S> type) {
+        doCreate(name, ModelType.of(type), new Factory<S>() {
             @Override
             public S create() {
-                S item = factory.create();
-                configAction.execute(item);
-                return item;
+                S element = instantiator.create(name, type);
+                target.add(element);
+                return element;
+            }
+        });
+    }
+
+    public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
+        doCreate(name, ModelType.of(type), new Factory<S>() {
+            @Override
+            public S create() {
+                S element = instantiator.create(name, type);
+                configAction.execute(element);
+                target.add(element);
+                return element;
             }
         });
     }
@@ -76,31 +85,4 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
         modelNode.addLink(ModelCreators.unmanagedInstance(ModelReference.of(modelNode.getPath().child(name), type), factory).descriptor(descriptor).build());
     }
-
-    private class CustomTypeFactory<S extends T> implements Factory<S> {
-        private final String name;
-        private final Class<S> type;
-
-        public CustomTypeFactory(String name, Class<S> type) {
-            this.name = name;
-            this.type = type;
-        }
-
-        public S create() {
-            return instantiator.create(name, type);
-        }
-    }
-
-    private class DefaultTypeFactory implements Factory<T> {
-        private final String name;
-
-        public DefaultTypeFactory(String name) {
-            this.name = name;
-        }
-
-        public T create() {
-            return instantiator.create(name);
-        }
-    }
-
 }

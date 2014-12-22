@@ -20,8 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -37,7 +35,6 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
 
     public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
         doRegister(ruleDefinition, modelRegistry, dependencies);
-
     }
 
     private <R, S extends BinarySpec> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
@@ -86,7 +83,9 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
             for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);
                 DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
+                        Task.class,
                         instantiator,
+                        container,
                         new SimpleModelRuleDescriptor("Project.<init>.tasks()"),
                         modelNode
                 );
@@ -103,17 +102,6 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
         public Instantiator(BinarySpec binarySpec, TaskContainer container) {
             this.binarySpec = binarySpec;
             this.container = container;
-        }
-
-        public ModelType<Task> getType() {
-            return ModelType.of(Task.class);
-        }
-
-        public Task create(String name) {
-            Task task = container.create(name);
-            binarySpec.builtBy(task);
-            binarySpec.getTasks().add(task);
-            return task;
         }
 
         public <U extends Task> U create(String name, Class<U> type) {

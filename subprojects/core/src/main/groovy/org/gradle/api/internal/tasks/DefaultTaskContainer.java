@@ -27,6 +27,7 @@ import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -35,7 +36,8 @@ import java.util.*;
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
-    private Map<String, Runnable> placeholders = new HashMap<String, Runnable>();
+    private final Map<String, Runnable> placeholders = new HashMap<String, Runnable>();
+    private final NamedEntityInstantiator<Task> instantiator = new TaskInstantiator();
 
     public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
@@ -157,6 +159,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return this;
     }
 
+    @Override
+    public NamedEntityInstantiator<Task> getEntityInstantiator() {
+        return instantiator;
+    }
+
     public DynamicObject getTasksAsDynamicObject() {
         return getElementsAsDynamicObject();
     }
@@ -219,5 +226,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public Set<? extends Class<? extends Task>> getCreateableTypes() {
         return Collections.singleton(getType());
+    }
+
+    private class TaskInstantiator implements NamedEntityInstantiator<Task> {
+        @Override
+        public <S extends Task> S create(String name, Class<S> type) {
+            Map<String, Object> options = new HashMap<String, Object>();
+            options.put(Task.TASK_NAME, name);
+            options.put(Task.TASK_TYPE, type);
+            return type.cast(taskFactory.createTask(options));
+        }
     }
 }

@@ -143,9 +143,36 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         expect: false
     }
 
-    @Ignore
-    def "can configure generated tasks using legacy DSL"() {
-        expect: false
+    def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @RuleSource
+            class MyPlugin {
+                @Mutate
+                void addTasks(CollectionBuilder<Task> tasks) {
+                    tasks.create("foo") {
+                        doLast { println "from rule" }
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            tasks.all {
+                doLast { println "from all closure" }
+            }
+        """
+
+        when:
+        succeeds "foo"
+
+        then:
+        output.contains """from rule
+from all closure
+"""
     }
 
     def "can configure dependencies between generated tasks using task name"() {

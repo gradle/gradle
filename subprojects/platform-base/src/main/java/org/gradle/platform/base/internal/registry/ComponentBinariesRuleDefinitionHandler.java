@@ -20,8 +20,6 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.DefaultCollectionBuilder;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -82,7 +80,9 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
                 NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(binaryType, componentSpec, binaries);
                 CollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
+                        binaryType,
                         namedEntityInstantiator,
+                        binaries,
                         new SimpleModelRuleDescriptor("Project.<init>.binaries()"),
                         modelNode);
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
@@ -106,16 +106,6 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             this.binaryType = binaryType;
             this.componentSpec = componentSpec;
             this.container = container;
-        }
-
-        public ModelType<S> getType() {
-            return ModelType.of(binaryType);
-        }
-
-        public S create(String name) {
-            S binary = container.create(name, binaryType);
-            bindBinaryToComponent(componentSpec, binary, name);
-            return binary;
         }
 
         public <U extends S> U create(String name, Class<U> type) {
