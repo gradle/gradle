@@ -258,7 +258,7 @@ public class PlayApplicationPlugin {
     }
 
     @BinaryTasks
-    void createJarTask(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
+    void createJarTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
         String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
         tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
             public void execute(Jar jar) {
