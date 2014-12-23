@@ -228,7 +228,6 @@ Binaries
         ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
     }
 
-
     String withSimpleComponentBinaries() {
         """
          class MyComponentBinariesPlugin implements Plugin<Project> {

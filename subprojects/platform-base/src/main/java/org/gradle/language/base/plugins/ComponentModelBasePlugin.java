@@ -142,17 +142,19 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-            // This is setting defaults for each component in the container. Should not be finalizing the container.
-        void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs) {
-                for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
-                    // Only apply default locations when none explicitly configured
-                    if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                        languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
+        @Mutate
+        void applyDefaultSourceConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
+            componentSpecs.finalizeAll(new Action<ComponentSpec>() {
+                @Override
+                public void execute(ComponentSpec componentSpec) {
+                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
+                        // Only apply default locations when none explicitly configured
+                        if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                            languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
+                        }
                     }
                 }
-            }
+            });
         }
 
         // TODO:DAZ Work out why this is required
