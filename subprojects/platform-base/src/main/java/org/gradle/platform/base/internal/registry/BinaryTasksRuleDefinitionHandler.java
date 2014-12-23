@@ -45,8 +45,7 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             dependencies.add(ComponentModelBasePlugin.class);
 
-            final ModelReference<TaskContainer> tasks = ModelReference.of(ModelPath.path("tasks"), new ModelType<TaskContainer>() {
-            });
+            ModelReference<TaskContainer> tasks = ModelReference.of(ModelPath.path("tasks"), ModelType.of(TaskContainer.class));
 
             modelRegistry.mutate(new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition));
 

@@ -41,11 +41,10 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
 
-            final Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
-            final Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
+            Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
+            Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
             dependencies.add(ComponentModelBasePlugin.class);
-            final ModelReference<BinaryContainer> subject = ModelReference.of(ModelPath.path("binaries"), new ModelType<BinaryContainer>() {
-            });
+            ModelReference<BinaryContainer> subject = ModelReference.of(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
 
             configureMutationRule(modelRegistry, subject, componentType, binaryType, ruleDefinition);
         } catch (InvalidModelException e) {
@@ -78,7 +77,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
-                NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(binaryType, componentSpec, binaries);
+                NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(componentSpec, binaries);
                 CollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
                         binaryType,
                         namedEntityInstantiator,
@@ -98,12 +97,10 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
     }
 
     private class Instantiator<S extends BinarySpec> implements NamedEntityInstantiator<S> {
-        private final Class<S> binaryType;
         private final ComponentSpec componentSpec;
         private final BinaryContainer container;
 
-        public Instantiator(Class<S> binaryType, ComponentSpec componentSpec, BinaryContainer container) {
-            this.binaryType = binaryType;
+        public Instantiator(ComponentSpec componentSpec, BinaryContainer container) {
             this.componentSpec = componentSpec;
             this.container = container;
         }
