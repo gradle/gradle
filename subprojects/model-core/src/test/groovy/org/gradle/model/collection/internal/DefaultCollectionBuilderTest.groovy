@@ -74,16 +74,17 @@ class DefaultCollectionBuilderTest extends Specification {
         registry.node(containerPath)
     }
 
-    def "simple create"() {
+    def "can define an item with name"() {
         when:
         mutate { it.create("foo") }
 
         then:
+        container.getByName("foo") != null
         registry.get(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
     }
 
     @Ignore
-    def "does not eagerly create"() {
+    def "does not eagerly create item"() {
         when:
         mutate {
             it.create("foo")
@@ -100,7 +101,7 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("bar")
     }
 
-    def "registers as custom type"() {
+    def "can define item with custom type"() {
         when:
         mutate { it.create("foo", SpecialNamedThing) }
         registry.node(containerPath.child("foo"))
@@ -135,4 +136,20 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("foo").other == "changed"
     }
 
+    def "can register mutate rule for all items"() {
+        when:
+        mutate {
+            it.all {
+                assert it.other == "original"
+                it.other = "changed"
+            }
+            it.create("foo") {
+                it.other = "original"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "changed"
+    }
 }

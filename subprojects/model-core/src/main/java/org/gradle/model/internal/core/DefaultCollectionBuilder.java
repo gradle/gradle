@@ -27,6 +27,8 @@ import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
@@ -84,5 +86,38 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         }));
 
         modelNode.addLink(ModelCreators.unmanagedInstance(ModelReference.of(modelNode.getPath().child(name), type), factory).descriptor(descriptor).build());
+    }
+
+    @Override
+    public void all(final Action<? super T> configAction) {
+        final ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
+            @Override
+            protected void doExecute(Appendable thing) throws Exception {
+                thing.append("all()");
+            }
+        }));
+        final ModelReference<T> subject = ModelReference.of(elementType);
+
+        modelNode.mutateAllLinks(new ModelMutator<T>() {
+            @Override
+            public ModelReference<T> getSubject() {
+                return subject;
+            }
+
+            @Override
+            public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
+                configAction.execute(object);
+            }
+
+            @Override
+            public List<ModelReference<?>> getInputs() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public ModelRuleDescriptor getDescriptor() {
+                return descriptor;
+            }
+        });
     }
 }

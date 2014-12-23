@@ -28,7 +28,7 @@ import org.gradle.api.Incubating;
 public interface CollectionBuilder<T> {
 
     /**
-     * Creates an item with the given name and type T
+     * Defines an item with the given name and type T
      *
      * @param name The name.
      */
@@ -36,7 +36,7 @@ public interface CollectionBuilder<T> {
     void create(String name);
 
     /**
-     * Creates an item with the given name and type T.
+     * Defines an item with the given name and type T. The given action is used to initialise the item.
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
@@ -45,7 +45,7 @@ public interface CollectionBuilder<T> {
     void create(String name, Action<? super T> configAction);
 
     /**
-     * Creates an item with the given name and type.
+     * Defines an item with the given name and type.
      *
      * @param name The name.
      */
@@ -53,7 +53,7 @@ public interface CollectionBuilder<T> {
     <S extends T> void create(String name, Class<S> type);
 
     /**
-     * Creates an item with the given name and type.
+     * Defines an item with the given name and type. The given action is used to initialise the item.
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
@@ -61,4 +61,8 @@ public interface CollectionBuilder<T> {
     // TODO - exception when type cannot be created
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
+    /**
+     * Apply the given action to all items in the collection.
+     */
+    void all(Action<? super T> configAction);
 }

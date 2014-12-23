@@ -75,6 +75,12 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
             rawInstance.create(name, type, configAction);
         }
 
+        @Override
+        public void all(Action<? super T> configAction) {
+            assertNotClosed();
+            rawInstance.all(configAction);
+        }
+
         private void assertNotClosed() {
             if (closed) {
                 throw new ModelViewClosedException(type, ruleDescriptor);

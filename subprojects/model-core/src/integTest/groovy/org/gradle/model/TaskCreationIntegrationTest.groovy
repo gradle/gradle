@@ -66,15 +66,11 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "b - task b"
     }
 
-    def "can configure generated tasks using rule DSL"() {
+    def "can configure tasks using rule DSL"() {
         given:
         buildScript """
             import org.gradle.model.*
             import org.gradle.model.collection.*
-
-            class MyTasks {
-                List<String> tasks = []
-            }
 
             class MyMessage {
                 String message
@@ -92,27 +88,17 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             @RuleSource
             class MyPlugin {
                 @Model
-                MyTasks myTasks() {
-                    new MyTasks()
-                }
-
-                @Model
                 MyMessage myMessage() {
                     new MyMessage()
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks, MyTasks myTasks) {
-                    myTasks.tasks.each { n ->
+                void addTasks(CollectionBuilder<Task> tasks, MyMessage myMessage) {
+                    ['foo', 'bar'].each { n ->
                         tasks.create(n, MessageTask) {
-                          description = "task \$n"
+                            message = myMessage.message
                         }
                     }
-                }
-
-                @Mutate
-                void configureFoo(@Path("tasks.foo") MessageTask task, MyMessage myMessage) {
-                    task.message = myMessage.message
                 }
             }
 
@@ -121,9 +107,6 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             model {
                 tasks.bar {
                     message = "custom message!"
-                }
-                myTasks {
-                    tasks << "foo" << "bar"
                 }
                 myMessage {
                     message = "model message!"
@@ -137,6 +120,123 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains "foo message: model message!"
         output.contains "bar message: custom message!"
+    }
+
+    def "can configure tasks using mutate rule method"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyMessage {
+                String message
+            }
+
+            class MessageTask extends DefaultTask {
+                String message = "default"
+
+                @TaskAction
+                void printMessages() {
+                    println "\$name message: \$message"
+                }
+            }
+
+            @RuleSource
+            class MyPlugin {
+                @Model
+                MyMessage myMessage() {
+                    new MyMessage()
+                }
+
+                @Mutate
+                void customMessage(@Path('tasks.bar') MessageTask task) {
+                    task.message = 'custom message!'
+                }
+
+                @Mutate
+                void addTasks(CollectionBuilder<Task> tasks, MyMessage myMessage) {
+                    ['foo', 'bar'].each { n ->
+                        tasks.create(n, MessageTask) {
+                            message = myMessage.message
+                        }
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            model {
+                myMessage {
+                    message = "model message!"
+                }
+            }
+        """
+
+        when:
+        succeeds "foo", "bar"
+
+        then:
+        output.contains "foo message: model message!"
+        output.contains "bar message: custom message!"
+    }
+
+    def "can apply mutate rule to all tasks"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            class MyMessage {
+                String message
+            }
+
+            class MessageTask extends DefaultTask {
+                String message = "default"
+
+                @TaskAction
+                void printMessages() {
+                    println "\$name message: \$message"
+                }
+            }
+
+            @RuleSource
+            class MyPlugin {
+                @Model
+                MyMessage myMessage() {
+                    new MyMessage()
+                }
+
+                @Mutate
+                void addTasks(CollectionBuilder<MessageTask> tasks) {
+                    ['foo', 'bar'].each { n ->
+                        tasks.create(n, MessageTask)
+                    }
+
+                }
+
+                @Mutate
+                void applyMessages(CollectionBuilder<MessageTask> tasks, MyMessage myMessage) {
+                    tasks.all {
+                        message = myMessage.message
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            model {
+                myMessage {
+                    message = "model message!"
+                }
+            }
+        """
+
+        when:
+        succeeds "foo", "bar"
+
+        then:
+        output.contains "foo message: model message!"
+        output.contains "bar message: model message!"
     }
 
     @Ignore
@@ -176,7 +276,7 @@ from all closure
 """)
     }
 
-    def "can configure dependencies between generated tasks using task name"() {
+    def "can configure dependencies between tasks using task name"() {
         given:
         buildScript """
             import org.gradle.model.*
