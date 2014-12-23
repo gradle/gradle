@@ -199,8 +199,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         Instantiator instantiator = getServices().get(Instantiator.class);
 
-        PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
-                modelRegistry,
+        modelRegistry.create(PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
                 instantiator,
                 ModelType.of(TaskContainerInternal.class),
                 ModelType.of(TaskContainer.class),
@@ -214,7 +213,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         return "Project.<init>.tasks." + s + "()";
                     }
                 }
-        );
+        ));
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {

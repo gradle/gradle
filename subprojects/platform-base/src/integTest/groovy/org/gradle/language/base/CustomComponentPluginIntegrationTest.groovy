@@ -47,8 +47,70 @@ task checkModel << {
     assert sampleLib instanceof SampleComponent
     assert sampleLib.projectPath == project.path
     assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+    assert sampleLib.version == null
 }
 """
+        then:
+        succeeds "checkModel"
+    }
+
+    def "can configure component declared by model rule method using model rules DSL"() {
+        when:
+        buildWithCustomComponentPlugin()
+
+        and:
+        buildFile << """
+model {
+    components {
+        sampleLib {
+            version = '12'
+        }
+    }
+}
+task checkModel << {
+    def sampleLib = project.componentSpecs.sampleLib
+    assert sampleLib.version == '12'
+}
+"""
+
+        then:
+        succeeds "checkModel"
+    }
+
+    def "can configure component declared by model rule DSL using model rule method"() {
+        when:
+        buildFile << """
+            @RuleSource
+            class MySamplePlugin {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleComponent> builder) {
+                    builder.defaultImplementation(DefaultSampleComponent)
+                }
+
+                @Mutate
+                void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
+                    componentSpecs.finalizeAll {
+                        version += ".1"
+                    }
+                }
+            }
+
+            apply plugin:MySamplePlugin
+
+            model {
+                components {
+                    sampleLib(SampleComponent) {
+                        version = '12'
+                    }
+                }
+            }
+
+            task checkModel << {
+                def sampleLib = project.componentSpecs.sampleLib
+                assert sampleLib.version == '12.1'
+            }
+"""
+
         then:
         succeeds "checkModel"
     }

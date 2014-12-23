@@ -40,6 +40,11 @@ public interface MutableModelNode {
     MutableModelNode addLink(ModelCreator creator);
 
     /**
+     * Removes an element linked from this element from the graph.
+     */
+    void removeLink(String name);
+
+    /**
      * Adds a mutator to all elements linked from this element.
      */
     <T> void mutateAllLinks(ModelMutator<T> mutator);

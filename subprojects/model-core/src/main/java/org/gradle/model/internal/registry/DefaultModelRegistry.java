@@ -548,6 +548,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public void removeLink(String name) {
+            remove(getPath().child(name));
+        }
+
+        @Override
         public <T> T getPrivateData(ModelType<T> type) {
             return node.getPrivateData(type);
         }
