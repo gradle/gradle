@@ -596,22 +596,21 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return rule == excludeRuleSpec.rule;
         }
 
-        public boolean acceptModule(ModuleIdentifier element) {
+        public boolean acceptModule(ModuleIdentifier module) {
             ArtifactId ruleArtifactId = rule.getId();
             ModuleIdentifier ruleModuleId = new DefaultModuleIdentifier(ruleArtifactId.getModuleId().getOrganisation(), ruleArtifactId.getModuleId().getName());
-            ModuleIdentifier moduleId = new DefaultModuleIdentifier(element.getGroup(), element.getName());
-            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), ruleModuleId, moduleId);
+            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), ruleModuleId, module);
             return !(matchesRule
                     && MatcherHelper.matchesAnyExpression(ruleArtifactId.getName())
                     && MatcherHelper.matchesAnyExpression(ruleArtifactId.getType())
                     && MatcherHelper.matchesAnyExpression(ruleArtifactId.getExt()));
         }
 
-        public boolean acceptArtifact(ModuleIdentifier id, IvyArtifactName artifact) {
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             ArtifactId ruleArtifactId = rule.getId();
             ModuleIdentifier ruleModuleId = new DefaultModuleIdentifier(ruleArtifactId.getModuleId().getOrganisation(), ruleArtifactId.getModuleId().getName());
             IvyArtifactName ruleIvyArtifactName = new DefaultIvyArtifactName(ruleArtifactId.getName(), ruleArtifactId.getType(), ruleArtifactId.getExt());
-            return !(MatcherHelper.matches(rule.getMatcher(), ruleModuleId, id)
+            return !(MatcherHelper.matches(rule.getMatcher(), ruleModuleId, module)
                     && MatcherHelper.matches(rule.getMatcher(), ruleIvyArtifactName, artifact));
         }
     }
