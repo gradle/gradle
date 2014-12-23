@@ -169,4 +169,48 @@ task retrieve(type: Sync) {
         then:
         file('libs').assertHasDescendants("projectA-1.2.jar")
     }
+
+    @Ignore
+    @Issue("https://issues.gradle.org/browse/GRADLE-3216")
+    def "handles changing module with latest.release"() {
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile group: "org.test", name: "projectA", version: "latest.release", changing: true
+}
+
+configurations.all {
+    resolutionStrategy {
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        and:
+        ivyHttpRepo.directoryList('org.test', 'projectA').allowGet()
+        ivyHttpRepo.module('org.test', 'projectA', '1.2').withStatus("release").publish().allowAll()
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.2.jar")
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.2.jar")
+    }
 }
