@@ -87,7 +87,6 @@ model {
 
         apply plugin:CustomComponentPlugin
 
-
         model {
             components {
                 main {
