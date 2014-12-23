@@ -576,11 +576,25 @@ The initial target for this functionality will be to replace the `PlatformContai
 6. Push `chooseFromTargets` implementation out to static method
 7. Remove PlatformContainerInternal
 
+## Feature: Tasks defined using `CollectionBuilder` are not eagerly created and configured
+
+### Plugin uses `CollectionBuilder` API to apply rules to container elements
+
+- Register type factories with containers before elements are defined.
+    - Separate out a type registry from the containers and share this.
+- Expose a `CollectionBuilder` view for all model elements of type `PolymorphicDomainObjectContainer`.
+
+### Build script author uses DSL to apply rules to container elements
+
+- Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
+
 ### Tasks defined using `CollectionBuilder` are not eagerly created and configured
 
 - Change `DefaultCollectionBuilder` implementation to register a creation rule rather than eagerly instantiating and configuring.
     - Verify construction and initialisation action is deferred, but happens before mutate rules when target is used as input.
-    - Verify initialisation action happens before `project.tasks.all { }` action.
+    - Verify initialisation action happens before `project.tasks.all { }` and `project.tasks.$name { }` actions.
+- Attempt to discover an unknown node by closing its parent.
+- Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
 
 ### Support for managed container of tasks
 
@@ -595,7 +609,6 @@ The initial target for this functionality will be to replace the `PlatformContai
 - Mix in the DSL conveniences into the managed collections and managed objects, don't reuse the existing decorator.
 - Allow a `ManagedMap` to be added to model space by a `@Model` rule.
 - Synchronisation back to `TaskContainer`, so that `project.tasks.all { }` and `project.tasks { $name { } }` works.
-- Add support for any `PolymorphicDomainObjectContainer`
 
 ### Support for managed container of source sets
 
