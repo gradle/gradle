@@ -18,12 +18,12 @@ package org.gradle.model.internal.manage.state
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory
-import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator
 import org.gradle.model.internal.manage.instance.ManagedModelElement
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.instance.UnexpectedModelPropertyTypeException
+import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 

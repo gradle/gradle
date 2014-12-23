@@ -23,7 +23,9 @@ dependencies {
     compile libraries.slf4j_api
     compile project(':baseServicesGroovy')
     compile libraries.commons_lang
+    compile libraries.commons_collections
     compile libraries.jcip
+    compile libraries.asm
 
     testCompile libraries.groovy
 

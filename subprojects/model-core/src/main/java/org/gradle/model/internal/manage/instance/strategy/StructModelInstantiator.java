@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.instance.strategy;
 
-import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedModelElement;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelInstantiator;
@@ -35,7 +34,7 @@ public class StructModelInstantiator implements ModelInstantiatorStrategy {
         if (schema.getKind().equals(ModelSchema.Kind.STRUCT)) {
             Class<T> concreteType = schema.getType().getConcreteClass();
             ManagedModelElement<T> element = new ManagedModelElement<T>(schema, schemaStore, instantiator);
-            return proxyFactory.createProxy(element.getState(), concreteType.getClassLoader(), concreteType, ManagedInstance.class);
+            return proxyFactory.createProxy(element.getState(), concreteType);
         } else {
             return null;
         }

@@ -20,13 +20,13 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
-class WildcardTypeImpl implements WildcardType, TypeWrapper {
+class WildcardTypeWrapper implements WildcardType, TypeWrapper {
 
     private final TypeWrapper[] upperBounds;
     private final TypeWrapper[] lowerBounds;
     private final int hashCode;
 
-    public WildcardTypeImpl(TypeWrapper[] upperBounds, TypeWrapper[] lowerBounds, int hashCode) {
+    public WildcardTypeWrapper(TypeWrapper[] upperBounds, TypeWrapper[] lowerBounds, int hashCode) {
         this.upperBounds = upperBounds;
         this.lowerBounds = lowerBounds;
         this.hashCode = hashCode;

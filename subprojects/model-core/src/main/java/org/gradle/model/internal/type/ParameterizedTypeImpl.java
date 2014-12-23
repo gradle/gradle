@@ -16,120 +16,62 @@
 
 package org.gradle.model.internal.type;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 
-class ParameterizedTypeImpl implements ParameterizedType, TypeWrapper {
+public class ParameterizedTypeImpl implements ParameterizedType {
 
-    private final TypeWrapper[] actualTypeArguments;
-    private final TypeWrapper rawType;
-    private final TypeWrapper ownerType;
-    private final int hashCode;
+    private final Type rawType;
+    private final Type ownerType;
+    private final Type[] actualTypeArguments;
 
-    public ParameterizedTypeImpl(TypeWrapper[] actualTypeArguments, TypeWrapper rawType, TypeWrapper ownerType, int hashCode) {
-        this.actualTypeArguments = actualTypeArguments;
+    public ParameterizedTypeImpl(Type rawType, Type ownerType, Type[] actualTypeArguments) {
         this.rawType = rawType;
         this.ownerType = ownerType;
-        this.hashCode = hashCode;
+        this.actualTypeArguments = actualTypeArguments;
     }
 
     @Override
     public Type[] getActualTypeArguments() {
-        return ModelType.unwrap(actualTypeArguments);
+        return actualTypeArguments;
     }
 
     @Override
     public Type getRawType() {
-        return rawType.unwrap();
+        return rawType;
     }
 
     @Override
     public Type getOwnerType() {
-        return ownerType.unwrap();
-    }
-
-    @Override
-    public Type unwrap() {
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof ParameterizedType) {
-            ParameterizedType that = (ParameterizedType) o;
-            if (this == that) {
-                return true;
-            } else {
-                Type ownerType = getOwnerType();
-                Type rawType = getRawType();
-                Type thatOwner = that.getOwnerType();
-                Type thatRawType = that.getRawType();
-                return (ownerType == null ? thatOwner == null : ownerType.equals(thatOwner))
-                        && (rawType == null ? thatRawType == null : rawType.equals(thatRawType))
-                        && Arrays.equals(getActualTypeArguments(), that.getActualTypeArguments());
-            }
-        } else {
-            return false;
-        }
+        return ownerType;
     }
 
     @Override
     public int hashCode() {
-        return hashCode;
+        return new HashCodeBuilder()
+                .append(rawType)
+                .append(ownerType)
+                .append(actualTypeArguments)
+                .toHashCode();
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        Type ownerType = getOwnerType();
-        Class<?> rawType = (Class<?>) getRawType();
-        if (ownerType != null) {
-            if (ownerType instanceof Class) {
-                sb.append(((Class) ownerType).getName());
-            } else {
-                sb.append(ownerType.toString());
-            }
-
-            sb.append(".");
-
-            if (ownerType instanceof ParameterizedTypeImpl) {
-                // Find simple name of nested type by removing the
-                // shared prefix with owner.
-                Class<?> ownerRaw = (Class<?>) ((ParameterizedTypeImpl) ownerType).rawType.unwrap();
-                sb.append(rawType.getName().replace(ownerRaw.getName() + "$",
-                        ""));
-            } else {
-                sb.append(rawType.getName());
-            }
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof ParameterizedType) {
+            ParameterizedType other = (ParameterizedType) obj;
+            return new EqualsBuilder()
+                    .append(rawType, other.getRawType())
+                    .append(ownerType, other.getOwnerType())
+                    .append(actualTypeArguments, other.getActualTypeArguments())
+                    .isEquals();
         } else {
-            sb.append(rawType.getName());
+            return false;
         }
-
-        Type[] actualTypeArguments = getActualTypeArguments();
-        if (actualTypeArguments != null && actualTypeArguments.length > 0) {
-            sb.append("<");
-            boolean first = true;
-            for (Type t : actualTypeArguments) {
-                if (!first) {
-                    sb.append(", ");
-                }
-                if (t instanceof Class) {
-                    sb.append(((Class) t).getName());
-                } else {
-                    sb.append(t.toString());
-                }
-                first = false;
-            }
-            sb.append(">");
-        }
-
-        return sb.toString();
-    }
-
-    @Override
-    public String getRepresentation() {
-        return toString();
     }
 }

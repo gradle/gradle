@@ -50,7 +50,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
             public M getInstance() {
                 Class<M> clazz = getType().getConcreteClass(); // safe because we know schema must be of a concrete type
-                return proxyFactory.createProxy(new State(), clazz.getClassLoader(), clazz, ManagedInstance.class);
+                return proxyFactory.createProxy(new State(), clazz);
             }
 
             public void close() {

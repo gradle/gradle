@@ -317,7 +317,7 @@ public abstract class ModelType<T> {
             return new ClassTypeWrapper((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            return new ParameterizedTypeImpl(
+            return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
                     wrap(parameterizedType.getRawType()),
                     wrap(parameterizedType.getOwnerType()),
@@ -325,7 +325,7 @@ public abstract class ModelType<T> {
             );
         } else if (type instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) type;
-            return new WildcardTypeImpl(
+            return new WildcardTypeWrapper(
                     toWrappers(wildcardType.getUpperBounds()),
                     toWrappers(wildcardType.getLowerBounds()),
                     type.hashCode()
