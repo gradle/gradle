@@ -196,13 +196,20 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                         message = myMessage.message
                     }
                 }
+
+                @Mutate
+                void cleanupMessages(CollectionBuilder<MessageTask> tasks) {
+                    tasks.finalizeAll {
+                        message += " message!"
+                    }
+                }
             }
 
             apply type: MyPlugin
 
             model {
                 myMessage {
-                    message = "model message!"
+                    message = "model"
                 }
             }
         """

@@ -44,6 +44,11 @@ public interface MutableModelNode {
      */
     <T> void mutateAllLinks(ModelMutator<T> mutator);
 
+    /**
+     * Adds a finalizer to all elements linked from this element.
+     */
+    <T> void finalizeAllLinks(ModelMutator<T> mutator);
+
     @Nullable
     MutableModelNode getLink(String name);
 

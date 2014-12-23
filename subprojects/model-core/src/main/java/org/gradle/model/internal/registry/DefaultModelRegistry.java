@@ -36,7 +36,10 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
@@ -490,6 +493,15 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> void mutateAllLinks(final ModelMutator<T> mutator) {
+            allLinks(mutator, mutators);
+        }
+
+        @Override
+        public <T> void finalizeAllLinks(ModelMutator<T> mutator) {
+            allLinks(mutator, finalizers);
+        }
+
+        private <T> void allLinks(final ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators1) {
             if (mutator.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Mutator must have null path.");
             }
@@ -498,7 +510,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 @Override
                 public boolean onCreate(ModelCreation registration) {
                     if (node.getPath().equals(registration.getPath().getParent())) {
-                        bind(ModelReference.of(registration.getPath(), mutator.getSubject().getType()), mutator, mutators);
+                        bind(ModelReference.of(registration.getPath(), mutator.getSubject().getType()), mutator, mutators1);
                     }
                     return false;
                 }

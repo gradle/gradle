@@ -65,4 +65,9 @@ public interface CollectionBuilder<T> {
      * Apply the given action to all items in the collection.
      */
     void all(Action<? super T> configAction);
+
+    /**
+     * Apply the given action to all items in the collection.
+     */
+    void finalizeAll(Action<? super T> configAction);
 }

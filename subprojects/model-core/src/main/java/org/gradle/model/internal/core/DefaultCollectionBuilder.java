@@ -90,34 +90,57 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void all(final Action<? super T> configAction) {
-        final ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
                 thing.append("all()");
             }
         }));
-        final ModelReference<T> subject = ModelReference.of(elementType);
+        ModelReference<T> subject = ModelReference.of(elementType);
+        modelNode.mutateAllLinks(new ActionBackedMutateRule<T>(subject, configAction, descriptor));
+    }
 
-        modelNode.mutateAllLinks(new ModelMutator<T>() {
+    @Override
+    public void finalizeAll(Action<? super T> configAction) {
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
-            public ModelReference<T> getSubject() {
-                return subject;
+            protected void doExecute(Appendable thing) throws Exception {
+                thing.append("all()");
             }
+        }));
+        ModelReference<T> subject = ModelReference.of(elementType);
+        modelNode.finalizeAllLinks(new ActionBackedMutateRule<T>(subject, configAction, descriptor));
+    }
 
-            @Override
-            public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
-                configAction.execute(object);
-            }
+    private class ActionBackedMutateRule<T> implements ModelMutator<T> {
+        private final ModelReference<T> subject;
+        private final Action<? super T> configAction;
+        private final ModelRuleDescriptor descriptor;
 
-            @Override
-            public List<ModelReference<?>> getInputs() {
-                return Collections.emptyList();
-            }
+        public ActionBackedMutateRule(ModelReference<T> subject, Action<? super T> configAction, ModelRuleDescriptor descriptor) {
+            this.subject = subject;
+            this.configAction = configAction;
+            this.descriptor = descriptor;
+        }
 
-            @Override
-            public ModelRuleDescriptor getDescriptor() {
-                return descriptor;
-            }
-        });
+        @Override
+        public ModelReference<T> getSubject() {
+            return subject;
+        }
+
+        @Override
+        public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
+            configAction.execute(object);
+        }
+
+        @Override
+        public List<ModelReference<?>> getInputs() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public ModelRuleDescriptor getDescriptor() {
+            return descriptor;
+        }
     }
 }

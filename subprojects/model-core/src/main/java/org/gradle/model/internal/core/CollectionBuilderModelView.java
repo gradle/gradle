@@ -55,21 +55,25 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
     }
 
     public class Decorator implements CollectionBuilder<T> {
+        @Override
         public void create(String name) {
             assertNotClosed();
             rawInstance.create(name);
         }
 
+        @Override
         public void create(String name, Action<? super T> configAction) {
             assertNotClosed();
             rawInstance.create(name, configAction);
         }
 
+        @Override
         public <S extends T> void create(String name, Class<S> type) {
             assertNotClosed();
             rawInstance.create(name, type);
         }
 
+        @Override
         public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
             rawInstance.create(name, type, configAction);
@@ -79,6 +83,12 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         public void all(Action<? super T> configAction) {
             assertNotClosed();
             rawInstance.all(configAction);
+        }
+
+        @Override
+        public void finalizeAll(Action<? super T> configAction) {
+            assertNotClosed();
+            rawInstance.finalizeAll(configAction);
         }
 
         private void assertNotClosed() {
