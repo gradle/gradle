@@ -21,13 +21,25 @@ import org.gradle.util.TextUtil
 import spock.lang.Ignore
 
 class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
-
-    def "can create tasks from model"() {
-        given:
-        buildScript """
+    def setup() {
+        buildFile << """
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
+            class MessageTask extends DefaultTask {
+                String message = "default"
+
+                @TaskAction
+                void printMessages() {
+                    println "\$name message: \$message"
+                }
+            }
+"""
+    }
+
+    def "can create tasks from model"() {
+        given:
+        buildFile << """
             class MyModel {
                 List<String> tasks = []
             }
@@ -68,21 +80,9 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure tasks using rule DSL"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             class MyMessage {
                 String message
-            }
-
-            class MessageTask extends DefaultTask {
-                String message = "default"
-
-                @TaskAction
-                void printMessages() {
-                    println "\$name message: \$message"
-                }
             }
 
             @RuleSource
@@ -124,21 +124,9 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure tasks using mutate rule method"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             class MyMessage {
                 String message
-            }
-
-            class MessageTask extends DefaultTask {
-                String message = "default"
-
-                @TaskAction
-                void printMessages() {
-                    println "\$name message: \$message"
-                }
             }
 
             @RuleSource
@@ -182,21 +170,9 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply mutate rule to all tasks"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             class MyMessage {
                 String message
-            }
-
-            class MessageTask extends DefaultTask {
-                String message = "default"
-
-                @TaskAction
-                void printMessages() {
-                    println "\$name message: \$message"
-                }
             }
 
             @RuleSource
@@ -239,17 +215,36 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "bar message: model message!"
     }
 
-    @Ignore
     def "tasks created using legacy DSL are visible to rules"() {
-        expect: false
+        given:
+        buildFile << """
+            @RuleSource
+            class MyPlugin {
+                @Mutate
+                void applyMessages(CollectionBuilder<MessageTask> tasks) {
+                    tasks.all {
+                        message += " message!"
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+
+            task foo(type: MessageTask) { message = 'custom' }
+            task bar(type: MessageTask)
+        """
+
+        when:
+        succeeds "foo", "bar"
+
+        then:
+        output.contains "foo message: custom message!"
+        output.contains "bar message: default message!"
     }
 
     def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             @RuleSource
             class MyPlugin {
                 @Mutate
@@ -278,10 +273,7 @@ from all closure
 
     def "can configure dependencies between tasks using task name"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             @RuleSource
             class MyPlugin {
                 @Mutate
@@ -310,10 +302,7 @@ from all closure
     @Ignore
     def "task instantiation and configuration is deferred until required"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             class SomeTask extends DefaultTask {
                 SomeTask() { println "\$name created" }
             }
@@ -349,10 +338,7 @@ foo configured
 
     def "two rules attempt to create task"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             class MyModel {
                 List<String> tasks = []
             }
@@ -403,10 +389,7 @@ foo configured
     @Ignore
     def "cannot create tasks during config of task"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             @RuleSource
             class MyPlugin {
                 @Mutate
@@ -430,10 +413,7 @@ foo configured
 
     def "failure during task instantiation is reasonably reported"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             class Faulty extends DefaultTask {
                 Faulty() {
                     throw new RuntimeException("!")
@@ -461,10 +441,7 @@ foo configured
 
     def "failure during task initial configuration is reasonably reported"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             @RuleSource
             class MyPlugin {
                 @Mutate
@@ -488,10 +465,7 @@ foo configured
 
     def "failure during task configuration is reasonably reported"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             @RuleSource
             class MyPlugin {
                 @Mutate
@@ -515,14 +489,12 @@ foo configured
         then:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(17)
+        failure.assertHasLineNumber(26)
     }
 
     def "task created in afterEvaluate() is visible to rules"() {
         when:
-        buildScript '''
-            import org.gradle.model.*
-
+        buildFile << '''
             @RuleSource
             class MyPlugin {
                 @Mutate
@@ -556,10 +528,7 @@ foo configured
 
     def "registering a creation rule for a task that already exists"() {
         when:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildFile << """
             @RuleSource
             class MyPlugin {
                 @Mutate
