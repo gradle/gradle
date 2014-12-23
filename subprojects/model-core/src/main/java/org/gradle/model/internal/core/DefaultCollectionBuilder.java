@@ -97,7 +97,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.mutateAllLinks(new ActionBackedMutateRule<T>(subject, configAction, descriptor));
+        modelNode.mutateAllLinks(MutationType.Mutate, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
     }
 
     @Override
@@ -109,7 +109,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.finalizeAllLinks(new ActionBackedMutateRule<T>(subject, configAction, descriptor));
+        modelNode.mutateAllLinks(MutationType.Finalize, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
     }
 
     private class ActionBackedMutateRule<T> implements ModelMutator<T> {

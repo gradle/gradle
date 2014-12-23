@@ -92,7 +92,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("foo", Integer, 12))
-        registry.mutate(nodeMutator("foo", Integer, mutatorAction))
+        registry.mutate(MutationType.Mutate, nodeMutator("foo", Integer, mutatorAction))
         mutatorAction.execute(_) >> { MutableModelNode node ->
             node.addLink(creator("foo.bar", Integer, 12))
             node.addLink(creator("foo.bar", Integer, 12))
@@ -152,7 +152,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(creator("bar", String, "foo.child", creatorAction))
         registry.create(creator("foo", Integer, 12))
-        registry.mutate(nodeMutator("foo", Integer, mutatorAction))
+        registry.mutate(MutationType.Mutate, nodeMutator("foo", Integer, mutatorAction))
         mutatorAction.execute(_) >> { MutableModelNode node -> node.addLink(creator("foo.child", Integer, 12)) }
         creatorAction.transform(12) >> "[12]"
 
@@ -166,16 +166,25 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("foo", Bean, new Bean(), action))
-        registry.mutate(mutator("foo", Bean, action))
-        registry.finalize(mutator("foo", Bean, action))
+        registry.mutate(MutationType.Mutate, mutator("foo", Bean, action))
+        registry.mutate(MutationType.Finalize, mutator("foo", Bean, action))
 
         when:
         registry.get(ModelPath.path("foo"), ModelType.of(Bean))
 
         then:
-        1 * action.execute(_) >> { Bean bean -> bean.value = "creator" }
-        1 * action.execute(_) >> { Bean bean -> bean.value = "mutator" }
-        1 * action.execute(_) >> { Bean bean -> bean.value = "finalizer" }
+        1 * action.execute(_) >> { Bean bean ->
+            assert bean.value == null
+            bean.value = "creator"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            assert bean.value == "creator"
+            bean.value = "mutator"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            assert bean.value == "mutator"
+            bean.value = "finalizer"
+        }
         0 * action._
 
         when:
@@ -190,7 +199,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("foo", Bean, new Bean()))
-        registry.mutate(nodeMutator("foo", Bean, action))
+        registry.mutate(MutationType.Mutate, nodeMutator("foo", Bean, action))
 
         when:
         registry.get(ModelPath.path("foo"), ModelType.of(Bean))
@@ -208,7 +217,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.create(creator("foo", Integer, 12))
         registry.get(ModelPath.path("foo"), ModelType.untyped())
         registry.create(creator("bar", Bean, new Bean()))
-        registry.mutate(mutator("bar", Bean, Integer, action))
+        registry.mutate(MutationType.Mutate, mutator("bar", Bean, Integer, action))
         action.execute(_, 12) >> { bean, value -> bean.value = "[12]" }
 
         expect:
@@ -221,7 +230,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(creator("foo", Integer, 12))
         registry.create(creator("bar", Bean, new Bean()))
-        registry.mutate(mutator("bar", Bean, Integer, action))
+        registry.mutate(MutationType.Mutate, mutator("bar", Bean, Integer, action))
         action.execute(_, 12) >> { bean, value -> bean.value = "[12]" }
 
         expect:
@@ -233,7 +242,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("bar", Bean, new Bean()))
-        registry.mutate(mutator("bar", Bean, Integer, action))
+        registry.mutate(MutationType.Mutate, mutator("bar", Bean, Integer, action))
         registry.create(creator("foo", Integer, 12))
         action.execute(_, 12) >> { bean, value -> bean.value = "[12]" }
 
@@ -248,7 +257,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateAllLinks(mutator(null, Bean, String, mutatorAction))
+            node.mutateAllLinks(MutationType.Mutate, mutator(null, Bean, String, mutatorAction))
             node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }

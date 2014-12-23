@@ -68,7 +68,7 @@ public class ModelRegistryHelper {
     public <T> ModelRegistryHelper configure(final String modelPathString, final ModelType<T> type, final Action<? super T> configurer) {
         final ModelPath modelPath = ModelPath.validatedPath(modelPathString);
 
-        modelRegistry.mutate(new ModelMutator<T>() {
+        modelRegistry.mutate(MutationType.Mutate, new ModelMutator<T>() {
             public ModelReference<T> getSubject() {
                 return ModelReference.of(modelPath, type);
             }

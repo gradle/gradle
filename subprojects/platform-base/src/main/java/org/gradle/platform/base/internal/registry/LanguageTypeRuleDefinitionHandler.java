@@ -31,10 +31,7 @@ import org.gradle.language.base.internal.registry.RuleBasedLanguageRegistration;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
@@ -70,7 +67,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelMutator<?> mutator = new RegisterTypeRule<LanguageSourceSet, BaseLanguageSourceSet>(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor(), new RegistrationAction());
-            modelRegistry.mutate(mutator);
+            modelRegistry.mutate(MutationType.Mutate, mutator);
         }
     }
 

@@ -52,7 +52,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.mutate(_)
+        1 * modelRegistry.mutate(_, _)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {

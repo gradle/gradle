@@ -38,9 +38,9 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         MethodModelMutator<?> mutator = toMutator(ruleDefinition, subject, inputs);
 
         if (isFinalize()) {
-            modelRegistry.finalize(mutator);
+            modelRegistry.mutate(MutationType.Finalize, mutator);
         } else {
-            modelRegistry.mutate(mutator);
+            modelRegistry.mutate(MutationType.Mutate, mutator);
         }
     }
 

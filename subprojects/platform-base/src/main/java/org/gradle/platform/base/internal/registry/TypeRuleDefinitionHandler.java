@@ -68,7 +68,6 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
 
     abstract <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
 
-
     protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         if (ruleDefinition.getReferences().size() != 1) {

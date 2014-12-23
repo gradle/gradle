@@ -25,6 +25,7 @@ import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelMutator
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.MutationType
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -70,7 +71,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
         mutator.mutate(_, _, _) >> { action.execute(it[1]) }
 
-        registry.mutate(mutator)
+        registry.mutate(MutationType.Mutate, mutator)
         registry.node(containerPath)
     }
 

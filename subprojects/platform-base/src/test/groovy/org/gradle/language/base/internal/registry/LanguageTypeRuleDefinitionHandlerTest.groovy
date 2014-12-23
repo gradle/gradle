@@ -80,7 +80,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         ruleHandler.register(ruleDefinitionForMethod("noImplementationTypeRule"), modelRegistry, ruleDependencies)
 
         then:
-        0 * modelRegistry.mutate(_)
+        0 * modelRegistry._
     }
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
@@ -91,7 +91,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.mutate(_)
+        1 * modelRegistry.mutate(_, _)
     }
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}

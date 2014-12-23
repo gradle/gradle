@@ -59,10 +59,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph = new ModelGraph();
 
     private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
-    private final Multimap<ModelPath, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
+    private final Multimap<MutationKey, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedMutators = ArrayListMultimap.create();
-    private final Multimap<ModelPath, BoundModelMutator<?>> finalizers = ArrayListMultimap.create();
-    private final Multimap<ModelPath, List<ModelPath>> usedFinalizers = ArrayListMultimap.create();
 
     // TODO rework this listener mechanism to be more targeted, in that interested parties nominate what they are interested in (e.g. path or type) and use this to only notify relevant listeners
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
@@ -111,12 +109,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         bind(creator);
     }
 
-    public <T> void mutate(ModelMutator<T> mutator) {
-        bind(mutator.getSubject(), mutator, mutators);
+    @Override
+    public <T> void mutate(MutationType type, ModelMutator<T> mutator) {
+        bind(mutator.getSubject(), type, mutator);
     }
 
-    public <T> void finalize(ModelMutator<T> mutator) {
-        bind(mutator.getSubject(), mutator, finalizers);
+    public <T> void mutate(ModelMutator<T> mutator) {
+        throw new UnsupportedOperationException();
     }
 
     private void bind(final ModelCreator creator) {
@@ -146,12 +145,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         return binder;
     }
 
-    private <T> void bind(ModelReference<T> subject, final ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators) {
+    private <T> void bind(ModelReference<T> subject, final MutationType type, final ModelMutator<T> mutator) {
         final RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), new Action<RuleBinder<T>>() {
             public void execute(RuleBinder<T> ruleBinder) {
                 BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
                 ModelPath path = boundMutator.getSubject().getPath();
-                mutators.put(path, boundMutator);
+                mutators.put(new MutationKey(path, type), boundMutator);
             }
         });
 
@@ -283,9 +282,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         Transformer<List<ModelPath>, List<ModelPath>> passThrough = Transformers.noOpTransformer();
 
         return hasModelPath(candidate, mutators.values(), extractInputPaths)
-                || hasModelPath(candidate, usedMutators.values(), passThrough)
-                || hasModelPath(candidate, finalizers.values(), extractInputPaths)
-                || hasModelPath(candidate, usedFinalizers.values(), passThrough);
+                || hasModelPath(candidate, usedMutators.values(), passThrough);
     }
 
     private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
@@ -335,11 +332,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             node.setState(ModelNode.State.Created);
         }
         if (node.getState() == ModelNode.State.Created) {
-            fireMutations(node, path, mutators.removeAll(path), usedMutators);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Mutate)), usedMutators);
             node.setState(ModelNode.State.Mutated);
         }
         if (node.getState() == ModelNode.State.Mutated) {
-            fireMutations(node, path, finalizers.removeAll(path), usedFinalizers);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Finalize)), usedMutators);
             node.setState(ModelNode.State.SelfClosed);
         }
         if (node.getState() == ModelNode.State.SelfClosed) {
@@ -492,16 +489,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void mutateAllLinks(final ModelMutator<T> mutator) {
-            allLinks(mutator, mutators);
-        }
-
-        @Override
-        public <T> void finalizeAllLinks(ModelMutator<T> mutator) {
-            allLinks(mutator, finalizers);
-        }
-
-        private <T> void allLinks(final ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators1) {
+        public <T> void mutateAllLinks(final MutationType type, final ModelMutator<T> mutator) {
             if (mutator.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Mutator must have null path.");
             }
@@ -510,7 +498,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 @Override
                 public boolean onCreate(ModelCreation registration) {
                     if (node.getPath().equals(registration.getPath().getParent())) {
-                        bind(ModelReference.of(registration.getPath(), mutator.getSubject().getType()), mutator, mutators1);
+                        bind(ModelReference.of(registration.getPath(), mutator.getSubject().getType()), type, mutator);
                     }
                     return false;
                 }
@@ -560,6 +548,27 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public <T> void setPrivateData(ModelType<T> type, T object) {
             node.setPrivateData(type, object);
+        }
+    }
+
+    private static class MutationKey {
+        final ModelPath path;
+        final MutationType type;
+
+        public MutationKey(ModelPath path, MutationType type) {
+            this.path = path;
+            this.type = type;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            MutationKey other = (MutationKey) obj;
+            return path.equals(other.path) && type.equals(other.type);
+        }
+
+        @Override
+        public int hashCode() {
+            return path.hashCode() ^ type.hashCode();
         }
     }
 

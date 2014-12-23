@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.MutationType;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -49,7 +50,7 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelMutator<?> mutator = new RegisterTypeRule<BinarySpec, BaseBinarySpec>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator));
-            modelRegistry.mutate(mutator);
+            modelRegistry.mutate(MutationType.Mutate, mutator);
         }
     }
 

@@ -28,6 +28,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.MutationType;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -52,7 +53,7 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelMutator<?> mutator = new RegisterTypeRule<ComponentSpec, BaseComponentSpec>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator));
-            modelRegistry.mutate(mutator);
+            modelRegistry.mutate(MutationType.Mutate, mutator);
         }
     }
 

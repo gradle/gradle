@@ -45,14 +45,9 @@ public interface MutableModelNode {
     void removeLink(String name);
 
     /**
-     * Adds a mutator to all elements linked from this element.
+     * Adds a mutation to all elements linked from this element.
      */
-    <T> void mutateAllLinks(ModelMutator<T> mutator);
-
-    /**
-     * Adds a finalizer to all elements linked from this element.
-     */
-    <T> void finalizeAllLinks(ModelMutator<T> mutator);
+    <T> void mutateAllLinks(MutationType type, ModelMutator<T> mutator);
 
     @Nullable
     MutableModelNode getLink(String name);

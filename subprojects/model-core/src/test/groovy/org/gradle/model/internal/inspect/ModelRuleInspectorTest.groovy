@@ -22,6 +22,7 @@ import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.MutationType
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -326,13 +327,13 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)
 
         then:
-        1 * registryMock.finalize({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
+        1 * registryMock.mutate(MutationType.Finalize, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
 
         then:
-        1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
+        1 * registryMock.mutate(MutationType.Mutate, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
 
         then:
-        1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
+        1 * registryMock.mutate(MutationType.Mutate, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
     }
 
     static class InvalidModelNameViaAnnotation {
