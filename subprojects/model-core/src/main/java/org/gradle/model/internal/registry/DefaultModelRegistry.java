@@ -36,10 +36,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
@@ -81,6 +78,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
+        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
+        // ModelPath.validateName(name);
+
         ModelNode node = modelGraph.find(path);
         if (node != null) {
             if (node.getState() == ModelNode.State.Known) {
@@ -103,17 +103,17 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        node = modelGraph.addEntryPoint(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+        node = modelGraph.addEntryPoint(path, creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
         notifyCreationListeners(node);
         bind(creator);
     }
 
     public <T> void mutate(ModelMutator<T> mutator) {
-        bind(mutator, mutators);
+        bind(mutator.getSubject(), mutator, mutators);
     }
 
     public <T> void finalize(ModelMutator<T> mutator) {
-        bind(mutator, finalizers);
+        bind(mutator.getSubject(), mutator, finalizers);
     }
 
     private void bind(final ModelCreator creator) {
@@ -143,8 +143,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return binder;
     }
 
-    private <T> void bind(final ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators) {
-        final RuleBinder<T> binder = bind(mutator.getSubject(), mutator.getInputs(), mutator.getDescriptor(), new Action<RuleBinder<T>>() {
+    private <T> void bind(ModelReference<T> subject, final ModelMutator<T> mutator, final Multimap<ModelPath, BoundModelMutator<?>> mutators) {
+        final RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), new Action<RuleBinder<T>>() {
             public void execute(RuleBinder<T> ruleBinder) {
                 BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
                 ModelPath path = boundMutator.getSubject().getPath();
@@ -434,14 +434,15 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void notifyCreationListeners(ModelCreation creation) {
-        ListIterator<ModelCreationListener> modelCreationListenerListIterator = modelCreationListeners.listIterator();
-        while (modelCreationListenerListIterator.hasNext()) {
-            ModelCreationListener next = modelCreationListenerListIterator.next();
-            boolean remove = next.onCreate(creation);
+        // Deal with listeners that add listeners. This could be more elegant
+        List<ModelCreationListener> discard = new ArrayList<ModelCreationListener>();
+        for (ModelCreationListener listener : new ArrayList<ModelCreationListener>(modelCreationListeners)) {
+            boolean remove = listener.onCreate(creation);
             if (remove) {
-                modelCreationListenerListIterator.remove();
+                discard.add(listener);
             }
         }
+        modelCreationListeners.removeAll(discard);
     }
 
     private class NodeWrapper implements MutableModelNode {
@@ -485,6 +486,23 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean hasLink(String name) {
             return node.hasLink(name);
+        }
+
+        @Override
+        public <T> void mutateAllLinks(final ModelMutator<T> mutator) {
+            if (mutator.getSubject().getPath() != null) {
+                throw new IllegalArgumentException("Mutator must have null path.");
+            }
+
+            registerListener(new ModelCreationListener() {
+                @Override
+                public boolean onCreate(ModelCreation registration) {
+                    if (node.getPath().equals(registration.getPath().getParent())) {
+                        bind(ModelReference.of(registration.getPath(), mutator.getSubject().getType()), mutator, mutators);
+                    }
+                    return false;
+                }
+            });
         }
 
         @Override

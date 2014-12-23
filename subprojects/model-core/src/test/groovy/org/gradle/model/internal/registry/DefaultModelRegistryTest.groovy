@@ -241,6 +241,27 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("bar"), ModelType.of(Bean)).value == "[12]"
     }
 
+    def "can attach a mutator with inputs to all elements linked from an element"() {
+        def creatorAction = Mock(Action)
+        def mutatorAction = Mock(BiAction)
+
+        given:
+        registry.create(nodeCreator("parent", Integer, creatorAction))
+        creatorAction.execute(_) >> { MutableModelNode node ->
+            node.mutateAllLinks(mutator(null, Bean, String, mutatorAction))
+            node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
+            node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
+        }
+        mutatorAction.execute(_, _) >> { Bean bean, String prefix -> bean.value = "$prefix: $bean.value" }
+        registry.create(creator("prefix", String, "prefix"))
+
+        registry.get(ModelPath.path("parent"), ModelType.untyped()) // TODO - should not need this
+
+        expect:
+        registry.get(ModelPath.path("parent.foo"), ModelType.of(Bean)).value == "prefix: foo"
+        registry.get(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "prefix: bar"
+    }
+
     class Bean {
         String value
     }
@@ -249,10 +270,16 @@ class DefaultModelRegistryTest extends Specification {
         creator(path, type, { value } as Factory)
     }
 
+    /**
+     * Executes the given action when the model element is created.
+     */
     ModelCreator creator(String path, Class<?> type, def value, Action<?> initializer) {
         creator(path, type, { initializer.execute(value); value } as Factory)
     }
 
+    /**
+     * Invokes the given factory to create the model element.
+     */
     ModelCreator creator(String path, Class<?> type, Factory<?> initializer) {
         def modelType = ModelType.of(type)
         ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
@@ -265,6 +292,9 @@ class DefaultModelRegistryTest extends Specification {
                 .build()
     }
 
+    /**
+     * Invokes the given transformer to take an input of given type and produce the value for the model element.
+     */
     ModelCreator creator(String path, Class<?> type, Class<?> inputType, Transformer<?, ?> action) {
         def modelType = ModelType.of(type)
         ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
@@ -274,10 +304,25 @@ class DefaultModelRegistryTest extends Specification {
             }
         }).withProjection(new UnmanagedModelProjection(modelType, true, true))
                 .inputs([ModelReference.of(inputType)])
-                .simpleDescriptor(path)
+                .simpleDescriptor("create $path")
                 .build()
     }
 
+    ModelCreator nodeCreator(String path, Class<?> type, Action<? super MutableModelNode> action) {
+        def modelType = ModelType.of(type)
+        ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
+            @Override
+            void execute(MutableModelNode mutableModelNode, Inputs inputs) {
+                action.execute(mutableModelNode)
+            }
+        }).withProjection(new UnmanagedModelProjection(modelType, true, true))
+                .simpleDescriptor("create $path")
+                .build()
+    }
+
+    /**
+     * Invokes the given transformer to take an input of given path and produce the value for the model element.
+     */
     ModelCreator creator(String path, Class<?> type, String inputPath, Transformer<?, ?> action) {
         def modelType = ModelType.of(type)
         ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
@@ -287,13 +332,16 @@ class DefaultModelRegistryTest extends Specification {
             }
         }).withProjection(new UnmanagedModelProjection(modelType, true, true))
                 .inputs([ModelReference.of(inputPath)])
-                .simpleDescriptor(path)
+                .simpleDescriptor("create $path")
                 .build()
     }
 
+    /**
+     * Invokes the given action to mutate the value of the given element.
+     */
     ModelMutator<?> mutator(String path, Class<?> type, Action<?> action) {
         ModelMutator mutator = Stub(ModelMutator)
-        mutator.subject >> ModelReference.of(path, type)
+        mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
         mutator.descriptor >> new SimpleModelRuleDescriptor(path)
         mutator.mutate(_, _, _) >> { node, object, inputs ->
@@ -302,9 +350,12 @@ class DefaultModelRegistryTest extends Specification {
         return mutator
     }
 
-    ModelMutator<?> nodeMutator(String path, Class<?> type, Action<?> action) {
+    /**
+     * Invokes the given action to mutate the node for the given element.
+     */
+    ModelMutator<?> nodeMutator(String path, Class<?> type, Action<? super MutableModelNode> action) {
         ModelMutator mutator = Stub(ModelMutator)
-        mutator.subject >> ModelReference.of(path, type)
+        mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
         mutator.descriptor >> new SimpleModelRuleDescriptor("mutate $path as $type.simpleName")
         mutator.mutate(_, _, _) >> { node, object, inputs ->
@@ -313,11 +364,14 @@ class DefaultModelRegistryTest extends Specification {
         return mutator
     }
 
+    /**
+     * Invokes the given action with the value for the given element and the given input, to mutate the value for the given element.
+     */
     ModelMutator<?> mutator(String path, Class<?> type, Class<?> inputType, BiAction<?, ?> action) {
         ModelMutator mutator = Stub(ModelMutator)
-        mutator.subject >> ModelReference.of(path, type)
+        mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> [ModelReference.of(inputType)]
-        mutator.descriptor >> new SimpleModelRuleDescriptor(path)
+        mutator.descriptor >> new SimpleModelRuleDescriptor("mutate $path as $type.simpleName")
         mutator.mutate(_, _, _) >> { node, object, inputs ->
             action.execute(object, inputs.get(0, ModelType.of(inputType)).instance)
         }

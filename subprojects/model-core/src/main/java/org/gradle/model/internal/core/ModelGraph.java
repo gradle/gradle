@@ -27,17 +27,12 @@ public class ModelGraph {
     private final Map<String, ModelNode> entryNodes = Maps.newTreeMap();
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
 
-    public ModelNode addEntryPoint(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-
-        // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
-        // ModelPath.validateName(name);
-
-        ModelPath path = ModelPath.path(name);
+    public ModelNode addEntryPoint(ModelPath path, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
         ModelNode node = new ModelNode(path, descriptor, promise, adapter);
-        ModelNode previous = entryNodes.put(name, node);
+        ModelNode previous = entryNodes.put(path.getName(), node);
         if (previous != null) {
             // TODO more context here
-            throw new IllegalStateException("attempt to replace node link: " + name);
+            throw new IllegalStateException("attempt to replace node link: " + path);
         }
 
         flattened.put(path, node);
