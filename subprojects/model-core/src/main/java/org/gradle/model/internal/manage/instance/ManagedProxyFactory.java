@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.instance;
 import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
@@ -29,7 +30,13 @@ public class ManagedProxyFactory {
             Class<? extends T> generatedClass = proxyClassGenerator.generate(managedType);
             Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
             return constructor.newInstance(state);
-        } catch (ReflectiveOperationException e) {
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (InstantiationException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
