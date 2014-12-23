@@ -16,15 +16,26 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.nativeplatform.toolchain.internal.AbstractOutputFileArgTransformer;
 import org.gradle.nativeplatform.toolchain.internal.OutputFileArgTransformer;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class VisualCppOutputFileArgTransformer implements OutputFileArgTransformer {
-    public List<String> transform(File outputFile) {
-        return Arrays.asList("/Fo" + outputFile.getAbsolutePath());
+class VisualCppOutputFileArgTransformer extends AbstractOutputFileArgTransformer {
+    VisualCppOutputFileArgTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
+        super(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
+    }
+
+    public List<String> transform(List<String> args) {
+        List<String> newArgs = Lists.newArrayList(args);
+        File outputFilePath = getOutputFileDir();
+        // MSVC doesn't allow a space between Fo and the file name
+        newArgs.add("/Fo" + outputFilePath.getAbsolutePath());
+        return newArgs;
     }
 }

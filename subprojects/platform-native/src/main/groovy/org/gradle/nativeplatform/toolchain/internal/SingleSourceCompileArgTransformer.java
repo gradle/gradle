@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
@@ -24,41 +26,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
-    private final String objectFileNameSuffix;
+public class SingleSourceCompileArgTransformer implements Transformer<List<String>, List<String>> {
+
     private final File sourceFile;
-    private final OutputFileArgTransformer outputFileArgTransformer;
-    private final boolean windowsPathLengthLimitation;
-    private final List<String> invocationArgs;
 
-    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileNameSuffixExtension, List<String> invocationArgs, boolean windowsPathLengthLimitation, OutputFileArgTransformer outputFileArgTransformer) {
+    public SingleSourceCompileArgTransformer(File sourceFile) {
         this.sourceFile = sourceFile;
-        this.objectFileNameSuffix = objectFileNameSuffixExtension;
-        this.outputFileArgTransformer = outputFileArgTransformer;
-        this.windowsPathLengthLimitation = windowsPathLengthLimitation;
-        this.invocationArgs = invocationArgs;
     }
 
-    public List<String> transform(T spec) {
-        List<String> args = new ArrayList<String>(invocationArgs);
-
-        args.add(sourceFile.getAbsolutePath());
-
-        File outputFilePath = getOutputFileDir(sourceFile, spec.getObjectFileDir());
-        CollectionUtils.addAll(args, outputFileArgTransformer.transform(outputFilePath));
-
-        return args;
-    }
-
-    protected File getOutputFileDir(File sourceFile, File objectFileDir) {
-        File outputFile = new CompilerOutputFileNamingScheme()
-                                .withObjectFileNameSuffix(objectFileNameSuffix)
-                                .withOutputBaseFolder(objectFileDir)
-                                .map(sourceFile);
-        File outputDirectory = outputFile.getParentFile();
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs();
-        }
-        return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+    public List<String> transform(List<String> args) {
+        List<String> newArgs = Lists.newArrayList(args);
+        newArgs.add(sourceFile.getAbsolutePath());
+        return newArgs;
     }
 }

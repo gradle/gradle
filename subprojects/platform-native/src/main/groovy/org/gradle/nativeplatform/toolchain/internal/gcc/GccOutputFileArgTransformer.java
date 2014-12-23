@@ -16,15 +16,30 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.internal.FileUtils;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.nativeplatform.toolchain.internal.AbstractOutputFileArgTransformer;
 import org.gradle.nativeplatform.toolchain.internal.OutputFileArgTransformer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class GccOutputFileArgTransformer implements OutputFileArgTransformer {
-    public List<String> transform(File outputFile) {
-        return Arrays.asList("-o", outputFile.getAbsolutePath());
+class GccOutputFileArgTransformer extends AbstractOutputFileArgTransformer {
+
+    GccOutputFileArgTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
+        super(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
+    }
+
+    public List<String> transform(List<String> args) {
+        List<String> newArgs = Lists.newArrayList(args);
+        File outputFilePath = getOutputFileDir();
+        newArgs.add("-o");
+        newArgs.add(outputFilePath.getAbsolutePath());
+        return newArgs;
     }
 }

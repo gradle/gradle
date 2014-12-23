@@ -60,6 +60,7 @@ class CCompilerTest extends Specification {
 
             TestFile sourceFile = testDir.file(sourceFileName)
             File outputFile = outputFile(objectFileDir, sourceFile)
+            Runnable run = Mock(Runnable)
 
             1 * invocation.setArgs([
                     "-x", "c",
@@ -69,7 +70,8 @@ class CCompilerTest extends Specification {
                     "-I", testDir.file("include.h").absolutePath,
                     testDir.file(sourceFileName).absolutePath,
                     "-o", outputFile.absolutePath])
-            1 * commandLineTool.execute(invocation)
+            1 * commandLineTool.toRunnableExecution(invocation) >> run
+            1 * run.run()
         }
         0 * _
     }

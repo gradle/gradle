@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.internal.BinaryToolSpec;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompileSpecToArgsTransformerChain<T extends BinaryToolSpec> implements Transformer<List<String>, T> {
+public class CompileSpecToArgsTransformerChain<T extends BinaryToolSpec> implements ArgsTransformer<T> {
     private final Transformer<List<String>, T> delegate;
     private final List<Transformer<List<String>, List<String>>> transformers = new ArrayList<Transformer<List<String>, List<String>>>();
 

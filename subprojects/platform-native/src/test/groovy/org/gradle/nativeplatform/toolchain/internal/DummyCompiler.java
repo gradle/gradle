@@ -24,14 +24,20 @@ import java.util.List;
 
 public class DummyCompiler extends NativeCompiler<CCompileSpec> {
     private final OptionsFileArgsWriter argsWriter;
+    private final OutputFileArgTransformer outputFileArgTransformer;
 
     DummyCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<CCompileSpec> argsTransformer, Transformer<CCompileSpec, CCompileSpec> specTransformer, OutputFileArgTransformer outputFileArgTransformer, OptionsFileArgsWriter argsWriter) {
-        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, outputFileArgTransformer, ".o", true);
+        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, ".o", true);
         this.argsWriter = argsWriter;
+        this.outputFileArgTransformer = outputFileArgTransformer;
     }
 
     @Override
-    protected OptionsFileArgsWriter getOptionsWriter(CCompileSpec spec) {
+    protected OptionsFileArgsWriter optionsFileTransformer(CCompileSpec spec) {
         return argsWriter;
+    }
+
+    protected OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
+        return outputFileArgTransformer;
     }
 }

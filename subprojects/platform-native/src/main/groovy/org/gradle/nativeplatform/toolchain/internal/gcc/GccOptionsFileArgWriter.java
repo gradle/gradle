@@ -36,10 +36,11 @@ class GccOptionsFileArgWriter extends OptionsFileArgsWriter {
     }
 
     @Override
-    protected void transformArgs(List<String> originalArgs, List<String> finalArgs, File tempDir) {
+    public List<String> transform(List<String> originalArgs) {
         List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(originalArgs);
+        List<String> finalArgs = super.transform(originalArgs);
         finalArgs.addAll(commandLineOnlyArgs);
-        super.transformArgs(originalArgs, finalArgs, tempDir);
+        return finalArgs;
     }
 
     private List<String> getCommandLineOnlyArgs(List<String> allArgs) {

@@ -17,16 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
+import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+
+import java.io.File;
 
 public class ObjectiveCppCompiler extends NativeCompiler<ObjectiveCppCompileSpec> {
 
     public ObjectiveCppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new ObjectiveCppCompileArgsTransformer(), Transformers.<ObjectiveCppCompileSpec>noOpTransformer(), new GccOutputFileArgTransformer(), objectFileSuffix, useCommandFile);
+        super(commandLineTool, baseInvocation, new ObjectiveCppCompileArgsTransformer(), Transformers.<ObjectiveCppCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class ObjectiveCppCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCppCompileSpec> {
@@ -35,7 +34,11 @@ public class ObjectiveCppCompiler extends NativeCompiler<ObjectiveCppCompileSpec
         }
     }
 
-    protected OptionsFileArgsWriter getOptionsWriter(ObjectiveCppCompileSpec spec) {
+    protected OptionsFileArgsWriter optionsFileTransformer(ObjectiveCppCompileSpec spec) {
         return new GccOptionsFileArgWriter(spec.getTempDir());
+    }
+
+    protected OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
+        return new GccOutputFileArgTransformer(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
     }
 }

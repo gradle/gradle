@@ -24,5 +24,6 @@ import java.util.List;
 /**
  *
  */
-public interface OutputFileArgTransformer extends Transformer<List<String>, File> {
+public interface OutputFileArgTransformer extends Transformer<List<String>, List<String>> {
+
 }

@@ -17,19 +17,18 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
+import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+
+import java.io.File;
 
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
     CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer, String objectFileSuffix) {
-        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, new VisualCppOutputFileArgTransformer(), objectFileSuffix, true);
+        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, objectFileSuffix, true);
     }
 
-    protected OptionsFileArgsWriter getOptionsWriter(CCompileSpec spec) {
+    protected OptionsFileArgsWriter optionsFileTransformer(CCompileSpec spec) {
         return new VisualCppOptionsFileArgWriter(spec.getTempDir());
     }
 
@@ -37,5 +36,9 @@ class CCompiler extends NativeCompiler<CCompileSpec> {
         protected String getLanguageOption() {
             return "/TC";
         }
+    }
+
+    protected OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
+        return new VisualCppOutputFileArgTransformer(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
     }
 }
