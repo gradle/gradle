@@ -447,10 +447,8 @@ model {
         ] as Set
         projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
-        // TODO:DAZ It would be preferable if the default location wasn't included when a generator task was provided
-        // but the way the rules work presently, this is hard to do (multiple @Finalize rules).
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "src/main/headers;build/src/generated/headers"
+            includePath == "build/src/generated/headers"
         }
     }
 
