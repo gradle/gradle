@@ -503,7 +503,7 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 #### Test coverage
 
-- When a runtime error is thrown from implementation of a managed element setter/getter the stack trace contains reference to the name of the managed type.
+- ~~When a runtime error is thrown from implementation of a managed element setter/getter the stack trace contains reference to the name of the managed type.~~
 
 ### Managed type is implemented as abstract class
 
