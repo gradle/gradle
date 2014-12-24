@@ -17,7 +17,9 @@
 package org.gradle.play.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import spock.lang.Ignore
 
+@Ignore
 class PlayDistributionPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {

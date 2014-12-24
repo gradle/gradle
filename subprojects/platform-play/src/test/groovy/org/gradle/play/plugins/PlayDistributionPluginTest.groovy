@@ -27,6 +27,8 @@ import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
+import org.gradle.play.internal.toolchain.PlayToolChainInternal
+import org.gradle.play.internal.toolchain.PlayToolProvider
 import spock.lang.Specification
 
 class PlayDistributionPluginTest extends Specification {
@@ -49,9 +51,12 @@ class PlayDistributionPluginTest extends Specification {
                 return distributions[name]
             }
         }
+        PlayToolChainInternal playToolChain = Stub(PlayToolChainInternal) {
+            select(_) >> Stub(PlayToolProvider)
+        }
 
         when:
-        plugin.configureDistributions(distributionContainer, binaryContainer)
+        plugin.configureDistributions(distributionContainer, binaryContainer, playToolChain)
 
         then:
         1 * distributionContainer.create("bin1") >> distributions["bin1"]
@@ -72,9 +77,12 @@ class PlayDistributionPluginTest extends Specification {
         DistributionContainer distributions = Mock(DistributionContainer) {
             findByName(_) >> distribution(spec)
         }
+        PlayToolChainInternal playToolChain = Stub(PlayToolChainInternal) {
+            select(_) >> Stub(PlayToolProvider)
+        }
 
         when:
-        plugin.createDistributionTasks(tasks, binary, buildDir, distributions)
+        plugin.createDistributionTasks(tasks, binary, buildDir, distributions, playToolChain)
 
         then:
         1 * tasks.create("createPlayBinaryStartScripts", CreateStartScripts, _)

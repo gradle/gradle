@@ -26,6 +26,7 @@ import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.application.CreateStartScripts;
@@ -67,7 +68,6 @@ public class PlayDistributionPlugin {
             Distribution distribution = distributions.create(binary.getName());
 
             FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
-            //mainDistribution.getContents().into("lib").from(playDependencies);
             CopySpecInternal distSpec = (CopySpecInternal) distributions.findByName(binary.getName()).getContents();
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(binary.getJarFile(), binary.getAssetsJarFile());
@@ -76,15 +76,16 @@ public class PlayDistributionPlugin {
     }
 
     @BinaryTasks
-    void createDistributionTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final @Path("buildDir") File buildDir, final @Path("distributions") DistributionContainer distributions) {
+    void createDistributionTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final @Path("buildDir") File buildDir, final @Path("distributions") DistributionContainer distributions, final PlayToolChainInternal playToolChain) {
         final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
+        final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
 
         String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(binary.getName()));
         tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
             @Override
             public void execute(CreateStartScripts createStartScripts) {
                 createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                createStartScripts.setClasspath(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()));
+                createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), playDependencies));
                 createStartScripts.setMainClassName("play.core.server.NettyServer");
                 createStartScripts.setApplicationName(binary.getName());
                 createStartScripts.setOutputDir(scriptsDir);

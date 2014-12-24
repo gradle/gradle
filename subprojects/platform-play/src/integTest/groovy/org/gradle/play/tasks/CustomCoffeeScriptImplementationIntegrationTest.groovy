@@ -58,7 +58,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         """
 
         when:
-        succeeds "assemble"
+        succeeds "createPlayBinaryAssetsJar"
 
         then:
         file('build/playBinary/src/compilePlayBinaryCoffeeScriptAssets/test.js').exists()
@@ -94,7 +94,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         """
 
         when:
-        succeeds "assemble"
+        succeeds "createPlayBinaryAssetsJar"
 
         then:
         file('build/playBinary/src/compilePlayBinaryCoffeeScriptAssets/test.js').exists()

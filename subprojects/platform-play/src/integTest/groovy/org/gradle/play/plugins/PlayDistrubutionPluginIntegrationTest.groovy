@@ -48,6 +48,11 @@ class PlayDistrubutionPluginIntegrationTest extends AbstractIntegrationSpec {
             dependencies { playDeps "com.typesafe.play:play_2.11:2.3.7" }
 
             model {
+                tasks.createPlayBinaryStartScripts {
+                    doLast {
+                        assert classpath.files.containsAll(configurations.playDeps.files)
+                    }
+                }
                 tasks.createPlayBinaryDist {
                     doLast {
                         assert zipTree(archivePath).collect { it.name }.containsAll(configurations.playDeps.collect { it.name })
@@ -55,7 +60,7 @@ class PlayDistrubutionPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        
+
         when:
         succeeds "assemble"
 
