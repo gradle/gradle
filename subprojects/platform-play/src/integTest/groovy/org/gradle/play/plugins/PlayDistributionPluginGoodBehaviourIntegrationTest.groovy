@@ -17,12 +17,34 @@
 package org.gradle.play.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import spock.lang.Ignore
 
-@Ignore
 class PlayDistributionPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {
         return 'play-distribution'
+    }
+
+    @Override
+    protected applyPlugin(File target = buildFile) {
+        target << "apply plugin: 'play-application'\n"
+        target << "apply plugin: '${getQualifiedPluginId()}'\n"
+    }
+
+    @Override
+    protected applyPluginUnqualified(File target = buildFile) {
+        target << "apply plugin: 'play-application'\n"
+        target << "apply plugin: '${getPluginName()}'\n"
+    }
+
+    def setup() {
+        buildFile << """
+            repositories {
+                jcenter()
+                maven{
+                    name = "typesafe-maven-release"
+                    url = "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+            }
+        """
     }
 }
