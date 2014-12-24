@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.platform.base.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.platform.base.Platform;
 
 import java.util.List;
 
-/**
- * A container of {@link org.gradle.platform.base.Platform}s.
- */
-@Incubating
 public interface PlatformResolver {
     <T extends Platform> List<T> resolve(Class<T> type, List<PlatformRequirement> targets);
 }

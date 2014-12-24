@@ -41,10 +41,7 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultPlatformRequirement;
-import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 import java.util.Collections;

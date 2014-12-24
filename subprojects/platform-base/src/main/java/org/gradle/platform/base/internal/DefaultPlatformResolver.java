@@ -23,7 +23,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
-import org.gradle.platform.base.PlatformResolver;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;

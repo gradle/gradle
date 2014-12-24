@@ -32,7 +32,7 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.PlatformResolver
+import org.gradle.platform.base.internal.PlatformResolver
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
