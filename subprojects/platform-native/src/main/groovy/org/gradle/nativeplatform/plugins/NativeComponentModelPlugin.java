@@ -31,6 +31,7 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.model.*;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
@@ -195,20 +196,23 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize // This is providing defaults for each component in the container, but the only mechanism for now is to finalize the collection
-        public void applyHeaderSourceSetConventions(ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs) {
-                DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
-                for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
-                    // Only apply default locations when none explicitly configured
-                    if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
-                    }
+        @Mutate
+        public void applyHeaderSourceSetConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
+            componentSpecs.finalizeAll(new Action<ComponentSpec>() {
+                @Override
+                public void execute(ComponentSpec componentSpec) {
+                    DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
+                    for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
+                        // Only apply default locations when none explicitly configured
+                        if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+                            headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
+                        }
 
-                    headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-                    headerSourceSet.getImplicitHeaders().include("**/*.h");
+                        headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+                        headerSourceSet.getImplicitHeaders().include("**/*.h");
+                    }
                 }
-            }
+            });
         }
 
         private void maybeSetSourceDir(SourceDirectorySet sourceSet, Task task, String propertyName) {
