@@ -49,6 +49,11 @@ public interface MutableModelNode {
      */
     <T> void mutateAllLinks(MutationType type, ModelMutator<T> mutator);
 
+    /**
+     * Adds a mutation to a linked element.
+     */
+    <T> void mutateLink(MutationType type, ModelMutator<T> mutator);
+
     @Nullable
     MutableModelNode getLink(String name);
 

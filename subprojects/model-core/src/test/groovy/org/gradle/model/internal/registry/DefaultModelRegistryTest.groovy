@@ -161,29 +161,38 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("bar"), ModelType.untyped()) == "[12]"
     }
 
-    def "creator mutator and finalizer are invoked before element is closed"() {
+    def "creator and mutators are invoked before element is closed"() {
         def action = Mock(Action)
 
         given:
         registry.create(creator("foo", Bean, new Bean(), action))
+        registry.mutate(MutationType.Defaults, mutator("foo", Bean, action))
+        registry.mutate(MutationType.Initialize, mutator("foo", Bean, action))
         registry.mutate(MutationType.Mutate, mutator("foo", Bean, action))
         registry.mutate(MutationType.Finalize, mutator("foo", Bean, action))
 
         when:
-        registry.get(ModelPath.path("foo"), ModelType.of(Bean))
+        def value = registry.get(ModelPath.path("foo"), ModelType.of(Bean)).value
 
         then:
+        value == "create > defaults > initialize > mutate > finalize"
+
+        and:
         1 * action.execute(_) >> { Bean bean ->
             assert bean.value == null
-            bean.value = "creator"
+            bean.value = "create"
         }
         1 * action.execute(_) >> { Bean bean ->
-            assert bean.value == "creator"
-            bean.value = "mutator"
+            bean.value += " > defaults"
         }
         1 * action.execute(_) >> { Bean bean ->
-            assert bean.value == "mutator"
-            bean.value = "finalizer"
+            bean.value += " > initialize"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            bean.value += " > mutate"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            bean.value += " > finalize"
         }
         0 * action._
 
@@ -269,6 +278,27 @@ class DefaultModelRegistryTest extends Specification {
         expect:
         registry.get(ModelPath.path("parent.foo"), ModelType.of(Bean)).value == "prefix: foo"
         registry.get(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "prefix: bar"
+    }
+
+    def "can attach a mutator with inputs to element linked from another element"() {
+        def creatorAction = Mock(Action)
+        def mutatorAction = Mock(BiAction)
+
+        given:
+        registry.create(nodeCreator("parent", Integer, creatorAction))
+        creatorAction.execute(_) >> { MutableModelNode node ->
+            node.mutateLink(MutationType.Mutate, mutator("parent.foo", Bean, String, mutatorAction))
+            node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
+            node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
+        }
+        mutatorAction.execute(_, _) >> { Bean bean, String prefix -> bean.value = "$prefix: $bean.value" }
+        registry.create(creator("prefix", String, "prefix"))
+
+        registry.get(ModelPath.path("parent"), ModelType.untyped()) // TODO - should not need this
+
+        expect:
+        registry.get(ModelPath.path("parent.foo"), ModelType.of(Bean)).value == "prefix: foo"
+        registry.get(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "bar"
     }
 
     class Bean {

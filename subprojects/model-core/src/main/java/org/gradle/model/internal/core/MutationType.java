@@ -22,6 +22,8 @@ package org.gradle.model.internal.core;
  * <p>This is pretty much a placeholder for something more descriptive.
  */
 public enum MutationType {
-    Mutate,
-    Finalize
+    Defaults, // Allows a mutation to setup default values for an element
+    Initialize, // Mutation provided when an element is defined
+    Mutate, // Customisations
+    Finalize // Post customisation default values
 }

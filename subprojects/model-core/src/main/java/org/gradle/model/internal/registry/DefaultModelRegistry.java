@@ -332,10 +332,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             node.setState(ModelNode.State.Created);
         }
         if (node.getState() == ModelNode.State.Created) {
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Defaults)), usedMutators);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Initialize)), usedMutators);
             fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Mutate)), usedMutators);
-            node.setState(ModelNode.State.Mutated);
-        }
-        if (node.getState() == ModelNode.State.Mutated) {
             fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Finalize)), usedMutators);
             node.setState(ModelNode.State.SelfClosed);
         }
@@ -489,9 +488,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public <T> void mutateLink(MutationType type, ModelMutator<T> mutator) {
+            if (mutator.getSubject().getPath() == null || !mutator.getSubject().getPath().getParent().equals(getPath())) {
+                throw new IllegalArgumentException("Mutator reference must have path to child of this node.");
+            }
+            bind(mutator.getSubject(), type, mutator);
+        }
+
+        @Override
         public <T> void mutateAllLinks(final MutationType type, final ModelMutator<T> mutator) {
             if (mutator.getSubject().getPath() != null) {
-                throw new IllegalArgumentException("Mutator must have null path.");
+                throw new IllegalArgumentException("Mutator reference must have null path.");
             }
 
             registerListener(new ModelCreationListener() {
