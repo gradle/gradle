@@ -23,9 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>targetPlatforms</td>
-            </tr>
         </table>
     </section>
     <section>
