@@ -23,6 +23,8 @@ import org.gradle.api.Task;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -40,6 +42,7 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 
 import java.io.File;
 
@@ -59,19 +62,22 @@ public class PlayDistributionPlugin {
     }
 
     @Mutate
-    void configureDistributions(@Path("distributions") DistributionContainer distributions, BinaryContainer binaryContainer) {
+    void configureDistributions(@Path("distributions") DistributionContainer distributions, BinaryContainer binaryContainer, final PlayToolChainInternal playToolChain) {
         for (PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
             Distribution distribution = distributions.create(binary.getName());
-            //FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
+
+            FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
             //mainDistribution.getContents().into("lib").from(playDependencies);
             CopySpecInternal distSpec = (CopySpecInternal) distributions.findByName(binary.getName()).getContents();
-            distSpec.addChild().into("lib").from(binary.getJarFile(), binary.getAssetsJarFile());
+            CopySpec libSpec = distSpec.addChild().into("lib");
+            libSpec.from(binary.getJarFile(), binary.getAssetsJarFile());
+            libSpec.from(playDependencies);
         }
     }
 
     @BinaryTasks
-    void createDistributionTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final @Path("buildDir") File buildDir, @Path("distributions") final DistributionContainer distributions) {
-        final File scriptsDir = new File(buildDir, "scripts");
+    void createDistributionTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final @Path("buildDir") File buildDir, final @Path("distributions") DistributionContainer distributions) {
+        final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
 
         String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(binary.getName()));
         tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
@@ -82,10 +88,11 @@ public class PlayDistributionPlugin {
                 createStartScripts.setMainClassName("play.core.server.NettyServer");
                 createStartScripts.setApplicationName(binary.getName());
                 createStartScripts.setOutputDir(scriptsDir);
+
+                CopySpecInternal distSpec = (CopySpecInternal) distributions.findByName(binary.getName()).getContents();
+                distSpec.addChild().into("bin").from(createStartScripts);
             }
         });
-        CopySpecInternal distSpec = (CopySpecInternal) distributions.findByName(binary.getName()).getContents();
-        distSpec.addChild().into("bin").from(scriptsDir);
 
         String distTaskName = String.format("create%sDist", StringUtils.capitalize(binary.getName()));
         tasks.create(distTaskName, Zip.class, new Action<Zip>() {

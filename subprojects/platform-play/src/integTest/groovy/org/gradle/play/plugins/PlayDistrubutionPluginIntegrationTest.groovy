@@ -31,10 +31,31 @@ class PlayDistrubutionPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play-application'
                 id 'play-distribution'
             }
+
+            repositories {
+                jcenter()
+                maven{
+                    name = "typesafe-maven-release"
+                    url = "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+            }
         """
     }
 
     def "builds empty distribution when no sources present" () {
+        buildFile << """
+            configurations { playDeps }
+            dependencies { playDeps "com.typesafe.play:play_2.11:2.3.7" }
+
+            model {
+                tasks.createPlayBinaryDist {
+                    doLast {
+                        assert zipTree(archivePath).collect { it.name }.containsAll(configurations.playDeps.collect { it.name })
+                    }
+                }
+            }
+        """
+        
         when:
         succeeds "assemble"
 
