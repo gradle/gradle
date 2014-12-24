@@ -45,7 +45,7 @@ model {
     }
     components {
         main(NativeExecutableSpec) {
-            targetPlatforms "x86"
+            targetPlatform "x86"
             binaries.all {
                 linker.args "-v"
             }
@@ -96,7 +96,7 @@ model {
     }
     components {
         main(NativeExecutableSpec) {
-            targetPlatforms "x86"
+            targetPlatform "x86"
             binaries.all {
                 linker.args "-v"
             }
