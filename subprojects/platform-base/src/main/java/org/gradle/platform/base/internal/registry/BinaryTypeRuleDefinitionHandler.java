@@ -16,28 +16,29 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.MutationType;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.DefaultBinaryContainer;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
-public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
+import java.util.Collections;
+import java.util.List;
 
-    private Instantiator instantiator;
+public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
+    private final Instantiator instantiator;
 
     public BinaryTypeRuleDefinitionHandler(final Instantiator instantiator) {
         super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class));
@@ -49,8 +50,8 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelMutator<?> mutator = new RegisterTypeRule<BinarySpec, BaseBinarySpec>(type, implementation, ruleDefinition.getDescriptor(), new RegistrationAction(instantiator));
-            modelRegistry.mutate(MutationType.Mutate, mutator);
+            ModelMutator<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
+            modelRegistry.mutate(MutationType.Defaults, mutator);
         }
     }
 
@@ -60,27 +61,47 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         }
     }
 
-    private static class RegistrationAction implements Action<RegistrationContext<BinarySpec, BaseBinarySpec>> {
+    private static class RegistrationAction implements ModelMutator<DefaultBinaryContainer> {
+        private final ModelType<? extends BinarySpec> publicType;
+        private final ModelType<? extends BaseBinarySpec> implementationType;
+        private final ModelRuleDescriptor descriptor;
         private final Instantiator instantiator;
+        private final ModelReference<DefaultBinaryContainer> subject;
+        private final List<ModelReference<?>> inputs;
 
-        public RegistrationAction(Instantiator instantiator) {
+        public RegistrationAction(ModelType<? extends BinarySpec> publicType, ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor descriptor, Instantiator instantiator) {
+            this.publicType = publicType;
+            this.implementationType = implementationType;
+            this.descriptor = descriptor;
             this.instantiator = instantiator;
+            this.subject = ModelReference.of(DefaultBinaryContainer.class);
+            this.inputs = Collections.emptyList();
         }
 
-        public void execute(RegistrationContext<BinarySpec, BaseBinarySpec> context) {
-            BinaryContainer binaries = context.getExtensions().getByType(BinaryContainer.class);
-            doRegister(binaries, context.getType(), context.getImplementation());
+        @Override
+        public ModelReference<DefaultBinaryContainer> getSubject() {
+            return subject;
         }
 
-        private <T extends BinarySpec, U extends BaseBinarySpec> void doRegister(BinaryContainer binaries, ModelType<T> type, final ModelType<U> implementation) {
-            binaries.registerFactory(type.getConcreteClass(), new NamedDomainObjectFactory<T>() {
-                public T create(String name) {
-                    // safe because we implicitly know that U extends V, but can't express this in the type system
-                    @SuppressWarnings("unchecked")
-                    T created = (T) BaseBinarySpec.create(implementation.getConcreteClass(), name, instantiator);
-                    return created;
+        @Override
+        public ModelRuleDescriptor getDescriptor() {
+            return descriptor;
+        }
+
+        @Override
+        public List<ModelReference<?>> getInputs() {
+            return inputs;
+        }
+
+        @Override
+        public void mutate(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs) {
+            @SuppressWarnings("unchecked")
+            Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
+            binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {
+                public BaseBinarySpec create(String name) {
+                    return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator);
                 }
-            });
+            }, descriptor);
         }
     }
 }

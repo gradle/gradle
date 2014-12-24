@@ -30,7 +30,9 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -66,12 +68,13 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         modelRegistry.create(
-                ModelCreators.bridgedInstance(ModelReference.of("binaries", BinaryContainer.class), binaries)
+                ModelCreators.bridgedInstance(ModelReference.of("binaries", DefaultBinaryContainer.class), binaries)
                         .simpleDescriptor("Project.<init>.binaries()")
                         .inputs(Collections.singletonList(ModelReference.of(ExtensionContainer.class)))
+                        .withProjection(new UnmanagedModelProjection<DefaultBinaryContainer>(ModelType.of(DefaultBinaryContainer.class), true, true))
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(instantiator, binaries, BinarySpec.class))
                         .build()
-        );
+                        );
     }
 
     /**

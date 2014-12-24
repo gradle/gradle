@@ -16,28 +16,17 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Factory;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelMutator;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
-import org.gradle.platform.base.internal.rules.RuleContext;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
 
 public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<A> {
 
@@ -94,7 +83,6 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
         return asSubclass;
     }
 
-
     protected void invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
@@ -126,75 +114,5 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
         }
 
         return asSubclass;
-    }
-
-    protected static class RegistrationContext<T, U> {
-        private final ModelType<? extends T> type;
-        private final ModelType<? extends U> implementation;
-        private final ExtensionContainer extensions;
-        private final ProjectIdentifier projectIdentifier;
-
-        public RegistrationContext(ModelType<? extends T> type, ModelType<? extends U> implementation, ExtensionContainer extensions, ProjectIdentifier projectIdentifier) {
-            this.type = type;
-            this.implementation = implementation;
-            this.extensions = extensions;
-            this.projectIdentifier = projectIdentifier;
-        }
-
-        public ModelType<? extends T> getType() {
-            return type;
-        }
-
-        public ModelType<? extends U> getImplementation() {
-            return implementation;
-        }
-
-        public ExtensionContainer getExtensions() {
-            return extensions;
-        }
-
-        public ProjectIdentifier getProjectIdentifier() {
-            return projectIdentifier;
-        }
-    }
-
-    protected static class RegisterTypeRule<T, U> implements ModelMutator<ExtensionContainer> {
-        private final ModelType<? extends T> type;
-        private final ModelType<? extends U> implementation;
-        private final ModelRuleDescriptor descriptor;
-        private final ModelReference<ExtensionContainer> subject;
-        private final List<ModelReference<?>> inputs;
-        private final Action<? super RegistrationContext<T, U>> registerAction;
-
-        protected RegisterTypeRule(ModelType<? extends T> type, ModelType<? extends U> implementation, ModelRuleDescriptor descriptor, Action<? super RegistrationContext<T, U>> registerAction) {
-            this.type = type;
-            this.implementation = implementation;
-            this.descriptor = descriptor;
-            this.registerAction = registerAction;
-
-            subject = ModelReference.of("extensions", ExtensionContainer.class);
-            inputs = ImmutableList.<ModelReference<?>>of(ModelReference.of(ProjectIdentifier.class));
-        }
-
-        public ModelReference<ExtensionContainer> getSubject() {
-            return subject;
-        }
-
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
-        }
-
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
-        }
-
-        public final void mutate(MutableModelNode modelNode, final ExtensionContainer extensionContainer, final Inputs inputs) {
-            RuleContext.inContext(getDescriptor(), new Runnable() {
-                public void run() {
-                    RegistrationContext<T, U> context = new RegistrationContext<T, U>(type, implementation, extensionContainer, inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance());
-                    registerAction.execute(context);
-                }
-            });
-        }
     }
 }

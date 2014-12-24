@@ -78,7 +78,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
                         instantiator,
                         ModelType.of(DefaultComponentSpecContainer.class),
-                        ModelType.of(ComponentSpecContainer.class),
+                        ModelType.of(DefaultComponentSpecContainer.class),
                         ModelType.of(ComponentSpec.class),
                         ModelPath.path("components"),
                         components,
