@@ -547,7 +547,7 @@ Use class generation tool that allows specifying the name of a generated class, 
 ### Support for polymorphic managed sets
 
 ```
-interface PolymorphicManagedSet<T> implements Set<T> {
+interface ManagedSet<T> implements Set<T> {
   void create(Class<? extends T> type, Action<? super T> initializer);
   <O> Set<O> ofType(Class<O> type);
 }
@@ -583,16 +583,33 @@ The initial target for this functionality will be to replace the `PlatformContai
 - Add `beforeEach(Action)` and `afterEach(action)` to `CollectionBuilder`
     - Handle case where `beforeEach()` is used when there are tasks defined using legacy DSL, e.g. define rules for items in task container early.
 - Add `named(String, Action)` to `CollectionBuilder`
+- Add `validateEach(Action)`
+- Expose a `CollectionBuilder` view for all model elements of type `PolymorphicDomainObjectContainer`.
+- Verify usable from Groovy using closures.
+- Verify usable from Java 8 using lambdas.
+
+#### Issues
+
+- Fix methods that select by type using internal interfaces, as only the public contract type is visible.
 - Register type factories with containers before elements are defined.
     - Separate out a type registry from the containers and share this.
     - Type registration handlers should not invoke rule method until required.
     - Remove dependencies on `ExtensionsContainer`.
-- Expose a `CollectionBuilder` view for all model elements of type `PolymorphicDomainObjectContainer`.
-- Verify usable from Groovy using closures.
 
 ### Plugin uses method rule to apply defaults to model element
 
-- Add `@Defaults` annotation. Apply these before @Mutate rules.
+- Add `@Defaults` annotation. Apply these before `@Mutate` rules.
+- Apply defaults to managed object before initializer method.
+- Fail when target cannot accept defaults.
+
+### Plugin uses method rule to validate model element
+
+- Add `@Validate` annotation. Apply these after `@Finalize` rules.
+- Rename 'mutate' methods and types.
+
+#### Issues
+
+- Apply validation when self is closed rather than when graph is closed
 
 ### Build script author uses DSL to apply rules to container elements
 
@@ -633,12 +650,8 @@ The initial target for this functionality will be to replace the `PlatformContai
 ### Support for managed container of tasks
 
 - Rename `CollectionBuilder` to `ManagedMap`.
-- Add `all(Action<? super T>)` method to `ManagedMap`. Rules fire as @mutate rules
-    - Verify action execution is deferred, but happens when target is used as input.
-- Add DSL support for `all { }` rule.
-- Add `named(String name)` method to `ManagedMap`. Rules fire as @mutate rules
-    - Fails nicely when no such target.
-- Add DSL support for `$name { }` rule.
+- Currently it is possible to get an element via `CollectionBuilder`, to help with migration. Lock down access to `get()` and other query methods.
+    - Same for `size()`.
 - Change `ManagedMap` to extend `Map`.
 - Mix in the DSL conveniences into the managed collections and managed objects, don't reuse the existing decorator.
 - Allow a `ManagedMap` to be added to model space by a `@Model` rule.
@@ -676,6 +689,7 @@ As above, for `ManagedSet`.
 
 - Convenience and/or enforcement of “internal to plugin” properties of model elements
 - Extending model elements with new properties
+- Specializing model elements to apply new views
 
 ### Misc
 
