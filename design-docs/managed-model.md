@@ -580,13 +580,47 @@ The initial target for this functionality will be to replace the `PlatformContai
 
 ### Plugin uses `CollectionBuilder` API to apply rules to container elements
 
+- Add `beforeEach(Action)` and `afterEach(action)` to `CollectionBuilder`
+    - Handle case where `beforeEach()` is used when there are tasks defined using legacy DSL, e.g. define rules for items in task container early.
+- Add `named(String, Action)` to `CollectionBuilder`
 - Register type factories with containers before elements are defined.
     - Separate out a type registry from the containers and share this.
+    - Type registration handlers should not invoke rule method until required.
+    - Remove dependencies on `ExtensionsContainer`.
 - Expose a `CollectionBuilder` view for all model elements of type `PolymorphicDomainObjectContainer`.
+- Verify usable from Groovy using closures.
+
+### Plugin uses method rule to apply defaults to model element
+
+- Add `@Defaults` annotation. Apply these before @Mutate rules.
 
 ### Build script author uses DSL to apply rules to container elements
 
+    model {
+        components {
+            mylib(SomeType) {
+                ... initialisation ...
+            }
+            beforeEach {
+                ... invoked before initialisation ...
+            }
+            mylib {
+                ... configuration, invoked after initialisation ...
+            }
+            afterEach {
+                ... invoked after configuration
+            }
+        }
+    }
+
 - Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
+- Add factory to mix in DSL and state checking, share with managed types and managed set.
+- Verify:
+    - Can apply rule to all elements in container using DSL
+    - Can apply rule to single element in container using DSL
+    - Can create element in container using DSL
+    - Decent error message when applying rule to unknown element in container
+    - Decent error message when using DSL to create element of unknown/incorrect type
 
 ### Tasks defined using `CollectionBuilder` are not eagerly created and configured
 
