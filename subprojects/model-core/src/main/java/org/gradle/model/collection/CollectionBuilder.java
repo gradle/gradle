@@ -36,7 +36,7 @@ public interface CollectionBuilder<T> {
     void create(String name);
 
     /**
-     * Defines an item with the given name and type T. The given action is used to configure the item.
+     * Defines an item with the given name and type T. The given action is invoked to configure the item when the item is required.
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
@@ -62,7 +62,12 @@ public interface CollectionBuilder<T> {
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
     /**
-     * Apply the given action to all items in the collection.
+     * Apply the given action to the given item. The given action is invoked to configure the item when the item is required.
+     */
+    void named(String name, Action<? super T> configAction);
+
+    /**
+     * Apply the given action to each item in the collection, as an item is required.
      */
     void all(Action<? super T> configAction);
 

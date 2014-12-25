@@ -57,10 +57,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                create("printStrings").doLast {
-                  // Being in doLast is significant here.
-                  // This is not going to execute until much later, so we are testing that we can still access the input
-                  println "strings: " + \$("strings")
+                create("printStrings") {
+                  doLast {
+                    // Being in doLast is significant here.
+                    // This is not going to execute until much later, so we are testing that we can still access the input
+                    println "strings: " + \$("strings")
+                  }
                 }
               }
               strings {
@@ -93,8 +95,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                create("printStrings").doLast {
-                  println "strings: " + \$("strings")
+                create("printStrings") {
+                  doLast {
+                    println "strings: " + \$("strings")
+                  }
                 }
               }
               strings {
@@ -130,8 +134,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                create("assertDuplicateInputIsSameObject").doLast {
-                  assert \$("strings").is(\$("strings"))
+                create("assertDuplicateInputIsSameObject") {
+                  doLast {
+                    assert \$("strings").is(\$("strings"))
+                  }
                 }
               }
             }
@@ -182,8 +188,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         file("script.gradle") << """
             model {
               tasks {
-                create("printStrings").doLast {
-                  println project.name + ": " + \$("strings")
+                create("printStrings") {
+                  doLast {
+                    println project.name + ": " + \$("strings")
+                  }
                 }
               }
               strings {

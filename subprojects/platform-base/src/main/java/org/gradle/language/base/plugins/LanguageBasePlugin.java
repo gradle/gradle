@@ -66,7 +66,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         modelRegistry.create(
-                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(instantiator,
+                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
                         ModelType.of(DefaultBinaryContainer.class),
                         ModelType.of(DefaultBinaryContainer.class),
                         ModelType.of(BinarySpec.class),

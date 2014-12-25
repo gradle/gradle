@@ -197,10 +197,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build()
         );
 
-        Instantiator instantiator = getServices().get(Instantiator.class);
-
         modelRegistry.create(PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
-                instantiator,
                 ModelType.of(TaskContainerInternal.class),
                 ModelType.of(TaskContainer.class),
                 ModelType.of(Task.class),

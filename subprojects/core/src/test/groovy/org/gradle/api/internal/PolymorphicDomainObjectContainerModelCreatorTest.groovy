@@ -63,12 +63,11 @@ class PolymorphicDomainObjectContainerModelCreatorTest extends Specification {
     def builderType = new ModelType<CollectionBuilder<NamedThing>>() {}
     def subBuilderType = new ModelType<CollectionBuilder<SpecialNamedThing>>() {}
 
-
     def registry = new DefaultModelRegistry()
     def reference = ModelReference.of("container", ThingContainer)
     def creator = ModelCreators.bridgedInstance(reference, container)
             .simpleDescriptor("container")
-            .withProjection(new PolymorphicDomainObjectContainerModelProjection(new DirectInstantiator(), container, NamedThing))
+            .withProjection(new PolymorphicDomainObjectContainerModelProjection(container, NamedThing))
             .build()
     ModelAdapter adapter
     MutableModelNode node

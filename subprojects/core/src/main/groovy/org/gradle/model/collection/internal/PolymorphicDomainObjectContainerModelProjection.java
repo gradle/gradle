@@ -25,7 +25,6 @@ import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -36,24 +35,16 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
-
-    private final Instantiator instantiator;
     private final C container;
     private final Class<M> itemType;
 
-    public PolymorphicDomainObjectContainerModelProjection(Instantiator instantiator, C container, Class<M> itemType) {
-        this.instantiator = instantiator;
+    public PolymorphicDomainObjectContainerModelProjection(C container, Class<M> itemType) {
         this.container = container;
         this.itemType = itemType;
     }
 
     public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
-        if (targetType.getRawClass().equals(CollectionBuilder.class)) {
-            ModelType<?> targetItemType = targetType.getTypeVariables().get(0);
-            return targetItemType.getRawClass().isAssignableFrom(itemType) || itemType.isAssignableFrom(targetItemType.getRawClass());
-        } else {
-            return false;
-        }
+        return itemType(targetType) != null;
     }
 
     public <T> boolean canBeViewedAsReadOnly(ModelType<T> type) {
@@ -61,17 +52,29 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
-        if (canBeViewedAsWritable(targetType)) {
-            ModelType<?> targetItemType = targetType.getTypeVariables().get(0);
-            if (targetItemType.getRawClass().isAssignableFrom(itemType)) { // item type is super of base
-                return toView(ruleDescriptor, node, itemType, container);
-            } else { // item type is sub type
-                Class<? extends M> subType = targetItemType.getRawClass().asSubclass(itemType);
-                return toView(ruleDescriptor, node, subType, container);
+        Class<? extends M> itemType = itemType(targetType);
+        if (itemType != null) {
+            return toView(ruleDescriptor, node, itemType, container);
+        }
+        return null;
+    }
+
+    private Class<? extends M> itemType(ModelType<?> targetType) {
+        Class<?> targetClass = targetType.getRawClass();
+        if (targetClass.equals(CollectionBuilder.class)) {
+            Class<?> targetItemClass = targetType.getTypeVariables().get(0).getRawClass();
+            if (targetItemClass.isAssignableFrom(itemType)) {
+                return itemType;
             }
-        } else {
+            if (itemType.isAssignableFrom(targetItemClass)) {
+                return targetItemClass.asSubclass(itemType);
+            }
             return null;
         }
+        if (targetClass.isAssignableFrom(CollectionBuilder.class)) {
+            return itemType;
+        }
+        return null;
     }
 
     private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemType, C container) {
@@ -79,7 +82,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, ModelType.of(itemType)).build();
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(instantiator, viewType, builder, sourceDescriptor);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
@@ -115,7 +118,6 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     public static <I extends Named, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> ModelCreator bridgeNamedDomainObjectCollection(
-            Instantiator instantiator,
             final ModelType<C> containerType,
             final ModelType<P> publicType,
             final ModelType<I> itemType,
@@ -124,7 +126,6 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
             final String descriptor
     ) {
         return bridgeNamedDomainObjectCollection(
-                instantiator,
                 containerType,
                 publicType,
                 itemType,
@@ -142,7 +143,6 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> ModelCreator bridgeNamedDomainObjectCollection(
-            Instantiator instantiator,
             final ModelType<C> containerType,
             final ModelType<P> publicType,
             final ModelType<I> itemType,
@@ -179,8 +179,8 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
                 }
         )
                 .simpleDescriptor(descriptor)
+                .withProjection(new PolymorphicDomainObjectContainerModelProjection<C, I>(container, itemType.getConcreteClass()))
                 .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
-                .withProjection(new PolymorphicDomainObjectContainerModelProjection<C, I>(instantiator, container, itemType.getConcreteClass()))
                 .build();
     }
 }

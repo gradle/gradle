@@ -34,7 +34,9 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -47,6 +49,9 @@ import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -76,13 +81,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         modelRegistry.create(
                 PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
-                        instantiator,
                         ModelType.of(DefaultComponentSpecContainer.class),
                         ModelType.of(DefaultComponentSpecContainer.class),
                         ModelType.of(ComponentSpec.class),
                         ModelPath.path("components"),
                         components,
-                        getClass().getSimpleName() + ".apply()"
+                        ComponentModelBasePlugin.class.getSimpleName() + ".apply()"
                         ));
     }
 

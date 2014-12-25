@@ -27,8 +27,6 @@ import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
@@ -46,14 +44,22 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         this.modelNode = modelNode;
     }
 
+    @Override
+    public String toString() {
+        return target.toString();
+    }
+
+    @Override
     public void create(final String name) {
         create(name, elementType);
     }
 
+    @Override
     public void create(String name, Action<? super T> configAction) {
         create(name, elementType, configAction);
     }
 
+    @Override
     public <S extends T> void create(final String name, final Class<S> type) {
         doCreate(name, ModelType.of(type), new Factory<S>() {
             @Override
@@ -65,6 +71,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         });
     }
 
+    @Override
     public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
         doCreate(name, ModelType.of(type), new Factory<S>() {
             @Override
@@ -85,7 +92,20 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        modelNode.addLink(ModelCreators.unmanagedInstance(ModelReference.of(modelNode.getPath().child(name), type), factory).descriptor(descriptor).build());
+        ModelReference<S> subject = ModelReference.of(modelNode.getPath().child(name), type);
+        modelNode.addLink(ModelCreators.unmanagedInstance(subject, factory).descriptor(descriptor).build());
+    }
+
+    @Override
+    public void named(final String name, Action<? super T> configAction) {
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
+            @Override
+            protected void doExecute(Appendable thing) throws Exception {
+                thing.append("named(").append(name).append(")");
+            }
+        }));
+        ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
+        modelNode.mutateLink(MutationType.Mutate, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
     }
 
     @Override
@@ -110,37 +130,5 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         }));
         ModelReference<T> subject = ModelReference.of(elementType);
         modelNode.mutateAllLinks(MutationType.Finalize, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
-    }
-
-    private class ActionBackedMutateRule<T> implements ModelMutator<T> {
-        private final ModelReference<T> subject;
-        private final Action<? super T> configAction;
-        private final ModelRuleDescriptor descriptor;
-
-        public ActionBackedMutateRule(ModelReference<T> subject, Action<? super T> configAction, ModelRuleDescriptor descriptor) {
-            this.subject = subject;
-            this.configAction = configAction;
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public ModelReference<T> getSubject() {
-            return subject;
-        }
-
-        @Override
-        public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
-            configAction.execute(object);
-        }
-
-        @Override
-        public List<ModelReference<?>> getInputs() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
-        }
     }
 }

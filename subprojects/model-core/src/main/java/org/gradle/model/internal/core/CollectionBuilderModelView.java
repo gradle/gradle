@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.core;
 
+import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
+import groovy.lang.MissingMethodException;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -35,11 +37,11 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
 
     private boolean closed;
 
-    public CollectionBuilderModelView(Instantiator instantiator, ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
+    public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
         this.type = type;
         this.rawInstance = rawInstance;
         this.ruleDescriptor = ruleDescriptor;
-        this.instance = Cast.uncheckedCast(instantiator.newInstance(Decorator.class, this));
+        this.instance = new Decorator();
     }
 
     public ModelType<CollectionBuilder<T>> getType() {
@@ -54,7 +56,13 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         closed = true;
     }
 
-    public class Decorator implements CollectionBuilder<T> {
+    // TODO - mix in Groovy support
+    public class Decorator extends GroovyObjectSupport implements CollectionBuilder<T> {
+        @Override
+        public String toString() {
+            return rawInstance.toString();
+        }
+
         @Override
         public void create(String name) {
             assertNotClosed();
@@ -80,6 +88,12 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
+        public void named(String name, Action<? super T> configAction) {
+            assertNotClosed();
+            rawInstance.named(name, configAction);
+        }
+
+        @Override
         public void all(Action<? super T> configAction) {
             assertNotClosed();
             rawInstance.all(configAction);
@@ -89,6 +103,54 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         public void finalizeAll(Action<? super T> configAction) {
             assertNotClosed();
             rawInstance.finalizeAll(configAction);
+        }
+
+        // TODO - mix this in
+        public void create(String name, Closure<? super T> configAction) {
+            create(name, new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public <S extends T> void create(String name, Class<S> type, Closure<? super S> configAction) {
+            create(name, type, new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public void named(String name, Closure<? super T> configAction) {
+            named(name, new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public void all(Closure<? super T> configAction) {
+            all(new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public void finalizeAll(Closure<? super T> configAction) {
+            finalizeAll(new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public Void methodMissing(String name, Object argsObj) {
+            Object[] args = (Object[]) argsObj;
+            if (args.length == 1 && args[0] instanceof Class<?>) {
+                @SuppressWarnings("unchecked")
+                Class<? extends T> itemType = (Class<? extends T>) args[0];
+                create(name, itemType);
+            } else if (args.length == 2 && args[0] instanceof Class<?> && args[1] instanceof Closure<?>) {
+                @SuppressWarnings("unchecked")
+                Class<? extends T> itemType = (Class<? extends T>) args[0];
+                @SuppressWarnings("unchecked")
+                Closure<? super T> closure = (Closure<T>) args[1];
+                create(name, itemType, closure);
+            } else if (args.length == 1 && args[0] instanceof Closure<?>) {
+                @SuppressWarnings("unchecked")
+                Closure<? super T> closure = (Closure<? super T>) args[0];
+                named(name, closure);
+            } else {
+                throw new MissingMethodException(name, getClass(), args);
+            }
+            return null;
         }
 
         private void assertNotClosed() {

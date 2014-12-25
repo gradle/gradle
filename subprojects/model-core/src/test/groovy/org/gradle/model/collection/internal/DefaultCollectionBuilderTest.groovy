@@ -16,16 +16,12 @@
 
 package org.gradle.model.collection.internal
 
-import org.gradle.api.Action
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelMutator
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.MutationType
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -55,7 +51,7 @@ class DefaultCollectionBuilderTest extends Specification {
                         ModelReference.of(containerPath, new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}),
                         container
                 )
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(new DirectInstantiator(), container, NamedThing))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
                         .simpleDescriptor("foo")
                         .build()
         )
@@ -65,11 +61,11 @@ class DefaultCollectionBuilderTest extends Specification {
         container.registerFactory(SpecialNamedThing) { SpecialNamedThing.newInstance(name: it) }
     }
 
-    void mutate(Action<? super CollectionBuilder<NamedThing>> action) {
+    void mutate(@DelegatesTo(CollectionBuilder) Closure<? super CollectionBuilder<NamedThing>> action) {
         def mutator = Stub(ModelMutator)
         mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
-        mutator.mutate(_, _, _) >> { action.execute(it[1]) }
+        mutator.mutate(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
         registry.mutate(MutationType.Mutate, mutator)
         registry.node(containerPath)
@@ -77,7 +73,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "can define an item with name"() {
         when:
-        mutate { it.create("foo") }
+        mutate { create("foo") }
 
         then:
         container.getByName("foo") != null
@@ -88,8 +84,8 @@ class DefaultCollectionBuilderTest extends Specification {
     def "does not eagerly create item"() {
         when:
         mutate {
-            it.create("foo")
-            it.create("bar")
+            create("foo")
+            create("bar")
         }
 
         then:
@@ -104,7 +100,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "can define item with custom type"() {
         when:
-        mutate { it.create("foo", SpecialNamedThing) }
+        mutate { create("foo", SpecialNamedThing) }
         registry.node(containerPath.child("foo"))
 
         then:
@@ -114,8 +110,8 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register config rules"() {
         when:
         mutate {
-            it.create("foo") {
-                it.other = "changed"
+            create("foo") {
+                other = "changed"
             }
         }
         registry.node(containerPath.child("foo"))
@@ -127,8 +123,25 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register config rules for specified type"() {
         when:
         mutate {
-            it.create("foo", SpecialNamedThing) {
-                it.other = "changed"
+            create("foo", SpecialNamedThing) {
+                other = "changed"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "changed"
+    }
+
+    def "can register mutate rule for items"() {
+        when:
+        mutate {
+            named("foo") {
+                assert other == "original"
+                other = "changed"
+            }
+            create("foo") {
+                other = "original"
             }
         }
         registry.node(containerPath.child("foo"))
@@ -140,12 +153,50 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register mutate rule for all items"() {
         when:
         mutate {
-            it.all {
-                assert it.other == "original"
-                it.other = "changed"
+            all {
+                assert other == "original"
+                other = "changed"
             }
-            it.create("foo") {
-                it.other = "original"
+            create("foo") {
+                other = "original"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "changed"
+    }
+
+    def "can register finalize rule for all items"() {
+        when:
+        mutate {
+            finalizeAll {
+                assert other == "changed"
+                other = "finalized"
+            }
+            all {
+                assert other == "original"
+                other = "changed"
+            }
+            create("foo") {
+                other = "original"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "finalized"
+    }
+
+    def "provides groovy DSL"() {
+        when:
+        mutate {
+            foo {
+                assert other == "original"
+                other = "changed"
+            }
+            foo(NamedThing) {
+                other = "original"
             }
         }
         registry.node(containerPath.child("foo"))
