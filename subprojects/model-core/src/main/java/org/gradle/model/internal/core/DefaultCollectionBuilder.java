@@ -18,6 +18,7 @@ package org.gradle.model.internal.core;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.Factory;
 import org.gradle.model.collection.CollectionBuilder;
@@ -49,6 +50,14 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         return target.toString();
     }
 
+    @Nullable
+    @Override
+    public T get(String name) {
+        // TODO - lock this down
+        MutableModelNode link = modelNode.getLink(name);
+        return link == null ? null : link.getPrivateData(ModelType.of(elementType));
+    }
+
     @Override
     public void create(final String name) {
         create(name, elementType);
@@ -64,9 +73,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         doCreate(name, ModelType.of(type), new Factory<S>() {
             @Override
             public S create() {
-                S element = instantiator.create(name, type);
-                target.add(element);
-                return element;
+                return instantiator.create(name, type);
+            }
+        }, new Action<S>() {
+            @Override
+            public void execute(S s) {
+                target.add(s);
             }
         });
     }
@@ -76,15 +88,18 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         doCreate(name, ModelType.of(type), new Factory<S>() {
             @Override
             public S create() {
-                S element = instantiator.create(name, type);
-                configAction.execute(element);
-                target.add(element);
-                return element;
+                return instantiator.create(name, type);
+            }
+        }, new Action<S>() {
+            @Override
+            public void execute(S s) {
+                configAction.execute(s);
+                target.add(s);
             }
         });
     }
 
-    private <S extends T> void doCreate(final String name, ModelType<S> type, Factory<? extends S> factory) {
+    private <S extends T> void doCreate(final String name, ModelType<S> type, Factory<? extends S> factory, Action<? super S> initAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -94,6 +109,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
         ModelReference<S> subject = ModelReference.of(modelNode.getPath().child(name), type);
         modelNode.addLink(ModelCreators.unmanagedInstance(subject, factory).descriptor(descriptor).build());
+        modelNode.mutateLink(MutationType.Initialize, new ActionBackedMutateRule<S>(subject, initAction, descriptor));
     }
 
     @Override
@@ -110,25 +126,52 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void all(final Action<? super T> configAction) {
+        withType(elementType, configAction);
+    }
+
+    @Override
+    public <S extends T> void withType(Class<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
                 thing.append("all()");
             }
         }));
-        ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.mutateAllLinks(MutationType.Mutate, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.mutateAllLinks(MutationType.Mutate, new ActionBackedMutateRule<S>(subject, configAction, descriptor));
+    }
+
+    @Override
+    public void beforeEach(Action<? super T> configAction) {
+        beforeEach(elementType, configAction);
+    }
+
+    @Override
+    public <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction) {
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
+            @Override
+            protected void doExecute(Appendable thing) throws Exception {
+                thing.append("beforeEach()");
+            }
+        }));
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.mutateAllLinks(MutationType.Defaults, new ActionBackedMutateRule<S>(subject, configAction, descriptor));
     }
 
     @Override
     public void finalizeAll(Action<? super T> configAction) {
+        finalizeAll(elementType, configAction);
+    }
+
+    @Override
+    public <S extends T> void finalizeAll(Class<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
-                thing.append("all()");
+                thing.append("finalizeAll()");
             }
         }));
-        ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.mutateAllLinks(MutationType.Finalize, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
+        ModelReference<S> subject = ModelReference.of(type);
+        modelNode.mutateAllLinks(MutationType.Finalize, new ActionBackedMutateRule<S>(subject, configAction, descriptor));
     }
 }

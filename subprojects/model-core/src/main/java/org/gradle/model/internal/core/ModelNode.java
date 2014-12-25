@@ -70,6 +70,11 @@ public class ModelNode implements ModelCreation {
         return adapter;
     }
 
+    @Override
+    public String toString() {
+        return creationPath.toString();
+    }
+
     public boolean hasLink(String name) {
         return links.containsKey(name);
     }

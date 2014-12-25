@@ -280,6 +280,26 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "prefix: bar"
     }
 
+    def "can attach a mutator to all elements with specific type linked from an element"() {
+        def creatorAction = Mock(Action)
+        def mutatorAction = Mock(Action)
+
+        given:
+        registry.create(nodeCreator("parent", Integer, creatorAction))
+        creatorAction.execute(_) >> { MutableModelNode node ->
+            node.mutateAllLinks(MutationType.Mutate, mutator(null, Bean, mutatorAction))
+            node.addLink(creator("parent.foo", String, "ignore me"))
+            node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
+        }
+        mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
+
+        registry.get(ModelPath.path("parent"), ModelType.untyped()) // TODO - should not need this
+
+        expect:
+        registry.get(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "prefix: bar"
+        registry.get(ModelPath.path("parent.foo"), ModelType.of(String)) == "ignore me"
+    }
+
     def "can attach a mutator with inputs to element linked from another element"() {
         def creatorAction = Mock(Action)
         def mutatorAction = Mock(BiAction)

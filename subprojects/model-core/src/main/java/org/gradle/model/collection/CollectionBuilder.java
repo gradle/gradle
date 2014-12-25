@@ -18,6 +18,7 @@ package org.gradle.model.collection;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * Allows the adding of items to a named collection where instantiation is managed.
@@ -26,6 +27,9 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface CollectionBuilder<T> {
+    // TODO - move this somewhere else. It is currently here to assist with migration from DomainObjectContainer and friends
+    @Nullable
+    T get(String name);
 
     /**
      * Defines an item with the given name and type T
@@ -66,13 +70,21 @@ public interface CollectionBuilder<T> {
      */
     void named(String name, Action<? super T> configAction);
 
+    void beforeEach(Action<? super T> configAction);
+
+    <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction);
+
     /**
      * Apply the given action to each item in the collection, as an item is required.
      */
     void all(Action<? super T> configAction);
 
+    <S extends T> void withType(Class<S> type, Action<? super S> configAction);
+
     /**
      * Apply the given action to each item in the collection, after the item has been configured.
      */
     void finalizeAll(Action<? super T> configAction);
+
+    <S extends T> void finalizeAll(Class<S> type, Action<? super S> configAction);
 }

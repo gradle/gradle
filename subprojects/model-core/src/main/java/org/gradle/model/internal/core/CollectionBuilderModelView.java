@@ -19,8 +19,10 @@ package org.gradle.model.internal.core;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.collection.CollectionBuilder;
@@ -63,6 +65,12 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
             return rawInstance.toString();
         }
 
+        @Nullable
+        @Override
+        public T get(String name) {
+            return rawInstance.get(name);
+        }
+
         @Override
         public void create(String name) {
             assertNotClosed();
@@ -94,15 +102,39 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
+        public void beforeEach(Action<? super T> configAction) {
+            assertNotClosed();
+            rawInstance.beforeEach(configAction);
+        }
+
+        @Override
+        public <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction) {
+            assertNotClosed();
+            rawInstance.beforeEach(type, configAction);
+        }
+
+        @Override
         public void all(Action<? super T> configAction) {
             assertNotClosed();
             rawInstance.all(configAction);
         }
 
         @Override
+        public <S extends T> void withType(Class<S> type, Action<? super S> configAction) {
+            assertNotClosed();
+            rawInstance.withType(type, configAction);
+        }
+
+        @Override
         public void finalizeAll(Action<? super T> configAction) {
             assertNotClosed();
             rawInstance.finalizeAll(configAction);
+        }
+
+        @Override
+        public <S extends T> void finalizeAll(Class<S> type, Action<? super S> configAction) {
+            assertNotClosed();
+            rawInstance.finalizeAll(type, configAction);
         }
 
         // TODO - mix this in
@@ -126,8 +158,38 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
+        public <S extends T> void withType(Class<S> type, Closure<? super S> configAction) {
+            withType(type, new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public void beforeEach(Closure<? super T> configAction) {
+            beforeEach(new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public <S extends T> void beforeEach(Class<S> type, Closure<? super S> configAction) {
+            beforeEach(type, new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
         public void finalizeAll(Closure<? super T> configAction) {
             finalizeAll(new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        public <S extends T> void finalizeAll(Class<S> type, Closure<? super S> configAction) {
+            finalizeAll(type, new ClosureBackedAction<T>(configAction));
+        }
+
+        // TODO - mix this in
+        @Override
+        public Object getProperty(String property) {
+            T element = rawInstance.get(property);
+            if (element == null) {
+                throw new MissingPropertyException(property, CollectionBuilder.class);
+            }
+            return element;
         }
 
         // TODO - mix this in
@@ -148,7 +210,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
                 Closure<? super T> closure = (Closure<? super T>) args[0];
                 named(name, closure);
             } else {
-                throw new MissingMethodException(name, getClass(), args);
+                throw new MissingMethodException(name, CollectionBuilder.class, args);
             }
             return null;
         }

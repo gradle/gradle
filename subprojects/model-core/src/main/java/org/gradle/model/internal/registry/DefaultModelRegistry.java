@@ -475,7 +475,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Nullable
         @Override
         public MutableModelNode getLink(String name) {
-            return new NodeWrapper(node.getLink(name));
+            ModelNode node = this.node.getLink(name);
+            return node == null ? null : new NodeWrapper(node);
         }
 
         @Override
@@ -500,8 +501,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             registerListener(new ModelCreationListener() {
                 @Override
                 public boolean onCreate(ModelCreation registration) {
-                    if (node.getPath().equals(registration.getPath().getParent())) {
-                        bind(ModelReference.of(registration.getPath(), mutator.getSubject().getType()), type, mutator);
+                    ModelType<T> subjectType = mutator.getSubject().getType();
+                    if (node.getPath().equals(registration.getPath().getParent()) && registration.getPromise().canBeViewedAsWritable(subjectType)) {
+                        bind(ModelReference.of(registration.getPath(), subjectType), type, mutator);
                     }
                     return false;
                 }

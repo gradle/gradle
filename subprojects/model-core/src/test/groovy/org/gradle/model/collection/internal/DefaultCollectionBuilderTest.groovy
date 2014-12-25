@@ -167,6 +167,27 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("foo").other == "changed"
     }
 
+    def "can register mutate rule for all items with specific type"() {
+        when:
+        mutate {
+            withType(SpecialNamedThing) {
+                assert other == "original"
+                other = "changed"
+            }
+            create("foo") {
+                other = "original"
+            }
+            create("bar", SpecialNamedThing) {
+                other = "original"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "original"
+        container.getByName("bar").other == "changed"
+    }
+
     def "can register finalize rule for all items"() {
         when:
         mutate {
@@ -198,10 +219,12 @@ class DefaultCollectionBuilderTest extends Specification {
             foo(NamedThing) {
                 other = "original"
             }
+            bar(SpecialNamedThing)
         }
         registry.node(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
+        container.getByName("bar") instanceof SpecialNamedThing
     }
 }
