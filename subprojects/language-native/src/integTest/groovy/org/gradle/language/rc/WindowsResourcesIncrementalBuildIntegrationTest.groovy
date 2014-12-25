@@ -105,7 +105,7 @@ STRINGTABLE
         buildFile << """
 model {
     components {
-        main(NativeExecutableSpec) {
+        main {
             binaries.all {
                 // Use a compiler arg that will change the generated .res file
                 rcCompiler.args "-DFRENCH"
