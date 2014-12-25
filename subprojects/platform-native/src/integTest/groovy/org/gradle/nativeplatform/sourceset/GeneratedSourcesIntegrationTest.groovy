@@ -448,7 +448,8 @@ model {
         projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "build/src/generated/headers"
+            // TODO - should not include the default location
+            includePath == "src/main/headers;build/src/generated/headers"
         }
     }
 
