@@ -70,9 +70,9 @@ public class IncompatibleTypeReferenceReporter {
         if (description != null) {
             writer.print(" (");
             writer.print(description);
-            writer.print(") ");
+            writer.print(")");
         }
-        writer.println("is invalid due to incompatible types.");
+        writer.println(" is invalid due to incompatible types.");
         writer.print("This element was created by ");
         writer.print(creator);
         writer.print(" and can be ");

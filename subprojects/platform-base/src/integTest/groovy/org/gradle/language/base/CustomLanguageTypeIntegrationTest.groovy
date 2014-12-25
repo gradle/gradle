@@ -28,7 +28,6 @@ class CustomLanguageTypeIntegrationTest extends AbstractIntegrationSpec {
         interface CustomLanguageSourceSet extends LanguageSourceSet {}
         class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
 
-
         @RuleSource
         class CustomLanguagePlugin {
             @LanguageType
@@ -37,6 +36,7 @@ class CustomLanguageTypeIntegrationTest extends AbstractIntegrationSpec {
                 builder.defaultImplementation(DefaultCustomLanguageSourceSet)
             }
         }
+
         apply plugin:CustomLanguagePlugin
 """
     }
