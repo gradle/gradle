@@ -318,6 +318,35 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelPath path = node.getPath();
         LOGGER.debug("Closing {}", path);
 
+        maybeCreate(node);
+        maybeMutate(node);
+        maybeCloseLinked(node);
+
+        LOGGER.debug("Finished closing {}", path);
+    }
+
+    private void maybeCloseLinked(ModelNode node) {
+        if (node.getState() == ModelNode.State.SelfClosed) {
+            for (ModelNode child : node.getLinks().values()) {
+                close(child);
+            }
+            node.setState(ModelNode.State.GraphClosed);
+        }
+    }
+
+    private void maybeMutate(ModelNode node) {
+        ModelPath path = node.getPath();
+        if (node.getState() == ModelNode.State.Created) {
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Defaults)), usedMutators);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Initialize)), usedMutators);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Mutate)), usedMutators);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Finalize)), usedMutators);
+            node.setState(ModelNode.State.SelfClosed);
+        }
+    }
+
+    private void maybeCreate(ModelNode node) {
+        ModelPath path = node.getPath();
         if (node.getState() == ModelNode.State.Known) {
             BoundModelCreator creator = creators.remove(path);
             if (creator == null) {
@@ -327,20 +356,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             doCreate(node, creator);
             node.setState(ModelNode.State.Created);
         }
-        if (node.getState() == ModelNode.State.Created) {
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Defaults)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Initialize)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Mutate)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Finalize)), usedMutators);
-            node.setState(ModelNode.State.SelfClosed);
-        }
-        if (node.getState() == ModelNode.State.SelfClosed) {
-            for (ModelNode child : node.getLinks().values()) {
-                close(child);
-            }
-            node.setState(ModelNode.State.GraphClosed);
-        }
-        LOGGER.debug("Finished closing {}", path);
     }
 
     private void fireMutations(ModelNode node, ModelPath path, Iterable<BoundModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
@@ -519,12 +534,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelNode node = this.node.addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
             modelGraph.add(node);
             notifyCreationListeners(node);
-            // TODO - don't create eagerly
-//            bind(creator);
-            NodeWrapper child = new NodeWrapper(node);
-            creator.create(child, null);
-            node.setState(ModelNode.State.Created);
-            return child;
+            bind(creator);
+            return new NodeWrapper(node);
         }
 
         @Override
@@ -543,6 +554,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public void removeLink(String name) {
             remove(getPath().child(name));
+        }
+
+        @Override
+        public void ensureCreated() {
+            maybeCreate(node);
         }
 
         @Override

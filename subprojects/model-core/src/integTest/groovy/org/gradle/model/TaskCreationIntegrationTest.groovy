@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -379,7 +378,6 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         executedTasks == [":foo", ":bar"]
     }
 
-    @Ignore
     def "task instantiation and configuration is deferred until required"() {
         given:
         buildFile << """
@@ -466,7 +464,6 @@ foo configured
         failure.assertHasCause("Cannot create 'tasks.a' as it was already created by: MyPlugin#addTasks1(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)")
     }
 
-    @Ignore
     def "cannot create tasks during config of task"() {
         given:
         buildFile << """

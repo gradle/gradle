@@ -55,7 +55,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     public T get(String name) {
         // TODO - lock this down
         MutableModelNode link = modelNode.getLink(name);
-        return link == null ? null : link.getPrivateData(ModelType.of(elementType));
+        if (link == null) {
+            return null;
+        }
+        link.ensureCreated();
+        return link.getPrivateData(ModelType.of(elementType));
     }
 
     @Override
