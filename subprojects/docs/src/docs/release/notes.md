@@ -79,9 +79,11 @@ There have been some changes to the behaviour of the `model { ... }` block:
 
 Generally, the DSL should be the same, except:
 
-- Elements are not implicitly created when referenced. In particular, to define a task with default type, you need to use `model { tasks { myTask(Task) { ... } }`
-- Cannot access an element using a property, eg `model { components { main.binaries } }` no longer works.
+- Elements are not implicitly created when referenced as a property. In particular, to define a task with default type, you need to use `model { tasks { myTask(Task) { ... } }`
+- Elements are not configured eagerly, but are configured as required.
 - The `create` method returns void.
+- The `withType()` method selects elements based on the public contract type rather than implementation type.
+- Using create syntax fails when the element already exists.
 - There are currently no query method on this interface.
 
 ## External contributions
