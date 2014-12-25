@@ -28,7 +28,6 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
-import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
@@ -55,12 +54,16 @@ public class PlayJavaScriptPlugin {
     }
 
     @Mutate
-    void createJavascriptSourceSets(ComponentSpecContainer components) {
-        for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
-            JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
-            javaScriptSourceSet.getSource().srcDir("app/assets");
-            javaScriptSourceSet.getSource().include("**/*.js");
-        }
+    void createJavascriptSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+        components.beforeEach(new Action<PlayApplicationSpec>() {
+            @Override
+            public void execute(PlayApplicationSpec playComponent) {
+                // TODO - should have some way to lookup using internal type
+                JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
+                javaScriptSourceSet.getSource().srcDir("app/assets");
+                javaScriptSourceSet.getSource().include("**/*.js");
+            }
+        });
     }
 
     @BinaryTasks
