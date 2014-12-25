@@ -49,6 +49,7 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -56,9 +57,19 @@ import java.io.File;
  */
 @Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
+    private final Instantiator instantiator;
+
+    @Inject
+    public NativeComponentModelPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
+
+        project.getExtensions().create("buildTypes", DefaultBuildTypeContainer.class, instantiator);
+        project.getExtensions().create("flavors", DefaultFlavorContainer.class, instantiator);
+        project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
     }
 
     /**
@@ -87,32 +98,23 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NativeToolChainRegistryInternal toolChains(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultNativeToolChainRegistry.class, instantiator);
+        NativeToolChainRegistryInternal toolChains(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(NativeToolChainRegistryInternal.class);
         }
 
         @Model
-        BuildTypeContainer buildTypes(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultBuildTypeContainer.class, instantiator);
+        BuildTypeContainer buildTypes(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(BuildTypeContainer.class);
         }
 
         @Model
-        FlavorContainer flavors(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
+        FlavorContainer flavors(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(FlavorContainer.class);
         }
 
         @Model
         NamedDomainObjectSet<NativeComponentSpec> nativeComponents(ComponentSpecContainer components) {
             return components.withType(NativeComponentSpec.class);
-        }
-
-        @Mutate
-        public void registerExtensions(ExtensionContainer extensions, BuildTypeContainer buildTypes, FlavorContainer flavors) {
-            extensions.add("buildTypes", buildTypes);
-            extensions.add("flavors", flavors);
         }
 
         @Mutate
@@ -179,21 +181,23 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-            // This should be @Mutate for each component in a container, rather than finalizing the container itself
-        void configureGeneratedSourceSets(ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs) {
-                for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
-                    Task generatorTask = languageSourceSet.getGeneratorTask();
-                    if (generatorTask != null) {
-                        languageSourceSet.builtBy(generatorTask);
-                        maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
-                        if (languageSourceSet instanceof HeaderExportingSourceSet) {
-                            maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
+        @Mutate
+        void configureGeneratedSourceSets(CollectionBuilder<ComponentSpec> componentSpecs) {
+            componentSpecs.finalizeAll(new Action<ComponentSpec>() {
+                @Override
+                public void execute(ComponentSpec componentSpec) {
+                    for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
+                        Task generatorTask = languageSourceSet.getGeneratorTask();
+                        if (generatorTask != null) {
+                            languageSourceSet.builtBy(generatorTask);
+                            maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
+                            if (languageSourceSet instanceof HeaderExportingSourceSet) {
+                                maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
+                            }
                         }
                     }
                 }
-            }
+            });
         }
 
         @Mutate

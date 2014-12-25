@@ -34,9 +34,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -49,9 +47,6 @@ import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformContainer;
 
 import javax.inject.Inject;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -107,13 +102,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void initializeSourceSetsForComponents(final ComponentSpecContainer components, final LanguageRegistry languageRegistry, final LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
+        void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, final LanguageRegistry languageRegistry, final LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-                // TODO:DAZ Using live collection here in order to add 'default' construction for components, which should be executed before any user component configuration is applied.
-                components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
+                // TODO - allow beforeEach() to be applied to internal types
+                components.beforeEach(ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
             }
         }
 
@@ -185,7 +180,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     }
 
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
-    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
+    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpec> {
         private final LanguageRegistration<U> languageRegistration;
         private final LanguageTransformContainer languageTransforms;
 
@@ -198,7 +193,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return new ComponentSourcesRegistrationAction<U>(registration, languageTransforms);
         }
 
-        public void execute(ComponentSpecInternal componentSpecInternal) {
+        public void execute(ComponentSpec componentSpec) {
+            ComponentSpecInternal componentSpecInternal = (ComponentSpecInternal) componentSpec;
             registerLanguageSourceSetFactory(componentSpecInternal);
             createDefaultSourceSetForComponents(componentSpecInternal);
         }
