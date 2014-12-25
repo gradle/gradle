@@ -69,9 +69,20 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Model DSL changes
+
+There have been some changes to the behaviour of the `model { ... }` block:
+
+- The `tasks` container now delegates to a `CollectionBuilder<Task>` instead of a `TaskContainer`.
+- The `components` container now delegates to a `CollectionBuilder<ComponentSpec>` instead of a `ComponentSpecContainer`.
+- The `binaries` container now delegates to a `CollectionBuilder<BinarySpec>` instead of a `BinaryContainer`.
+
+Generally, the DSL should be the same, except:
+
+- Elements are not implicitly created when referenced. In particular, to define a task with default type, you need to use `model { tasks { myTask(Task) { ... } }`
+- Cannot access an element using a property, eg `model { components { main.binaries } }` no longer works.
+- The `create` method returns void.
+- There are currently no query method on this interface.
 
 ## External contributions
 
