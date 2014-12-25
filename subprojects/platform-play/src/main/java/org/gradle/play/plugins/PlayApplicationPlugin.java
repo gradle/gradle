@@ -243,7 +243,7 @@ public class PlayApplicationPlugin {
                 scalaCompile.setTargetCompatibility(targetCompatibility);
 
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
+                incrementalOptions.setAnalysisFile(new File(scalaCompile.getTemporaryDir(), "compilerAnalysis/%s.analysis"));
 
                 for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
                     scalaCompile.source(appSources.getSource());
