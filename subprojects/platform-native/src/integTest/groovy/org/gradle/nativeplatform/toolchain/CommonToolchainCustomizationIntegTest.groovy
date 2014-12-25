@@ -23,23 +23,13 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
 
     def helloWorldApp = new CppHelloWorldApp()
 
-    def setup() {
-        buildFile << """
-apply plugin: 'cpp'
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-"""
-
-        helloWorldApp.executable.writeSources(file("src/main"))
-    }
-
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
         when:
+        helloWorldApp.executable.writeSources(file("src/main"))
         helloWorldApp.writeSources(file("src/main"))
         buildFile << """
+apply plugin: 'cpp'
+
 model {
     toolChains {
         ${toolChain.id} {

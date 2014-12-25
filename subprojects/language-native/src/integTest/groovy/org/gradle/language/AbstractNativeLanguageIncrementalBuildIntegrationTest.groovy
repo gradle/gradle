@@ -357,7 +357,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         buildFile << """
         model {
             components {
-                main(NativeExecutableSpec) {
+                main {
                     binaries.all {
                         linker.args ${escapeString(linkerArgs)}
                     }

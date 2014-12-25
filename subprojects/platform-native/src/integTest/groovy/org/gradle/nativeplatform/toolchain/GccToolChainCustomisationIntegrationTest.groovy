@@ -183,10 +183,10 @@ model {
         execTest(NativeExecutableSpec) {
             targetPlatform "alwaysFrench", "alwaysCPlusPlus"
         }
-        main(NativeExecutableSpec) {
+        main {
             targetPlatform "alwaysFrench", "alwaysCPlusPlus"
         }
-        hello(NativeLibrarySpec) {
+        hello {
             targetPlatform "alwaysFrench", "alwaysCPlusPlus"
         }
     }

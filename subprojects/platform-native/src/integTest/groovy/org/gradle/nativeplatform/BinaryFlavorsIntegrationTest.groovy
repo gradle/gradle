@@ -136,10 +136,10 @@ model {
 apply plugin: "cpp"
 model {
     components {
-        hello(NativeLibrarySpec) {
+        hello {
             targetFlavors "english", "french"
         }
-        main(NativeExecutableSpec) {
+        main {
             targetFlavors "english", "german"
             binaries.all {
                 lib library: 'hello'

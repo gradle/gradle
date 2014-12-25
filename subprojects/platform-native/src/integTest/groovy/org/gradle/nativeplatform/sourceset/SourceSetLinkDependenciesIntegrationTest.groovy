@@ -82,7 +82,7 @@ model {
         buildFile << """
 model {
     components {
-        main(NativeExecutableSpec) {
+        main {
             sources {
                 other(CppSourceSet) {
                     source.srcDir "src/other/cpp"
@@ -107,7 +107,7 @@ model {
         buildFile << """
 model {
     components {
-        main(NativeExecutableSpec) {
+        main {
             sources {
                 other(CppSourceSet) {
                     source.srcDir "src/other/cpp"
@@ -131,7 +131,7 @@ model {
         buildFile << """
 model {
     components {
-        main(NativeExecutableSpec) {
+        main {
             binaries.all {
                 sources {
                     other(CppSourceSet) {
