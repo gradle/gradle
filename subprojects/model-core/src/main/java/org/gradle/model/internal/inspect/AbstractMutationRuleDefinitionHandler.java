@@ -37,14 +37,10 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         MethodModelMutator<?> mutator = toMutator(ruleDefinition, subject, inputs);
 
-        if (isFinalize()) {
-            modelRegistry.mutate(MutationType.Finalize, mutator);
-        } else {
-            modelRegistry.mutate(MutationType.Mutate, mutator);
-        }
+        modelRegistry.mutate(getMutationType(), mutator);
     }
 
-    protected abstract boolean isFinalize();
+    protected abstract MutationType getMutationType();
 
     private <R> void validate(MethodRuleDefinition<R> ruleDefinition) {
         if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {

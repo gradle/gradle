@@ -17,13 +17,13 @@
 package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.Mutate;
+import org.gradle.model.Defaults;
 import org.gradle.model.internal.core.MutationType;
 
 @ThreadSafe
-public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Mutate> {
+public class DefaultsRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Defaults> {
     @Override
     protected MutationType getMutationType() {
-        return MutationType.Mutate;
+        return MutationType.Defaults;
     }
 }

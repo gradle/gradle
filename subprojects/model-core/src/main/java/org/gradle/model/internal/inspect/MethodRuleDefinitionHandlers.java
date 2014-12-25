@@ -28,7 +28,11 @@ abstract public class MethodRuleDefinitionHandlers {
 
     public static List<MethodRuleDefinitionHandler> coreHandlers(Instantiator instantiator, ModelSchemaStore modelSchemaStore) {
         return ImmutableList.<MethodRuleDefinitionHandler>of(
-                new UnmanagedModelCreationRuleDefinitionHandler(), new ManagedModelCreationRuleDefinitionHandler(modelSchemaStore, instantiator), new MutateRuleDefinitionHandler(), new FinalizeRuleDefinitionHandler()
+                new UnmanagedModelCreationRuleDefinitionHandler(),
+                new ManagedModelCreationRuleDefinitionHandler(modelSchemaStore, instantiator),
+                new MutateRuleDefinitionHandler(),
+                new FinalizeRuleDefinitionHandler(),
+                new DefaultsRuleDefinitionHandler()
         );
     }
 }

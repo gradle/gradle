@@ -139,7 +139,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Mutate, annotated with @Finalize]"
+        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Mutate, annotated with @Finalize, annotated with @Defaults]"
     }
 
     static class ConcreteGenericModelType {

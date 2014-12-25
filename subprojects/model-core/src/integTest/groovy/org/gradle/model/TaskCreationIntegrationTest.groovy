@@ -154,7 +154,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "bar message: task bar: bar message!"
     }
 
-    def "can configure tasks using mutate rule method"() {
+    def "can configure tasks using mutate rule methods"() {
         given:
         buildFile << """
             class MyMessage {
@@ -170,7 +170,12 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
                 @Mutate
                 void customMessage(@Path('tasks.bar') MessageTask task) {
-                    task.message = 'custom message!'
+                    task.message = 'custom'
+                }
+
+                @Finalize
+                void tweakCustomMessage(@Path('tasks.bar') MessageTask task) {
+                    task.message += ' message!'
                 }
 
                 @Mutate
@@ -200,7 +205,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "bar message: custom message!"
     }
 
-    def "can use method rule to apply mutate rules to tasks"() {
+    def "can use CollectionBuilder API from a method rule to apply mutate rules to tasks"() {
         given:
         buildFile << """
             class MyMessage {
@@ -222,10 +227,13 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
                 }
 
-                @Mutate
+                @Defaults
                 void applyMessages(CollectionBuilder<MessageTask> tasks, MyMessage myMessage) {
                     tasks.all {
                         message = myMessage.message
+                    }
+                    tasks.finalizeAll {
+                        message += " message!"
                     }
                 }
 
@@ -233,9 +241,6 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 void cleanupMessages(CollectionBuilder<MessageTask> tasks) {
                     tasks.named('bar') {
                         message = "\$name \$message"
-                    }
-                    tasks.finalizeAll {
-                        message += " message!"
                     }
                 }
             }

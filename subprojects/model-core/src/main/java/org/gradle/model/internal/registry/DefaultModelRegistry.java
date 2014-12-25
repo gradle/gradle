@@ -114,10 +114,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         bind(mutator.getSubject(), type, mutator);
     }
 
-    public <T> void mutate(ModelMutator<T> mutator) {
-        throw new UnsupportedOperationException();
-    }
-
     private void bind(final ModelCreator creator) {
         final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), new Action<RuleBinder<Void>>() {
             public void execute(RuleBinder<Void> ruleBinding) {
