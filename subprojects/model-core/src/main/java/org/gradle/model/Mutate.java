@@ -24,7 +24,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the associated method changes the model in some way.
+ * Declares that the associated method changes a model element in some way.
+ *
+ * <p>The subject of the method should be the first parameter ot the method. Any inputs required by the method can be
+ * declared as additional parameters.
+ * </p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
