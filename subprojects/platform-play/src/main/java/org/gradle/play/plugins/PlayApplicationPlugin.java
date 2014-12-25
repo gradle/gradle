@@ -138,7 +138,7 @@ public class PlayApplicationPlugin {
         });
     }
 
-    @Finalize
+    @Validate
     void failOnMultiplePlayComponents(ComponentSpecContainer container) {
         if (container.withType(PlayApplicationSpec.class).size() >= 2) {
             throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
