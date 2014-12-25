@@ -30,9 +30,10 @@ abstract public class MethodRuleDefinitionHandlers {
         return ImmutableList.<MethodRuleDefinitionHandler>of(
                 new UnmanagedModelCreationRuleDefinitionHandler(),
                 new ManagedModelCreationRuleDefinitionHandler(modelSchemaStore, instantiator),
+                new DefaultsRuleDefinitionHandler(),
                 new MutateRuleDefinitionHandler(),
                 new FinalizeRuleDefinitionHandler(),
-                new DefaultsRuleDefinitionHandler()
+                new ValidateRuleDefinitionHandler()
         );
     }
 }

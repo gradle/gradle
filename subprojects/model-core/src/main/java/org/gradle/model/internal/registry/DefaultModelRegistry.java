@@ -326,10 +326,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void maybeCloseLinked(ModelNode node) {
+        ModelPath path = node.getPath();
         if (node.getState() == ModelNode.State.SelfClosed) {
             for (ModelNode child : node.getLinks().values()) {
                 close(child);
             }
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Validate)), usedMutators);
             node.setState(ModelNode.State.GraphClosed);
         }
     }

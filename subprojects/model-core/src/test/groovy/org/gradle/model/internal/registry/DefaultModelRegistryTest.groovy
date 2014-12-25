@@ -161,7 +161,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("bar"), ModelType.untyped()) == "[12]"
     }
 
-    def "creator and mutators are invoked before element is closed"() {
+    def "creator and mutators are invoked in order before element is closed"() {
         def action = Mock(Action)
 
         given:
@@ -170,6 +170,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.mutate(MutationType.Initialize, mutator("foo", Bean, action))
         registry.mutate(MutationType.Mutate, mutator("foo", Bean, action))
         registry.mutate(MutationType.Finalize, mutator("foo", Bean, action))
+        registry.mutate(MutationType.Validate, mutator("foo", Bean, action))
 
         when:
         def value = registry.get(ModelPath.path("foo"), ModelType.of(Bean)).value
@@ -193,6 +194,9 @@ class DefaultModelRegistryTest extends Specification {
         }
         1 * action.execute(_) >> { Bean bean ->
             bean.value += " > finalize"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            assert bean.value == "create > defaults > initialize > mutate > finalize"
         }
         0 * action._
 

@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model;
+
+import org.gradle.api.Incubating;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A hard-coded sequence of mutation types that a model element proceeds through.
+ * Declares that the associated method validates a model element, after the element has been configured and prior to its use.
  *
- * <p>This is pretty much a placeholder for something more descriptive.
+ * <p>The subject of the method should be the first parameter ot the method. Any inputs required by the method can be
+ * declared as additional parameters.
+ * </p>
  */
-public enum MutationType {
-    Defaults, // Allows a mutation to setup default values for an element
-    Initialize, // Mutation provided when an element is defined
-    Mutate, // Customisations
-    Finalize, // Post customisation default values
-    Validate // Post mutation validations
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Incubating
+public @interface Validate {
 }

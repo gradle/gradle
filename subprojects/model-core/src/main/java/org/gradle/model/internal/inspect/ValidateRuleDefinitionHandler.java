@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.internal.inspect;
 
-/**
- * A hard-coded sequence of mutation types that a model element proceeds through.
- *
- * <p>This is pretty much a placeholder for something more descriptive.
- */
-public enum MutationType {
-    Defaults, // Allows a mutation to setup default values for an element
-    Initialize, // Mutation provided when an element is defined
-    Mutate, // Customisations
-    Finalize, // Post customisation default values
-    Validate // Post mutation validations
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.Validate;
+import org.gradle.model.internal.core.MutationType;
+
+@ThreadSafe
+public class ValidateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Validate> {
+    @Override
+    protected MutationType getMutationType() {
+        return MutationType.Validate;
+    }
 }
