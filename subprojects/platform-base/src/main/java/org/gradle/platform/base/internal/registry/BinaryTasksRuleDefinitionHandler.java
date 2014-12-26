@@ -21,7 +21,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -82,10 +81,10 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
             for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);
                 DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
-                        Task.class,
+                        ModelType.of(Task.class),
                         instantiator,
                         container,
-                        new SimpleModelRuleDescriptor("Project.<init>.tasks()"),
+                        getDescriptor(),
                         modelNode
                 );
 

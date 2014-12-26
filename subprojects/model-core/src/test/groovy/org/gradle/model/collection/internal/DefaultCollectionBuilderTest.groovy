@@ -20,6 +20,8 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.model.InvalidModelRuleException
+import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
@@ -37,18 +39,20 @@ class DefaultCollectionBuilderTest extends Specification {
         String other
     }
 
-    class SpecialNamedThing extends NamedThing {
+    interface Special { }
 
+    class SpecialNamedThing extends NamedThing implements Special {
     }
 
     def containerPath = ModelPath.path("container")
+    def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def registry = new DefaultModelRegistry()
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
     def setup() {
         registry.create(
                 ModelCreators.bridgedInstance(
-                        ModelReference.of(containerPath, new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}),
+                        ModelReference.of(containerPath, containerType),
                         container
                 )
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
@@ -107,7 +111,34 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("foo") instanceof SpecialNamedThing
     }
 
-    def "can register config rules"() {
+    def "can define item using filtered collection"() {
+        when:
+        mutate {
+            withType(SpecialNamedThing).create("foo")
+            withType(NamedThing).create("bar")
+        }
+        registry.node(containerPath.child("foo"))
+        registry.node(containerPath.child("bar"))
+
+        then:
+        container.getByName("foo") instanceof SpecialNamedThing
+        container.getByName("bar").class == NamedThing
+    }
+
+    def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
+        when:
+        mutate {
+            withType(String).create("foo")
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Cannot create an item of type java.lang.String as this is not a subtype of $NamedThing.name."
+    }
+
+    def "can register config rules for item"() {
         when:
         mutate {
             create("foo") {
@@ -120,7 +151,7 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("foo").other == "changed"
     }
 
-    def "can register config rules for specified type"() {
+    def "can register config rule and type for item"() {
         when:
         mutate {
             create("foo", SpecialNamedThing) {
@@ -133,7 +164,35 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("foo").other == "changed"
     }
 
-    def "can register mutate rule for items"() {
+    def "can query collection size"() {
+        when:
+        mutate {
+            create("a")
+            create("b")
+            assert size() == 2
+        }
+
+        then:
+        container.size() == 2
+    }
+
+    def "can query filtered collection size"() {
+        when:
+        mutate {
+            create("a")
+            create("b", SpecialNamedThing)
+            assert withType(SpecialNamedThing).size() == 1
+            assert withType(Special).size() == 1
+            assert withType(NamedThing).size() == 2
+            assert withType(Object).size() == 2
+            assert withType(String).size() == 0
+        }
+
+        then:
+        container.size() == 2
+    }
+
+    def "can register mutate rule for item with name"() {
         when:
         mutate {
             named("foo") {
@@ -148,6 +207,77 @@ class DefaultCollectionBuilderTest extends Specification {
 
         then:
         container.getByName("foo").other == "changed"
+    }
+
+    def "can register mutate rule for item with name using filtered container"() {
+        when:
+        mutate {
+            withType(Object).named("foo") {
+                other += " Object"
+            }
+            withType(Special).named("foo") {
+                other += " Special"
+            }
+            withType(SpecialNamedThing).named("foo") {
+                other += " SpecialNamedThing"
+            }
+            create("foo", SpecialNamedThing) {
+                other = "types:"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "types: Object Special SpecialNamedThing"
+    }
+
+    def "fails when named item does not have view with appropriate type"() {
+        when:
+        mutate {
+            withType(String).named("foo") {
+            }
+            create("foo")
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof InvalidModelRuleException
+        e.cause.cause instanceof ModelRuleBindingException
+        e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
+    }
+
+    def "can register mutate rule for all items using filtered container"() {
+        when:
+        mutate {
+            withType(Object).all {
+                other += " Object"
+            }
+            withType(String).all {
+                other += " String"
+            }
+            withType(NamedThing).all {
+                other += " NamedThing"
+            }
+            withType(Special).all {
+                other += " Special"
+            }
+            withType(SpecialNamedThing).all {
+                other += " SpecialNamedThing"
+            }
+            create("foo") {
+                other = "types:"
+            }
+            create("bar", SpecialNamedThing) {
+                other = "types:"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+        registry.node(containerPath.child("bar"))
+
+        then:
+        container.getByName("foo").other == "types: Object NamedThing"
+        container.getByName("bar").other == "types: Object NamedThing Special SpecialNamedThing"
     }
 
     def "can register mutate rule for all items"() {

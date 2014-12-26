@@ -33,7 +33,6 @@ import org.gradle.model.internal.type.ModelType;
 public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>> {
 
     private final ModelType<CollectionBuilder<T>> type;
-    private final CollectionBuilder<T> rawInstance;
     private final CollectionBuilder<T> instance;
     private final ModelRuleDescriptor ruleDescriptor;
 
@@ -41,9 +40,8 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
 
     public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
         this.type = type;
-        this.rawInstance = rawInstance;
         this.ruleDescriptor = ruleDescriptor;
-        this.instance = new Decorator();
+        this.instance = new Decorator<T>(rawInstance);
     }
 
     public ModelType<CollectionBuilder<T>> getType() {
@@ -58,11 +56,27 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         closed = true;
     }
 
-    // TODO - mix in Groovy support
-    public class Decorator extends GroovyObjectSupport implements CollectionBuilder<T> {
+    // TODO - mix in Groovy support and share with managed set
+    public class Decorator<T> extends GroovyObjectSupport implements CollectionBuilder<T> {
+        private final CollectionBuilder<T> rawInstance;
+
+        public Decorator(CollectionBuilder<T> rawInstance) {
+            this.rawInstance = rawInstance;
+        }
+
         @Override
         public String toString() {
             return rawInstance.toString();
+        }
+
+        @Override
+        public <S> CollectionBuilder<S> withType(Class<S> type) {
+            return new Decorator<S>(rawInstance.withType(type));
+        }
+
+        @Override
+        public int size() {
+            return rawInstance.size();
         }
 
         @Nullable

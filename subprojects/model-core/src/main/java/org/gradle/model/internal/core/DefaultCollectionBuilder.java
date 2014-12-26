@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
@@ -31,13 +32,13 @@ import java.util.Collection;
 
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
-    private final Class<T> elementType;
+    private final ModelType<T> elementType;
     private final NamedEntityInstantiator<? super T> instantiator;
     private final Collection<? super T> target;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
 
-    public DefaultCollectionBuilder(Class<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode) {
+    public DefaultCollectionBuilder(ModelType<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode) {
         this.elementType = elementType;
         this.instantiator = instantiator;
         this.target = target;
@@ -50,6 +51,31 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         return target.toString();
     }
 
+    @Override
+    public int size() {
+        return modelNode.getLinkCount(elementType);
+    }
+
+    @Override
+    public <S> CollectionBuilder<S> withType(Class<S> type) {
+        if (type.equals(elementType.getConcreteClass())) {
+            @SuppressWarnings("unchecked")
+            CollectionBuilder<S> result = (CollectionBuilder<S>) this;
+            return result;
+        }
+        if (elementType.getConcreteClass().isAssignableFrom(type)) {
+            @SuppressWarnings("unchecked")
+            CollectionBuilder<S> result = new DefaultCollectionBuilder<S>(ModelType.of(type), (NamedEntityInstantiator<? super S>) instantiator, (Collection<? super S>) target, sourceDescriptor, modelNode);
+            return result;
+        }
+        return new DefaultCollectionBuilder<S>(ModelType.of(type), new NamedEntityInstantiator<S>() {
+            @Override
+            public <U extends S> U create(String name, Class<U> type) {
+                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type.getName(), elementType.toString()));
+            }
+        }, ImmutableList.<S>builder().build(), sourceDescriptor, modelNode);
+    }
+
     @Nullable
     @Override
     public T get(String name) {
@@ -59,25 +85,34 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             return null;
         }
         link.ensureCreated();
-        return link.getPrivateData(ModelType.of(elementType));
+        return link.asWritable(elementType, sourceDescriptor, null).getInstance();
     }
 
     @Override
     public void create(final String name) {
-        create(name, elementType);
+        doCreate(name, elementType);
     }
 
     @Override
     public void create(String name, Action<? super T> configAction) {
-        create(name, elementType, configAction);
+        doCreate(name, elementType, configAction);
     }
 
     @Override
     public <S extends T> void create(final String name, final Class<S> type) {
-        doCreate(name, ModelType.of(type), new Factory<S>() {
+        doCreate(name, ModelType.of(type));
+    }
+
+    @Override
+    public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
+        doCreate(name, ModelType.of(type), configAction);
+    }
+
+    private <S extends T> void doCreate(final String name, final ModelType<S> type) {
+        doCreate(name, type, new Factory<S>() {
             @Override
             public S create() {
-                return instantiator.create(name, type);
+                return instantiator.create(name, type.getConcreteClass());
             }
         }, new Action<S>() {
             @Override
@@ -87,12 +122,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         });
     }
 
-    @Override
-    public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
-        doCreate(name, ModelType.of(type), new Factory<S>() {
+    private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> configAction) {
+        doCreate(name, type, new Factory<S>() {
             @Override
             public S create() {
-                return instantiator.create(name, type);
+                return instantiator.create(name, type.getConcreteClass());
             }
         }, new Action<S>() {
             @Override
@@ -130,7 +164,14 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void all(final Action<? super T> configAction) {
-        withType(elementType, configAction);
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
+            @Override
+            protected void doExecute(Appendable thing) throws Exception {
+                thing.append("all()");
+            }
+        }));
+        ModelReference<T> subject = ModelReference.of(elementType);
+        modelNode.mutateAllLinks(MutationType.Mutate, new ActionBackedMutateRule<T>(subject, configAction, descriptor));
     }
 
     @Override
@@ -138,7 +179,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
-                thing.append("all()");
+                thing.append("withType()");
             }
         }));
         ModelReference<S> subject = ModelReference.of(type);
@@ -147,11 +188,15 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void beforeEach(Action<? super T> configAction) {
-        beforeEach(elementType, configAction);
+        doBeforeEach(elementType, configAction);
     }
 
     @Override
     public <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction) {
+        doBeforeEach(ModelType.of(type), configAction);
+    }
+
+    private <S extends T> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -164,11 +209,15 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void finalizeAll(Action<? super T> configAction) {
-        finalizeAll(elementType, configAction);
+        doFinalizeAll(elementType, configAction);
     }
 
     @Override
     public <S extends T> void finalizeAll(Class<S> type, Action<? super S> configAction) {
+        doFinalizeAll(ModelType.of(type), configAction);
+    }
+
+    private <S extends T> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {

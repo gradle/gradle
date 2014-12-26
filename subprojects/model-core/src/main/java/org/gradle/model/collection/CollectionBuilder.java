@@ -27,7 +27,27 @@ import org.gradle.api.Nullable;
  */
 @Incubating
 public interface CollectionBuilder<T> {
-    // TODO - move this somewhere else. It is currently here to assist with migration from DomainObjectContainer and friends
+    /**
+     * Returns a collection containing the items from this collection of the specified type.
+     *
+     * @param type The type.
+     * @param <S> The type.
+     * @return The collection.
+     */
+    <S> CollectionBuilder<S> withType(Class<S> type);
+
+    /**
+     * Returns the number of items in this collection.
+     * @return the size of this collection.
+     */
+    int size();
+
+    /**
+     * Returns the item with the given name, if any.
+     *
+     * @param name The name of the item.
+     * @return The item, or null if no such item.
+     */
     @Nullable
     T get(String name);
 

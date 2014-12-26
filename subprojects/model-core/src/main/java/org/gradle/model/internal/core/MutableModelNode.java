@@ -57,6 +57,8 @@ public interface MutableModelNode {
     @Nullable
     MutableModelNode getLink(String name);
 
+    int getLinkCount(ModelType<?> type);
+
     boolean hasLink(String name);
 
     <T> void setPrivateData(ModelType<T> type, T object);

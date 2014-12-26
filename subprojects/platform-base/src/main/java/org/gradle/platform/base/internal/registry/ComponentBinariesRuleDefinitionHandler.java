@@ -21,7 +21,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -79,10 +78,10 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
                 NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(componentSpec, binaries);
                 CollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
-                        binaryType,
+                        ModelType.of(binaryType),
                         namedEntityInstantiator,
                         binaries,
-                        new SimpleModelRuleDescriptor("Project.<init>.binaries()"),
+                        getDescriptor(),
                         modelNode);
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
             }

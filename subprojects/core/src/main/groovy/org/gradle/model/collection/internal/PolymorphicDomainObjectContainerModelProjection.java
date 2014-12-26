@@ -77,11 +77,12 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return null;
     }
 
-    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemType, C container) {
+    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container) {
+        ModelType<S> itemType = ModelType.of(itemClass);
         CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(itemType, container.getEntityInstantiator(), container, sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
-        }, ModelType.of(itemType)).build();
+        }, itemType).build();
         CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;

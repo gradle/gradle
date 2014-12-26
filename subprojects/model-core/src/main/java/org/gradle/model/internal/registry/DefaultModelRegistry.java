@@ -497,6 +497,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public int getLinkCount(ModelType<?> type) {
+            int count = 0;
+            for (ModelNode linked : node.getLinks().values()) {
+                if (linked.getPromise().canBeViewedAsWritable(type)) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        @Override
         public boolean hasLink(String name) {
             return node.hasLink(name);
         }
