@@ -29,6 +29,11 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.List;
 
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
+    private static final BiAction<MutableModelNode, Inputs> NO_OP = new BiAction<MutableModelNode, Inputs>() {
+        @Override
+        public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
+        }
+    };
 
     private final ModelSchema<T> modelSchema;
     private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
@@ -71,7 +76,12 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
 
         if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
             ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
-            childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
+            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
+                    .withProjection(projection)
+                    .descriptor(descriptor).build();
+            childNode = modelNode.addLink(creator);
+            // TODO - defer creation
+            childNode.ensureCreated();
 
             if (!property.isWritable()) {
                 for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
@@ -80,7 +90,12 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-            childNode = modelNode.addLink(property.getName(), descriptor, projection, projection);
+            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
+                    .withProjection(projection)
+                    .descriptor(descriptor).build();
+            childNode = modelNode.addLink(creator);
+            // TODO - defer creation
+            childNode.ensureCreated();
 
             if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
                 P instance = modelInstantiator.newInstance(propertySchema);

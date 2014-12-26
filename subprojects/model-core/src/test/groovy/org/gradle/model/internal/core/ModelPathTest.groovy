@@ -19,14 +19,31 @@ package org.gradle.model.internal.core
 import spock.lang.Specification
 
 class ModelPathTest extends Specification {
+    def "root path has no parent"() {
+        def path = ModelPath.ROOT
+
+        expect:
+        path.toString() == "<root>"
+        path.components == []
+        path.name == ""
+        path.depth == 0
+        !path.topLevel
+        path.parent == null
+        path.rootParent == null
+    }
+
     def "path with single component is top level"() {
         def path = ModelPath.path("p")
 
         expect:
+        path.toString() == "p"
+        path.components == ["p"]
+        path.name == "p"
         path.depth == 1
         path.topLevel
-        path.parent == null
+        path.parent == ModelPath.ROOT
         path.rootParent == null
+        path == ModelPath.ROOT.child("p")
     }
 
     def "can create path with separator in one component"() {
@@ -35,15 +52,24 @@ class ModelPathTest extends Specification {
         def child = ModelPath.path([name, name, name])
 
         expect:
+        parent.components == [name]
+        parent.name == name
+        parent.toString() == name
         parent.topLevel
         parent.depth == 1
-        parent.parent == null
+        parent.parent == ModelPath.ROOT
         parent.rootParent == null
+
+        path.components == [name, name]
+        path.name == name
+        path.toString() == "${name}.${name}"
         path.parent == parent
         path.rootParent == parent
         path.name == name
         path.depth == 2
-        path.toString() == "${name}.${name}"
+
+        child.components == [name, name, name]
+        child.name == name
         child.parent == path
         child.rootParent == parent
         child.depth == 3
@@ -70,5 +96,18 @@ class ModelPathTest extends Specification {
         "."        | _
         "..."      | _
         "file.txt" | _
+    }
+
+    def "direct child"() {
+        expect:
+        ModelPath.ROOT.isDirectChild(ModelPath.path("p"))
+        !ModelPath.ROOT.isDirectChild(ModelPath.ROOT)
+        !ModelPath.ROOT.isDirectChild(ModelPath.path("a.b"))
+
+        ModelPath.path("a.b").isDirectChild(ModelPath.path("a.b.c"))
+        !ModelPath.path("a.b").isDirectChild(ModelPath.path("a.a.b"))
+        !ModelPath.path("a.b").isDirectChild(ModelPath.path("a.b"))
+        !ModelPath.path("a.b").isDirectChild(ModelPath.path("a"))
+        !ModelPath.path("a.b").isDirectChild(null)
     }
 }

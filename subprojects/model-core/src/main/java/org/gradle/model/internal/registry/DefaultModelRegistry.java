@@ -75,9 +75,15 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public void create(ModelCreator creator) {
         ModelPath path = creator.getPath();
-        if (path.getDepth() > 1) {
+        if (path.getDepth() != 1) {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
+
+        doCreate(modelGraph.getRoot(), creator);
+    }
+
+    private ModelNode doCreate(ModelNode parent, ModelCreator creator) {
+        ModelPath path = creator.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
@@ -87,26 +93,28 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (node.getState() == ModelNode.State.Known) {
                 throw new DuplicateModelException(
                         String.format(
-                                "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered to create a model element at this path",
-                                toString(creator.getDescriptor()),
+                                "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
                                 path,
+                                toString(creator.getDescriptor()),
                                 toString(node.getDescriptor())
                         )
                 );
             }
             throw new DuplicateModelException(
                     String.format(
-                            "Cannot register model creation rule '%s' for path '%s' as the rule '%s' is already registered (and the model element has been created)",
-                            toString(creator.getDescriptor()),
+                            "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
                             path,
+                            toString(creator.getDescriptor()),
                             toString(node.getDescriptor())
                     )
             );
         }
 
-        node = modelGraph.addEntryPoint(path, creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+        node = parent.addLink(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+        modelGraph.add(node);
         notifyCreationListeners(node);
         bind(creator);
+        return node;
     }
 
     @Override
@@ -464,6 +472,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             this.node = node;
         }
 
+        @Override
+        public String toString() {
+            return node.toString();
+        }
+
         public ModelPromise getPromise() {
             return node.getPromise();
         }
@@ -514,8 +527,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> void mutateLink(MutationType type, ModelMutator<T> mutator) {
-            if (mutator.getSubject().getPath() == null || !mutator.getSubject().getPath().getParent().equals(getPath())) {
-                throw new IllegalArgumentException("Mutator reference must have path to child of this node.");
+            if (!getPath().isDirectChild(mutator.getSubject().getPath())) {
+                throw new IllegalArgumentException(String.format("Mutator reference has a path (%s) which is not a child of this node (%s).", mutator.getSubject().getPath(), getPath()));
             }
             bind(mutator.getSubject(), type, mutator);
         }
@@ -530,7 +543,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 @Override
                 public boolean onCreate(ModelCreation registration) {
                     ModelType<T> subjectType = mutator.getSubject().getType();
-                    if (node.getPath().equals(registration.getPath().getParent()) && registration.getPromise().canBeViewedAsWritable(subjectType)) {
+                    if (getPath().isDirectChild(registration.getPath()) && registration.getPromise().canBeViewedAsWritable(subjectType)) {
                         bind(ModelReference.of(registration.getPath(), subjectType), type, mutator);
                     }
                     return false;
@@ -540,28 +553,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public MutableModelNode addLink(ModelCreator creator) {
-            // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
-            // ModelPath.validateName(name);
+            if (!getPath().isDirectChild(creator.getPath())) {
+                throw new IllegalArgumentException(String.format("Creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
+            }
+            return new NodeWrapper(doCreate(node, creator));
 
-            // TODO - bust out path from creation action
-            ModelNode node = this.node.addLink(creator.getPath().getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
-            modelGraph.add(node);
-            notifyCreationListeners(node);
-            bind(creator);
-            return new NodeWrapper(node);
-        }
-
-        @Override
-        public MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
-            // ModelPath.validateName(name);
-
-            ModelNode node = this.node.addLink(name, descriptor, promise, adapter);
-            modelGraph.add(node);
-            notifyCreationListeners(node);
-            // TODO - don't create eagerly
-            node.setState(ModelNode.State.Created);
-            return new NodeWrapper(node);
         }
 
         @Override

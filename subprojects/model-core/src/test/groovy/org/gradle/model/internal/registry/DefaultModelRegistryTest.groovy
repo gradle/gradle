@@ -71,7 +71,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         DuplicateModelException e = thrown()
-        e.message == /Cannot register model creation rule 'create foo as Integer' for path 'foo' as the rule 'create foo as String' is already registered to create a model element at this path/
+        e.message == /Cannot create 'foo' using creation rule 'create foo as Integer' as the rule 'create foo as String' is already registered to create this model element./
     }
 
     def "cannot register creator when element already closed"() {
@@ -84,7 +84,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         DuplicateModelException e = thrown()
-        e.message == /Cannot register model creation rule 'create foo as Integer' for path 'foo' as the rule 'create foo as String' is already registered (and the model element has been created)/
+        e.message == /Cannot create 'foo' using creation rule 'create foo as Integer' as the rule 'create foo as String' has already been used to create this model element./
     }
 
     def "rule cannot add link when element already known"() {
@@ -94,7 +94,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.create(creator("foo", Integer, 12))
         registry.mutate(MutationType.Mutate, nodeMutator("foo", Integer, mutatorAction))
         mutatorAction.execute(_) >> { MutableModelNode node ->
-            node.addLink(creator("foo.bar", Integer, 12))
+            node.addLink(creator("foo.bar", String, "12"))
             node.addLink(creator("foo.bar", Integer, 12))
         }
 
@@ -105,7 +105,7 @@ class DefaultModelRegistryTest extends Specification {
         ModelRuleExecutionException e = thrown()
         e.message == /Exception thrown while executing model rule: mutate foo as Integer/
         e.cause instanceof DuplicateModelException
-        e.cause.message == /Cannot create 'foo.bar' as it was already created by: create foo.bar as Integer/
+        e.cause.message == /Cannot create 'foo.bar' using creation rule 'create foo.bar as Integer' as the rule 'create foo.bar as String' is already registered to create this model element./
     }
 
     def "inputs for creator are bound when inputs already closed"() {

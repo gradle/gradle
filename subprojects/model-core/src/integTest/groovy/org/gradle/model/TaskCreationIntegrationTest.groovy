@@ -512,7 +512,7 @@ foo configured
 
         then:
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel)")
-        failure.assertHasCause("Cannot create 'tasks.a' as it was already created by: MyPlugin#addTasks1(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)")
+        failure.assertHasCause("Cannot create 'tasks.a' using creation rule 'MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' as the rule 'MyPlugin#addTasks1(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create this model element.")
     }
 
     def "cannot create tasks during config of task"() {
@@ -674,7 +674,7 @@ foo configured
         fails "foo"
 
         and:
-        failure.assertHasCause("Cannot create 'tasks.foo' as it was already created by: Project.<init>.tasks.foo()")
+        failure.assertHasCause("Cannot create 'tasks.foo' using creation rule 'MyPlugin#addTask(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)' as the rule 'Project.<init>.tasks.foo()' is already registered to create this model element.")
     }
 
     def "can create task with invalid model space name"() {

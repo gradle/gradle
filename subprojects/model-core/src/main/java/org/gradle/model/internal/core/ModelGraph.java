@@ -18,25 +18,22 @@ package org.gradle.model.internal.core;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.Collections;
 import java.util.Map;
 
 public class ModelGraph {
-    private final Map<String, ModelNode> entryNodes = Maps.newTreeMap();
+    private final ModelNode root;
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
 
-    public ModelNode addEntryPoint(ModelPath path, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        ModelNode node = new ModelNode(path, descriptor, promise, adapter);
-        ModelNode previous = entryNodes.put(path.getName(), node);
-        if (previous != null) {
-            // TODO more context here
-            throw new IllegalStateException("attempt to replace node link: " + path);
-        }
+    public ModelGraph() {
+        EmptyModelProjection projection = new EmptyModelProjection();
+        this.root = new ModelNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection);
+    }
 
-        flattened.put(path, node);
-        return node;
+    public ModelNode getRoot() {
+        return root;
     }
 
     public void add(ModelNode node) {
@@ -54,13 +51,9 @@ public class ModelGraph {
 
     @Nullable
     public ModelNode remove(ModelPath path) {
-        if (path.isTopLevel()) {
-            entryNodes.remove(path.getName());
-        } else {
-            ModelNode parentNode = find(path.getParent());
-            if (parentNode != null) {
-                parentNode.removeLink(path.getName());
-            }
+        ModelNode parentNode = find(path.getParent());
+        if (parentNode != null) {
+            parentNode.removeLink(path.getName());
         }
 
         return flattened.remove(path);

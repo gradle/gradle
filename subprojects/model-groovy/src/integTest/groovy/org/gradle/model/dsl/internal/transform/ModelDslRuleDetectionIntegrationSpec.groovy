@@ -52,13 +52,11 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 def pathParts = [root]
                 rest.each { p ->
                   def projection = new UnmanagedModelProjection(type, true, true)
-                  node = node.addLink(
-                    p,
-                    new SimpleModelRuleDescriptor("foo"),
-                    projection,
-                    projection
-                  )
-                  node.setPrivateData(type, [])
+                  def creator = ModelCreators.bridgedInstance(ModelReference.of(node.path.child(p), type), [])
+                        .withProjection(projection)
+                        .simpleDescriptor(p)
+                        .build()
+                  node = node.addLink(creator)
                   pathParts << p
                 }
               }

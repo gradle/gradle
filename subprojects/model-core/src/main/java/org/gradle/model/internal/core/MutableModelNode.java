@@ -30,11 +30,6 @@ public interface MutableModelNode {
     <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     /**
-     * Adds an element to the graph, linked from this element.
-     */
-    MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
-
-    /**
      * Adds an element to the graph, linked from this element. The given creator is used to initialize the element when required.
      */
     MutableModelNode addLink(ModelCreator creator);

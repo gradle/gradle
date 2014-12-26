@@ -149,7 +149,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered to create a model element at this path")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin\$Rules#string()' as the rule 'MyPlugin\$Rules#string()' is already registered to create this model element.")
     }
 
     def "informative error message when two plugins declare model at the same path and model is already created"() {
@@ -193,7 +193,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered (and the model element has been created)")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin\$Rules#string()' as the rule 'MyPlugin\$Rules#string()' has already been used to create this model element.")
     }
 
     def "informative error message when creation rule throws"() {
