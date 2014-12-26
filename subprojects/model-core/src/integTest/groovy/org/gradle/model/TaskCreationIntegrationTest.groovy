@@ -154,7 +154,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "bar message: task bar: bar message!"
     }
 
-    def "can configure tasks using mutate rule methods"() {
+    def "can configure tasks using rule methods taking some input"() {
         given:
         buildFile << """
             class MyMessage {
@@ -170,20 +170,26 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
                 @Mutate
                 void customMessage(@Path('tasks.bar') MessageTask task) {
-                    task.message = 'custom'
+                    task.message += ' from'
+                }
+
+                @Defaults
+                void prepareMessage(@Path('tasks.bar') MessageTask task) {
+                    task.message = "task bar: "
                 }
 
                 @Finalize
                 void tweakCustomMessage(@Path('tasks.bar') MessageTask task) {
-                    task.message += ' message!'
+                    task.message += " \$task.name"
                 }
 
                 @Mutate
-                void addTasks(CollectionBuilder<Task> tasks, MyMessage myMessage) {
-                    ['foo', 'bar'].each { n ->
-                        tasks.create(n, MessageTask) {
-                            message = myMessage.message
-                        }
+                void addTasks(CollectionBuilder<MessageTask> tasks, MyMessage myMessage) {
+                    tasks.create('bar') {
+                        message += myMessage.message
+                    }
+                    tasks.create('foo') {
+                        message = 'foo'
                     }
                 }
             }
@@ -192,7 +198,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 myMessage {
-                    message = "model message!"
+                    message = "hi"
                 }
             }
         """
@@ -201,11 +207,40 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: model message!"
-        output.contains "bar message: custom message!"
+        output.contains "foo message: foo"
+        output.contains "bar message: task bar: hi from bar"
     }
 
-    def "can use CollectionBuilder API from a method rule to apply mutate rules to tasks"() {
+    def "can validate tasks using rule methods"() {
+        given:
+        buildFile << """
+            @RuleSource
+            class MyPlugin {
+                @Validate
+                void checkTask(@Path('tasks.bar') MessageTask task) {
+                    throw new RuntimeException("task is invalid!")
+                }
+
+                @Mutate
+                void addTasks(CollectionBuilder<Task> tasks) {
+                    ['foo', 'bar'].each { n ->
+                        tasks.create(n, MessageTask)
+                    }
+                }
+            }
+
+            apply type: MyPlugin
+        """
+
+        when:
+        fails "bar"
+
+        then:
+        failure.assertHasCause('Exception thrown while executing model rule: MyPlugin#checkTask(MessageTask)')
+        failure.assertHasCause('task is invalid!')
+    }
+
+    def "can use CollectionBuilder API from a method rule to apply rules to tasks"() {
         given:
         buildFile << """
             class MyMessage {
@@ -222,15 +257,19 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 @Mutate
                 void addTasks(CollectionBuilder<MessageTask> tasks) {
                     ['foo', 'bar'].each { n ->
-                        tasks.create(n, MessageTask)
+                        tasks.create(n, MessageTask) {
+                            message = "\$message \$name"
+                        }
                     }
-
                 }
 
                 @Defaults
                 void applyMessages(CollectionBuilder<MessageTask> tasks, MyMessage myMessage) {
-                    tasks.all {
+                    tasks.beforeEach {
                         message = myMessage.message
+                    }
+                    tasks.all {
+                        message += " with"
                     }
                     tasks.finalizeAll {
                         message += " message!"
@@ -240,7 +279,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 @Mutate
                 void cleanupMessages(CollectionBuilder<MessageTask> tasks) {
                     tasks.named('bar') {
-                        message = "\$name \$message"
+                        message = "[\$message]"
                     }
                 }
             }
@@ -249,7 +288,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 myMessage {
-                    message = "model"
+                    message = "task"
                 }
             }
         """
@@ -258,11 +297,11 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: model message!"
-        output.contains "bar message: bar model message!"
+        output.contains "foo message: task foo with message!"
+        output.contains "bar message: [task bar with] message!"
     }
 
-    def "can use rule DSL to apply mutate rule to all tasks"() {
+    def "can use rule DSL to apply rules to all tasks"() {
         given:
         buildFile << """
             @RuleSource
@@ -271,7 +310,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 void addTasks(CollectionBuilder<MessageTask> tasks) {
                     ['foo', 'bar'].each { n ->
                         tasks.create(n, MessageTask) {
-                            message = "task \$name"
+                            message = "\$message \$name"
                         }
                     }
 
@@ -282,8 +321,14 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
+                    beforeEach {
+                        message = "task"
+                    }
                     all {
-                        message += ": message from \$name"
+                        message += " with"
+                    }
+                    finalizeAll {
+                        message += " message"
                     }
                 }
             }
@@ -293,8 +338,8 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains "foo message: task foo: message from foo"
-        output.contains "bar message: task bar: message from bar"
+        output.contains "foo message: task foo with message"
+        output.contains "bar message: task bar with message"
     }
 
     def "tasks created using legacy DSL are visible to rules"() {
@@ -396,6 +441,9 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     tasks.create("bar") {
                         println "\$name configured"
                     }
+                    tasks.beforeEach {
+                        println "\$name initialized"
+                    }
                     println "tasks defined"
                 }
             }
@@ -409,8 +457,10 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""tasks defined
 bar created
+bar initialized
 bar configured
 foo created
+foo initialized
 foo configured
 """))
     }
