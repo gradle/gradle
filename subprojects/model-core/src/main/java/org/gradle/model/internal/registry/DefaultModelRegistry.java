@@ -331,7 +331,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             for (ModelNode child : node.getLinks().values()) {
                 close(child);
             }
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Validate)), usedMutators);
             node.setState(ModelNode.State.GraphClosed);
         }
     }
@@ -343,6 +342,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Initialize)), usedMutators);
             fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Mutate)), usedMutators);
             fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Finalize)), usedMutators);
+            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Validate)), usedMutators);
             node.setState(ModelNode.State.SelfClosed);
         }
     }
