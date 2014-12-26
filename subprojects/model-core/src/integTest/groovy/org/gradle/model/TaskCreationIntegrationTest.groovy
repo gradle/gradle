@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 
 class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -406,12 +407,12 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "foo", "bar"
 
         then:
-        output.contains("""tasks defined
+        output.contains(TextUtil.toPlatformLineSeparators("""tasks defined
 bar created
 bar configured
 foo created
 foo configured
-""")
+"""))
     }
 
     def "two rules attempt to create task"() {
