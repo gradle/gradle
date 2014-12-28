@@ -55,7 +55,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can remove task in after evaluate if task is used by unbound #annotationClass.name rule"() {
+    def "can remove task in after evaluate if task is used by unbound #annotationClass rule"() {
         given:
         buildScript """
             import org.gradle.model.*
@@ -85,10 +85,9 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(Matchers.startsWith("The following model rules are unbound"))
 
         where:
-        annotationClass << ["Mutate", "Finalize"]
+        annotationClass << ["Defaults", "Mutate", "Finalize", "Validate"]
     }
 
-    @Unroll
     def "cant remove task if used by rule"() {
         when:
         buildScript """
@@ -96,7 +95,6 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
             task foo {}
             task bar { doLast { tasks.remove(foo) } }
-
 
             @RuleSource
             class Rules {

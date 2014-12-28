@@ -301,10 +301,22 @@ public class DefaultTaskContainerTest extends Specification {
         container.getByName("task") != null
     }
 
-    void "task priotized over placeholders"() {
+    void "placeholder is ignored when task already exists"() {
         given:
         Task task = addTask("task")
         Runnable placeholderAction = addPlaceholderTask("task")
+
+        when:
+        container.getByName("task") == task
+
+        then:
+        0 * placeholderAction.run()
+    }
+
+    void "placeholder is ignored when task later defined"() {
+        given:
+        Runnable placeholderAction = addPlaceholderTask("task")
+        Task task = addTask("task")
 
         when:
         container.getByName("task") == task
