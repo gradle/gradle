@@ -580,10 +580,12 @@ The initial target for this functionality will be to replace the `PlatformContai
 
 ### Plugin uses `CollectionBuilder` API to apply rules to container elements
 
+Add methods to `CollectionBuilder` to allow mutation rules to be defined for all elements or a particular container element.
+
 - Add `beforeEach(Action)` and `afterEach(action)` to `CollectionBuilder`
-    - Handle case where `beforeEach()` is used when there are tasks defined using legacy DSL, e.g. define rules for items in task container early.
 - Add `named(String, Action)` to `CollectionBuilder`
-- Add `validateEach(Action)`
+- Add `withType(Class, Action)` to `CollectionBuilder`
+- Add `withType(Class)` to `CollectionBuilder` to filter.
 - Expose a `CollectionBuilder` view for all model elements of type `PolymorphicDomainObjectContainer`.
 - Verify usable from Groovy using closures.
 - Verify usable from Java 8 using lambdas.
@@ -599,16 +601,30 @@ The initial target for this functionality will be to replace the `PlatformContai
 
 ### Plugin uses method rule to apply defaults to model element
 
+Add a way to mutate a model element prior to it being exposed to 'user' code.
+
 - Add `@Defaults` annotation. Apply these before `@Mutate` rules.
+- Add `CollectionBuilder.beforeEach(Action)`.
 - Apply defaults to managed object before initializer method is invoked.
-- Fail when target cannot accept defaults.
+
+#### Issues
+
+- Fail when target cannot accept defaults, eg is created using unmanaged object `@Model` method.
+- Handle case defaults are applied to tasks defined using legacy DSL, e.g. fail or perhaps define rules for items in task container early.
 
 ### Plugin uses method rule to validate model element
 
+Add a way to validate a model element prior to it being used as an input by 'user' code.
+
 - Add `@Validate` annotation. Apply these after `@Finalize` rules.
+- Add `CollectionBuilder.validateEach(Action)`
 - Rename 'mutate' methods and types.
-- Need read-only view of collection.
+- Add a read-only view of `CollectionBuilder`.
 - Don't include wrapper exception when rule fails, or add some validation failure collector.
+
+#### Issues
+
+- Currently validates the element when it is closed, not when its graph is closed.
 
 ### Build script author uses DSL to apply rules to container elements
 
@@ -630,7 +646,7 @@ The initial target for this functionality will be to replace the `PlatformContai
     }
 
 - Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
-- Add factory to mix in DSL and state checking, share with managed types and managed set.
+- Add factory to mix in Groovy DSL and state checking, share with managed types and managed set.
 - Verify:
     - Can apply rule to all elements in container using DSL
     - Can apply rule to single element in container using DSL
