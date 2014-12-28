@@ -590,8 +590,9 @@ The initial target for this functionality will be to replace the `PlatformContai
 
 #### Issues
 
+- Error message when a rule and legacy DSL both declare a task with given name is unclear as to the cause.
 - Fix methods that select by type using internal interfaces, as only the public contract type is visible.
-- Register type factories with containers before elements are defined.
+- Type registration:
     - Separate out a type registry from the containers and share this.
     - Type registration handlers should not invoke rule method until required.
     - Remove dependencies on `ExtensionsContainer`.
@@ -599,17 +600,15 @@ The initial target for this functionality will be to replace the `PlatformContai
 ### Plugin uses method rule to apply defaults to model element
 
 - Add `@Defaults` annotation. Apply these before `@Mutate` rules.
-- Apply defaults to managed object before initializer method.
+- Apply defaults to managed object before initializer method is invoked.
 - Fail when target cannot accept defaults.
 
 ### Plugin uses method rule to validate model element
 
 - Add `@Validate` annotation. Apply these after `@Finalize` rules.
 - Rename 'mutate' methods and types.
-
-#### Issues
-
-- Apply validation when self is closed rather than when graph is closed
+- Need read-only view of collection.
+- Don't include wrapper exception when rule fails, or add some validation failure collector.
 
 ### Build script author uses DSL to apply rules to container elements
 
@@ -646,6 +645,25 @@ The initial target for this functionality will be to replace the `PlatformContai
     - Verify initialisation action happens before `project.tasks.all { }` and `project.tasks.$name { }` actions.
 - Attempt to discover an unknown node by closing its parent.
 - Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
+
+### Implicit tasks are visible to model rules
+
+Options:
+
+- Bridge placeholders added to `TaskContainer` into the model space as the placeholders are defined.
+- Flip the relationship so that implicit tasks are defined in model space and bridged across to the `TaskContainer`.
+
+Tests:
+
+- Verify can use model rules to configure and/or override implicit tasks.
+
+Don't do this until project configuration closes only the tasks that are required for the task graph.
+
+Other issues:
+
+- Remove the special case to ignore bridged container elements added after container closed.
+- Handle old style rules creating tasks during DAG building.
+- Add validation to prevent removing links from an immutable model element.
 
 ### Support for managed container of tasks
 
