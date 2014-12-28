@@ -89,7 +89,7 @@ task checkModel << {
 
                 @Mutate
                 void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
-                    componentSpecs.finalizeAll {
+                    componentSpecs.afterEach {
                         version += ".1"
                     }
                 }

@@ -18,12 +18,12 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.Finalize;
-import org.gradle.model.internal.core.MutationType;
+import org.gradle.model.internal.core.ModelActionRole;
 
 @ThreadSafe
 public class FinalizeRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Finalize> {
     @Override
-    protected MutationType getMutationType() {
-        return MutationType.Finalize;
+    protected ModelActionRole getMutationType() {
+        return ModelActionRole.Finalize;
     }
 }

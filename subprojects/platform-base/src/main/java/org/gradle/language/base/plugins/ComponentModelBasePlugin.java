@@ -147,7 +147,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void applyDefaultSourceConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
-            componentSpecs.finalizeAll(new Action<ComponentSpec>() {
+            componentSpecs.afterEach(new Action<ComponentSpec>() {
                 @Override
                 public void execute(ComponentSpec componentSpec) {
                     for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {

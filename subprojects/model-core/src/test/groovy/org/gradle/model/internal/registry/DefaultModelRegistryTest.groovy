@@ -93,7 +93,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("foo", Integer, 12))
-        registry.mutate(MutationType.Mutate, nodeMutator("foo", Integer, mutatorAction))
+        registry.mutate(ModelActionRole.Mutate, nodeMutator("foo", Integer, mutatorAction))
         mutatorAction.execute(_) >> { MutableModelNode node ->
             node.addLink(creator("foo.bar", String, "12"))
             node.addLink(creator("foo.bar", Integer, 12))
@@ -153,7 +153,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(creator("bar", String, "foo.child", creatorAction))
         registry.create(creator("foo", Integer, 12))
-        registry.mutate(MutationType.Mutate, nodeMutator("foo", Integer, mutatorAction))
+        registry.mutate(ModelActionRole.Mutate, nodeMutator("foo", Integer, mutatorAction))
         mutatorAction.execute(_) >> { MutableModelNode node -> node.addLink(creator("foo.child", Integer, 12)) }
         creatorAction.transform(12) >> "[12]"
 
@@ -167,11 +167,11 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("foo", Bean, new Bean(), action))
-        registry.mutate(MutationType.Defaults, mutator("foo", Bean, action))
-        registry.mutate(MutationType.Initialize, mutator("foo", Bean, action))
-        registry.mutate(MutationType.Mutate, mutator("foo", Bean, action))
-        registry.mutate(MutationType.Finalize, mutator("foo", Bean, action))
-        registry.mutate(MutationType.Validate, mutator("foo", Bean, action))
+        registry.mutate(ModelActionRole.Defaults, mutator("foo", Bean, action))
+        registry.mutate(ModelActionRole.Initialize, mutator("foo", Bean, action))
+        registry.mutate(ModelActionRole.Mutate, mutator("foo", Bean, action))
+        registry.mutate(ModelActionRole.Finalize, mutator("foo", Bean, action))
+        registry.mutate(ModelActionRole.Validate, mutator("foo", Bean, action))
 
         when:
         def value = registry.get(ModelPath.path("foo"), ModelType.of(Bean)).value
@@ -213,7 +213,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("foo", Bean, new Bean()))
-        registry.mutate(MutationType.Mutate, nodeMutator("foo", Bean, action))
+        registry.mutate(ModelActionRole.Mutate, nodeMutator("foo", Bean, action))
 
         when:
         registry.get(ModelPath.path("foo"), ModelType.of(Bean))
@@ -231,7 +231,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.create(creator("foo", Integer, 12))
         registry.get(ModelPath.path("foo"), ModelType.untyped())
         registry.create(creator("bar", Bean, new Bean()))
-        registry.mutate(MutationType.Mutate, mutator("bar", Bean, Integer, action))
+        registry.mutate(ModelActionRole.Mutate, mutator("bar", Bean, Integer, action))
         action.execute(_, 12) >> { bean, value -> bean.value = "[12]" }
 
         expect:
@@ -244,7 +244,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(creator("foo", Integer, 12))
         registry.create(creator("bar", Bean, new Bean()))
-        registry.mutate(MutationType.Mutate, mutator("bar", Bean, Integer, action))
+        registry.mutate(ModelActionRole.Mutate, mutator("bar", Bean, Integer, action))
         action.execute(_, 12) >> { bean, value -> bean.value = "[12]" }
 
         expect:
@@ -256,7 +256,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("bar", Bean, new Bean()))
-        registry.mutate(MutationType.Mutate, mutator("bar", Bean, Integer, action))
+        registry.mutate(ModelActionRole.Mutate, mutator("bar", Bean, Integer, action))
         registry.create(creator("foo", Integer, 12))
         action.execute(_, 12) >> { bean, value -> bean.value = "[12]" }
 
@@ -271,7 +271,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateAllLinks(MutationType.Mutate, mutator(null, Bean, String, mutatorAction))
+            node.mutateAllLinks(ModelActionRole.Mutate, mutator(null, Bean, String, mutatorAction))
             node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }
@@ -292,7 +292,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateAllLinks(MutationType.Mutate, mutator(null, Bean, mutatorAction))
+            node.mutateAllLinks(ModelActionRole.Mutate, mutator(null, Bean, mutatorAction))
             node.addLink(creator("parent.foo", String, "ignore me"))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }
@@ -312,7 +312,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateLink(MutationType.Mutate, mutator("parent.foo", Bean, String, mutatorAction))
+            node.mutateLink(ModelActionRole.Mutate, mutator("parent.foo", Bean, String, mutatorAction))
             node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }
@@ -331,7 +331,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("thing", String, "value"))
-        registry.mutate(MutationType.Validate, nodeMutator("thing", Object, action))
+        registry.mutate(ModelActionRole.Validate, nodeMutator("thing", Object, action))
         action.execute(_) >> { MutableModelNode node -> node.addLink(creator("thing.child", String, "value")) }
 
         when:
@@ -348,7 +348,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.create(creator("thing", String, "value"))
-        registry.mutate(MutationType.Validate, nodeMutator("thing", Object, action))
+        registry.mutate(ModelActionRole.Validate, nodeMutator("thing", Object, action))
         action.execute(_) >> { MutableModelNode node -> node.setPrivateData(ModelType.of(String), "value 2") }
 
         when:
@@ -379,16 +379,16 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         fromState               | targetState
-        MutationType.Initialize | MutationType.Defaults
-        MutationType.Mutate     | MutationType.Defaults
-        MutationType.Mutate     | MutationType.Initialize
-        MutationType.Finalize   | MutationType.Defaults
-        MutationType.Finalize   | MutationType.Initialize
-        MutationType.Finalize   | MutationType.Mutate
-        MutationType.Validate   | MutationType.Defaults
-        MutationType.Validate   | MutationType.Initialize
-        MutationType.Validate   | MutationType.Mutate
-        MutationType.Validate   | MutationType.Finalize
+        ModelActionRole.Initialize | ModelActionRole.Defaults
+        ModelActionRole.Mutate     | ModelActionRole.Defaults
+        ModelActionRole.Mutate     | ModelActionRole.Initialize
+        ModelActionRole.Finalize   | ModelActionRole.Defaults
+        ModelActionRole.Finalize   | ModelActionRole.Initialize
+        ModelActionRole.Finalize   | ModelActionRole.Mutate
+        ModelActionRole.Validate   | ModelActionRole.Defaults
+        ModelActionRole.Validate   | ModelActionRole.Initialize
+        ModelActionRole.Validate   | ModelActionRole.Mutate
+        ModelActionRole.Validate   | ModelActionRole.Finalize
     }
 
     class Bean {

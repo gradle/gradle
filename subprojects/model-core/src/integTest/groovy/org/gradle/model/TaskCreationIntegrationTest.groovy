@@ -271,7 +271,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     tasks.all {
                         message += " with"
                     }
-                    tasks.finalizeAll {
+                    tasks.afterEach {
                         message += " message!"
                     }
                 }
@@ -327,7 +327,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                     all {
                         message += " with"
                     }
-                    finalizeAll {
+                    afterEach {
                         message += " message"
                     }
                 }
@@ -349,7 +349,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
             class MyPlugin {
                 @Mutate
                 void applyMessages(CollectionBuilder<MessageTask> tasks) {
-                    tasks.finalizeAll {
+                    tasks.afterEach {
                         message += " message!"
                     }
                 }

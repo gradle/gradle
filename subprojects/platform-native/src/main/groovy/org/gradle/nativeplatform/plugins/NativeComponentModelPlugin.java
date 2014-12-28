@@ -183,7 +183,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void configureGeneratedSourceSets(CollectionBuilder<ComponentSpec> componentSpecs) {
-            componentSpecs.finalizeAll(new Action<ComponentSpec>() {
+            componentSpecs.afterEach(new Action<ComponentSpec>() {
                 @Override
                 public void execute(ComponentSpec componentSpec) {
                     for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
@@ -202,7 +202,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         public void applyHeaderSourceSetConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
-            componentSpecs.finalizeAll(new Action<ComponentSpec>() {
+            componentSpecs.afterEach(new Action<ComponentSpec>() {
                 @Override
                 public void execute(ComponentSpec componentSpec) {
                     DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();

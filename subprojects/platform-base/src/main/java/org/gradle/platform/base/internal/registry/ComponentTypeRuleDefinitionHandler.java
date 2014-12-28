@@ -55,7 +55,7 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelMutator<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            modelRegistry.mutate(MutationType.Defaults, mutator);
+            modelRegistry.mutate(ModelActionRole.Defaults, mutator);
         }
     }
 

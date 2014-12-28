@@ -65,7 +65,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelMutator<?> mutator = new RegisterTypeRule(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor());
-            modelRegistry.mutate(MutationType.Defaults, mutator);
+            modelRegistry.mutate(ModelActionRole.Defaults, mutator);
         }
     }
 

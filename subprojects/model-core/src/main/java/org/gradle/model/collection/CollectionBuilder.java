@@ -104,7 +104,7 @@ public interface CollectionBuilder<T> {
     /**
      * Apply the given action to each item in the collection, after the item has been configured.
      */
-    void finalizeAll(Action<? super T> configAction);
+    void afterEach(Action<? super T> configAction);
 
-    <S extends T> void finalizeAll(Class<S> type, Action<? super S> configAction);
+    <S extends T> void afterEach(Class<S> type, Action<? super S> configAction);
 }

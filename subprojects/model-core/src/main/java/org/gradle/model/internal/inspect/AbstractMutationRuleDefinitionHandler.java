@@ -40,7 +40,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         modelRegistry.mutate(getMutationType(), mutator);
     }
 
-    protected abstract MutationType getMutationType();
+    protected abstract ModelActionRole getMutationType();
 
     private <R> void validate(MethodRuleDefinition<R> ruleDefinition) {
         if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {

@@ -79,7 +79,7 @@ public class ModelNode implements ModelCreation {
         return state.mutable;
     }
 
-    public boolean canApply(MutationType type) {
+    public boolean canApply(ModelActionRole type) {
         return type.ordinal() > state.ordinal() - State.Created.ordinal();
     }
 

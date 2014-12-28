@@ -71,7 +71,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
         mutator.mutate(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.mutate(MutationType.Mutate, mutator)
+        registry.mutate(ModelActionRole.Mutate, mutator)
         registry.node(containerPath)
     }
 
@@ -321,7 +321,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register finalize rule for all items"() {
         when:
         mutate {
-            finalizeAll {
+            afterEach {
                 assert other == "changed"
                 other = "finalized"
             }

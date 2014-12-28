@@ -140,15 +140,15 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public void finalizeAll(Action<? super T> configAction) {
+        public void afterEach(Action<? super T> configAction) {
             assertNotClosed();
-            rawInstance.finalizeAll(configAction);
+            rawInstance.afterEach(configAction);
         }
 
         @Override
-        public <S extends T> void finalizeAll(Class<S> type, Action<? super S> configAction) {
+        public <S extends T> void afterEach(Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
-            rawInstance.finalizeAll(type, configAction);
+            rawInstance.afterEach(type, configAction);
         }
 
         // TODO - mix this in
@@ -187,13 +187,13 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public void finalizeAll(Closure<? super T> configAction) {
-            finalizeAll(new ClosureBackedAction<T>(configAction));
+        public void afterEach(Closure<? super T> configAction) {
+            afterEach(new ClosureBackedAction<T>(configAction));
         }
 
         // TODO - mix this in
-        public <S extends T> void finalizeAll(Class<S> type, Closure<? super S> configAction) {
-            finalizeAll(type, new ClosureBackedAction<T>(configAction));
+        public <S extends T> void afterEach(Class<S> type, Closure<? super S> configAction) {
+            afterEach(type, new ClosureBackedAction<T>(configAction));
         }
 
         // TODO - mix this in

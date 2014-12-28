@@ -42,12 +42,12 @@ public interface MutableModelNode {
     /**
      * Adds a mutation to all elements linked from this element.
      */
-    <T> void mutateAllLinks(MutationType type, ModelMutator<T> mutator);
+    <T> void mutateAllLinks(ModelActionRole type, ModelMutator<T> mutator);
 
     /**
      * Adds a mutation to a linked element.
      */
-    <T> void mutateLink(MutationType type, ModelMutator<T> mutator);
+    <T> void mutateLink(ModelActionRole type, ModelMutator<T> mutator);
 
     @Nullable
     MutableModelNode getLink(String name);

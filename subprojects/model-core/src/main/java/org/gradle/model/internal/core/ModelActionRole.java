@@ -17,11 +17,11 @@
 package org.gradle.model.internal.core;
 
 /**
- * A hard-coded sequence of mutation types that a model element proceeds through.
+ * A hard-coded sequence of model actions that can be applied to a model element.
  *
  * <p>This is pretty much a placeholder for something more descriptive.
  */
-public enum MutationType {
+public enum ModelActionRole {
     Defaults, // Allows a mutation to setup default values for an element
     Initialize, // Mutation provided when an element is defined
     Mutate, // Customisations

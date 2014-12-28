@@ -51,7 +51,7 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelMutator<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            modelRegistry.mutate(MutationType.Defaults, mutator);
+            modelRegistry.mutate(ModelActionRole.Defaults, mutator);
         }
     }
 

@@ -18,12 +18,12 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.Mutate;
-import org.gradle.model.internal.core.MutationType;
+import org.gradle.model.internal.core.ModelActionRole;
 
 @ThreadSafe
 public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Mutate> {
     @Override
-    protected MutationType getMutationType() {
-        return MutationType.Mutate;
+    protected ModelActionRole getMutationType() {
+        return ModelActionRole.Mutate;
     }
 }
