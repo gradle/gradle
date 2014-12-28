@@ -28,14 +28,14 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import java.util.List;
 
 @ThreadSafe
-class ClosureBackedModelMutator implements ModelMutator<Object> {
+class ClosureBackedModelAction implements ModelAction<Object> {
 
     private final Closure<?> action;
     private final List<ModelReference<?>> inputReferences;
     private final ModelPath modelPath;
     private final SourceLocation sourceLocation;
 
-    public ClosureBackedModelMutator(Closure<?> action, List<ModelReference<?>> inputReferences, ModelPath modelPath, SourceLocation sourceLocation) {
+    public ClosureBackedModelAction(Closure<?> action, List<ModelReference<?>> inputReferences, ModelPath modelPath, SourceLocation sourceLocation) {
         this.action = action;
         this.inputReferences = inputReferences;
         this.modelPath = modelPath;

@@ -128,7 +128,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public <T> void mutate(ModelActionRole type, ModelMutator<T> mutator) {
+    public <T> void mutate(ModelActionRole type, ModelAction<T> mutator) {
         bind(mutator.getSubject(), type, mutator);
     }
 
@@ -159,7 +159,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return binder;
     }
 
-    private <T> void bind(ModelReference<T> subject, final ModelActionRole type, final ModelMutator<T> mutator) {
+    private <T> void bind(ModelReference<T> subject, final ModelActionRole type, final ModelAction<T> mutator) {
         final RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), new Action<RuleBinder<T>>() {
             public void execute(RuleBinder<T> ruleBinder) {
                 BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
@@ -444,7 +444,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> void fireMutation(ModelNode node, BoundModelMutator<T> boundMutator) {
         Inputs inputs = toInputs(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
-        ModelMutator<T> mutator = boundMutator.getMutator();
+        ModelAction<T> mutator = boundMutator.getMutator();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
@@ -554,7 +554,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void mutateLink(ModelActionRole type, ModelMutator<T> mutator) {
+        public <T> void mutateLink(ModelActionRole type, ModelAction<T> mutator) {
             if (!getPath().isDirectChild(mutator.getSubject().getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element mutator reference has a path (%s) which is not a child of this node (%s).", mutator.getSubject().getPath(), getPath()));
             }
@@ -562,7 +562,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void mutateAllLinks(final ModelActionRole type, final ModelMutator<T> mutator) {
+        public <T> void mutateAllLinks(final ModelActionRole type, final ModelAction<T> mutator) {
             if (mutator.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element mutator reference must have null path.");
             }

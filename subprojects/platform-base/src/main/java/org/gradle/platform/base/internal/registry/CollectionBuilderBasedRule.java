@@ -28,7 +28,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelMutator<C> {
+public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAction<C> {
     private final ModelReference<C> subject;
     private final Class<? extends T> baseType;
     private final MethodRuleDefinition<R> ruleDefinition;

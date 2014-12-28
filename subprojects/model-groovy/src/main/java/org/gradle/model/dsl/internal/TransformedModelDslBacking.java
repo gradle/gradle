@@ -77,7 +77,7 @@ public class TransformedModelDslBacking {
         SourceLocation sourceLocation = ruleLocationExtractor.transform(configuration);
         ModelPath modelPath = ModelPath.path(modelPathString);
         Closure<?> reownered = configuration.rehydrate(null, owner, thisObject);
-        modelRegistry.mutate(ModelActionRole.Mutate, new ClosureBackedModelMutator(reownered, references, modelPath, sourceLocation));
+        modelRegistry.mutate(ModelActionRole.Mutate, new ClosureBackedModelAction(reownered, references, modelPath, sourceLocation));
     }
 
     private static RuleMetadata getRuleMetadata(Closure<?> closure) {

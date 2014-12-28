@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public interface ModelMutator<T> {
+public interface ModelAction<T> {
 
     ModelReference<T> getSubject();
 

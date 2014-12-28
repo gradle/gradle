@@ -468,8 +468,8 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action to mutate the value of the given element.
      */
-    ModelMutator<?> mutator(String path, Class<?> type, Action<?> action) {
-        ModelMutator mutator = Stub(ModelMutator)
+    ModelAction<?> mutator(String path, Class<?> type, Action<?> action) {
+        ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
         mutator.descriptor >> new SimpleModelRuleDescriptor(path)
@@ -482,8 +482,8 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action to mutate the node for the given element.
      */
-    ModelMutator<?> nodeMutator(String path, Class<?> type, Action<? super MutableModelNode> action) {
-        ModelMutator mutator = Stub(ModelMutator)
+    ModelAction<?> nodeMutator(String path, Class<?> type, Action<? super MutableModelNode> action) {
+        ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
         mutator.descriptor >> new SimpleModelRuleDescriptor("mutate $path as $type.simpleName")
@@ -496,8 +496,8 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action with the value for the given element and the given input, to mutate the value for the given element.
      */
-    ModelMutator<?> mutator(String path, Class<?> type, Class<?> inputType, BiAction<?, ?> action) {
-        ModelMutator mutator = Stub(ModelMutator)
+    ModelAction<?> mutator(String path, Class<?> type, Class<?> inputType, BiAction<?, ?> action) {
+        ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> [ModelReference.of(inputType)]
         mutator.descriptor >> new SimpleModelRuleDescriptor("mutate $path as $type.simpleName")

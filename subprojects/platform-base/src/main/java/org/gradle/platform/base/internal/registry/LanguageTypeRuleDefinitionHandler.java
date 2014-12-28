@@ -64,7 +64,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelMutator<?> mutator = new RegisterTypeRule(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor());
+            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor());
             modelRegistry.mutate(ModelActionRole.Defaults, mutator);
         }
     }
@@ -137,7 +137,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         }
     }
 
-    protected static class RegisterTypeRule implements ModelMutator<LanguageRegistry> {
+    protected static class RegisterTypeRule implements ModelAction<LanguageRegistry> {
         private final ModelType<? extends LanguageSourceSet> type;
         private final ModelType<? extends BaseLanguageSourceSet> implementation;
         private String languageName;

@@ -18,24 +18,24 @@ package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelBinding;
-import org.gradle.model.internal.core.ModelMutator;
+import org.gradle.model.internal.core.ModelAction;
 
 import java.util.List;
 
 @ThreadSafe
 class BoundModelMutator<T> {
 
-    private final ModelMutator<T> mutator;
+    private final ModelAction<T> mutator;
     private final ModelBinding<T> subject;
     private final List<ModelBinding<?>> inputs;
 
-    BoundModelMutator(ModelMutator<T> mutator, ModelBinding<T> subject, List<ModelBinding<?>> inputs) {
+    BoundModelMutator(ModelAction<T> mutator, ModelBinding<T> subject, List<ModelBinding<?>> inputs) {
         this.mutator = mutator;
         this.subject = subject;
         this.inputs = inputs;
     }
 
-    public ModelMutator<T> getMutator() {
+    public ModelAction<T> getMutator() {
         return mutator;
     }
 

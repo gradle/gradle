@@ -22,7 +22,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Collections;
 import java.util.List;
 
-public class ActionBackedMutateRule<T> implements ModelMutator<T> {
+public class ActionBackedMutateRule<T> implements ModelAction<T> {
     private final ModelReference<T> subject;
     private final Action<? super T> configAction;
     private final ModelRuleDescriptor descriptor;

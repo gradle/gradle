@@ -58,7 +58,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
-        modelRegistry.mutate(ModelActionRole.Mutate, new ModelMutator<Object>() {
+        modelRegistry.mutate(ModelActionRole.Mutate, new ModelAction<Object>() {
             public ModelReference<Object> getSubject() {
                 return ModelReference.untyped(modelPath);
             }

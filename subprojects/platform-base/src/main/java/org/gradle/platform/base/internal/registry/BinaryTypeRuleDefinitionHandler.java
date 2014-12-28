@@ -50,7 +50,7 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelMutator<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
+            ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
             modelRegistry.mutate(ModelActionRole.Defaults, mutator);
         }
     }
@@ -61,7 +61,7 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         }
     }
 
-    private static class RegistrationAction implements ModelMutator<DefaultBinaryContainer> {
+    private static class RegistrationAction implements ModelAction<DefaultBinaryContainer> {
         private final ModelType<? extends BinarySpec> publicType;
         private final ModelType<? extends BaseBinarySpec> implementationType;
         private final ModelRuleDescriptor descriptor;

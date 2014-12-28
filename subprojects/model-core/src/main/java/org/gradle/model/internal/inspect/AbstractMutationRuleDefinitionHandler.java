@@ -35,7 +35,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
 
         ModelReference<?> subject = bindings.get(0);
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
-        MethodModelMutator<?> mutator = toMutator(ruleDefinition, subject, inputs);
+        MethodModelAction<?> mutator = toMutator(ruleDefinition, subject, inputs);
 
         modelRegistry.mutate(getMutationType(), mutator);
     }
@@ -48,17 +48,17 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         }
     }
 
-    private static <T> MethodModelMutator<T> toMutator(MethodRuleDefinition<?> ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
-        return new MethodModelMutator<T>(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), first, tail);
+    private static <T> MethodModelAction<T> toMutator(MethodRuleDefinition<?> ruleDefinition, ModelReference<T> first, List<ModelReference<?>> tail) {
+        return new MethodModelAction<T>(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), first, tail);
     }
 
-    private static class MethodModelMutator<T> implements ModelMutator<T> {
+    private static class MethodModelAction<T> implements ModelAction<T> {
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<T> subject;
         private final List<ModelReference<?>> inputs;
         private final ModelRuleInvoker<?> ruleInvoker;
 
-        public MethodModelMutator(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+        public MethodModelAction(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
             this.ruleInvoker = ruleInvoker;
             this.subject = subject;
             this.inputs = inputs;

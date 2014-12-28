@@ -66,7 +66,7 @@ class DefaultCollectionBuilderTest extends Specification {
     }
 
     void mutate(@DelegatesTo(CollectionBuilder) Closure<? super CollectionBuilder<NamedThing>> action) {
-        def mutator = Stub(ModelMutator)
+        def mutator = Stub(ModelAction)
         mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
         mutator.mutate(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }

@@ -54,7 +54,7 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelMutator<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
+            ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
             modelRegistry.mutate(ModelActionRole.Defaults, mutator);
         }
     }
@@ -65,7 +65,7 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
         }
     }
 
-    private static class RegistrationAction implements ModelMutator<DefaultComponentSpecContainer> {
+    private static class RegistrationAction implements ModelAction<DefaultComponentSpecContainer> {
         private final ModelType<? extends ComponentSpec> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
         private final ModelRuleDescriptor descriptor;
