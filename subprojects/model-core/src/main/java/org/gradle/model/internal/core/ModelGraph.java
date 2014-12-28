@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
@@ -25,14 +27,17 @@ import java.util.*;
 public class ModelGraph {
     private final ModelNode root;
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
-    private final List<ModelCreationListener> listeners = new ArrayList<ModelCreationListener>();
+    private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
+    private final SetMultimap<ModelPath, ModelCreationListener> parentListeners = LinkedHashMultimap.create();
+    private final Set<ModelCreationListener> listeners = new LinkedHashSet<ModelCreationListener>();
     private boolean notifying;
     private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
     private final List<ModelNode> pendingNodes = new ArrayList<ModelNode>();
 
     public ModelGraph() {
         EmptyModelProjection projection = new EmptyModelProjection();
-        this.root = new ModelNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection);
+        root = new ModelNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection);
+        flattened.put(root.getPath(), root);
     }
 
     public ModelNode getRoot() {
@@ -57,15 +62,21 @@ public class ModelGraph {
         flattened.put(node.getPath(), node);
         notifying = true;
         try {
-            Iterator<ModelCreationListener> iterator = listeners.iterator();
-            while (iterator.hasNext()) {
-                ModelCreationListener listener = iterator.next();
-                if (maybeNotify(listener, node)) {
-                    iterator.remove();
-                }
-            }
+            notifyListeners(node, pathListeners.get(node.getPath()));
+            notifyListeners(node, parentListeners.get(node.getPath().getParent()));
+            notifyListeners(node, listeners);
         } finally {
             notifying = false;
+        }
+    }
+
+    private void notifyListeners(ModelNode node, Iterable<ModelCreationListener> listeners) {
+        Iterator<ModelCreationListener> iterator = listeners.iterator();
+        while (iterator.hasNext()) {
+            ModelCreationListener listener = iterator.next();
+            if (maybeNotify(node, listener)) {
+                iterator.remove();
+            }
         }
     }
 
@@ -82,8 +93,30 @@ public class ModelGraph {
     private void doAddListener(ModelCreationListener listener) {
         notifying = true;
         try {
+            if (listener.matchPath() != null) {
+                ModelNode node = flattened.get(listener.matchPath());
+                if (node != null) {
+                    if (maybeNotify(node, listener)) {
+                        return;
+                    }
+                }
+                pathListeners.put(listener.matchPath(), listener);
+                return;
+            }
+            if (listener.matchParent() != null) {
+                ModelNode parent = flattened.get(listener.matchParent());
+                if (parent != null) {
+                    for (ModelNode node : parent.getLinks().values()) {
+                        if (maybeNotify(node, listener)) {
+                            return;
+                        }
+                    }
+                }
+                parentListeners.put(listener.matchParent(), listener);
+                return;
+            }
             for (ModelNode node : flattened.values()) {
-                if (maybeNotify(listener, node)) {
+                if (maybeNotify(node, listener)) {
                     return;
                 }
             }
@@ -102,13 +135,7 @@ public class ModelGraph {
         }
     }
 
-    private boolean maybeNotify(ModelCreationListener listener, ModelNode node) {
-        if (listener.matchPath() != null && !node.getPath().equals(listener.matchPath())) {
-            return false;
-        }
-        if (listener.matchParent() != null && !node.getPath().getParent().equals(listener.matchParent())) {
-            return false;
-        }
+    private boolean maybeNotify(ModelNode node, ModelCreationListener listener) {
         if (listener.matchType() != null && !node.getPromise().canBeViewedAsWritable(listener.matchType()) && !node.getPromise().canBeViewedAsReadOnly(listener.matchType())) {
             return false;
         }

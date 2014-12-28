@@ -21,6 +21,11 @@ import spock.lang.Specification
 
 class ModelGraphTest extends Specification {
     def graph = new ModelGraph()
+    def nodes = [:]
+
+    def setup() {
+        nodes[graph.root.path] = graph.root
+    }
 
     def "notifies listener when node added"() {
         def listener = Mock(ModelCreationListener)
@@ -53,6 +58,7 @@ class ModelGraphTest extends Specification {
         graph.addListener(listener)
 
         then:
+        1 * listener.onCreate(graph.root)
         1 * listener.onCreate(a)
         1 * listener.onCreate(b)
         0 * listener.onCreate(_)
@@ -90,6 +96,7 @@ class ModelGraphTest extends Specification {
         graph.add(c)
 
         then:
+        1 * listener.onCreate(graph.root)
         1 * listener.onCreate(a) >> true
         0 * listener.onCreate(_)
     }
@@ -146,16 +153,22 @@ class ModelGraphTest extends Specification {
 
         given:
         listener.matchParent() >> a.path
+        a.links >> [b: b]
 
         when:
         graph.add(a)
         graph.add(b)
         graph.addListener(listener)
+
+        then:
+        1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+
+        when:
         graph.add(c)
         graph.add(d)
 
         then:
-        1 * listener.onCreate(b)
         1 * listener.onCreate(c)
         0 * listener.onCreate(_)
     }
@@ -195,16 +208,22 @@ class ModelGraphTest extends Specification {
         given:
         listener.matchType() >> ModelType.of(String)
         listener.matchParent() >> a.path
+        a.links >> [b: b]
 
         when:
         graph.add(a)
         graph.add(b)
         graph.addListener(listener)
+
+        then:
+        1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+
+        when:
         graph.add(c)
         graph.add(d)
 
         then:
-        1 * listener.onCreate(b)
         1 * listener.onCreate(c)
         0 * listener.onCreate(_)
     }
@@ -217,6 +236,8 @@ class ModelGraphTest extends Specification {
         def b = node("b")
 
         given:
+        listener2.matchPath() >> b.path
+        listener3.matchPath() >> b.path
 
         when:
         graph.add(a)
@@ -224,11 +245,10 @@ class ModelGraphTest extends Specification {
         graph.add(b)
 
         then:
+        1 * listener1.onCreate(graph.root)
         1 * listener1.onCreate(a) >> { graph.addListener(listener2); false }
         1 * listener1.onCreate(b) >> { graph.addListener(listener3); false }
-        1 * listener2.onCreate(a)
         1 * listener2.onCreate(b)
-        1 * listener3.onCreate(a)
         1 * listener3.onCreate(b)
         0 * listener1.onCreate(_)
         0 * listener2.onCreate(_)
