@@ -30,11 +30,14 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
 
 public class PolymorphicDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PolymorphicDomainObjectContainerModelProjection.class);
     private final C container;
     private final Class<M> itemType;
 
@@ -160,7 +163,13 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
                         modelNode.setPrivateData(containerType, container);
                         container.all(new Action<I>() {
                             public void execute(final I item) {
-                                final String name = namer.determineName(item);
+                                String name = namer.determineName(item);
+
+                                // For now, ignore elements added after the container has been closed
+                                if (!modelNode.isMutable()) {
+                                    LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", modelPath, name);
+                                    return;
+                                }
 
                                 if (!modelNode.hasLink(name)) {
                                     ModelType<I> itemType = ModelType.typeOf(item);
@@ -173,7 +182,8 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
                         });
                         container.whenObjectRemoved(new Action<I>() {
                             public void execute(I item) {
-                                modelNode.removeLink(namer.determineName(item));
+                                String name = namer.determineName(item);
+                                modelNode.removeLink(name);
                             }
                         });
                     }
