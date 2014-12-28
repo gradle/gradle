@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static org.gradle.model.internal.core.ModelNode.State.*;
 import static org.gradle.model.internal.core.ModelActionRole.*;
+import static org.gradle.model.internal.core.ModelNode.State.*;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
@@ -54,13 +54,12 @@ public class DefaultModelRegistry implements ModelRegistry {
                 - Detecting mutation rules registering parent model
                 - Detecting a rule binding the same input twice (maybe that's ok)
                 - Detecting a rule trying to bind the same element to mutate and to read
-                - Detecting adding mutation rule during finalization
              */
     private final ModelGraph modelGraph = new ModelGraph();
 
     private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
-    private final Multimap<MutationKey, BoundModelMutator<?>> mutators = ArrayListMultimap.create();
-    private final Multimap<ModelPath, List<ModelPath>> usedMutators = ArrayListMultimap.create();
+    private final Multimap<MutationKey, BoundModelMutator<?>> actions = ArrayListMultimap.create();
+    private final Multimap<ModelPath, List<ModelPath>> usedActions = ArrayListMultimap.create();
 
     // TODO rework this listener mechanism to be more targeted, in that interested parties nominate what they are interested in (e.g. path or type) and use this to only notify relevant listeners
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
@@ -174,7 +173,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                             subject.getState()
                             ));
                 }
-                mutators.put(new MutationKey(path, type), boundMutator);
+                actions.put(new MutationKey(path, type), boundMutator);
             }
         });
 
@@ -227,8 +226,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         // reference binding causing the rule to fully bind and register a new creation.
         List<ModelNode> currentCreations = Lists.newArrayList(modelGraph.getFlattened().values());
 
-        for (ModelCreation creation : currentCreations) {
-            remove = listener.onCreate(creation);
+        for (ModelNode node : currentCreations) {
+            remove = listener.onCreate(node);
             if (remove) {
                 return;
             }
@@ -305,8 +304,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         Transformer<List<ModelPath>, List<ModelPath>> passThrough = Transformers.noOpTransformer();
 
-        return hasModelPath(candidate, mutators.values(), extractInputPaths)
-                || hasModelPath(candidate, usedMutators.values(), passThrough);
+        return hasModelPath(candidate, actions.values(), extractInputPaths)
+                || hasModelPath(candidate, usedActions.values(), passThrough);
     }
 
     private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
@@ -389,7 +388,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return;
         }
 
-        Collection<BoundModelMutator<?>> mutators = this.mutators.removeAll(new MutationKey(path, type));
+        Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
         for (BoundModelMutator<?> mutator : mutators) {
             fireMutation(node, mutator);
             List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
@@ -398,7 +397,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     return input.getPath();
                 }
             });
-            usedMutators.put(path, inputPaths);
+            usedActions.put(path, inputPaths);
         }
 
         node.setState(to);
@@ -476,11 +475,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ModelRuleInput.of(binding, view);
     }
 
-    private void notifyCreationListeners(ModelCreation creation) {
+    private void notifyCreationListeners(ModelNode node) {
         // Deal with listeners that add listeners. This could be more elegant
         List<ModelCreationListener> discard = new ArrayList<ModelCreationListener>();
         for (ModelCreationListener listener : new ArrayList<ModelCreationListener>(modelCreationListeners)) {
-            boolean remove = listener.onCreate(creation);
+            boolean remove = listener.onCreate(node);
             if (remove) {
                 discard.add(listener);
             }
@@ -562,17 +561,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void mutateAllLinks(final ModelActionRole type, final ModelAction<T> mutator) {
-            if (mutator.getSubject().getPath() != null) {
-                throw new IllegalArgumentException("Linked element mutator reference must have null path.");
+        public <T> void mutateAllLinks(final ModelActionRole type, final ModelAction<T> action) {
+            if (action.getSubject().getPath() != null) {
+                throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
 
             registerListener(new ModelCreationListener() {
                 @Override
-                public boolean onCreate(ModelCreation registration) {
-                    ModelType<T> subjectType = mutator.getSubject().getType();
+                public boolean onCreate(ModelNode registration) {
+                    ModelType<T> subjectType = action.getSubject().getType();
                     if (getPath().isDirectChild(registration.getPath()) && registration.getPromise().canBeViewedAsWritable(subjectType)) {
-                        bind(ModelReference.of(registration.getPath(), subjectType), type, mutator);
+                        bind(ModelReference.of(registration.getPath(), subjectType), type, action);
                     }
                     return false;
                 }
@@ -648,10 +647,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             this.bindAction = bindAction;
         }
 
-        public boolean onCreate(ModelCreation creation) {
-            ModelRuleDescriptor creatorDescriptor = creation.getDescriptor();
-            ModelPath path = creation.getPath();
-            ModelPromise promise = creation.getPromise();
+        public boolean onCreate(ModelNode node) {
+            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
+            ModelPath path = node.getPath();
+            ModelPromise promise = node.getPromise();
             if (path.isTopLevel() && boundTo != null && isTypeCompatible(promise)) {
                 throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
                         new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()

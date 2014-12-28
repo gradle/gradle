@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.Map;
 
-public class ModelNode implements ModelCreation {
+public class ModelNode {
     public enum State {
         Known(true),
         Created(true),

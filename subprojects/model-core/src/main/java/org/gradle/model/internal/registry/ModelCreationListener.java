@@ -16,9 +16,9 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.internal.core.ModelCreation;
+import org.gradle.model.internal.core.ModelNode;
 
 public interface ModelCreationListener {
 
-    boolean onCreate(ModelCreation registration);
+    boolean onCreate(ModelNode registration);
 }
