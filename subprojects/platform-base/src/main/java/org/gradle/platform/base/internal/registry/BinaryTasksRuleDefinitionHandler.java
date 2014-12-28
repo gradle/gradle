@@ -46,7 +46,7 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
 
             ModelReference<TaskContainer> tasks = ModelReference.of(ModelPath.path("tasks"), ModelType.of(TaskContainer.class));
 
-            modelRegistry.mutate(ModelActionRole.Mutate, new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition));
+            modelRegistry.apply(ModelActionRole.Mutate, new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition));
 
         } catch (InvalidModelException e) {
             invalidModelRule(ruleDefinition, e);
@@ -76,7 +76,7 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
             this.binaryType = binaryType;
         }
 
-        public void mutate(MutableModelNode modelNode, TaskContainer container, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, TaskContainer container, Inputs inputs) {
             BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
             for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);

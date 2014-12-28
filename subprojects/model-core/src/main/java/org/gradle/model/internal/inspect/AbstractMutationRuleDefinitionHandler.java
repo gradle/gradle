@@ -37,7 +37,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         MethodModelAction<?> mutator = toMutator(ruleDefinition, subject, inputs);
 
-        modelRegistry.mutate(getMutationType(), mutator);
+        modelRegistry.apply(getMutationType(), mutator);
     }
 
     protected abstract ModelActionRole getMutationType();
@@ -77,7 +77,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
             return inputs;
         }
 
-        public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
             Object[] args = new Object[1 + this.inputs.size()];
             args[0] = object;
             for (int i = 0; i < inputs.size(); ++i) {

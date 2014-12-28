@@ -51,7 +51,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.mutate(_, _)
+        1 * modelRegistry.apply(_, _)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {

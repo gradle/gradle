@@ -55,7 +55,7 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            modelRegistry.mutate(ModelActionRole.Defaults, mutator);
+            modelRegistry.apply(ModelActionRole.Defaults, mutator);
         }
     }
 
@@ -98,7 +98,7 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
         }
 
         @Override
-        public void mutate(MutableModelNode modelNode, DefaultComponentSpecContainer components, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, DefaultComponentSpecContainer components, Inputs inputs) {
             final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
             final ProjectSourceSet projectSourceSet = inputs.get(1, ModelType.of(ProjectSourceSet.class)).getInstance();
             @SuppressWarnings("unchecked")

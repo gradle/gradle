@@ -39,7 +39,7 @@ public class ActionBackedMutateRule<T> implements ModelAction<T> {
     }
 
     @Override
-    public void mutate(MutableModelNode modelNode, T object, Inputs inputs) {
+    public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
         configAction.execute(object);
     }
 

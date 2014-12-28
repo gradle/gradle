@@ -327,13 +327,13 @@ class ModelRuleInspectorTest extends Specification {
         inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)
 
         then:
-        1 * registryMock.mutate(ModelActionRole.Finalize, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
+        1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
 
         then:
-        1 * registryMock.mutate(ModelActionRole.Mutate, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
+        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
 
         then:
-        1 * registryMock.mutate(ModelActionRole.Mutate, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
+        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
     }
 
     static class InvalidModelNameViaAnnotation {

@@ -20,5 +20,5 @@ public interface ModelRegistrar {
 
     public void create(ModelCreator creator);
 
-    public <T> void mutate(ModelActionRole type, ModelAction<T> mutator);
+    public <T> void apply(ModelActionRole role, ModelAction<T> action);
 }

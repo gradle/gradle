@@ -91,7 +91,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.mutate(_, _)
+        1 * modelRegistry.apply(_, _)
     }
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}

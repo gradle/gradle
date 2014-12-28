@@ -51,7 +51,7 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.mutate(_, _)
+        1 * modelRegistry.apply(_, _)
 
         where:
         ruleName         | descr
@@ -68,7 +68,7 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.mutate(_, _)
+        1 * modelRegistry.apply(_, _)
     }
 
     @Unroll

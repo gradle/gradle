@@ -52,7 +52,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
     }
 
     private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
-        modelRegistry.mutate(ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition));
+        modelRegistry.apply(ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition));
     }
 
     private <R> void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition) {
@@ -72,7 +72,7 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             this.binaryType = binaryType;
         }
 
-        public void mutate(MutableModelNode modelNode, final BinaryContainer binaries, final Inputs inputs) {
+        public void execute(MutableModelNode modelNode, final BinaryContainer binaries, final Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {

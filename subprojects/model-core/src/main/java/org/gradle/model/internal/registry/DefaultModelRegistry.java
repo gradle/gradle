@@ -128,8 +128,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public <T> void mutate(ModelActionRole type, ModelAction<T> mutator) {
-        bind(mutator.getSubject(), type, mutator);
+    public <T> void apply(ModelActionRole role, ModelAction<T> action) {
+        bind(action.getSubject(), role, action);
     }
 
     private void bind(final ModelCreator creator) {
@@ -451,7 +451,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
         try {
-            mutator.mutate(new NodeWrapper(node), view.getInstance(), inputs);
+            mutator.execute(new NodeWrapper(node), view.getInstance(), inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);

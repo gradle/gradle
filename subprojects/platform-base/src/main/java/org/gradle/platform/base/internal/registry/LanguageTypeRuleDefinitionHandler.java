@@ -65,7 +65,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegisterTypeRule(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor());
-            modelRegistry.mutate(ModelActionRole.Defaults, mutator);
+            modelRegistry.apply(ModelActionRole.Defaults, mutator);
         }
     }
 
@@ -167,7 +167,7 @@ public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenM
             return descriptor;
         }
 
-        public final void mutate(MutableModelNode modelNode, final LanguageRegistry languageRegistry, final Inputs inputs) {
+        public final void execute(MutableModelNode modelNode, final LanguageRegistry languageRegistry, final Inputs inputs) {
             ServiceRegistry serviceRegistry = inputs.get(0, ModelType.of(ServiceRegistry.class)).getInstance();
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);

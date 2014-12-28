@@ -51,7 +51,7 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            modelRegistry.mutate(ModelActionRole.Defaults, mutator);
+            modelRegistry.apply(ModelActionRole.Defaults, mutator);
         }
     }
 
@@ -94,7 +94,7 @@ public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<B
         }
 
         @Override
-        public void mutate(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs) {
             @SuppressWarnings("unchecked")
             Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
             binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {

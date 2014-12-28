@@ -69,9 +69,9 @@ class DefaultCollectionBuilderTest extends Specification {
         def mutator = Stub(ModelAction)
         mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
-        mutator.mutate(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
+        mutator.execute(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.mutate(ModelActionRole.Mutate, mutator)
+        registry.apply(ModelActionRole.Mutate, mutator)
         registry.node(containerPath)
     }
 
