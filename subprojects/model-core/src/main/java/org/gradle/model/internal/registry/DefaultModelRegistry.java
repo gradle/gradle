@@ -36,7 +36,9 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.model.internal.core.ModelActionRole.*;
 import static org.gradle.model.internal.core.ModelNode.State.*;
@@ -60,9 +62,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
     private final Multimap<MutationKey, BoundModelMutator<?>> actions = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedActions = ArrayListMultimap.create();
-
-    // TODO rework this listener mechanism to be more targeted, in that interested parties nominate what they are interested in (e.g. path or type) and use this to only notify relevant listeners
-    private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
@@ -121,7 +120,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         node = parent.addLink(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
         modelGraph.add(node);
-        notifyCreationListeners(node);
         bind(creator);
         return node;
     }
@@ -219,21 +217,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void registerListener(ModelCreationListener listener) {
-        boolean remove;
-
-        // Copy the creations we know about now because a listener may add creations, causing a CME.
-        // This can happen when a listener is listening in order to bind a type-only reference, and the
-        // reference binding causing the rule to fully bind and register a new creation.
-        List<ModelNode> currentCreations = Lists.newArrayList(modelGraph.getFlattened().values());
-
-        for (ModelNode node : currentCreations) {
-            remove = listener.onCreate(node);
-            if (remove) {
-                return;
-            }
-        }
-
-        modelCreationListeners.add(listener);
+        modelGraph.addListener(listener);
     }
 
     public void remove(ModelPath path) {
@@ -475,18 +459,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ModelRuleInput.of(binding, view);
     }
 
-    private void notifyCreationListeners(ModelNode node) {
-        // Deal with listeners that add listeners. This could be more elegant
-        List<ModelCreationListener> discard = new ArrayList<ModelCreationListener>();
-        for (ModelCreationListener listener : new ArrayList<ModelCreationListener>(modelCreationListeners)) {
-            boolean remove = listener.onCreate(node);
-            if (remove) {
-                discard.add(listener);
-            }
-        }
-        modelCreationListeners.removeAll(discard);
-    }
-
     private class NodeWrapper implements MutableModelNode {
         private final ModelNode node;
 
@@ -568,10 +540,10 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             registerListener(new ModelCreationListener() {
                 @Override
-                public boolean onCreate(ModelNode registration) {
+                public boolean onCreate(ModelNode node) {
                     ModelType<T> subjectType = action.getSubject().getType();
-                    if (getPath().isDirectChild(registration.getPath()) && registration.getPromise().canBeViewedAsWritable(subjectType)) {
-                        bind(ModelReference.of(registration.getPath(), subjectType), type, action);
+                    if (getPath().isDirectChild(node.getPath()) && node.getPromise().canBeViewedAsWritable(subjectType)) {
+                        bind(ModelReference.of(node.getPath(), subjectType), type, action);
                     }
                     return false;
                 }
@@ -632,7 +604,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private static class BinderCreationListener implements ModelCreationListener {
+    private static class BinderCreationListener extends ModelCreationListener {
         private final ModelRuleDescriptor descriptor;
         private final ModelReference<?> reference;
         private final boolean writable;

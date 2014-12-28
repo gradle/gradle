@@ -20,12 +20,15 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 public class ModelGraph {
     private final ModelNode root;
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
+    private final List<ModelCreationListener> listeners = new ArrayList<ModelCreationListener>();
+    private boolean notifying;
+    private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
+    private final List<ModelNode> pendingNodes = new ArrayList<ModelNode>();
 
     public ModelGraph() {
         EmptyModelProjection projection = new EmptyModelProjection();
@@ -36,12 +39,80 @@ public class ModelGraph {
         return root;
     }
 
-    public void add(ModelNode node) {
-        flattened.put(node.getPath(), node);
-    }
-
     public Map<ModelPath, ModelNode> getFlattened() {
         return Collections.unmodifiableMap(flattened);
+    }
+
+    public void add(ModelNode node) {
+        if (notifying) {
+            pendingNodes.add(node);
+            return;
+        }
+
+        doAdd(node);
+        flush();
+    }
+
+    private void doAdd(ModelNode node) {
+        flattened.put(node.getPath(), node);
+        notifying = true;
+        try {
+            Iterator<ModelCreationListener> iterator = listeners.iterator();
+            while (iterator.hasNext()) {
+                ModelCreationListener listener = iterator.next();
+                if (maybeNotify(listener, node)) {
+                    iterator.remove();
+                }
+            }
+        } finally {
+            notifying = false;
+        }
+    }
+
+    public void addListener(ModelCreationListener listener) {
+        if (notifying) {
+            pendingListeners.add(listener);
+            return;
+        }
+
+        doAddListener(listener);
+        flush();
+    }
+
+    private void doAddListener(ModelCreationListener listener) {
+        notifying = true;
+        try {
+            for (ModelNode node : flattened.values()) {
+                if (maybeNotify(listener, node)) {
+                    return;
+                }
+            }
+            listeners.add(listener);
+        } finally {
+            notifying = false;
+        }
+    }
+
+    private void flush() {
+        while (!pendingListeners.isEmpty()) {
+            doAddListener(pendingListeners.remove(0));
+        }
+        while (!pendingNodes.isEmpty()) {
+            doAdd(pendingNodes.remove(0));
+        }
+    }
+
+    private boolean maybeNotify(ModelCreationListener listener, ModelNode node) {
+        if (listener.matchPath() != null && !node.getPath().equals(listener.matchPath())) {
+            return false;
+        }
+        if (listener.matchParent() != null && !node.getPath().getParent().equals(listener.matchParent())) {
+            return false;
+        }
+        if (listener.matchType() != null && !node.getPromise().canBeViewedAsWritable(listener.matchType()) && !node.getPromise().canBeViewedAsReadOnly(listener.matchType())) {
+            return false;
+        }
+        return listener.onCreate(node);
     }
 
     @Nullable
