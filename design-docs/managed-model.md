@@ -654,6 +654,10 @@ Add a way to validate a model element prior to it being used as an input by 'use
     - Decent error message when applying rule to unknown element in container
     - Decent error message when using DSL to create element of unknown/incorrect type
 
+#### Issues
+
+- Currently does not extract rules or input references at compile time. Rules are added at execution time via a `CollectionBuilder`.
+
 ### Tasks defined using `CollectionBuilder` are not eagerly created and configured
 
 - Change `DefaultCollectionBuilder` implementation to register a creation rule rather than eagerly instantiating and configuring.
