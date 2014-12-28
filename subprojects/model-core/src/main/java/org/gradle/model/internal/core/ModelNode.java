@@ -27,7 +27,20 @@ import java.util.Map;
 
 public class ModelNode implements ModelCreation {
     public enum State {
-        Known, Created, SelfClosed, GraphClosed
+        Known(true),
+        Created(true),
+        DefaultsApplied(true),
+        Initialized(true),
+        Mutated(true),
+        Finalized(false),
+        SelfClosed(false),
+        GraphClosed(false);
+
+        final boolean mutable;
+
+        State(boolean mutable) {
+            this.mutable = mutable;
+        }
     }
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
@@ -62,6 +75,14 @@ public class ModelNode implements ModelCreation {
         this.state = state;
     }
 
+    public boolean isMutable() {
+        return state.mutable;
+    }
+
+    public boolean canApply(MutationType type) {
+        return type.ordinal() > state.ordinal() - State.Created.ordinal();
+    }
+
     public ModelPromise getPromise() {
         return promise;
     }
@@ -85,19 +106,8 @@ public class ModelNode implements ModelCreation {
     }
 
     public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-
         ModelNode node = new ModelNode(creationPath.child(name), descriptor, promise, adapter);
-
-        ModelNode previous = links.put(name, node);
-        if (previous != null) {
-            throw new DuplicateModelException(
-                    String.format(
-                            "Cannot create '%s' as it was already created by: %s",
-                            node.getPath(), previous.getDescriptor()
-                    )
-            );
-        }
-
+        links.put(name, node);
         return node;
     }
 

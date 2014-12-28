@@ -36,10 +36,10 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.gradle.model.internal.core.ModelNode.State.*;
+import static org.gradle.model.internal.core.MutationType.*;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
@@ -90,7 +90,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         ModelNode node = modelGraph.find(path);
         if (node != null) {
-            if (node.getState() == ModelNode.State.Known) {
+            if (node.getState() == Known) {
                 throw new DuplicateModelException(
                         String.format(
                                 "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
@@ -106,6 +106,16 @@ public class DefaultModelRegistry implements ModelRegistry {
                             path,
                             toString(creator.getDescriptor()),
                             toString(node.getDescriptor())
+                    )
+            );
+        }
+        if (!parent.isMutable()) {
+            throw new IllegalStateException(
+                    String.format(
+                            "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
+                            path,
+                            toString(creator.getDescriptor()),
+                            parent.getPath()
                     )
             );
         }
@@ -154,6 +164,16 @@ public class DefaultModelRegistry implements ModelRegistry {
             public void execute(RuleBinder<T> ruleBinder) {
                 BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
                 ModelPath path = boundMutator.getSubject().getPath();
+                ModelNode subject = modelGraph.find(path);
+                if (!subject.canApply(type)) {
+                    throw new IllegalStateException(String.format(
+                            "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
+                            type,
+                            boundMutator.getMutator().getDescriptor(),
+                            path,
+                            subject.getState()
+                            ));
+                }
                 mutators.put(new MutationKey(path, type), boundMutator);
             }
         });
@@ -199,7 +219,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return new NodeWrapper(require(path));
     }
 
-    public void registerListener(ModelCreationListener listener) {
+    private void registerListener(ModelCreationListener listener) {
         boolean remove;
 
         // Copy the creations we know about now because a listener may add creations, causing a CME.
@@ -319,7 +339,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void close(ModelNode node) {
-        if (node.getState() == ModelNode.State.GraphClosed) {
+        if (node.getState() == GraphClosed) {
             return;
         }
 
@@ -334,41 +354,42 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void maybeCloseLinked(ModelNode node) {
-        ModelPath path = node.getPath();
-        if (node.getState() == ModelNode.State.SelfClosed) {
+        if (node.getState() == SelfClosed) {
             for (ModelNode child : node.getLinks().values()) {
                 close(child);
             }
-            node.setState(ModelNode.State.GraphClosed);
+            node.setState(GraphClosed);
         }
     }
 
     private void maybeMutate(ModelNode node) {
         ModelPath path = node.getPath();
-        if (node.getState() == ModelNode.State.Created) {
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Defaults)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Initialize)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Mutate)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Finalize)), usedMutators);
-            fireMutations(node, path, mutators.removeAll(new MutationKey(path, MutationType.Validate)), usedMutators);
-            node.setState(ModelNode.State.SelfClosed);
-        }
+        fireMutations(node, path, Defaults, Created, DefaultsApplied);
+        fireMutations(node, path, Initialize, DefaultsApplied, Initialized);
+        fireMutations(node, path, Mutate, Initialized, Mutated);
+        fireMutations(node, path, Finalize, Mutated, Finalized);
+        fireMutations(node, path, Validate, Finalized, SelfClosed);
     }
 
     private void maybeCreate(ModelNode node) {
         ModelPath path = node.getPath();
-        if (node.getState() == ModelNode.State.Known) {
+        if (node.getState() == Known) {
             BoundModelCreator creator = creators.remove(path);
             if (creator == null) {
                 // Unbound creator - should give better error message here
                 throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
             }
             doCreate(node, creator);
-            node.setState(ModelNode.State.Created);
+            node.setState(Created);
         }
     }
 
-    private void fireMutations(ModelNode node, ModelPath path, Iterable<BoundModelMutator<?>> mutators, Multimap<ModelPath, List<ModelPath>> used) {
+    private void fireMutations(ModelNode node, ModelPath path, MutationType type, ModelNode.State from, ModelNode.State to) {
+        if (node.getState() != from) {
+            return;
+        }
+
+        Collection<BoundModelMutator<?>> mutators = this.mutators.removeAll(new MutationKey(path, type));
         for (BoundModelMutator<?> mutator : mutators) {
             fireMutation(node, mutator);
             List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
@@ -377,8 +398,10 @@ public class DefaultModelRegistry implements ModelRegistry {
                     return input.getPath();
                 }
             });
-            used.put(path, inputPaths);
+            usedMutators.put(path, inputPaths);
         }
+
+        node.setState(to);
     }
 
     private <T> ModelView<? extends T> assertView(ModelNode node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
@@ -490,6 +513,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             return node.getPath();
         }
 
+        @Override
+        public boolean isMutable() {
+            return node.isMutable();
+        }
+
         @Nullable
         @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
@@ -528,7 +556,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public <T> void mutateLink(MutationType type, ModelMutator<T> mutator) {
             if (!getPath().isDirectChild(mutator.getSubject().getPath())) {
-                throw new IllegalArgumentException(String.format("Mutator reference has a path (%s) which is not a child of this node (%s).", mutator.getSubject().getPath(), getPath()));
+                throw new IllegalArgumentException(String.format("Linked element mutator reference has a path (%s) which is not a child of this node (%s).", mutator.getSubject().getPath(), getPath()));
             }
             bind(mutator.getSubject(), type, mutator);
         }
@@ -536,7 +564,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public <T> void mutateAllLinks(final MutationType type, final ModelMutator<T> mutator) {
             if (mutator.getSubject().getPath() != null) {
-                throw new IllegalArgumentException("Mutator reference must have null path.");
+                throw new IllegalArgumentException("Linked element mutator reference must have null path.");
             }
 
             registerListener(new ModelCreationListener() {
@@ -554,7 +582,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public MutableModelNode addLink(ModelCreator creator) {
             if (!getPath().isDirectChild(creator.getPath())) {
-                throw new IllegalArgumentException(String.format("Creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
+                throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
             return new NodeWrapper(doCreate(node, creator));
 
@@ -577,6 +605,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> void setPrivateData(ModelType<T> type, T object) {
+            if (!node.isMutable()) {
+                throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
+            }
             node.setPrivateData(type, object);
         }
     }

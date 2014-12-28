@@ -24,6 +24,7 @@ import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultModelRegistryTest extends Specification {
 
@@ -218,7 +219,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.get(ModelPath.path("foo"), ModelType.of(Bean))
 
         then:
-        1 * action.execute(_) >> { MutableModelNode node -> node.addLink(creator("foo.bar", String, "value", action))}
+        1 * action.execute(_) >> { MutableModelNode node -> node.addLink(creator("foo.bar", String, "value", action)) }
         1 * action.execute(_)
         0 * action._
     }
@@ -323,6 +324,71 @@ class DefaultModelRegistryTest extends Specification {
         expect:
         registry.get(ModelPath.path("parent.foo"), ModelType.of(Bean)).value == "prefix: foo"
         registry.get(ModelPath.path("parent.bar"), ModelType.of(Bean)).value == "bar"
+    }
+
+    def "cannot attach link when element is not mutable"() {
+        def action = Stub(Action)
+
+        given:
+        registry.create(creator("thing", String, "value"))
+        registry.mutate(MutationType.Validate, nodeMutator("thing", Object, action))
+        action.execute(_) >> { MutableModelNode node -> node.addLink(creator("thing.child", String, "value")) }
+
+        when:
+        registry.get(ModelPath.path("thing"), ModelType.untyped())
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message == "Cannot create 'thing.child' using creation rule 'create thing.child as String' as model element 'thing' is no longer mutable."
+    }
+
+    def "cannot set value when element is not mutable"() {
+        def action = Stub(Action)
+
+        given:
+        registry.create(creator("thing", String, "value"))
+        registry.mutate(MutationType.Validate, nodeMutator("thing", Object, action))
+        action.execute(_) >> { MutableModelNode node -> node.setPrivateData(ModelType.of(String), "value 2") }
+
+        when:
+        registry.get(ModelPath.path("thing"), ModelType.untyped())
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message == "Cannot set value for model element 'thing' as this element is not mutable."
+    }
+
+    @Unroll
+    def "cannot add action for #targetState mutation when in #fromState mutation"() {
+        def action = Stub(Action)
+
+        given:
+        registry.create(creator("thing", String, "value"))
+        registry.mutate(fromState, nodeMutator("thing", Object, action))
+        action.execute(_) >> { MutableModelNode node -> registry.mutate(targetState, mutator("thing", String, {})) }
+
+        when:
+        registry.get(ModelPath.path("thing"), ModelType.untyped())
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message.startsWith "Cannot add $targetState rule 'thing' for model element 'thing'"
+
+        where:
+        fromState               | targetState
+        MutationType.Initialize | MutationType.Defaults
+        MutationType.Mutate     | MutationType.Defaults
+        MutationType.Mutate     | MutationType.Initialize
+        MutationType.Finalize   | MutationType.Defaults
+        MutationType.Finalize   | MutationType.Initialize
+        MutationType.Finalize   | MutationType.Mutate
+        MutationType.Validate   | MutationType.Defaults
+        MutationType.Validate   | MutationType.Initialize
+        MutationType.Validate   | MutationType.Mutate
+        MutationType.Validate   | MutationType.Finalize
     }
 
     class Bean {

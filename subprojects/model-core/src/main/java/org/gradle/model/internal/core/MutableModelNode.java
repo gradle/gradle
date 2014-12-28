@@ -64,4 +64,6 @@ public interface MutableModelNode {
      * Ensure the node value has been created and that the views are available.
      */
     void ensureCreated();
+
+    boolean isMutable();
 }
