@@ -175,7 +175,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
         });
 
-        registerListener(new BinderCreationListener(binder.getDescriptor(), binder.getSubjectReference(), true, new Action<ModelPath>() {
+        registerListener(listener(binder.getDescriptor(), binder.getSubjectReference(), true, new Action<ModelPath>() {
             public void execute(ModelPath modelPath) {
                 binder.bindSubject(modelPath);
             }
@@ -188,12 +188,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
         for (int i = 0; i < inputReferences.size(); i++) {
             final int finalI = i;
-            registerListener(new BinderCreationListener(binder.getDescriptor(), inputReferences.get(i), false, new Action<ModelPath>() {
+            registerListener(listener(binder.getDescriptor(), inputReferences.get(i), false, new Action<ModelPath>() {
                 public void execute(ModelPath modelPath) {
                     binder.bindInput(finalI, modelPath);
                 }
             }));
         }
+    }
+
+    private ModelCreationListener listener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelPath> bindAction) {
+        if (reference.getPath() != null) {
+            return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
+        }
+        return new OneOfTypeBinderCreationListener(descriptor, reference, writable, bindAction);
     }
 
     public <T> T get(ModelPath path, ModelType<T> type) {
@@ -539,12 +546,21 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
 
             registerListener(new ModelCreationListener() {
+                @Nullable
+                @Override
+                public ModelPath matchParent() {
+                    return node.getPath();
+                }
+
+                @Nullable
+                @Override
+                public ModelType<?> matchType() {
+                    return action.getSubject().getType();
+                }
+
                 @Override
                 public boolean onCreate(ModelNode node) {
-                    ModelType<T> subjectType = action.getSubject().getType();
-                    if (getPath().isDirectChild(node.getPath()) && node.getPromise().canBeViewedAsWritable(subjectType)) {
-                        bind(ModelReference.of(node.getPath(), subjectType), type, action);
-                    }
+                    bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action);
                     return false;
                 }
             });
@@ -604,55 +620,86 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private static class BinderCreationListener extends ModelCreationListener {
-        private final ModelRuleDescriptor descriptor;
-        private final ModelReference<?> reference;
-        private final boolean writable;
-        private final Action<? super ModelPath> bindAction;
-        private ModelPath boundTo;
-        private ModelRuleDescriptor boundToCreator;
+    private static abstract class BinderCreationListener extends ModelCreationListener {
+        final ModelRuleDescriptor descriptor;
+        final ModelReference<?> reference;
+        final boolean writable;
 
-        public BinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelPath> bindAction) {
+        public BinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable) {
             this.descriptor = descriptor;
             this.reference = reference;
             this.writable = writable;
+        }
+
+        boolean isTypeCompatible(ModelPromise promise) {
+            return writable ? promise.canBeViewedAsWritable(reference.getType()) : promise.canBeViewedAsReadOnly(reference.getType());
+        }
+    }
+
+    private static class PathBinderCreationListener extends BinderCreationListener {
+        private final Action<? super ModelPath> bindAction;
+
+        public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelPath> bindAction) {
+            super(descriptor, reference, writable);
             this.bindAction = bindAction;
+        }
+
+        @Nullable
+        @Override
+        public ModelPath matchPath() {
+            return reference.getPath();
         }
 
         public boolean onCreate(ModelNode node) {
             ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
             ModelPath path = node.getPath();
             ModelPromise promise = node.getPromise();
-            if (path.isTopLevel() && boundTo != null && isTypeCompatible(promise)) {
+            if (isTypeCompatible(promise)) {
+                bindAction.execute(path);
+                return true; // bound by type and path, stop listening
+            } else {
                 throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                        new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
+                        IncompatibleTypeReferenceReporter.of(creatorDescriptor, promise, reference, writable).asString()
                 ));
-            } else if (reference.getPath() == null && path.isTopLevel()) {
-                boolean typeCompatible = isTypeCompatible(promise);
-                if (typeCompatible) {
-                    bindAction.execute(path);
-                    boundTo = path;
-                    boundToCreator = creatorDescriptor;
-                    return false; // don't unregister listener, need to keep listening for other potential bindings
-                }
-            } else if (path.equals(reference.getPath())) {
-                boolean typeCompatible = isTypeCompatible(promise);
-                if (typeCompatible) {
-                    bindAction.execute(path);
-                    return true; // bound by type and path, stop listening
-                } else {
-                    throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                            IncompatibleTypeReferenceReporter.of(creatorDescriptor, promise, reference, writable).asString()
-                    ));
-                }
             }
-
-            return false;
-        }
-
-        private boolean isTypeCompatible(ModelPromise promise) {
-            return writable ? promise.canBeViewedAsWritable(reference.getType()) : promise.canBeViewedAsReadOnly(reference.getType());
         }
     }
 
+    private static class OneOfTypeBinderCreationListener extends BinderCreationListener {
+        private final Action<? super ModelPath> bindAction;
+        private ModelPath boundTo;
+        private ModelRuleDescriptor boundToCreator;
+
+        public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable, Action<? super ModelPath> bindAction) {
+            super(descriptor, reference, writable);
+            this.bindAction = bindAction;
+        }
+
+        @Nullable
+        @Override
+        public ModelPath matchParent() {
+            return ModelPath.ROOT;
+        }
+
+        @Nullable
+        @Override
+        public ModelType<?> matchType() {
+            return reference.getType();
+        }
+
+        public boolean onCreate(ModelNode node) {
+            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
+            ModelPath path = node.getPath();
+            if (boundTo != null) {
+                throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
+                        new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
+                ));
+            } else {
+                bindAction.execute(path);
+                boundTo = path;
+                boundToCreator = creatorDescriptor;
+                return false; // don't unregister listener, need to keep listening for other potential bindings
+            }
+        }
+    }
 }
